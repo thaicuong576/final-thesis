@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "environment": "offline_fixture",
+  "comparative_result": false,
+  "run_id": "offline-single_agent",
+  "snapshot_id": "offline-fixture-gold-v1",
+  "question_set_id": "offline-fixture-questions-v1",
+  "question_id": "q1",
+  "rubric_version": "offline-fixture-rubric-v1",
+  "arm": "single_agent",
+  "model_id": "offline-fixture-model",
+  "source_policy_id": "offline-fixture-primary-only-v1",
+  "ticker": "VCB",
+  "period": "2024_Q1",
+  "metric_ids": [
+    "bank.npl_g35"
+  ],
+  "input_observation_ids": [
+    "offline-obs-acb",
+    "offline-obs-vcb"
+  ],
+  "input_source_ids": [
+    "offline-fixture-source"
+  ],
+  "input_evidence_ids": [],
+  "input_context_sha256": "c59973c9beb271154e30474ab0a7a575dd6e8c3754783586912ea1d1d130e525",
+  "call_count": 1,
+  "calls": [
+    {
+      "role": "single_agent",
+      "attempt": 0,
+      "context_sha256": "c59973c9beb271154e30474ab0a7a575dd6e8c3754783586912ea1d1d130e525",
+      "payload_agent_id": "single_agent",
+      "payload_status": "success"
+    }
+  ],
+  "payloads": [
+    {
+      "agent_id": "single_agent",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    }
+  ],
+  "recorded_at_utc": "2026-09-05T00:00:00Z"
+}

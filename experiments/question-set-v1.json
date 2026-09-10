@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "question_set_id": "pilot-2024-bank-qa-v1",
+  "status": "draft_ready_for_advisor_and_gold_binding",
+  "scope": {
+    "issuers": ["ACB", "TCB", "VPB"],
+    "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+    "core_metrics": [
+      "bank.npl_g35",
+      "bank.llr_coverage",
+      "bank.roa",
+      "bank.roe"
+    ],
+    "conditional_metrics": ["bank.cir", "bank.nim"]
+  },
+  "questions": [
+    {
+      "id": "ACB_snapshot_q4",
+      "issuer": "ACB",
+      "type": "company_snapshot",
+      "period": "2024_Q4",
+      "prompt": "Report the four core metrics for ACB in 2024_Q4 with units, period basis, and source locators. Mark any unavailable metric with its missing or conflict reason."
+    },
+    {
+      "id": "ACB_trend_2024",
+      "issuer": "ACB",
+      "type": "company_trend",
+      "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+      "prompt": "Describe the supported 2024 quarterly direction of ACB's NPL, ROA, and ROE. Separate observed change from interpretation and cite each numeric claim."
+    },
+    {
+      "id": "ACB_peer_q4",
+      "issuer": "ACB",
+      "type": "peer_comparison",
+      "period": "2024_Q4",
+      "peer_set": ["ACB", "TCB", "VPB"],
+      "prompt": "Compare ACB with the accepted pilot peer median for each available core metric in 2024_Q4. Do not calculate a median from pending or missing rows."
+    },
+    {
+      "id": "ACB_anomaly_q4",
+      "issuer": "ACB",
+      "type": "anomaly_review",
+      "period": "2024_Q4",
+      "trigger_ids": ["company_metric_missing"],
+      "prompt": "Identify any cross-source or cross-level inconsistency relevant to ACB in 2024_Q4, classify it as true contradiction, explainable divergence, data conflict, or insufficient evidence, and state the supporting evidence."
+    },
+    {
+      "id": "TCB_snapshot_q4",
+      "issuer": "TCB",
+      "type": "company_snapshot",
+      "period": "2024_Q4",
+      "prompt": "Report the four core metrics for TCB in 2024_Q4 with units, period basis, and source locators. Mark any unavailable metric with its missing or conflict reason."
+    },
+    {
+      "id": "TCB_trend_2024",
+      "issuer": "TCB",
+      "type": "company_trend",
+      "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+      "prompt": "Describe the supported 2024 quarterly direction of TCB's NPL, ROA, and ROE. Separate observed change from interpretation and cite each numeric claim."
+    },
+    {
+      "id": "TCB_peer_q4",
+      "issuer": "TCB",
+      "type": "peer_comparison",
+      "period": "2024_Q4",
+      "peer_set": ["ACB", "TCB", "VPB"],
+      "prompt": "Compare TCB with the accepted pilot peer median for each available core metric in 2024_Q4. Do not calculate a median from pending or missing rows."
+    },
+    {
+      "id": "TCB_anomaly_q4",
+      "issuer": "TCB",
+      "type": "anomaly_review",
+      "period": "2024_Q4",
+      "trigger_ids": ["sector_benchmark_missing"],
+      "prompt": "Identify any cross-source or cross-level inconsistency relevant to TCB in 2024_Q4, classify it as true contradiction, explainable divergence, data conflict, or insufficient evidence, and state the supporting evidence."
+    },
+    {
+      "id": "VPB_snapshot_q4",
+      "issuer": "VPB",
+      "type": "company_snapshot",
+      "period": "2024_Q4",
+      "prompt": "Report the four core metrics for VPB in 2024_Q4 with units, period basis, and source locators. Mark any unavailable metric with its missing or conflict reason."
+    },
+    {
+      "id": "VPB_trend_2024",
+      "issuer": "VPB",
+      "type": "company_trend",
+      "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+      "prompt": "Describe the supported 2024 quarterly direction of VPB's NPL, ROA, and ROE. Separate observed change from interpretation and cite each numeric claim."
+    },
+    {
+      "id": "VPB_peer_q4",
+      "issuer": "VPB",
+      "type": "peer_comparison",
+      "period": "2024_Q4",
+      "peer_set": ["ACB", "TCB", "VPB"],
+      "prompt": "Compare VPB with the accepted pilot peer median for each available core metric in 2024_Q4. Do not calculate a median from pending or missing rows."
+    },
+    {
+      "id": "VPB_anomaly_q4",
+      "issuer": "VPB",
+      "type": "anomaly_review",
+      "period": "2024_Q4",
+      "trigger_ids": ["company_sector_deviation"],
+      "prompt": "Identify any cross-source or cross-level inconsistency relevant to VPB in 2024_Q4, classify it as true contradiction, explainable divergence, data conflict, or insufficient evidence, and state the supporting evidence."
+    },
+    {
+      "id": "TCB_macro_to_bank_q4",
+      "issuer": "TCB",
+      "type": "macro_to_bank",
+      "period": "2024_Q4",
+      "macro_indicator_ids": ["macro.policy_rate", "macro.credit_growth"],
+      "bank_metric_ids": ["bank.roa", "bank.roe"],
+      "causal_claim_policy": "association_only",
+      "prompt": "Relate the accepted 2024_Q4 macro context (policy rate and system credit growth) to TCB's ROA and ROE. Separate observed macro and bank facts from interpretation, do not infer causality from one period, and report any unavailable macro or bank observation with its reason and locator."
+    },
+    {
+      "id": "ACB_known_conflict_q2",
+      "issuer": "ACB",
+      "type": "known_missing_or_conflict",
+      "period": "2024_Q2",
+      "target_cell": {
+        "issuer": "ACB",
+        "period": "2024_Q2",
+        "metric": "bank.llr_coverage"
+      },
+      "case_kind": "known_conflict",
+      "prompt": "The pre-registered pilot evidence contains two ACB 2024_Q2 loan-loss-reserve coverage variants with different scope treatment. Report the Gold-selected value or the justified missing/conflicting status, identify the definition and source locator, and disclose the excluded or unresolved alternative without silently merging the variants."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "status": "offline_fixture",
+  "question_set_id": "offline-fixture-questions-v1",
+  "scope": {
+    "issuers": [
+      "VCB",
+      "ACB"
+    ],
+    "periods": [
+      "2024_Q1"
+    ],
+    "core_metrics": [
+      "bank.npl_g35"
+    ]
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "issuer": "VCB",
+      "type": "company_snapshot",
+      "period": "2024_Q1",
+      "prompt": "offline fixture"
+    }
+  ]
+}

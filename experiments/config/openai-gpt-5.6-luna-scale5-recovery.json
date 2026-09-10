@@ -1,0 +1,17 @@
+{
+  "adapter_id": "openai-responses-tool-calling-v1",
+  "provider_id": "openai",
+  "model_id": "gpt-5.6-luna",
+  "source_policy_id": "primary-only-v1",
+  "environment": "provider_backed",
+  "retrieval_mode": "tool_calling",
+  "max_tool_calls": 32,
+  "network_access": "enabled",
+  "api_key_env_var": "OPENAI_API_KEY",
+  "temperature": 0.0,
+  "reasoning_effort": "none",
+  "max_output_tokens": 128000,
+  "max_context_chars": 180000,
+  "timeout_seconds": 300.0,
+  "telemetry_required": true
+}

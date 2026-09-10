@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "question_set_id": "pilot-2024-bank-complexity-v1",
+  "status": "frozen_for_provider_pilot_pending_execution",
+  "scope": {
+    "issuers": ["ACB", "TCB", "VPB"],
+    "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+    "core_metrics": [
+      "bank.npl_g35",
+      "bank.llr_coverage",
+      "bank.roa",
+      "bank.roe"
+    ],
+    "conditional_metrics": ["bank.cir", "bank.nim"]
+  },
+  "questions": [
+    {
+      "id": "ACB_composite_tier2_v1",
+      "type": "composite_workload",
+      "prompt": "For ACB, produce one evidence-grounded composite analysis covering all four 2024 quarters and the four core metrics. Complete snapshot, trend, peer comparison, missing/conflict, anomaly, and evidence-summary tasks. Separate observed facts from interpretation and preserve claim-level provenance.",
+      "workload": {
+        "question_id": "ACB_composite_tier2_v1",
+        "tier": "tier_2",
+        "issuers": ["ACB"],
+        "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+        "metric_ids": ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"],
+        "analysis_tasks": ["snapshot", "trend", "peer_comparison", "missing_conflict", "anomaly_review", "evidence_summary"],
+        "peer_tickers": ["ACB", "TCB", "VPB"],
+        "macro_indicator_ids": [],
+        "complexity_vector": {
+          "issuer_count": 1,
+          "period_count": 4,
+          "metric_count": 4,
+          "analysis_task_count": 6,
+          "cross_issuer_comparisons": 1,
+          "missing_conflict_checks": 16,
+          "evidence_groups": 4
+        }
+      }
+    },
+    {
+      "id": "TCB_composite_tier2_v1",
+      "type": "composite_workload",
+      "prompt": "For TCB, produce one evidence-grounded composite analysis covering all four 2024 quarters and the four core metrics. Complete snapshot, trend, peer comparison, missing/conflict, anomaly, and evidence-summary tasks. Separate observed facts from interpretation and preserve claim-level provenance.",
+      "workload": {
+        "question_id": "TCB_composite_tier2_v1",
+        "tier": "tier_2",
+        "issuers": ["TCB"],
+        "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+        "metric_ids": ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"],
+        "analysis_tasks": ["snapshot", "trend", "peer_comparison", "missing_conflict", "anomaly_review", "evidence_summary"],
+        "peer_tickers": ["ACB", "TCB", "VPB"],
+        "macro_indicator_ids": [],
+        "complexity_vector": {
+          "issuer_count": 1,
+          "period_count": 4,
+          "metric_count": 4,
+          "analysis_task_count": 6,
+          "cross_issuer_comparisons": 1,
+          "missing_conflict_checks": 16,
+          "evidence_groups": 4
+        }
+      }
+    },
+    {
+      "id": "VPB_composite_tier2_v1",
+      "type": "composite_workload",
+      "prompt": "For VPB, produce one evidence-grounded composite analysis covering all four 2024 quarters and the four core metrics. Complete snapshot, trend, peer comparison, missing/conflict, anomaly, and evidence-summary tasks. Separate observed facts from interpretation and preserve claim-level provenance.",
+      "workload": {
+        "question_id": "VPB_composite_tier2_v1",
+        "tier": "tier_2",
+        "issuers": ["VPB"],
+        "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+        "metric_ids": ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"],
+        "analysis_tasks": ["snapshot", "trend", "peer_comparison", "missing_conflict", "anomaly_review", "evidence_summary"],
+        "peer_tickers": ["ACB", "TCB", "VPB"],
+        "macro_indicator_ids": [],
+        "complexity_vector": {
+          "issuer_count": 1,
+          "period_count": 4,
+          "metric_count": 4,
+          "analysis_task_count": 6,
+          "cross_issuer_comparisons": 1,
+          "missing_conflict_checks": 16,
+          "evidence_groups": 4
+        }
+      }
+    },
+    {
+      "id": "bank_landscape_composite_tier3_v1",
+      "type": "composite_workload",
+      "prompt": "Analyze ACB, TCB, and VPB together across all four 2024 quarters and the four core metrics. Produce a comparable landscape covering issuer snapshots, cross-period trends, peer comparisons, missing/conflict checks, anomaly review, and evidence summaries. Keep every claim bound to issuer, period, task, and provenance; do not infer causality.",
+      "workload": {
+        "question_id": "bank_landscape_composite_tier3_v1",
+        "tier": "tier_3",
+        "issuers": ["ACB", "TCB", "VPB"],
+        "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+        "metric_ids": ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"],
+        "analysis_tasks": ["snapshot", "trend", "peer_comparison", "missing_conflict", "anomaly_review", "evidence_summary"],
+        "peer_tickers": ["ACB", "TCB", "VPB"],
+        "macro_indicator_ids": [],
+        "complexity_vector": {
+          "issuer_count": 3,
+          "period_count": 4,
+          "metric_count": 4,
+          "analysis_task_count": 6,
+          "cross_issuer_comparisons": 1,
+          "missing_conflict_checks": 48,
+          "evidence_groups": 12
+        }
+      }
+    }
+  ]
+}

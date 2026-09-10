@@ -1,0 +1,170 @@
+{
+  "schema_version": 2,
+  "environment": "offline_fixture",
+  "comparative_result": false,
+  "run_id": "offline-hierarchical_no_critique",
+  "job_id": null,
+  "snapshot_id": "offline-fixture-gold-v1",
+  "question_set_id": "offline-fixture-questions-v1",
+  "question_set_sha256": "cd071b296d77a5f90c806748e960f9a5695b1e084afef4f0100380d45c64dd1d",
+  "question_id": "q1",
+  "rubric_version": "offline-fixture-rubric-v1",
+  "prompt_version": "offline-fixture-prompt-v1",
+  "arm": "hierarchical_no_critique",
+  "model_id": "offline-fixture-model",
+  "source_policy_id": "offline-fixture-primary-only-v1",
+  "ticker": "VCB",
+  "period": "2024_Q1",
+  "periods": [
+    "2024_Q1"
+  ],
+  "metric_ids": [
+    "bank.npl_g35"
+  ],
+  "input_observation_ids": [
+    "offline-obs-acb",
+    "offline-obs-vcb"
+  ],
+  "input_source_ids": [
+    "offline-fixture-source"
+  ],
+  "input_evidence_ids": [
+    "offline-fixture-evidence"
+  ],
+  "input_context_sha256": "1a4f889dfe855efa7b14762f403f19400c3306884aaca5a056082e460dcb0251",
+  "anomaly_triggers": [],
+  "call_count": 4,
+  "calls": [
+    {
+      "role": "macro",
+      "attempt": 0,
+      "periods": [
+        "2024_Q1"
+      ],
+      "context_sha256": "369e194e3a0d6346986bfe360009caad659b606794f0075257b47d56887d150f",
+      "payload_agent_id": "macro",
+      "payload_status": "success",
+      "telemetry_status": "unavailable",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_estimate": null
+    },
+    {
+      "role": "sector",
+      "attempt": 0,
+      "periods": [
+        "2024_Q1"
+      ],
+      "context_sha256": "779da8b1963a874639abc322643963be197baf28f14e77554ff63826b5165600",
+      "payload_agent_id": "sector",
+      "payload_status": "success",
+      "telemetry_status": "unavailable",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_estimate": null
+    },
+    {
+      "role": "company",
+      "attempt": 0,
+      "periods": [
+        "2024_Q1"
+      ],
+      "context_sha256": "b39aa573c59f4da3d6cab1a2c590e13ad103801308707b701cceb02389f48f98",
+      "payload_agent_id": "company",
+      "payload_status": "success",
+      "telemetry_status": "unavailable",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_estimate": null
+    },
+    {
+      "role": "orchestrator",
+      "attempt": 0,
+      "periods": [
+        "2024_Q1"
+      ],
+      "context_sha256": "dd7cbf489f0ac1a9a5602ebf6557acaa17f119a3854795e909598d75c9963666",
+      "payload_agent_id": "orchestrator",
+      "payload_status": "success",
+      "telemetry_status": "unavailable",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_estimate": null
+    }
+  ],
+  "payloads": [
+    {
+      "agent_id": "macro",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "sector",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "company",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "orchestrator",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    }
+  ],
+  "recorded_at_utc": "2026-09-05T00:00:00Z"
+}

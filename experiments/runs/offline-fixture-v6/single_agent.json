@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "environment": "offline_fixture",
+  "comparative_result": false,
+  "run_id": "offline-single_agent",
+  "snapshot_id": "offline-fixture-gold-v1",
+  "question_set_id": "offline-fixture-questions-v1",
+  "question_set_sha256": "5e66bf99d620a7955f0ca1383d2d71bcfcc42a008939b43575221ee666764f08",
+  "question_id": "q1",
+  "rubric_version": "offline-fixture-rubric-v1",
+  "arm": "single_agent",
+  "model_id": "offline-fixture-model",
+  "source_policy_id": "offline-fixture-primary-only-v1",
+  "ticker": "VCB",
+  "period": "2024_Q1",
+  "metric_ids": [
+    "bank.npl_g35"
+  ],
+  "input_observation_ids": [
+    "offline-obs-acb",
+    "offline-obs-vcb"
+  ],
+  "input_source_ids": [
+    "offline-fixture-source"
+  ],
+  "input_evidence_ids": [
+    "offline-fixture-evidence"
+  ],
+  "input_context_sha256": "1a4f889dfe855efa7b14762f403f19400c3306884aaca5a056082e460dcb0251",
+  "anomaly_triggers": [],
+  "call_count": 1,
+  "calls": [
+    {
+      "role": "single_agent",
+      "attempt": 0,
+      "context_sha256": "1a4f889dfe855efa7b14762f403f19400c3306884aaca5a056082e460dcb0251",
+      "payload_agent_id": "single_agent",
+      "payload_status": "success",
+      "telemetry_status": "unavailable",
+      "latency_ms": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_estimate": null
+    }
+  ],
+  "payloads": [
+    {
+      "agent_id": "single_agent",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    }
+  ],
+  "recorded_at_utc": "2026-09-05T00:00:00Z"
+}

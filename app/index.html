@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bản xem trước báo cáo so sánh ngân hàng dựa trên nguồn có truy nguyên">
+  <title>V/Analysis — Báo cáo phân tích ngân hàng</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172027;
+      --ink-soft: #42515a;
+      --muted: #53636a;
+      --line: #d7ddd9;
+      --line-strong: #bac5bf;
+      --paper: #fbfcfa;
+      --canvas: #edf1ee;
+      --navy: #173b47;
+      --teal: #147d7b;
+      --teal-soft: #d8eeea;
+      --orange: #c56a3e;
+      --yellow: #f5eac6;
+      --red: #b24d45;
+      --shadow: 0 20px 45px rgba(26, 48, 53, .10);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 15px/1.55 "DM Sans", "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    ::selection { background: var(--navy); color: #fff; }
+    :focus-visible { outline: 3px solid #f4a77b; outline-offset: 3px; }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1240px; margin: 0 auto; padding: 0 28px 60px; }
+    .topbar { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--line-strong); }
+    .brand { display: flex; align-items: baseline; gap: 12px; color: var(--navy); }
+    .brand-mark { font-size: 18px; font-weight: 850; letter-spacing: -.05em; }
+    .brand-copy { color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .top-meta { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+    .status { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 999px; background: var(--teal-soft); color: #145f5c; font-weight: 750; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(310px, .75fr); gap: 52px; padding: 68px 0 54px; align-items: end; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { font-family: "Aptos Display", "DM Sans", "Segoe UI", sans-serif; letter-spacing: -.04em; }
+    h1 { max-width: 760px; margin-bottom: 18px; font-size: clamp(42px, 6vw, 74px); line-height: .98; font-weight: 820; }
+    h1 span { color: var(--orange); }
+    .hero-lede { max-width: 68ch; margin-bottom: 28px; color: var(--ink-soft); font-size: 17px; }
+    .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .control-label { color: var(--muted); font-size: 12px; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; }
+    select { appearance: none; min-width: 265px; padding: 10px 34px 10px 13px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23173b47' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 13px center; color: var(--ink); }
+    .decision-note { padding: 22px 24px 20px; border-top: 3px solid var(--orange); background: var(--paper); box-shadow: var(--shadow); }
+    .decision-note h2 { margin-bottom: 12px; color: var(--navy); font-size: 24px; line-height: 1.05; }
+    .decision-note p { margin-bottom: 14px; color: var(--ink-soft); }
+    .decision-note small { color: var(--muted); font-size: 12px; }
+    .stat-line { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    .stat { min-height: 116px; padding: 20px 18px 18px 0; }
+    .stat + .stat { padding-left: 18px; border-left: 1px solid var(--line); }
+    .stat-label { color: var(--muted); font-size: 12px; font-weight: 720; letter-spacing: .04em; text-transform: uppercase; }
+    .stat-value { display: block; margin: 6px 0 2px; color: var(--navy); font-size: 31px; font-weight: 800; letter-spacing: -.06em; }
+    .stat-detail { color: var(--ink-soft); font-size: 12px; }
+    .section { margin-top: 64px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 18px; }
+    .section-heading h2 { margin-bottom: 0; color: var(--navy); font-size: 29px; line-height: 1; }
+    .section-heading p { max-width: 56ch; margin-bottom: 0; color: var(--muted); font-size: 13px; }
+    .comparison-layout { display: grid; grid-template-columns: minmax(0, 1fr) 285px; gap: 28px; align-items: start; }
+    .table-frame { overflow: auto; background: var(--paper); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th, td { padding: 15px 16px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: #e3eae6; color: var(--navy); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+    td { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f0f5f2; }
+    .ticker { color: var(--navy); font-weight: 820; letter-spacing: .02em; }
+    .metric-head { display: block; font-size: 12px; letter-spacing: 0; text-transform: none; }
+    .metric-unit { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .rank-leaders { padding: 20px 0 2px; border-top: 3px solid var(--navy); }
+    .rank-leaders h3 { margin-bottom: 17px; color: var(--navy); font-size: 21px; }
+    .leader { padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .leader:last-child { border-bottom: 0; }
+    .leader-label { display: block; color: var(--muted); font-size: 11px; }
+    .leader strong { display: block; margin-top: 2px; color: var(--ink); font-size: 16px; }
+    .leader span { color: var(--teal); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .trend-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .segmented { display: flex; flex-wrap: wrap; gap: 7px; }
+    .segmented button { padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: 12px; font-weight: 720; }
+    .segmented button:hover, .segmented button.active { border-color: var(--navy); background: var(--navy); color: #fff; }
+    .trend-layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 28px; }
+    .chart-wrap { min-height: 310px; padding: 22px 22px 16px; background: var(--paper); box-shadow: var(--shadow); }
+    .chart-title { display: flex; justify-content: space-between; color: var(--ink-soft); font-size: 12px; }
+    .chart-title strong { color: var(--navy); font-size: 15px; }
+    .chart { display: block; width: 100%; height: 230px; margin-top: 12px; overflow: visible; }
+    .chart-grid { stroke: #dce4df; stroke-width: 1; }
+    .chart-axis { fill: var(--muted); font: 11px "DM Sans", sans-serif; }
+    .chart-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .chart-dot { stroke: var(--paper); stroke-width: 2; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: 12px; }
+    .legend-swatch { width: 8px; height: 8px; border-radius: 50%; }
+    .trend-aside { padding: 20px 0 0; border-top: 3px solid var(--teal); }
+    .trend-aside h3 { margin-bottom: 10px; color: var(--navy); font-size: 21px; }
+    .trend-aside p { margin-bottom: 15px; color: var(--ink-soft); font-size: 13px; }
+    .endpoint { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; padding: 11px 0; border-top: 1px solid var(--line); }
+    .endpoint label { color: var(--muted); font-size: 12px; }
+    .endpoint strong { color: var(--navy); font-variant-numeric: tabular-nums; }
+    .signal-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; }
+    .signal-list, .quality-box { background: var(--paper); box-shadow: var(--shadow); }
+    .signal-list { padding: 22px 24px; }
+    .signal-list h3, .quality-box h3 { margin-bottom: 15px; color: var(--navy); font-size: 21px; }
+    .signal-item { padding: 14px 0; border-top: 1px solid var(--line); }
+    .signal-item:first-of-type { border-top: 0; padding-top: 0; }
+    .signal-item strong { display: block; margin-bottom: 3px; color: var(--ink); }
+    .signal-item p { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .quality-box { padding: 22px 24px; }
+    .quality-meter { display: flex; align-items: baseline; gap: 10px; margin: 3px 0 13px; }
+    .quality-meter strong { color: var(--teal); font-size: 36px; letter-spacing: -.06em; }
+    .quality-meter span { color: var(--muted); font-size: 12px; }
+    .quality-bar { height: 8px; margin-bottom: 14px; background: #dfe8e3; }
+    .quality-bar i { display: block; height: 100%; width: 100%; background: var(--teal); }
+    .quality-list { margin: 0; padding: 0; list-style: none; }
+    .quality-list li { display: flex; justify-content: space-between; gap: 18px; padding: 8px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 12px; }
+    .quality-list b { color: var(--navy); font-variant-numeric: tabular-nums; }
+    .profile-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); }
+    .profile { min-height: 196px; padding: 18px 17px; background: var(--paper); }
+    .profile:hover { background: #f4f7f4; }
+    .profile h3 { margin-bottom: 4px; color: var(--navy); font-size: 24px; }
+    .profile .profile-caption { margin-bottom: 14px; color: var(--muted); font-size: 11px; }
+    .profile-line { display: flex; justify-content: space-between; gap: 8px; padding: 5px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 12px; }
+    .profile-line strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .profile-watch { min-height: 18px; margin-top: 12px; color: var(--red); font-size: 11px; }
+    .claims { display: grid; gap: 1px; background: var(--line); }
+    details.claim { background: var(--paper); }
+    details.claim summary { display: grid; grid-template-columns: 1fr auto; gap: 18px; padding: 18px 20px; cursor: pointer; list-style: none; }
+    details.claim summary::-webkit-details-marker { display: none; }
+    details.claim summary:hover { background: #f4f7f4; }
+    .claim-title { color: var(--navy); font-weight: 800; }
+    .claim-support { align-self: start; padding: 4px 8px; border-radius: 999px; background: var(--teal-soft); color: #145f5c; font-size: 11px; font-weight: 760; white-space: nowrap; }
+    .claim-support.partial { background: var(--yellow); color: #745b1a; }
+    .claim-body { padding: 0 20px 20px; color: var(--ink-soft); }
+    .claim-body p { max-width: 78ch; margin-bottom: 12px; }
+    .claim-body b { color: var(--ink); }
+    .evidence-block { margin-top: 16px; padding: 14px 16px; background: #eef4f0; }
+    .evidence-block h4 { margin: 0 0 9px; color: var(--navy); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+    .evidence-ref { display: grid; grid-template-columns: 70px 1fr; gap: 8px 12px; padding: 8px 0; border-top: 1px solid #d4e2db; font-size: 12px; }
+    .evidence-ref:first-of-type { border-top: 0; }
+    .evidence-ref label { color: var(--muted); }
+    .evidence-ref span { color: var(--ink-soft); overflow-wrap: anywhere; }
+    code { color: var(--navy); font-size: 11px; }
+    .limitations { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; padding: 20px 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    .limitations li { margin: 0; padding: 10px 0; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 13px; }
+    .limitations li:nth-child(-n+2) { border-top: 0; }
+    .footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 42px; color: var(--muted); font-size: 12px; }
+    .footer strong { color: var(--navy); }
+    .loading, .error { padding: 80px 0; color: var(--muted); }
+    .error { color: var(--red); }
+    @media (max-width: 900px) {
+      .shell { padding: 0 20px 42px; }
+      .hero, .comparison-layout, .trend-layout, .signal-grid { grid-template-columns: 1fr; }
+      .hero { gap: 30px; padding: 48px 0 38px; }
+      .stat-line { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+      .stat:nth-child(4) { border-top: 1px solid var(--line); }
+      .profile-strip { grid-template-columns: repeat(2, 1fr); }
+      .profile:last-child { grid-column: span 2; }
+      .limitations { grid-template-columns: 1fr; }
+      .limitations li:nth-child(2) { border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 580px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 8px; padding: 17px 0; }
+      .top-meta { flex-wrap: wrap; }
+      h1 { font-size: 46px; }
+      .stat-line { grid-template-columns: 1fr 1fr; }
+      .stat { min-height: 105px; }
+      .stat-value { font-size: 25px; }
+      .stat:nth-child(2), .stat:nth-child(4) { padding-left: 12px; }
+      .profile-strip { grid-template-columns: 1fr; }
+      .profile:last-child { grid-column: auto; }
+      .footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="app" aria-live="polite"><p class="loading">Đang tải report…</p></main>
+  <script>
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const fmt = (value, digits = 4) => value === null || value === undefined ? '—' : `${Number(value).toFixed(digits)}%`;
+    const fmtDelta = value => value === null || value === undefined ? 'Thiếu dữ liệu đầu kỳ' : `${value > 0 ? '+' : ''}${Number(value).toFixed(4)} điểm phần trăm`;
+    const metricShort = id => ({'bank.npl_g35':'NPL','bank.llr_coverage':'Bao phủ','bank.roa':'ROA','bank.roe':'ROE'}[id] || id);
+    const metricLabel = metric => ({'bank.npl_g35':'NPL nhóm 3–5','bank.llr_coverage':'Tỷ lệ bao phủ nợ xấu','bank.roa':'ROA','bank.roe':'ROE'}[metric.metric_id] || metric.label || metric.metric_id);
+    const supportLabel = support => ({evidence_backed:'Có bằng chứng', partially_supported:'Hỗ trợ một phần', unlabelled:'Chưa gắn nhãn'}[support] || support || 'Chưa gắn nhãn');
+    const claimVi = {
+      'claim-001': { title: 'VPB có NPL cao nhất ở quý 4 năm 2024', claim: 'Tại quý 4 năm 2024, NPL nhóm 3–5 của VPB là 4,1956%, cao hơn ACB 1,5122%, TCB 1,17%, MBB 1,6205% và VCB 0,9636%.', interpretation: 'VPB có tỷ lệ khoản vay thuộc nhóm nợ xấu 3–5 được báo cáo cao nhất trong năm ngân hàng thuộc phạm vi nghiên cứu ở quý 4 năm 2024.', limitation: 'Đây là mô tả tại một thời điểm, không xác định nguyên nhân và không dự báo rủi ro tương lai.' },
+      'claim-002': { title: 'Khả năng sinh lời của VPB cải thiện trong năm 2024', claim: 'ROA của VPB tăng từ 1,2179% ở quý 1 năm 2024 lên 1,8361% ở quý 4 năm 2024; ROE tăng từ 8,0671% lên 11,4117%.', interpretation: 'Các chỉ số sinh lời tại hai đầu kỳ được báo cáo của VPB cao hơn ở quý 4 so với quý 1.', limitation: 'So sánh hai đầu kỳ không chứng minh xu hướng liên tục hoặc quan hệ nhân quả; cần xem xét quy ước tính ROA và ROE.' },
+      'claim-003': { title: 'VCB dẫn đầu về tỷ lệ bao phủ nợ xấu', claim: 'Tỷ lệ bao phủ của VCB cao hơn trung vị nhóm so sánh trong cả bốn quý: 199,8177% so với 92,97875% ở quý 1; 212,1089% so với 101,0% ở quý 2; 204,6495% so với 79,0721% ở quý 3; và 223,311% so với 92,2484% ở quý 4.', interpretation: 'Trong suốt năm 2024, VCB có tỷ lệ bao phủ nợ xấu được báo cáo mạnh nhất so với trung vị của năm ngân hàng đã được chấp nhận.', limitation: 'Định nghĩa tỷ lệ bao phủ phụ thuộc quy ước của từng nguồn; đây không phải bằng chứng nhân quả về chất lượng tín dụng tương lai.' },
+      'claim-004': { title: 'Chưa có số liệu hợp lệ cho các chỉ số của ACB ở quý 1 năm 2024', claim: 'Lô dữ liệu Gold xếp cả bốn chỉ số của ACB ở quý 1 năm 2024 vào trạng thái thiếu hoặc chưa được chấp nhận, trong khi dữ liệu chuẩn ngành tương ứng vẫn có sẵn.', interpretation: 'Không thể dùng quý 1 năm 2024 của ACB cho các so sánh số liệu cấp ngân hàng đã được kiểm chứng trong báo cáo này.', limitation: 'Trạng thái thiếu hoặc chưa được chấp nhận không phản ánh giá trị kinh tế thực tế; hệ thống không nội suy.' },
+      'claim-005': { title: 'NPL của MBB biến động không đơn điệu', claim: 'NPL nhóm 3–5 của MBB giảm từ 2,4856% ở quý 1 xuống 1,6360% ở quý 2, tăng lên 2,2342% ở quý 3 rồi giảm xuống 1,6205% ở quý 4.', interpretation: 'NPL được báo cáo của MBB tăng ở quý 3 rồi giảm ở quý 4.', limitation: 'Đây là mô tả biến động, không suy ra nguyên nhân.' }
+    };
+    const localizedClaim = claim => ({...claim, ...(claimVi[claim.claim_id] || {})});
+    const headlineVi = 'TCB dẫn đầu ROA và MBB dẫn đầu ROE; VPB là điểm bất thường về rủi ro tín dụng; VCB có đệm tín dụng tốt nhất.';
+    const profileAssessmentVi = profile => ({
+      ACB: 'Chưa có kết luận nổi bật trong phạm vi này.',
+      TCB: 'Dẫn đầu ROA; ROA và ROE cùng giảm ở hai đầu kỳ.',
+      VPB: 'Quý 4 là điểm bất thường về rủi ro tín dụng trong nhóm; NPL giảm và tỷ lệ bao phủ tăng từ đầu kỳ đến cuối kỳ.',
+      MBB: 'Dẫn đầu ROE; NPL giảm và tỷ lệ bao phủ tăng từ đầu kỳ đến cuối kỳ.',
+      VCB: 'Quý 4 có hồ sơ NPL/tỷ lệ bao phủ nổi bật nhất về chất lượng tín dụng; NPL giảm và tỷ lệ bao phủ tăng từ đầu kỳ đến cuối kỳ; ROA và ROE cùng giảm ở hai đầu kỳ.'
+    }[profile.ticker] || profile.assessment || 'Bản chụp');
+    const watchPointVi = profile => ({
+      VPB: 'NPL cao nhất và tỷ lệ bao phủ thấp nhất trong nhóm ở kỳ cuối',
+      VCB: 'NPL thấp nhất và tỷ lệ bao phủ cao nhất trong nhóm ở kỳ cuối'
+    }[profile.ticker] || profile.watch_points?.[0] || '');
+    function limitationVi(item) {
+      if (item.startsWith('Ô thiếu hoặc chưa được chấp nhận:')) return 'Các ô thiếu hoặc chưa được chấp nhận gồm: ACB ở quý 1 năm 2024 thiếu NPL nhóm 3–5 do nguồn chính thức không nêu rõ ánh xạ nhóm 3–5 và mẫu số; thiếu tỷ lệ bao phủ do chưa có ứng viên chính thức; thiếu ROA do chưa có ứng viên hoặc tuyến tính toán chính thức; ROE 23,4% được nêu trong bài viết chính thức nhưng không rõ cơ sở TTM/hàng năm, quy ước lợi nhuận và vốn chủ sở hữu bình quân nên không được chấp nhận vào chỉ số chuẩn.';
+      if (item.startsWith('Missing/unaccepted')) return 'Các ô thiếu hoặc chưa được chấp nhận không được điền hoặc suy đoán.';
+      return item.replaceAll('Gold snapshot', 'bản chụp Gold').replaceAll('model', 'mô hình');
+    }
+    const colors = ['#173b47','#147d7b','#c56a3e','#7c5a9e','#4779a8'];
+    const state = { report: null, series: null, metricId: 'bank.npl_g35', issuer: 'ALL' };
+    function getMetric(report, profile, id) { return profile?.metrics?.[id] || null; }
+    function getSeriesValues(issuer, metricId) { return state.series.metrics[metricId].values[issuer] || []; }
+    function q4Comparison(metricId) { return state.report.comparisons.find(item => item.metric_id === metricId && item.period === '2024_Q4') || null; }
+    function q4Leader(metricId) { return q4Comparison(metricId)?.ranking?.[0] || null; }
+    function trendDelta(profile, id) { return profile.trend?.[id]?.delta; }
+    function renderStats() {
+      const q = state.report.data_quality;
+      const vpb = state.report.profiles.find(profile => profile.ticker === 'VPB');
+      return `<section class="stat-line" aria-label="Tóm tắt dữ liệu"><div class="stat"><span class="stat-label">Ô dữ liệu hợp lệ</span><strong class="stat-value">${q.valid_cells}/${q.total_cells}</strong><span class="stat-detail">Bản chụp Gold · độ phủ 95%</span></div><div class="stat"><span class="stat-label">Ô thiếu</span><strong class="stat-value">${q.missing_or_unaccepted_cells}</strong><span class="stat-detail">ACB quý 1 năm 2024, giữ null</span></div><div class="stat"><span class="stat-label">Ô có bằng chứng đã rà soát</span><strong class="stat-value">${q.cells_with_stored_evidence}/${q.valid_cells}</strong><span class="stat-detail">Theo trang trên các ô hợp lệ</span></div><div class="stat"><span class="stat-label">Tín hiệu rủi ro quý 4</span><strong class="stat-value">VPB</strong><span class="stat-detail">NPL cao nhất · ${esc(getMetric(state.report, vpb, 'bank.npl_g35')?.display_value || '—')}</span></div></section>`;
+    }
+    function renderComparison() {
+      const metrics = state.report.scope.metrics;
+      const rows = state.report.profiles.map(profile => `<tr><td><span class="ticker">${esc(profile.ticker)}</span></td>${metrics.map(metric => `<td>${esc(getMetric(state.report, profile, metric.metric_id)?.display_value || '—')}</td>`).join('')}</tr>`).join('');
+      const leaders = metrics.map(metric => { const comparison = q4Comparison(metric.metric_id), leader = comparison?.ranking?.[0]; return `<div class="leader"><span class="leader-label">${esc(metricLabel(metric))}</span><strong>${esc(leader?.ticker || '—')}</strong><span>${esc(leader?.display_value || '—')} · ${comparison?.direction === 'lower_is_better' ? 'thấp hơn tốt hơn' : 'cao hơn tốt hơn'}</span></div>`; }).join('');
+      return `<section class="section" id="comparison"><div class="section-heading"><div><h2>Quý 4 năm 2024</h2><p>So sánh các giá trị đã được chấp nhận trong Gold. Đây là mô tả tại kỳ cuối, không phải dự báo.</p></div><span class="control-label">5 ngân hàng · 4 chỉ số</span></div><div class="comparison-layout"><div class="table-frame"><table><thead><tr><th>Ngân hàng</th>${metrics.map(metric => `<th><span class="metric-head">${esc(metricLabel(metric))}</span><span class="metric-unit">${esc(metric.unit)}</span></th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><aside class="rank-leaders"><h3>Dẫn đầu theo chỉ số</h3>${leaders}</aside></div></section>`;
+    }
+    function chartSvg() {
+      const metric = state.series.metrics[state.metricId];
+      const issuers = state.issuer === 'ALL' ? state.series.issuers : [state.issuer];
+      const W = 760, H = 230, left = 48, right = 18, top = 18, bottom = 34;
+      const all = issuers.flatMap(issuer => getSeriesValues(issuer, state.metricId)).filter(value => value !== null);
+      const min = Math.min(...all), max = Math.max(...all), spread = max - min || 1;
+      const x = index => left + index * ((W - left - right) / (state.series.periods.length - 1));
+      const y = value => top + (max - value) / spread * (H - top - bottom);
+      const grid = [0, 1, 2, 3].map(index => { const value = min + spread * (1 - index / 3); const yy = top + index * ((H - top - bottom) / 3); return `<line class="chart-grid" x1="${left}" y1="${yy}" x2="${W - right}" y2="${yy}"/><text class="chart-axis" x="0" y="${yy + 4}">${Number(value).toFixed(1)}%</text>`; }).join('');
+      const lines = issuers.map((issuer, issuerIndex) => { const values = getSeriesValues(issuer, state.metricId); const points = values.map((value, index) => value === null ? null : `${x(index)},${y(value)}`).filter(Boolean).join(' '); const dots = values.map((value, index) => value === null ? '' : `<circle class="chart-dot" cx="${x(index)}" cy="${y(value)}" r="4.5" fill="${colors[issuerIndex % colors.length]}"/>`).join(''); return `<polyline class="chart-line" points="${points}" stroke="${colors[issuerIndex % colors.length]}"/>${dots}`; }).join('');
+      const axes = state.series.periods.map((period, index) => `<text class="chart-axis" text-anchor="middle" x="${x(index)}" y="${H - 6}">${period.replace('2024_', 'Q')}</text>`).join('');
+      const legend = issuers.map((issuer, index) => `<span class="legend-item"><i class="legend-swatch" style="background:${colors[index % colors.length]}"></i>${issuer}</span>`).join('');
+      return `<div class="chart-wrap"><div class="chart-title"><strong>${esc(metricLabel({...metric, metric_id: state.metricId}))}</strong><span>${metric.direction === 'lower_is_better' ? 'thấp hơn là tốt hơn' : 'cao hơn là tốt hơn'}</span></div><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Xu hướng ${esc(metricLabel({...metric, metric_id: state.metricId}))} theo quý">${grid}${lines}${axes}</svg><div class="chart-legend">${legend}</div></div>`;
+    }
+    function renderTrend() {
+      const profile = state.report.profiles.find(item => item.ticker === state.issuer);
+      const metric = state.series.metrics[state.metricId];
+      const delta = profile ? trendDelta(profile, state.metricId) : null;
+      const buttons = state.report.scope.metrics.map(item => `<button class="${item.metric_id === state.metricId ? 'active' : ''}" data-metric="${esc(item.metric_id)}">${esc(metricShort(item.metric_id))}</button>`).join('');
+      const issuerButtons = ['ALL', ...state.series.issuers].map(issuer => `<button class="${issuer === state.issuer ? 'active' : ''}" data-issuer="${esc(issuer)}">${issuer === 'ALL' ? 'Tất cả' : issuer}</button>`).join('');
+      const from = profile?.trend?.[state.metricId]?.from, to = profile?.trend?.[state.metricId]?.to;
+      return `<section class="section" id="trend"><div class="section-heading"><div><h2>Xu hướng / Quý 1 → Quý 4</h2><p>Đường xu hướng lấy từ cùng bản chụp dữ liệu. Điểm thiếu được để trống, không nội suy.</p></div></div><div class="trend-head"><div class="segmented" aria-label="Chọn chỉ số">${buttons}</div><div class="segmented" aria-label="Chọn ngân hàng">${issuerButtons}</div></div><div class="trend-layout">${chartSvg()}<aside class="trend-aside"><h3>${state.issuer === 'ALL' ? 'Đọc xu hướng' : `Hồ sơ ${esc(state.issuer)}`}</h3><p>${state.issuer === 'ALL' ? 'Chọn một ngân hàng để xem thay đổi đầu kỳ/cuối kỳ. Mức thay đổi không tự chứng minh nguyên nhân.' : 'Đây là so sánh đầu kỳ/cuối kỳ. Quý 2 và quý 3 vẫn được giữ trên đồ thị.'}</p>${state.issuer === 'ALL' ? '<div class="endpoint"><label>Phạm vi</label><strong>5 ngân hàng</strong></div><div class="endpoint"><label>Kỳ</label><strong>Quý 1–4 năm 2024</strong></div>' : `<div class="endpoint"><label>Quý 1</label><strong>${esc(fmt(from))}</strong></div><div class="endpoint"><label>Quý 4</label><strong>${esc(fmt(to))}</strong></div><div class="endpoint"><label>Thay đổi</label><strong>${esc(fmtDelta(delta))}</strong></div>`}</aside></div></section>`;
+    }
+    function renderSignals() {
+      const takeaways = state.report.executive_summary.takeaways.slice(0, 3).map(item => { const vi = localizedClaim({...item, claim_id: item.claim_id}); return `<div class="signal-item"><strong>${esc(vi.title)}</strong><p>${esc(vi.claim || item.text)}</p></div>`; }).join('');
+      const q = state.report.data_quality;
+      return `<section class="section"><div class="section-heading"><div><h2>Tín hiệu và chất lượng dữ liệu</h2><p>Những điểm nên đọc tiếp trước khi đưa ra nhận định.</p></div></div><div class="signal-grid"><div class="signal-list"><h3>Điểm cần theo dõi</h3>${takeaways}</div><div class="quality-box"><h3>Độ phủ bằng chứng</h3><div class="quality-meter"><strong>${Math.round(q.cells_with_stored_evidence / q.valid_cells * 100)}%</strong><span>ô hợp lệ có bằng chứng</span></div><div class="quality-bar"><i></i></div><ul class="quality-list"><li><span>Quan sát hợp lệ</span><b>${q.valid_cells}</b></li><li><span>Ô thiếu rõ ràng</span><b>${q.missing_or_unaccepted_cells}</b></li><li><span>Đoạn bằng chứng</span><b>116</b></li><li><span>Nguồn</span><b>${q.source_count}</b></li></ul></div></div></section>`;
+    }
+    function renderProfiles() {
+      const metrics = state.report.scope.metrics;
+      return `<section class="section"><div class="section-heading"><div><h2>Hồ sơ ngân hàng</h2><p>Giá trị quý 4 và thay đổi từ quý 1 đến quý 4. ACB giữ trạng thái thiếu ở đầu kỳ.</p></div></div><div class="profile-strip">${state.report.profiles.map(profile => `<article class="profile"><h3>${esc(profile.ticker)}</h3><p class="profile-caption">Quý 4 năm 2024 · ${esc(profileAssessmentVi(profile))}</p>${metrics.map(metric => `<div class="profile-line"><span>${esc(metricShort(metric.metric_id))}</span><strong>${esc(getMetric(state.report, profile, metric.metric_id)?.display_value || '—')}</strong></div>`).join('')}<p class="profile-watch">${esc(watchPointVi(profile))}</p></article>`).join('')}</div></section>`;
+    }
+    function renderClaims() {
+      const claims = state.report.claims.map(claim => { const vi = localizedClaim(claim); const refs = (claim.data_refs || []).slice(0, 3); const evidenceIds = (claim.evidence_ids || []).slice(0, 5); const supportClass = claim.support === 'partially_supported' ? 'partial' : ''; const refsHtml = refs.length ? refs.map(ref => `<div class="evidence-ref"><label>${esc(ref.ticker)} · ${esc(ref.period)}</label><span>${esc(ref.metric_id)} = ${esc(ref.display_value || fmt(ref.value))}<br><span title="${esc(ref.source_locator)}">${esc(ref.source_locator)}</span></span></div>`).join('') : '<p class="muted">Nhận định này không có mã bằng chứng; xem giới hạn và mức độ hỗ trợ.</p>'; const idsHtml = evidenceIds.length ? `<p><b>Mã bằng chứng:</b> ${evidenceIds.map(id => `<code title="${esc(id)}">${esc(id.length > 66 ? id.slice(0, 66) + '…' : id)}</code>`).join(' · ')}</p>` : ''; return `<details class="claim"><summary><span class="claim-title">${esc(vi.title)}</span><span class="claim-support ${supportClass}">${esc(supportLabel(claim.support))}</span></summary><div class="claim-body"><p><b>Nhận định:</b> ${esc(vi.claim)}</p><p><b>Diễn giải:</b> ${esc(vi.interpretation)}</p><p><b>Giới hạn:</b> ${esc(vi.limitation)}</p><div class="evidence-block"><h4>Dấu vết bằng chứng</h4>${refsHtml}${idsHtml}</div></div></details>`; }).join('');
+      return `<section class="section" id="evidence"><div class="section-heading"><div><h2>Nhận định và bằng chứng</h2><p>Mở từng nhận định để xem tham chiếu dữ liệu, vị trí nguồn, mức độ hỗ trợ và giới hạn.</p></div></div><div class="claims">${claims}</div></section>`;
+    }
+    function renderLimitations() { return `<section class="section"><div class="section-heading"><div><h2>Giới hạn</h2><p>Đây là ranh giới của kết luận hiện tại.</p></div></div><ul class="limitations">${state.report.limitations.map(item => `<li>${esc(limitationVi(item))}</li>`).join('')}<li>14/75 tác vụ gọi mô hình thất bại: 9 do giới hạn ngữ cảnh, 2 do lược đồ/kiểm tra hợp lệ, 3 do kết nối API.</li><li>Chất lượng, chi phí và độ trễ là số liệu vận hành của mô hình và hạ tầng tại thời điểm chạy, không phải định luật dài hạn.</li></ul></section>`; }
+    function render() {
+      const r = state.report, root = document.querySelector('#app');
+      root.innerHTML = `<header class="topbar"><div class="brand"><span class="brand-mark">V/ANALYSIS</span><span class="brand-copy">phân tích ngân hàng dựa trên nguồn</span></div><div class="top-meta"><span class="status"><i class="status-dot"></i>Bản xem trước dựa trên Gold</span><span>v5 · chỉ đọc</span></div></header><section class="hero"><div><h1>Ngân hàng Việt Nam<br><span>Quý 4 năm 2024</span></h1><p class="hero-lede">${esc(headlineVi)} Báo cáo mô tả dựa trên bản chụp dữ liệu đã được rà soát, kèm đường dẫn về bằng chứng và giới hạn của dữ liệu.</p><div class="control-row"><span class="control-label">Mẫu báo cáo</span><select aria-label="Mẫu báo cáo"><option>5 ngân hàng · 2024 · 4 chỉ số</option></select><span class="control-label">Bản chụp</span><span class="status">${esc(r.run.snapshot_id)}</span></div></div><aside class="decision-note"><h2>Kết luận nhanh</h2><p>VPB cần được theo dõi về chất lượng tín dụng. VCB có đệm dự phòng nổi bật. TCB và MBB dẫn ở các góc sinh lời khác nhau.</p><small>Chỉ mang tính mô tả · không phải khuyến nghị đầu tư</small></aside></section>${renderStats()}${renderComparison()}${renderTrend()}${renderSignals()}${renderProfiles()}${renderClaims()}${renderLimitations()}<footer class="footer"><span><strong>V/ANALYSIS</strong> · bản xem trước cục bộ · chỉ đọc</span><span>Mô hình ${esc(r.run.model_id)} · ${esc(r.run.recorded_at_utc)} · bản chụp ${esc(r.run.snapshot_id)}</span></footer>`;
+      root.querySelectorAll('[data-metric]').forEach(button => button.addEventListener('click', () => { state.metricId = button.dataset.metric; render(); document.querySelector('#trend')?.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
+      root.querySelectorAll('[data-issuer]').forEach(button => button.addEventListener('click', () => { state.issuer = button.dataset.issuer; render(); document.querySelector('#trend')?.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
+    }
+    async function load() { try { const [reportResponse, seriesResponse] = await Promise.all([fetch('data/analysis-report.json'), fetch('data/analysis-series.json')]); if (!reportResponse.ok || !seriesResponse.ok) throw new Error('Không tải được báo cáo hoặc dữ liệu xu hướng. Hãy chạy máy chủ HTTP cục bộ trong thư mục app.'); state.report = await reportResponse.json(); state.series = await seriesResponse.json(); if (state.report.run.snapshot_id !== state.series.snapshot_id) throw new Error('Bản chụp của báo cáo và dữ liệu xu hướng không khớp.'); render(); } catch (error) { document.querySelector('#app').innerHTML = `<p class="error">${esc(error.message)}</p>`; } }
+    load();
+  </script>
+</body>
+</html>

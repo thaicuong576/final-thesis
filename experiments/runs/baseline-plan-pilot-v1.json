@@ -1,0 +1,871 @@
+{
+  "schema_version": 1,
+  "status": "planned_not_executed",
+  "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+  "question_set_id": "pilot-2024-bank-qa-v1",
+  "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+  "comparative_result": false,
+  "jobs": [
+    {
+      "job_id": "ACB_snapshot_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_snapshot_q4",
+      "arm": "single_agent",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_snapshot_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_snapshot_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_snapshot_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_snapshot_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_trend_2024:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_trend_2024",
+      "arm": "single_agent",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_trend_2024:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_trend_2024",
+      "arm": "hierarchical_no_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_trend_2024:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_trend_2024",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_peer_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_peer_q4",
+      "arm": "single_agent",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_peer_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_peer_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_peer_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_peer_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_anomaly_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_anomaly_q4",
+      "arm": "single_agent",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_anomaly_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_anomaly_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_anomaly_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_anomaly_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_snapshot_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_snapshot_q4",
+      "arm": "single_agent",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_snapshot_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_snapshot_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_snapshot_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_snapshot_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_trend_2024:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_trend_2024",
+      "arm": "single_agent",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_trend_2024:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_trend_2024",
+      "arm": "hierarchical_no_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_trend_2024:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_trend_2024",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_peer_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_peer_q4",
+      "arm": "single_agent",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_peer_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_peer_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_peer_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_peer_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_anomaly_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_anomaly_q4",
+      "arm": "single_agent",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_anomaly_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_anomaly_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_anomaly_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_anomaly_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_snapshot_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_snapshot_q4",
+      "arm": "single_agent",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_snapshot_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_snapshot_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_snapshot_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_snapshot_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_trend_2024:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_trend_2024",
+      "arm": "single_agent",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_trend_2024:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_trend_2024",
+      "arm": "hierarchical_no_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_trend_2024:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_trend_2024",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_peer_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_peer_q4",
+      "arm": "single_agent",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_peer_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_peer_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_peer_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_peer_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_anomaly_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_anomaly_q4",
+      "arm": "single_agent",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_anomaly_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_anomaly_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "VPB_anomaly_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "VPB_anomaly_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "VPB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_macro_to_bank_q4:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_macro_to_bank_q4",
+      "arm": "single_agent",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [
+        "macro.policy_rate",
+        "macro.credit_growth"
+      ],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_macro_to_bank_q4:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_macro_to_bank_q4",
+      "arm": "hierarchical_no_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [
+        "macro.policy_rate",
+        "macro.credit_growth"
+      ],
+      "comparative_result": false
+    },
+    {
+      "job_id": "TCB_macro_to_bank_q4:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "TCB_macro_to_bank_q4",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "TCB",
+      "periods": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "macro_indicator_ids": [
+        "macro.policy_rate",
+        "macro.credit_growth"
+      ],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_known_conflict_q2:single_agent",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_known_conflict_q2",
+      "arm": "single_agent",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q2"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_known_conflict_q2:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_known_conflict_q2",
+      "arm": "hierarchical_no_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q2"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "ACB_known_conflict_q2:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_SNAPSHOT",
+      "question_set_id": "pilot-2024-bank-qa-v1",
+      "question_set_sha256": "fb991b9276971b9c39c105a4bc89c53877502cb215466228341e252921c719b9",
+      "question_id": "ACB_known_conflict_q2",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "ACB",
+      "periods": [
+        "2024_Q2"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    }
+  ]
+}

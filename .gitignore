@@ -1,0 +1,35 @@
+# Local provider credentials and execution configuration.
+.env
+.env.*
+!.env.example
+config/local/
+experiments/config/local/
+**/provider-config.local.json
+**/provider-config.local.*.json
+secrets/
+
+# Local experiment outputs; committed manifests and reports remain trackable.
+outputs/provider/
+experiments/outputs/provider/
+
+# Local evidence stores, source documents, and generated experiment artifacts.
+# These are large or machine-local inputs and are not part of the code-review
+# handoff. Keep them available locally for reproducible runs.
+data/
+experiments/outputs/
+reports/
+tmp/
+.tmp-pdf-qa/
+.codex-finalizer/
+.agents/
+
+# Binary/source artifacts that should not enter the source repository.
+*.pdf
+*.sqlite
+*.sqlite3
+*.db
+~$*
+
+# Python caches.
+__pycache__/
+*.py[cod]

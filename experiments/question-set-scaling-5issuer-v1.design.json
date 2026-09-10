@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+  "issuer_sizes": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "repetitions_per_size": 5,
+  "arms": [
+    "single_agent",
+    "hierarchical_no_critique",
+    "hierarchical_bounded_critique"
+  ],
+  "question_count": 25,
+  "planned_jobs": 75,
+  "snapshot_gate": "PENDING_GOLD_5_ISSUER",
+  "execution_status": "not_executed"
+}

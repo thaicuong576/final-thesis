@@ -1,0 +1,2867 @@
+{
+  "schema_version": 1,
+  "status": "planned_not_executed",
+  "snapshot_id": "PENDING_GOLD_5_ISSUER",
+  "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+  "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+  "model_id": "gpt-5.6-luna",
+  "tier_1_reference_question_set_id": "pilot-2024-bank-core-qa-v1",
+  "tier_1_reference_plan_path": "experiments/runs/baseline-plan-core-gold-v1.json",
+  "total_call_ceilings": {
+    "tier_2": 6,
+    "tier_3": 6
+  },
+  "comparative_result": false,
+  "jobs": [
+    {
+      "job_id": "scale_1issuer_rep1_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep1_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep1_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep1_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep2_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep2_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep2_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep2_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep3_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep3_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep3_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep3_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep4_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep4_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep4_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep4_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep5_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep5_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep5_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_1issuer_rep5_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_1issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_2",
+      "issuers": [
+        "ACB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep1_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep1_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep1_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep1_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep2_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep2_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep2_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep2_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep3_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep3_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep3_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep3_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep4_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep4_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep4_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep4_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep5_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep5_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep5_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_2issuer_rep5_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_2issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep1_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep1_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep1_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep1_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep2_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep2_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep2_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep2_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep3_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep3_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep3_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep3_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep4_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep4_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep4_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep4_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep5_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep5_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep5_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_3issuer_rep5_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_3issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep1_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep1_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep1_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep1_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep2_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep2_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep2_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep2_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep3_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep3_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep3_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep3_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep4_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep4_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep4_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep4_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep5_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep5_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep5_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_4issuer_rep5_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_4issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep1_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep1_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep1_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep1_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep1_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep2_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep2_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep2_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep2_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep2_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep3_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep3_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep3_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep3_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep3_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep4_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep4_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep4_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep4_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep4_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep5_5issuer_v1:single_agent",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep5_5issuer_v1",
+      "arm": "single_agent",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 1,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep5_5issuer_v1:hierarchical_no_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_no_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    },
+    {
+      "job_id": "scale_5issuer_rep5_5issuer_v1:hierarchical_bounded_critique",
+      "snapshot_id": "PENDING_GOLD_5_ISSUER",
+      "question_set_id": "pilot-2024-bank-scaling-5issuer-v1",
+      "question_set_sha256": "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad",
+      "question_id": "scale_5issuer_rep5_5issuer_v1",
+      "arm": "hierarchical_bounded_critique",
+      "workload_tier": "tier_3",
+      "issuers": [
+        "ACB",
+        "TCB",
+        "VPB",
+        "MBB",
+        "VCB"
+      ],
+      "periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "analysis_tasks": [
+        "snapshot",
+        "trend",
+        "peer_comparison",
+        "missing_conflict",
+        "anomaly_review",
+        "evidence_summary"
+      ],
+      "model_id": "gpt-5.6-luna",
+      "max_total_calls": 6,
+      "worker_parallelism": 2,
+      "comparative_result": false
+    }
+  ]
+}

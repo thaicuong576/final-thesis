@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "status": "planned_not_executed",
+  "snapshot_id": "offline-fixture-gold-v1",
+  "question_set_id": "offline-fixture-questions-v1",
+  "question_set_sha256": "cd071b296d77a5f90c806748e960f9a5695b1e084afef4f0100380d45c64dd1d",
+  "comparative_result": false,
+  "jobs": [
+    {
+      "job_id": "q1:single_agent",
+      "snapshot_id": "offline-fixture-gold-v1",
+      "question_set_id": "offline-fixture-questions-v1",
+      "question_set_sha256": "cd071b296d77a5f90c806748e960f9a5695b1e084afef4f0100380d45c64dd1d",
+      "question_id": "q1",
+      "arm": "single_agent",
+      "issuer": "VCB",
+      "periods": [
+        "2024_Q1"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "q1:hierarchical_no_critique",
+      "snapshot_id": "offline-fixture-gold-v1",
+      "question_set_id": "offline-fixture-questions-v1",
+      "question_set_sha256": "cd071b296d77a5f90c806748e960f9a5695b1e084afef4f0100380d45c64dd1d",
+      "question_id": "q1",
+      "arm": "hierarchical_no_critique",
+      "issuer": "VCB",
+      "periods": [
+        "2024_Q1"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    },
+    {
+      "job_id": "q1:hierarchical_bounded_critique",
+      "snapshot_id": "offline-fixture-gold-v1",
+      "question_set_id": "offline-fixture-questions-v1",
+      "question_set_sha256": "cd071b296d77a5f90c806748e960f9a5695b1e084afef4f0100380d45c64dd1d",
+      "question_id": "q1",
+      "arm": "hierarchical_bounded_critique",
+      "issuer": "VCB",
+      "periods": [
+        "2024_Q1"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "macro_indicator_ids": [],
+      "comparative_result": false
+    }
+  ]
+}

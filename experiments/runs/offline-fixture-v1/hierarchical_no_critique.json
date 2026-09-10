@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "environment": "offline_fixture",
+  "comparative_result": false,
+  "run_id": "offline-hierarchical_no_critique",
+  "snapshot_id": "offline-fixture-gold-v1",
+  "question_set_id": "offline-fixture-questions-v1",
+  "question_id": "q1",
+  "rubric_version": "offline-fixture-rubric-v1",
+  "arm": "hierarchical_no_critique",
+  "model_id": "offline-fixture-model",
+  "source_policy_id": "offline-fixture-primary-only-v1",
+  "ticker": "VCB",
+  "period": "2024_Q1",
+  "metric_ids": [
+    "bank.npl_g35"
+  ],
+  "input_observation_ids": [
+    "offline-obs-acb",
+    "offline-obs-vcb"
+  ],
+  "input_source_ids": [
+    "offline-fixture-source"
+  ],
+  "input_evidence_ids": [],
+  "input_context_sha256": "c59973c9beb271154e30474ab0a7a575dd6e8c3754783586912ea1d1d130e525",
+  "call_count": 4,
+  "calls": [
+    {
+      "role": "macro",
+      "attempt": 0,
+      "context_sha256": "455299efc9afaca5a1f4929ac7d5383392d368b582cc376683df7daf31f703ec",
+      "payload_agent_id": "macro",
+      "payload_status": "success"
+    },
+    {
+      "role": "sector",
+      "attempt": 0,
+      "context_sha256": "c46e8fea5bd3348a6a03ac3bed75415abd2d21e5f596b29db90d1c773174b2a5",
+      "payload_agent_id": "sector",
+      "payload_status": "success"
+    },
+    {
+      "role": "company",
+      "attempt": 0,
+      "context_sha256": "b5d41c1d7c75d8ba8adbacb1bff4e9884102b1a7ba07bbb6225f3ee929bed407",
+      "payload_agent_id": "company",
+      "payload_status": "success"
+    },
+    {
+      "role": "orchestrator",
+      "attempt": 0,
+      "context_sha256": "26a8bb3c33efa908b55a331cda622331b3cb1771dc2bee40dcd11d9deb558bba",
+      "payload_agent_id": "orchestrator",
+      "payload_status": "success"
+    }
+  ],
+  "payloads": [
+    {
+      "agent_id": "macro",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "sector",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "company",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    },
+    {
+      "agent_id": "orchestrator",
+      "status": "success",
+      "ticker": "VCB",
+      "period": "2024_Q1",
+      "metrics": {},
+      "metric_units": {},
+      "metric_periods": {},
+      "sector_benchmarks": {},
+      "findings": [
+        "offline_fixture_payload"
+      ],
+      "evidence": [],
+      "quality_flags": [],
+      "observation_ids": [],
+      "source_ids": []
+    }
+  ],
+  "recorded_at_utc": "2026-09-05T00:00:00Z"
+}

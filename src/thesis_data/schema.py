@@ -591,13 +591,27 @@ class HardGateResult(BaseModel):
     passed: bool
     rate: float = Field(ge=0.0, le=1.0)
     required_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    evaluation_unit: str = Field(min_length=1)
+    evaluated_count: int = Field(ge=0)
+    passed_count: int = Field(ge=0)
     violations: tuple[str, ...] = Field(default_factory=tuple)
     deferred_to_critic: bool = False
 
     @model_validator(mode="after")
-    def rate_matches_passed(self) -> "HardGateResult":
+    def rate_matches_evaluation_counts(self) -> "HardGateResult":
+        if self.passed_count > self.evaluated_count:
+            raise ValueError("passed_count cannot exceed evaluated_count")
+        expected_rate = (
+            self.passed_count / self.evaluated_count
+            if self.evaluated_count
+            else 0.0
+        )
+        if not math.isclose(self.rate, expected_rate, rel_tol=0.0, abs_tol=1e-12):
+            raise ValueError("rate must equal passed_count / evaluated_count")
         if self.passed and self.rate + 1e-12 < self.required_rate:
             raise ValueError("passed gate cannot have a rate below required_rate")
+        if self.passed and self.violations:
+            raise ValueError("passed gate cannot contain violations")
         if not self.passed and not self.violations:
             raise ValueError("failed gate requires at least one violation")
         return self
@@ -610,10 +624,12 @@ class Stage1ValidationReport(BaseModel):
 
     passed: bool
     gate_results: dict[str, HardGateResult]
+    integrity_violations: tuple[str, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
     def status_matches_gates(self) -> "Stage1ValidationReport":
-        if self.passed != all(item.passed for item in self.gate_results.values()):
+        expected = all(item.passed for item in self.gate_results.values()) and not self.integrity_violations
+        if self.passed != expected:
             raise ValueError("Stage-1 status must match all hard-gate results")
         return self
 
@@ -630,6 +646,19 @@ class QualityDimensionScores(BaseModel):
     uncertainty_limitations: float = Field(ge=0.0, le=1.0)
     analytical_usefulness: float = Field(ge=0.0, le=1.0)
 
+    def weighted_total(self, weights: QualityWeights) -> float:
+        """Recompute the persisted quality total from canonical dimensions."""
+
+        return round(
+            self.groundedness * weights.groundedness
+            + self.cross_level_integration * weights.cross_level_integration
+            + self.answer_coverage * weights.answer_coverage
+            + self.logical_soundness * weights.logical_soundness
+            + self.uncertainty_limitations * weights.uncertainty_limitations
+            + self.analytical_usefulness * weights.analytical_usefulness,
+            12,
+        )
+
 
 class AcceptanceRound(BaseModel):
     """Durable record of one evaluation or revision round."""
@@ -645,7 +674,7 @@ class AcceptanceRound(BaseModel):
     hard_gate_results: dict[str, HardGateResult] = Field(default_factory=dict)
     quality_scores: QualityDimensionScores | None = None
     quality_total: float | None = Field(default=None, ge=0.0, le=1.0)
-    provisional_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    provisional_threshold: float = Field(ge=0.0, le=1.0)
     token_usage: dict[str, int] = Field(default_factory=dict)
     latency_ms: float | None = Field(default=None, ge=0.0)
     affected_agents: tuple[str, ...] = Field(default_factory=tuple)
@@ -705,10 +734,7 @@ class AcceptanceRound(BaseModel):
                 raise ValueError("limited acceptance cannot contain an unresolved BLOCKER")
             if any(
                 issue.issue_type
-                not in {
-                    CritiqueIssueType.MISSING_EVIDENCE,
-                    CritiqueIssueType.INCOMPLETE_SYNTHESIS,
-                }
+                not in {CritiqueIssueType.MISSING_EVIDENCE}
                 for issue in unresolved
             ):
                 raise ValueError("limited acceptance only permits data/evidence availability deficiencies")
@@ -722,6 +748,8 @@ class AcceptanceRound(BaseModel):
                 raise ValueError("accepted rounds cannot bypass the provisional quality threshold")
             if any(not gate.passed for gate in self.hard_gate_results.values()):
                 raise ValueError("accepted rounds cannot bypass a failed Stage-1 hard gate")
+            if not self.final_payload_version:
+                raise ValueError("accepted rounds require final_payload_version")
         return self
 
 
@@ -754,11 +782,40 @@ class ReportAcceptanceState(BaseModel):
             raise ValueError("acceptance rounds must start at zero and be contiguous")
         if len(self.rounds) - 1 > self.policy.max_revision_rounds:
             raise ValueError("acceptance rounds exceed policy max_revision_rounds")
+        for round_state in self.rounds:
+            if not math.isclose(
+                round_state.provisional_threshold,
+                self.policy.provisional_threshold,
+                rel_tol=0.0,
+                abs_tol=1e-12,
+            ):
+                raise ValueError("each round provisional_threshold must match policy")
+            if round_state.quality_total is not None:
+                if round_state.quality_scores is None:
+                    raise ValueError("quality_total requires quality_scores")
+                expected_quality_total = round_state.quality_scores.weighted_total(
+                    self.policy.quality_weights
+                )
+                if not math.isclose(
+                    round_state.quality_total,
+                    expected_quality_total,
+                    rel_tol=0.0,
+                    abs_tol=1e-12,
+                ):
+                    raise ValueError("quality_total does not match quality_scores and policy weights")
         statement_ids = [link.statement_id for link in self.final_statement_links]
         if len(statement_ids) != len(set(statement_ids)):
             raise ValueError("final statement IDs must be unique")
         if self.final_decision is not self.rounds[-1].acceptance_decision:
             raise ValueError("final_decision must match the last acceptance round")
+        if self.final_decision in {
+            AcceptanceDecision.ACCEPT,
+            AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+        }:
+            if not self.final_payload_version:
+                raise ValueError("accepted state requires final_payload_version")
+            if self.final_payload_version != self.rounds[-1].final_payload_version:
+                raise ValueError("state final_payload_version must match final accepted round")
         return self
 
 

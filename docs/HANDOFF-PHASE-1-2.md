@@ -40,3 +40,15 @@ unchanged and local data/evidence stores are excluded from Git.
 The ignored local data stores must remain available at their existing project
 paths for the Gold integration check. They are not included in this source
 handoff because they contain large/raw evidence artifacts.
+
+## Second-commit contract hardening
+
+The follow-up acceptance fix keeps the same scope and adds deterministic
+evaluation semantics: empty claim sets fail with `empty_claim_set`; hard-gate
+rates persist their evaluation unit plus passed/evaluated counts; one failed
+assertion is counted once even when it has multiple diagnostics; and the MVP
+peer median uses the versioned `peer_median_benchmark_id(...)` identity bound to
+the sole Gold snapshot, peer set, period, and metric. Limited acceptance only
+permits unresolved `MISSING_EVIDENCE` issues, while persisted quality totals,
+round thresholds, and accepted payload versions are revalidated at the report
+state boundary.

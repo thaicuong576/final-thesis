@@ -27,6 +27,7 @@ from .schema import (
     CritiqueIssueStatus,
     HardGateResult,
     InferenceType,
+    QualityDimensionScores,
     QualityWeights,
     Stage1ValidationReport,
     StructuredAssertion,
@@ -36,6 +37,15 @@ from .schema import (
 
 ACCEPTANCE_MODEL_VERSION = "report-acceptance-v1"
 LEGACY_CLAIM_ADAPTER_VERSION = "legacy-composite-claim-to-atomic-v1"
+PEER_MEDIAN_BENCHMARK_CONTRACT_VERSION = "peer-median-gold-v1"
+_NUMERIC_ASSERTION_TYPES = frozenset(
+    {
+        AssertionType.METRIC_VALUE,
+        AssertionType.COMPARISON,
+        AssertionType.TREND,
+        AssertionType.AGGREGATE,
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -46,6 +56,43 @@ class _ResolvedReference:
     quality_status: str
     source_id: str | None
     source_tier: str | None
+
+
+@dataclass(frozen=True)
+class _UnitEvaluation:
+    """One evaluation unit and its item-level violations."""
+
+    key: str
+    violations: tuple[str, ...] = ()
+
+
+def peer_median_benchmark_id(
+    snapshot_id: str,
+    comparison_universe: str,
+    entities: Sequence[str],
+    period: str,
+    metric_id: str,
+) -> str:
+    """Build the versioned identity for a Gold-derived peer median.
+
+    The MVP has no benchmark table.  A benchmark is therefore valid only when
+    its ID is this exact identity for the current Gold snapshot, comparison
+    universe, canonical peer set, period, and metric.  The median itself is
+    recomputed from the assertion's typed Gold observation refs.
+    """
+
+    if not snapshot_id.strip() or not comparison_universe.strip():
+        raise ValueError("snapshot_id and comparison_universe must be non-empty")
+    canonical_entities = tuple(sorted(set(str(item).strip() for item in entities if str(item).strip())))
+    if not canonical_entities:
+        raise ValueError("benchmark entities must not be empty")
+    if not period.strip() or not metric_id.strip():
+        raise ValueError("period and metric_id must be non-empty")
+    return (
+        f"peer-median/{PEER_MEDIAN_BENCHMARK_CONTRACT_VERSION}/"
+        f"{snapshot_id}/{comparison_universe}/"
+        f"{','.join(canonical_entities)}/{period}/{metric_id}"
+    )
 
 
 def _legacy_inference_type(claim_type: str) -> InferenceType:
@@ -198,15 +245,7 @@ def quality_score(scores: Mapping[str, float], weights: QualityWeights) -> float
         raise ValueError("quality scores must contain exactly the six configured dimensions")
     if any(not math.isfinite(float(value)) or not 0.0 <= float(value) <= 1.0 for value in scores.values()):
         raise ValueError("quality scores must be finite values in [0, 1]")
-    return round(
-        float(scores["groundedness"]) * weights.groundedness
-        + float(scores["cross_level_integration"]) * weights.cross_level_integration
-        + float(scores["answer_coverage"]) * weights.answer_coverage
-        + float(scores["logical_soundness"]) * weights.logical_soundness
-        + float(scores["uncertainty_limitations"]) * weights.uncertainty_limitations
-        + float(scores["analytical_usefulness"]) * weights.analytical_usefulness,
-        12,
-    )
+    return QualityDimensionScores(**scores).weighted_total(weights)
 
 
 def _open_gold(db_path: Path) -> sqlite3.Connection:
@@ -228,6 +267,65 @@ def _open_gold(db_path: Path) -> sqlite3.Connection:
 
 def _accepted_tier(policy: AcceptancePolicy) -> set[str]:
     return {item.value if hasattr(item, "value") else str(item) for item in policy.accepted_source_tiers}
+
+
+def _gold_snapshot_id(connection: sqlite3.Connection) -> str | None:
+    """Return the sole Gold snapshot identity used by benchmark resolution."""
+
+    try:
+        rows = connection.execute(
+            "SELECT snapshot_id, status FROM snapshot_metadata"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return None
+    if len(rows) != 1 or rows[0]["status"] != "gold":
+        return None
+    return str(rows[0]["snapshot_id"])
+
+
+def _benchmark_reference_violations(
+    connection: sqlite3.Connection,
+    claim: AtomicClaim,
+    assertion: StructuredAssertion,
+    ref: ClaimDataRef,
+) -> list[str]:
+    """Validate the MVP's deterministic Gold-derived peer-median contract."""
+
+    violations: list[str] = []
+    if assertion.assertion_type is not AssertionType.AGGREGATE:
+        violations.append(f"benchmark_contract_unsupported_assertion_type:{ref.ref_id}")
+    if claim.scope.comparison_universe is None:
+        violations.append(f"benchmark_comparison_universe_missing:{ref.ref_id}")
+    elif ref.entity != claim.scope.comparison_universe:
+        violations.append(f"benchmark_comparison_universe_mismatch:{ref.ref_id}")
+
+    snapshot_id = _gold_snapshot_id(connection)
+    if snapshot_id is None:
+        violations.append(f"benchmark_snapshot_missing_or_ambiguous:{ref.ref_id}")
+    else:
+        expected_id = peer_median_benchmark_id(
+            snapshot_id,
+            claim.scope.comparison_universe or ref.entity,
+            claim.scope.entities,
+            ref.period,
+            ref.metric_id,
+        )
+        if ref.ref_id != expected_id:
+            violations.append(f"benchmark_reference_unresolved:{ref.ref_id}")
+
+    input_refs = assertion.data_refs
+    if not input_refs:
+        violations.append(f"benchmark_inputs_missing:{ref.ref_id}")
+    else:
+        if any(item.ref_type != "observation" for item in input_refs):
+            violations.append(f"benchmark_inputs_not_observations:{ref.ref_id}")
+        if {item.entity for item in input_refs} != set(claim.scope.entities):
+            violations.append(f"benchmark_peer_set_mismatch:{ref.ref_id}")
+        if len(input_refs) != len(claim.scope.entities):
+            violations.append(f"benchmark_inputs_not_one_per_peer:{ref.ref_id}")
+        if any(item.period != ref.period or item.metric_id != ref.metric_id for item in input_refs):
+            violations.append(f"benchmark_input_scope_mismatch:{ref.ref_id}")
+    return violations
 
 
 def _observation_reference(
@@ -388,51 +486,73 @@ def _evidence_violations(
     return violations
 
 
-def _all_direct_references(claim: AtomicClaim) -> list[ClaimDataRef]:
-    refs: list[ClaimDataRef] = []
-    for assertion in claim.assertions:
-        refs.extend(assertion.data_refs)
-        if assertion.reference_ref is not None:
-            refs.append(assertion.reference_ref)
-        if assertion.benchmark_ref is not None:
-            refs.append(assertion.benchmark_ref)
-    return refs
-
-
-def _reference_violations(
+def _reference_evaluations(
     connection: sqlite3.Connection,
     claims: Sequence[AtomicClaim],
     policy: AcceptancePolicy,
-) -> list[str]:
-    violations: list[str] = []
-    seen: set[tuple[str, str]] = set()
-    for claim in claims:
-        for ref in _all_direct_references(claim):
-            key = (ref.ref_type, ref.ref_id)
-            if key in seen:
-                continue
-            seen.add(key)
-            if ref.ref_type == "benchmark":
-                if not ref.ref_id.strip():
-                    violations.append("benchmark_reference_empty")
-                continue
-            _resolved, ref_violations = _observation_reference(connection, ref, policy)
-            violations.extend(f"{claim.claim_id}:{item}" for item in ref_violations)
-    for claim in claims:
-        for source_id in claim.source_refs:
+) -> list[_UnitEvaluation]:
+    """Evaluate each typed reference occurrence as one denominator unit.
+
+    A single reference can emit multiple diagnostic messages, but its pass/fail
+    status is counted once.  Source IDs are included because they are also
+    persisted provenance references and are resolved deterministically here.
+    """
+
+    evaluations: list[_UnitEvaluation] = []
+    for claim_index, claim in enumerate(claims):
+        for assertion in claim.assertions:
+            refs: list[tuple[str, ClaimDataRef]] = [
+                (f"data:{index}", ref)
+                for index, ref in enumerate(assertion.data_refs)
+            ]
+            if assertion.reference_ref is not None:
+                refs.append(("reference", assertion.reference_ref))
+            if assertion.benchmark_ref is not None:
+                refs.append(("benchmark", assertion.benchmark_ref))
+            for role, ref in refs:
+                if ref.ref_type == "benchmark":
+                    ref_violations = _benchmark_reference_violations(
+                        connection, claim, assertion, ref
+                    )
+                else:
+                    _resolved, ref_violations = _observation_reference(connection, ref, policy)
+                evaluations.append(
+                    _UnitEvaluation(
+                        key=f"claim:{claim_index}:{claim.claim_id}:{assertion.assertion_id}:{role}:{ref.ref_id}",
+                        violations=tuple(
+                            dict.fromkeys(
+                                f"{claim.claim_id}:{item}" for item in ref_violations
+                            )
+                        ),
+                    )
+                )
+        for source_index, source_id in enumerate(claim.source_refs):
             rows = connection.execute(
                 "SELECT source_id, source_tier, quality_status FROM source_records WHERE source_id = ?",
                 (source_id,),
             ).fetchall()
+            source_violations: list[str] = []
             if len(rows) != 1:
-                violations.append(f"source_reference_missing_or_ambiguous:{claim.claim_id}:{source_id}")
-                continue
-            row = rows[0]
-            if row["quality_status"] != "valid":
-                violations.append(f"source_reference_unaccepted:{claim.claim_id}:{source_id}")
-            if row["source_tier"] not in _accepted_tier(policy):
-                violations.append(f"source_reference_tier_not_allowed:{claim.claim_id}:{source_id}")
-    return violations
+                source_violations.append(
+                    f"source_reference_missing_or_ambiguous:{claim.claim_id}:{source_id}"
+                )
+            else:
+                row = rows[0]
+                if row["quality_status"] != "valid":
+                    source_violations.append(
+                        f"source_reference_unaccepted:{claim.claim_id}:{source_id}"
+                    )
+                if row["source_tier"] not in _accepted_tier(policy):
+                    source_violations.append(
+                        f"source_reference_tier_not_allowed:{claim.claim_id}:{source_id}"
+                    )
+            evaluations.append(
+                _UnitEvaluation(
+                    key=f"claim:{claim_index}:{claim.claim_id}:source:{source_index}:{source_id}",
+                    violations=tuple(dict.fromkeys(source_violations)),
+                )
+            )
+    return evaluations
 
 
 def _resolve_data_refs(
@@ -489,94 +609,165 @@ def _find_entity_value(
     return None
 
 
-def _numeric_violations(
+def _numeric_assertion_violations(
     connection: sqlite3.Connection,
     claim: AtomicClaim,
     policy: AcceptancePolicy,
+    assertion: StructuredAssertion,
 ) -> list[str]:
     violations: list[str] = []
-    for assertion in claim.assertions:
-        resolved, ref_violations = _resolve_data_refs(connection, assertion.data_refs, policy)
-        if ref_violations:
+    resolved, ref_violations = _resolve_data_refs(connection, assertion.data_refs, policy)
+    if ref_violations:
+        violations.extend(
+            f"{claim.claim_id}:{assertion.assertion_id}:{item}" for item in ref_violations
+        )
+        return violations
+
+    if assertion.assertion_type is AssertionType.AGGREGATE:
+        if assertion.benchmark_ref is None:
+            violations.append(
+                f"numeric_benchmark_reference_missing:{claim.claim_id}:{assertion.assertion_id}"
+            )
+            return violations
+        benchmark_violations = _benchmark_reference_violations(
+            connection, claim, assertion, assertion.benchmark_ref
+        )
+        if benchmark_violations:
             violations.extend(
-                f"{claim.claim_id}:{assertion.assertion_id}:{item}" for item in ref_violations
+                f"{claim.claim_id}:{assertion.assertion_id}:{item}"
+                for item in benchmark_violations
             )
-            continue
-        if assertion.assertion_type is AssertionType.REFERENCE_ONLY:
-            violations.append(f"numeric_assertion_unmaterialized:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-        if assertion.assertion_type is AssertionType.MISSINGNESS:
-            expected_missing = assertion.operator is AssertionOperator.MISSING
-            actual_missing = bool(resolved) and resolved[0].quality_status != "valid"
-            if expected_missing != actual_missing:
-                violations.append(f"missingness_mismatch:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-
-        if assertion.assertion_type is AssertionType.AGGREGATE:
-            values = [float(item.value) for item in resolved if item.value is not None]
-            if not values:
-                violations.append(f"numeric_aggregate_unavailable:{claim.claim_id}:{assertion.assertion_id}")
-                continue
-            if assertion.unit is not None and any(item.unit != assertion.unit for item in resolved):
-                violations.append(f"numeric_aggregate_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
-                continue
-            if assertion.operator is not AssertionOperator.EQ or assertion.asserted_value is None:
-                violations.append(f"numeric_aggregate_operator_unsupported:{claim.claim_id}:{assertion.assertion_id}")
-                continue
-            expected = float(median(values))
-            if not _number_equal(float(assertion.asserted_value), expected, policy.numeric_tolerance):
-                violations.append(f"numeric_aggregate_mismatch:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-
-        lhs = _find_entity_value(assertion, resolved)
-        if lhs is None:
-            violations.append(f"numeric_lhs_missing:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-        if assertion.unit is not None and lhs.unit != assertion.unit:
-            violations.append(f"numeric_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-        if assertion.asserted_value is not None and not _number_equal(
-            float(assertion.asserted_value), float(lhs.value), policy.numeric_tolerance
-        ):
-            violations.append(f"numeric_value_mismatch:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-
-        if assertion.assertion_type is AssertionType.METRIC_VALUE:
-            continue
-        if assertion.operator is None:
-            violations.append(f"numeric_operator_missing:{claim.claim_id}:{assertion.assertion_id}")
-            continue
-        rhs: float | None = None
-        if assertion.reference_ref is not None:
-            reference, reference_violations = _observation_reference(
-                connection, assertion.reference_ref, policy
+            return violations
+        values = [float(item.value) for item in resolved if item.value is not None]
+        if not values:
+            violations.append(f"numeric_aggregate_unavailable:{claim.claim_id}:{assertion.assertion_id}")
+            return violations
+        if assertion.unit is not None and any(item.unit != assertion.unit for item in resolved):
+            violations.append(f"numeric_aggregate_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+            return violations
+        if assertion.operator is not AssertionOperator.EQ or assertion.asserted_value is None:
+            violations.append(
+                f"numeric_aggregate_operator_unsupported:{claim.claim_id}:{assertion.assertion_id}"
             )
-            if reference_violations or reference is None or reference.value is None:
-                violations.extend(
-                    f"{claim.claim_id}:{assertion.assertion_id}:{item}"
-                    for item in reference_violations or ["numeric_reference_unavailable"]
-                )
-                continue
-            rhs = float(reference.value)
-        elif assertion.benchmark_ref is not None:
-            benchmark_values = [float(item.value) for item in resolved if item.value is not None]
-            if not benchmark_values:
-                violations.append(f"numeric_benchmark_unavailable:{claim.claim_id}:{assertion.assertion_id}")
-                continue
-            rhs = float(median(benchmark_values))
-        else:
-            violations.append(f"numeric_comparison_reference_missing:{claim.claim_id}:{assertion.assertion_id}")
-            continue
+            return violations
+        expected = float(median(values))
+        if not _number_equal(float(assertion.asserted_value), expected, policy.numeric_tolerance):
+            violations.append(f"numeric_aggregate_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+        return violations
 
-        if not _operator_holds(assertion.operator, float(lhs.value), rhs, policy.numeric_tolerance):
-            violations.append(f"numeric_operator_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+    lhs = _find_entity_value(assertion, resolved)
+    if lhs is None:
+        violations.append(f"numeric_lhs_missing:{claim.claim_id}:{assertion.assertion_id}")
+        return violations
+    if assertion.unit is not None and lhs.unit != assertion.unit:
+        violations.append(f"numeric_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+        return violations
+    if assertion.asserted_value is not None and not _number_equal(
+        float(assertion.asserted_value), float(lhs.value), policy.numeric_tolerance
+    ):
+        violations.append(f"numeric_value_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+        return violations
+
+    if assertion.assertion_type is AssertionType.METRIC_VALUE:
+        return violations
+    if assertion.operator is None:
+        violations.append(f"numeric_operator_missing:{claim.claim_id}:{assertion.assertion_id}")
+        return violations
+    rhs: float | None = None
+    if assertion.reference_ref is not None:
+        reference, reference_violations = _observation_reference(
+            connection, assertion.reference_ref, policy
+        )
+        if reference_violations or reference is None or reference.value is None:
+            violations.extend(
+                f"{claim.claim_id}:{assertion.assertion_id}:{item}"
+                for item in reference_violations or ["numeric_reference_unavailable"]
+            )
+            return violations
+        rhs = float(reference.value)
+    elif assertion.benchmark_ref is not None:
+        benchmark_violations = _benchmark_reference_violations(
+            connection, claim, assertion, assertion.benchmark_ref
+        )
+        if benchmark_violations:
+            violations.extend(
+                f"{claim.claim_id}:{assertion.assertion_id}:{item}"
+                for item in benchmark_violations
+            )
+            return violations
+        benchmark_values = [float(item.value) for item in resolved if item.value is not None]
+        if not benchmark_values:
+            violations.append(f"numeric_benchmark_unavailable:{claim.claim_id}:{assertion.assertion_id}")
+            return violations
+        rhs = float(median(benchmark_values))
+    else:
+        violations.append(
+            f"numeric_comparison_reference_missing:{claim.claim_id}:{assertion.assertion_id}"
+        )
+        return violations
+
+    if not _operator_holds(assertion.operator, float(lhs.value), rhs, policy.numeric_tolerance):
+        violations.append(f"numeric_operator_mismatch:{claim.claim_id}:{assertion.assertion_id}")
     return violations
 
 
-def _deterministic_contradiction_violations(
+def _scope_evaluations(
+    claims: Sequence[AtomicClaim],
+    workload_scope: ClaimScope,
+) -> list[_UnitEvaluation]:
+    """Evaluate one scope bundle per claim, including all nested assertions."""
+
+    return [
+        _UnitEvaluation(
+            key=f"claim:{index}:{claim.claim_id}",
+            violations=tuple(
+                dict.fromkeys(
+                    _claim_scope_violations(workload_scope, claim.scope, f"claim:{claim.claim_id}")
+                    + _assertion_scope_violations(claim)
+                )
+            ),
+        )
+        for index, claim in enumerate(claims)
+    ]
+
+
+def _evidence_evaluations(
+    connection: sqlite3.Connection,
+    claims: Sequence[AtomicClaim],
+    policy: AcceptancePolicy,
+) -> list[_UnitEvaluation]:
+    return [
+        _UnitEvaluation(
+            key=f"claim:{index}:{claim.claim_id}",
+            violations=tuple(dict.fromkeys(_evidence_violations(connection, claim, policy))),
+        )
+        for index, claim in enumerate(claims)
+        if claim.critical or claim.claim_type in policy.critical_claim_types
+    ]
+
+
+def _numeric_evaluations(
+    connection: sqlite3.Connection,
+    claims: Sequence[AtomicClaim],
+    policy: AcceptancePolicy,
+) -> list[_UnitEvaluation]:
+    return [
+        _UnitEvaluation(
+            key=f"claim:{index}:{claim.claim_id}:{assertion.assertion_id}",
+            violations=tuple(
+                dict.fromkeys(_numeric_assertion_violations(connection, claim, policy, assertion))
+            ),
+        )
+        for index, claim in enumerate(claims)
+        for assertion in claim.assertions
+        if assertion.assertion_type in _NUMERIC_ASSERTION_TYPES
+    ]
+
+
+def _deterministic_contradiction_evaluations(
     claims: Sequence[AtomicClaim],
     tolerance: float,
-) -> list[str]:
+) -> list[_UnitEvaluation]:
     grouped: dict[tuple[str, str, str, str], list[tuple[str, float]]] = {}
     for claim in claims:
         for assertion in claim.assertions:
@@ -586,13 +777,42 @@ def _deterministic_contradiction_violations(
                 continue
             key = (assertion.entity, assertion.period, assertion.metric_id, assertion.unit)
             grouped.setdefault(key, []).append((claim.claim_id, float(assertion.asserted_value)))
-    violations: list[str] = []
+    claim_violations: dict[str, list[str]] = {}
     for key, values in grouped.items():
         baseline = values[0][1]
         if any(not _number_equal(value, baseline, tolerance) for _claim_id, value in values[1:]):
             claim_ids = ",".join(claim_id for claim_id, _value in values)
-            violations.append(f"deterministic_claim_value_conflict:{'|'.join(key)}:{claim_ids}")
-    return violations
+            violation = f"deterministic_claim_value_conflict:{'|'.join(key)}:{claim_ids}"
+            for claim_id, _value in values:
+                claim_violations.setdefault(claim_id, []).append(violation)
+    return [
+        _UnitEvaluation(
+            key=f"claim:{index}:{claim.claim_id}",
+            violations=tuple(dict.fromkeys(claim_violations.get(claim.claim_id, []))),
+        )
+        for index, claim in enumerate(claims)
+    ]
+
+
+def _evaluation_summary(
+    evaluations: Sequence[_UnitEvaluation],
+    extra_violations: Sequence[str] = (),
+) -> tuple[int, int, tuple[str, ...]]:
+    """Return counts by evaluation unit and retain diagnostics separately."""
+
+    violations = tuple(
+        dict.fromkeys(
+            str(item)
+            for evaluation in evaluations
+            for item in evaluation.violations
+        )
+    )
+    violations = tuple(dict.fromkeys((*violations, *(str(item) for item in extra_violations))))
+    return (
+        len(evaluations),
+        sum(1 for evaluation in evaluations if not evaluation.violations),
+        violations,
+    )
 
 
 def validate_stage1_claims(
@@ -610,79 +830,75 @@ def validate_stage1_claims(
     """
 
     normalized_claims = tuple(claims)
-    claim_count = max(1, len(normalized_claims))
+    integrity_violations = ("empty_claim_set",) if not normalized_claims else ()
     connection = _open_gold(db_path)
     try:
-        scope_violations = [
-            item
-            for claim in normalized_claims
-            for item in (
-                _claim_scope_violations(workload_scope, claim.scope, f"claim:{claim.claim_id}")
-                + _assertion_scope_violations(claim)
-            )
-        ]
-        reference_violations = _reference_violations(connection, normalized_claims, policy)
-        evidence_violations = [
-            item for claim in normalized_claims for item in _evidence_violations(connection, claim, policy)
-        ]
-        numeric_violations = [
-            item for claim in normalized_claims for item in _numeric_violations(connection, claim, policy)
-        ]
+        scope_evaluations = _scope_evaluations(normalized_claims, workload_scope)
+        reference_evaluations = _reference_evaluations(connection, normalized_claims, policy)
+        evidence_evaluations = _evidence_evaluations(connection, normalized_claims, policy)
+        numeric_evaluations = _numeric_evaluations(connection, normalized_claims, policy)
     finally:
         connection.close()
 
-    assertion_count = max(1, sum(len(claim.assertions) for claim in normalized_claims))
-    reference_count = max(1, sum(len(_all_direct_references(claim)) for claim in normalized_claims))
-    critical_claim_count = max(
-        1,
-        sum(
-            1
-            for claim in normalized_claims
-            if claim.critical or claim.claim_type in policy.critical_claim_types
-        ),
-    )
-    contradiction_violations = _deterministic_contradiction_violations(
+    contradiction_evaluations = _deterministic_contradiction_evaluations(
         normalized_claims, policy.numeric_tolerance
     )
 
     def gate(
         gate_id: str,
-        violations: Sequence[str],
-        denominator: int,
+        evaluations: Sequence[_UnitEvaluation],
         *,
+        extra_violations: Sequence[str] = (),
+        evaluation_unit: str,
         deferred_to_critic: bool = False,
     ) -> HardGateResult:
-        unique_violations = tuple(dict.fromkeys(str(item) for item in violations))
-        rate = max(0.0, 1.0 - (len(unique_violations) / float(denominator)))
+        evaluated_count, passed_count, unique_violations = _evaluation_summary(
+            evaluations, extra_violations
+        )
+        rate = passed_count / evaluated_count if evaluated_count else 0.0
         return HardGateResult(
             gate_id=gate_id,
             passed=not unique_violations,
             rate=rate,
-            required_rate=1.0,
+            required_rate=1.0 if evaluated_count else 0.0,
+            evaluation_unit=evaluation_unit,
+            evaluated_count=evaluated_count,
+            passed_count=passed_count,
             violations=unique_violations,
             deferred_to_critic=deferred_to_critic,
         )
 
     gates = {
-        "numeric_accuracy": gate("numeric_accuracy", numeric_violations, assertion_count),
-        "reference_validity": gate("reference_validity", reference_violations, reference_count),
-        "critical_evidence_coverage": gate(
-            "critical_evidence_coverage", evidence_violations, critical_claim_count
+        "numeric_accuracy": gate(
+            "numeric_accuracy", numeric_evaluations, evaluation_unit="numeric_assertion"
         ),
-        "scope_compliance": gate("scope_compliance", scope_violations, claim_count),
+        "reference_validity": gate(
+            "reference_validity", reference_evaluations, evaluation_unit="reference"
+        ),
+        "critical_evidence_coverage": gate(
+            "critical_evidence_coverage", evidence_evaluations, evaluation_unit="critical_claim"
+        ),
+        "scope_compliance": gate(
+            "scope_compliance",
+            scope_evaluations,
+            extra_violations=integrity_violations,
+            evaluation_unit="claim_scope_bundle",
+        ),
         "fabricated_or_unaccepted_records": gate(
-            "fabricated_or_unaccepted_records", reference_violations, reference_count
+            "fabricated_or_unaccepted_records", reference_evaluations, evaluation_unit="reference"
         ),
         "blocking_contradictions": gate(
             "blocking_contradictions",
-            contradiction_violations,
-            max(1, len(normalized_claims)),
+            contradiction_evaluations,
+            extra_violations=integrity_violations,
+            evaluation_unit="claim",
             deferred_to_critic=True,
         ),
     }
     return Stage1ValidationReport(
-        passed=all(item.passed for item in gates.values()),
+        passed=all(item.passed for item in gates.values()) and not integrity_violations,
         gate_results=gates,
+        integrity_violations=integrity_violations,
     )
 
 

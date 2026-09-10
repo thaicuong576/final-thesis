@@ -8,6 +8,7 @@ from thesis_data.acceptance import (
     ACCEPTANCE_MODEL_VERSION,
     atomic_claim_to_legacy_composite_claim,
     legacy_composite_claim_to_atomic,
+    peer_median_benchmark_id,
     quality_score,
     validate_stage1_claims,
 )
@@ -212,6 +213,37 @@ class AcceptanceTests(unittest.TestCase):
     def policy(self) -> AcceptancePolicy:
         return AcceptancePolicy(policy_version="test-acceptance-v1", provisional_threshold=0.75)
 
+    def passed_gates(self) -> dict[str, HardGateResult]:
+        gate_ids = (
+            "numeric_accuracy",
+            "reference_validity",
+            "critical_evidence_coverage",
+            "scope_compliance",
+            "fabricated_or_unaccepted_records",
+            "blocking_contradictions",
+        )
+        return {
+            gate_id: HardGateResult(
+                gate_id=gate_id,
+                passed=True,
+                rate=1.0,
+                evaluation_unit="test_unit",
+                evaluated_count=1,
+                passed_count=1,
+            )
+            for gate_id in gate_ids
+        }
+
+    def quality_scores(self) -> QualityDimensionScores:
+        return QualityDimensionScores(
+            groundedness=1.0,
+            cross_level_integration=1.0,
+            answer_coverage=1.0,
+            logical_soundness=1.0,
+            uncertainty_limitations=1.0,
+            analytical_usefulness=1.0,
+        )
+
     def claim(
         self,
         *,
@@ -265,6 +297,31 @@ class AcceptanceTests(unittest.TestCase):
         self.assertTrue(result.passed)
         self.assertTrue(all(item.passed for item in result.gate_results.values()))
         self.assertEqual(result.gate_results["numeric_accuracy"].rate, 1.0)
+        self.assertEqual(result.gate_results["numeric_accuracy"].evaluated_count, 1)
+        self.assertEqual(result.gate_results["numeric_accuracy"].passed_count, 1)
+        self.assertEqual(result.gate_results["reference_validity"].evaluated_count, 2)
+        self.assertEqual(result.gate_results["reference_validity"].passed_count, 2)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].evaluated_count, 1)
+        self.assertEqual(result.gate_results["scope_compliance"].evaluated_count, 1)
+
+    def test_hard_gate_rejects_rate_not_derived_from_counts(self):
+        with self.assertRaises(ValueError):
+            HardGateResult(
+                gate_id="numeric_accuracy",
+                passed=False,
+                rate=0.5,
+                evaluation_unit="numeric_assertion",
+                evaluated_count=2,
+                passed_count=0,
+                violations=("numeric_value_mismatch",),
+            )
+
+    def test_empty_claim_set_fails_with_machine_readable_violation(self):
+        db, workload_scope = self.fixture()
+        result = validate_stage1_claims(db, (), workload_scope, self.policy())
+        self.assertFalse(result.passed)
+        self.assertIn("empty_claim_set", result.integrity_violations)
+        self.assertIn("empty_claim_set", result.gate_results["scope_compliance"].violations)
 
     def test_numeric_accuracy_does_not_parse_claim_text(self):
         db, workload_scope = self.fixture()
@@ -279,6 +336,58 @@ class AcceptanceTests(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertFalse(result.gate_results["numeric_accuracy"].passed)
         self.assertIn("numeric_value_mismatch", " ".join(result.gate_results["numeric_accuracy"].violations))
+
+    def test_multiple_violation_messages_count_as_one_failed_numeric_assertion(self):
+        db, workload_scope = self.fixture()
+        mismatched_ref = ClaimDataRef(
+            ref_id="obs-acb-q4-roe",
+            ref_type="observation",
+            entity="TCB",
+            period="2024_Q4",
+            metric_id="bank.roe",
+        )
+        missing_ref = ClaimDataRef(
+            ref_id="missing-observation",
+            ref_type="observation",
+            entity="TCB",
+            period="2024_Q4",
+            metric_id="bank.roe",
+        )
+        claim = AtomicClaim(
+            claim_id="multi-violation",
+            claim_text="The assertion has two reference diagnostics.",
+            claim_type="numeric",
+            title="Multiple diagnostics",
+            interpretation="Test only.",
+            limitation="Test only.",
+            scope=ClaimScope(
+                entities=("ACB", "TCB"),
+                periods=("2024_Q4",),
+                metric_ids=("bank.roe",),
+            ),
+            assertions=(StructuredAssertion(
+                assertion_id="multi-violation-assertion",
+                assertion_type=AssertionType.COMPARISON,
+                entity="ACB",
+                period="2024_Q4",
+                metric_id="bank.roe",
+                asserted_value=22.0,
+                unit="%",
+                operator="gt",
+                data_refs=(mismatched_ref, missing_ref),
+            ),),
+            evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
+            source_refs=("source-acb", "source-tcb"),
+            inference_type=InferenceType.COMPARISON,
+            support="evidence_backed",
+        )
+        result = validate_stage1_claims(db, (claim,), workload_scope, self.policy())
+        numeric_gate = result.gate_results["numeric_accuracy"]
+        self.assertFalse(numeric_gate.passed)
+        self.assertEqual(numeric_gate.evaluated_count, 1)
+        self.assertEqual(numeric_gate.passed_count, 0)
+        self.assertEqual(numeric_gate.rate, 0.0)
+        self.assertGreaterEqual(len(numeric_gate.violations), 2)
 
     def test_legacy_reference_is_not_authoritative(self):
         db, workload_scope = self.fixture()
@@ -296,6 +405,9 @@ class AcceptanceTests(unittest.TestCase):
         result = validate_stage1_claims(db, (self.claim(evidence=()),), workload_scope, self.policy())
         self.assertFalse(result.passed)
         self.assertFalse(result.gate_results["critical_evidence_coverage"].passed)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].evaluated_count, 1)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].passed_count, 0)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].rate, 0.0)
         self.assertTrue(result.gate_results["numeric_accuracy"].passed)
 
     def test_invalid_reference_fails_reference_and_unaccepted_gates(self):
@@ -318,6 +430,9 @@ class AcceptanceTests(unittest.TestCase):
             self.policy(),
         )
         self.assertFalse(result.gate_results["scope_compliance"].passed)
+        self.assertEqual(result.gate_results["scope_compliance"].evaluated_count, 1)
+        self.assertEqual(result.gate_results["scope_compliance"].passed_count, 0)
+        self.assertEqual(result.gate_results["scope_compliance"].rate, 0.0)
 
     def test_same_target_conflicting_values_are_deterministic_blockers(self):
         db, workload_scope = self.fixture()
@@ -410,6 +525,19 @@ class AcceptanceTests(unittest.TestCase):
                 assertion_id="aggregate-assertion", assertion_type=AssertionType.AGGREGATE,
                 entity="bank-peer-fixture", period="2024_Q4", metric_id="bank.roe",
                 asserted_value=18.5, unit="%", operator="eq", data_refs=refs,
+                benchmark_ref=ClaimDataRef(
+                    ref_id=peer_median_benchmark_id(
+                        "gold-acceptance-fixture",
+                        "bank-peer-fixture",
+                        ("ACB", "TCB"),
+                        "2024_Q4",
+                        "bank.roe",
+                    ),
+                    ref_type="benchmark",
+                    entity="bank-peer-fixture",
+                    period="2024_Q4",
+                    metric_id="bank.roe",
+                ),
             ),),
             evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
             source_refs=("source-acb", "source-tcb"), inference_type=InferenceType.COMPARISON,
@@ -417,6 +545,61 @@ class AcceptanceTests(unittest.TestCase):
         )
         result = validate_stage1_claims(db, (claim,), workload_scope, self.policy())
         self.assertTrue(result.gate_results["numeric_accuracy"].passed)
+
+    def test_fabricated_benchmark_reference_fails_reference_validity(self):
+        db, workload_scope = self.fixture()
+        refs = (
+            ClaimDataRef(
+                ref_id="obs-acb-q4-roe", ref_type="observation", entity="ACB",
+                period="2024_Q4", metric_id="bank.roe",
+            ),
+            ClaimDataRef(
+                ref_id="obs-tcb-q4-roe", ref_type="observation", entity="TCB",
+                period="2024_Q4", metric_id="bank.roe",
+            ),
+        )
+        claim = AtomicClaim(
+            claim_id="fabricated-benchmark",
+            claim_text="The peer median is 18.5%.",
+            claim_type="comparison",
+            title="Fabricated benchmark",
+            interpretation="Test only.",
+            limitation="Test only.",
+            scope=ClaimScope(
+                entities=("ACB", "TCB"),
+                periods=("2024_Q4",),
+                metric_ids=("bank.roe",),
+                comparison_universe="bank-peer-fixture",
+            ),
+            assertions=(StructuredAssertion(
+                assertion_id="fabricated-benchmark-assertion",
+                assertion_type=AssertionType.AGGREGATE,
+                entity="bank-peer-fixture",
+                period="2024_Q4",
+                metric_id="bank.roe",
+                asserted_value=18.5,
+                unit="%",
+                operator="eq",
+                data_refs=refs,
+                benchmark_ref=ClaimDataRef(
+                    ref_id="peer-median-claimed-without-resolution",
+                    ref_type="benchmark",
+                    entity="bank-peer-fixture",
+                    period="2024_Q4",
+                    metric_id="bank.roe",
+                ),
+            ),),
+            evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
+            source_refs=("source-acb", "source-tcb"),
+            inference_type=InferenceType.COMPARISON,
+            support="evidence_backed",
+        )
+        result = validate_stage1_claims(db, (claim,), workload_scope, self.policy())
+        reference_gate = result.gate_results["reference_validity"]
+        self.assertFalse(reference_gate.passed)
+        self.assertEqual(reference_gate.evaluated_count, 5)
+        self.assertEqual(reference_gate.passed_count, 4)
+        self.assertIn("benchmark_reference_unresolved", " ".join(reference_gate.violations))
 
     def test_quality_score_uses_configurable_dimensions(self):
         policy = self.policy()
@@ -497,50 +680,47 @@ class AcceptanceTests(unittest.TestCase):
             resolution_status=CritiqueIssueStatus.UNRESOLVED,
             unresolved_reason_code=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
         )
-        gates = {
-            gate_id: HardGateResult(gate_id=gate_id, passed=True, rate=1.0)
-            for gate_id in (
-                "numeric_accuracy", "reference_validity", "critical_evidence_coverage",
-                "scope_compliance", "fabricated_or_unaccepted_records", "blocking_contradictions",
-            )
-        }
         with self.assertRaises(ValueError):
             AcceptanceRound(
-                round_number=0, hard_gate_results=gates, critique_issues=(issue,),
+                round_number=0, hard_gate_results=self.passed_gates(), critique_issues=(issue,),
                 unresolved_issue_ids=("issue-reasoning",),
                 unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
-                quality_scores=QualityDimensionScores(
-                    groundedness=1.0, cross_level_integration=1.0, answer_coverage=1.0,
-                    logical_soundness=1.0, uncertainty_limitations=1.0, analytical_usefulness=1.0,
-                ),
-                quality_total=1.0, provisional_threshold=0.75,
+                quality_scores=self.quality_scores(),
+                quality_total=1.0, provisional_threshold=0.75, final_payload_version="payload-v1",
+                acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+            )
+
+    def test_incomplete_synthesis_cannot_receive_limited_acceptance(self):
+        issue = CritiqueIssue(
+            issue_id="issue-incomplete",
+            issue_type=CritiqueIssueType.INCOMPLETE_SYNTHESIS,
+            severity=CritiqueSeverity.MAJOR,
+            affected_agent="orchestrator",
+            description="The available worker outputs were not synthesized.",
+            required_action=CritiqueAction.REVISE_CLAIM,
+            resolution_status=CritiqueIssueStatus.UNRESOLVED,
+            unresolved_reason_code=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
+        )
+        with self.assertRaises(ValueError):
+            AcceptanceRound(
+                round_number=0,
+                hard_gate_results=self.passed_gates(),
+                critique_issues=(issue,),
+                unresolved_issue_ids=("issue-incomplete",),
+                unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
+                quality_scores=self.quality_scores(),
+                quality_total=1.0,
+                provisional_threshold=0.75,
+                final_payload_version="payload-v1",
                 acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
             )
 
     def test_acceptance_state_persists_round_and_statement_mapping(self):
         policy = self.policy()
-        gate_ids = (
-            "numeric_accuracy",
-            "reference_validity",
-            "critical_evidence_coverage",
-            "scope_compliance",
-            "fabricated_or_unaccepted_records",
-            "blocking_contradictions",
-        )
         round_state = AcceptanceRound(
             round_number=0,
-            hard_gate_results={
-                gate_id: HardGateResult(gate_id=gate_id, passed=True, rate=1.0)
-                for gate_id in gate_ids
-            },
-            quality_scores=QualityDimensionScores(
-                groundedness=1.0,
-                cross_level_integration=1.0,
-                answer_coverage=1.0,
-                logical_soundness=1.0,
-                uncertainty_limitations=1.0,
-                analytical_usefulness=1.0,
-            ),
+            hard_gate_results=self.passed_gates(),
+            quality_scores=self.quality_scores(),
             quality_total=1.0,
             provisional_threshold=policy.provisional_threshold,
             final_payload_version="payload-v1",
@@ -557,6 +737,82 @@ class AcceptanceTests(unittest.TestCase):
         )
         self.assertEqual(state.rounds[0].round_number, 0)
         self.assertEqual(state.final_statement_links[0].claim_ids, ("claim-1",))
+
+    def test_report_state_rejects_forged_quality_total(self):
+        policy = self.policy()
+        round_state = AcceptanceRound(
+            round_number=0,
+            hard_gate_results=self.passed_gates(),
+            quality_scores=self.quality_scores(),
+            quality_total=0.99,
+            provisional_threshold=policy.provisional_threshold,
+            final_payload_version="payload-v1",
+            acceptance_decision=AcceptanceDecision.ACCEPT,
+        )
+        with self.assertRaises(ValueError):
+            ReportAcceptanceState(
+                acceptance_model_version=ACCEPTANCE_MODEL_VERSION,
+                run_id="run-forged-quality",
+                policy=policy,
+                rounds=(round_state,),
+                final_payload_version="payload-v1",
+                final_decision=AcceptanceDecision.ACCEPT,
+            )
+
+    def test_report_state_rejects_round_threshold_mismatch(self):
+        policy = self.policy()
+        round_state = AcceptanceRound(
+            round_number=0,
+            hard_gate_results=self.passed_gates(),
+            quality_scores=self.quality_scores(),
+            quality_total=1.0,
+            provisional_threshold=0.80,
+            final_payload_version="payload-v1",
+            acceptance_decision=AcceptanceDecision.ACCEPT,
+        )
+        with self.assertRaises(ValueError):
+            ReportAcceptanceState(
+                acceptance_model_version=ACCEPTANCE_MODEL_VERSION,
+                run_id="run-threshold-mismatch",
+                policy=policy,
+                rounds=(round_state,),
+                final_payload_version="payload-v1",
+                final_decision=AcceptanceDecision.ACCEPT,
+            )
+
+    def test_accepted_round_requires_final_payload_version(self):
+        policy = self.policy()
+        with self.assertRaises(ValueError):
+            AcceptanceRound(
+                round_number=0,
+                hard_gate_results=self.passed_gates(),
+                quality_scores=self.quality_scores(),
+                quality_total=1.0,
+                provisional_threshold=policy.provisional_threshold,
+                final_payload_version=None,
+                acceptance_decision=AcceptanceDecision.ACCEPT,
+            )
+
+    def test_accepted_state_requires_matching_final_payload_version(self):
+        policy = self.policy()
+        round_state = AcceptanceRound(
+            round_number=0,
+            hard_gate_results=self.passed_gates(),
+            quality_scores=self.quality_scores(),
+            quality_total=1.0,
+            provisional_threshold=policy.provisional_threshold,
+            final_payload_version="payload-v1",
+            acceptance_decision=AcceptanceDecision.ACCEPT,
+        )
+        with self.assertRaises(ValueError):
+            ReportAcceptanceState(
+                acceptance_model_version=ACCEPTANCE_MODEL_VERSION,
+                run_id="run-payload-mismatch",
+                policy=policy,
+                rounds=(round_state,),
+                final_payload_version="payload-v2",
+                final_decision=AcceptanceDecision.ACCEPT,
+            )
 
 
 if __name__ == "__main__":

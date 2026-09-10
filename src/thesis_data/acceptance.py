@@ -292,7 +292,10 @@ def _benchmark_reference_violations(
     """Validate the MVP's deterministic Gold-derived peer-median contract."""
 
     violations: list[str] = []
-    if assertion.assertion_type is not AssertionType.AGGREGATE:
+    if assertion.assertion_type not in {
+        AssertionType.AGGREGATE,
+        AssertionType.COMPARISON,
+    }:
         violations.append(f"benchmark_contract_unsupported_assertion_type:{ref.ref_id}")
     if claim.scope.comparison_universe is None:
         violations.append(f"benchmark_comparison_universe_missing:{ref.ref_id}")

@@ -22,8 +22,8 @@ revision loop, Macro Gold build, UI change, or benchmark rerun.
 
 ## Verification recorded for this snapshot
 
-- Focused acceptance tests: `16` passed.
-- Full suite: `python -m unittest discover -s tests -q` → `345` passed.
+- Focused acceptance tests: `25` passed.
+- Full suite: repository unittest harness with `src` on the import path → `354` passed.
 - Read-only Gold integration check: one valid observation/evidence case passed
   all six Stage-1 hard gates.
 - The full test suite does not require provider credentials.

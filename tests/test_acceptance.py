@@ -17,6 +17,7 @@ from thesis_data.schema import (
     AcceptanceDecision,
     AcceptancePolicy,
     AcceptanceRound,
+    AssertionOperator,
     AssertionType,
     AtomicClaim,
     ClaimDataRef,
@@ -474,14 +475,30 @@ class AcceptanceTests(unittest.TestCase):
             ref_id="obs-tcb-q1-roe", ref_type="observation", entity="TCB",
             period="2024_Q1", metric_id="bank.roe",
         )
+        benchmark_ref = ClaimDataRef(
+            ref_id=peer_median_benchmark_id(
+                "gold-acceptance-fixture",
+                "bank-peer-fixture",
+                ("ACB", "TCB"),
+                "2024_Q4",
+                "bank.roe",
+            ),
+            ref_type="benchmark",
+            entity="bank-peer-fixture",
+            period="2024_Q4",
+            metric_id="bank.roe",
+        )
         comparison = AtomicClaim(
             claim_id="comparison-1", claim_text="ACB exceeds TCB.", claim_type="comparison",
             title="Peer comparison", interpretation="ACB is higher in the fixture.", limitation="Test only.",
-            scope=ClaimScope(entities=("ACB", "TCB"), periods=("2024_Q4",), metric_ids=("bank.roe",)),
+            scope=ClaimScope(
+                entities=("ACB", "TCB"), periods=("2024_Q4",), metric_ids=("bank.roe",),
+                comparison_universe="bank-peer-fixture",
+            ),
             assertions=(StructuredAssertion(
                 assertion_id="comparison-assertion", assertion_type=AssertionType.COMPARISON,
                 entity="ACB", period="2024_Q4", metric_id="bank.roe", asserted_value=22.0,
-                unit="%", operator="gt", reference_ref=tcb_q4, data_refs=(acb_q4, tcb_q4),
+                unit="%", operator="gt", data_refs=(acb_q4, tcb_q4), benchmark_ref=benchmark_ref,
             ),),
             evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
             source_refs=("source-acb", "source-tcb"), inference_type=InferenceType.COMPARISON,
@@ -501,6 +518,25 @@ class AcceptanceTests(unittest.TestCase):
         )
         result = validate_stage1_claims(db, (comparison, trend), workload_scope, self.policy())
         self.assertTrue(result.passed)
+        self.assertTrue(result.gate_results["numeric_accuracy"].passed)
+
+        wrong_direction_assertion = comparison.assertions[0].model_copy(
+            update={"operator": AssertionOperator.LT}
+        )
+        wrong_direction_claim = comparison.model_copy(
+            update={
+                "claim_id": "comparison-wrong-direction",
+                "assertions": (wrong_direction_assertion,),
+            }
+        )
+        wrong_direction_result = validate_stage1_claims(
+            db, (wrong_direction_claim,), workload_scope, self.policy()
+        )
+        numeric_gate = wrong_direction_result.gate_results["numeric_accuracy"]
+        self.assertFalse(numeric_gate.passed)
+        self.assertEqual(numeric_gate.passed_count, 0)
+        self.assertEqual(numeric_gate.evaluated_count, 1)
+        self.assertIn("numeric_operator_mismatch", " ".join(numeric_gate.violations))
 
     def test_aggregate_assertion_recomputes_peer_median(self):
         db, workload_scope = self.fixture()
@@ -546,7 +582,7 @@ class AcceptanceTests(unittest.TestCase):
         result = validate_stage1_claims(db, (claim,), workload_scope, self.policy())
         self.assertTrue(result.gate_results["numeric_accuracy"].passed)
 
-    def test_fabricated_benchmark_reference_fails_reference_validity(self):
+    def test_fabricated_comparison_benchmark_reference_fails_reference_validity(self):
         db, workload_scope = self.fixture()
         refs = (
             ClaimDataRef(
@@ -560,7 +596,7 @@ class AcceptanceTests(unittest.TestCase):
         )
         claim = AtomicClaim(
             claim_id="fabricated-benchmark",
-            claim_text="The peer median is 18.5%.",
+            claim_text="ACB ROE is above the peer median.",
             claim_type="comparison",
             title="Fabricated benchmark",
             interpretation="Test only.",
@@ -573,13 +609,13 @@ class AcceptanceTests(unittest.TestCase):
             ),
             assertions=(StructuredAssertion(
                 assertion_id="fabricated-benchmark-assertion",
-                assertion_type=AssertionType.AGGREGATE,
-                entity="bank-peer-fixture",
+                assertion_type=AssertionType.COMPARISON,
+                entity="ACB",
                 period="2024_Q4",
                 metric_id="bank.roe",
-                asserted_value=18.5,
+                asserted_value=22.0,
                 unit="%",
-                operator="eq",
+                operator="gt",
                 data_refs=refs,
                 benchmark_ref=ClaimDataRef(
                     ref_id="peer-median-claimed-without-resolution",

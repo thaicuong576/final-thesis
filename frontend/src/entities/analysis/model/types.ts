@@ -1,16 +1,17 @@
-import type { MacroCapabilityStatus } from '../../capability/model/types';
-
 export interface AnalysisRequest {
   objective: string;
   analysisTargetIds: string[];
   periodIds: string[];
   metricIds: string[];
+  capabilitySnapshotId: string;
   peerUniverseId: string;
-  macroStatus: MacroCapabilityStatus;
 }
 
+export type AnalysisSubmissionStatus = 'CLIENT_VALIDATED';
+
 export interface AnalysisSubmissionReceipt {
-  accepted: boolean;
+  status: AnalysisSubmissionStatus;
+  readyForBackendSubmission: boolean;
   requestId: string;
   message: string;
 }

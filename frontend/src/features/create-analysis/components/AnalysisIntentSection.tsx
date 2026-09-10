@@ -81,7 +81,7 @@ export function AnalysisIntentSection({
       {possibleMismatch && (
         <div className="notice notice-warning mt-4" role="status">
           <p className="font-semibold">Hệ thống phát hiện yêu cầu có thể vượt ngoài phạm vi đã chọn.</p>
-          <p className="mt-1 text-xs">Vui lòng kiểm tra lại mục tiêu và lựa chọn có cấu trúc. Structured scope vẫn là ranh giới thực thi.</p>
+          <p className="mt-1 text-xs">Vui lòng kiểm tra lại mục tiêu và phạm vi có cấu trúc. Phạm vi này vẫn là ranh giới thực thi.</p>
         </div>
       )}
     </section>

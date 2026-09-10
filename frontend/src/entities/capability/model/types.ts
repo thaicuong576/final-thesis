@@ -8,7 +8,6 @@ export interface Entity {
 
 export interface Period {
   id: string;
-  label: string;
   quarter: number;
   year: number;
 }
@@ -42,6 +41,7 @@ export interface MacroCapability {
 }
 
 export interface AnalysisCapabilities {
+  snapshotId: string;
   goldVersion: string;
   entities: Entity[];
   periods: Period[];
@@ -49,7 +49,6 @@ export interface AnalysisCapabilities {
   topics: TopicPreset[];
   peerUniverse: PeerUniverse;
   macro: MacroCapability;
-  financialDataPeriod: string;
   ingestionTimestamp: string;
   validationTimestamp: string;
   source: string;

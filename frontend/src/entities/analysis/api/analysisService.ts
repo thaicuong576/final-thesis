@@ -9,7 +9,8 @@ export const analysisService: AnalysisService = {
   async submit(request) {
     void request;
     return {
-      accepted: true,
+      status: 'CLIENT_VALIDATED',
+      readyForBackendSubmission: true,
       requestId: 'frontend-validation-only',
       message: 'Yêu cầu đã vượt qua kiểm tra phía giao diện và sẵn sàng gửi đến backend.'
     };

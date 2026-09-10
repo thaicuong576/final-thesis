@@ -2,6 +2,7 @@ import { CheckCircle2, CircleAlert, CircleX, Play } from 'lucide-react';
 import type { AnalysisCapabilities, MacroCapabilityStatus } from '../../../entities/capability/model/types';
 import type { AnalysisFormValues } from '../schema';
 import { cn } from '../../../shared/lib/cn';
+import { formatPeriodLabel } from '../../../shared/lib/formatting';
 
 interface RequestSummaryProps {
   capabilities: AnalysisCapabilities;
@@ -20,7 +21,7 @@ const macroLabel: Record<MacroCapabilityStatus, string> = {
 
 export function RequestSummary({ capabilities, values, isValid, isSubmitting, submissionMessage, onSubmit }: RequestSummaryProps) {
   const targetLabels = capabilities.entities.filter((entity) => values.analysisTargetIds.includes(entity.id)).map((entity) => entity.ticker);
-  const periodLabels = capabilities.periods.filter((period) => values.periodIds.includes(period.id)).map((period) => period.label);
+  const periodLabels = capabilities.periods.filter((period) => values.periodIds.includes(period.id)).map(formatPeriodLabel);
   const metricLabels = capabilities.metrics.filter((metric) => values.metricIds.includes(metric.id)).map((metric) => metric.acronym);
   const blockedByMacro = capabilities.macro.status === 'UNAVAILABLE';
   const ready = isValid && !blockedByMacro;

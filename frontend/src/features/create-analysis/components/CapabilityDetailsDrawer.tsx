@@ -1,6 +1,8 @@
 import { CheckCircle2, Clock3, Database, Info, X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import type { AnalysisCapabilities } from '../../../entities/capability/model/types';
 import { cn } from '../../../shared/lib/cn';
+import { formatCapabilityTimestamp, formatGoldVersion, formatPeriodCollection } from '../../../shared/lib/formatting';
 
 interface CapabilityDetailsDrawerProps {
   capabilities: AnalysisCapabilities;
@@ -15,6 +17,48 @@ const macroLabel: Record<AnalysisCapabilities['macro']['status'], string> = {
 };
 
 export function CapabilityDetailsDrawer({ capabilities, open, onClose }: CapabilityDetailsDrawerProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    function getFocusableElements() {
+      const dialog = closeButtonRef.current?.closest('[role="dialog"]');
+      if (!dialog) return [];
+      return [...dialog.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter((element) => !element.hasAttribute('disabled'));
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusableElements();
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocusRef.current?.focus();
+    };
+  }, [onClose, open]);
+
   if (!open) return null;
 
   return (
@@ -22,16 +66,18 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
       <button aria-label="Đóng chi tiết phạm vi dữ liệu" className="absolute inset-0 cursor-default bg-ink/20" onClick={onClose} />
       <aside
         aria-label="Chi tiết phạm vi dữ liệu"
+        aria-labelledby="capability-details-title"
         aria-modal="true"
         className="absolute right-0 top-0 flex h-full w-full max-w-[440px] flex-col overflow-y-auto border-l border-line bg-canvas shadow-2xl"
         role="dialog"
+        tabIndex={-1}
       >
         <div className="flex items-start justify-between border-b border-line bg-white px-6 py-5">
           <div>
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Năng lực hiện tại</p>
-            <h2 className="font-display text-3xl font-semibold leading-none text-ink">Chi tiết phạm vi</h2>
+            <h2 id="capability-details-title" className="font-display text-3xl font-semibold leading-none text-ink">Chi tiết phạm vi</h2>
           </div>
-          <button type="button" aria-label="Đóng" onClick={onClose} className="rounded-sm p-2 text-muted transition hover:bg-selected hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c5d9c]">
+          <button ref={closeButtonRef} type="button" aria-label="Đóng" onClick={onClose} className="rounded-sm p-2 text-muted transition hover:bg-selected hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c5d9c]">
             <X size={20} aria-hidden="true" />
           </button>
         </div>
@@ -50,7 +96,7 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
           </DetailGroup>
 
           <DetailGroup title="Kỳ dữ liệu tài chính">
-            <p className="font-semibold text-ink">{capabilities.financialDataPeriod}</p>
+            <p className="font-semibold text-ink">{formatPeriodCollection(capabilities.periods)}</p>
           </DetailGroup>
 
           <DetailGroup title="Nhóm tham chiếu">
@@ -71,14 +117,15 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
 
           <DetailGroup title="Phiên bản và thời gian">
             <dl className="space-y-3">
-              <DetailRow icon={<Database size={15} />} label="Phiên bản dữ liệu" value={capabilities.goldVersion} />
-              <DetailRow icon={<Clock3 size={15} />} label="Kỳ tài chính" value={capabilities.financialDataPeriod} />
-              <DetailRow icon={<Clock3 size={15} />} label="Nạp/cập nhật dữ liệu" value={capabilities.ingestionTimestamp} />
-              <DetailRow icon={<CheckCircle2 size={15} />} label="Xác thực dữ liệu" value={capabilities.validationTimestamp} />
+              <DetailRow icon={<Database size={15} />} label="Phiên bản dữ liệu" value={formatGoldVersion(capabilities.goldVersion)} />
+              <DetailRow icon={<Database size={15} />} label="Mã snapshot năng lực" value={capabilities.snapshotId} />
+              <DetailRow icon={<Clock3 size={15} />} label="Kỳ tài chính" value={formatPeriodCollection(capabilities.periods)} />
+              <DetailRow icon={<Clock3 size={15} />} label="Nạp/cập nhật dữ liệu" value={formatCapabilityTimestamp(capabilities.ingestionTimestamp)} />
+              <DetailRow icon={<CheckCircle2 size={15} />} label="Xác thực dữ liệu" value={formatCapabilityTimestamp(capabilities.validationTimestamp)} />
             </dl>
           </DetailGroup>
 
-          <DetailGroup title="Nguồn và readiness">
+          <DetailGroup title="Nguồn và mức sẵn sàng dữ liệu">
             <p className="text-muted">Nguồn: <span className="text-ink">{capabilities.source}</span></p>
             <p className="mt-2 text-muted">Trạng thái: <span className="text-ink">{capabilities.readiness}</span></p>
           </DetailGroup>

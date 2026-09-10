@@ -1,6 +1,6 @@
 import { Check, ChevronDown, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
-import type { FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import type { FieldErrors, UseFormWatch } from 'react-hook-form';
 import type { AnalysisCapabilities } from '../../../entities/capability/model/types';
 import type { AnalysisFormValues } from '../schema';
 import { cn } from '../../../shared/lib/cn';
@@ -8,23 +8,16 @@ import { cn } from '../../../shared/lib/cn';
 interface TopicMetricSelectorProps {
   capabilities: AnalysisCapabilities;
   errors: FieldErrors<AnalysisFormValues>;
-  setValue: UseFormSetValue<AnalysisFormValues>;
   watch: UseFormWatch<AnalysisFormValues>;
   selectedTopicIds: string[];
   onTopicToggle: (topicId: string) => void;
+  onManualMetricToggle: (metricId: string) => void;
   onRestoreDefaults: () => void;
 }
 
-export function TopicMetricSelector({ capabilities, errors, setValue, watch, selectedTopicIds, onTopicToggle, onRestoreDefaults }: TopicMetricSelectorProps) {
+export function TopicMetricSelector({ capabilities, errors, watch, selectedTopicIds, onTopicToggle, onManualMetricToggle, onRestoreDefaults }: TopicMetricSelectorProps) {
   const [customOpen, setCustomOpen] = useState(false);
   const selectedMetrics = watch('metricIds') ?? [];
-
-  function toggleMetric(metricId: string) {
-    const next = selectedMetrics.includes(metricId)
-      ? selectedMetrics.filter((id) => id !== metricId)
-      : [...selectedMetrics, metricId];
-    setValue('metricIds', next, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }
 
   return (
     <section className="surface-section" aria-labelledby="topic-heading">
@@ -79,7 +72,7 @@ export function TopicMetricSelector({ capabilities, errors, setValue, watch, sel
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {capabilities.metrics.map((metric) => (
               <label key={metric.id} htmlFor={`metric-${metric.id}`} className="check-option bg-white">
-                <input id={`metric-${metric.id}`} type="checkbox" checked={selectedMetrics.includes(metric.id)} onChange={() => toggleMetric(metric.id)} />
+                <input id={`metric-${metric.id}`} type="checkbox" checked={selectedMetrics.includes(metric.id)} onChange={() => onManualMetricToggle(metric.id)} />
                 <span><strong>{metric.acronym}</strong> — {metric.label}</span>
               </label>
             ))}

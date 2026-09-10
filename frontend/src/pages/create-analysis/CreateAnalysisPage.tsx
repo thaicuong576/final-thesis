@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BarChart3, Bell, CircleHelp, UserRound } from 'lucide-react';
+import { BarChart3, UserRound } from 'lucide-react';
 import type { AnalysisRequest } from '../../entities/analysis/model/types';
 import { analysisService } from '../../entities/analysis/api/analysisService';
 import { AnalysisIntentSection } from '../../features/create-analysis/components/AnalysisIntentSection';
@@ -27,6 +27,7 @@ export function CreateAnalysisPage() {
   const capabilitiesData = capabilitiesQuery.data;
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
+  const [manualMetricOverrides, setManualMetricOverrides] = useState<Record<string, boolean>>({});
   const [objectiveState, setObjectiveState] = useState<{ text: string; signature: string; edited: boolean } | null>(null);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +47,7 @@ export function CreateAnalysisPage() {
 
   const scopeChangedNotice = Boolean(objectiveState && objectiveState.signature !== scopeSignature);
   const canSuggest = Boolean((values.analysisTargetIds?.length ?? 0) > 0 && (values.periodIds?.length ?? 0) > 0 && (values.metricIds?.length ?? 0) > 0 && capabilitiesData);
+  const closeDetails = useCallback(() => setDetailsOpen(false), []);
 
   useEffect(() => {
     if (objectiveState && objective !== objectiveState.text && !objectiveState.edited) {
@@ -71,15 +73,26 @@ export function CreateAnalysisPage() {
     const isSelected = selectedTopicIds.includes(topicId);
     const currentMetrics = form.getValues('metricIds');
     const nextMetrics = isSelected
-      ? currentMetrics.filter((metricId) => !topic.metricIds.includes(metricId))
-      : [...new Set([...currentMetrics, ...topic.metricIds])];
+      ? currentMetrics.filter((metricId) => !topic.metricIds.includes(metricId) || manualMetricOverrides[metricId] !== undefined)
+      : [...new Set([...currentMetrics, ...topic.metricIds.filter((metricId) => manualMetricOverrides[metricId] !== false)])];
     setSelectedTopicIds(isSelected ? selectedTopicIds.filter((id) => id !== topicId) : [...selectedTopicIds, topicId]);
+    form.setValue('metricIds', nextMetrics, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    setSubmissionMessage(null);
+  }
+
+  function handleManualMetricToggle(metricId: string) {
+    const isSelected = form.getValues('metricIds').includes(metricId);
+    const nextMetrics = isSelected
+      ? form.getValues('metricIds').filter((id) => id !== metricId)
+      : [...form.getValues('metricIds'), metricId];
+    setManualMetricOverrides((current) => ({ ...current, [metricId]: !isSelected }));
     form.setValue('metricIds', nextMetrics, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     setSubmissionMessage(null);
   }
 
   function restoreDefaultMetrics() {
     const nextMetrics = capabilities.topics.filter((topic) => selectedTopicIds.includes(topic.id)).flatMap((topic) => topic.metricIds);
+    setManualMetricOverrides({});
     form.setValue('metricIds', [...new Set(nextMetrics)], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
 
@@ -95,8 +108,8 @@ export function CreateAnalysisPage() {
     const formValues = form.getValues();
     const request: AnalysisRequest = {
       ...formValues,
-      peerUniverseId: capabilities.peerUniverse.id,
-      macroStatus: capabilities.macro.status
+      capabilitySnapshotId: capabilities.snapshotId,
+      peerUniverseId: capabilities.peerUniverse.id
     };
     const receipt = await analysisService.submit(request);
     setSubmissionMessage(receipt.message);
@@ -108,7 +121,7 @@ export function CreateAnalysisPage() {
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between px-5 lg:px-9">
           <div className="flex items-center gap-2.5 text-sm font-semibold tracking-[-0.01em] text-ink"><BarChart3 size={20} strokeWidth={2.5} className="text-[#1c5d9c]" aria-hidden="true" /> PHÂN TÍCH TÀI CHÍNH</div>
-          <div className="flex items-center gap-4 text-muted"><button type="button" aria-label="Trợ giúp" className="hidden items-center gap-1.5 text-xs font-semibold hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c5d9c] sm:flex"><CircleHelp size={16} aria-hidden="true" /> Trợ giúp</button><button type="button" aria-label="Thông báo" className="rounded-sm p-1.5 hover:bg-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c5d9c]"><Bell size={17} aria-hidden="true" /></button><span className="hidden h-6 w-px bg-line sm:block" aria-hidden="true" /><span className="flex items-center gap-2 text-xs font-semibold text-ink"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#273a50] text-[10px] text-white">ND</span><span className="hidden sm:inline">Nguyễn Minh Đức</span><UserRound size={15} className="text-muted" aria-hidden="true" /></span></div>
+          <div className="flex items-center gap-4 text-muted"><span className="flex items-center gap-2 text-xs font-semibold text-ink"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#273a50] text-[10px] text-white">PTC</span><span className="hidden sm:inline">Phùng Thái Cường</span><UserRound size={15} className="text-muted" aria-hidden="true" /></span></div>
         </div>
       </header>
 
@@ -129,13 +142,13 @@ export function CreateAnalysisPage() {
               canSuggest={canSuggest}
               objectiveWasEdited={Boolean(objectiveState?.edited)}
               scopeChangedNotice={scopeChangedNotice}
-              possibleMismatch={hasPossibleObjectiveMismatch(objective)}
+              possibleMismatch={hasPossibleObjectiveMismatch(objective, capabilities, { analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] })}
               onSuggest={applySuggestedObjective}
               onUpdateSuggestion={applySuggestedObjective}
               onKeepObjective={keepCurrentObjective}
             />
             <ScopeSelectors capabilities={capabilities} errors={form.formState.errors} setValue={form.setValue} watch={form.watch} />
-            <TopicMetricSelector capabilities={capabilities} errors={form.formState.errors} setValue={form.setValue} watch={form.watch} selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} onRestoreDefaults={restoreDefaultMetrics} />
+            <TopicMetricSelector capabilities={capabilities} errors={form.formState.errors} watch={form.watch} selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} onManualMetricToggle={handleManualMetricToggle} onRestoreDefaults={restoreDefaultMetrics} />
             <SystemContextSection capabilities={capabilities} />
           </form>
 
@@ -143,7 +156,7 @@ export function CreateAnalysisPage() {
         </div>
       </main>
 
-      <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={() => setDetailsOpen(false)} />
+      <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={closeDetails} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import type { AnalysisCapabilities } from '../model/types';
 
 export const mockCapabilities: AnalysisCapabilities = {
-  goldVersion: 'Gold v0.9 · mô phỏng',
+  snapshotId: 'capabilities-gold-2026-09-11T09:30:00+07:00',
+  goldVersion: '0.9',
   entities: [
     { id: 'acb', ticker: 'ACB', name: 'Ngân hàng Á Châu' },
     { id: 'tcb', ticker: 'TCB', name: 'Ngân hàng Kỹ thương Việt Nam' },
@@ -10,10 +11,10 @@ export const mockCapabilities: AnalysisCapabilities = {
     { id: 'vcb', ticker: 'VCB', name: 'Ngân hàng Ngoại thương Việt Nam' }
   ],
   periods: [
-    { id: '2024-q1', label: 'Q1/2024', quarter: 1, year: 2024 },
-    { id: '2024-q2', label: 'Q2/2024', quarter: 2, year: 2024 },
-    { id: '2024-q3', label: 'Q3/2024', quarter: 3, year: 2024 },
-    { id: '2024-q4', label: 'Q4/2024', quarter: 4, year: 2024 }
+    { id: '2024-q1', quarter: 1, year: 2024 },
+    { id: '2024-q2', quarter: 2, year: 2024 },
+    { id: '2024-q3', quarter: 3, year: 2024 },
+    { id: '2024-q4', quarter: 4, year: 2024 }
   ],
   metrics: [
     { id: 'npl', acronym: 'NPL', label: 'Tỷ lệ nợ xấu', topicId: 'asset-quality' },
@@ -53,10 +54,9 @@ export const mockCapabilities: AnalysisCapabilities = {
     summary: 'Hợp đồng Macro tối thiểu đã đáp ứng; bối cảnh bổ sung còn thiếu.',
     details: 'Phân tích vẫn có thể chạy. Báo cáo phải công bố rõ các giới hạn của lớp dữ liệu vĩ mô.'
   },
-  financialDataPeriod: 'Q1–Q4/2024',
-  ingestionTimestamp: '11/09/2026 08:45 ICT · mô phỏng',
-  validationTimestamp: '11/09/2026 09:30 ICT · mô phỏng',
-  source: 'Gold capability fixture · dữ liệu mô phỏng cho frontend',
+  ingestionTimestamp: '2026-09-11T08:45:00+07:00',
+  validationTimestamp: '2026-09-11T09:30:00+07:00',
+  source: 'Nguồn năng lực Gold · dữ liệu mô phỏng cho frontend',
   readiness: 'Đã sẵn sàng cho kiểm tra phạm vi phía giao diện'
 };
 

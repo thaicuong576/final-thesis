@@ -2,7 +2,7 @@
 const { chromium } = require('C:/Users/ASUS/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const fs = require('node:fs');
 const path = require('node:path');
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '..', '..');
 const out = path.join(root, 'docs/assets/thesis-visuals-20260910');
 (async () => {
   fs.mkdirSync(out, {recursive: true});

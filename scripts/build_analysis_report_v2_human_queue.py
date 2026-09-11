@@ -191,7 +191,7 @@ provider fail/non-model; chúng không có report để chấm và vẫn đượ
 3. Kiểm tra claim quan trọng bằng Gold data/evidence được hiển thị trong packet.
 4. Điền `score` từ 0 đến 4 và viết một hoặc hai câu vào `decision_basis` cho từng chiều.
 
-Nếu dùng reviewer console, mở `app/review.html`, nạp hai file trên, chấm từng
+Nếu dùng reviewer console, mở `research/evaluation-ui/review.html`, nạp hai file trên, chấm từng
 packet rồi bấm **Tải CSV đã chấm**. Console chỉ đọc dữ liệu local và không gọi model.
 
 ## Thang điểm

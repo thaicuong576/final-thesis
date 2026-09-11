@@ -26,6 +26,8 @@ empty scores or unsupported machine scores are invalid.
 5. Write one or two sentences explaining the score, including the most important
    error or strength.
 
+The local blind reviewer console is `research/evaluation-ui/review.html`.
+
 The queue is arm-blind, not issuer-blind: issuer names and periods are needed to
 check factual correctness. Do not infer a score from the presence of more claims
 or more evidence IDs. A report with more content can still be less correct or

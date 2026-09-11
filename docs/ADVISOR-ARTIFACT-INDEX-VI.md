@@ -35,17 +35,17 @@ lượt chạy thất bại được giữ nguyên trong báo cáo.
 
 ## 4. Báo cáo và giao diện trình diễn
 
-- [Báo cáo JSON dùng cho giao diện](../app/data/analysis-report.json)
-- [Giao diện báo cáo](../app/index.html)
-- [Bảng chấm mù](../app/review.html)
-- [Hướng dẫn giao diện](../app/README.md)
+- [Báo cáo JSON dùng cho giao diện](../legacy/frozen-report-viewer/data/analysis-report.json)
+- [Giao diện báo cáo lịch sử](../legacy/frozen-report-viewer/index.html)
+- [Bảng chấm mù](../research/evaluation-ui/review.html)
+- [Hướng dẫn giao diện lịch sử](../legacy/frozen-report-viewer/README.md)
 - [Kịch bản trình diễn 5 phút](ADVISOR-DEMO-SCRIPT-VI.md)
 - [Bản trình chiếu PowerPoint 7 trang](../reports/advisor-package-2026-09-10/final/advisor-deck-v3.pptx)
 
 Giao diện xem trước chạy cục bộ bằng:
 
 ```powershell
-python -m http.server 8765 --directory app
+python -m http.server 8765 --directory legacy/frozen-report-viewer
 ```
 
 Sau đó mở `http://127.0.0.1:8765/`.

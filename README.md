@@ -41,6 +41,16 @@ The event history is recorded in `.agents/project-state/events.jsonl`.
 - `docs/THESIS-DRAFT-OUTLINE-VI.md` — chapter outline separating writable design from gated results.
 - `docs/THESIS-DRAFT-CHAPTERS-1-4-VI.md` — working prose draft for the stable parts of Chapters 1–4.
 
+## Repository entry points
+
+- `frontend/` — runnable React product frontend.
+- `src/thesis_data/` — Python analysis/research core.
+- `research/evaluation-ui/` — blind human evaluation tool.
+- `legacy/frozen-report-viewer/` — historical read-only report viewer.
+- `experiments/` — experiment definitions and plans.
+- `scripts/` — active generic project scripts.
+- `docs/` — thesis and design documentation.
+
 ## Source material
 
 The original thesis document is stored under `docs/` with its PDF and extracted thesis images.

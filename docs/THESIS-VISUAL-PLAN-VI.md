@@ -11,7 +11,7 @@ Bổ sung trực tiếp vào bản Word hiện tại các bảng có thể chỉ
 3. Bảng 4.1: Vai trò và phạm vi công cụ trong luồng composite hiện tại. Không đưa Macro Agent vào phạm vi thực nghiệm ngân hàng.
 4. Hình 4.2: Ba nhánh thực nghiệm và bước kiểm chứng giới hạn. Sơ đồ GPT Image Gen đen trắng, không mặc định một tác tử chỉ gọi API một lần hoặc mọi worker chạy song song.
 5. Hình 5.1: Ảnh màn hình tổng quan/so sánh của ứng dụng local, ghi rõ đây là báo cáo đóng băng và giao diện chỉ đọc.
-6. Hình 5.2: Ảnh mở nhận định và dấu vết bằng chứng, chụp giao diện thật, không dùng ảnh AI để giả làm screenshot.
+6. Hình 5.2: Ảnh mở nhận định và dấu vết bằng chứng, chụp giao diện local read-only thật, không dùng ảnh AI để giả làm screenshot.
 7. Bảng 6.1: Chất lượng trung bình theo 1–5 ngân hàng và ba nhánh, trên công việc hoàn thành.
 8. Bảng 6.2: Số công việc hoàn thành trên năm lượt của từng cấu hình.
 9. Bảng 6.3: Chi phí, độ trễ và token ở ba ngân hàng, đọc cùng tỷ lệ hoàn thành. Không diễn giải chi phí ước tính là hóa đơn đầy đủ.
@@ -22,7 +22,7 @@ Nếu ảnh chụp quá dày để đọc khi đặt trong trang Word, ưu tiên
 
 Đối chiếu mã và kết quả đóng băng → chốt nội dung hình/bảng → tạo sơ đồ và chụp ứng dụng → kiểm tra chữ, mũi tên và nguồn → bổ sung đoạn dẫn và dựng Word → xuất ảnh từng trang → kiểm tra toàn bộ trang, bảng, chú thích và dữ liệu → ghi handoff và cập nhật project state.
 
-Nguồn chính: `src/thesis_data/composite_runner.py`, `src/thesis_data/agent_tools.py`, `docs/OUTPUT-CONTRACT-V2.md`, `reports/analysis-report-v2-final-evaluation-gold-v5-20260909-v4/final-evaluation.md`, `app/data/analysis-report.json` và snapshot Gold v5.
+Nguồn chính: `src/thesis_data/composite_runner.py`, `src/thesis_data/agent_tools.py`, `docs/OUTPUT-CONTRACT-V2.md`, `reports/analysis-report-v2-final-evaluation-gold-v5-20260909-v4/final-evaluation.md`, `legacy/frozen-report-viewer/data/analysis-report.json` và snapshot Gold v5. Source artifact của giao diện local read-only hiện được archive tại `legacy/frozen-report-viewer/`; lịch sử Hình 5.1 và 5.2 vẫn là screenshot chụp từ giao diện đó, không phải từ React frontend mới.
 
 ## Trạng thái khởi đầu
 

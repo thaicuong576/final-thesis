@@ -20,7 +20,10 @@ Mục tiêu: làm một luồng phân tích ngành dùng được, rồi đo khi
 
 ## 5. UI mỏng
 
-Đã thêm `app/index.html`. UI chỉ đọc `app/data/analysis-report.json`; không tính metric, không gọi model, không truy cập SQLite. UI phát triển song song sau khi v2 contract ổn định, nên không quyết định architecture phía dưới.
+Artifact viewer lịch sử hiện nằm tại `legacy/frozen-report-viewer/index.html` và
+chỉ đọc `legacy/frozen-report-viewer/data/analysis-report.json`; nó không tính
+metric, không gọi model, không truy cập SQLite. Đây là artifact được archive,
+không phải product frontend và không quyết định architecture phía dưới.
 
 ## 6. Database mở rộng
 

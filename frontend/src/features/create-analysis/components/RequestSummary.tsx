@@ -30,8 +30,8 @@ export function RequestSummary({ capabilities, values, isValid, isSubmitting, su
 
   return (
     <aside className="sticky-summary" aria-label="Tóm tắt yêu cầu">
-      <h2 className="font-display text-[28px] font-semibold leading-tight text-ink">Tóm tắt yêu cầu</h2>
-      <div className="mt-5 divide-y divide-line border-y border-line">
+      <h2 className="font-display text-[22px] font-semibold leading-tight text-ink">Tóm tắt yêu cầu</h2>
+      <div className="mt-4 divide-y divide-line border-y border-line">
         <SummaryRow label="Mục tiêu" value={values.objective || 'Chưa có'} multiline />
         <SummaryRow label="Đối tượng phân tích" value={targetLabels.length ? targetLabels.join(' · ') : 'Chưa chọn'} />
         <SummaryRow label="Kỳ tài chính" value={periodLabels.length ? periodLabels.join(' · ') : 'Chưa chọn'} />
@@ -40,7 +40,7 @@ export function RequestSummary({ capabilities, values, isValid, isSubmitting, su
         <SummaryRow label="Macro" value={macroLabel[capabilities.macro.status]} valueTone={statusTone} helper={capabilities.macro.status === 'LIMITED' ? 'Giới hạn sẽ được công bố trong báo cáo.' : undefined} />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted">Trạng thái kiểm tra</p>
         <div className="mt-3 flex items-start gap-2">
           <StatusIcon size={19} className={statusTone} aria-hidden="true" />
@@ -51,7 +51,7 @@ export function RequestSummary({ capabilities, values, isValid, isSubmitting, su
         </div>
       </div>
 
-      <button type="button" disabled={!ready || isSubmitting} onClick={onSubmit} className="primary-button mt-6 w-full">
+      <button type="button" disabled={!ready || isSubmitting} onClick={onSubmit} className="primary-button mt-4 w-full">
         <Play size={16} fill="currentColor" aria-hidden="true" />
         {isSubmitting ? 'Đang kiểm tra…' : 'Chạy phân tích'}
       </button>
@@ -62,7 +62,7 @@ export function RequestSummary({ capabilities, values, isValid, isSubmitting, su
 
 function SummaryRow({ label, value, helper, multiline, valueTone }: { label: string; value: string; helper?: string; multiline?: boolean; valueTone?: string }) {
   return (
-    <div className="grid gap-1 py-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] sm:gap-4">
+    <div className="grid gap-1 py-2.5 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] sm:gap-4">
       <dt className="text-xs font-semibold text-muted">{label}</dt>
       <dd className={cn('text-sm text-ink', multiline ? 'line-clamp-3 leading-5' : '', valueTone)}>
         <span>{value}</span>

@@ -27,7 +27,7 @@ export function SystemContextSection({ capabilities }: SystemContextSectionProps
         </div>
       </div>
 
-      <div className="mt-5 border border-line bg-[#fbfbf9] px-4 py-3">
+      <div className="mt-4 border border-line bg-[#fbfbf9] px-4 py-2.5">
         <div className="flex flex-wrap items-start gap-x-5 gap-y-2">
           <div className="flex items-center gap-2 text-sm">
             <span className="font-semibold text-ink">Macro</span>
@@ -39,7 +39,7 @@ export function SystemContextSection({ capabilities }: SystemContextSectionProps
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-4">
         <p className="text-xs font-semibold text-ink">Quy trình tự động</p>
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-muted" aria-label="Quy trình tự động">
           {steps.map((step, index) => (

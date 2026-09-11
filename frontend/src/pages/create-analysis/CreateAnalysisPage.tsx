@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AnalysisRequest } from '../../entities/analysis/model/types';
+import type { AnalysisCapabilities } from '../../entities/capability/model/types';
 import { analysisService } from '../../entities/analysis/api/analysisService';
 import { AnalysisIntentSection } from '../../features/create-analysis/components/AnalysisIntentSection';
 import { CapabilityDetailsDrawer } from '../../features/create-analysis/components/CapabilityDetailsDrawer';
@@ -111,17 +112,13 @@ export function CreateAnalysisPage() {
   }
 
   return (
-    <WorkspaceShell activeSection="analysis">
+    <WorkspaceShell
+      activeSection="analysis"
+      context={<AnalysisContextBar capabilities={capabilities} onOpenDetails={() => setDetailsOpen(true)} />}
+    >
       <div className="min-h-screen bg-canvas text-ink">
-        <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 lg:px-9 lg:pt-9">
-          <div className="mb-6">
-            <h1 className="font-display text-[clamp(2.25rem,4vw,3.45rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-ink">Tạo phân tích</h1>
-            <p className="mt-2 text-sm text-muted">Xây dựng một yêu cầu trong phạm vi dữ liệu đã được xác thực.</p>
-          </div>
-
-          <CapabilitySummaryBar capabilities={capabilities} onOpenDetails={() => setDetailsOpen(true)} />
-
-          <div className="mt-4 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="mx-auto max-w-[1440px] px-5 pb-12 pt-4 lg:px-9 lg:pt-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); void submitAnalysis(); }} noValidate>
               <AnalysisIntentSection
                 control={form.control}
@@ -147,6 +144,21 @@ export function CreateAnalysisPage() {
         <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={closeDetails} />
       </div>
     </WorkspaceShell>
+  );
+}
+
+function AnalysisContextBar({ capabilities, onOpenDetails }: { capabilities: AnalysisCapabilities; onOpenDetails: () => void }) {
+  return (
+    <div className="mx-auto w-full max-w-[1440px] px-5 py-2.5 lg:px-9">
+      <div className="flex min-h-7 items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-semibold tracking-[-0.025em] text-ink">Tạo phân tích</h1>
+          <p className="hidden text-xs text-muted sm:block">Xây dựng yêu cầu trong phạm vi dữ liệu đã được xác thực.</p>
+        </div>
+        <span className="hidden shrink-0 text-[11px] font-medium text-muted md:block">Phân tích tài chính</span>
+      </div>
+      <CapabilitySummaryBar capabilities={capabilities} onOpenDetails={onOpenDetails} />
+    </div>
   );
 }
 

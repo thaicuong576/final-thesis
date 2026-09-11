@@ -21,7 +21,7 @@ export function TopicMetricSelector({ capabilities, errors, watch, selectedTopic
 
   return (
     <section className="surface-section" aria-labelledby="topic-heading">
-      <div className="mb-4">
+      <div className="mb-3">
         <h2 id="topic-heading" className="section-title">Chủ đề phân tích <span className="text-blocked">*</span></h2>
         <p className="section-helper">Chọn chủ đề để hệ thống tự động áp dụng các chỉ tiêu mặc định.</p>
       </div>
@@ -41,7 +41,7 @@ export function TopicMetricSelector({ capabilities, errors, watch, selectedTopic
               <span className={cn('topic-radio', selected && 'topic-radio-selected')} aria-hidden="true"><span /></span>
               <span className="min-w-0">
                 <span className="block font-semibold text-ink">{topic.label}</span>
-                <span className="mt-2 block space-y-1 text-xs text-muted">
+                <span className="mt-2 flex flex-col gap-1 text-xs text-muted">
                   {topicMetrics.map((metric) => <span key={metric.id} className="flex items-start gap-1.5"><Check size={14} className={cn(selected ? 'text-[#1c5d9c]' : 'text-slate-400')} aria-hidden="true" /><span><strong className="text-ink">{metric.acronym}</strong> — {metric.label}</span></span>)}
                 </span>
               </span>

@@ -23,14 +23,14 @@ export function ScopeSelectors({ capabilities, errors, setValue, watch }: ScopeS
 
   return (
     <section className="surface-section" aria-labelledby="scope-heading">
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 id="scope-heading" className="section-title">Phạm vi phân tích</h2>
         <p className="section-helper">Phạm vi có cấu trúc xác định chính xác dữ liệu được đưa vào yêu cầu.</p>
       </div>
 
-      <div className="space-y-7">
+      <div className="flex flex-col gap-5">
         <div>
-          <div className="mb-3 flex items-end justify-between gap-3">
+          <div className="mb-2 flex items-end justify-between gap-3">
             <div>
               <h3 className="field-label">Đối tượng phân tích <span className="text-blocked">*</span></h3>
               <p className="section-helper">Chọn các ngân hàng cần phân tích chính.</p>
@@ -46,7 +46,7 @@ export function ScopeSelectors({ capabilities, errors, setValue, watch }: ScopeS
         </div>
 
         <div>
-          <div className="mb-3 flex items-end justify-between gap-3">
+          <div className="mb-2 flex items-end justify-between gap-3">
             <div>
               <h3 className="field-label">Kỳ tài chính <span className="text-blocked">*</span></h3>
               <p className="section-helper">Chọn một hoặc nhiều kỳ được hỗ trợ.</p>

@@ -44,19 +44,19 @@ textarea::placeholder { color: #87919a; opacity: 1; }
 
 @layer components {
   .surface-section {
-    @apply border border-line bg-white px-5 py-5 shadow-surface sm:px-6;
+    @apply border border-line bg-white px-4 py-4 shadow-surface sm:px-5;
   }
   .section-title {
-    @apply text-[17px] font-semibold tracking-[-0.01em] text-ink;
+    @apply text-[15px] font-semibold tracking-[-0.01em] text-ink;
   }
   .section-helper {
-    @apply mt-1 text-xs leading-5 text-muted;
+    @apply mt-0.5 text-[11px] leading-5 text-muted;
   }
   .field-label {
     @apply text-sm font-semibold text-ink;
   }
   .field-control {
-    @apply w-full border border-line bg-white px-3 py-2.5 text-sm text-ink shadow-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#1c5d9c] focus:outline-none focus:ring-2 focus:ring-[#dceaf5];
+    @apply w-full border border-line bg-white px-3 py-2 text-[13px] text-ink shadow-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#1c5d9c] focus:outline-none focus:ring-2 focus:ring-[#dceaf5];
   }
   .field-error {
     @apply mt-2 text-xs font-medium text-blocked;
@@ -68,12 +68,12 @@ textarea::placeholder { color: #87919a; opacity: 1; }
     @apply inline-flex min-h-12 items-center justify-center gap-2 border border-ink bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#263849] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300;
   }
   .check-option {
-    @apply flex min-h-11 cursor-pointer items-center gap-2.5 border border-line px-3 py-2.5 text-sm text-ink transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
+    @apply flex min-h-10 cursor-pointer items-center gap-2.5 border border-line px-2.5 py-2 text-[13px] text-ink transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
   }
   .check-option-selected { @apply border-[#8eb6da] bg-[#f5f8fb] font-semibold; }
   .check-option input { @apply h-4 w-4 shrink-0 accent-[#1c5d9c]; }
   .topic-option {
-    @apply flex min-h-[132px] gap-3 border border-line bg-white px-3.5 py-3.5 transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
+    @apply flex min-h-[112px] gap-3 border border-line bg-white px-3 py-3 transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
   }
   .topic-option-selected { @apply border-[#8eb6da] bg-[#f5f8fb]; }
   .topic-radio {
@@ -82,7 +82,7 @@ textarea::placeholder { color: #87919a; opacity: 1; }
   .topic-radio-selected { @apply border-[#1c5d9c]; }
   .topic-radio-selected span { @apply h-2.5 w-2.5 rounded-full bg-[#1c5d9c]; }
   .sticky-summary {
-    @apply border border-line bg-white px-5 py-5 shadow-surface xl:top-5;
+    @apply border border-line bg-white px-4 py-4 shadow-surface xl:top-4;
   }
   @media (min-width: 1280px) {
     .sticky-summary { position: sticky; }

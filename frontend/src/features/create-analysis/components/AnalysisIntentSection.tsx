@@ -31,10 +31,11 @@ export function AnalysisIntentSection({
   const objective = useWatch({ control, name: 'objective' }) ?? '';
 
   return (
-    <section className="surface-section" aria-labelledby="intent-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="surface-section">
+      <div className="flex flex-wrap items-start justify-between gap-2.5">
         <div>
-          <label htmlFor="analysis-objective" className="section-title block">Mục tiêu phân tích <span className="text-blocked">*</span></label>
+          <h2 id="intent-heading" className="section-title">Mục tiêu phân tích <span className="text-blocked">*</span></h2>
+          <label htmlFor="analysis-objective" className="sr-only">Mục tiêu phân tích</label>
           <p className="section-helper">Mô tả câu hỏi hoặc mục tiêu bạn muốn phân tích.</p>
         </div>
         <button
@@ -49,7 +50,7 @@ export function AnalysisIntentSection({
         </button>
       </div>
 
-      <div className="relative mt-4">
+      <div className="relative mt-3">
         <FileText size={17} className="pointer-events-none absolute left-3 top-3 text-muted" aria-hidden="true" />
         <textarea
           {...register('objective')}
@@ -57,7 +58,7 @@ export function AnalysisIntentSection({
           maxLength={500}
           aria-describedby="objective-help objective-error"
           aria-invalid={Boolean(errors.objective)}
-          className="field-control min-h-[104px] resize-y pl-10 pr-14 leading-6"
+          className="field-control min-h-[88px] resize-y pl-10 pr-14 leading-6"
           placeholder="Ví dụ: So sánh xu hướng NPL và Coverage của ACB, TCB và MBB qua Q1–Q4/2024."
         />
         <span className="absolute bottom-2 right-3 text-xs tabular-nums text-muted">{objective.length}/500</span>

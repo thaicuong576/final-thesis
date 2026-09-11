@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BarChart3, UserRound } from 'lucide-react';
 import type { AnalysisRequest } from '../../entities/analysis/model/types';
 import { analysisService } from '../../entities/analysis/api/analysisService';
 import { AnalysisIntentSection } from '../../features/create-analysis/components/AnalysisIntentSection';
@@ -14,6 +13,7 @@ import { TopicMetricSelector } from '../../features/create-analysis/components/T
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { generateSuggestedObjective, getScopeSignature, hasPossibleObjectiveMismatch } from '../../features/create-analysis/model/objective';
 import { analysisRequestSchema, type AnalysisFormValues } from '../../features/create-analysis/schema';
+import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 
 const defaultValues: AnalysisFormValues = {
   objective: '',
@@ -49,8 +49,8 @@ export function CreateAnalysisPage() {
   const canSuggest = Boolean((values.analysisTargetIds?.length ?? 0) > 0 && (values.periodIds?.length ?? 0) > 0 && (values.metricIds?.length ?? 0) > 0 && capabilitiesData);
   const closeDetails = useCallback(() => setDetailsOpen(false), []);
 
-  if (capabilitiesQuery.isPending) return <LoadingState />;
-  if (capabilitiesQuery.isError || !capabilitiesData) return <ErrorState />;
+  if (capabilitiesQuery.isPending) return <WorkspaceShell activeSection="analysis"><LoadingState /></WorkspaceShell>;
+  if (capabilitiesQuery.isError || !capabilitiesData) return <WorkspaceShell activeSection="analysis"><ErrorState /></WorkspaceShell>;
   const capabilities = capabilitiesData;
 
   function applySuggestedObjective() {
@@ -111,54 +111,49 @@ export function CreateAnalysisPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <header className="border-b border-line bg-white">
-        <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between px-5 lg:px-9">
-          <div className="flex items-center gap-2.5 text-sm font-semibold tracking-[-0.01em] text-ink"><BarChart3 size={20} strokeWidth={2.5} className="text-[#1c5d9c]" aria-hidden="true" /> PHÂN TÍCH TÀI CHÍNH</div>
-          <div className="flex items-center gap-4 text-muted"><span className="flex items-center gap-2 text-xs font-semibold text-ink"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#273a50] text-[10px] text-white">PTC</span><span className="hidden sm:inline">Phùng Thái Cường</span><UserRound size={15} className="text-muted" aria-hidden="true" /></span></div>
+    <WorkspaceShell activeSection="analysis">
+      <div className="min-h-screen bg-canvas text-ink">
+        <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 lg:px-9 lg:pt-9">
+          <div className="mb-6">
+            <h1 className="font-display text-[clamp(2.25rem,4vw,3.45rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-ink">Tạo phân tích</h1>
+            <p className="mt-2 text-sm text-muted">Xây dựng một yêu cầu trong phạm vi dữ liệu đã được xác thực.</p>
+          </div>
+
+          <CapabilitySummaryBar capabilities={capabilities} onOpenDetails={() => setDetailsOpen(true)} />
+
+          <div className="mt-4 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); void submitAnalysis(); }} noValidate>
+              <AnalysisIntentSection
+                control={form.control}
+                errors={form.formState.errors}
+                register={form.register}
+                canSuggest={canSuggest}
+                objectiveWasEdited={Boolean(objectiveState && objective !== objectiveState.text)}
+                scopeChangedNotice={scopeChangedNotice}
+                possibleMismatch={hasPossibleObjectiveMismatch(objective, capabilities, { analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] })}
+                onSuggest={applySuggestedObjective}
+                onUpdateSuggestion={applySuggestedObjective}
+                onKeepObjective={keepCurrentObjective}
+              />
+              <ScopeSelectors capabilities={capabilities} errors={form.formState.errors} setValue={form.setValue} watch={form.watch} />
+              <TopicMetricSelector capabilities={capabilities} errors={form.formState.errors} watch={form.watch} selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} onManualMetricToggle={handleManualMetricToggle} onRestoreDefaults={restoreDefaultMetrics} />
+              <SystemContextSection capabilities={capabilities} />
+            </form>
+
+            <RequestSummary capabilities={capabilities} values={{ objective, analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] }} isValid={form.formState.isValid} isSubmitting={isSubmitting} submissionMessage={submissionMessage} onSubmit={() => void submitAnalysis()} />
+          </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 lg:px-9 lg:pt-9">
-        <div className="mb-6">
-          <h1 className="font-display text-[clamp(2.25rem,4vw,3.45rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-ink">Tạo phân tích</h1>
-          <p className="mt-2 text-sm text-muted">Xây dựng một yêu cầu trong phạm vi dữ liệu đã được xác thực.</p>
-        </div>
-
-        <CapabilitySummaryBar capabilities={capabilities} onOpenDetails={() => setDetailsOpen(true)} />
-
-        <div className="mt-4 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); void submitAnalysis(); }} noValidate>
-            <AnalysisIntentSection
-              control={form.control}
-              errors={form.formState.errors}
-              register={form.register}
-              canSuggest={canSuggest}
-              objectiveWasEdited={Boolean(objectiveState && objective !== objectiveState.text)}
-              scopeChangedNotice={scopeChangedNotice}
-              possibleMismatch={hasPossibleObjectiveMismatch(objective, capabilities, { analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] })}
-              onSuggest={applySuggestedObjective}
-              onUpdateSuggestion={applySuggestedObjective}
-              onKeepObjective={keepCurrentObjective}
-            />
-            <ScopeSelectors capabilities={capabilities} errors={form.formState.errors} setValue={form.setValue} watch={form.watch} />
-            <TopicMetricSelector capabilities={capabilities} errors={form.formState.errors} watch={form.watch} selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} onManualMetricToggle={handleManualMetricToggle} onRestoreDefaults={restoreDefaultMetrics} />
-            <SystemContextSection capabilities={capabilities} />
-          </form>
-
-          <RequestSummary capabilities={capabilities} values={{ objective, analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] }} isValid={form.formState.isValid} isSubmitting={isSubmitting} submissionMessage={submissionMessage} onSubmit={() => void submitAnalysis()} />
-        </div>
-      </main>
-
-      <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={closeDetails} />
-    </div>
+        <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={closeDetails} />
+      </div>
+    </WorkspaceShell>
   );
 }
 
 function LoadingState() {
-  return <main className="grid min-h-screen place-items-center bg-canvas p-6"><p className="text-sm text-muted" role="status">Đang tải phạm vi dữ liệu…</p></main>;
+  return <div className="grid min-h-screen place-items-center bg-canvas p-6"><p className="text-sm text-muted" role="status">Đang tải phạm vi dữ liệu…</p></div>;
 }
 
 function ErrorState() {
-  return <main className="grid min-h-screen place-items-center bg-canvas p-6"><div className="border border-[#e4c0bb] bg-white p-6 text-center"><p className="font-semibold text-blocked">Không thể tải phạm vi dữ liệu.</p><p className="mt-2 text-sm text-muted">Vui lòng thử lại khi dịch vụ phạm vi dữ liệu sẵn sàng.</p></div></main>;
+  return <div className="grid min-h-screen place-items-center bg-canvas p-6"><div className="border border-[#e4c0bb] bg-white p-6 text-center"><p className="font-semibold text-blocked">Không thể tải phạm vi dữ liệu.</p><p className="mt-2 text-sm text-muted">Vui lòng thử lại khi dịch vụ phạm vi dữ liệu sẵn sàng.</p></div></div>;
 }

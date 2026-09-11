@@ -70,12 +70,13 @@ Do not introduce tabs unless they materially reduce complexity.
 The shell is desktop-first: a minimal left sidebar and a main workspace.
 Primary navigation remains limited to:
 
-- Dữ liệu
-- Tạo phân tích
+- Phân tích
 - Báo cáo
 
-Do not add technical navigation such as Agents, Audit, Architecture,
-Experiments, or Runs without explicit product approval.
+The active dataset and source setup are contextual to the analysis workspace.
+Do not add a permanent Data navigation item by default. Do not add technical
+navigation such as Agents, Audit, Architecture, Experiments, or Runs without
+explicit product approval.
 
 ## Typography
 

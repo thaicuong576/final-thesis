@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateAnalysisPage } from '../src/pages/create-analysis/CreateAnalysisPage';
 import { analysisService } from '../src/entities/analysis/api/analysisService';
@@ -10,7 +11,7 @@ import { analysisRequestSchema } from '../src/features/create-analysis/schema';
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={client}><CreateAnalysisPage /></QueryClientProvider>);
+  return render(<MemoryRouter initialEntries={['/analysis']}><QueryClientProvider client={client}><CreateAnalysisPage /></QueryClientProvider></MemoryRouter>);
 }
 
 async function fillValidScope(user: ReturnType<typeof userEvent.setup>) {

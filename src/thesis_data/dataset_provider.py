@@ -6,6 +6,8 @@ paths.  Storage-specific knowledge belongs in a concrete adapter.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Protocol, Sequence, runtime_checkable
 
 from .dataset_contract import (
@@ -19,6 +21,24 @@ from .dataset_contract import (
 
 class DatasetProviderError(ValueError):
     """The provider cannot satisfy a dataset-bound request."""
+
+
+def peer_benchmark_observation_id(
+    dataset_ref: DatasetRef,
+    peer_universe_id: str,
+    period_id: str,
+    metric_id: str,
+    peer_entity_ids: Sequence[str],
+) -> str:
+    """Build an identity that changes when the effective peer scope changes."""
+
+    scope_digest = hashlib.sha256(
+        json.dumps(tuple(sorted(peer_entity_ids)), separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:16]
+    return (
+        f"benchmark:{dataset_ref.dataset_id}:{dataset_ref.dataset_snapshot_id}:"
+        f"{peer_universe_id}:{period_id}:{metric_id}:scope-{scope_digest}"
+    )
 
 
 @runtime_checkable
@@ -52,6 +72,7 @@ class FinancialDatasetProvider(Protocol):
         peer_universe_id: str,
         period_id: str,
         metric_ids: Sequence[str],
+        peer_entity_ids: Sequence[str] | None = None,
     ) -> tuple[CanonicalObservation, ...]:
         ...
 

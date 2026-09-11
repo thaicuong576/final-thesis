@@ -46,11 +46,11 @@ _FORBIDDEN_KEYS = {
     "reasoning",
     "thoughts",
 }
-_WINDOWS_PATH = re.compile(r"^[A-Za-z]:[\\/]")
-_UNC_PATH = re.compile(r"^\\\\")
-_UNIX_PRIVATE_PATH = re.compile(r"^(?:/Users/|/home/|/tmp/|/var/|/mnt/)", re.IGNORECASE)
+_WINDOWS_PATH = re.compile(r"[A-Za-z]:[\\/]")
+_UNC_PATH = re.compile(r"\\\\")
+_UNIX_PRIVATE_PATH = re.compile(r"(?:/Users/|/home/|/tmp/|/var/|/mnt/)", re.IGNORECASE)
 _RELATIVE_LOCAL_PATH = re.compile(
-    r"^(?:\.{0,2}[\\/]|(?:data|src|tests|legacy|docs|tmp)[\\/])",
+    r"(?<![A-Za-z0-9_.:/\\-])(?:\.{1,2}[\\/]|(?:data|src|tests|legacy|docs|tmp)[\\/])",
     re.IGNORECASE,
 )
 
@@ -71,11 +71,14 @@ def _contains_forbidden_public_data(value: Any, *, key: str | None = None) -> bo
     if isinstance(value, (list, tuple)):
         return any(_contains_forbidden_public_data(child) for child in value)
     if isinstance(value, str):
-        return bool(
-            _WINDOWS_PATH.match(value)
-            or _UNC_PATH.match(value)
-            or _UNIX_PRIVATE_PATH.match(value)
-            or _RELATIVE_LOCAL_PATH.match(value)
+        return any(
+            pattern.search(value)
+            for pattern in (
+                _WINDOWS_PATH,
+                _UNC_PATH,
+                _UNIX_PRIVATE_PATH,
+                _RELATIVE_LOCAL_PATH,
+            )
         )
     return False
 

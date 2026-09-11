@@ -26,7 +26,7 @@ from .dataset_contract import (
     PeerUniverse,
     SupportedOperation,
 )
-from .dataset_provider import DatasetProviderError
+from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
 from .schema import QualityStatus
 
 
@@ -354,22 +354,27 @@ class GoldSqliteDatasetProvider:
         peer_universe_id: str,
         period_id: str,
         metric_ids: Sequence[str],
+        peer_entity_ids: Sequence[str] | None = None,
     ) -> tuple[CanonicalObservation, ...]:
         self._validate_ref(dataset_ref)
         catalog = self.get_capabilities(dataset_ref)
         universe = catalog.peer_universe(peer_universe_id)
         if universe is None:
             raise DatasetProviderError("unknown peer universe")
+        try:
+            effective_peer_entity_ids = universe.effective_entity_ids(peer_entity_ids)
+        except ValueError as exc:
+            raise DatasetProviderError(str(exc)) from exc
         result: list[CanonicalObservation] = []
         for metric_id in metric_ids:
             observations = self.get_entity_metrics(
                 dataset_ref,
-                universe.entity_ids[0],
+                effective_peer_entity_ids[0],
                 (period_id,),
                 (metric_id,),
-            ) if len(universe.entity_ids) == 1 else tuple(
+            ) if len(effective_peer_entity_ids) == 1 else tuple(
                 item
-                for entity_id in universe.entity_ids
+                for entity_id in effective_peer_entity_ids
                 for item in self.get_entity_metrics(
                     dataset_ref, entity_id, (period_id,), (metric_id,)
                 )
@@ -378,9 +383,12 @@ class GoldSqliteDatasetProvider:
                 item for item in observations
                 if item.validation_status is QualityStatus.VALID and item.value is not None
             ]
-            benchmark_id = (
-                f"benchmark:{dataset_ref.dataset_id}:{dataset_ref.dataset_snapshot_id}:"
-                f"{peer_universe_id}:{period_id}:{metric_id}"
+            benchmark_id = peer_benchmark_observation_id(
+                dataset_ref,
+                peer_universe_id,
+                period_id,
+                metric_id,
+                effective_peer_entity_ids,
             )
             if not valid:
                 result.append(
@@ -407,11 +415,12 @@ class GoldSqliteDatasetProvider:
                     metric_id=metric_id,
                     value=float(median(item.value for item in valid)),
                     unit=valid[0].unit,
-                    source_ref=benchmark_id,
                     validation_status=QualityStatus.VALID,
+                    derivation_method="peer_median_v1",
+                    input_observation_ids=tuple(item.observation_id for item in valid),
                     metadata={
                         "benchmark_method": "peer_median_v1",
-                        "input_observation_ids": [item.observation_id for item in valid],
+                        "peer_entity_ids": list(effective_peer_entity_ids),
                     },
                 )
             )
@@ -505,7 +514,7 @@ class GoldSqliteDatasetProvider:
                         source_ref=str(row["source_id"]),
                         entity_id=row["ticker"],
                         period_id=row["period"],
-                        metric_id=metric_id,
+                        metric_id=None,
                         locator=(
                             f"page:{row['page_number']}"
                             if row["page_number"] is not None

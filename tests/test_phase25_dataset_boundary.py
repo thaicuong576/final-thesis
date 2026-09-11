@@ -28,6 +28,7 @@ from thesis_data.dataset_contract import (
     SupportedOperation,
 )
 from thesis_data.dataset_tool_runtime import DatasetToolError, DatasetToolRuntime
+from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.gold_dataset_provider import GoldSqliteDatasetProvider
 from thesis_data.in_memory_provider import InMemoryFinancialDatasetProvider
 from thesis_data.runtime_events import (
@@ -114,6 +115,58 @@ def _request(
     )
 
 
+def _three_peer_provider() -> tuple[InMemoryFinancialDatasetProvider, DatasetRef]:
+    ref = DatasetRef(dataset_id="three-peer-dataset", dataset_snapshot_id="snapshot-1")
+    catalog = DatasetCapabilityCatalog(
+        dataset_ref=ref,
+        entities=tuple(
+            DatasetEntity(
+                entity_id=entity_id,
+                entity_type=DatasetEntityType.COMPANY,
+                display_name=entity_id,
+            )
+            for entity_id in ("company-a", "company-b", "company-c")
+        ),
+        periods=(DatasetPeriod(period_id="FY-2024-Q4", label="Q4 2024"),),
+        metrics=(
+            DatasetMetric(
+                metric_id="company.roa",
+                display_name="ROA",
+                analytical_level=AnalyticalLevel.COMPANY,
+                default_unit="percent",
+            ),
+        ),
+        peer_universes=(
+            PeerUniverse(
+                peer_universe_id="bank-peers",
+                display_name="Bank peers",
+                entity_ids=("company-a", "company-b", "company-c"),
+            ),
+        ),
+        supported_operations=ALL_OPERATIONS,
+    )
+    observations = tuple(
+        CanonicalObservation(
+            observation_id=f"obs-{entity_id}",
+            dataset_id=ref.dataset_id,
+            dataset_snapshot_id=ref.dataset_snapshot_id,
+            entity_id=entity_id,
+            period_id="FY-2024-Q4",
+            metric_id="company.roa",
+            value=value,
+            unit="percent",
+            source_ref=f"source-{entity_id}",
+            validation_status=QualityStatus.VALID,
+        )
+        for entity_id, value in (
+            ("company-a", 1.0),
+            ("company-b", 3.0),
+            ("company-c", 100.0),
+        )
+    )
+    return InMemoryFinancialDatasetProvider(catalog, observations=observations), ref
+
+
 class Phase25ContractTests(unittest.TestCase):
     def test_dataset_ref_requires_dataset_and_snapshot_identity(self):
         with self.assertRaises(ValidationError):
@@ -159,6 +212,33 @@ class Phase25ContractTests(unittest.TestCase):
                 validation_status=QualityStatus.MISSING,
                 missing_reason="DATA_UNAVAILABLE",
             )
+        with self.assertRaisesRegex(ValueError, "provenance"):
+            CanonicalObservation(
+                observation_id="obs-unprovenanced",
+                dataset_id="dataset",
+                dataset_snapshot_id="snapshot",
+                entity_id="bank-peers",
+                period_id="period-q4",
+                metric_id="company.roa",
+                value=1.5,
+                unit="percent",
+                validation_status=QualityStatus.VALID,
+            )
+        derived = CanonicalObservation(
+            observation_id="obs-derived",
+            dataset_id="dataset",
+            dataset_snapshot_id="snapshot",
+            entity_id="bank-peers",
+            period_id="period-q4",
+            metric_id="company.roa",
+            value=1.5,
+            unit="percent",
+            validation_status=QualityStatus.VALID,
+            derivation_method="peer_median_v1",
+            input_observation_ids=("obs-a", "obs-b"),
+        )
+        self.assertIsNone(derived.source_ref)
+        self.assertEqual(derived.input_observation_ids, ("obs-a", "obs-b"))
 
     def test_capability_catalog_rejects_duplicate_identity_types(self):
         base = _catalog()
@@ -301,6 +381,13 @@ class GoldProviderTests(unittest.TestCase):
             missing = provider.get_macro_observation(ref, "VN", "FY-2024-Q4", "macro.credit")
             benchmark = provider.get_peer_benchmark(ref, "sector:bank", "FY-2024-Q4", ("company.roa",))
             evidence = provider.get_evidence(ref, ("source-policy",), period_id="FY-2024-Q4", metric_id="macro.policy")
+            company_evidence = provider.get_evidence(
+                ref,
+                ("source-company",),
+                entity_id="entity-a",
+                period_id="FY-2024-Q4",
+                metric_id="company.roa",
+            )
             source = provider.get_source(ref, "source-policy")
 
         self.assertEqual(company.entity_id, "entity-a")
@@ -310,9 +397,30 @@ class GoldProviderTests(unittest.TestCase):
         self.assertIsNone(missing.value)
         self.assertEqual(missing.missing_reason, "DATA_UNAVAILABLE")
         self.assertEqual(benchmark[0].value, 1.5)
+        self.assertIsNone(benchmark[0].source_ref)
+        self.assertEqual(benchmark[0].derivation_method, "peer_median_v1")
+        self.assertEqual(
+            set(benchmark[0].input_observation_ids), {"obs-a-roa", "obs-b-roa"}
+        )
         self.assertIsNone(evidence[0].entity_id)
         self.assertEqual(evidence[0].metric_id, "macro.policy")
+        self.assertEqual(len(company_evidence), 1)
+        self.assertIsNone(company_evidence[0].metric_id)
         self.assertNotIn("local_path", source.model_dump())
+
+    def test_gold_provider_rejects_peer_entities_outside_universe(self):
+        with tempfile.TemporaryDirectory() as directory:
+            db_path, ref = self.fixture(Path(directory))
+            provider = GoldSqliteDatasetProvider(db_path, dataset_id="arbitrary-gold")
+
+            with self.assertRaisesRegex(DatasetProviderError, "outside"):
+                provider.get_peer_benchmark(
+                    ref,
+                    "sector:bank",
+                    "FY-2024-Q4",
+                    ("company.roa",),
+                    peer_entity_ids=("entity-a", "not-a-peer"),
+                )
 
     def test_gold_provider_rejects_snapshot_mismatch(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -383,6 +491,82 @@ class ApplicationRuntimeTests(unittest.TestCase):
             sources=sources,
             evidence=evidence,
         ), ref
+
+    def test_peer_benchmark_uses_explicit_subset_and_derivation_inputs(self):
+        provider, ref = _three_peer_provider()
+        request = _request(
+            ref,
+            peer_universe_id="bank-peers",
+            peer_entity_ids=("company-a", "company-b"),
+        )
+        runtime = DatasetToolRuntime(
+            ApplicationRuntimeContext.from_request(request, provider),
+        )
+
+        benchmark = runtime.get_peer_benchmark(
+            "bank-peers",
+            "FY-2024-Q4",
+            ("company.roa",),
+        )[0]
+
+        self.assertEqual(benchmark.value, 2.0)
+        self.assertEqual(
+            set(benchmark.input_observation_ids),
+            {"obs-company-a", "obs-company-b"},
+        )
+        self.assertNotIn("obs-company-c", benchmark.input_observation_ids)
+        self.assertIsNone(benchmark.source_ref)
+        self.assertEqual(
+            benchmark.metadata["peer_entity_ids"], ["company-a", "company-b"]
+        )
+
+    def test_batch_and_peer_tools_enforce_analytical_levels(self):
+        provider, ref = self.provider()
+        request = _request(
+            ref,
+            metric_ids=("company.roa", "macro.policy"),
+            macro_metric_ids=("macro.policy",),
+            peer_universe_id="bank-peers",
+        )
+        runtime = DatasetToolRuntime(
+            ApplicationRuntimeContext.from_request(request, provider),
+        )
+
+        company_batch = runtime.get_entity_metrics(
+            "company-a",
+            ("FY-2024-Q4",),
+            ("company.roa",),
+        )
+        self.assertEqual(len(company_batch), 1)
+        with self.assertRaisesRegex(DatasetToolError, "analytical level"):
+            runtime.get_entity_metrics(
+                "company-a",
+                ("FY-2024-Q4",),
+                ("macro.policy",),
+            )
+        with self.assertRaisesRegex(DatasetToolError, "company-level"):
+            runtime.get_peer_benchmark(
+                "bank-peers",
+                "FY-2024-Q4",
+                ("macro.policy",),
+            )
+        macro_observation = runtime.get_macro_observation(
+            "macro-vn",
+            "FY-2024-Q4",
+            "macro.policy",
+        )
+        self.assertEqual(macro_observation.value, 4.5)
+
+    def test_in_memory_provider_rejects_peer_entities_outside_universe(self):
+        provider, ref = _three_peer_provider()
+        with self.assertRaisesRegex(DatasetProviderError, "outside"):
+            provider.get_peer_benchmark(
+                ref,
+                "bank-peers",
+                "FY-2024-Q4",
+                ("company.roa",),
+                peer_entity_ids=("company-a", "not-a-peer"),
+            )
 
     def test_application_runtime_executes_with_non_sqlite_provider(self):
         provider, ref = self.provider()
@@ -491,6 +675,67 @@ class ApplicationRuntimeTests(unittest.TestCase):
                 actor="company",
                 artifact_refs=(r"C:\Users\private\report.json",),
             )
+        with self.assertRaises(ValueError):
+            RuntimeEvent(
+                event_id="event-3",
+                run_id="run-1",
+                sequence=1,
+                event_type=RuntimeEventType.RUN_FAILED,
+                actor="provider",
+                summary=r"provider failed while reading C:\Users\private\file.sqlite",
+            )
+        with self.assertRaises(ValueError):
+            RuntimeEvent(
+                event_id="event-4",
+                run_id="run-1",
+                sequence=1,
+                event_type=RuntimeEventType.RUN_FAILED,
+                actor="provider",
+                public_payload={"details": r"failed at C:\Users\private\file.sqlite"},
+            )
+        with self.assertRaises(ValueError):
+            RuntimeEvent(
+                event_id="event-5",
+                run_id="run-1",
+                sequence=1,
+                event_type=RuntimeEventType.RUN_FAILED,
+                actor="provider",
+                artifact_refs=(r"artifact generated from C:\Users\private\file.sqlite",),
+            )
+
+    def test_provider_exception_uses_stable_public_failure_summary(self):
+        provider, ref = self.provider()
+
+        class FailingProvider(InMemoryFinancialDatasetProvider):
+            def get_metric(self, *args, **kwargs):
+                raise DatasetProviderError(
+                    r"provider failed while reading C:\Users\private\file.sqlite"
+                )
+
+        failing = FailingProvider(
+            provider._catalog,
+            observations=provider._observations,
+            sources=provider._sources.values(),
+            evidence=provider._evidence,
+        )
+        request = _request(ref)
+        recorder = InMemoryRuntimeEventRecorder(request.request_id)
+        runtime = DatasetToolRuntime(
+            ApplicationRuntimeContext.from_request(request, failing, event_sink=recorder),
+        )
+
+        with self.assertRaises(DatasetToolError):
+            runtime.execute(
+                "get_metric",
+                {
+                    "entity_id": "company-a",
+                    "period_id": "FY-2024-Q4",
+                    "metric_id": "company.roa",
+                },
+            )
+        self.assertEqual(recorder.events[-1].event_type, RuntimeEventType.RUN_FAILED)
+        self.assertEqual(recorder.events[-1].summary, "dataset provider failed")
+        self.assertNotIn("private", recorder.events[-1].summary)
 
     def test_application_modules_do_not_depend_on_sqlite_or_gold_config(self):
         for filename in (

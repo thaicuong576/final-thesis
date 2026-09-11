@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 import math
-from typing import Any
+from typing import Any, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -111,20 +111,36 @@ class CanonicalObservation(BaseModel):
     source_ref: str | None = Field(default=None, min_length=1)
     validation_status: QualityStatus
     missing_reason: str | None = None
+    derivation_method: str | None = Field(default=None, min_length=1)
+    input_observation_ids: tuple[str, ...] = Field(default_factory=tuple)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_value_state(self) -> "CanonicalObservation":
         if self.value is not None and not math.isfinite(self.value):
             raise ValueError("canonical observation value must be finite")
+        if len(self.input_observation_ids) != len(set(self.input_observation_ids)):
+            raise ValueError("input observation IDs must be unique")
+        if any(not item.strip() for item in self.input_observation_ids):
+            raise ValueError("input observation IDs must be non-empty")
         if self.validation_status is QualityStatus.VALID:
+            has_source_provenance = self.source_ref not in (None, "")
+            has_derivation_provenance = bool(
+                self.derivation_method and self.input_observation_ids
+            )
+            if has_source_provenance and (
+                self.derivation_method is not None or self.input_observation_ids
+            ):
+                raise ValueError(
+                    "valid canonical observation must use source or derivation provenance"
+                )
+            if not has_source_provenance and not has_derivation_provenance:
+                raise ValueError(
+                    "valid canonical observation requires source or derivation provenance"
+                )
             missing = {
                 name: value
-                for name, value in (
-                    ("value", self.value),
-                    ("unit", self.unit),
-                    ("source_ref", self.source_ref),
-                )
+                for name, value in (("value", self.value), ("unit", self.unit))
                 if value in (None, "")
             }
             if missing:
@@ -163,6 +179,16 @@ class PeerUniverse(BaseModel):
         if len(set(self.entity_ids)) != len(self.entity_ids):
             raise ValueError("peer universe entity IDs must be unique")
         return self
+
+    def effective_entity_ids(self, requested_entity_ids: Sequence[str] | None = None) -> tuple[str, ...]:
+        """Resolve an optional explicit subset without silently widening scope."""
+
+        requested = tuple(requested_entity_ids or ())
+        if len(requested) != len(set(requested)):
+            raise ValueError("requested peer entity IDs must be unique")
+        if not set(requested).issubset(self.entity_ids):
+            raise ValueError("requested peer entity is outside the peer universe")
+        return tuple(sorted(requested or self.entity_ids))
 
 
 class DatasetCapabilityCatalog(BaseModel):

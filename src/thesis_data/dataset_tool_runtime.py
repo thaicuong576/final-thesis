@@ -145,25 +145,57 @@ class DatasetToolRuntime:
         if not set(metric_ids).issubset(self.context.analysis_request.metric_ids):
             raise DatasetToolError("metric outside analysis request")
 
-    def _ensure_entity(self, entity_id: str, metric_id: str) -> None:
+    def _catalog_metric(self, metric_id: str):
         metric = next(
             (item for item in self.context.capability_catalog.metrics if item.metric_id == metric_id),
             None,
         )
         if metric is None:
             raise DatasetToolError("metric is not in dataset capabilities")
-        if entity_id in self.context.analysis_request.target_entity_ids:
-            if metric.analytical_level is AnalyticalLevel.MACRO:
-                raise DatasetToolError("macro metric requires a macro entity")
-            return
-        catalog_entity = next(
+        return metric
+
+    def _catalog_entity(self, entity_id: str):
+        entity = next(
             (item for item in self.context.capability_catalog.entities if item.entity_id == entity_id),
             None,
         )
+        if entity is None:
+            raise DatasetToolError("entity is not in dataset capabilities")
+        return entity
+
+    def _ensure_metric_level(self, entity_id: str, metric_id: str) -> None:
+        metric = self._catalog_metric(metric_id)
+        entity = self._catalog_entity(entity_id)
+        if entity.entity_type.value in {
+            AnalyticalLevel.COMPANY.value,
+            AnalyticalLevel.MACRO.value,
+        } and metric.analytical_level.value != entity.entity_type.value:
+            raise DatasetToolError("metric analytical level is incompatible with entity")
+
+    def _ensure_metrics_for_entity(
+        self,
+        entity_id: str,
+        metric_ids: Sequence[str],
+    ) -> None:
+        self._ensure_metrics(metric_ids)
+        for metric_id in metric_ids:
+            self._ensure_metric_level(entity_id, metric_id)
+
+    def _ensure_company_peer_metrics(self, metric_ids: Sequence[str]) -> None:
+        self._ensure_metrics(metric_ids)
+        for metric_id in metric_ids:
+            metric = self._catalog_metric(metric_id)
+            if metric.analytical_level is not AnalyticalLevel.COMPANY:
+                raise DatasetToolError("peer benchmark requires company-level metrics")
+
+    def _ensure_entity(self, entity_id: str, metric_id: str) -> None:
+        self._ensure_metric(metric_id)
+        self._ensure_metric_level(entity_id, metric_id)
+        if entity_id in self.context.analysis_request.target_entity_ids:
+            return
+        catalog_entity = self._catalog_entity(entity_id)
         if (
-            catalog_entity is not None
-            and catalog_entity.entity_type.value == AnalyticalLevel.MACRO.value
-            and metric.analytical_level is AnalyticalLevel.MACRO
+            catalog_entity.entity_type.value == AnalyticalLevel.MACRO.value
             and metric_id in self.context.analysis_request.macro_metric_ids
         ):
             return
@@ -173,16 +205,23 @@ class DatasetToolRuntime:
         if entity_id not in self.context.analysis_request.target_entity_ids:
             raise DatasetToolError("entity outside analysis request")
 
-    def _ensure_peer_universe(self, peer_universe_id: str) -> None:
+    def _ensure_peer_universe(self, peer_universe_id: str):
         if peer_universe_id != self.context.analysis_request.peer_universe_id:
             raise DatasetToolError("peer universe outside analysis request")
         universe = self.context.capability_catalog.peer_universe(peer_universe_id)
         if universe is None:
             raise DatasetToolError("unknown peer universe")
-        if self.context.analysis_request.peer_entity_ids and not set(
-            self.context.analysis_request.peer_entity_ids
-        ).issubset(universe.entity_ids):
-            raise DatasetToolError("peer entity outside analysis request")
+        try:
+            effective_peer_entity_ids = universe.effective_entity_ids(
+                self.context.analysis_request.peer_entity_ids
+            )
+        except ValueError as exc:
+            raise DatasetToolError(str(exc)) from exc
+        for entity_id in effective_peer_entity_ids:
+            entity = self._catalog_entity(entity_id)
+            if entity.entity_type.value != AnalyticalLevel.COMPANY.value:
+                raise DatasetToolError("peer benchmark requires company peer entities")
+        return universe
 
     def _ensure_sources(self, source_refs: Sequence[str]) -> None:
         if not set(source_refs).issubset(self._discovered_source_refs):
@@ -218,7 +257,7 @@ class DatasetToolRuntime:
     ) -> tuple[CanonicalObservation, ...]:
         self._ensure_target_entity(entity_id)
         self._ensure_periods(period_ids)
-        self._ensure_metrics(metric_ids)
+        self._ensure_metrics_for_entity(entity_id, metric_ids)
         observations = self.context.provider.get_entity_metrics(
             self.context.dataset_ref,
             entity_id,
@@ -237,12 +276,13 @@ class DatasetToolRuntime:
     ) -> tuple[CanonicalObservation, ...]:
         self._ensure_peer_universe(peer_universe_id)
         self._ensure_period(period_id)
-        self._ensure_metrics(metric_ids)
+        self._ensure_company_peer_metrics(metric_ids)
         return self.context.provider.get_peer_benchmark(
             self.context.dataset_ref,
             peer_universe_id,
             period_id,
             metric_ids,
+            peer_entity_ids=(self.context.analysis_request.peer_entity_ids or None),
         )
 
     def get_evidence(
@@ -340,7 +380,7 @@ class DatasetToolRuntime:
                 self.actor,
                 task_id=self.task_id,
                 summary="unsupported dataset tool",
-                public_payload={"operation": name, "status": "blocked"},
+                public_payload={"operation": "unknown", "status": "blocked"},
             )
             raise DatasetToolError("unsupported dataset tool")
         supported = {
@@ -409,12 +449,12 @@ class DatasetToolRuntime:
                 output=serialized,
                 result_sha256=sha256(encoded.encode("utf-8")).hexdigest(),
             )
-        except DatasetToolError as exc:
+        except DatasetToolError:
             self.context.emit(
                 RuntimeEventType.RUN_BLOCKED,
                 self.actor,
                 task_id=self.task_id,
-                summary=str(exc),
+                summary="dataset tool request blocked",
                 public_payload={"operation": name, "status": "blocked"},
             )
             raise
@@ -423,7 +463,7 @@ class DatasetToolRuntime:
                 RuntimeEventType.RUN_FAILED,
                 self.actor,
                 task_id=self.task_id,
-                summary=str(exc),
+                summary="dataset provider failed",
                 public_payload={"operation": name, "status": "failed"},
             )
             raise DatasetToolError("dataset provider failed") from exc

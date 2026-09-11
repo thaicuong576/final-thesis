@@ -12,7 +12,7 @@ from .dataset_contract import (
     DatasetRef,
     DatasetSource,
 )
-from .dataset_provider import DatasetProviderError
+from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
 from .schema import QualityStatus
 
 
@@ -92,23 +92,34 @@ class InMemoryFinancialDatasetProvider:
         peer_universe_id: str,
         period_id: str,
         metric_ids: Sequence[str],
+        peer_entity_ids: Sequence[str] | None = None,
     ) -> tuple[CanonicalObservation, ...]:
         self._validate_ref(dataset_ref)
         universe = self._catalog.peer_universe(peer_universe_id)
         if universe is None:
             raise DatasetProviderError("unknown in-memory peer universe")
+        try:
+            effective_peer_entity_ids = universe.effective_entity_ids(peer_entity_ids)
+        except ValueError as exc:
+            raise DatasetProviderError(str(exc)) from exc
         result: list[CanonicalObservation] = []
         for metric_id in metric_ids:
             values = [
                 item
                 for item in self._observations
-                if item.entity_id in universe.entity_ids
+                if item.entity_id in effective_peer_entity_ids
                 and item.period_id == period_id
                 and item.metric_id == metric_id
                 and item.validation_status is QualityStatus.VALID
                 and item.value is not None
             ]
-            benchmark_id = f"benchmark:{peer_universe_id}:{period_id}:{metric_id}"
+            benchmark_id = peer_benchmark_observation_id(
+                dataset_ref,
+                peer_universe_id,
+                period_id,
+                metric_id,
+                effective_peer_entity_ids,
+            )
             if values:
                 result.append(
                     CanonicalObservation(
@@ -120,11 +131,14 @@ class InMemoryFinancialDatasetProvider:
                         metric_id=metric_id,
                         value=float(median(item.value for item in values)),
                         unit=values[0].unit,
-                        source_ref=benchmark_id,
                         validation_status=QualityStatus.VALID,
+                        derivation_method="peer_median_v1",
+                        input_observation_ids=tuple(
+                            item.observation_id for item in values
+                        ),
                         metadata={
                             "benchmark_method": "peer_median_v1",
-                            "input_observation_ids": [item.observation_id for item in values],
+                            "peer_entity_ids": list(effective_peer_entity_ids),
                         },
                     )
                 )

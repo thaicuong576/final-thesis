@@ -42,7 +42,11 @@ _PERIOD_PATTERNS = (
     re.compile(r"^Q(?P<quarter>[1-4])-(?P<year>\d{4})$"),
 )
 _NUMBER_PATTERN = re.compile(r"^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$")
-_PATH_PATTERN = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|\s)[.]{1,2}[\\/])")
+_PATH_PATTERN = re.compile(
+    r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|\s)[.]{1,2}[\\/]|"
+    r"(?:^|\s)/(?:home|Users|mnt|tmp)(?:/|$))",
+    re.IGNORECASE | re.VERBOSE,
+)
 
 
 @dataclass(frozen=True)

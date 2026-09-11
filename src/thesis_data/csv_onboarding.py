@@ -19,11 +19,6 @@ from .onboarding_contract import RawDatasetDescriptor, StagedField
 
 
 _DECIMAL_PATTERN = re.compile(r"^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$")
-_PATH_IDENTITY_PATTERN = re.compile(
-    r"(?:^[A-Za-z]:[\\/]|^/|^\\\\|(?:^|\s)[.]{1,2}[\\/])"
-)
-
-
 class CsvStagedDataset(BaseModel):
     """Deterministic, in-memory result of parsing one CSV byte sequence."""
 
@@ -84,8 +79,8 @@ def stage_csv_bytes(
 
     if not isinstance(content, bytes):
         raise TypeError("CSV staging requires source bytes")
-    if _PATH_IDENTITY_PATTERN.search(raw_dataset_id.strip()):
-        raise ValueError("raw_dataset_id must not be a physical path")
+    if "/" in raw_dataset_id or "\\" in raw_dataset_id:
+        raise ValueError("raw_dataset_id must not contain path separators")
     try:
         text = content.decode("utf-8-sig")
     except UnicodeDecodeError as exc:

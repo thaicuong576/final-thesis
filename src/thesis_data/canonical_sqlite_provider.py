@@ -89,7 +89,9 @@ class CanonicalSqliteDatasetProvider:
             parsed = json.loads(value)
         except (TypeError, json.JSONDecodeError) as exc:
             raise DatasetProviderError("canonical metadata JSON is invalid") from exc
-        return parsed if isinstance(parsed, dict) else {}
+        if not isinstance(parsed, dict):
+            raise DatasetProviderError("canonical metadata JSON must be an object")
+        return parsed
 
     @staticmethod
     def _json_list(value: str) -> tuple[str, ...]:
@@ -192,10 +194,18 @@ class CanonicalSqliteDatasetProvider:
         row: sqlite3.Row,
         dataset_ref: DatasetRef,
     ) -> CanonicalObservation:
+        persisted_dataset_id = str(row["dataset_id"])
+        persisted_snapshot_id = str(row["dataset_snapshot_id"])
+        if persisted_dataset_id != dataset_ref.dataset_id:
+            raise DatasetProviderError("persisted observation dataset_id does not match requested dataset")
+        if persisted_snapshot_id != dataset_ref.dataset_snapshot_id:
+            raise DatasetProviderError(
+                "persisted observation dataset_snapshot_id does not match requested snapshot"
+            )
         return CanonicalObservation(
             observation_id=str(row["observation_id"]),
-            dataset_id=dataset_ref.dataset_id,
-            dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
+            dataset_id=persisted_dataset_id,
+            dataset_snapshot_id=persisted_snapshot_id,
             entity_id=str(row["entity_id"]),
             period_id=str(row["period_id"]),
             metric_id=str(row["metric_id"]),

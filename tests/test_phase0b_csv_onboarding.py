@@ -13,6 +13,7 @@ from thesis_data.canonical_snapshot import materialize_canonical_snapshot
 from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
 from thesis_data.csv_onboarding import stage_csv_bytes
 from thesis_data.dataset_tool_runtime import DatasetToolRuntime
+from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.onboarding_contract import (
     FieldMappingSpec,
     FieldMetricMapping,
@@ -98,6 +99,14 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                 raw_dataset_id=r"C:\private\financials.csv",
                 original_name="financials.csv",
             )
+        for raw_dataset_id in ("tenant/upload", r"tenant\upload", "/home/user/file.csv", "/tmp/file.csv"):
+            with self.subTest(raw_dataset_id=raw_dataset_id):
+                with self.assertRaisesRegex(ValueError, "path separators"):
+                    stage_csv_bytes(
+                        self.valid_text().encode(),
+                        raw_dataset_id=raw_dataset_id,
+                        original_name="financials.csv",
+                    )
 
     def test_period_normalization_is_exact_and_general(self):
         for value in ("2024_Q4", "2024Q4", "Q4-2024", "Q1-2025"):
@@ -356,6 +365,134 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         self.assertNotIn("financials.csv", str(metadata_rows))
         self.assertNotIn("\\", str(source_rows))
         self.assertNotIn("/private/", str(source_rows))
+
+    def test_provider_rejects_persisted_observation_identity_corruption(self):
+        for column in ("dataset_id", "dataset_snapshot_id"):
+            with self.subTest(column=column), tempfile.TemporaryDirectory() as directory:
+                staged = self.stage(self.valid_text())
+                result = normalize_csv_dataset(
+                    staged,
+                    dataset_id="csv-dataset",
+                    mapping=self.mapping(),
+                    registry=demo_metric_registry(),
+                )
+                db_path = Path(directory) / "corrupt.sqlite"
+                materialize_canonical_snapshot(
+                    db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                )
+                connection = sqlite3.connect(db_path)
+                try:
+                    connection.execute(f"UPDATE observations SET {column} = ?", ("corrupt",))
+                    connection.commit()
+                finally:
+                    connection.close()
+                provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
+                ref = provider.current_dataset_ref()
+                with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
+                    provider.get_metric(ref, "BANK-X", "2024_Q4", "company.roa")
+                with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
+                    provider.get_entity_metrics(ref, "BANK-X", ("2024_Q4",), ("company.roa",))
+                observation_id = result.candidate.observations[0].observation_id
+                with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
+                    provider.resolve_observation(ref, observation_id)
+
+    def test_provider_rejects_wrong_canonical_json_types(self):
+        for table, column, operation in (
+            ("entities", "attributes_json", "capabilities"),
+            ("observations", "metadata_json", "observation"),
+        ):
+            with self.subTest(table=table), tempfile.TemporaryDirectory() as directory:
+                staged = self.stage(self.valid_text())
+                result = normalize_csv_dataset(
+                    staged,
+                    dataset_id="csv-dataset",
+                    mapping=self.mapping(),
+                    registry=demo_metric_registry(),
+                )
+                db_path = Path(directory) / "malformed-json.sqlite"
+                materialize_canonical_snapshot(
+                    db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                )
+                connection = sqlite3.connect(db_path)
+                try:
+                    connection.execute(f"UPDATE {table} SET {column} = ?", ("[]",))
+                    connection.commit()
+                finally:
+                    connection.close()
+                provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
+                ref = provider.current_dataset_ref()
+                with self.assertRaisesRegex(DatasetProviderError, "must be an object"):
+                    if operation == "capabilities":
+                        provider.get_capabilities(ref)
+                    else:
+                        provider.get_metric(ref, "BANK-X", "2024_Q4", "company.roa")
+
+    def test_provider_rejects_invalid_canonical_json(self):
+        staged = self.stage(self.valid_text())
+        result = normalize_csv_dataset(
+            staged,
+            dataset_id="csv-dataset",
+            mapping=self.mapping(),
+            registry=demo_metric_registry(),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "invalid-json.sqlite"
+            materialize_canonical_snapshot(
+                db_path, result.candidate, staged.raw_descriptor, result.validation_report
+            )
+            connection = sqlite3.connect(db_path)
+            try:
+                connection.execute("UPDATE entities SET attributes_json = ?", ("not-json",))
+                connection.commit()
+            finally:
+                connection.close()
+            provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
+            with self.assertRaisesRegex(DatasetProviderError, "metadata JSON is invalid"):
+                provider.get_capabilities(provider.current_dataset_ref())
+
+    def test_paths_cannot_enter_persisted_csv_source_data(self):
+        for label in ("/home/user/file.csv", "/Users/user/file.csv", "/mnt/data/file.csv", "/tmp/file.csv"):
+            with self.subTest(label=label):
+                staged = self.stage(self.valid_text())
+                with self.assertRaisesRegex(ValueError, "local path"):
+                    normalize_csv_dataset(
+                        staged,
+                        dataset_id="csv-dataset",
+                        mapping=self.mapping(),
+                        registry=demo_metric_registry(),
+                        publisher=label,
+                    )
+
+    def test_failed_new_target_is_removed_and_retry_succeeds(self):
+        staged = self.stage(self.valid_text())
+        result = normalize_csv_dataset(
+            staged,
+            dataset_id="csv-dataset",
+            mapping=self.mapping(),
+            registry=demo_metric_registry(),
+        )
+        duplicate_entity = replace(
+            result.candidate,
+            entities=result.candidate.entities + (result.candidate.entities[0],),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "retry.sqlite"
+            with self.assertRaises(sqlite3.IntegrityError):
+                materialize_canonical_snapshot(
+                    db_path,
+                    duplicate_entity,
+                    staged.raw_descriptor,
+                    result.validation_report,
+                )
+            self.assertFalse(db_path.exists())
+            accepted = materialize_canonical_snapshot(
+                db_path,
+                result.candidate,
+                staged.raw_descriptor,
+                result.validation_report,
+            )
+            self.assertEqual(accepted.status, "accepted")
+            self.assertTrue(db_path.exists())
 
 
 if __name__ == "__main__":

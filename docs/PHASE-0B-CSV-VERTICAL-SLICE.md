@@ -43,7 +43,8 @@ runtime work.
 ## Important invariants
 
 - CSV content identity is the SHA-256 hash of the supplied bytes. Local paths
-  are not application metadata.
+  are not application metadata; raw dataset IDs cannot contain path
+  separators, and obvious private Unix paths are rejected from source labels.
 - Headers and metric meaning are separate. A header such as `ROA (%)` becomes
   `company.roa` only through an explicit mapping.
 - Blank mapped cells become `MISSING` observations with `value = NULL` and
@@ -58,6 +59,9 @@ runtime work.
   rolled back on failure.
 - Capabilities are discovered from persisted entities, periods, metrics, and
   peer metadata. The demo registry is not used as a capability list.
+- Provider observation conversion verifies the persisted dataset/snapshot
+  identity against the requested `DatasetRef`, and malformed canonical JSON
+  types fail closed rather than being replaced with empty objects.
 - CSV snapshots contain structured observations and source metadata, not
   document evidence; `get_evidence` is therefore not advertised.
 

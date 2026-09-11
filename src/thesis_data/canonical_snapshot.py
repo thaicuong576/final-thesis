@@ -206,11 +206,13 @@ def materialize_canonical_snapshot(
     )
     _validate_candidate(candidate, accepted_metadata, raw_descriptor)
     target = Path(db_path)
-    if target.exists() and target.stat().st_size > 0:
+    target_existed_before = target.exists()
+    if target_existed_before and target.stat().st_size > 0:
         raise ValueError("canonical snapshot target already exists and is immutable")
     target.parent.mkdir(parents=True, exist_ok=True)
 
     connection: sqlite3.Connection | None = None
+    operation_failed = False
     try:
         connection = sqlite3.connect(target)
         connection.execute("PRAGMA foreign_keys = ON")
@@ -294,10 +296,16 @@ def materialize_canonical_snapshot(
             )
         connection.commit()
     except Exception:
+        operation_failed = True
         if connection is not None:
             connection.rollback()
         raise
     finally:
         if connection is not None:
             connection.close()
+        if operation_failed and not target_existed_before and target.exists():
+            try:
+                target.unlink()
+            except OSError:
+                pass
     return accepted_metadata

@@ -13,7 +13,11 @@ from thesis_data.application_runtime import ApplicationRuntimeContext
 from thesis_data.canonical_snapshot import CANONICAL_SNAPSHOT_SCHEMA_VERSION, materialize_canonical_snapshot
 from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
 from thesis_data.csv_onboarding import stage_csv_bytes
-from thesis_data.dataset_contract import DatasetEvidence, DatasetSource
+from thesis_data.dataset_contract import (
+    DatasetEvidence,
+    DatasetSource,
+    canonical_observation_id,
+)
 from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.dataset_tool_runtime import DatasetToolRuntime
 from thesis_data.evidence_contract import DatasetDocument
@@ -279,6 +283,85 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         self.assertNotEqual(base_id, changed_document_id)
         self.assertNotEqual(base_id, changed_quote_id)
         self.assertNotEqual(base_id, changed_locator_id)
+
+    def test_snapshot_manifest_binds_observation_content_and_final_identity(self):
+        staged, result = self.with_evidence()
+        original_observation = result.candidate.observations[0]
+
+        def materialize(candidate, directory, filename):
+            path = Path(directory) / filename
+            accepted = materialize_canonical_snapshot(
+                path,
+                candidate,
+                staged.raw_descriptor,
+                result.validation_report,
+            )
+            connection = sqlite3.connect(path)
+            try:
+                row = connection.execute(
+                    """
+                    SELECT observation_id, dataset_snapshot_id, value,
+                           validation_status, missing_reason
+                    FROM observations
+                    """
+                ).fetchone()
+            finally:
+                connection.close()
+            return accepted, row
+
+        changed_value = replace(
+            result.candidate,
+            observations=(original_observation.model_copy(update={"value": 1.3}),),
+        )
+        missing_value = replace(
+            result.candidate,
+            observations=(original_observation.model_copy(
+                update={
+                    "value": None,
+                    "validation_status": QualityStatus.MISSING,
+                    "missing_reason": "DATA_UNAVAILABLE",
+                }
+            ),),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            accepted_a, row_a = materialize(result.candidate, directory, "base.sqlite")
+            accepted_b, row_b = materialize(changed_value, directory, "changed.sqlite")
+            accepted_missing, row_missing = materialize(
+                missing_value,
+                directory,
+                "missing.sqlite",
+            )
+
+        expected_a = canonical_observation_id(
+            accepted_a.dataset_snapshot_id,
+            original_observation.entity_id,
+            original_observation.period_id,
+            original_observation.metric_id,
+        )
+        expected_b = canonical_observation_id(
+            accepted_b.dataset_snapshot_id,
+            original_observation.entity_id,
+            original_observation.period_id,
+            original_observation.metric_id,
+        )
+        expected_missing = canonical_observation_id(
+            accepted_missing.dataset_snapshot_id,
+            original_observation.entity_id,
+            original_observation.period_id,
+            original_observation.metric_id,
+        )
+        self.assertNotEqual(accepted_a.dataset_snapshot_id, accepted_b.dataset_snapshot_id)
+        self.assertNotEqual(accepted_a.dataset_snapshot_id, accepted_missing.dataset_snapshot_id)
+        self.assertEqual(row_a[0], expected_a)
+        self.assertEqual(row_a[1], accepted_a.dataset_snapshot_id)
+        self.assertEqual(row_a[2:], (1.2, "valid", None))
+        self.assertEqual(row_b[0], expected_b)
+        self.assertEqual(row_b[1], accepted_b.dataset_snapshot_id)
+        self.assertEqual(row_b[2:], (1.3, "valid", None))
+        self.assertEqual(row_missing[0], expected_missing)
+        self.assertEqual(row_missing[1], accepted_missing.dataset_snapshot_id)
+        self.assertEqual(row_missing[2:], (None, "missing", "DATA_UNAVAILABLE"))
+        self.assertNotEqual(row_a[0], original_observation.observation_id)
 
     def test_publication_rejects_invalid_multi_source_provenance(self):
         staged, result = self.with_evidence()

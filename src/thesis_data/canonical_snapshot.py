@@ -7,7 +7,11 @@ import json
 from pathlib import Path
 import sqlite3
 
-from .dataset_contract import CanonicalObservation, DatasetEvidence
+from .dataset_contract import (
+    CanonicalObservation,
+    DatasetEvidence,
+    canonical_observation_id,
+)
 from .evidence_contract import DatasetDocument
 from .onboarding_contract import (
     DatasetSnapshotStatus,
@@ -226,6 +230,18 @@ def _validate_candidate(
     observation_ids = [item.observation_id for item in candidate.observations]
     if len(observation_ids) != len(set(observation_ids)):
         raise ValueError("duplicate observation IDs cannot be materialized")
+    observation_id_set = set(observation_ids)
+    for item in candidate.observations:
+        expected_observation_id = canonical_observation_id(
+            accepted_metadata.dataset_snapshot_id,
+            item.entity_id,
+            item.period_id,
+            item.metric_id,
+        )
+        if item.observation_id != expected_observation_id:
+            raise ValueError("observation ID is not derived from final snapshot identity")
+        if any(ref not in observation_id_set for ref in item.input_observation_ids):
+            raise ValueError("observation lineage reference does not resolve in candidate")
     for universe in candidate.peer_universes:
         if not set(universe.entity_ids).issubset(entity_ids):
             raise ValueError("peer universe contains an unknown entity")
@@ -253,10 +269,24 @@ def _bind_candidate_to_final_snapshot(
         ):
             raise ValueError("candidate document identity does not match candidate metadata")
 
+    provisional_observation_ids = [
+        item.observation_id for item in candidate.observations
+    ]
+    if len(provisional_observation_ids) != len(set(provisional_observation_ids)):
+        raise ValueError("candidate observation IDs must be unique before final binding")
+    provisional_observation_id_set = set(provisional_observation_ids)
+    for observation in candidate.observations:
+        if any(
+            ref not in provisional_observation_id_set
+            for ref in observation.input_observation_ids
+        ):
+            raise ValueError("candidate observation lineage reference does not resolve")
+
     manifest_hash = compute_content_manifest_hash(
         sources=candidate.all_sources,
         documents=candidate.documents,
         evidence=candidate.evidence,
+        observations=candidate.observations,
         mapping_version=accepted_metadata.mapping_version,
         validation_version=accepted_metadata.validation_version,
     )
@@ -273,6 +303,18 @@ def _bind_candidate_to_final_snapshot(
             "content_manifest_hash": manifest_hash,
         }
     )
+    observation_id_map = {
+        item.observation_id: canonical_observation_id(
+            final_snapshot_id,
+            item.entity_id,
+            item.period_id,
+            item.metric_id,
+        )
+        for item in candidate.observations
+    }
+    final_observation_ids = list(observation_id_map.values())
+    if len(final_observation_ids) != len(set(final_observation_ids)):
+        raise ValueError("duplicate final observation IDs cannot be materialized")
     bound_candidate = replace(
         candidate,
         metadata=final_metadata,
@@ -281,6 +323,11 @@ def _bind_candidate_to_final_snapshot(
                 update={
                     "dataset_id": final_metadata.dataset_id,
                     "dataset_snapshot_id": final_snapshot_id,
+                    "observation_id": observation_id_map[item.observation_id],
+                    "input_observation_ids": tuple(
+                        observation_id_map[ref]
+                        for ref in item.input_observation_ids
+                    ),
                 }
             )
             for item in candidate.observations

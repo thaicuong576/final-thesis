@@ -85,11 +85,15 @@ valid and simply does not advertise that operation.
 
 The accepted canonical SQLite schema is explicitly versioned as
 `canonical-snapshot-v2`. Its `content_manifest_hash` binds the complete
-accepted content universe: canonical source identities and hashes, document
-content/source references, evidence identities/locators/quotes, and the
-structured mapping/validation versions. Consequently, changing document
-content or changing an evidence quote/locator creates a different accepted
-snapshot identity even when the CSV bytes are unchanged.
+accepted content universe: canonical source identities and hashes, canonical
+observation content (cell identity, value/unit, validation or missingness
+state, provenance, and derivation metadata), document content/source
+references, evidence identities/locators/quotes, and the structured
+mapping/validation versions. Snapshot-derived dataset/snapshot and observation
+IDs are excluded to avoid circular hashing, then observation IDs are re-keyed
+from the final snapshot ID before persistence. Consequently, changing a
+canonical observation, document content, or an evidence quote/locator creates
+a different accepted snapshot identity even when the CSV bytes are unchanged.
 
 This phase does not implement PDF parsing, OCR, chunking, embeddings, RAG,
 semantic search, document ranking, or model-based extraction. Those are future

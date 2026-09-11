@@ -396,11 +396,93 @@ def _manifest_item(value: Any, *, identity_field: str, drop_fields: set[str]) ->
     return item
 
 
+def _manifest_observation_items(values: Sequence[Any]) -> list[dict[str, Any]]:
+    """Serialize observations without snapshot-derived identity fields.
+
+    Candidate observation IDs are provisional until the final snapshot ID is
+    known.  Lineage therefore records the referenced observations' canonical
+    content rather than their provisional IDs, while the complete observation
+    list remains part of the manifest.
+    """
+
+    base_items: list[tuple[dict[str, Any], tuple[str, ...]]] = []
+    by_observation_id: dict[str, dict[str, Any]] = {}
+    duplicate_observation_ids: set[str] = set()
+    for value in values:
+        item = _manifest_item(
+            value,
+            identity_field="entity_id",
+            drop_fields={
+                "dataset_id",
+                "dataset_snapshot_id",
+                "observation_id",
+                "input_observation_ids",
+            },
+        )
+        if isinstance(value, BaseModel):
+            raw = value.model_dump(mode="json")
+        elif isinstance(value, dict):
+            raw = dict(value)
+        else:
+            raise TypeError("content manifest items must be mappings or Pydantic models")
+        observation_id = str(raw.get("observation_id", "")).strip()
+        if not observation_id:
+            raise ValueError("content manifest observation requires observation_id")
+        if observation_id in by_observation_id:
+            duplicate_observation_ids.add(observation_id)
+        else:
+            by_observation_id[observation_id] = item
+        lineage_refs = tuple(
+            str(ref).strip() for ref in raw.get("input_observation_ids", ())
+        )
+        base_items.append((item, lineage_refs))
+
+    items: list[dict[str, Any]] = []
+    for base_item, lineage_refs in base_items:
+        item = dict(base_item)
+        if not lineage_refs:
+            item["input_observation_content"] = []
+            items.append(item)
+            continue
+        ambiguous_refs = [ref for ref in lineage_refs if ref in duplicate_observation_ids]
+        if ambiguous_refs:
+            raise ValueError(
+                "content manifest observation lineage references duplicate observation: "
+                + ",".join(sorted(ambiguous_refs))
+            )
+        missing_refs = [ref for ref in lineage_refs if ref not in by_observation_id]
+        if missing_refs:
+            raise ValueError(
+                "content manifest observation lineage references unknown observation: "
+                + ",".join(sorted(missing_refs))
+            )
+        item["input_observation_content"] = sorted(
+            (dict(by_observation_id[ref]) for ref in lineage_refs),
+            key=lambda child: (
+                child.get("entity_id", ""),
+                child.get("period_id", ""),
+                child.get("metric_id", ""),
+                json.dumps(child, sort_keys=True, separators=(",", ":")),
+            ),
+        )
+        items.append(item)
+
+    return sorted(
+        items,
+        key=lambda item: (
+            item["entity_id"],
+            item.get("period_id", ""),
+            item.get("metric_id", ""),
+        ),
+    )
+
+
 def compute_content_manifest_hash(
     *,
     sources: Sequence[Any],
     documents: Sequence[Any] = (),
     evidence: Sequence[Any] = (),
+    observations: Sequence[Any] = (),
     mapping_version: str,
     validation_version: str,
 ) -> str:
@@ -408,7 +490,8 @@ def compute_content_manifest_hash(
 
     Dataset/snapshot identity fields on documents are derived from this hash,
     so they are intentionally excluded to avoid a circular identity. Content,
-    provenance, locators, and quotes remain part of the manifest.
+    provenance, locators, quotes, and canonical observations remain part of
+    the manifest.
     """
 
     source_items = [
@@ -435,6 +518,7 @@ def compute_content_manifest_hash(
         )
         for item in evidence
     ]
+    observation_items = _manifest_observation_items(observations)
     payload = {
         "manifest_version": CONTENT_MANIFEST_VERSION,
         "mapping_version": _require_text(mapping_version, "mapping_version"),
@@ -442,6 +526,7 @@ def compute_content_manifest_hash(
         "sources": sorted(source_items, key=lambda item: item["source_ref"]),
         "documents": sorted(document_items, key=lambda item: item["document_id"]),
         "evidence": sorted(evidence_items, key=lambda item: item["evidence_id"]),
+        "observations": observation_items,
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return f"manifest-{sha256(encoded).hexdigest()}"

@@ -6,13 +6,12 @@ from dataclasses import dataclass
 from datetime import datetime
 import math
 import re
-from hashlib import sha256
-import json
 
 from .csv_onboarding import CsvStagedDataset
 from .dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
+    canonical_observation_id,
     DatasetEvidence,
     DatasetEntity,
     DatasetEntityType,
@@ -100,22 +99,6 @@ def _parse_number(value: str) -> float:
     if not math.isfinite(parsed):
         raise ValueError("numeric value must be finite")
     return parsed
-
-
-def _observation_id(
-    snapshot_id: str,
-    entity_id: str,
-    period_id: str,
-    metric_id: str,
-) -> str:
-    identity = {
-        "dataset_snapshot_id": snapshot_id,
-        "entity_id": entity_id,
-        "period_id": period_id,
-        "metric_id": metric_id,
-    }
-    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    return f"observation-{sha256(encoded).hexdigest()}"
 
 
 def _entity_type(level: AnalyticalLevel) -> DatasetEntityType:
@@ -302,7 +285,7 @@ def normalize_csv_dataset(
             else:
                 duplicate_keys[key] = row_number
 
-            observation_id = _observation_id(
+            observation_id = canonical_observation_id(
                 metadata.dataset_snapshot_id,
                 entity_id,
                 period_id,
@@ -364,6 +347,7 @@ def normalize_csv_dataset(
         source = source.model_copy(update={"validation_status": QualityStatus.VALID})
     content_manifest_hash = compute_content_manifest_hash(
         sources=(source,),
+        observations=tuple(observations),
         mapping_version=mapping_version,
         validation_version=ONBOARDING_VALIDATION_VERSION,
     )
@@ -384,7 +368,7 @@ def normalize_csv_dataset(
         item.model_copy(
             update={
                 "dataset_snapshot_id": final_snapshot_id,
-                "observation_id": _observation_id(
+                "observation_id": canonical_observation_id(
                     final_snapshot_id,
                     item.entity_id,
                     item.period_id,

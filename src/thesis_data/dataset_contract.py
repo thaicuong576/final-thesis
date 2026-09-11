@@ -8,6 +8,8 @@ generic application boundary.
 from __future__ import annotations
 
 from enum import StrEnum
+from hashlib import sha256
+import json
 import math
 from typing import Any, Sequence
 
@@ -17,6 +19,24 @@ from .schema import QualityStatus, SourceTier
 
 
 DATASET_CONTRACT_VERSION = "dataset-contract-v1"
+
+
+def canonical_observation_id(
+    dataset_snapshot_id: str,
+    entity_id: str,
+    period_id: str,
+    metric_id: str,
+) -> str:
+    """Derive one observation identity from the final snapshot and cell key."""
+
+    identity = {
+        "dataset_snapshot_id": dataset_snapshot_id,
+        "entity_id": entity_id,
+        "period_id": period_id,
+        "metric_id": metric_id,
+    }
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return f"observation-{sha256(encoded).hexdigest()}"
 
 
 class DatasetEntityType(StrEnum):

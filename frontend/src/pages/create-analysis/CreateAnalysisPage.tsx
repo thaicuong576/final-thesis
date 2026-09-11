@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BarChart3, UserRound } from 'lucide-react';
@@ -28,7 +28,7 @@ export function CreateAnalysisPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [manualMetricOverrides, setManualMetricOverrides] = useState<Record<string, boolean>>({});
-  const [objectiveState, setObjectiveState] = useState<{ text: string; signature: string; edited: boolean } | null>(null);
+  const [objectiveState, setObjectiveState] = useState<{ text: string; signature: string } | null>(null);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<AnalysisFormValues>({
@@ -49,12 +49,6 @@ export function CreateAnalysisPage() {
   const canSuggest = Boolean((values.analysisTargetIds?.length ?? 0) > 0 && (values.periodIds?.length ?? 0) > 0 && (values.metricIds?.length ?? 0) > 0 && capabilitiesData);
   const closeDetails = useCallback(() => setDetailsOpen(false), []);
 
-  useEffect(() => {
-    if (objectiveState && objective !== objectiveState.text && !objectiveState.edited) {
-      setObjectiveState({ ...objectiveState, edited: true });
-    }
-  }, [objective, objectiveState]);
-
   if (capabilitiesQuery.isPending) return <LoadingState />;
   if (capabilitiesQuery.isError || !capabilitiesData) return <ErrorState />;
   const capabilities = capabilitiesData;
@@ -63,7 +57,7 @@ export function CreateAnalysisPage() {
     const nextValues = form.getValues();
     const text = generateSuggestedObjective(nextValues, capabilities);
     form.setValue('objective', text, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setObjectiveState({ text, signature: getScopeSignature(nextValues), edited: false });
+    setObjectiveState({ text, signature: getScopeSignature(nextValues) });
     setSubmissionMessage(null);
   }
 
@@ -140,7 +134,7 @@ export function CreateAnalysisPage() {
               errors={form.formState.errors}
               register={form.register}
               canSuggest={canSuggest}
-              objectiveWasEdited={Boolean(objectiveState?.edited)}
+              objectiveWasEdited={Boolean(objectiveState && objective !== objectiveState.text)}
               scopeChangedNotice={scopeChangedNotice}
               possibleMismatch={hasPossibleObjectiveMismatch(objective, capabilities, { analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] })}
               onSuggest={applySuggestedObjective}
@@ -166,5 +160,5 @@ function LoadingState() {
 }
 
 function ErrorState() {
-  return <main className="grid min-h-screen place-items-center bg-canvas p-6"><div className="border border-[#e4c0bb] bg-white p-6 text-center"><p className="font-semibold text-blocked">Không thể tải phạm vi dữ liệu.</p><p className="mt-2 text-sm text-muted">Vui lòng thử lại khi capability service sẵn sàng.</p></div></main>;
+  return <main className="grid min-h-screen place-items-center bg-canvas p-6"><div className="border border-[#e4c0bb] bg-white p-6 text-center"><p className="font-semibold text-blocked">Không thể tải phạm vi dữ liệu.</p><p className="mt-2 text-sm text-muted">Vui lòng thử lại khi dịch vụ phạm vi dữ liệu sẵn sàng.</p></div></main>;
 }

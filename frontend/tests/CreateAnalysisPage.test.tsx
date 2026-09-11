@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateAnalysisPage } from '../src/pages/create-analysis/CreateAnalysisPage';
 import { analysisService } from '../src/entities/analysis/api/analysisService';
 import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
+import { analysisRequestSchema } from '../src/features/create-analysis/schema';
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -28,6 +29,19 @@ describe('CreateAnalysisPage', () => {
   it('keeps the CTA disabled for an invalid empty form', async () => {
     renderPage();
     expect(await screen.findByRole('button', { name: 'Chạy phân tích' })).toBeDisabled();
+  });
+
+  it('enforces the 500-character objective boundary in the schema and field', async () => {
+    renderPage();
+    const objective = await screen.findByLabelText(/Mục tiêu phân tích/);
+
+    expect(objective).toHaveAttribute('maxLength', '500');
+    expect(analysisRequestSchema.safeParse({
+      objective: 'x'.repeat(501),
+      analysisTargetIds: ['acb'],
+      periodIds: ['2024-q1'],
+      metricIds: ['npl']
+    }).success).toBe(false);
   });
 
   it('enables the CTA for a valid request', async () => {
@@ -111,8 +125,7 @@ describe('CreateAnalysisPage', () => {
     await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
     await user.click(await screen.findByRole('button', { name: 'Dùng mục tiêu gợi ý' }));
     const objective = await screen.findByLabelText(/Mục tiêu phân tích/);
-    await user.clear(objective);
-    await user.type(objective, 'Mục tiêu đã được chỉnh sửa bởi chuyên gia.');
+    fireEvent.change(objective, { target: { value: 'Mục tiêu đã được chỉnh sửa bởi chuyên gia.' } });
     await user.click(await screen.findByLabelText('TCB'));
     expect(objective).toHaveValue('Mục tiêu đã được chỉnh sửa bởi chuyên gia.');
     expect(screen.getByText('Phạm vi đã thay đổi. Mục tiêu hiện tại có thể không còn phản ánh lựa chọn mới.')).toBeInTheDocument();

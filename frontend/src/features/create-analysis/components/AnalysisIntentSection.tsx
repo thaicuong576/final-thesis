@@ -54,6 +54,7 @@ export function AnalysisIntentSection({
         <textarea
           {...register('objective')}
           id="analysis-objective"
+          maxLength={500}
           aria-describedby="objective-help objective-error"
           aria-invalid={Boolean(errors.objective)}
           className="field-control min-h-[104px] resize-y pl-10 pr-14 leading-6"
@@ -61,7 +62,7 @@ export function AnalysisIntentSection({
         />
         <span className="absolute bottom-2 right-3 text-xs tabular-nums text-muted">{objective.length}/500</span>
       </div>
-      <p id="objective-help" className="mt-2 text-xs text-muted">Mục tiêu là bắt buộc. Lựa chọn có cấu trúc là ranh giới thực thi của yêu cầu.</p>
+      <p id="objective-help" className="mt-2 text-xs text-muted">Mục tiêu là bắt buộc và tối đa 500 ký tự. Lựa chọn có cấu trúc là ranh giới thực thi của yêu cầu.</p>
 
       {errors.objective && <p id="objective-error" className="field-error" role="alert">{errors.objective.message}</p>}
 

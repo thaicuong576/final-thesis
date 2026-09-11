@@ -1012,3 +1012,21 @@ Reason: a high numeric coverage percentage cannot compensate for a
 cross-issuer semantic mismatch. Treating the two VPB denominator choices as
 equivalent would contaminate peer comparisons and could create a false
 multi-agent quality or scaling result.
+
+## D-064: Lock the application-first architectural constitution
+
+Status: Accepted and binding.
+
+The reusable analysis core is separated from enterprise/application
+integration. Dataset providers and adapters isolate physical storage, the
+reference frontend remains replaceable, Macro/Sector/Company are the locked
+initial specialist roles, and research A/B/C architecture comparison remains
+outside the normal product UX. Gold is a validated dataset instance, not the
+architecture. Future work must preserve evidence/provenance,
+dataset/snapshot traceability, replaceable storage and model providers,
+privacy-safe observable events, bounded critique/revision, and the
+transferability test recorded in `docs/ARCHITECTURAL-GUARDRAILS.md`.
+
+The guardrail is enforced as a repository-level pre-flight and by the focused
+architecture guard test. A task that materially conflicts with it must stop
+and report the affected components and minimum correction before code changes.

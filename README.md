@@ -30,6 +30,7 @@ The event history is recorded in `.agents/project-state/events.jsonl`.
 - `docs/DECISIONS.md` — durable decisions and rejected alternatives.
 - `docs/RESEARCH.md` — verified sources, findings, and open questions.
 - `docs/CONSTRAINTS.md` — quality, security, reproducibility, and performance standards.
+- `docs/ARCHITECTURAL-GUARDRAILS.md` — binding application-first constitution and transferability rules.
 - `docs/PRIORITIES-AND-TRADEOFFS.md` — ordered scope decisions and what is deferred.
 - `docs/SCOPE-STRESS-TEST.md` — feasibility assumptions and 48/80/200-cell scope options.
 - `docs/NEXT-PHASE-PRIORITIES.md` — assumption audit, decision tree, and next-sprint gates.

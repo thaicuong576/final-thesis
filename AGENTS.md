@@ -10,7 +10,7 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 ## Canonical context
 
-Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, and `docs/CONSTRAINTS.md` as relevant.
+Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
 
 Dynamic project truth lives in `.agents/project-state/current.json` and `.agents/project-state/events.jsonl`.
 
@@ -29,6 +29,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.
 8. Secrets belong in local ignored configuration or a secret manager and must never be committed or pasted into reports.
 9. Production deployment and access to real financial services require explicit approval.
+10. `docs/ARCHITECTURAL-GUARDRAILS.md` is binding. If a task conflicts with it, stop and report the conflict before implementation.
 
 ## Ownership
 
@@ -54,3 +55,8 @@ Each phase must leave a durable handoff and a verified state update before the n
 The immediate priority is the research and data-foundation phase.
 
 Do not build the full agent loop until source coverage, metric definitions, period alignment, and a manually checked gold dataset are documented.
+
+Before each major phase, complete the guardrail pre-flight questions and record
+any new Gold/SQLite/physical-schema coupling. Passing tests alone is not
+architectural acceptance; changes must also preserve the core/application
+boundary and the transferability rule.

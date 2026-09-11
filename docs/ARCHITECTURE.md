@@ -1,5 +1,9 @@
 # Architecture
 
+> Binding architectural rules: [`ARCHITECTURAL-GUARDRAILS.md`](ARCHITECTURAL-GUARDRAILS.md).
+> This document describes the current implementation; the guardrail defines
+> the non-negotiable boundary for future work.
+
 Status: Working architecture for the scoped applied-thesis benchmark.
 
 ## Design principle

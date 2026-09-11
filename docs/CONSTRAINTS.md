@@ -1,5 +1,15 @@
 # Constraints and Quality Standards
 
+## Binding architectural guardrail
+
+The application-first constitution in
+[`ARCHITECTURAL-GUARDRAILS.md`](ARCHITECTURAL-GUARDRAILS.md) is binding for
+all implementation work. It governs the reusable-core/application boundary,
+dataset-provider abstraction, Macro/Sector/Company architecture,
+research/product separation, replaceable storage/model providers, event
+privacy, phase roadmap, and review policy. If this document conflicts with the
+constitution, stop and resolve the conflict before coding.
+
 ## Scope
 
 - The default first baseline is the 48-cell ACB/TCB/VPB pilot across four 2024

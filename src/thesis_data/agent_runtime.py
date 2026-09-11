@@ -24,6 +24,7 @@ from .query import (
     get_company_metrics,
     get_evidence,
     get_macro_context,
+    get_macro_evidence,
     get_sector_benchmarks,
 )
 from .schema import AgentPayload, AgentStatus, GoldConfig
@@ -418,14 +419,30 @@ def _prepare_period_context(
         source_tiers=source_tiers,
     )
     if macro.source_ids:
-        evidence.extend(
-            get_evidence(
+        typed_macro_evidence = [
+            snippet
+            for indicator_id in macro_indicator_ids
+            for snippet in get_macro_evidence(
                 db_path,
                 sorted(set(macro.source_ids)),
-                EvidenceQuery(period=period),
+                indicator_id,
+                period,
                 source_tiers=source_tiers,
             )
-        )
+        ]
+        if typed_macro_evidence:
+            evidence.extend(typed_macro_evidence)
+        else:
+            # Compatibility fallback for pre-V2 fixtures only.  The typed
+            # macro acceptance resolver never uses this path.
+            evidence.extend(
+                get_evidence(
+                    db_path,
+                    sorted(set(macro.source_ids)),
+                    EvidenceQuery(period=period),
+                    source_tiers=source_tiers,
+                )
+            )
     evidence_by_id = {snippet.evidence_id: snippet for snippet in evidence}
     return {
         "company": company.model_dump(mode="json"),
@@ -535,6 +552,7 @@ def run_agent_arm(
         run_config,
         question_set_path,
         gold_config,
+        macro_indicator_ids=tuple(macro_indicator_ids),
     )
     if not input_audit.eligible:
         raise ExperimentInputError(input_audit.blockers)

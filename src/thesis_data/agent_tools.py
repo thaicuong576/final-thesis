@@ -12,7 +12,14 @@ from typing import Any, Literal, Sequence
 from pydantic import BaseModel, ConfigDict, Field
 
 from .agent_runtime import AgentToolCall
-from .query import EvidenceQuery, get_company_metrics, get_evidence, get_macro_context, get_sector_benchmarks
+from .query import (
+    EvidenceQuery,
+    get_company_metrics,
+    get_evidence,
+    get_macro_context,
+    get_macro_evidence,
+    get_sector_benchmarks,
+)
 from .workload_contract import CompositeWorkloadSpec
 
 
@@ -53,8 +60,9 @@ class MacroArguments(ToolArguments):
 
 class EvidenceArguments(ToolArguments):
     source_ids: list[str] = Field(min_length=1, max_length=32)
-    ticker: str = Field(min_length=1, max_length=12)
+    ticker: str | None = Field(default=None, min_length=1, max_length=12)
     period: str = Field(pattern=r"^\d{4}_Q[1-4]$|^FY\d{4}$")
+    indicator_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class EvidenceBatchArguments(ToolArguments):
@@ -192,7 +200,7 @@ TOOL_DESCRIPTIONS = {
     "get_sector_benchmarks": "Read deterministic accepted peer medians for the declared sector, period, and peer set.",
     "get_sector_benchmarks_batch": "Read deterministic accepted peer medians for all declared periods in one bounded batch.",
     "get_macro_context": "Read accepted macro observations for declared indicators and period.",
-    "get_evidence": "Read page-aware evidence snippets for accepted source IDs and the declared issuer-period.",
+    "get_evidence": "Read page-aware evidence snippets for accepted source IDs and the declared issuer-period, or ticker-less typed macro evidence for a declared indicator-period.",
     "get_evidence_batch": "Read page-aware evidence snippets for all declared issuer-period combinations in one bounded batch.",
     "get_source_metadata": "Read safe metadata for accepted source IDs without exposing local paths.",
     "check_missing_or_conflict": "Check one Gold cell and return valid, missing, unaccepted, or conflict state without guessing.",
@@ -385,7 +393,7 @@ class GoldToolRuntime:
             )
         return definitions
 
-    def _validate_scope(self, name: str, arguments: ToolArguments) -> None:
+    def _validate_scope(self, name: str, arguments: ToolArguments, role: str) -> None:
         if isinstance(arguments, CompanyMetricArguments):
             if not self._ticker_in_scope(arguments.ticker) or arguments.period not in self.periods:
                 raise ToolExecutionError("company query outside request scope")
@@ -420,8 +428,18 @@ class GoldToolRuntime:
             if not set(arguments.indicator_ids).issubset(self.macro_indicator_ids):
                 raise ToolExecutionError("macro indicator outside request scope")
         elif isinstance(arguments, EvidenceArguments):
-            if not self._ticker_in_scope(arguments.ticker) or arguments.period not in self.periods:
+            if arguments.period not in self.periods:
                 raise ToolExecutionError("evidence query outside request scope")
+            if role == "macro":
+                if arguments.ticker is not None:
+                    raise ToolExecutionError("macro evidence must be ticker-less")
+                if arguments.indicator_id not in self.macro_indicator_ids:
+                    raise ToolExecutionError("macro evidence indicator outside request scope")
+            else:
+                if not self._ticker_in_scope(arguments.ticker or ""):
+                    raise ToolExecutionError("evidence query outside request scope")
+                if arguments.indicator_id is not None:
+                    raise ToolExecutionError("company evidence cannot declare macro indicator")
         elif isinstance(arguments, EvidenceBatchArguments):
             if not set(arguments.tickers).issubset(self.tickers) or not set(arguments.periods).issubset(self.periods):
                 raise ToolExecutionError("evidence batch outside request scope")
@@ -446,8 +464,8 @@ class GoldToolRuntime:
             arguments = model.model_validate(raw_arguments)
         except ValueError as exc:
             raise ToolExecutionError("tool arguments invalid") from exc
-        self._validate_scope(name, arguments)
-        data = self._run(name, arguments)
+        self._validate_scope(name, arguments, role)
+        data = self._run(name, arguments, role)
         encoded = _json(data)
         valid, missing, conflict = _quality_counts(data)
         trace = AgentToolCall(
@@ -460,7 +478,7 @@ class GoldToolRuntime:
         )
         return ToolExecution(data, trace)
 
-    def _run(self, name: str, arguments: ToolArguments) -> dict[str, Any] | list[dict[str, Any]]:
+    def _run(self, name: str, arguments: ToolArguments, role: str) -> dict[str, Any] | list[dict[str, Any]]:
         if isinstance(arguments, CompanyMetricArguments):
             return get_company_metrics(
                 self.db_path, arguments.ticker, arguments.period, arguments.metric_ids,
@@ -501,6 +519,17 @@ class GoldToolRuntime:
                 source_tiers=self.source_tiers,
             ).model_dump(mode="json")
         if isinstance(arguments, EvidenceArguments):
+            if role == "macro":
+                return [
+                    item.model_dump(mode="json")
+                    for item in get_macro_evidence(
+                        self.db_path,
+                        arguments.source_ids,
+                        arguments.indicator_id or "",
+                        arguments.period,
+                        source_tiers=self.source_tiers,
+                    )
+                ]
             return [
                 item.model_dump(mode="json")
                 for item in get_evidence(

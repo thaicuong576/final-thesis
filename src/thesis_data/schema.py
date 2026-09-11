@@ -198,6 +198,79 @@ class MetricObservation(BaseModel):
         return self
 
 
+class MacroObservationV2(BaseModel):
+    """Versioned, source-aligned macro observation contract.
+
+    The legacy ``macro_observations`` table is intentionally not reinterpreted
+    as this contract.  New acceptance-aware macro references must resolve to
+    the versioned physical table created by the storage layer.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    observation_id: str = Field(min_length=1)
+    indicator_id: str = Field(min_length=1)
+    value: float | None = None
+    unit: str | None = Field(default=None, min_length=1)
+    period: str = Field(pattern=r"^\d{4}_Q[1-4]$|^FY\d{4}$")
+    source_id: str | None = Field(default=None, min_length=1)
+    quality_status: QualityStatus
+    reason: str | None = None
+    source_series_id: str | None = Field(default=None, min_length=1)
+    indicator_definition_version: str = Field(min_length=1)
+    frequency: str = Field(min_length=1)
+    observation_date: date | None = None
+    effective_from: date | None = None
+    as_of_date: date | None = None
+    period_basis: str = Field(min_length=1)
+    alignment_method: str | None = Field(default=None, min_length=1)
+    source_locator: str | None = Field(default=None, min_length=1)
+    transformation_version: str | None = Field(default=None, min_length=1)
+    input_observation_ids: tuple[str, ...] = Field(default_factory=tuple)
+    adjudication_ref: str | None = Field(default=None, min_length=1)
+    review_check_ids: tuple[str, ...] = Field(default_factory=tuple)
+
+    @model_validator(mode="after")
+    def validate_status_contract(self) -> "MacroObservationV2":
+        if self.value is not None and not math.isfinite(self.value):
+            raise ValueError("value must be finite")
+        if len(set(self.input_observation_ids)) != len(self.input_observation_ids):
+            raise ValueError("input_observation_ids must be unique")
+        if len(set(self.review_check_ids)) != len(self.review_check_ids):
+            raise ValueError("review_check_ids must be unique")
+        if self.quality_status is QualityStatus.VALID:
+            required = {
+                "unit": self.unit,
+                "source_id": self.source_id,
+                "source_series_id": self.source_series_id,
+                "observation_date": self.observation_date,
+                "as_of_date": self.as_of_date,
+                "alignment_method": self.alignment_method,
+                "source_locator": self.source_locator,
+                "transformation_version": self.transformation_version,
+                "adjudication_ref": self.adjudication_ref,
+            }
+            missing = sorted(name for name, value in required.items() if value in (None, ""))
+            if self.value is None:
+                missing.append("value")
+            if missing:
+                raise ValueError(
+                    "valid macro observation missing required fields: " + ",".join(missing)
+                )
+            if len(self.review_check_ids) < 2:
+                raise ValueError("valid macro observation requires two independent review checks")
+        elif self.quality_status is QualityStatus.MISSING:
+            if self.value is not None:
+                raise ValueError("missing macro observation cannot contain a value")
+            if not self.reason:
+                raise ValueError("missing macro observation requires reason")
+            if not self.adjudication_ref:
+                raise ValueError("missing macro observation requires adjudication_ref")
+        elif self.value is None and not self.reason:
+            raise ValueError("non-valid null macro observation requires reason")
+        return self
+
+
 class DerivedMetric(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -233,6 +306,10 @@ class EvidenceSnippet(BaseModel):
     section_name: str | None = None
     period: str | None = None
     ticker: str | None = None
+    indicator_id: str | None = Field(default=None, min_length=1)
+    source_locator: str | None = Field(default=None, min_length=1)
+    as_of_date: date | None = None
+    effective_from: date | None = None
     quote: str = Field(min_length=1)
     retrieval_score: float | None = None
     parser_status: str = Field(min_length=1)
@@ -302,7 +379,14 @@ class ClaimDataRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ref_id: str = Field(min_length=1)
-    ref_type: Literal["observation", "derived_metric", "benchmark", "missing_cell", "legacy"]
+    ref_type: Literal[
+        "observation",
+        "macro_observation",
+        "derived_metric",
+        "benchmark",
+        "missing_cell",
+        "legacy",
+    ]
     entity: str = Field(min_length=1)
     period: str = Field(pattern=r"^\d{4}_Q[1-4]$|^FY\d{4}$")
     metric_id: str = Field(min_length=1)
@@ -358,6 +442,7 @@ class StructuredAssertion(BaseModel):
             raise ValueError("data_refs must be unique within an assertion")
         if self.reference_ref is not None and self.reference_ref.ref_type not in {
             "observation",
+            "macro_observation",
             "derived_metric",
         }:
             raise ValueError("reference_ref must resolve to an observation or derived metric")
@@ -465,6 +550,7 @@ class AgentPayload(BaseModel):
     findings: list[str] = Field(default_factory=list)
     evidence: list[EvidenceSnippet] = Field(default_factory=list)
     quality_flags: list[str] = Field(default_factory=list)
+    missing_reasons: dict[str, str] = Field(default_factory=dict)
     observation_ids: list[str] = Field(default_factory=list)
     source_ids: list[str] = Field(default_factory=list)
 

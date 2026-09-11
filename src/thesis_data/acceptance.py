@@ -38,6 +38,8 @@ from .schema import (
 ACCEPTANCE_MODEL_VERSION = "report-acceptance-v1"
 LEGACY_CLAIM_ADAPTER_VERSION = "legacy-composite-claim-to-atomic-v1"
 PEER_MEDIAN_BENCHMARK_CONTRACT_VERSION = "peer-median-gold-v1"
+MACRO_EVIDENCE_ID_PREFIX = "macro-evidence:"
+MACRO_ENTITY = "VN"
 _NUMERIC_ASSERTION_TYPES = frozenset(
     {
         AssertionType.METRIC_VALUE,
@@ -340,6 +342,61 @@ def _observation_reference(
         return None, [f"legacy_reference:{ref.ref_id}"]
     if ref.ref_type == "benchmark":
         return None, []
+    if ref.ref_type == "macro_observation":
+        tables = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            )
+        }
+        if "macro_observations_v2" not in tables:
+            return None, [f"macro_observation_table_missing:{ref.ref_id}"]
+        rows = connection.execute(
+            """
+            SELECT macro.observation_id, macro.indicator_id, macro.value,
+                   macro.unit, macro.period, macro.source_id,
+                   macro.quality_status, macro.reason, macro.source_locator,
+                   macro.adjudication_ref, source.source_tier,
+                   source.quality_status AS source_quality_status
+            FROM macro_observations_v2 AS macro
+            LEFT JOIN source_records AS source ON source.source_id = macro.source_id
+            WHERE macro.observation_id = ?
+            """,
+            (ref.ref_id,),
+        ).fetchall()
+        if len(rows) != 1:
+            return None, [f"macro_observation_reference_missing_or_ambiguous:{ref.ref_id}"]
+        row = rows[0]
+        violations: list[str] = []
+        if ref.entity != MACRO_ENTITY:
+            violations.append(f"macro_reference_entity_invalid:{ref.ref_id}")
+        if row[1] != ref.metric_id or row[4] != ref.period:
+            violations.append(f"reference_scope_mismatch:{ref.ref_id}")
+        if row[6] == "valid":
+            if row[2] is None or row[3] is None or row[8] is None:
+                violations.append(f"macro_observation_provenance_incomplete:{ref.ref_id}")
+            if row[11] != "valid":
+                violations.append(f"macro_observation_source_unaccepted:{ref.ref_id}")
+            if row[10] not in _accepted_tier(policy):
+                violations.append(f"macro_observation_source_tier_not_allowed:{ref.ref_id}")
+        elif not (
+            row[6] == "missing"
+            and row[2] is None
+            and row[7] == "DATA_UNAVAILABLE"
+            and row[9]
+        ):
+            violations.append(f"macro_observation_unaccepted:{ref.ref_id}")
+        return (
+            _ResolvedReference(
+                ref,
+                row[2],
+                row[3],
+                row[6],
+                row[5],
+                row[10],
+            ),
+            violations,
+        )
     if ref.ref_type == "derived_metric":
         rows = connection.execute(
             """
@@ -460,6 +517,43 @@ def _evidence_violations(
     allowed_tiers = _accepted_tier(policy)
     declared_sources = set(claim.source_refs)
     for evidence_id in claim.evidence_refs:
+        if evidence_id.startswith(MACRO_EVIDENCE_ID_PREFIX):
+            macro_tables = {
+                row[0]
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+            rows = []
+            if "macro_evidence_snippets" in macro_tables:
+                rows = connection.execute(
+                    """
+                    SELECT evidence.evidence_id, evidence.source_id,
+                           evidence.indicator_id, evidence.period,
+                           source.quality_status, source.source_tier
+                    FROM macro_evidence_snippets AS evidence
+                    LEFT JOIN source_records AS source ON source.source_id = evidence.source_id
+                    WHERE evidence.evidence_id = ?
+                    """,
+                    (evidence_id,),
+                ).fetchall()
+            if len(rows) != 1:
+                violations.append(
+                    f"macro_evidence_reference_missing_or_ambiguous:{claim.claim_id}:{evidence_id}"
+                )
+                continue
+            row = rows[0]
+            if row[4] != "valid":
+                violations.append(f"evidence_source_unaccepted:{claim.claim_id}:{evidence_id}")
+            if row[5] not in allowed_tiers:
+                violations.append(f"evidence_source_tier_not_allowed:{claim.claim_id}:{evidence_id}")
+            if row[2] not in claim.scope.metric_ids:
+                violations.append(f"evidence_indicator_outside_scope:{claim.claim_id}:{evidence_id}")
+            if row[3] not in claim.scope.periods:
+                violations.append(f"evidence_period_outside_scope:{claim.claim_id}:{evidence_id}")
+            if declared_sources and row[1] not in declared_sources:
+                violations.append(f"evidence_source_not_declared:{claim.claim_id}:{evidence_id}")
+            continue
         rows = connection.execute(
             """
             SELECT evidence.evidence_id, evidence.source_id, evidence.ticker,

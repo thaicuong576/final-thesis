@@ -80,6 +80,47 @@ CREATE TABLE macro_observations (
     reason TEXT,
     FOREIGN KEY(source_id) REFERENCES source_records(source_id)
 );
+-- Legacy macro_observations remains unchanged for compatibility.  New
+-- acceptance-aware macro data is stored in this explicitly versioned table;
+-- legacy rows are never silently promoted or reinterpreted as V2.
+CREATE TABLE macro_observations_v2 (
+    observation_id TEXT PRIMARY KEY,
+    indicator_id TEXT NOT NULL,
+    value REAL,
+    unit TEXT,
+    period TEXT NOT NULL,
+    source_id TEXT,
+    quality_status TEXT NOT NULL,
+    reason TEXT,
+    source_series_id TEXT,
+    indicator_definition_version TEXT NOT NULL,
+    frequency TEXT NOT NULL,
+    observation_date TEXT,
+    effective_from TEXT,
+    as_of_date TEXT,
+    period_basis TEXT NOT NULL,
+    alignment_method TEXT,
+    source_locator TEXT,
+    transformation_version TEXT,
+    input_observation_ids_json TEXT NOT NULL,
+    adjudication_ref TEXT,
+    review_check_ids_json TEXT NOT NULL,
+    UNIQUE(indicator_id, period),
+    FOREIGN KEY(source_id) REFERENCES source_records(source_id)
+);
+CREATE TABLE macro_evidence_snippets (
+    evidence_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    indicator_id TEXT NOT NULL,
+    period TEXT NOT NULL,
+    source_document TEXT NOT NULL,
+    source_locator TEXT NOT NULL,
+    quote TEXT NOT NULL,
+    as_of_date TEXT,
+    effective_from TEXT,
+    parser_status TEXT NOT NULL,
+    FOREIGN KEY(source_id) REFERENCES source_records(source_id)
+);
 CREATE TABLE evidence_snippets (
     evidence_id TEXT PRIMARY KEY,
     source_id TEXT NOT NULL,
@@ -472,6 +513,66 @@ def create_gold_snapshot(
             gold.executemany(
                 "INSERT INTO macro_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 macro_rows,
+            )
+
+        if "macro_observations_v2" in {
+            row[0]
+            for row in staging.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }:
+            macro_v2_rows = staging.execute(
+                """
+                SELECT observation_id, indicator_id, value, unit, period, source_id,
+                       quality_status, reason, source_series_id,
+                       indicator_definition_version, frequency, observation_date,
+                       effective_from, as_of_date, period_basis, alignment_method,
+                       source_locator, transformation_version,
+                       input_observation_ids_json, adjudication_ref,
+                       review_check_ids_json
+                FROM macro_observations_v2
+                WHERE quality_status IN ('valid', 'missing')
+                ORDER BY observation_id
+                """
+            ).fetchall()
+            gold.executemany(
+                """
+                INSERT INTO macro_observations_v2
+                (observation_id, indicator_id, value, unit, period, source_id,
+                 quality_status, reason, source_series_id,
+                 indicator_definition_version, frequency, observation_date,
+                 effective_from, as_of_date, period_basis, alignment_method,
+                 source_locator, transformation_version,
+                 input_observation_ids_json, adjudication_ref,
+                 review_check_ids_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                macro_v2_rows,
+            )
+
+        if "macro_evidence_snippets" in {
+            row[0]
+            for row in staging.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }:
+            macro_evidence_rows = staging.execute(
+                """
+                SELECT evidence_id, source_id, indicator_id, period,
+                       source_document, source_locator, quote, as_of_date,
+                       effective_from, parser_status
+                FROM macro_evidence_snippets
+                ORDER BY evidence_id
+                """
+            ).fetchall()
+            gold.executemany(
+                """
+                INSERT INTO macro_evidence_snippets
+                (evidence_id, source_id, indicator_id, period, source_document,
+                 source_locator, quote, as_of_date, effective_from, parser_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                macro_evidence_rows,
             )
 
         if "derived_metrics" in {row[0] for row in staging.execute("SELECT name FROM sqlite_master WHERE type='table'")}:

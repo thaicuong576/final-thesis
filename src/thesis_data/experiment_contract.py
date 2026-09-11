@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 import json
 from pathlib import Path
-import sqlite3
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .baseline_gate import audit_baseline_inputs
+from .macro_gold import macro_cell_availability
 from .schema import GoldConfig
 from .question_set import load_question_set
 
@@ -97,7 +97,12 @@ def _load_question_set(
 
 
 def _macro_question_blockers(db_path: Path, question: dict) -> list[str]:
-    """Require primary, valid, period-aligned macro facts for macro questions."""
+    """Allow accepted valid or accepted missing V2 macro cells.
+
+    Legacy macro rows and pending/fallback/conflicting rows remain blocked.  An
+    accepted missing cell is executable input, but its missingness must be
+    surfaced by the Macro Agent rather than replaced with a value.
+    """
 
     macro_indicator_ids = question.get("macro_indicator_ids")
     blockers: list[str] = []
@@ -125,39 +130,13 @@ def _macro_question_blockers(db_path: Path, question: dict) -> list[str]:
 
     if not db_path.exists():
         return blockers
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True)
-    try:
-        tables = {
-            row[0]
-            for row in connection.execute(
-                "SELECT name FROM sqlite_master WHERE type = 'table'"
-            )
-        }
-        if {"macro_observations", "source_records"} - tables:
-            for period in periods:
-                for indicator in macro_indicator_ids:
-                    blockers.append(f"missing_accepted_macro_observation:{period}:{indicator}")
-            return blockers
-        for period in periods:
-            for indicator in macro_indicator_ids:
-                macro_count = connection.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM macro_observations AS macro
-                    JOIN source_records AS source ON source.source_id = macro.source_id
-                    WHERE macro.indicator = ?
-                      AND macro.period = ?
-                      AND macro.quality_status = 'valid'
-                      AND macro.value IS NOT NULL
-                      AND source.quality_status = 'valid'
-                      AND source.source_tier = 'primary'
-                    """,
-                    (indicator, period),
-                ).fetchone()[0]
-                if not macro_count:
-                    blockers.append(f"missing_accepted_macro_observation:{period}:{indicator}")
-    finally:
-        connection.close()
+    for period in periods:
+        for indicator in macro_indicator_ids:
+            availability = macro_cell_availability(db_path, indicator, period)
+            if availability.status not in {"valid", "missing"}:
+                blockers.append(f"missing_accepted_macro_observation:{period}:{indicator}")
+                if availability.reason:
+                    blockers.append(f"macro_cell_blocked:{period}:{indicator}:{availability.reason}")
     return blockers
 
 
@@ -166,6 +145,7 @@ def audit_experiment_inputs(
     run_config: ExperimentRunConfig,
     question_set_path: Path,
     gold_config: GoldConfig,
+    macro_indicator_ids: tuple[str, ...] | None = None,
 ) -> ExperimentInputAudit:
     """Validate all inputs before an experiment runner can call an agent arm."""
 
@@ -198,7 +178,12 @@ def audit_experiment_inputs(
 
     selected_question = question_by_id.get(run_config.question_id)
     if selected_question and selected_question.get("type") == "macro_to_bank":
-        blockers.extend(_macro_question_blockers(db_path, selected_question))
+        # When the runtime supplies its own macro list, request binding is
+        # validated immediately afterwards.  Avoid masking a declared-scope
+        # mismatch with a data blocker; direct callers retain the strict gate.
+        declared = tuple(selected_question.get("macro_indicator_ids") or ())
+        if macro_indicator_ids is None or macro_indicator_ids == declared:
+            blockers.extend(_macro_question_blockers(db_path, selected_question))
 
     return ExperimentInputAudit(
         eligible=not blockers,

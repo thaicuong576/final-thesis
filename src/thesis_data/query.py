@@ -250,7 +250,14 @@ def get_macro_context(
     *,
     source_tiers: Sequence[str] | None = None,
 ) -> AgentPayload:
-    """Return valid period-aligned macro observations from a gold snapshot."""
+    """Return accepted V2 macro observations and explicit accepted missingness.
+
+    A database created before MacroObservationV2 may still be queried by the
+    legacy company/runtime tests.  In that compatibility path this function
+    reads the unchanged ``macro_observations`` table only when no V2 row exists
+    for the requested cell.  Acceptance-aware macro references never use that
+    fallback; they route exclusively to ``macro_observations_v2``.
+    """
     indicator_ids = _require_indicator_ids(indicator_ids)
     source_tier_clause, source_tier_parameters = _source_tier_filter(source_tiers)
     connection = _connection(db)
@@ -261,24 +268,66 @@ def get_macro_context(
                 "SELECT name FROM sqlite_master WHERE type = 'table'"
             )
         }
-        if "macro_observations" not in tables:
-            rows = []
-        else:
-            rows = connection.execute(
+        v2_rows = []
+        if "macro_observations_v2" in tables:
+            v2_rows = connection.execute(
                 """
-                SELECT macro.observation_id, macro.indicator, macro.value, macro.unit, macro.period,
-                       macro.source_id
-                FROM macro_observations AS macro
-                JOIN source_records AS source ON source.source_id = macro.source_id
-                WHERE macro.period = ? AND macro.indicator IN ({})
-                  AND macro.quality_status = 'valid'
-                  AND source.quality_status = 'valid'
-                  AND macro.value IS NOT NULL
-                  {}
-                ORDER BY macro.indicator, macro.observation_id
-                """.format(",".join("?" for _ in indicator_ids), source_tier_clause),
-                (period, *indicator_ids, *source_tier_parameters),
+                SELECT macro.observation_id, macro.indicator_id, macro.value,
+                       macro.unit, macro.period, macro.source_id,
+                       macro.quality_status, macro.reason, macro.adjudication_ref,
+                       source.quality_status AS source_quality_status,
+                       source.source_tier
+                FROM macro_observations_v2 AS macro
+                LEFT JOIN source_records AS source ON source.source_id = macro.source_id
+                WHERE macro.period = ? AND macro.indicator_id IN ({})
+                ORDER BY macro.indicator_id, macro.observation_id
+                """.format(",".join("?" for _ in indicator_ids)),
+                (period, *indicator_ids),
             ).fetchall()
+        v2_keys = {(row[1], row[4]) for row in v2_rows}
+        rows = [
+            row
+            for row in v2_rows
+            if (
+                row[6] == "valid"
+                and row[2] is not None
+                and row[9] == "valid"
+                and (not source_tiers or row[10] in source_tiers)
+            )
+            or (
+                row[6] == "missing"
+                and row[7] == "DATA_UNAVAILABLE"
+                and bool(row[8])
+            )
+        ]
+        legacy_indicators = tuple(
+            indicator for indicator in indicator_ids if (indicator, period) not in v2_keys
+        )
+        if legacy_indicators and "macro_observations" in tables:
+            rows.extend(
+                (
+                    row[0], row[1], row[2], row[3], row[4], row[5],
+                    "valid", None, None, row[6], row[7],
+                )
+                for row in connection.execute(
+                    """
+                    SELECT macro.observation_id, macro.indicator, macro.value,
+                           macro.unit, macro.period, macro.source_id,
+                           source.quality_status, source.source_tier
+                    FROM macro_observations AS macro
+                    JOIN source_records AS source ON source.source_id = macro.source_id
+                    WHERE macro.period = ? AND macro.indicator IN ({})
+                      AND macro.quality_status = 'valid'
+                      AND source.quality_status = 'valid'
+                      AND macro.value IS NOT NULL
+                      {}
+                    ORDER BY macro.indicator, macro.observation_id
+                    """.format(
+                        ",".join("?" for _ in legacy_indicators), source_tier_clause
+                    ),
+                    (period, *legacy_indicators, *source_tier_parameters),
+                ).fetchall()
+            )
     finally:
         connection.close()
 
@@ -287,15 +336,30 @@ def get_macro_context(
     periods: dict[str, str] = {indicator: period for indicator in indicator_ids}
     observation_ids: set[str] = set()
     source_ids: set[str] = set()
-    for observation_id, indicator, value, unit, row_period, source_id in rows:
+    missing_reasons: dict[str, str] = {}
+    quality_flags: list[str] = []
+    for observation_id, indicator, value, unit, row_period, source_id, status, reason, _adjudication_ref, _source_quality, _source_tier in rows:
+        if status == "missing":
+            observation_ids.add(observation_id)
+            units[indicator] = unit or "unknown"
+            periods[indicator] = row_period
+            missing_reasons[indicator] = reason or "missing"
+            quality_flags.append(f"accepted_missing:{indicator}:{reason or 'missing'}")
+            continue
         metrics[indicator] = float(value)
-        units[indicator] = unit
+        units[indicator] = unit or "unknown"
         periods[indicator] = row_period
         observation_ids.add(observation_id)
-        source_ids.add(source_id)
+        if source_id:
+            source_ids.add(source_id)
 
     missing = [indicator for indicator, value in metrics.items() if value is None]
-    findings = [f"missing_or_unaccepted:{indicator}" for indicator in missing]
+    findings = [
+        f"missing:{indicator}:{missing_reasons[indicator]}"
+        if indicator in missing_reasons
+        else f"missing_or_unaccepted:{indicator}"
+        for indicator in missing
+    ]
     status = AgentStatus.SUCCESS if not missing else AgentStatus.PARTIAL
     payload = _base_payload(
         "macro",
@@ -310,8 +374,75 @@ def get_macro_context(
             "metrics": metrics,
             "metric_units": units,
             "metric_periods": periods,
+            "quality_flags": quality_flags,
+            "missing_reasons": missing_reasons,
         }
     )
+
+
+def get_macro_evidence(
+    db: Path,
+    source_ids: Sequence[str],
+    indicator_id: str,
+    period: str,
+    *,
+    source_tiers: Sequence[str] | None = None,
+) -> list[EvidenceSnippet]:
+    """Return typed, ticker-less evidence for one macro indicator-period."""
+
+    if not source_ids or not indicator_id or not period:
+        return []
+    source_tier_clause, source_tier_parameters = _source_tier_filter(source_tiers)
+    connection = _connection(db)
+    try:
+        tables = {
+            row[0]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            )
+        }
+        if "macro_evidence_snippets" not in tables:
+            return []
+        rows = connection.execute(
+            """
+            SELECT evidence.evidence_id, evidence.source_id, evidence.indicator_id,
+                   evidence.period, evidence.source_document,
+                   evidence.source_locator, evidence.quote, evidence.as_of_date,
+                   evidence.effective_from, evidence.parser_status,
+                   source.quality_status, source.source_tier
+            FROM macro_evidence_snippets AS evidence
+            JOIN source_records AS source ON source.source_id = evidence.source_id
+            WHERE evidence.source_id IN ({})
+              AND evidence.indicator_id = ?
+              AND evidence.period = ?
+              AND source.quality_status = 'valid'
+              {}
+            ORDER BY evidence.evidence_id
+            """.format(
+                ",".join("?" for _ in source_ids), source_tier_clause
+            ),
+            (*source_ids, indicator_id, period, *source_tier_parameters),
+        ).fetchall()
+    finally:
+        connection.close()
+
+    return [
+        EvidenceSnippet(
+            evidence_id=row[0],
+            source_id=row[1],
+            source_document=row[4],
+            period=row[3],
+            ticker=None,
+            indicator_id=row[2],
+            source_locator=row[5],
+            as_of_date=row[7],
+            effective_from=row[8],
+            quote=row[6],
+            parser_status=row[9],
+            is_paginated=False,
+        )
+        for row in rows
+    ]
 
 
 def get_evidence(

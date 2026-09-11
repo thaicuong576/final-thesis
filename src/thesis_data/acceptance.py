@@ -10,12 +10,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from pathlib import Path
-import sqlite3
-from statistics import median
 from typing import Any, Mapping, Sequence
 
 from .composite_schema import CompositeClaim
+from .acceptance_resolver import Stage1DatasetResolver
+from .dataset_contract import CanonicalObservation, DatasetSource
 from .schema import (
     AcceptancePolicy,
     AssertionOperator,
@@ -37,9 +36,6 @@ from .schema import (
 
 ACCEPTANCE_MODEL_VERSION = "report-acceptance-v1"
 LEGACY_CLAIM_ADAPTER_VERSION = "legacy-composite-claim-to-atomic-v1"
-PEER_MEDIAN_BENCHMARK_CONTRACT_VERSION = "peer-median-gold-v1"
-MACRO_EVIDENCE_ID_PREFIX = "macro-evidence:"
-MACRO_ENTITY = "VN"
 _NUMERIC_ASSERTION_TYPES = frozenset(
     {
         AssertionType.METRIC_VALUE,
@@ -58,6 +54,7 @@ class _ResolvedReference:
     quality_status: str
     source_id: str | None
     source_tier: str | None
+    metadata: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
@@ -66,35 +63,6 @@ class _UnitEvaluation:
 
     key: str
     violations: tuple[str, ...] = ()
-
-
-def peer_median_benchmark_id(
-    snapshot_id: str,
-    comparison_universe: str,
-    entities: Sequence[str],
-    period: str,
-    metric_id: str,
-) -> str:
-    """Build the versioned identity for a Gold-derived peer median.
-
-    The MVP has no benchmark table.  A benchmark is therefore valid only when
-    its ID is this exact identity for the current Gold snapshot, comparison
-    universe, canonical peer set, period, and metric.  The median itself is
-    recomputed from the assertion's typed Gold observation refs.
-    """
-
-    if not snapshot_id.strip() or not comparison_universe.strip():
-        raise ValueError("snapshot_id and comparison_universe must be non-empty")
-    canonical_entities = tuple(sorted(set(str(item).strip() for item in entities if str(item).strip())))
-    if not canonical_entities:
-        raise ValueError("benchmark entities must not be empty")
-    if not period.strip() or not metric_id.strip():
-        raise ValueError("period and metric_id must be non-empty")
-    return (
-        f"peer-median/{PEER_MEDIAN_BENCHMARK_CONTRACT_VERSION}/"
-        f"{snapshot_id}/{comparison_universe}/"
-        f"{','.join(canonical_entities)}/{period}/{metric_id}"
-    )
 
 
 def _legacy_inference_type(claim_type: str) -> InferenceType:
@@ -120,10 +88,10 @@ def legacy_composite_claim_to_atomic(
 ) -> AtomicClaim:
     """Adapt a legacy ``CompositeClaim`` without making it publishable.
 
-    The old contract stores refs as ``ticker|period|metric`` strings and does
-    not carry structured numeric values.  When ``reference_values`` is
-    supplied, the adapter enriches those refs with Gold values.  Otherwise it
-    emits explicit ``reference_only``/``legacy`` assertions; Stage-1 correctly
+    The old contract stores refs as ``entity|period|metric`` strings and does
+    not carry structured numeric values. When ``reference_values`` is supplied,
+    the adapter enriches those refs with canonical values. Otherwise it emits
+    explicit ``reference_only``/``legacy`` assertions; Stage-1 correctly
     rejects those as not yet authoritative instead of silently trusting them.
     """
 
@@ -250,48 +218,59 @@ def quality_score(scores: Mapping[str, float], weights: QualityWeights) -> float
     return QualityDimensionScores(**scores).weighted_total(weights)
 
 
-def _open_gold(db_path: Path) -> sqlite3.Connection:
-    if not db_path.exists():
-        raise FileNotFoundError(db_path)
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True)
-    connection.row_factory = sqlite3.Row
-    required = {"metric_observations", "source_records", "evidence_snippets"}
-    tables = {
-        row[0]
-        for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
-    }
-    missing = sorted(required - tables)
-    if missing:
-        connection.close()
-        raise ValueError("Gold database missing required tables: " + ",".join(missing))
-    return connection
-
-
 def _accepted_tier(policy: AcceptancePolicy) -> set[str]:
     return {item.value if hasattr(item, "value") else str(item) for item in policy.accepted_source_tiers}
 
 
-def _gold_snapshot_id(connection: sqlite3.Connection) -> str | None:
-    """Return the sole Gold snapshot identity used by benchmark resolution."""
+def _status_value(value: Any) -> str:
+    return str(getattr(value, "value", value))
 
+
+def _source_reference_violations(
+    resolver: Stage1DatasetResolver,
+    source_ref: str | None,
+    policy: AcceptancePolicy,
+    prefix: str,
+) -> tuple[DatasetSource | None, list[str]]:
+    if not source_ref:
+        return None, [f"{prefix}_missing"]
     try:
-        rows = connection.execute(
-            "SELECT snapshot_id, status FROM snapshot_metadata"
-        ).fetchall()
-    except sqlite3.OperationalError:
-        return None
-    if len(rows) != 1 or rows[0]["status"] != "gold":
-        return None
-    return str(rows[0]["snapshot_id"])
+        source = resolver.resolve_source(source_ref)
+    except ValueError:
+        source = None
+    if source is None:
+        return None, [f"{prefix}_unresolved:{source_ref}"]
+    violations: list[str] = []
+    if _status_value(source.validation_status) != "valid":
+        violations.append(f"{prefix}_unaccepted:{source_ref}")
+    if _status_value(source.source_tier) not in _accepted_tier(policy):
+        violations.append(f"{prefix}_tier_not_allowed:{source_ref}")
+    return source, violations
+
+
+def _resolved_reference(
+    ref: ClaimDataRef,
+    observation: CanonicalObservation,
+    source: DatasetSource | None,
+) -> _ResolvedReference:
+    return _ResolvedReference(
+        ref=ref,
+        value=observation.value,
+        unit=observation.unit,
+        quality_status=_status_value(observation.validation_status),
+        source_id=source.source_ref if source is not None else observation.source_ref,
+        source_tier=_status_value(source.source_tier) if source is not None else None,
+        metadata=observation.metadata,
+    )
 
 
 def _benchmark_reference_violations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claim: AtomicClaim,
     assertion: StructuredAssertion,
     ref: ClaimDataRef,
 ) -> list[str]:
-    """Validate the MVP's deterministic Gold-derived peer-median contract."""
+    """Validate a benchmark through the provider's derived observation."""
 
     violations: list[str] = []
     if assertion.assertion_type not in {
@@ -303,20 +282,6 @@ def _benchmark_reference_violations(
         violations.append(f"benchmark_comparison_universe_missing:{ref.ref_id}")
     elif ref.entity != claim.scope.comparison_universe:
         violations.append(f"benchmark_comparison_universe_mismatch:{ref.ref_id}")
-
-    snapshot_id = _gold_snapshot_id(connection)
-    if snapshot_id is None:
-        violations.append(f"benchmark_snapshot_missing_or_ambiguous:{ref.ref_id}")
-    else:
-        expected_id = peer_median_benchmark_id(
-            snapshot_id,
-            claim.scope.comparison_universe or ref.entity,
-            claim.scope.entities,
-            ref.period,
-            ref.metric_id,
-        )
-        if ref.ref_id != expected_id:
-            violations.append(f"benchmark_reference_unresolved:{ref.ref_id}")
 
     input_refs = assertion.data_refs
     if not input_refs:
@@ -330,11 +295,41 @@ def _benchmark_reference_violations(
             violations.append(f"benchmark_inputs_not_one_per_peer:{ref.ref_id}")
         if any(item.period != ref.period or item.metric_id != ref.metric_id for item in input_refs):
             violations.append(f"benchmark_input_scope_mismatch:{ref.ref_id}")
+    if claim.scope.comparison_universe is None:
+        return violations
+    try:
+        benchmark = resolver.resolve_benchmark(
+            peer_universe_id=claim.scope.comparison_universe,
+            peer_entity_ids=claim.scope.entities,
+            period_id=ref.period,
+            metric_id=ref.metric_id,
+        )
+    except (TypeError, ValueError):
+        benchmark = None
+    if benchmark is None or benchmark.observation_id != ref.ref_id:
+        violations.append(f"benchmark_reference_unresolved:{ref.ref_id}")
+    else:
+        if (
+            benchmark.entity_id != ref.entity
+            or benchmark.period_id != ref.period
+            or benchmark.metric_id != ref.metric_id
+        ):
+            violations.append(f"benchmark_scope_mismatch:{ref.ref_id}")
+        if _status_value(benchmark.validation_status) != "valid":
+            violations.append(f"benchmark_unaccepted:{ref.ref_id}")
+        if benchmark.value is None or benchmark.unit is None:
+            violations.append(f"benchmark_value_unavailable:{ref.ref_id}")
+        if not benchmark.derivation_method or not benchmark.input_observation_ids:
+            violations.append(f"benchmark_derivation_provenance_missing:{ref.ref_id}")
+        if benchmark.source_ref is not None:
+            violations.append(f"benchmark_source_must_be_derived:{ref.ref_id}")
+        if set(item.ref_id for item in input_refs) != set(benchmark.input_observation_ids):
+            violations.append(f"benchmark_input_provenance_mismatch:{ref.ref_id}")
     return violations
 
 
 def _observation_reference(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     ref: ClaimDataRef,
     policy: AcceptancePolicy,
 ) -> tuple[_ResolvedReference | None, list[str]]:
@@ -342,122 +337,62 @@ def _observation_reference(
         return None, [f"legacy_reference:{ref.ref_id}"]
     if ref.ref_type == "benchmark":
         return None, []
-    if ref.ref_type == "macro_observation":
-        tables = {
-            row[0]
-            for row in connection.execute(
-                "SELECT name FROM sqlite_master WHERE type = 'table'"
-            )
-        }
-        if "macro_observations_v2" not in tables:
-            return None, [f"macro_observation_table_missing:{ref.ref_id}"]
-        rows = connection.execute(
-            """
-            SELECT macro.observation_id, macro.indicator_id, macro.value,
-                   macro.unit, macro.period, macro.source_id,
-                   macro.quality_status, macro.reason, macro.source_locator,
-                   macro.adjudication_ref, source.source_tier,
-                   source.quality_status AS source_quality_status
-            FROM macro_observations_v2 AS macro
-            LEFT JOIN source_records AS source ON source.source_id = macro.source_id
-            WHERE macro.observation_id = ?
-            """,
-            (ref.ref_id,),
-        ).fetchall()
-        if len(rows) != 1:
-            return None, [f"macro_observation_reference_missing_or_ambiguous:{ref.ref_id}"]
-        row = rows[0]
-        violations: list[str] = []
-        if ref.entity != MACRO_ENTITY:
-            violations.append(f"macro_reference_entity_invalid:{ref.ref_id}")
-        if row[1] != ref.metric_id or row[4] != ref.period:
-            violations.append(f"reference_scope_mismatch:{ref.ref_id}")
-        if row[6] == "valid":
-            if row[2] is None or row[3] is None or row[8] is None:
-                violations.append(f"macro_observation_provenance_incomplete:{ref.ref_id}")
-            if row[11] != "valid":
-                violations.append(f"macro_observation_source_unaccepted:{ref.ref_id}")
-            if row[10] not in _accepted_tier(policy):
-                violations.append(f"macro_observation_source_tier_not_allowed:{ref.ref_id}")
-        elif not (
-            row[6] == "missing"
-            and row[2] is None
-            and row[7] == "DATA_UNAVAILABLE"
-            and row[9]
-        ):
-            violations.append(f"macro_observation_unaccepted:{ref.ref_id}")
-        return (
-            _ResolvedReference(
-                ref,
-                row[2],
-                row[3],
-                row[6],
-                row[5],
-                row[10],
-            ),
-            violations,
-        )
-    if ref.ref_type == "derived_metric":
-        rows = connection.execute(
-            """
-            SELECT derived_id, ticker, metric, value, unit, period, quality_status
-            FROM derived_metrics
-            WHERE derived_id = ?
-            """,
-            (ref.ref_id,),
-        ).fetchall()
-        if len(rows) != 1:
-            return None, [f"derived_reference_missing_or_ambiguous:{ref.ref_id}"]
-        row = rows[0]
-        violations: list[str] = []
-        if row["ticker"] != ref.entity or row["period"] != ref.period or row["metric"] != ref.metric_id:
-            violations.append(f"reference_scope_mismatch:{ref.ref_id}")
-        if row["quality_status"] != "valid":
-            violations.append(f"derived_reference_unaccepted:{ref.ref_id}")
-        return (
-            _ResolvedReference(ref, row["value"], row["unit"], row["quality_status"], None, None),
-            violations,
-        )
+    try:
+        observation = resolver.resolve_observation_ref(ref)
+    except (TypeError, ValueError):
+        observation = None
+    if observation is None:
+        return None, [f"{ref.ref_type}_reference_missing_or_ambiguous:{ref.ref_id}"]
 
-    rows = connection.execute(
-        """
-        SELECT metric.observation_id, metric.ticker, metric.metric, metric.value,
-               metric.unit, metric.period, metric.quality_status, metric.source_id,
-               source.source_tier, source.quality_status AS source_quality_status
-        FROM metric_observations AS metric
-        LEFT JOIN source_records AS source ON source.source_id = metric.source_id
-        WHERE metric.observation_id = ?
-        """,
-        (ref.ref_id,),
-    ).fetchall()
-    if len(rows) != 1:
-        return None, [f"observation_reference_missing_or_ambiguous:{ref.ref_id}"]
-    row = rows[0]
-    violations = []
-    if row["ticker"] != ref.entity or row["period"] != ref.period or row["metric"] != ref.metric_id:
-        violations.append(f"reference_scope_mismatch:{ref.ref_id}")
-    if ref.ref_type == "observation" and row["quality_status"] != "valid":
-        violations.append(f"observation_reference_unaccepted:{ref.ref_id}")
-    if ref.ref_type == "missing_cell" and row["quality_status"] not in {"missing", "invalid", "conflicting", "pending_validation"}:
-        violations.append(f"missing_cell_reference_not_missing:{ref.ref_id}")
-    if row["source_quality_status"] != "valid" and ref.ref_type == "observation":
-        violations.append(f"observation_source_unaccepted:{ref.ref_id}")
+    violations: list[str] = []
     if (
-        ref.ref_type == "observation"
-        and row["source_tier"] not in _accepted_tier(policy)
+        observation.entity_id != ref.entity
+        or observation.period_id != ref.period
+        or observation.metric_id != ref.metric_id
     ):
-        violations.append(f"observation_source_tier_not_allowed:{ref.ref_id}")
-    return (
-        _ResolvedReference(
-            ref,
-            row["value"],
-            row["unit"],
-            row["quality_status"],
-            row["source_id"],
-            row["source_tier"],
-        ),
-        violations,
-    )
+        violations.append(f"reference_scope_mismatch:{ref.ref_id}")
+
+    status = _status_value(observation.validation_status)
+    source: DatasetSource | None = None
+    if ref.ref_type == "missing_cell":
+        accepted_missing = (
+            status == "missing"
+            and observation.value is None
+            and observation.missing_reason == "DATA_UNAVAILABLE"
+        )
+        if not accepted_missing:
+            violations.append(f"missing_cell_reference_not_missing:{ref.ref_id}")
+    elif status == "valid":
+        if observation.value is None or observation.unit is None:
+            violations.append(f"{ref.ref_type}_value_or_unit_missing:{ref.ref_id}")
+        if ref.ref_type == "derived_metric":
+            if observation.source_ref is not None or not observation.derivation_method or not observation.input_observation_ids:
+                violations.append(f"derived_reference_provenance_invalid:{ref.ref_id}")
+        else:
+            if not observation.source_ref:
+                violations.append(f"{ref.ref_type}_source_missing:{ref.ref_id}")
+            else:
+                source, source_violations = _source_reference_violations(
+                    resolver, observation.source_ref, policy, f"{ref.ref_type}_source"
+                )
+                violations.extend(source_violations)
+            if ref.ref_type == "macro_observation" and not observation.metadata.get("source_locator"):
+                violations.append(f"macro_observation_provenance_incomplete:{ref.ref_id}")
+    elif ref.ref_type == "macro_observation":
+        accepted_missing = (
+            status == "missing"
+            and observation.value is None
+            and observation.missing_reason == "DATA_UNAVAILABLE"
+            and bool(observation.metadata.get("adjudication_ref"))
+        )
+        if not accepted_missing:
+            violations.append(f"macro_observation_unaccepted:{ref.ref_id}")
+    elif ref.ref_type == "observation":
+        violations.append(f"observation_reference_unaccepted:{ref.ref_id}")
+    elif status != "valid":
+        violations.append(f"{ref.ref_type}_reference_unaccepted:{ref.ref_id}")
+
+    return _resolved_reference(ref, observation, source), violations
 
 
 def _claim_scope_violations(parent: ClaimScope, child: ClaimScope, prefix: str) -> list[str]:
@@ -505,7 +440,7 @@ def _assertion_scope_violations(claim: AtomicClaim) -> list[str]:
 
 
 def _evidence_violations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claim: AtomicClaim,
     policy: AcceptancePolicy,
 ) -> list[str]:
@@ -514,77 +449,36 @@ def _evidence_violations(
     violations: list[str] = []
     if not claim.evidence_refs:
         return [f"critical_claim_evidence_missing:{claim.claim_id}"]
-    allowed_tiers = _accepted_tier(policy)
     declared_sources = set(claim.source_refs)
     for evidence_id in claim.evidence_refs:
-        if evidence_id.startswith(MACRO_EVIDENCE_ID_PREFIX):
-            macro_tables = {
-                row[0]
-                for row in connection.execute(
-                    "SELECT name FROM sqlite_master WHERE type = 'table'"
-                )
-            }
-            rows = []
-            if "macro_evidence_snippets" in macro_tables:
-                rows = connection.execute(
-                    """
-                    SELECT evidence.evidence_id, evidence.source_id,
-                           evidence.indicator_id, evidence.period,
-                           source.quality_status, source.source_tier
-                    FROM macro_evidence_snippets AS evidence
-                    LEFT JOIN source_records AS source ON source.source_id = evidence.source_id
-                    WHERE evidence.evidence_id = ?
-                    """,
-                    (evidence_id,),
-                ).fetchall()
-            if len(rows) != 1:
-                violations.append(
-                    f"macro_evidence_reference_missing_or_ambiguous:{claim.claim_id}:{evidence_id}"
-                )
-                continue
-            row = rows[0]
-            if row[4] != "valid":
-                violations.append(f"evidence_source_unaccepted:{claim.claim_id}:{evidence_id}")
-            if row[5] not in allowed_tiers:
-                violations.append(f"evidence_source_tier_not_allowed:{claim.claim_id}:{evidence_id}")
-            if row[2] not in claim.scope.metric_ids:
-                violations.append(f"evidence_indicator_outside_scope:{claim.claim_id}:{evidence_id}")
-            if row[3] not in claim.scope.periods:
-                violations.append(f"evidence_period_outside_scope:{claim.claim_id}:{evidence_id}")
-            if declared_sources and row[1] not in declared_sources:
-                violations.append(f"evidence_source_not_declared:{claim.claim_id}:{evidence_id}")
-            continue
-        rows = connection.execute(
-            """
-            SELECT evidence.evidence_id, evidence.source_id, evidence.ticker,
-                   evidence.period, source.quality_status, source.source_tier
-            FROM evidence_snippets AS evidence
-            LEFT JOIN source_records AS source ON source.source_id = evidence.source_id
-            WHERE evidence.evidence_id = ?
-            """,
-            (evidence_id,),
-        ).fetchall()
-        if len(rows) != 1:
+        try:
+            evidence = resolver.resolve_evidence(evidence_id)
+        except (TypeError, ValueError):
+            evidence = None
+        if evidence is None:
             violations.append(f"evidence_reference_missing_or_ambiguous:{claim.claim_id}:{evidence_id}")
             continue
-        row = rows[0]
-        if row["quality_status"] != "valid":
-            violations.append(f"evidence_source_unaccepted:{claim.claim_id}:{evidence_id}")
-        if row["source_tier"] not in allowed_tiers:
-            violations.append(f"evidence_source_tier_not_allowed:{claim.claim_id}:{evidence_id}")
-        if row["ticker"] is not None and row["ticker"] not in claim.scope.entities:
+        _source, source_violations = _source_reference_violations(
+            resolver, evidence.source_ref, policy, "evidence_source"
+        )
+        violations.extend(
+            f"{item}:{claim.claim_id}:{evidence_id}" for item in source_violations
+        )
+        if evidence.entity_id is not None and evidence.entity_id not in claim.scope.entities:
             violations.append(f"evidence_entity_outside_scope:{claim.claim_id}:{evidence_id}")
-        if row["period"] is not None and row["period"] not in claim.scope.periods:
+        if evidence.period_id is not None and evidence.period_id not in claim.scope.periods:
             violations.append(f"evidence_period_outside_scope:{claim.claim_id}:{evidence_id}")
-        if row["ticker"] is None and row["period"] is None:
+        if evidence.metric_id is not None and evidence.metric_id not in claim.scope.metric_ids:
+            violations.append(f"evidence_metric_outside_scope:{claim.claim_id}:{evidence_id}")
+        if evidence.entity_id is None and evidence.period_id is None:
             violations.append(f"evidence_scope_missing:{claim.claim_id}:{evidence_id}")
-        if declared_sources and row["source_id"] not in declared_sources:
+        if declared_sources and evidence.source_ref not in declared_sources:
             violations.append(f"evidence_source_not_declared:{claim.claim_id}:{evidence_id}")
     return violations
 
 
 def _reference_evaluations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
     policy: AcceptancePolicy,
 ) -> list[_UnitEvaluation]:
@@ -609,10 +503,10 @@ def _reference_evaluations(
             for role, ref in refs:
                 if ref.ref_type == "benchmark":
                     ref_violations = _benchmark_reference_violations(
-                        connection, claim, assertion, ref
+                        resolver, claim, assertion, ref
                     )
                 else:
-                    _resolved, ref_violations = _observation_reference(connection, ref, policy)
+                    _resolved, ref_violations = _observation_reference(resolver, ref, policy)
                 evaluations.append(
                     _UnitEvaluation(
                         key=f"claim:{claim_index}:{claim.claim_id}:{assertion.assertion_id}:{role}:{ref.ref_id}",
@@ -624,25 +518,10 @@ def _reference_evaluations(
                     )
                 )
         for source_index, source_id in enumerate(claim.source_refs):
-            rows = connection.execute(
-                "SELECT source_id, source_tier, quality_status FROM source_records WHERE source_id = ?",
-                (source_id,),
-            ).fetchall()
-            source_violations: list[str] = []
-            if len(rows) != 1:
-                source_violations.append(
-                    f"source_reference_missing_or_ambiguous:{claim.claim_id}:{source_id}"
-                )
-            else:
-                row = rows[0]
-                if row["quality_status"] != "valid":
-                    source_violations.append(
-                        f"source_reference_unaccepted:{claim.claim_id}:{source_id}"
-                    )
-                if row["source_tier"] not in _accepted_tier(policy):
-                    source_violations.append(
-                        f"source_reference_tier_not_allowed:{claim.claim_id}:{source_id}"
-                    )
+            _source, source_violations = _source_reference_violations(
+                resolver, source_id, policy, "source_reference"
+            )
+            source_violations = [f"{item}:{claim.claim_id}" for item in source_violations]
             evaluations.append(
                 _UnitEvaluation(
                     key=f"claim:{claim_index}:{claim.claim_id}:source:{source_index}:{source_id}",
@@ -653,7 +532,7 @@ def _reference_evaluations(
 
 
 def _resolve_data_refs(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     refs: Sequence[ClaimDataRef],
     policy: AcceptancePolicy,
 ) -> tuple[list[_ResolvedReference], list[str]]:
@@ -662,7 +541,7 @@ def _resolve_data_refs(
     for ref in refs:
         if ref.ref_type == "benchmark":
             continue
-        item, item_violations = _observation_reference(connection, ref, policy)
+        item, item_violations = _observation_reference(resolver, ref, policy)
         violations.extend(item_violations)
         if item is not None:
             resolved.append(item)
@@ -707,13 +586,13 @@ def _find_entity_value(
 
 
 def _numeric_assertion_violations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claim: AtomicClaim,
     policy: AcceptancePolicy,
     assertion: StructuredAssertion,
 ) -> list[str]:
     violations: list[str] = []
-    resolved, ref_violations = _resolve_data_refs(connection, assertion.data_refs, policy)
+    resolved, ref_violations = _resolve_data_refs(resolver, assertion.data_refs, policy)
     if ref_violations:
         violations.extend(
             f"{claim.claim_id}:{assertion.assertion_id}:{item}" for item in ref_violations
@@ -727,7 +606,7 @@ def _numeric_assertion_violations(
             )
             return violations
         benchmark_violations = _benchmark_reference_violations(
-            connection, claim, assertion, assertion.benchmark_ref
+            resolver, claim, assertion, assertion.benchmark_ref
         )
         if benchmark_violations:
             violations.extend(
@@ -735,8 +614,16 @@ def _numeric_assertion_violations(
                 for item in benchmark_violations
             )
             return violations
-        values = [float(item.value) for item in resolved if item.value is not None]
-        if not values:
+        try:
+            benchmark = resolver.resolve_benchmark(
+                peer_universe_id=claim.scope.comparison_universe or "",
+                peer_entity_ids=claim.scope.entities,
+                period_id=assertion.benchmark_ref.period,
+                metric_id=assertion.benchmark_ref.metric_id,
+            )
+        except (TypeError, ValueError):
+            benchmark = None
+        if benchmark is None or benchmark.value is None:
             violations.append(f"numeric_aggregate_unavailable:{claim.claim_id}:{assertion.assertion_id}")
             return violations
         if assertion.unit is not None and any(item.unit != assertion.unit for item in resolved):
@@ -747,7 +634,10 @@ def _numeric_assertion_violations(
                 f"numeric_aggregate_operator_unsupported:{claim.claim_id}:{assertion.assertion_id}"
             )
             return violations
-        expected = float(median(values))
+        if assertion.unit is not None and benchmark.unit != assertion.unit:
+            violations.append(f"numeric_aggregate_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+            return violations
+        expected = float(benchmark.value)
         if not _number_equal(float(assertion.asserted_value), expected, policy.numeric_tolerance):
             violations.append(f"numeric_aggregate_mismatch:{claim.claim_id}:{assertion.assertion_id}")
         return violations
@@ -773,7 +663,7 @@ def _numeric_assertion_violations(
     rhs: float | None = None
     if assertion.reference_ref is not None:
         reference, reference_violations = _observation_reference(
-            connection, assertion.reference_ref, policy
+            resolver, assertion.reference_ref, policy
         )
         if reference_violations or reference is None or reference.value is None:
             violations.extend(
@@ -784,7 +674,7 @@ def _numeric_assertion_violations(
         rhs = float(reference.value)
     elif assertion.benchmark_ref is not None:
         benchmark_violations = _benchmark_reference_violations(
-            connection, claim, assertion, assertion.benchmark_ref
+            resolver, claim, assertion, assertion.benchmark_ref
         )
         if benchmark_violations:
             violations.extend(
@@ -792,11 +682,22 @@ def _numeric_assertion_violations(
                 for item in benchmark_violations
             )
             return violations
-        benchmark_values = [float(item.value) for item in resolved if item.value is not None]
-        if not benchmark_values:
+        try:
+            benchmark = resolver.resolve_benchmark(
+                peer_universe_id=claim.scope.comparison_universe or "",
+                peer_entity_ids=claim.scope.entities,
+                period_id=assertion.benchmark_ref.period,
+                metric_id=assertion.benchmark_ref.metric_id,
+            )
+        except (TypeError, ValueError):
+            benchmark = None
+        if benchmark is None or benchmark.value is None:
             violations.append(f"numeric_benchmark_unavailable:{claim.claim_id}:{assertion.assertion_id}")
             return violations
-        rhs = float(median(benchmark_values))
+        if assertion.unit is not None and benchmark.unit != assertion.unit:
+            violations.append(f"numeric_unit_mismatch:{claim.claim_id}:{assertion.assertion_id}")
+            return violations
+        rhs = float(benchmark.value)
     else:
         violations.append(
             f"numeric_comparison_reference_missing:{claim.claim_id}:{assertion.assertion_id}"
@@ -829,14 +730,14 @@ def _scope_evaluations(
 
 
 def _evidence_evaluations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
     policy: AcceptancePolicy,
 ) -> list[_UnitEvaluation]:
     return [
         _UnitEvaluation(
             key=f"claim:{index}:{claim.claim_id}",
-            violations=tuple(dict.fromkeys(_evidence_violations(connection, claim, policy))),
+            violations=tuple(dict.fromkeys(_evidence_violations(resolver, claim, policy))),
         )
         for index, claim in enumerate(claims)
         if claim.critical or claim.claim_type in policy.critical_claim_types
@@ -844,7 +745,7 @@ def _evidence_evaluations(
 
 
 def _numeric_evaluations(
-    connection: sqlite3.Connection,
+    resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
     policy: AcceptancePolicy,
 ) -> list[_UnitEvaluation]:
@@ -852,7 +753,7 @@ def _numeric_evaluations(
         _UnitEvaluation(
             key=f"claim:{index}:{claim.claim_id}:{assertion.assertion_id}",
             violations=tuple(
-                dict.fromkeys(_numeric_assertion_violations(connection, claim, policy, assertion))
+                dict.fromkeys(_numeric_assertion_violations(resolver, claim, policy, assertion))
             ),
         )
         for index, claim in enumerate(claims)
@@ -913,7 +814,7 @@ def _evaluation_summary(
 
 
 def validate_stage1_claims(
-    db_path: Path,
+    resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
     workload_scope: ClaimScope,
     policy: AcceptancePolicy,
@@ -928,14 +829,10 @@ def validate_stage1_claims(
 
     normalized_claims = tuple(claims)
     integrity_violations = ("empty_claim_set",) if not normalized_claims else ()
-    connection = _open_gold(db_path)
-    try:
-        scope_evaluations = _scope_evaluations(normalized_claims, workload_scope)
-        reference_evaluations = _reference_evaluations(connection, normalized_claims, policy)
-        evidence_evaluations = _evidence_evaluations(connection, normalized_claims, policy)
-        numeric_evaluations = _numeric_evaluations(connection, normalized_claims, policy)
-    finally:
-        connection.close()
+    scope_evaluations = _scope_evaluations(normalized_claims, workload_scope)
+    reference_evaluations = _reference_evaluations(resolver, normalized_claims, policy)
+    evidence_evaluations = _evidence_evaluations(resolver, normalized_claims, policy)
+    numeric_evaluations = _numeric_evaluations(resolver, normalized_claims, policy)
 
     contradiction_evaluations = _deterministic_contradiction_evaluations(
         normalized_claims, policy.numeric_tolerance

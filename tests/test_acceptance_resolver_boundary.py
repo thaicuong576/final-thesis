@@ -279,13 +279,14 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
         self.assertEqual(set(benchmark.input_observation_ids), {"obs-memory-a", "obs-memory-b"})
         self.assertNotIn("obs-memory-c", benchmark.input_observation_ids)
 
-    def test_memory_resolver_rejects_typed_reference_identity_mismatch(self):
+    def test_memory_resolver_returns_canonical_resource_for_acceptance_scope_check(self):
         provider, ref = self._memory_provider()
         resolver = ProviderStage1DatasetResolver(provider, ref)
-        with self.assertRaisesRegex(DatasetProviderError, "typed claim reference"):
-            resolver.resolve_observation_ref(
-                self._ref("obs-memory-a", "observation", "entity-b", "company.roa")
-            )
+        observation = resolver.resolve_observation_ref(
+            self._ref("obs-memory-a", "observation", "entity-b", "company.roa")
+        )
+        self.assertEqual(observation.entity_id, "entity-a")
+        self.assertEqual(observation.metric_id, "company.roa")
 
     def _gold_fixture(self, root: Path, *, ambiguous_evidence: bool = False):
         db_path = root / "gold.sqlite"

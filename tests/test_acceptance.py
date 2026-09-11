@@ -8,11 +8,13 @@ from thesis_data.acceptance import (
     ACCEPTANCE_MODEL_VERSION,
     atomic_claim_to_legacy_composite_claim,
     legacy_composite_claim_to_atomic,
-    peer_median_benchmark_id,
     quality_score,
-    validate_stage1_claims,
 )
 from thesis_data.composite_schema import CompositeClaim
+from thesis_data.gold_acceptance_compat import (
+    peer_median_benchmark_id,
+    validate_gold_stage1_claims as validate_stage1_claims,
+)
 from thesis_data.schema import (
     AcceptanceDecision,
     AcceptancePolicy,

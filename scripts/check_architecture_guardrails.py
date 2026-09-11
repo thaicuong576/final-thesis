@@ -22,12 +22,21 @@ APPLICATION_CORE_FILES = (
     ROOT / "src" / "thesis_data" / "application_runtime.py",
     ROOT / "src" / "thesis_data" / "dataset_tool_runtime.py",
     ROOT / "src" / "thesis_data" / "runtime_events.py",
+    ROOT / "src" / "thesis_data" / "acceptance.py",
+    ROOT / "src" / "thesis_data" / "acceptance_resolver.py",
 )
 FORBIDDEN_CORE_TEXT = (
     "sqlite3",
     "GoldConfig",
     "GoldToolRuntime",
     "create_gold_snapshot_schema",
+    "metric_observations",
+    "source_records",
+    "evidence_snippets",
+    "macro_observations_v2",
+    "derived_metrics",
+    "snapshot_metadata",
+    "peer-median-gold-v1",
 )
 FIXED_ISSUER_LITERAL = re.compile(r"\b(?:ACB|TCB|VPB|MBB|VCB)\b")
 

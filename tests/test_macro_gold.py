@@ -6,7 +6,7 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-from thesis_data.acceptance import validate_stage1_claims
+from thesis_data.gold_acceptance_compat import validate_gold_stage1_claims as validate_stage1_claims
 from thesis_data.agent_tools import GoldToolRuntime
 from thesis_data.experiment_contract import ExperimentArm, ExperimentRunConfig, audit_experiment_inputs
 from thesis_data.macro_gold import (

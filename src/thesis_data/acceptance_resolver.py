@@ -97,16 +97,6 @@ class ProviderStage1DatasetResolver:
         observation = self._bound_observation(
             self._provider.resolve_observation(self._dataset_ref, ref.ref_id)
         )
-        if observation is None:
-            return None
-        if (
-            observation.entity_id != ref.entity
-            or observation.period_id != ref.period
-            or observation.metric_id != ref.metric_id
-        ):
-            raise DatasetProviderError(
-                "resolved observation does not match typed claim reference"
-            )
         return observation
 
     def resolve_benchmark(

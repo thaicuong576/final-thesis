@@ -32,6 +32,11 @@ class OnboardingValidationStatus(StrEnum):
     INVALID = "INVALID"
 
 
+class OnboardingIssueSeverity(StrEnum):
+    ERROR = "ERROR"
+    WARNING = "WARNING"
+
+
 class OnboardingIssueCode(StrEnum):
     ENTITY_MAPPING_INVALID = "ENTITY_MAPPING_INVALID"
     PERIOD_INVALID = "PERIOD_INVALID"
@@ -48,6 +53,26 @@ def _require_text(value: str, field_name: str) -> str:
     if not value.strip():
         raise ValueError(f"{field_name} must be non-empty")
     return value
+
+
+def compute_onboarding_issue_id(
+    code: OnboardingIssueCode | str,
+    *,
+    row_number: int | None = None,
+    field_name: str | None = None,
+    metric_id: str | None = None,
+) -> str:
+    """Derive a stable issue identity from deterministic validation context."""
+
+    code_value = code.value if isinstance(code, OnboardingIssueCode) else str(code)
+    payload = {
+        "code": code_value,
+        "row_number": row_number,
+        "field_name": field_name,
+        "metric_id": metric_id,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return f"onboarding-issue-{sha256(encoded).hexdigest()}"
 
 
 class RawDatasetDescriptor(BaseModel):
@@ -175,9 +200,12 @@ class FieldMappingSpec(BaseModel):
             raise ValueError("mapped raw fields must be unique")
         if len(metric_ids) != len(set(metric_ids)):
             raise ValueError("mapped metric IDs must be unique")
-        reserved = {self.entity_field, self.period_field}
+        identity_fields = [self.entity_field, self.period_field]
         if self.source_ref_field:
-            reserved.add(self.source_ref_field)
+            identity_fields.append(self.source_ref_field)
+        if len(identity_fields) != len(set(identity_fields)):
+            raise ValueError("identity/source fields must be distinct")
+        reserved = set(identity_fields)
         if reserved.intersection(fields):
             raise ValueError("identity/source fields cannot also be metric fields")
         return self
@@ -186,11 +214,27 @@ class FieldMappingSpec(BaseModel):
 class OnboardingValidationIssue(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    issue_id: str | None = Field(default=None, min_length=1)
     code: OnboardingIssueCode
+    severity: OnboardingIssueSeverity = OnboardingIssueSeverity.ERROR
     message: str = Field(min_length=1)
     row_number: int | None = Field(default=None, ge=1)
     field_name: str | None = Field(default=None, min_length=1)
     metric_id: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def validate_issue_identity(self) -> "OnboardingValidationIssue":
+        expected_id = compute_onboarding_issue_id(
+            self.code,
+            row_number=self.row_number,
+            field_name=self.field_name,
+            metric_id=self.metric_id,
+        )
+        if self.issue_id is None:
+            self.issue_id = expected_id
+        elif self.issue_id != expected_id:
+            raise ValueError("issue_id must match deterministic validation context")
+        return self
 
 
 class OnboardingValidationReport(BaseModel):
@@ -212,10 +256,22 @@ class OnboardingValidationReport(BaseModel):
     def validate_report_state(self) -> "OnboardingValidationReport":
         if self.contract_version != ONBOARDING_CONTRACT_VERSION:
             raise ValueError("unsupported onboarding contract version")
-        if self.status is OnboardingValidationStatus.VALID and self.issues:
-            raise ValueError("VALID onboarding report cannot contain issues")
-        if self.status is OnboardingValidationStatus.INVALID and not self.issues:
-            raise ValueError("INVALID onboarding report requires issues")
+        if self.rejected_row_count > self.row_count:
+            raise ValueError("rejected_row_count cannot exceed row_count")
+        error_issues = tuple(
+            issue
+            for issue in self.issues
+            if issue.severity is OnboardingIssueSeverity.ERROR
+        )
+        if self.status is OnboardingValidationStatus.VALID:
+            if error_issues:
+                raise ValueError("VALID onboarding report cannot contain ERROR issues")
+            if self.rejected_row_count != 0:
+                raise ValueError("VALID onboarding report requires zero rejected rows")
+        if self.status is OnboardingValidationStatus.INVALID and not error_issues:
+            raise ValueError(
+                "INVALID onboarding report requires issues with at least one ERROR"
+            )
         return self
 
 
@@ -335,6 +391,12 @@ def build_snapshot_metadata(
 ) -> DatasetSnapshotMetadata:
     """Create metadata whose identity is bound to immutable raw content."""
 
+    requested_status = DatasetSnapshotStatus(status)
+    if requested_status is DatasetSnapshotStatus.ACCEPTED:
+        raise ValueError(
+            "build_snapshot_metadata cannot create ACCEPTED metadata without a validation report"
+        )
+
     snapshot_id = compute_dataset_snapshot_id(
         dataset_id,
         raw_descriptor.content_hash,
@@ -344,12 +406,31 @@ def build_snapshot_metadata(
     return DatasetSnapshotMetadata(
         dataset_id=dataset_id,
         dataset_snapshot_id=snapshot_id,
-        status=status,
+        status=requested_status,
         created_at=created_at or datetime.now(timezone.utc),
         source_content_hash=raw_descriptor.content_hash,
         mapping_version=mapping_version,
         validation_version=validation_version,
     )
+
+
+def promote_snapshot_metadata(
+    raw_descriptor: RawDatasetDescriptor,
+    metadata: DatasetSnapshotMetadata,
+    validation_report: OnboardingValidationReport,
+) -> DatasetSnapshotMetadata:
+    """Promote candidate metadata only with a matching VALID report."""
+
+    validate_snapshot_metadata(raw_descriptor, metadata)
+    if metadata.status is not DatasetSnapshotStatus.CANDIDATE:
+        raise ValueError("only CANDIDATE snapshot metadata can be promoted")
+    if validation_report.dataset_id != metadata.dataset_id:
+        raise ValueError("validation report dataset ID does not match snapshot metadata")
+    if validation_report.candidate_snapshot_id != metadata.dataset_snapshot_id:
+        raise ValueError("validation report snapshot ID does not match snapshot metadata")
+    if validation_report.status is not OnboardingValidationStatus.VALID:
+        raise ValueError("only a VALID onboarding report can promote a snapshot")
+    return metadata.model_copy(update={"status": DatasetSnapshotStatus.ACCEPTED})
 
 
 def validate_snapshot_metadata(

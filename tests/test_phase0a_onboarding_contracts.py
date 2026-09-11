@@ -12,6 +12,7 @@ from thesis_data.onboarding_contract import (
     MetricDefinition,
     MetricRegistry,
     OnboardingIssueCode,
+    OnboardingIssueSeverity,
     OnboardingValidationIssue,
     OnboardingValidationReport,
     OnboardingValidationStatus,
@@ -20,7 +21,9 @@ from thesis_data.onboarding_contract import (
     build_snapshot_metadata,
     compute_dataset_snapshot_id,
     compute_field_mapping_version,
+    compute_onboarding_issue_id,
     demo_metric_registry,
+    promote_snapshot_metadata,
     validate_field_mapping,
     validate_snapshot_metadata,
 )
@@ -149,6 +152,26 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 ),
             )
 
+        for kwargs in (
+            {"entity_field": "Company", "period_field": "Company"},
+            {"entity_field": "Company", "period_field": "Quarter", "source_ref_field": "Company"},
+            {"entity_field": "Company", "period_field": "Quarter", "source_ref_field": "Quarter"},
+        ):
+            with self.subTest(kwargs=kwargs), self.assertRaisesRegex(
+                ValueError, "identity/source fields must be distinct"
+            ):
+                FieldMappingSpec(
+                    **kwargs,
+                    metric_mappings=(
+                        FieldMetricMapping(
+                            raw_field="ROA",
+                            metric_id="company.roa",
+                            unit="percent",
+                            analytical_level=AnalyticalLevel.COMPANY,
+                        ),
+                    ),
+                )
+
     def test_snapshot_identity_changes_with_source_or_mapping_version(self):
         mapping_version = compute_field_mapping_version(self.mapping())
         changed_mapping = self.mapping().model_copy(
@@ -237,6 +260,169 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             rejected_row_count=1,
         )
         self.assertEqual(len(invalid.issues), 1)
+
+    def test_issue_identity_and_severity_are_stable(self):
+        first = OnboardingValidationIssue(
+            code=OnboardingIssueCode.VALUE_INVALID,
+            message="invalid numeric value",
+            row_number=2,
+            field_name="ROA",
+            metric_id="company.roa",
+        )
+        second = OnboardingValidationIssue(
+            code=OnboardingIssueCode.VALUE_INVALID,
+            message="changed explanatory wording",
+            row_number=2,
+            field_name="ROA",
+            metric_id="company.roa",
+            severity=OnboardingIssueSeverity.WARNING,
+        )
+        self.assertEqual(
+            first.issue_id,
+            compute_onboarding_issue_id(
+                OnboardingIssueCode.VALUE_INVALID,
+                row_number=2,
+                field_name="ROA",
+                metric_id="company.roa",
+            ),
+        )
+        self.assertEqual(first.issue_id, second.issue_id)
+        self.assertEqual(first.severity, OnboardingIssueSeverity.ERROR)
+        self.assertEqual(second.severity, OnboardingIssueSeverity.WARNING)
+        with self.assertRaisesRegex(ValueError, "deterministic validation context"):
+            OnboardingValidationIssue(
+                issue_id="fabricated-issue-id",
+                code=OnboardingIssueCode.VALUE_INVALID,
+                message="invalid numeric value",
+                row_number=2,
+                field_name="ROA",
+                metric_id="company.roa",
+            )
+
+    def test_report_invariants_are_fail_closed_but_warnings_are_allowed(self):
+        warning = OnboardingValidationIssue(
+            code=OnboardingIssueCode.SOURCE_REQUIRED,
+            severity=OnboardingIssueSeverity.WARNING,
+            message="optional source metadata is incomplete",
+        )
+        valid = OnboardingValidationReport(
+            dataset_id="dataset",
+            candidate_snapshot_id="snapshot-1",
+            status=OnboardingValidationStatus.VALID,
+            issues=(warning,),
+            row_count=2,
+            accepted_observation_count=4,
+            missing_observation_count=0,
+            rejected_row_count=0,
+        )
+        self.assertEqual(valid.status, OnboardingValidationStatus.VALID)
+        error = warning.model_copy(
+            update={
+                "issue_id": compute_onboarding_issue_id(OnboardingIssueCode.VALUE_INVALID),
+                "code": OnboardingIssueCode.VALUE_INVALID,
+                "severity": OnboardingIssueSeverity.ERROR,
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "ERROR issues"):
+            OnboardingValidationReport(
+                dataset_id="dataset",
+                candidate_snapshot_id="snapshot-1",
+                status=OnboardingValidationStatus.VALID,
+                issues=(error,),
+                row_count=2,
+                accepted_observation_count=0,
+                missing_observation_count=0,
+                rejected_row_count=0,
+            )
+        with self.assertRaisesRegex(ValueError, "zero rejected rows"):
+            OnboardingValidationReport(
+                dataset_id="dataset",
+                candidate_snapshot_id="snapshot-1",
+                status=OnboardingValidationStatus.VALID,
+                row_count=2,
+                accepted_observation_count=0,
+                missing_observation_count=0,
+                rejected_row_count=1,
+            )
+        with self.assertRaisesRegex(ValueError, "cannot exceed"):
+            OnboardingValidationReport(
+                dataset_id="dataset",
+                candidate_snapshot_id="snapshot-1",
+                status=OnboardingValidationStatus.INVALID,
+                issues=(
+                    OnboardingValidationIssue(
+                        code=OnboardingIssueCode.VALUE_INVALID,
+                        message="invalid numeric value",
+                    ),
+                ),
+                row_count=1,
+                accepted_observation_count=0,
+                missing_observation_count=0,
+                rejected_row_count=2,
+            )
+        with self.assertRaisesRegex(ValueError, "at least one ERROR"):
+            OnboardingValidationReport(
+                dataset_id="dataset",
+                candidate_snapshot_id="snapshot-1",
+                status=OnboardingValidationStatus.INVALID,
+                issues=(warning,),
+                row_count=2,
+                accepted_observation_count=0,
+                missing_observation_count=0,
+                rejected_row_count=1,
+            )
+
+    def test_snapshot_acceptance_requires_matching_valid_report(self):
+        metadata = build_snapshot_metadata(
+            "dataset",
+            self.raw(),
+            mapping_version="mapping-v1",
+            validation_version="validation-v1",
+        )
+        valid_report = OnboardingValidationReport(
+            dataset_id="dataset",
+            candidate_snapshot_id=metadata.dataset_snapshot_id,
+            status=OnboardingValidationStatus.VALID,
+            row_count=1,
+            accepted_observation_count=1,
+            missing_observation_count=0,
+            rejected_row_count=0,
+        )
+        accepted = promote_snapshot_metadata(self.raw(), metadata, valid_report)
+        self.assertEqual(accepted.status, DatasetSnapshotStatus.ACCEPTED)
+        with self.assertRaisesRegex(ValueError, "cannot create ACCEPTED"):
+            build_snapshot_metadata(
+                "dataset",
+                self.raw(),
+                mapping_version="mapping-v1",
+                validation_version="validation-v1",
+                status=DatasetSnapshotStatus.ACCEPTED,
+            )
+        invalid_report = OnboardingValidationReport(
+            dataset_id="dataset",
+            candidate_snapshot_id=metadata.dataset_snapshot_id,
+            status=OnboardingValidationStatus.INVALID,
+            issues=(
+                OnboardingValidationIssue(
+                    code=OnboardingIssueCode.VALUE_INVALID,
+                    message="invalid numeric value",
+                ),
+            ),
+            row_count=1,
+            accepted_observation_count=0,
+            missing_observation_count=0,
+            rejected_row_count=1,
+        )
+        with self.assertRaisesRegex(ValueError, "only a VALID"):
+            promote_snapshot_metadata(self.raw(), metadata, invalid_report)
+        mismatch_report = valid_report.model_copy(update={"dataset_id": "other-dataset"})
+        with self.assertRaisesRegex(ValueError, "dataset ID"):
+            promote_snapshot_metadata(self.raw(), metadata, mismatch_report)
+        mismatch_snapshot_report = valid_report.model_copy(
+            update={"candidate_snapshot_id": "other-snapshot"}
+        )
+        with self.assertRaisesRegex(ValueError, "snapshot ID"):
+            promote_snapshot_metadata(self.raw(), metadata, mismatch_snapshot_report)
 
     def test_snapshot_metadata_schema_is_explicit_and_strict(self):
         with self.assertRaises(ValidationError):

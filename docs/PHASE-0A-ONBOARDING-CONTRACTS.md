@@ -31,8 +31,9 @@ RawDatasetDescriptor
   analytical-level mappings. It cannot map identity/source fields as metrics.
 - `MetricDefinition` and `MetricRegistry` describe admissible metric meaning;
   they do not claim that every dataset contains every registered metric.
-- `OnboardingValidationIssue` and `OnboardingValidationReport` provide stable
-  fail-closed issue/status contracts.
+- `OnboardingValidationIssue` provides deterministic issue IDs and a small
+  ERROR/WARNING severity contract. `OnboardingValidationReport` is a stable,
+  fail-closed status contract.
 
 ## Deterministic rules
 
@@ -40,6 +41,13 @@ RawDatasetDescriptor
 headers. It reports missing required fields, unsupported metrics, unit
 conflicts, analytical-level conflicts, and missing source fields without
 reading storage or asking an LLM to approve semantics.
+
+Identity fields (`entity_field`, `period_field`, and optional
+`source_ref_field`) must be distinct and cannot be reused as metric fields.
+Deterministic validation issues derive their IDs from code, row, field, and
+metric context; issue messages do not define identity. A VALID report may carry
+WARNING issues but cannot carry ERROR issues or rejected rows. An INVALID report
+requires at least one ERROR issue.
 
 `compute_field_mapping_version()` hashes the canonical explicit mapping.
 `compute_dataset_snapshot_id()` hashes the dataset ID, source content hash,
@@ -49,6 +57,11 @@ reproducible.
 
 `validate_snapshot_metadata()` fails closed when metadata does not match the
 raw source hash or the recomputed identity.
+
+`build_snapshot_metadata()` creates CANDIDATE metadata and rejects a direct
+ACCEPTED status. `promote_snapshot_metadata()` is the deterministic acceptance
+boundary: it validates source/identity metadata and requires a matching VALID
+`OnboardingValidationReport` before returning ACCEPTED metadata.
 
 ## Seed registry boundary
 

@@ -1046,3 +1046,59 @@ into a complete ETL platform, RAG, critic/revision, UI redesign, or Phase 3B.
 Reason: the application architecture must be proven through a narrow
 non-Gold source path while keeping the reusable core independent from physical
 storage and keeping each review diff auditable.
+
+## D-066: Adopt query-adaptive composition and freeze the Phase 3B contract order
+
+Status: Accepted as a binding architecture delta; Phase 3B implementation is
+not started by this decision.
+
+The reference product is query-adaptive. Macro, Sector/Peer, and Company are
+capabilities selected by the request-derived `AnalysisPlan`, not mandatory
+stages. The active specialist set is the union of specialists required by the
+frozen plan. Inactive capabilities are `NOT_APPLICABLE`, not failed, and the
+product must show only active specialists.
+
+The semantic/revision order is frozen as:
+
+```text
+selected specialist outputs
+  → synthesis/re-synthesis
+  → canonical candidate claims
+  → Stage-1 deterministic acceptance
+  → semantic critic
+  → decision / targeted revision
+```
+
+Every `CritiqueIssue` must be validated against the frozen plan before routing.
+Only active affected specialists may be rerun. Cross-level reconciliation is
+valid only for a declared applicable link and must have exactly one valid link
+result. Divergence remains distinct from contradiction.
+
+Semantic applicability is plan-derived. A dimension with no evaluation target
+is explicitly `NOT_APPLICABLE`, never an artificial score of zero or one; its
+policy weight is excluded and the remaining weights are renormalized. The
+current six-dimension result/acceptance contract requires a Phase 3B-0
+compatibility correction before a model evaluator runs.
+
+`ACCEPT_WITH_LIMITATIONS` is restricted to genuine data or evidence
+availability/insufficiency. It cannot hide integrity failure, unsupported
+inference, poor reasoning/synthesis, unresolved contradiction, or provider
+failure. The implementation must distinguish data-availability and
+evidence-availability issue families instead of relying on a single generic
+missing-evidence label.
+
+The implementation sequence is deliberately staged:
+
+```text
+rule/architecture sync
+  → review and lock
+  → Phase 3B-0 applicability and acceptance contract
+  → Phase 3B-A fixture SemanticCritic protocol and plan validation
+  → Phase 3B-B bounded revision controller with injected adapters
+  → Phase 3B-C runtime/claim/synthesis adapters
+  → Phase 3B-D replaceable LLM provider integration
+```
+
+No step in this decision authorizes changes to historical benchmark artifacts,
+the existing Gold dataset, the Phase 0–3A locked semantics, or the normal
+product's introduction of an A/B/C architecture selector.

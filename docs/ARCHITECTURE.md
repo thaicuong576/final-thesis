@@ -4,7 +4,9 @@
 > This document describes the current implementation; the guardrail defines
 > the non-negotiable boundary for future work.
 
-Status: Working architecture for the scoped applied-thesis benchmark.
+Status: Working architecture with a query-adaptive final target. The current
+runtime remains a transitional benchmark/scaffold and does not yet implement
+the final adaptive critique/revision path.
 
 ## Design principle
 
@@ -19,14 +21,21 @@ Immutable raw inputs
   → deterministic metrics and peer benchmarks
   → validated evidence records
   → versioned gold snapshot
-  → request parser and run configuration
-  → Single Agent OR Macro/Sector/Company Agents
-  → payload validation
-  → deterministic anomaly triggers
-  → bounded evidence verification
-  → final synthesis
+  → analysis request and capability validation
+  → frozen AnalysisPlan
+  → active specialist capabilities only
+  → synthesis and canonical claims
+  → Stage-1 deterministic acceptance
+  → semantic critique and targeted revision
+  → final synthesis and acceptance
   → report, quality report, and reproducible run record
 ```
+
+The active specialist set is derived from the request and dataset capabilities.
+Macro, Sector/Peer, and Company are not mandatory sequential stages. The
+existing benchmark runners below are retained as transitional infrastructure;
+their verification calls must not be described as the Phase 3B semantic
+critic/revision loop.
 
 ## Data plane
 
@@ -151,36 +160,60 @@ PDFs and policy documents are parsed into page- and section-aware evidence recor
 
 Uses the same deterministic query and evidence tools as the hierarchical arms and produces the same output contract. It is the primary fair baseline.
 
-### Macro Agent
+### Macro capability
 
 Retrieves accepted policy-rate, credit-growth, and retained macro evidence for the target period. It preserves source status and does not infer causality from a single macro movement.
 
-### Sector Agent
+### Sector / Peer capability
 
 Retrieves accepted peer medians, percentiles, and period changes for the frozen peer set. It does not recompute ratios from prose.
 
-### Company Agent
+### Company capability
 
 Retrieves accepted company metrics and filing evidence, explains company-specific drivers, and preserves missing or conflicting values.
 
 ### Master Orchestrator
 
-Creates the run configuration, dispatches independent requests, validates payloads, scans deterministic anomaly triggers, requests at most two focused verification attempts, records every critique event, and synthesizes only contract-valid payloads. Unresolved anomalies are shown in the final quality section.
+Creates the request-derived `AnalysisPlan`, selects only required capabilities,
+dispatches active specialists, validates payloads, reviews declared applicable
+links, performs synthesis, and submits canonical claims to acceptance. Semantic
+critique and bounded revision follow the Phase 3B contract below. Unresolved
+limitations are shown in the final quality section.
 
-## Critique and verification loop
+## Current transitional verification scaffold
 
-1. Receive Macro, Sector, and Company payloads.
-2. Run deterministic anomaly triggers against compatible periods and metric definitions.
-3. If no trigger exists, continue to synthesis.
-4. If a trigger exists, generate a focused verification request. Explicit
-   orchestrator requests take precedence; otherwise requests are generated from
-   the recorded trigger list.
-5. Retrieve additional company, sector, or policy evidence.
-6. Append a critique record with evidence IDs and resolution state.
-7. Revalidate payloads.
-8. Stop after two attempts and report unresolved anomalies honestly.
+The current `run_agent_arm()` and `run_composite_arm()` implementations can
+dispatch bounded `verification` calls after orchestration. They record calls
+and payloads, but they do not create `StructuredCriticResult` or
+`CritiqueIssue`, rerun affected specialists, re-synthesize, or re-evaluate the
+final candidate. Existing benchmark artifacts must retain this limitation.
 
-The initial rules are verification triggers, not presumed logical contradictions. A case is labeled a true contradiction only by the evaluation protocol's independent review.
+## Query-adaptive critique and revision target
+
+The target Phase 3B order is:
+
+```text
+active specialist outputs
+  → synthesis/re-synthesis
+  → canonical AtomicClaim[]
+  → Stage-1 deterministic acceptance
+  → semantic critic
+  → decision / targeted revision
+```
+
+For revision, validate every issue against the frozen `AnalysisPlan`, rerun
+only affected active specialists, merge their revised artifacts, re-synthesize
+the applicable outputs and links, and run Stage-1 again before semantic
+evaluation. The controller is bounded to two revision rounds. A semantic critic
+cannot override a failed deterministic gate. A dimension with no plan-derived
+evaluation target is `NOT_APPLICABLE`; its configured weight is excluded and
+the remaining quality weights are renormalized.
+
+Cross-level reconciliation is allowed only for a declared applicable link.
+Cross-level divergence is not automatically a contradiction.
+
+The existing deterministic anomaly rules remain useful trigger inputs, but are
+not presumed logical contradictions and do not replace semantic critique.
 
 ## Storage boundaries
 
@@ -192,7 +225,13 @@ The initial rules are verification triggers, not presumed logical contradictions
 
 ## Evaluation boundary
 
-The experiment runner executes three arms: single-agent, hierarchical without critique, and hierarchical with bounded critique. All use the same question set, snapshot, source policy, model version, and output contract. Calls, latency, tokens/cost, validation failures, evidence completeness, citation correctness, factual correctness, and anomaly quality are recorded.
+Research executes three arms: single-agent, hierarchical without
+critique/revision, and hierarchical with bounded critique/revision. All use the
+same request-derived scope, snapshot, source policy, model version, and output
+contract. The product does not expose this architecture selector. Calls,
+latency, tokens/cost, validation failures, evidence completeness, citation
+correctness, factual correctness, semantic quality, and revision outcomes are
+recorded.
 
 ## Deployment direction
 

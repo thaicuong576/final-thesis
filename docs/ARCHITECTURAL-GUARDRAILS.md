@@ -30,13 +30,20 @@ Enterprise / research data
   → adapters and providers
   → canonical dataset and validated snapshot
   → analysis request
-  → hierarchical multi-agent workflow
-  → Macro / Sector / Company analysis
-  → orchestrator cross-level review
+  → scope validation and frozen AnalysisPlan
+  → select applicable analytical capabilities
+  → active Macro / Sector / Company specialists only
+  → orchestrator review of declared relationships
   → bounded critique and targeted revision
   → acceptance and quality controls
   → evidence-backed report
 ```
+
+Macro, Sector/Peer, and Company are capability types, not mandatory sequential
+stages. An inactive capability is `NOT_APPLICABLE`, not a failed worker. The
+active specialist set is the union of the specialist capabilities required by
+the frozen `AnalysisPlan`; the runtime must not launch an irrelevant specialist
+merely to make the workflow appear more multi-agent.
 
 The reference application is one deployment of this architecture. The
 reusable core must remain usable if the frontend, storage technology,
@@ -126,21 +133,79 @@ it must not grow Gold-specific table access such as
 
 ### Phase 3 — Semantic critique and bounded revision
 
-Semantic evaluation occurs after deterministic integrity checks. Use the
-existing `CritiqueIssue` concept and bounded actions such as re-query,
-evidence retrieval, claim revision/removal, limitation addition, and
-cross-level reconciliation. The default maximum is two revision rounds, and
-only affected agents should be rerun where possible.
+Semantic evaluation occurs after the candidate synthesis has produced
+canonical claims and after deterministic integrity checks have run. Every
+material claim produced by synthesis or re-synthesis must pass Stage-1 before
+semantic scoring or acceptance.
 
-`ACCEPT_WITH_LIMITATIONS` is permitted only when integrity gates pass and the
-remaining deficiency is explicitly caused by unavailable or insufficient data
-or evidence. It must never hide numeric mismatch, invalid evidence,
-unsupported inference, unresolved blocking contradiction, poor synthesis, or
-provider/system failure.
+The required order for the initial round is:
+
+```text
+selected specialist outputs
+  → synthesis
+  → canonical candidate claims
+  → Stage-1 deterministic acceptance
+  → semantic critic
+  → decision / targeted revision
+```
+
+Each revision round is:
+
+```text
+CritiqueIssue[]
+  → validate issues against the frozen AnalysisPlan
+  → rerun affected active specialists only
+  → merge revised specialist artifacts
+  → re-synthesize applicable outputs and links
+  → canonical candidate claims
+  → Stage-1 deterministic acceptance again
+  → semantic critic again
+  → accept, limited accept, revise, or fail
+```
+
+Use the existing `CritiqueIssue` concept and bounded actions such as re-query,
+evidence retrieval, claim revision/removal, limitation addition, and
+cross-level reconciliation. The default maximum is two revision rounds.
+
+Semantic applicability is derived from the frozen `AnalysisPlan`. A semantic
+dimension may be `NOT_APPLICABLE` when the plan provides no evaluation target
+for it. `NOT_APPLICABLE` is neither failure nor perfect performance, cannot
+create a deficiency, and is excluded from the quality-score denominator. The
+remaining configured weights are renormalized over applicable dimensions:
+
+```text
+quality_total =
+  sum(score[d] × policy_weight[d] for applicable d)
+  / sum(policy_weight[d] for applicable d)
+```
+
+For the current six dimensions, `cross_level_integration` is applicable only
+when `AnalysisPlan.applicable_links` is non-empty. The other five dimensions
+are applicable by default, subject to later explicit plan predicates. The
+contract must represent this state explicitly; encoding `NOT_APPLICABLE` as
+`0.0` or `1.0` is prohibited.
+
+Before routing, every `CritiqueIssue` must be plan-valid:
+
+- `affected_agent` must be an active specialist derived from the plan;
+- an inactive specialist cannot be targeted for rerun;
+- `RECONCILE_CROSS_LEVEL` must refer to a declared applicable link;
+- the issue must be linked to exactly one valid `ApplicableLinkResult` when it
+  is a cross-level issue; and
+- unknown, omitted, or duplicate link results remain malformed critic output.
+
+`ACCEPT_WITH_LIMITATIONS` is allowed only after all integrity gates pass and
+the unresolved issue is a genuine data or evidence availability/insufficiency
+case. The allowed unresolved issue families are dataset/data-unavailable and
+evidence-unavailable/insufficient. The semantic contract should use explicit
+families such as `MISSING_DATA` and `MISSING_EVIDENCE` (or an equivalent
+dataset-neutral representation). It must never cover numeric mismatch,
+invalid reference, scope error, unsupported inference, unresolved contradiction,
+poor reasoning/synthesis, or provider/system failure.
 
 ### Phase 4 — Domain-agent layer
 
-The locked initial specialist set is:
+The initial specialist capability pool is:
 
 - Macro Agent;
 - Sector Agent;
@@ -161,7 +226,9 @@ redesigning the orchestrator.
 
 The orchestrator owns scope, planning, delegation, collection, cross-level
 review, divergence detection, targeted revision, synthesis, and acceptance
-submission. The locked worker structure is Macro/Sector/Company.
+submission. The initial worker capability pool is Macro/Sector/Company; the
+active set is selected per frozen `AnalysisPlan` and is not mandatory in every
+run.
 
 An analysis context must carry dataset identity, objective, targets, periods,
 metrics, and peer-universe scope. The orchestrator must not contain
@@ -197,6 +264,13 @@ Research retains the three-arm comparison:
 - A — single-agent baseline;
 - B — hierarchical without critique;
 - C — final hierarchical with bounded critique/revision.
+
+The three arms are research-only comparison mechanisms. The normal product
+does not expose an architecture selector. For a given request, all arms must
+share the same request-derived scope, dataset, applicable links, evidence
+policy, and output contract; B and C must use equivalent initial planning and
+specialist selection, with bounded critique/revision as C's primary additional
+mechanism.
 
 The final product uses the final architecture only; it must not expose an
 architecture selector. Research benchmarking, ablation, human evaluation, and
@@ -247,12 +321,15 @@ live workflow should make the following observable:
 
 ```text
 Orchestrator assigns work
-  → Macro / Sector / Company activity
+  → active specialist activity selected by the AnalysisPlan
   → tool activity and agent outputs
   → orchestrator review
   → targeted revisions
   → final synthesis
 ```
+
+The product must show only active specialists. It must not visually imply that
+Macro, Sector/Peer, and Company always execute.
 
 User-facing copy should be business-oriented. Internal IDs may appear in
 technical/audit detail but should not dominate the normal experience.
@@ -333,16 +410,20 @@ foundation. Its Gold adapter is allowed to know SQLite; application contracts,
 provider protocols, request validation, tool runtime, and event contracts are
 not. Phase 3A remains provisional until reviewed after the dataset boundary;
 the Phase 3A compatibility correction must consume the provider abstraction.
-Do not start Phase 3B or semantic implementation work without an explicit
-phase-start decision. The final three-specialist architecture is not complete
-for final evaluation until the bounded Macro Gold layer is available.
+Phase 3A is now the reviewed contract/preflight boundary. Phase 3B must begin
+with the documented applicability/acceptance contract pass, then a fixture
+critic, then a bounded revision controller, and only later runtime and model
+adapters. Do not start Phase 3B implementation without the corresponding
+phase-start decision. The final architecture remains incomplete for final
+evaluation until the bounded Macro Gold layer is available, but Macro is not
+mandatory for requests whose frozen plan does not require it.
 
 The north-star description is:
 
-> A reusable hierarchical multi-agent financial-analysis architecture with
-> evidence-grounded outputs, bounded critique/revision, deterministic quality
-> controls, and replaceable enterprise data interfaces, demonstrated through
-> an end-to-end web application for financial analysts.
+> A reusable, query-adaptive hierarchical multi-agent financial-analysis
+> architecture with evidence-grounded outputs, bounded critique/revision,
+> deterministic quality controls, and replaceable enterprise data interfaces,
+> demonstrated through an end-to-end web application for financial analysts.
 
 Any materially conflicting task must stop with a report of the conflicting
 requirement, affected components, minimum correction, and whether existing

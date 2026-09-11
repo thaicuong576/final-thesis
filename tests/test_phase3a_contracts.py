@@ -34,6 +34,7 @@ from thesis_data.semantic_evaluation import (
     ApplicableLinkResult,
     SemanticContractError,
     SemanticDimension,
+    SemanticDimensionApplicability,
     SemanticDimensionResult,
     StructuredCriticResult,
     deterministic_coverage_violations,
@@ -378,10 +379,27 @@ def _result(
     dimensions = tuple(
         SemanticDimensionResult(
             dimension=dimension,
-            score=1.0,
+            applicability=(
+                SemanticDimensionApplicability.APPLICABLE
+                if link_results or dimension is not SemanticDimension.CROSS_LEVEL_INTEGRATION
+                else SemanticDimensionApplicability.NOT_APPLICABLE
+            ),
+            score=(
+                1.0
+                if link_results or dimension is not SemanticDimension.CROSS_LEVEL_INTEGRATION
+                else None
+            ),
             rationale="deterministic test rationale",
-            supporting_claim_ids=claims,
-            affected_requirement_ids=requirement_ids,
+            supporting_claim_ids=(
+                claims
+                if link_results or dimension is not SemanticDimension.CROSS_LEVEL_INTEGRATION
+                else ()
+            ),
+            affected_requirement_ids=(
+                requirement_ids
+                if link_results or dimension is not SemanticDimension.CROSS_LEVEL_INTEGRATION
+                else ()
+            ),
         )
         for dimension in SemanticDimension
     )

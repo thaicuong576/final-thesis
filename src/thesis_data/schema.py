@@ -88,6 +88,7 @@ class CritiqueIssueType(StrEnum):
     """Stable issue categories for the future structured critic."""
 
     UNSUPPORTED_CLAIM = "unsupported_claim"
+    MISSING_DATA = "missing_data"
     MISSING_EVIDENCE = "missing_evidence"
     NUMERIC_INCONSISTENCY = "numeric_inconsistency"
     SCOPE_VIOLATION = "scope_violation"
@@ -133,6 +134,23 @@ class UnresolvedReasonCode(StrEnum):
     EVIDENCE_UNAVAILABLE = "EVIDENCE_UNAVAILABLE"
     EVIDENCE_INSUFFICIENT_FOR_SCOPE = "EVIDENCE_INSUFFICIENT_FOR_SCOPE"
     PERIOD_NOT_COVERED = "PERIOD_NOT_COVERED"
+
+
+_LIMITED_ACCEPTANCE_REASON_CODES = {
+    CritiqueIssueType.MISSING_DATA: frozenset(
+        {
+            UnresolvedReasonCode.DATA_UNAVAILABLE,
+            UnresolvedReasonCode.DATA_INSUFFICIENT_FOR_SCOPE,
+            UnresolvedReasonCode.PERIOD_NOT_COVERED,
+        }
+    ),
+    CritiqueIssueType.MISSING_EVIDENCE: frozenset(
+        {
+            UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
+            UnresolvedReasonCode.EVIDENCE_INSUFFICIENT_FOR_SCOPE,
+        }
+    ),
+}
 
 
 class CritiqueResolution(StrEnum):
@@ -737,23 +755,51 @@ class QualityDimensionScores(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    groundedness: float = Field(ge=0.0, le=1.0)
-    cross_level_integration: float = Field(ge=0.0, le=1.0)
-    answer_coverage: float = Field(ge=0.0, le=1.0)
-    logical_soundness: float = Field(ge=0.0, le=1.0)
-    uncertainty_limitations: float = Field(ge=0.0, le=1.0)
-    analytical_usefulness: float = Field(ge=0.0, le=1.0)
+    groundedness: float | None = Field(ge=0.0, le=1.0)
+    cross_level_integration: float | None = Field(ge=0.0, le=1.0)
+    answer_coverage: float | None = Field(ge=0.0, le=1.0)
+    logical_soundness: float | None = Field(ge=0.0, le=1.0)
+    uncertainty_limitations: float | None = Field(ge=0.0, le=1.0)
+    analytical_usefulness: float | None = Field(ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def validate_applicable_scores(self) -> "QualityDimensionScores":
+        values = (
+            self.groundedness,
+            self.cross_level_integration,
+            self.answer_coverage,
+            self.logical_soundness,
+            self.uncertainty_limitations,
+            self.analytical_usefulness,
+        )
+        if not any(value is not None for value in values):
+            raise ValueError("quality scores must contain at least one applicable dimension")
+        if any(value is not None and not math.isfinite(value) for value in values):
+            raise ValueError("quality scores must be finite values")
+        return self
 
     def weighted_total(self, weights: QualityWeights) -> float:
         """Recompute the persisted quality total from canonical dimensions."""
 
+        values_and_weights = (
+            (self.groundedness, weights.groundedness),
+            (self.cross_level_integration, weights.cross_level_integration),
+            (self.answer_coverage, weights.answer_coverage),
+            (self.logical_soundness, weights.logical_soundness),
+            (self.uncertainty_limitations, weights.uncertainty_limitations),
+            (self.analytical_usefulness, weights.analytical_usefulness),
+        )
+        applicable = tuple(
+            (value, weight)
+            for value, weight in values_and_weights
+            if value is not None
+        )
+        applicable_weight_total = sum(weight for _, weight in applicable)
+        if not applicable or applicable_weight_total <= 0.0:
+            raise ValueError("quality total requires at least one applicable positive-weight dimension")
         return round(
-            self.groundedness * weights.groundedness
-            + self.cross_level_integration * weights.cross_level_integration
-            + self.answer_coverage * weights.answer_coverage
-            + self.logical_soundness * weights.logical_soundness
-            + self.uncertainty_limitations * weights.uncertainty_limitations
-            + self.analytical_usefulness * weights.analytical_usefulness,
+            sum(value * weight for value, weight in applicable)
+            / applicable_weight_total,
             12,
         )
 
@@ -831,8 +877,9 @@ class AcceptanceRound(BaseModel):
             if any(issue.severity is CritiqueSeverity.BLOCKER for issue in unresolved):
                 raise ValueError("limited acceptance cannot contain an unresolved BLOCKER")
             if any(
-                issue.issue_type
-                not in {CritiqueIssueType.MISSING_EVIDENCE}
+                issue.issue_type not in _LIMITED_ACCEPTANCE_REASON_CODES
+                or issue.unresolved_reason_code
+                not in _LIMITED_ACCEPTANCE_REASON_CODES[issue.issue_type]
                 for issue in unresolved
             ):
                 raise ValueError("limited acceptance only permits data/evidence availability deficiencies")

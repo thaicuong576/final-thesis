@@ -15,12 +15,18 @@ from typing import Iterable, Sequence
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .acceptance_resolver import Stage1DatasetResolver
-from .analysis_plan import AnalysisPlan, AnalysisRequirement, FulfillmentPolicy
+from .analysis_plan import (
+    AnalysisAgent,
+    AnalysisPlan,
+    AnalysisRequirement,
+    FulfillmentPolicy,
+)
 from .dataset_contract import CanonicalObservation
 from .schema import (
     AssertionType,
     AtomicClaim,
     ClaimDataRef,
+    CritiqueAction,
     CritiqueIssue,
     Stage1ValidationReport,
     StructuredAssertion,
@@ -43,7 +49,28 @@ class SemanticDimension(StrEnum):
     ANALYTICAL_USEFULNESS = "analytical_usefulness"
 
 
+class SemanticDimensionApplicability(StrEnum):
+    APPLICABLE = "APPLICABLE"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
 FROZEN_SEMANTIC_DIMENSIONS = frozenset(SemanticDimension)
+
+
+def expected_dimension_applicability(
+    plan: AnalysisPlan,
+) -> dict[SemanticDimension, SemanticDimensionApplicability]:
+    """Derive semantic applicability from the frozen plan, not the evaluator."""
+
+    return {
+        dimension: (
+            SemanticDimensionApplicability.APPLICABLE
+            if dimension is not SemanticDimension.CROSS_LEVEL_INTEGRATION
+            or bool(plan.applicable_links)
+            else SemanticDimensionApplicability.NOT_APPLICABLE
+        )
+        for dimension in SemanticDimension
+    }
 
 
 class SemanticDimensionResult(BaseModel):
@@ -52,7 +79,8 @@ class SemanticDimensionResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dimension: SemanticDimension
-    score: float = Field(ge=0.0, le=1.0)
+    applicability: SemanticDimensionApplicability = SemanticDimensionApplicability.APPLICABLE
+    score: float | None = Field(default=None, ge=0.0, le=1.0)
     rationale: str = Field(min_length=1)
     supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
     affected_requirement_ids: tuple[str, ...] = Field(default_factory=tuple)
@@ -60,8 +88,18 @@ class SemanticDimensionResult(BaseModel):
 
     @model_validator(mode="after")
     def validate_result(self) -> "SemanticDimensionResult":
-        if not math.isfinite(self.score):
-            raise ValueError("semantic score must be finite")
+        if self.applicability is SemanticDimensionApplicability.APPLICABLE:
+            if self.score is None:
+                raise ValueError("applicable semantic dimension requires a score")
+            if not math.isfinite(self.score):
+                raise ValueError("semantic score must be finite")
+        else:
+            if self.score is not None:
+                raise ValueError("not-applicable semantic dimension must not have a score")
+            if self.supporting_claim_ids or self.affected_requirement_ids or self.issue_ids:
+                raise ValueError(
+                    "not-applicable semantic dimension cannot carry claims, requirements, or issues"
+                )
         _unique(self.supporting_claim_ids, "supporting_claim_ids")
         _unique(self.affected_requirement_ids, "affected_requirement_ids")
         _unique(self.issue_ids, "issue_ids")
@@ -302,6 +340,14 @@ def deterministic_coverage_violations(
     violations: list[str] = []
     plan_requirement_ids = {item.requirement_id for item in plan.requirements}
     plan_link_ids = {item.link_id for item in plan.applicable_links}
+    expected_applicability = expected_dimension_applicability(plan)
+    active_agents = {
+        agent.value
+        for requirement in plan.requirements
+        for agent in requirement.required_agents
+        if agent != AnalysisAgent.ORCHESTRATOR
+    }
+    allowed_issue_agents = active_agents | {AnalysisAgent.ORCHESTRATOR.value}
     if dataset_resolver is not None:
         if plan.dataset_ref != dataset_resolver.dataset_ref:
             violations.append("analysis_plan_dataset_identity_mismatch")
@@ -327,6 +373,13 @@ def deterministic_coverage_violations(
     result_requirement_ids: list[str] = []
     result_issue_ids: list[str] = []
     for dimension in result.dimension_scores:
+        expected = expected_applicability[dimension.dimension]
+        if dimension.applicability is not expected:
+            violations.append(
+                "dimension_applicability_mismatch:"
+                f"{dimension.dimension.value}:expected={expected.value}:"
+                f"actual={dimension.applicability.value}"
+            )
         result_claim_ids.extend(dimension.supporting_claim_ids)
         result_requirement_ids.extend(dimension.affected_requirement_ids)
         result_issue_ids.extend(dimension.issue_ids)
@@ -338,10 +391,33 @@ def deterministic_coverage_violations(
     result_link_ids = [item.link_id for item in result.applicable_link_results]
     missing_link_ids = sorted(plan_link_ids - set(result_link_ids))
     violations.extend(f"omitted_link_result:{item}" for item in missing_link_ids)
+    issues_by_id = {issue.issue_id: issue for issue in result.critique_issues}
     for issue in result.critique_issues:
         result_claim_ids.extend(issue.affected_claim_ids)
         if issue.issue_id not in issue_ids:
             violations.append(f"unknown_issue_id:{issue.issue_id}")
+        if issue.affected_agent not in allowed_issue_agents:
+            violations.append(
+                f"issue_agent_not_active:{issue.issue_id}:{issue.affected_agent}"
+            )
+        if issue.required_action is CritiqueAction.RECONCILE_CROSS_LEVEL:
+            if not plan_link_ids:
+                violations.append(
+                    f"cross_level_reconciliation_requires_applicable_link:{issue.issue_id}"
+                )
+            linked_results = tuple(
+                link_result
+                for link_result in result.applicable_link_results
+                if issue.issue_id in link_result.issue_ids
+            )
+            if not linked_results:
+                violations.append(
+                    f"cross_level_issue_link_result_missing:{issue.issue_id}"
+                )
+            elif len(linked_results) > 1:
+                violations.append(
+                    f"cross_level_issue_link_result_ambiguous:{issue.issue_id}"
+                )
 
     violations.extend(
         f"unknown_claim_id:{item}"
@@ -358,6 +434,13 @@ def deterministic_coverage_violations(
     for issue in result.critique_issues:
         if issue.issue_id not in issue_ids:
             violations.append(f"unknown_issue_id:{issue.issue_id}")
+    for link_result in result.applicable_link_results:
+        for issue_id in link_result.issue_ids:
+            issue = issues_by_id.get(issue_id)
+            if issue is not None and issue.required_action is not CritiqueAction.RECONCILE_CROSS_LEVEL:
+                violations.append(
+                    f"undeclared_link_issue_relation:{link_result.link_id}:{issue_id}"
+                )
 
     numeric_gate_passed = None
     if stage1_report is not None:

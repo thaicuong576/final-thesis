@@ -94,3 +94,16 @@ textarea::placeholder { color: #87919a; opacity: 1; }
   .notice-action { @apply border border-[#c9a566] bg-white px-2.5 py-1.5 font-semibold text-[#6e5225] hover:bg-[#fff5df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b47a28]; }
   .notice-link { @apply px-2 py-1.5 font-semibold text-[#6e5225] underline underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b47a28]; }
 }
+
+@layer base {
+  :root {
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 25% 14%;
+    --sidebar-primary: 208 69% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 208 50% 94%;
+    --sidebar-accent-foreground: 208 69% 28%;
+    --sidebar-border: 210 12% 86%;
+    --sidebar-ring: 208 69% 36%;
+  }
+}

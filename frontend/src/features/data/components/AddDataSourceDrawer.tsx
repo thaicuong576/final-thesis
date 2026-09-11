@@ -1,4 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '../../../components/ui/alert';
+import { Button } from '../../../components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '../../../components/ui/sheet';
+import { Input } from '../../../components/ui/input';
+import { cn } from '../../../shared/lib/cn';
 import {
   AlertTriangle,
   ArrowRight,
@@ -9,10 +25,8 @@ import {
   FileText,
   Link2,
   Server,
-  X,
-  type LucideIcon
+  type LucideIcon,
 } from 'lucide-react';
-import { cn } from '../../../shared/lib/cn';
 
 interface AddDataSourceDrawerProps {
   open: boolean;
@@ -26,60 +40,17 @@ const sourceOptions: Array<{ label: SourceType; description: string; icon: Lucid
   { label: 'CSV / Excel', description: 'Tệp bảng dữ liệu', icon: FileSpreadsheet },
   { label: 'Database', description: 'Kết nối nguồn dữ liệu', icon: Server },
   { label: 'API', description: 'Nguồn dữ liệu tích hợp', icon: Link2 },
-  { label: 'Tài liệu', description: 'Báo cáo và văn bản', icon: FileText }
+  { label: 'Tài liệu', description: 'Báo cáo và văn bản', icon: FileText },
 ];
 
 const steps = ['Nguồn', 'Nhận diện dữ liệu', 'Kiểm tra', 'Xác nhận'];
 
 export function AddDataSourceDrawer({ open, onClose, onCreated }: AddDataSourceDrawerProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [sourceType, setSourceType] = useState<SourceType>('CSV / Excel');
   const [mappingEditing, setMappingEditing] = useState(false);
   const [showWarnings, setShowWarnings] = useState(false);
   const [datasetName, setDatasetName] = useState('Ngân hàng Việt Nam 2024');
-
-  useEffect(() => {
-    if (!open) return;
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeButtonRef.current?.focus();
-
-    function getFocusableElements() {
-      const dialog = closeButtonRef.current?.closest('[role="dialog"]');
-      if (!dialog) return [];
-      return [...dialog.querySelectorAll<HTMLElement>('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')]
-        .filter((element) => !element.hasAttribute('disabled'));
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const focusable = getFocusableElements();
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      previousFocusRef.current?.focus();
-    };
-  }, [onClose, open]);
-
-  if (!open) return null;
 
   function handleNext() {
     if (currentStep < steps.length) {
@@ -91,24 +62,12 @@ export function AddDataSourceDrawer({ open, onClose, onCreated }: AddDataSourceD
   }
 
   return (
-    <div className="fixed inset-0 z-50" role="presentation">
-      <button type="button" aria-label="Đóng thêm nguồn dữ liệu" className="absolute inset-0 cursor-default bg-ink/30" onClick={onClose} />
-      <aside
-        className="absolute right-0 top-0 flex h-full w-full max-w-[560px] flex-col border-l border-line bg-canvas shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="add-source-title"
-        tabIndex={-1}
-      >
-        <header className="flex items-start justify-between border-b border-line bg-white px-6 py-5">
-          <div>
-            <h2 id="add-source-title" className="font-display text-[28px] font-semibold leading-tight text-ink">Thêm nguồn dữ liệu</h2>
-            <p className="mt-1 text-xs leading-5 text-muted">Tạo một bộ dữ liệu có thể sử dụng trong phân tích.</p>
-          </div>
-          <button ref={closeButtonRef} type="button" aria-label="Đóng" onClick={onClose} className="rounded-sm p-2 text-muted transition hover:bg-selected hover:text-ink">
-            <X size={20} aria-hidden="true" />
-          </button>
-        </header>
+    <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
+      <SheetContent side="right" className="w-full max-w-[560px] gap-0 border-line bg-canvas p-0 sm:max-w-[560px]">
+        <SheetHeader className="border-b border-line bg-white px-6 py-5 text-left">
+          <SheetTitle className="font-display text-[28px] font-semibold leading-tight text-ink">Thêm nguồn dữ liệu</SheetTitle>
+          <SheetDescription className="mt-1 text-xs leading-5 text-muted">Tạo một bộ dữ liệu có thể sử dụng trong phân tích.</SheetDescription>
+        </SheetHeader>
 
         <nav aria-label="Các bước thêm nguồn dữ liệu" className="border-b border-line bg-white px-6 py-4">
           <ol className="grid grid-cols-4 gap-2">
@@ -119,10 +78,10 @@ export function AddDataSourceDrawer({ open, onClose, onCreated }: AddDataSourceD
               return (
                 <li key={step} className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className={cn('grid h-6 w-6 shrink-0 place-items-center border text-[11px] font-semibold', {
+                    <span className={cn('grid size-6 shrink-0 place-items-center border text-[11px] font-semibold', {
                       'border-[#1c5d9c] bg-[#1c5d9c] text-white': active,
                       'border-[#8db6d9] bg-[#edf5fb] text-[#1c5d9c]': complete,
-                      'border-line bg-white text-muted': !active && !complete
+                      'border-line bg-white text-muted': !active && !complete,
                     })}>
                       {complete ? <Check size={13} aria-hidden="true" /> : stepNumber}
                     </span>
@@ -142,16 +101,16 @@ export function AddDataSourceDrawer({ open, onClose, onCreated }: AddDataSourceD
           {currentStep === 4 && <ConfirmationStep datasetName={datasetName} onNameChange={setDatasetName} />}
         </div>
 
-        <footer className="flex items-center justify-between gap-3 border-t border-line bg-white px-6 py-4">
-          <button type="button" onClick={() => currentStep === 1 ? onClose() : setCurrentStep((step) => step - 1)} className="secondary-button">
-            {currentStep === 1 ? 'Hủy' : <><ChevronLeft size={15} aria-hidden="true" /> Quay lại</>}
-          </button>
-          <button type="button" onClick={handleNext} className="primary-button">
-            {currentStep === steps.length ? 'Tạo bộ dữ liệu' : <>Tiếp tục <ArrowRight size={15} aria-hidden="true" /></>}
-          </button>
-        </footer>
-      </aside>
-    </div>
+        <SheetFooter className="flex-row items-center justify-between gap-3 border-t border-line bg-white px-6 py-4 sm:justify-between">
+          <Button type="button" variant="outline" onClick={() => currentStep === 1 ? onClose() : setCurrentStep((step) => step - 1)} className="h-10 rounded-sm border-line text-xs font-semibold shadow-none">
+            {currentStep === 1 ? 'Hủy' : <><ChevronLeft data-icon="inline-start" aria-hidden="true" /> Quay lại</>}
+          </Button>
+          <Button type="button" onClick={handleNext} className="h-10 rounded-sm bg-ink px-4 text-xs font-semibold shadow-none hover:bg-[#263849]">
+            {currentStep === steps.length ? 'Tạo bộ dữ liệu' : <>Tiếp tục <ArrowRight data-icon="inline-end" aria-hidden="true" /></>}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -163,17 +122,16 @@ function SourceStep({ sourceType, onSelect }: { sourceType: SourceType; onSelect
         {sourceOptions.map(({ label, description, icon: Icon }) => {
           const selected = label === sourceType;
           return (
-            <button key={label} type="button" aria-pressed={selected} onClick={() => onSelect(label)} className={cn('flex min-h-[112px] items-start gap-3 border bg-white p-4 text-left transition hover:border-[#8db6d9] hover:bg-[#f7fafc]', selected ? 'border-[#1c5d9c] bg-[#f5f8fb]' : 'border-line')}>
-              <span className={cn('grid h-9 w-9 shrink-0 place-items-center border', selected ? 'border-[#8db6d9] bg-white text-[#1c5d9c]' : 'border-line text-muted')}><Icon size={18} aria-hidden="true" /></span>
+            <Button key={label} type="button" variant="outline" aria-pressed={selected} onClick={() => onSelect(label)} className={cn('h-auto min-h-[112px] items-start justify-start gap-3 whitespace-normal rounded-sm border bg-white p-4 text-left shadow-none hover:border-[#8db6d9] hover:bg-[#f7fafc]', selected ? 'border-[#1c5d9c] bg-[#f5f8fb]' : 'border-line')}>
+              <span className={cn('grid size-9 shrink-0 place-items-center border', selected ? 'border-[#8db6d9] bg-white text-[#1c5d9c]' : 'border-line text-muted')}><Icon size={18} aria-hidden="true" /></span>
               <span><span className="block text-sm font-semibold text-ink">{label}</span><span className="mt-1 block text-xs leading-5 text-muted">{description}</span></span>
-            </button>
+            </Button>
           );
         })}
       </div>
-      <div className="mt-6 border border-[#d7e5ef] bg-[#f5f8fb] px-4 py-3 text-xs leading-5 text-[#41637e]">
-        <p className="font-semibold text-ink">Nguồn được xử lý theo cùng một nguyên tắc</p>
-        <p className="mt-1">Hệ thống nhận diện dữ liệu, kiểm tra chất lượng rồi tạo bộ dữ liệu cho phân tích.</p>
-      </div>
+      <Alert className="mt-6 rounded-sm border-[#d7e5ef] bg-[#f5f8fb] text-[#41637e]">
+        <AlertDescription><p className="font-semibold text-ink">Nguồn được xử lý theo cùng một nguyên tắc</p><p className="mt-1">Hệ thống nhận diện dữ liệu, kiểm tra chất lượng rồi tạo bộ dữ liệu cho phân tích.</p></AlertDescription>
+      </Alert>
     </section>
   );
 }
@@ -184,7 +142,7 @@ function MappingStep({ editing, onToggleEditing }: { editing: boolean; onToggleE
     { source: 'Quarter', label: 'Kỳ dữ liệu', valid: true },
     { source: 'NPL Ratio', label: 'NPL', valid: true },
     { source: 'ROE (%)', label: 'ROE', valid: true },
-    { source: 'Unnamed_12', label: 'Chưa xác định', valid: false }
+    { source: 'Unnamed_12', label: 'Chưa xác định', valid: false },
   ];
 
   return (
@@ -201,7 +159,7 @@ function MappingStep({ editing, onToggleEditing }: { editing: boolean; onToggleE
       </div>
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="text-xs leading-5 text-muted">Tên cột được hiển thị bằng thuật ngữ nghiệp vụ để dễ kiểm tra.</p>
-        <button type="button" onClick={onToggleEditing} className="secondary-button shrink-0">{editing ? 'Lưu mapping' : 'Điều chỉnh mapping'}</button>
+        <Button type="button" variant="outline" onClick={onToggleEditing} className="h-9 shrink-0 rounded-sm border-line text-xs font-semibold shadow-none">{editing ? 'Lưu mapping' : 'Điều chỉnh mapping'}</Button>
       </div>
     </section>
   );
@@ -220,8 +178,8 @@ function ValidationStep({ showWarnings, onToggleWarnings }: { showWarnings: bool
           <ValidationRow icon={<CheckCircle2 size={16} />} tone="ready" text="Đơn vị dữ liệu hợp lệ" />
         </div>
       </div>
-      <button type="button" onClick={onToggleWarnings} className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#1c5d9c] underline decoration-[#a8c5df] underline-offset-4">{showWarnings ? 'Ẩn cảnh báo' : 'Tìm hiểu 4 cảnh báo'}</button>
-      {showWarnings && <div className="mt-3 border border-[#ead6b5] bg-[#fffaf1] px-4 py-3 text-xs leading-5 text-[#6e5225]" role="status"><p className="font-semibold">4 giá trị thiếu chưa được điền tự động.</p><p className="mt-1">Bạn có thể tiếp tục tạo bộ dữ liệu và công bố giới hạn này trong báo cáo.</p></div>}
+      <Button type="button" variant="link" onClick={onToggleWarnings} className="mt-3 h-auto px-0 text-xs font-semibold text-[#1c5d9c] underline decoration-[#a8c5df] underline-offset-4">{showWarnings ? 'Ẩn cảnh báo' : 'Tìm hiểu 4 cảnh báo'}</Button>
+      {showWarnings && <Alert className="mt-3 rounded-sm border-[#ead6b5] bg-[#fffaf1] text-[#6e5225]" role="status"><AlertTitle className="text-sm text-ink">4 giá trị thiếu chưa được điền tự động.</AlertTitle><AlertDescription className="mt-1 text-xs leading-5">Bạn có thể tiếp tục tạo bộ dữ liệu và công bố giới hạn này trong báo cáo.</AlertDescription></Alert>}
     </section>
   );
 }
@@ -231,7 +189,7 @@ function ConfirmationStep({ datasetName, onNameChange }: { datasetName: string; 
     <section aria-labelledby="confirmation-step-heading">
       <StepHeading title="Xác nhận bộ dữ liệu" helper="Kiểm tra phạm vi được nhận diện trước khi tạo bộ dữ liệu." />
       <label htmlFor="dataset-name" className="mt-5 block text-sm font-semibold text-ink">Tên bộ dữ liệu</label>
-      <input id="dataset-name" value={datasetName} onChange={(event) => onNameChange(event.target.value)} className="field-control mt-2" />
+      <Input id="dataset-name" value={datasetName} onChange={(event) => onNameChange(event.target.value)} className="mt-2 h-10 rounded-sm border-line bg-white text-sm shadow-none focus-visible:ring-[#dceaf5]" />
       <div className="mt-6 divide-y divide-line border-y border-line bg-white">
         <CoverageRow label="Doanh nghiệp" value="ACB · TCB · MBB · VCB · VPB" />
         <CoverageRow label="Thời gian" value="Q1 · Q2 · Q3 · Q4 2024" />

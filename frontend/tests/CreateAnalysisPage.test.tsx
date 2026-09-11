@@ -1,193 +1,203 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateAnalysisPage } from '../src/pages/create-analysis/CreateAnalysisPage';
 import { analysisService } from '../src/entities/analysis/api/analysisService';
-import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
-import { analysisRequestSchema } from '../src/features/create-analysis/schema';
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<MemoryRouter initialEntries={['/analysis']}><QueryClientProvider client={client}><CreateAnalysisPage /></QueryClientProvider></MemoryRouter>);
+  return render(
+    <MemoryRouter initialEntries={['/analysis']}>
+      <QueryClientProvider client={client}>
+        <CreateAnalysisPage />
+      </QueryClientProvider>
+    </MemoryRouter>
+  );
 }
 
-async function fillValidScope(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByRole('heading', { name: 'Tạo phân tích' });
-  await user.click(await screen.findByLabelText('ACB'));
-  await user.click(await screen.findByLabelText('Q1/2024'));
-  await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-  await user.type(await screen.findByLabelText(/Mục tiêu phân tích/), 'So sánh chất lượng tài sản của ACB trong Q1/2024.');
-}
-
-describe('CreateAnalysisPage', () => {
+describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('keeps the CTA disabled for an invalid empty form', async () => {
+  it('passes the 10-second acceptance test: shows active dataset context and hero composer without form-heavy controls', async () => {
     renderPage();
-    expect(await screen.findByRole('button', { name: 'Chạy phân tích' })).toBeDisabled();
+
+    // 1. Which data source will be used? Answered immediately
+    expect(await screen.findByText('Ngân hàng Việt Nam 2024')).toBeInTheDocument();
+    expect(screen.getByText('Sẵn sàng')).toBeInTheDocument();
+    expect(screen.getByText(/ACB · TCB · VPB · MBB · VCB/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Q1–Q4\/2024/).length).toBeGreaterThanOrEqual(1);
+
+    // 2. Where do I ask my analytical question?
+    expect(screen.getByRole('heading', { name: 'Bạn muốn phân tích điều gì?' })).toBeInTheDocument();
+    const composer = screen.getByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    expect(composer).toBeInTheDocument();
+
+    // 3. CTA is disabled when empty
+    expect(screen.getByRole('button', { name: /Bắt đầu phân tích/ })).toBeDisabled();
+
+    // 4. Structured scope checkboxes must NOT dominate the initial screen
+    expect(screen.queryByLabelText('ACB')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Q1/2024')).not.toBeInTheDocument();
   });
 
-  it('enforces the 500-character objective boundary in the schema and field', async () => {
-    renderPage();
-    const objective = await screen.findByLabelText(/Mục tiêu phân tích/);
-
-    expect(objective).toHaveAttribute('maxLength', '500');
-    expect(analysisRequestSchema.safeParse({
-      objective: 'x'.repeat(501),
-      analysisTargetIds: ['acb'],
-      periodIds: ['2024-q1'],
-      metricIds: ['npl']
-    }).success).toBe(false);
-  });
-
-  it('enables the CTA for a valid request', async () => {
+  it('renders suggested analytical prompts and populates the question', async () => {
     const user = userEvent.setup();
     renderPage();
-    await fillValidScope(user);
-    expect(screen.getByRole('button', { name: 'Chạy phân tích' })).toBeEnabled();
-  });
 
-  it('selects default metrics from a topic preset in the request state', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-    await user.click(await screen.findByRole('button', { name: /Tùy chỉnh chỉ tiêu/ }));
-    expect(screen.getByLabelText(/NPL — Tỷ lệ nợ xấu/)).toBeChecked();
-    expect(screen.getByLabelText(/Coverage — Tỷ lệ bao phủ nợ xấu/)).toBeChecked();
-  });
-
-  it('supports custom metric selection and restoring defaults', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-    await user.click(await screen.findByRole('button', { name: /Tùy chỉnh chỉ tiêu/ }));
-    await user.click(await screen.findByLabelText(/ROA — Tỷ suất sinh lời trên tài sản/));
-    expect(await screen.findByLabelText(/ROA — Tỷ suất sinh lời trên tài sản/)).toBeChecked();
-    await user.click(await screen.findByRole('button', { name: /Khôi phục mặc định/ }));
-    expect(await screen.findByLabelText(/ROA — Tỷ suất sinh lời trên tài sản/)).not.toBeChecked();
-  });
-
-  it('preserves manually kept metrics when their topic is deselected', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-    await user.click(await screen.findByRole('button', { name: /Tùy chỉnh chỉ tiêu/ }));
-
-    const npl = screen.getByLabelText(/NPL — Tỷ lệ nợ xấu/);
-    await user.click(npl);
-    await user.click(npl);
-    await user.click(screen.getByLabelText(/ROA — Tỷ suất sinh lời trên tài sản/));
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-
-    expect(screen.getByLabelText(/NPL — Tỷ lệ nợ xấu/)).toBeChecked();
-    expect(screen.getByLabelText(/Coverage — Tỷ lệ bao phủ nợ xấu/)).not.toBeChecked();
-    expect(screen.getByLabelText(/ROA — Tỷ suất sinh lời trên tài sản/)).toBeChecked();
-  });
-
-  it('renders capability counts and period labels from the capability response', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue({
-      ...mockCapabilities,
-      entities: mockCapabilities.entities.slice(0, 2),
-      periods: mockCapabilities.periods.slice(0, 2),
-      metrics: mockCapabilities.metrics.slice(0, 1),
-      topics: [{ ...mockCapabilities.topics[0], metricIds: ['npl'] }]
+    const suggestion = await screen.findByRole('button', {
+      name: /Chất lượng tài sản ACB, TCB, MBB/
     });
-    renderPage();
-    await screen.findByRole('heading', { name: 'Tạo phân tích' });
+    expect(suggestion).toBeInTheDocument();
 
-    expect(screen.getByText('2 ngân hàng')).toBeInTheDocument();
-    expect(screen.getByText('Q1–Q2/2024')).toBeInTheDocument();
-    expect(screen.getByText('1 chỉ tiêu')).toBeInTheDocument();
-    expect(screen.getAllByText('0/2 đã chọn')).toHaveLength(2);
-    expect(screen.getByLabelText('Q1/2024')).toBeInTheDocument();
-    expect(screen.getByLabelText('Q2/2024')).toBeInTheDocument();
+    await user.click(suggestion);
+
+    // Clicking a suggestion submits the question and moves to Interpretation state
+    expect(await screen.findByText('Hệ thống hiểu yêu cầu')).toBeInTheDocument();
+    expect(screen.getByText('Xác nhận kế hoạch phân tích')).toBeInTheDocument();
+    expect(screen.getByText(/ACB · TCB · MBB/)).toBeInTheDocument();
   });
 
-  it('generates a bounded suggested objective', async () => {
+  it('correctly produces Company-only interpretation without unselected capabilities', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByLabelText('ACB'));
-    await user.click(await screen.findByLabelText('Q1/2024'));
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-    await user.click(await screen.findByRole('button', { name: 'Dùng mục tiêu gợi ý' }));
-    expect(await screen.findByLabelText(/Mục tiêu phân tích/)).toHaveValue('Phân tích NPL và Coverage của ACB trong Q1/2024, đồng thời đối chiếu với nhóm tham chiếu 5 ngân hàng đã được xác thực.');
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'ROE của TCB thay đổi thế nào trong năm 2024?');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    // Interpreted state
+    expect(await screen.findByText('Hệ thống hiểu yêu cầu')).toBeInTheDocument();
+    expect(screen.getByText('Xác nhận kế hoạch phân tích')).toBeInTheDocument();
+
+    // Scope recognition
+    expect(screen.getByText('Phạm vi hệ thống nhận diện')).toBeInTheDocument();
+    expect(screen.getByText('TCB · Q1–Q4/2024 · ROE')).toBeInTheDocument();
+
+    // Query-adaptive capabilities
+    expect(screen.getByText('Phân tích sẽ sử dụng')).toBeInTheDocument();
+    expect(screen.getByText('Phân tích doanh nghiệp')).toBeInTheDocument();
+
+    // Unselected capabilities must NOT be displayed
+    expect(screen.queryByText('Nhóm tham chiếu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Bối cảnh vĩ mô')).not.toBeInTheDocument();
   });
 
-  it('does not silently overwrite an edited objective after scope changes', async () => {
+  it('correctly produces Company + Peer interpretation for comparative questions', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByLabelText('ACB'));
-    await user.click(await screen.findByLabelText('Q1/2024'));
-    await user.click(await screen.findByRole('button', { name: /Chất lượng tài sản/ }));
-    await user.click(await screen.findByRole('button', { name: 'Dùng mục tiêu gợi ý' }));
-    const objective = await screen.findByLabelText(/Mục tiêu phân tích/);
-    fireEvent.change(objective, { target: { value: 'Mục tiêu đã được chỉnh sửa bởi chuyên gia.' } });
-    await user.click(await screen.findByLabelText('TCB'));
-    expect(objective).toHaveValue('Mục tiêu đã được chỉnh sửa bởi chuyên gia.');
-    expect(screen.getByText('Phạm vi đã thay đổi. Mục tiêu hiện tại có thể không còn phản ánh lựa chọn mới.')).toBeInTheDocument();
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'TCB sinh lời tốt hơn hay kém nhóm so sánh?');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    // Interpreted state
+    expect(await screen.findByText('Hệ thống hiểu yêu cầu')).toBeInTheDocument();
+    expect(screen.getByText('Phân tích sẽ sử dụng')).toBeInTheDocument();
+
+    // Both Company and Peer must be displayed
+    expect(screen.getByText('Phân tích doanh nghiệp')).toBeInTheDocument();
+    expect(screen.getByText('Nhóm tham chiếu')).toBeInTheDocument();
+
+    // Macro is unselected and must NOT be displayed
+    expect(screen.queryByText('Bối cảnh vĩ mô')).not.toBeInTheDocument();
   });
 
-  it('blocks submit when Macro is unavailable', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue({
-      ...mockCapabilities,
-      macro: { ...mockCapabilities.macro, status: 'UNAVAILABLE', minimumContractSatisfied: false }
-    });
+  it('transitions to Scope Mismatch state with clear recovery options when request is unsupported', async () => {
     const user = userEvent.setup();
     renderPage();
-    await fillValidScope(user);
-    expect(screen.getByRole('button', { name: 'Chạy phân tích' })).toBeDisabled();
-    expect(screen.getByText('Chưa thể chạy')).toBeInTheDocument();
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'So sánh chỉ số EPS năm 2023 của VCB.');
+
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    // Mismatch state
+    expect(
+      await screen.findByText('Phạm vi yêu cầu chưa được hỗ trợ trong bộ dữ liệu này')
+    ).toBeInTheDocument();
+    expect(screen.getByText(/không có chỉ số EPS và chu kỳ năm 2023/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Chỉnh câu hỏi/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Đổi nguồn dữ liệu/ })).toHaveLength(2);
+
+    // Recovery action: clicking "Chỉnh câu hỏi" returns to composer
+    await user.click(screen.getByRole('button', { name: /Chỉnh câu hỏi/ }));
+    expect(screen.getByRole('heading', { name: 'Bạn muốn phân tích điều gì?' })).toBeInTheDocument();
   });
 
-  it('submits the capability snapshot and peer universe without client-owned Macro state', async () => {
+  it('opens the contextual DatasetSelectorSheet when clicking "Đổi nguồn dữ liệu"', async () => {
     const user = userEvent.setup();
-    const submit = vi.spyOn(analysisService, 'submit').mockResolvedValue({
+    renderPage();
+
+    const switchBtn = await screen.findByRole('button', { name: 'Đổi nguồn dữ liệu' });
+    await user.click(switchBtn);
+
+    // Dataset Selector Sheet
+    expect(await screen.findByText('Nguồn dữ liệu phân tích')).toBeInTheDocument();
+    expect(screen.getByText('Ngân hàng Việt Nam 2020–2023')).toBeInTheDocument();
+    expect(screen.getByText('Thêm / kết nối nguồn dữ liệu')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Kết nối nguồn mới' })).toBeInTheDocument();
+  });
+
+  it('submits analysis request and confirms execution when analyst confirms interpreted scope', async () => {
+    const user = userEvent.setup();
+    const submitSpy = vi.spyOn(analysisService, 'submit').mockResolvedValue({
       status: 'CLIENT_VALIDATED',
       readyForBackendSubmission: true,
-      requestId: 'test-request',
-      message: 'Đã kiểm tra phạm vi phía giao diện.'
+      requestId: 'test-req-123',
+      message: 'Yêu cầu đã được xác nhận. Bắt đầu phân tích đa tác tử.'
     });
-    renderPage();
-    await fillValidScope(user);
-    await user.click(screen.getByRole('button', { name: 'Chạy phân tích' }));
 
-    expect(submit).toHaveBeenCalledWith(expect.objectContaining({
-      capabilitySnapshotId: mockCapabilities.snapshotId,
-      peerUniverseId: mockCapabilities.peerUniverse.id
-    }));
-    expect(submit.mock.calls[0][0]).not.toHaveProperty('macroStatus');
+    renderPage();
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'So sánh chất lượng tài sản của ACB và TCB năm 2024.');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    const confirmBtn = await screen.findByRole('button', { name: /Xác nhận & phân tích/ });
+    await user.click(confirmBtn);
+
+    expect(submitSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        objective: 'So sánh chất lượng tài sản của ACB và TCB năm 2024.',
+        analysisTargetIds: ['acb', 'tcb'],
+        capabilitySnapshotId: mockCapabilities.snapshotId,
+        peerUniverseId: mockCapabilities.peerUniverse.id
+      })
+    );
+
+    expect(await screen.findByText('Khởi tạo quy trình thành công')).toBeInTheDocument();
   });
 
-  it('reflects the form state in the request summary', async () => {
+  it('opens ScopeAdjustmentDrawer and allows fine-tuning entities, metrics, and analytical capabilities', async () => {
     const user = userEvent.setup();
     renderPage();
-    await fillValidScope(user);
-    const summary = screen.getByRole('complementary', { name: 'Tóm tắt yêu cầu' });
-    expect(summary).toHaveTextContent('ACB');
-    expect(summary).toHaveTextContent('Q1/2024');
-    expect(summary).toHaveTextContent('NPL · Coverage');
-  });
 
-  it('traps focus in the capability drawer and restores focus after Escape', async () => {
-    const user = userEvent.setup();
-    renderPage();
-    const openButton = await screen.findByRole('button', { name: /Xem chi tiết phạm vi dữ liệu/ });
-    await user.click(openButton);
-    const closeButton = await screen.findByRole('button', { name: 'Đóng' });
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'So sánh chất lượng tài sản của ACB năm 2024.');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
 
-    expect(closeButton).toHaveFocus();
-    await user.tab();
-    expect(closeButton).toHaveFocus();
-    await user.tab({ shift: true });
-    expect(closeButton).toHaveFocus();
-    await user.keyboard('{Escape}');
+    const adjustBtn = await screen.findByRole('button', { name: /Chỉnh phạm vi/ });
+    await user.click(adjustBtn);
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(openButton).toHaveFocus();
+    // Drawer is open
+    expect(await screen.findByText('Chỉnh phạm vi phân tích')).toBeInTheDocument();
+    expect(
+      screen.getByText('Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động.')
+    ).toBeInTheDocument();
+
+    // Toggle TCB
+    const tcbChip = screen.getByRole('button', { name: 'TCB' });
+    await user.click(tcbChip);
+
+    // Save changes
+    const saveBtn = screen.getByRole('button', { name: 'Lưu thay đổi' });
+    await user.click(saveBtn);
+
+    // Inferred summary updated
+    expect(screen.getByText(/ACB · TCB · Q1–Q4\/2024/)).toBeInTheDocument();
   });
 });

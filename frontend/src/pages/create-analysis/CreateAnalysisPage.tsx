@@ -1,171 +1,232 @@
-import { useCallback, useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import type { AnalysisRequest } from '../../entities/analysis/model/types';
-import type { AnalysisCapabilities } from '../../entities/capability/model/types';
-import { analysisService } from '../../entities/analysis/api/analysisService';
-import { AnalysisIntentSection } from '../../features/create-analysis/components/AnalysisIntentSection';
-import { CapabilityDetailsDrawer } from '../../features/create-analysis/components/CapabilityDetailsDrawer';
-import { CapabilitySummaryBar } from '../../features/create-analysis/components/CapabilitySummaryBar';
-import { RequestSummary } from '../../features/create-analysis/components/RequestSummary';
-import { ScopeSelectors } from '../../features/create-analysis/components/ScopeSelectors';
-import { SystemContextSection } from '../../features/create-analysis/components/SystemContextSection';
-import { TopicMetricSelector } from '../../features/create-analysis/components/TopicMetricSelector';
-import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
-import { generateSuggestedObjective, getScopeSignature, hasPossibleObjectiveMismatch } from '../../features/create-analysis/model/objective';
-import { analysisRequestSchema, type AnalysisFormValues } from '../../features/create-analysis/schema';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
-
-const defaultValues: AnalysisFormValues = {
-  objective: '',
-  analysisTargetIds: [],
-  periodIds: [],
-  metricIds: []
-};
+import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
+import { analysisService } from '../../entities/analysis/api/analysisService';
+import type { AnalysisRequest } from '../../entities/analysis/model/types';
+import {
+  ActiveDatasetCard,
+  HeroComposer,
+  SuggestedQuestions,
+  RecentReportsSummary,
+  RequestInterpretationCard,
+  ScopeMismatchAlert,
+  DatasetSelectorSheet,
+  ScopeAdjustmentDrawer,
+  parseAnalysisQuestion,
+  type ParseResult,
+  type ParsedScope,
+  type Screen1Mode
+} from '../../features/analysis-composer';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { CheckCircle2 } from 'lucide-react';
 
 export function CreateAnalysisPage() {
   const capabilitiesQuery = useAnalysisCapabilities();
-  const capabilitiesData = capabilitiesQuery.data;
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
-  const [manualMetricOverrides, setManualMetricOverrides] = useState<Record<string, boolean>>({});
-  const [objectiveState, setObjectiveState] = useState<{ text: string; signature: string } | null>(null);
-  const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
+  const capabilities = capabilitiesQuery.data;
+
+  const [mode, setMode] = useState<Screen1Mode>('DEFAULT');
+  const [currentQuestion, setCurrentQuestion] = useState<string>('');
+  const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [datasetSelectorOpen, setDatasetSelectorOpen] = useState(false);
+  const [scopeDrawerOpen, setScopeDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const form = useForm<AnalysisFormValues>({
-    resolver: zodResolver(analysisRequestSchema),
-    mode: 'onChange',
-    defaultValues
-  });
-  const values = useWatch({ control: form.control });
-  const objective = values.objective ?? '';
+  const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
 
-  const scopeSignature = useMemo(() => getScopeSignature({
-    analysisTargetIds: values.analysisTargetIds ?? [],
-    periodIds: values.periodIds ?? [],
-    metricIds: values.metricIds ?? []
-  }), [values.analysisTargetIds, values.periodIds, values.metricIds]);
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && capabilities && mode === 'DEFAULT') {
+      handleQuestionSubmit(q);
+    }
+  }, [searchParams, capabilities, mode]);
 
-  const scopeChangedNotice = Boolean(objectiveState && objectiveState.signature !== scopeSignature);
-  const canSuggest = Boolean((values.analysisTargetIds?.length ?? 0) > 0 && (values.periodIds?.length ?? 0) > 0 && (values.metricIds?.length ?? 0) > 0 && capabilitiesData);
-  const closeDetails = useCallback(() => setDetailsOpen(false), []);
-
-  if (capabilitiesQuery.isPending) return <WorkspaceShell activeSection="analysis"><LoadingState /></WorkspaceShell>;
-  if (capabilitiesQuery.isError || !capabilitiesData) return <WorkspaceShell activeSection="analysis"><ErrorState /></WorkspaceShell>;
-  const capabilities = capabilitiesData;
-
-  function applySuggestedObjective() {
-    const nextValues = form.getValues();
-    const text = generateSuggestedObjective(nextValues, capabilities);
-    form.setValue('objective', text, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setObjectiveState({ text, signature: getScopeSignature(nextValues) });
-    setSubmissionMessage(null);
+  if (capabilitiesQuery.isPending) {
+    return (
+      <WorkspaceShell activeSection="analysis">
+        <LoadingState />
+      </WorkspaceShell>
+    );
   }
 
-  function handleTopicToggle(topicId: string) {
-    const topic = capabilities.topics.find((item) => item.id === topicId);
-    if (!topic) return;
-    const isSelected = selectedTopicIds.includes(topicId);
-    const currentMetrics = form.getValues('metricIds');
-    const nextMetrics = isSelected
-      ? currentMetrics.filter((metricId) => !topic.metricIds.includes(metricId) || manualMetricOverrides[metricId] !== undefined)
-      : [...new Set([...currentMetrics, ...topic.metricIds.filter((metricId) => manualMetricOverrides[metricId] !== false)])];
-    setSelectedTopicIds(isSelected ? selectedTopicIds.filter((id) => id !== topicId) : [...selectedTopicIds, topicId]);
-    form.setValue('metricIds', nextMetrics, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setSubmissionMessage(null);
+  if (capabilitiesQuery.isError || !capabilities) {
+    return (
+      <WorkspaceShell activeSection="analysis">
+        <ErrorState />
+      </WorkspaceShell>
+    );
   }
 
-  function handleManualMetricToggle(metricId: string) {
-    const isSelected = form.getValues('metricIds').includes(metricId);
-    const nextMetrics = isSelected
-      ? form.getValues('metricIds').filter((id) => id !== metricId)
-      : [...form.getValues('metricIds'), metricId];
-    setManualMetricOverrides((current) => ({ ...current, [metricId]: !isSelected }));
-    form.setValue('metricIds', nextMetrics, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-    setSubmissionMessage(null);
+  function handleQuestionSubmit(question: string) {
+    if (!capabilities) return;
+    setCurrentQuestion(question);
+    setSubmissionSuccessMessage(null);
+
+    const result = parseAnalysisQuestion(question, capabilities);
+    setParseResult(result);
+
+    if (result.mismatch.isMismatch) {
+      setMode('MISMATCH');
+    } else {
+      setMode('INTERPRETED');
+    }
   }
 
-  function restoreDefaultMetrics() {
-    const nextMetrics = capabilities.topics.filter((topic) => selectedTopicIds.includes(topic.id)).flatMap((topic) => topic.metricIds);
-    setManualMetricOverrides({});
-    form.setValue('metricIds', [...new Set(nextMetrics)], { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  function handleSelectSuggestion(promptText: string) {
+    handleQuestionSubmit(promptText);
   }
 
-  function keepCurrentObjective() {
-    setObjectiveState(null);
+  function handleScopeOverride(updatedScope: ParsedScope) {
+    if (!parseResult) return;
+    setParseResult({
+      ...parseResult,
+      scope: updatedScope
+    });
   }
 
-  async function submitAnalysis() {
-    const isValid = await form.trigger();
-    if (!isValid || capabilities.macro.status === 'UNAVAILABLE') return;
+  async function handleConfirmAndAnalyze() {
+    if (!capabilities || !parseResult) return;
+    const isMacroSelected = parseResult.scope.analysisPlan.selectedCapabilities.some((c) => c.id === 'macro');
+    if (isMacroSelected && capabilities.macro.status === 'UNAVAILABLE') return;
+
     setIsSubmitting(true);
-    setSubmissionMessage(null);
-    const formValues = form.getValues();
-    const request: AnalysisRequest = {
-      ...formValues,
-      capabilitySnapshotId: capabilities.snapshotId,
-      peerUniverseId: capabilities.peerUniverse.id
-    };
-    const receipt = await analysisService.submit(request);
-    setSubmissionMessage(receipt.message);
-    setIsSubmitting(false);
+    try {
+      const request: AnalysisRequest = {
+        objective: parseResult.rawQuestion,
+        analysisTargetIds: parseResult.scope.entities.map((e) => e.id),
+        periodIds: parseResult.scope.periods.map((p) => p.id),
+        metricIds: parseResult.scope.metrics.map((m) => m.id),
+        capabilitySnapshotId: capabilities.snapshotId,
+        peerUniverseId: capabilities.peerUniverse.id
+      };
+
+      const receipt = await analysisService.submit(request);
+      setSubmissionSuccessMessage(
+        receipt.message ||
+          'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <WorkspaceShell
       activeSection="analysis"
-      context={<AnalysisContextBar capabilities={capabilities} onOpenDetails={() => setDetailsOpen(true)} />}
-    >
-      <div className="min-h-screen bg-canvas text-ink">
-        <div className="mx-auto max-w-[1440px] px-5 pb-12 pt-4 lg:px-9 lg:pt-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); void submitAnalysis(); }} noValidate>
-              <AnalysisIntentSection
-                control={form.control}
-                errors={form.formState.errors}
-                register={form.register}
-                canSuggest={canSuggest}
-                objectiveWasEdited={Boolean(objectiveState && objective !== objectiveState.text)}
-                scopeChangedNotice={scopeChangedNotice}
-                possibleMismatch={hasPossibleObjectiveMismatch(objective, capabilities, { analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] })}
-                onSuggest={applySuggestedObjective}
-                onUpdateSuggestion={applySuggestedObjective}
-                onKeepObjective={keepCurrentObjective}
-              />
-              <ScopeSelectors capabilities={capabilities} errors={form.formState.errors} setValue={form.setValue} watch={form.watch} />
-              <TopicMetricSelector capabilities={capabilities} errors={form.formState.errors} watch={form.watch} selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} onManualMetricToggle={handleManualMetricToggle} onRestoreDefaults={restoreDefaultMetrics} />
-              <SystemContextSection capabilities={capabilities} />
-            </form>
-
-            <RequestSummary capabilities={capabilities} values={{ objective, analysisTargetIds: values.analysisTargetIds ?? [], periodIds: values.periodIds ?? [], metricIds: values.metricIds ?? [] }} isValid={form.formState.isValid} isSubmitting={isSubmitting} submissionMessage={submissionMessage} onSubmit={() => void submitAnalysis()} />
+      context={
+        <div className="mx-auto w-full max-w-[1200px] px-5 py-2.5 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted">
+              <span>Không gian làm việc</span>
+              <span>/</span>
+              <span className="font-semibold text-ink">Phân tích tài chính</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted">
+              <span className="w-2 h-2 rounded-full bg-[#2f6f5e]" aria-hidden="true" />
+              <span>Hệ thống phân tích cấp bậc sẵn sàng</span>
+            </div>
           </div>
         </div>
+      }
+    >
+      <div className="min-h-[calc(100vh-100px)] bg-canvas py-6 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          {/* Active Dataset Anchor Card */}
+          <ActiveDatasetCard
+            capabilities={capabilities}
+            onOpenSelector={() => setDatasetSelectorOpen(true)}
+          />
 
-        <CapabilityDetailsDrawer capabilities={capabilities} open={detailsOpen} onClose={closeDetails} />
+          {/* Submission Success Banner */}
+          {submissionSuccessMessage && (
+            <Alert className="border-[#bce2d3] bg-[#edf7f3] text-[#2f6f5e]">
+              <CheckCircle2 className="h-4 w-4 text-[#2f6f5e]" />
+              <AlertTitle className="text-xs font-semibold">Khởi tạo quy trình thành công</AlertTitle>
+              <AlertDescription className="text-xs text-ink mt-1">
+                {submissionSuccessMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* SCREEN 1 STATE MACHINE */}
+          {mode === 'DEFAULT' && (
+            <div className="space-y-6">
+              <HeroComposer
+                initialQuestion={currentQuestion}
+                onSubmit={handleQuestionSubmit}
+                isSubmitting={isSubmitting}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <SuggestedQuestions onSelectPrompt={handleSelectSuggestion} />
+                <RecentReportsSummary />
+              </div>
+            </div>
+          )}
+
+          {mode === 'INTERPRETED' && parseResult && (
+            <div className="space-y-4">
+              <RequestInterpretationCard
+                parseResult={parseResult}
+                onConfirm={handleConfirmAndAnalyze}
+                onOpenScopeAdjustment={() => setScopeDrawerOpen(true)}
+                onEditQuestion={() => setMode('DEFAULT')}
+                isConfirming={isSubmitting}
+              />
+            </div>
+          )}
+
+          {mode === 'MISMATCH' && parseResult && (
+            <div className="space-y-4">
+              <ScopeMismatchAlert
+                mismatch={parseResult.mismatch}
+                rawQuestion={parseResult.rawQuestion}
+                onEditQuestion={() => setMode('DEFAULT')}
+                onOpenDatasetSelector={() => setDatasetSelectorOpen(true)}
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* CONTEXTUAL MODALS / DRAWERS */}
+      <DatasetSelectorSheet
+        open={datasetSelectorOpen}
+        onOpenChange={setDatasetSelectorOpen}
+      />
+
+      {parseResult && (
+        <ScopeAdjustmentDrawer
+          open={scopeDrawerOpen}
+          onOpenChange={setScopeDrawerOpen}
+          capabilities={capabilities}
+          currentScope={parseResult.scope}
+          onApplyScope={handleScopeOverride}
+        />
+      )}
     </WorkspaceShell>
   );
 }
 
-function AnalysisContextBar({ capabilities, onOpenDetails }: { capabilities: AnalysisCapabilities; onOpenDetails: () => void }) {
+function LoadingState() {
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-5 py-2.5 lg:px-9">
-      <div className="flex min-h-7 items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold tracking-[-0.025em] text-ink">Tạo phân tích</h1>
-          <p className="hidden text-xs text-muted sm:block">Xây dựng yêu cầu trong phạm vi dữ liệu đã được xác thực.</p>
-        </div>
-        <span className="hidden shrink-0 text-[11px] font-medium text-muted md:block">Phân tích tài chính</span>
-      </div>
-      <CapabilitySummaryBar capabilities={capabilities} onOpenDetails={onOpenDetails} />
+    <div className="grid min-h-[60vh] place-items-center bg-canvas p-6">
+      <p className="text-sm text-muted" role="status">
+        Đang chuẩn bị bộ dữ liệu và động cơ phân tích…
+      </p>
     </div>
   );
 }
 
-function LoadingState() {
-  return <div className="grid min-h-screen place-items-center bg-canvas p-6"><p className="text-sm text-muted" role="status">Đang tải phạm vi dữ liệu…</p></div>;
-}
-
 function ErrorState() {
-  return <div className="grid min-h-screen place-items-center bg-canvas p-6"><div className="border border-[#e4c0bb] bg-white p-6 text-center"><p className="font-semibold text-blocked">Không thể tải phạm vi dữ liệu.</p><p className="mt-2 text-sm text-muted">Vui lòng thử lại khi dịch vụ phạm vi dữ liệu sẵn sàng.</p></div></div>;
+  return (
+    <div className="grid min-h-[60vh] place-items-center bg-canvas p-6">
+      <div className="border border-[#e4c0bb] bg-white p-6 text-center max-w-md rounded-lg shadow-surface">
+        <p className="font-semibold text-blocked">Không thể kết nối bộ dữ liệu.</p>
+        <p className="mt-2 text-xs text-muted leading-relaxed">
+          Vui lòng kiểm tra lại dịch vụ cung cấp dữ liệu hoặc chọn nguồn dữ liệu khác để tiếp tục.
+        </p>
+      </div>
+    </div>
+  );
 }

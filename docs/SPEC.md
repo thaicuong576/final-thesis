@@ -4,11 +4,20 @@ Status: Working scope accepted for data-foundation implementation; advisor confi
 
 ## Objective
 
-Design, implement, and evaluate an applied-fintech prototype that produces traceable top-down analysis of a fixed sample of Vietnamese listed banks. The prototype combines deterministic financial data processing with a hierarchical Macro/Sector/Company workflow and bounded cross-level anomaly verification.
+Design, implement, and evaluate an applied-fintech prototype that produces
+traceable financial analysis by composing only the analytical capabilities
+required by each request. The prototype combines deterministic financial data
+processing with a query-adaptive hierarchical workflow, explicit cross-level
+links, and bounded semantic critique/revision.
 
 ## Research question
 
-On the same frozen dataset, evidence policy, question set, model version, and output contract, does a hierarchical Macro/Sector/Company workflow with deterministic anomaly verification improve factual correctness, evidence traceability, cross-level consistency, and anomaly explanation over a single-agent workflow, and what additional latency, model calls, and cost does it require?
+In research comparison, on the same frozen dataset, evidence policy, question
+set, model version, and output contract, does a query-adaptive hierarchical
+workflow with bounded critique/revision improve factual correctness, evidence
+traceability, cross-level consistency, and analytical usefulness over a fair
+single-agent baseline, and what additional latency, model calls, and cost does
+it require?
 
 ## Empirical scope policy
 
@@ -56,7 +65,8 @@ observation, the primary evaluation may use the separate
 across the three arms). The macro question remains a pre-registered extension
 and is not included in the primary aggregate until its macro observations pass
 the same Gold policy. This narrows the evaluation track, not the system
-architecture: Macro/Sector/Company routing remains implemented and tested.
+architecture: Macro, Sector/Peer, and Company remain available capabilities,
+while the active set is selected from the request-derived AnalysisPlan.
 
 Metric definitions, units, period rules, source tiers, and formula tests are maintained in `docs/METRIC-DICTIONARY.md`.
 
@@ -71,7 +81,7 @@ Raw inputs are immutable. A missing value is represented as null with a reason. 
 1. A structured company and sector analysis report.
 2. A peer comparison table based on accepted observations.
 3. A source-linked evidence trail.
-4. An anomaly/verification history with resolved, explained, or unresolved outcomes.
+4. A critique/revision history with resolved, explained, or unresolved outcomes.
 5. A data-quality report with coverage and limitations.
 6. A reproducible run record containing snapshot identity, configuration, model calls, timing, and cost.
 
@@ -85,13 +95,26 @@ Create a source inventory, retrieval manifest, normalized dataset, metric dictio
 
 Implement a single-agent workflow using the same prepared data, deterministic tools, evidence policy, fixed questions, and output contract as the hierarchical systems.
 
-### Hierarchical system
+### Query-adaptive hierarchical system
 
-Implement Macro, Sector, and Company specialists coordinated by a Master Orchestrator. The orchestrator validates payloads, runs deterministic anomaly triggers, requests at most two focused verification attempts, and synthesizes only valid payloads.
+Implement Macro, Sector, and Company capabilities coordinated by a Master
+Orchestrator. The Orchestrator validates dataset capabilities, freezes an
+AnalysisPlan, selects only required specialists and applicable links, performs
+synthesis, runs Stage-1 deterministic acceptance on canonical claims, and then
+uses a semantic critic with at most two targeted revision rounds. Inactive
+specialists are `NOT_APPLICABLE`, not failures. Every re-synthesis must pass
+Stage-1 again before semantic scoring or acceptance.
 
 ### Evaluation
 
-Run the single-agent baseline, hierarchical-without-critique, and hierarchical-with-critique arms against the same fixed question set. The primary aggregate may use the bank-core question set; report the macro extension separately if its Gold gate passes. Compare factual correctness, calculation correctness, evidence completeness, citation correctness, anomaly verification quality, cross-level consistency, latency, model calls, and cost.
+Run the single-agent baseline, hierarchical-without-critique, and
+hierarchical-with-critique arms against the same request-derived scopes and
+fixed question set. The primary aggregate may use the bank-core question set;
+report the macro extension separately if its Gold gate passes. Compare factual
+correctness, calculation correctness, evidence completeness, citation
+correctness, critique/revision quality, cross-level consistency, analytical
+usefulness, latency, model calls, and cost. These arms remain research
+artifacts and are not exposed as a product architecture selector.
 
 ## Data-foundation exit criteria
 
@@ -121,4 +144,9 @@ The current staging database does not meet these criteria. See `docs/DATA-READIN
 
 ## Definition of done
 
-The thesis MVP is complete when a versioned gold snapshot passes the readiness gate, deterministic calculations and contracts pass their tests, all three evaluation arms run end to end on the fixed question set, reports contain valid citations and quality flags, and the results document both benefits and costs—including null or negative findings.
+The thesis MVP is complete when a versioned gold snapshot passes the readiness
+gate, deterministic calculations and contracts pass their tests, the final
+query-adaptive application workflow runs end to end on a supported request,
+the research arms run on their fixed evaluation scope, reports contain valid
+citations and quality flags, and the results document both benefits and
+costs—including null or negative findings.

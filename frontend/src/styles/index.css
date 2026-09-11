@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  color: #172331;
+  background: #f7f6f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html { background: #f7f6f2; }
+body { margin: 0; min-width: 320px; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+::selection { background: #d5e4f1; color: #172331; }
+*:focus-visible { outline: 2px solid #1c5d9c; outline-offset: 2px; }
+textarea::placeholder { color: #87919a; opacity: 1; }
+
+@layer components {
+  .surface-section {
+    @apply border border-line bg-white px-5 py-5 shadow-surface sm:px-6;
+  }
+  .section-title {
+    @apply text-[17px] font-semibold tracking-[-0.01em] text-ink;
+  }
+  .section-helper {
+    @apply mt-1 text-xs leading-5 text-muted;
+  }
+  .field-label {
+    @apply text-sm font-semibold text-ink;
+  }
+  .field-control {
+    @apply w-full border border-line bg-white px-3 py-2.5 text-sm text-ink shadow-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#1c5d9c] focus:outline-none focus:ring-2 focus:ring-[#dceaf5];
+  }
+  .field-error {
+    @apply mt-2 text-xs font-medium text-blocked;
+  }
+  .secondary-button {
+    @apply inline-flex items-center gap-2 border border-line bg-white px-3 py-2 text-xs font-semibold text-ink transition hover:border-[#1c5d9c] hover:bg-[#f5f8fb] disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  .primary-button {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 border border-ink bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#263849] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300;
+  }
+  .check-option {
+    @apply flex min-h-11 cursor-pointer items-center gap-2.5 border border-line px-3 py-2.5 text-sm text-ink transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
+  }
+  .check-option-selected { @apply border-[#8eb6da] bg-[#f5f8fb] font-semibold; }
+  .check-option input { @apply h-4 w-4 shrink-0 accent-[#1c5d9c]; }
+  .topic-option {
+    @apply flex min-h-[132px] gap-3 border border-line bg-white px-3.5 py-3.5 transition hover:border-[#8eb6da] hover:bg-[#f7fafc];
+  }
+  .topic-option-selected { @apply border-[#8eb6da] bg-[#f5f8fb]; }
+  .topic-radio {
+    @apply mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-slate-400;
+  }
+  .topic-radio-selected { @apply border-[#1c5d9c]; }
+  .topic-radio-selected span { @apply h-2.5 w-2.5 rounded-full bg-[#1c5d9c]; }
+  .sticky-summary {
+    @apply border border-line bg-white px-5 py-5 shadow-surface xl:top-5;
+  }
+  @media (min-width: 1280px) {
+    .sticky-summary { position: sticky; }
+  }
+  .notice {
+    @apply border px-3.5 py-3 text-xs leading-5;
+  }
+  .notice-warning { @apply border-[#ead6b5] bg-[#fffaf1] text-[#6e5225]; }
+  .notice-action { @apply border border-[#c9a566] bg-white px-2.5 py-1.5 font-semibold text-[#6e5225] hover:bg-[#fff5df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b47a28]; }
+  .notice-link { @apply px-2 py-1.5 font-semibold text-[#6e5225] underline underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b47a28]; }
+}

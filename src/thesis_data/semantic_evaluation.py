@@ -20,6 +20,7 @@ from .dataset_contract import CanonicalObservation
 from .schema import (
     AssertionType,
     AtomicClaim,
+    ClaimDataRef,
     CritiqueIssue,
     Stage1ValidationReport,
     StructuredAssertion,
@@ -169,6 +170,19 @@ def assertion_matches_requirement(
     )
 
 
+def ref_matches_assertion(
+    ref: ClaimDataRef,
+    assertion: StructuredAssertion,
+) -> bool:
+    """Check that a data ref addresses the assertion's exact cell."""
+
+    return (
+        ref.entity == assertion.entity
+        and ref.period == assertion.period
+        and ref.metric_id == assertion.metric_id
+    )
+
+
 def _has_numeric_assertion(assertions: Sequence[StructuredAssertion]) -> bool:
     return any(
         assertion.assertion_type
@@ -248,9 +262,15 @@ def _accepted_missingness_proof(
     accepted = False
     for assertion in candidate_assertions:
         refs = tuple(
-            ref for ref in assertion.data_refs if ref.ref_type in _OBSERVATION_REF_TYPES
+            ref
+            for ref in assertion.data_refs
+            if ref.ref_type in _OBSERVATION_REF_TYPES
+            and ref_matches_assertion(ref, assertion)
         )
         if not refs:
+            diagnostics.append(
+                f"accepted_missingness_matching_ref_missing:{assertion.assertion_id}"
+            )
             continue
         assertion_passed = True
         for ref in refs:

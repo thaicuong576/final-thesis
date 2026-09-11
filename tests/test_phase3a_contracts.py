@@ -311,6 +311,40 @@ def _bank_numeric_assertion() -> StructuredAssertion:
     )
 
 
+def _macro_missingness_with_unrelated_bank_ref_claim() -> AtomicClaim:
+    unrelated_reference = ClaimDataRef(
+        ref_id="bank-roa-missing-for-macro-assertion",
+        ref_type="observation",
+        entity="TCB",
+        period="2024_Q4",
+        metric_id="bank.roa",
+    )
+    assertion = StructuredAssertion(
+        assertion_id="macro-missingness-with-bank-ref",
+        assertion_type=AssertionType.MISSINGNESS,
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.credit_growth",
+        operator=AssertionOperator.MISSING,
+        data_refs=(unrelated_reference,),
+    )
+    return AtomicClaim(
+        claim_id="claim-macro-missingness-with-unrelated-ref",
+        claim_text="Macro credit growth is unavailable.",
+        claim_type="factual",
+        title="Mismatched missingness reference",
+        interpretation="The reference is intentionally outside the assertion cell.",
+        limitation="The reference must not be used as macro evidence.",
+        scope=ClaimScope(
+            entities=("VN", "TCB"),
+            periods=("2024_Q4",),
+            metric_ids=("macro.credit_growth", "bank.roa"),
+        ),
+        assertions=(assertion,),
+        inference_type=InferenceType.FACT,
+    )
+
+
 def _passing_stage1() -> Stage1ValidationReport:
     gates = {
         gate_id: HardGateResult(
@@ -452,6 +486,29 @@ class Phase3AContractTests(unittest.TestCase):
                         }
                     )
                 ),
+            )
+
+    def test_unrelated_ref_cannot_prove_matching_missingness_assertion(self):
+        claim = _macro_missingness_with_unrelated_bank_ref_claim()
+        bank_missing = _missing_observation().model_copy(
+            update={
+                "observation_id": "bank-roa-missing-for-macro-assertion",
+                "entity_id": "TCB",
+                "metric_id": "bank.roa",
+            }
+        )
+        with self.assertRaisesRegex(
+            SemanticContractError,
+            "accepted_missingness_matching_ref_missing:macro-missingness-with-bank-ref",
+        ):
+            validate_structured_critic_result(
+                _minimal_plan(),
+                _result(
+                    claims=("claim-macro-missingness-with-unrelated-ref",),
+                ),
+                (claim,),
+                stage1_report=_passing_stage1(),
+                dataset_resolver=_ResolverFixture(bank_missing),
             )
 
     def test_off_scope_numeric_value_cannot_fulfill_valid_macro_requirement(self):

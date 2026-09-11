@@ -7,6 +7,7 @@ methods.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sqlite3
 from statistics import median
@@ -204,6 +205,16 @@ class GoldSqliteDatasetProvider:
         except ValueError as exc:
             raise DatasetProviderError(f"unknown validation status: {value}") from exc
 
+    @staticmethod
+    def _observation_id_list(value: Any) -> tuple[str, ...]:
+        try:
+            parsed = json.loads(value)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise DatasetProviderError("Gold derived observation lineage is invalid") from exc
+        if not isinstance(parsed, list) or not all(isinstance(item, str) for item in parsed):
+            raise DatasetProviderError("Gold derived observation lineage is invalid")
+        return tuple(parsed)
+
     def _company_observation(
         self,
         connection: sqlite3.Connection,
@@ -301,6 +312,57 @@ class GoldSqliteDatasetProvider:
                 "review_check_ids_json": row["review_check_ids_json"],
             },
         )
+
+    def _derived_observation(
+        self,
+        connection: sqlite3.Connection,
+        dataset_ref: DatasetRef,
+        observation_id: str,
+    ) -> CanonicalObservation | None:
+        rows = connection.execute(
+            """
+            SELECT derived_id, ticker, sector, metric, value, unit, period,
+                   period_basis, input_observation_ids_json, formula_version,
+                   quality_status, reason
+            FROM derived_metrics
+            WHERE derived_id = ?
+            ORDER BY derived_id
+            """,
+            (observation_id,),
+        ).fetchall()
+        if not rows:
+            return None
+        if len(rows) != 1:
+            raise DatasetProviderError("ambiguous Gold derived observation")
+        row = rows[0]
+        if row["ticker"] is None or not str(row["ticker"]).strip():
+            raise DatasetProviderError("Gold derived observation has no representable entity")
+        try:
+            return CanonicalObservation(
+                observation_id=str(row["derived_id"]),
+                dataset_id=dataset_ref.dataset_id,
+                dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
+                entity_id=str(row["ticker"]),
+                period_id=str(row["period"]),
+                metric_id=str(row["metric"]),
+                value=float(row["value"]) if row["value"] is not None else None,
+                unit=row["unit"],
+                source_ref=None,
+                validation_status=self._quality_status(row["quality_status"]),
+                missing_reason=row["reason"],
+                derivation_method=str(row["formula_version"]),
+                input_observation_ids=self._observation_id_list(
+                    row["input_observation_ids_json"]
+                ),
+                metadata={
+                    "sector": row["sector"],
+                    "period_basis": row["period_basis"],
+                },
+            )
+        except (TypeError, ValueError) as exc:
+            if isinstance(exc, DatasetProviderError):
+                raise
+            raise DatasetProviderError("Gold derived observation is invalid") from exc
 
     def get_metric(
         self,
@@ -528,6 +590,87 @@ class GoldSqliteDatasetProvider:
             connection.close()
         return tuple(result)
 
+    def resolve_evidence(
+        self,
+        dataset_ref: DatasetRef,
+        evidence_id: str,
+    ) -> DatasetEvidence | None:
+        """Resolve one exact evidence ID across company and macro domains."""
+
+        self._validate_ref(dataset_ref)
+        connection = self._connection()
+        try:
+            tables = self._tables(connection)
+            candidates: list[tuple[str, sqlite3.Row]] = []
+            if "evidence_snippets" in tables:
+                company_rows = connection.execute(
+                    """
+                    SELECT evidence_id, source_id, source_document, page_number,
+                           period, ticker, quote
+                    FROM evidence_snippets
+                    WHERE evidence_id = ?
+                    """,
+                    (evidence_id,),
+                ).fetchall()
+                if len(company_rows) > 1:
+                    raise DatasetProviderError("ambiguous Gold company evidence ID")
+                candidates.extend(("company", row) for row in company_rows)
+            if "macro_evidence_snippets" in tables:
+                macro_rows = connection.execute(
+                    """
+                    SELECT evidence_id, source_id, indicator_id, period,
+                           source_locator, quote
+                    FROM macro_evidence_snippets
+                    WHERE evidence_id = ?
+                    """,
+                    (evidence_id,),
+                ).fetchall()
+                if len(macro_rows) > 1:
+                    raise DatasetProviderError("ambiguous Gold macro evidence ID")
+                candidates.extend(("macro", row) for row in macro_rows)
+            if len(candidates) > 1:
+                raise DatasetProviderError("evidence ID is ambiguous across Gold domains")
+            if not candidates:
+                return None
+
+            domain, row = candidates[0]
+            source_rows = connection.execute(
+                "SELECT source_id FROM source_records WHERE source_id = ?",
+                (row["source_id"],),
+            ).fetchall()
+            if len(source_rows) != 1:
+                raise DatasetProviderError("Gold evidence source is missing or ambiguous")
+            try:
+                if domain == "macro":
+                    return DatasetEvidence(
+                        evidence_id=str(row["evidence_id"]),
+                        source_ref=str(row["source_id"]),
+                        entity_id=None,
+                        period_id=str(row["period"]),
+                        metric_id=str(row["indicator_id"]),
+                        locator=str(row["source_locator"]),
+                        quote=str(row["quote"]),
+                    )
+                return DatasetEvidence(
+                    evidence_id=str(row["evidence_id"]),
+                    source_ref=str(row["source_id"]),
+                    entity_id=row["ticker"],
+                    period_id=row["period"],
+                    metric_id=None,
+                    locator=(
+                        f"page:{row['page_number']}"
+                        if row["page_number"] is not None
+                        else "document"
+                    ),
+                    quote=str(row["quote"]),
+                )
+            except (TypeError, ValueError) as exc:
+                raise DatasetProviderError("Gold evidence is invalid") from exc
+        except sqlite3.Error as exc:
+            raise DatasetProviderError("Gold evidence is invalid") from exc
+        finally:
+            connection.close()
+
     def get_source(
         self,
         dataset_ref: DatasetRef,
@@ -588,7 +731,8 @@ class GoldSqliteDatasetProvider:
         connection = self._connection()
         try:
             candidates: list[CanonicalObservation] = []
-            if "metric_observations" in self._tables(connection):
+            tables = self._tables(connection)
+            if "metric_observations" in tables:
                 row = connection.execute(
                     "SELECT ticker, period, metric FROM metric_observations WHERE observation_id = ?",
                     (observation_id,),
@@ -603,7 +747,7 @@ class GoldSqliteDatasetProvider:
                     )
                     if item is not None:
                         candidates.append(item)
-            if "macro_observations_v2" in self._tables(connection):
+            if "macro_observations_v2" in tables:
                 row = connection.execute(
                     "SELECT indicator_id, period FROM macro_observations_v2 WHERE observation_id = ?",
                     (observation_id,),
@@ -618,6 +762,10 @@ class GoldSqliteDatasetProvider:
                     )
                     if item is not None:
                         candidates.append(item)
+            if "derived_metrics" in tables:
+                item = self._derived_observation(connection, dataset_ref, observation_id)
+                if item is not None:
+                    candidates.append(item)
         finally:
             connection.close()
         if len(candidates) > 1:

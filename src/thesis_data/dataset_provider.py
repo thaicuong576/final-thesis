@@ -86,6 +86,14 @@ class FinancialDatasetProvider(Protocol):
     ) -> tuple[DatasetEvidence, ...]:
         ...
 
+    def resolve_evidence(
+        self,
+        dataset_ref: DatasetRef,
+        evidence_id: str,
+    ) -> DatasetEvidence | None:
+        """Resolve one exact evidence resource within the dataset snapshot."""
+        ...
+
     def get_source(
         self,
         dataset_ref: DatasetRef,

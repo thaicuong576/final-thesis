@@ -175,6 +175,19 @@ class InMemoryFinancialDatasetProvider:
             and (metric_id is None or item.metric_id == metric_id)
         )
 
+    def resolve_evidence(
+        self,
+        dataset_ref: DatasetRef,
+        evidence_id: str,
+    ) -> DatasetEvidence | None:
+        """Resolve one exact evidence resource from the in-memory snapshot."""
+
+        self._validate_ref(dataset_ref)
+        matches = [item for item in self._evidence if item.evidence_id == evidence_id]
+        if len(matches) > 1:
+            raise DatasetProviderError("ambiguous in-memory evidence ID")
+        return matches[0] if matches else None
+
     def get_source(
         self,
         dataset_ref: DatasetRef,

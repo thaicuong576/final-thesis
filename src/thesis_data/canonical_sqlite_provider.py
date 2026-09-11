@@ -417,6 +417,30 @@ class CanonicalSqliteDatasetProvider:
         finally:
             connection.close()
 
+    def resolve_evidence(
+        self,
+        dataset_ref: DatasetRef,
+        evidence_id: str,
+    ) -> DatasetEvidence | None:
+        """Resolve one exact evidence row from the canonical snapshot."""
+
+        self._validate_ref(dataset_ref)
+        connection = self._connection()
+        try:
+            if "evidence" not in self._tables(connection):
+                return None
+            rows = connection.execute(
+                "SELECT * FROM evidence WHERE evidence_id = ?",
+                (evidence_id,),
+            ).fetchall()
+            if len(rows) > 1:
+                raise DatasetProviderError("ambiguous canonical evidence ID")
+            return self._evidence_from_row(connection, rows[0], dataset_ref) if rows else None
+        except sqlite3.Error as exc:
+            raise DatasetProviderError("canonical evidence is invalid") from exc
+        finally:
+            connection.close()
+
     def _evidence_from_row(
         self,
         connection: sqlite3.Connection,

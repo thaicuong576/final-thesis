@@ -88,6 +88,7 @@ class DatasetEvidence(BaseModel):
 
     evidence_id: str = Field(min_length=1)
     source_ref: str = Field(min_length=1)
+    document_id: str | None = Field(default=None, min_length=1)
     entity_id: str | None = Field(default=None, min_length=1)
     period_id: str | None = Field(default=None, min_length=1)
     metric_id: str | None = Field(default=None, min_length=1)

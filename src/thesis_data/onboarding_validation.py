@@ -13,6 +13,7 @@ from .csv_onboarding import CsvStagedDataset
 from .dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
+    DatasetEvidence,
     DatasetEntity,
     DatasetEntityType,
     DatasetMetric,
@@ -20,6 +21,7 @@ from .dataset_contract import (
     DatasetSource,
     PeerUniverse,
 )
+from .evidence_contract import DatasetDocument
 from .onboarding_contract import (
     DatasetSnapshotMetadata,
     FieldMappingSpec,
@@ -60,6 +62,8 @@ class CanonicalDatasetCandidate:
     metrics: tuple[DatasetMetric, ...]
     observations: tuple[CanonicalObservation, ...]
     peer_universes: tuple[PeerUniverse, ...] = ()
+    documents: tuple[DatasetDocument, ...] = ()
+    evidence: tuple[DatasetEvidence, ...] = ()
 
 
 @dataclass(frozen=True)

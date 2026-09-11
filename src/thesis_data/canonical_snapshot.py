@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 import sqlite3
 
-from .dataset_contract import CanonicalObservation
+from .dataset_contract import CanonicalObservation, DatasetEvidence
+from .evidence_contract import DatasetDocument
 from .onboarding_contract import (
     DatasetSnapshotStatus,
     DatasetSnapshotMetadata,
@@ -112,6 +113,34 @@ def _create_schema(connection: sqlite3.Connection) -> None:
             PRIMARY KEY (peer_universe_id, entity_id)
         )
         """,
+        """
+        CREATE TABLE documents (
+            contract_version TEXT NOT NULL,
+            document_id TEXT PRIMARY KEY,
+            dataset_id TEXT NOT NULL,
+            dataset_snapshot_id TEXT NOT NULL,
+            source_ref TEXT NOT NULL REFERENCES sources(source_ref),
+            document_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            publisher TEXT,
+            content_hash TEXT NOT NULL,
+            metadata_json TEXT NOT NULL
+        )
+        """,
+        """
+        CREATE TABLE evidence (
+            evidence_id TEXT PRIMARY KEY,
+            dataset_id TEXT NOT NULL,
+            dataset_snapshot_id TEXT NOT NULL,
+            source_ref TEXT NOT NULL REFERENCES sources(source_ref),
+            document_id TEXT NOT NULL REFERENCES documents(document_id),
+            entity_id TEXT REFERENCES entities(entity_id),
+            period_id TEXT REFERENCES periods(period_id),
+            metric_id TEXT REFERENCES metrics(metric_id),
+            locator TEXT NOT NULL,
+            quote TEXT NOT NULL
+        )
+        """,
     )
     for statement in statements:
         connection.execute(statement)
@@ -148,6 +177,33 @@ def _validate_candidate(
         raise ValueError("observation metric is absent from candidate catalog")
     if any(item.source_ref != candidate.source.source_ref for item in candidate.observations):
         raise ValueError("every CSV observation must use the canonical CSV source")
+    document_ids = [item.document_id for item in candidate.documents]
+    if len(document_ids) != len(set(document_ids)):
+        raise ValueError("document IDs must be unique")
+    evidence_ids = [item.evidence_id for item in candidate.evidence]
+    if len(evidence_ids) != len(set(evidence_ids)):
+        raise ValueError("evidence IDs must be unique")
+    document_id_set = set(document_ids)
+    for document in candidate.documents:
+        if (
+            document.dataset_id != accepted_metadata.dataset_id
+            or document.dataset_snapshot_id != accepted_metadata.dataset_snapshot_id
+        ):
+            raise ValueError("document dataset identity does not match snapshot metadata")
+        if document.source_ref != candidate.source.source_ref:
+            raise ValueError("document source does not resolve to the candidate source")
+    for item in candidate.evidence:
+        if (
+            item.source_ref != candidate.source.source_ref
+            or item.document_id not in document_id_set
+        ):
+            raise ValueError("evidence source/document does not resolve in the snapshot")
+        if item.entity_id is not None and item.entity_id not in entity_ids:
+            raise ValueError("evidence entity does not resolve in the snapshot")
+        if item.period_id is not None and item.period_id not in period_ids:
+            raise ValueError("evidence period does not resolve in the snapshot")
+        if item.metric_id is not None and item.metric_id not in metric_ids:
+            raise ValueError("evidence metric does not resolve in the snapshot")
     identities = [
         (item.entity_id, item.period_id, item.metric_id)
         for item in candidate.observations
@@ -293,6 +349,38 @@ def materialize_canonical_snapshot(
             connection.executemany(
                 "INSERT INTO peer_universe_members VALUES (?, ?)",
                 ((universe.peer_universe_id, entity_id) for entity_id in universe.entity_ids),
+            )
+        for document in candidate.documents:
+            connection.execute(
+                "INSERT INTO documents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    document.contract_version,
+                    document.document_id,
+                    document.dataset_id,
+                    document.dataset_snapshot_id,
+                    document.source_ref,
+                    document.document_type,
+                    document.title,
+                    document.publisher,
+                    document.content_hash,
+                    _json(document.metadata),
+                ),
+            )
+        for item in candidate.evidence:
+            connection.execute(
+                "INSERT INTO evidence VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    item.evidence_id,
+                    accepted_metadata.dataset_id,
+                    accepted_metadata.dataset_snapshot_id,
+                    item.source_ref,
+                    item.document_id,
+                    item.entity_id,
+                    item.period_id,
+                    item.metric_id,
+                    item.locator,
+                    item.quote,
+                ),
             )
         connection.commit()
     except Exception:

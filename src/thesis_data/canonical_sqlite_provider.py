@@ -1,4 +1,4 @@
-"""Generic canonical-snapshot SQLite adapter for Phase 0B.
+"""Generic canonical-snapshot SQLite adapter for the data foundation.
 
 This provider knows only the portable canonical tables created by
 ``canonical_snapshot.py``.  It does not subclass, import, or query the Gold
@@ -13,6 +13,7 @@ from statistics import median
 from typing import Any, Sequence
 import sqlite3
 
+from .canonical_snapshot import CANONICAL_SNAPSHOT_SCHEMA_VERSION
 from .dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
@@ -28,6 +29,8 @@ from .dataset_contract import (
     SupportedOperation,
 )
 from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
+from .evidence_contract import DOCUMENT_CONTRACT_VERSION
+from .onboarding_contract import ONBOARDING_CONTRACT_VERSION
 from .schema import QualityStatus
 
 
@@ -48,6 +51,15 @@ class CanonicalSqliteDatasetProvider:
         return connection
 
     @staticmethod
+    def _tables(connection: sqlite3.Connection) -> set[str]:
+        return {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            ).fetchall()
+        }
+
+    @staticmethod
     def _metadata(connection: sqlite3.Connection) -> sqlite3.Row:
         try:
             rows = connection.execute(
@@ -60,6 +72,10 @@ class CanonicalSqliteDatasetProvider:
         row = rows[0]
         if row["status"] != "accepted":
             raise DatasetProviderError("canonical dataset snapshot is not accepted")
+        if row["contract_version"] != ONBOARDING_CONTRACT_VERSION:
+            raise DatasetProviderError("canonical dataset contract version is unsupported")
+        if row["schema_version"] != CANONICAL_SNAPSHOT_SCHEMA_VERSION:
+            raise DatasetProviderError("canonical dataset schema version is unsupported")
         return row
 
     def _physical_dataset_ref(self) -> DatasetRef:
@@ -161,6 +177,11 @@ class CanonicalSqliteDatasetProvider:
                             entity_ids=members,
                         )
                     )
+            evidence_count = 0
+            if "evidence" in self._tables(connection):
+                evidence_count = int(
+                    connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0]
+                )
         except (sqlite3.Error, ValueError) as exc:
             if isinstance(exc, DatasetProviderError):
                 raise
@@ -180,6 +201,8 @@ class CanonicalSqliteDatasetProvider:
             operations.append(SupportedOperation.GET_PEER_BENCHMARK)
         if any(item.analytical_level is AnalyticalLevel.MACRO for item in metrics):
             operations.append(SupportedOperation.GET_MACRO_OBSERVATION)
+        if evidence_count > 0:
+            operations.append(SupportedOperation.GET_EVIDENCE)
         return DatasetCapabilityCatalog(
             dataset_ref=dataset_ref,
             entities=entities,
@@ -353,7 +376,79 @@ class CanonicalSqliteDatasetProvider:
         metric_id: str | None = None,
     ) -> tuple[DatasetEvidence, ...]:
         self._validate_ref(dataset_ref)
-        raise DatasetProviderError("canonical CSV snapshots do not contain document evidence")
+        if not source_refs:
+            return ()
+        connection = self._connection()
+        try:
+            if "evidence" not in self._tables(connection):
+                raise DatasetProviderError("canonical snapshot has no document evidence")
+            source_placeholders = ",".join("?" for _ in source_refs)
+            clauses = [f"e.source_ref IN ({source_placeholders})"]
+            params: list[Any] = list(source_refs)
+            for column, value in (
+                ("e.entity_id", entity_id),
+                ("e.period_id", period_id),
+                ("e.metric_id", metric_id),
+            ):
+                if value is not None:
+                    clauses.append(f"{column} = ?")
+                    params.append(value)
+            rows = connection.execute(
+                "SELECT e.* FROM evidence AS e WHERE "
+                + " AND ".join(clauses)
+                + " ORDER BY e.evidence_id",
+                params,
+            ).fetchall()
+            return tuple(
+                self._evidence_from_row(connection, row, dataset_ref)
+                for row in rows
+            )
+        except sqlite3.Error as exc:
+            raise DatasetProviderError("canonical document evidence is invalid") from exc
+        finally:
+            connection.close()
+
+    def _evidence_from_row(
+        self,
+        connection: sqlite3.Connection,
+        row: sqlite3.Row,
+        dataset_ref: DatasetRef,
+    ) -> DatasetEvidence:
+        if (
+            str(row["dataset_id"]) != dataset_ref.dataset_id
+            or str(row["dataset_snapshot_id"]) != dataset_ref.dataset_snapshot_id
+        ):
+            raise DatasetProviderError("persisted evidence identity does not match requested dataset")
+        source = connection.execute(
+            "SELECT source_ref FROM sources WHERE source_ref = ?",
+            (row["source_ref"],),
+        ).fetchone()
+        if source is None:
+            raise DatasetProviderError("evidence source does not resolve")
+        documents = connection.execute(
+            "SELECT * FROM documents WHERE document_id = ?",
+            (row["document_id"],),
+        ).fetchall()
+        if len(documents) != 1:
+            raise DatasetProviderError("evidence document is missing or ambiguous")
+        document = documents[0]
+        if (
+            str(document["dataset_id"]) != dataset_ref.dataset_id
+            or str(document["dataset_snapshot_id"]) != dataset_ref.dataset_snapshot_id
+            or str(document["source_ref"]) != str(row["source_ref"])
+            or str(document["contract_version"]) != DOCUMENT_CONTRACT_VERSION
+        ):
+            raise DatasetProviderError("evidence document identity is invalid")
+        return DatasetEvidence(
+            evidence_id=str(row["evidence_id"]),
+            source_ref=str(row["source_ref"]),
+            document_id=str(row["document_id"]),
+            entity_id=row["entity_id"],
+            period_id=row["period_id"],
+            metric_id=row["metric_id"],
+            locator=str(row["locator"]),
+            quote=str(row["quote"]),
+        )
 
     def get_source(self, dataset_ref: DatasetRef, source_ref: str) -> DatasetSource | None:
         self._validate_ref(dataset_ref)

@@ -7,6 +7,27 @@
   font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   color: #172331;
   background: #f7f6f2;
+  color-scheme: light;
+  --background: 40 14% 96%;
+  --foreground: 210 25% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 25% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 25% 14%;
+  --primary: 208 69% 36%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 25% 94%;
+  --secondary-foreground: 210 25% 18%;
+  --muted: 210 18% 93%;
+  --muted-foreground: 210 10% 44%;
+  --accent: 208 50% 94%;
+  --accent-foreground: 208 69% 28%;
+  --destructive: 5 47% 41%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 210 12% 86%;
+  --input: 210 12% 86%;
+  --ring: 208 69% 36%;
+  --radius: 0.3rem;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }

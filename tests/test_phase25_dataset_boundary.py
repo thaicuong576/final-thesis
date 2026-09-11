@@ -167,6 +167,65 @@ def _three_peer_provider() -> tuple[InMemoryFinancialDatasetProvider, DatasetRef
     return InMemoryFinancialDatasetProvider(catalog, observations=observations), ref
 
 
+def _sector_provider() -> tuple[InMemoryFinancialDatasetProvider, DatasetRef]:
+    ref = DatasetRef(dataset_id="sector-dataset", dataset_snapshot_id="snapshot-1")
+    catalog = DatasetCapabilityCatalog(
+        dataset_ref=ref,
+        entities=(
+            DatasetEntity(
+                entity_id="sector-bank",
+                entity_type=DatasetEntityType.SECTOR,
+                display_name="Banking sector",
+            ),
+            DatasetEntity(
+                entity_id="company-a",
+                entity_type=DatasetEntityType.COMPANY,
+                display_name="Company A",
+            ),
+            DatasetEntity(
+                entity_id="macro-vn",
+                entity_type=DatasetEntityType.MACRO,
+                display_name="Vietnam macro",
+            ),
+        ),
+        periods=(DatasetPeriod(period_id="FY-2024-Q4", label="Q4 2024"),),
+        metrics=(
+            DatasetMetric(
+                metric_id="sector.credit_growth",
+                display_name="Sector credit growth",
+                analytical_level=AnalyticalLevel.SECTOR,
+                default_unit="percent",
+            ),
+            DatasetMetric(
+                metric_id="company.roa",
+                display_name="ROA",
+                analytical_level=AnalyticalLevel.COMPANY,
+                default_unit="percent",
+            ),
+            DatasetMetric(
+                metric_id="macro.policy",
+                display_name="Policy rate",
+                analytical_level=AnalyticalLevel.MACRO,
+                default_unit="percent_per_annum",
+            ),
+        ),
+        supported_operations=ALL_OPERATIONS,
+    )
+    observation = CanonicalObservation(
+        observation_id="obs-sector-credit-growth",
+        dataset_id=ref.dataset_id,
+        dataset_snapshot_id=ref.dataset_snapshot_id,
+        entity_id="sector-bank",
+        period_id="FY-2024-Q4",
+        metric_id="sector.credit_growth",
+        value=12.0,
+        unit="percent",
+        source_ref="source-sector",
+        validation_status=QualityStatus.VALID,
+    )
+    return InMemoryFinancialDatasetProvider(catalog, observations=(observation,)), ref
+
+
 class Phase25ContractTests(unittest.TestCase):
     def test_dataset_ref_requires_dataset_and_snapshot_identity(self):
         with self.assertRaises(ValidationError):
@@ -556,6 +615,43 @@ class ApplicationRuntimeTests(unittest.TestCase):
             "macro.policy",
         )
         self.assertEqual(macro_observation.value, 4.5)
+
+    def test_sector_entity_requires_sector_metric_for_single_and_batch_tools(self):
+        provider, ref = _sector_provider()
+        request = _request(
+            ref,
+            target_entity_ids=("sector-bank",),
+            metric_ids=("sector.credit_growth", "company.roa", "macro.policy"),
+            macro_metric_ids=("macro.policy",),
+        )
+        runtime = DatasetToolRuntime(
+            ApplicationRuntimeContext.from_request(request, provider),
+        )
+
+        single = runtime.get_metric(
+            "sector-bank",
+            "FY-2024-Q4",
+            "sector.credit_growth",
+        )
+        batch = runtime.get_entity_metrics(
+            "sector-bank",
+            ("FY-2024-Q4",),
+            ("sector.credit_growth",),
+        )
+        self.assertEqual(single.value, 12.0)
+        self.assertEqual(len(batch), 1)
+
+        for metric_id in ("company.roa", "macro.policy"):
+            with self.subTest(operation="get_metric", metric_id=metric_id):
+                with self.assertRaisesRegex(DatasetToolError, "analytical level"):
+                    runtime.get_metric("sector-bank", "FY-2024-Q4", metric_id)
+            with self.subTest(operation="get_entity_metrics", metric_id=metric_id):
+                with self.assertRaisesRegex(DatasetToolError, "analytical level"):
+                    runtime.get_entity_metrics(
+                        "sector-bank",
+                        ("FY-2024-Q4",),
+                        (metric_id,),
+                    )
 
     def test_in_memory_provider_rejects_peer_entities_outside_universe(self):
         provider, ref = _three_peer_provider()

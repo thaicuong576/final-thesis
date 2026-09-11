@@ -81,6 +81,13 @@ _ARGUMENT_MODELS: dict[str, type[_ToolArguments]] = {
 }
 
 
+_ENTITY_TO_METRIC_LEVEL = {
+    "company": AnalyticalLevel.COMPANY,
+    "sector": AnalyticalLevel.SECTOR,
+    "macro": AnalyticalLevel.MACRO,
+}
+
+
 @dataclass(frozen=True)
 class DatasetToolExecution:
     operation: str
@@ -166,10 +173,8 @@ class DatasetToolRuntime:
     def _ensure_metric_level(self, entity_id: str, metric_id: str) -> None:
         metric = self._catalog_metric(metric_id)
         entity = self._catalog_entity(entity_id)
-        if entity.entity_type.value in {
-            AnalyticalLevel.COMPANY.value,
-            AnalyticalLevel.MACRO.value,
-        } and metric.analytical_level.value != entity.entity_type.value:
+        required_level = _ENTITY_TO_METRIC_LEVEL.get(entity.entity_type.value)
+        if required_level is not None and metric.analytical_level is not required_level:
             raise DatasetToolError("metric analytical level is incompatible with entity")
 
     def _ensure_metrics_for_entity(

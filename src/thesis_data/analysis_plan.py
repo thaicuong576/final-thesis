@@ -9,12 +9,16 @@ becoming a general workflow language.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .dataset_contract import DatasetRef
 
-ANALYSIS_PLAN_VERSION = "analysis-plan-v1"
+if TYPE_CHECKING:
+    from .analysis_request import AnalysisRequest
+
+ANALYSIS_PLAN_VERSION = "analysis-plan-v2"
 FROZEN_TCB_MACRO_QUERY_ID = "TCB_macro_to_bank_q4"
 FROZEN_TCB_MACRO_PERIOD = "2024_Q4"
 
@@ -37,15 +41,16 @@ class RequirementType(StrEnum):
 
 
 class FulfillmentPolicy(StrEnum):
-    """The two allowed value/missingness fulfillment policies."""
+    """Small set of requirement fulfillment modes."""
 
     VALID_VALUE_REQUIRED = "VALID_VALUE_REQUIRED"
     VALUE_OR_ACCEPTED_MISSINGNESS = "VALUE_OR_ACCEPTED_MISSINGNESS"
+    DISCLOSURE_REQUIRED = "DISCLOSURE_REQUIRED"
 
 
 class MissingDataPolicy(StrEnum):
     REJECT_MISSING = "reject_missing"
-    ACCEPTED_GOLD_MISSINGNESS = "accepted_gold_missingness"
+    ACCEPTED_MISSINGNESS = "accepted_missingness"
     NOT_APPLICABLE = "not_applicable"
 
 
@@ -144,18 +149,33 @@ class AnalysisRequirement(BaseModel):
         _unique_non_empty(self.metric_ids, "requirement metric_ids")
         if (
             self.fulfillment_policy is FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS
-            and self.missing_data_policy is not MissingDataPolicy.ACCEPTED_GOLD_MISSINGNESS
+            and self.missing_data_policy is not MissingDataPolicy.ACCEPTED_MISSINGNESS
         ):
             raise ValueError(
-                "VALUE_OR_ACCEPTED_MISSINGNESS requires accepted_gold_missingness"
+                "VALUE_OR_ACCEPTED_MISSINGNESS requires accepted_missingness"
             )
         if (
             self.fulfillment_policy is FulfillmentPolicy.VALID_VALUE_REQUIRED
-            and self.missing_data_policy is MissingDataPolicy.ACCEPTED_GOLD_MISSINGNESS
+            and self.missing_data_policy is MissingDataPolicy.ACCEPTED_MISSINGNESS
         ):
             raise ValueError(
-                "VALID_VALUE_REQUIRED cannot allow accepted_gold_missingness"
+                "VALID_VALUE_REQUIRED cannot allow accepted_missingness"
             )
+        if (
+            self.fulfillment_policy is FulfillmentPolicy.DISCLOSURE_REQUIRED
+            and self.requirement_type is not RequirementType.LIMITATION_MISSINGNESS_DISCLOSURE
+        ):
+            raise ValueError("DISCLOSURE_REQUIRED is limited to disclosure requirements")
+        if (
+            self.fulfillment_policy is FulfillmentPolicy.DISCLOSURE_REQUIRED
+            and self.missing_data_policy is not MissingDataPolicy.NOT_APPLICABLE
+        ):
+            raise ValueError("DISCLOSURE_REQUIRED cannot use an observation missingness policy")
+        if (
+            self.requirement_type is RequirementType.LIMITATION_MISSINGNESS_DISCLOSURE
+            and self.fulfillment_policy is FulfillmentPolicy.VALID_VALUE_REQUIRED
+        ):
+            raise ValueError("limitation disclosure cannot require a numeric value")
         return self
 
 
@@ -172,7 +192,8 @@ class ApplicableLink(BaseModel):
     target_entities: tuple[str, ...] = Field(min_length=1)
     source_periods: tuple[str, ...] = Field(min_length=1)
     target_periods: tuple[str, ...] = Field(min_length=1)
-    metric_ids: tuple[str, ...] = Field(min_length=1)
+    source_metric_ids: tuple[str, ...] = Field(min_length=1)
+    target_metric_ids: tuple[str, ...] = Field(min_length=1)
     description: str = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -181,7 +202,8 @@ class ApplicableLink(BaseModel):
         _unique_non_empty(self.target_entities, "target_entities")
         _unique_non_empty(self.source_periods, "source_periods")
         _unique_non_empty(self.target_periods, "target_periods")
-        _unique_non_empty(self.metric_ids, "link metric_ids")
+        _unique_non_empty(self.source_metric_ids, "source_metric_ids")
+        _unique_non_empty(self.target_metric_ids, "target_metric_ids")
         expected_levels = {
             ApplicableLinkType.MACRO_TO_COMPANY: (LinkLevel.MACRO, LinkLevel.COMPANY),
             ApplicableLinkType.SECTOR_TO_COMPANY: (LinkLevel.SECTOR, LinkLevel.COMPANY),
@@ -201,6 +223,8 @@ class AnalysisPlan(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     plan_version: str = Field(min_length=1)
+    dataset_id: str = Field(min_length=1)
+    dataset_snapshot_id: str = Field(min_length=1)
     query_id: str = Field(min_length=1)
     normalized_question: str = Field(min_length=1)
     scope: AnalysisScope
@@ -208,6 +232,15 @@ class AnalysisPlan(BaseModel):
     applicable_links: tuple[ApplicableLink, ...] = Field(default_factory=tuple)
     requested_outputs: tuple[str, ...] = Field(min_length=1)
     causal_claim_policy: CausalClaimPolicy
+
+    @property
+    def dataset_ref(self) -> DatasetRef:
+        """Return the dataset identity bound to this plan."""
+
+        return DatasetRef(
+            dataset_id=self.dataset_id,
+            dataset_snapshot_id=self.dataset_snapshot_id,
+        )
 
     @model_validator(mode="after")
     def validate_plan(self) -> "AnalysisPlan":
@@ -240,8 +273,20 @@ class AnalysisPlan(BaseModel):
                 raise ValueError(f"link source periods outside scope: {link.link_id}")
             if not set(link.target_periods).issubset(allowed_periods):
                 raise ValueError(f"link target periods outside scope: {link.link_id}")
-            if not set(link.metric_ids).issubset(allowed_metrics):
-                raise ValueError(f"link metrics outside scope: {link.link_id}")
+            if not set(link.source_metric_ids).issubset(allowed_metrics):
+                raise ValueError(f"link source metrics outside scope: {link.link_id}")
+            if not set(link.target_metric_ids).issubset(allowed_metrics):
+                raise ValueError(f"link target metrics outside scope: {link.link_id}")
+            if (
+                link.source_level is LinkLevel.MACRO
+                and not set(link.source_metric_ids).issubset(self.scope.macro_indicator_ids)
+            ):
+                raise ValueError(f"link source macro metrics outside scope: {link.link_id}")
+            if (
+                link.target_level is LinkLevel.COMPANY
+                and not set(link.target_metric_ids).issubset(self.scope.company_metric_ids)
+            ):
+                raise ValueError(f"link target company metrics outside scope: {link.link_id}")
 
         if self.causal_claim_policy in {
             CausalClaimPolicy.NO_CAUSAL_INFERENCE,
@@ -254,7 +299,17 @@ class AnalysisPlan(BaseModel):
         return self
 
 
-def build_tcb_macro_analysis_plan() -> AnalysisPlan:
+def validate_analysis_plan_request(
+    plan: AnalysisPlan,
+    request: "AnalysisRequest",
+) -> None:
+    """Require a plan and its application request to use one dataset snapshot."""
+
+    if plan.dataset_ref != request.dataset_ref:
+        raise ValueError("analysis plan dataset identity does not match analysis request")
+
+
+def build_tcb_macro_analysis_plan(dataset_ref: DatasetRef) -> AnalysisPlan:
     """Build the deterministic plan for the pre-registered macro question."""
 
     period = FROZEN_TCB_MACRO_PERIOD
@@ -263,6 +318,8 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
     all_metrics = macro_metrics + bank_metrics
     return AnalysisPlan(
         plan_version=ANALYSIS_PLAN_VERSION,
+        dataset_id=dataset_ref.dataset_id,
+        dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
         query_id=FROZEN_TCB_MACRO_QUERY_ID,
         normalized_question=(
             "Relate the accepted 2024_Q4 macro context (policy rate and system "
@@ -293,7 +350,7 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 requirement_type=RequirementType.FACTUAL_OBSERVATION,
                 description=(
                     "Report system credit growth, or explicitly disclose the "
-                    "accepted Gold missingness state."
+                    "accepted missingness state."
                 ),
                 required_agents=(AnalysisAgent.MACRO,),
                 entities=("VN",),
@@ -301,7 +358,7 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 metric_ids=("macro.credit_growth",),
                 inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
                 fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
-                missing_data_policy=MissingDataPolicy.ACCEPTED_GOLD_MISSINGNESS,
+                missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
             ),
             AnalysisRequirement(
                 requirement_id="R3",
@@ -344,7 +401,7 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 metric_ids=all_metrics,
                 inference_ceiling=InferenceCeiling.ASSOCIATION_ONLY,
                 fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
-                missing_data_policy=MissingDataPolicy.ACCEPTED_GOLD_MISSINGNESS,
+                missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
             ),
             AnalysisRequirement(
                 requirement_id="R6",
@@ -355,7 +412,7 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 periods=(period,),
                 metric_ids=all_metrics,
                 inference_ceiling=InferenceCeiling.LIMITATION_ONLY,
-                fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+                fulfillment_policy=FulfillmentPolicy.DISCLOSURE_REQUIRED,
                 missing_data_policy=MissingDataPolicy.NOT_APPLICABLE,
             ),
             AnalysisRequirement(
@@ -368,7 +425,7 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 metric_ids=all_metrics,
                 inference_ceiling=InferenceCeiling.LIMITATION_ONLY,
                 fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
-                missing_data_policy=MissingDataPolicy.ACCEPTED_GOLD_MISSINGNESS,
+                missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
             ),
         ),
         applicable_links=(
@@ -381,7 +438,8 @@ def build_tcb_macro_analysis_plan() -> AnalysisPlan:
                 target_entities=("TCB",),
                 source_periods=(period,),
                 target_periods=(period,),
-                metric_ids=all_metrics,
+                source_metric_ids=macro_metrics,
+                target_metric_ids=bank_metrics,
                 description="Macro context may be related to TCB performance.",
             ),
         ),

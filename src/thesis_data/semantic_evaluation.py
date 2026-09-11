@@ -14,7 +14,9 @@ from typing import Iterable, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .acceptance_resolver import Stage1DatasetResolver
 from .analysis_plan import AnalysisPlan, AnalysisRequirement, FulfillmentPolicy
+from .dataset_contract import CanonicalObservation
 from .schema import (
     AssertionType,
     AtomicClaim,
@@ -25,6 +27,9 @@ from .schema import (
 
 SEMANTIC_EVALUATION_VERSION = "semantic-evaluation-v1"
 STRUCTURED_CRITIC_RESULT_VERSION = "structured-critic-result-v1"
+_OBSERVATION_REF_TYPES = frozenset(
+    {"observation", "macro_observation", "derived_metric", "missing_cell"}
+)
 
 
 class SemanticDimension(StrEnum):
@@ -169,15 +174,86 @@ def _has_numeric_assertion(claim: AtomicClaim) -> bool:
     )
 
 
-def _has_explicit_missingness(claim: AtomicClaim) -> bool:
+def _has_missingness_shape(claim: AtomicClaim) -> bool:
     return any(
         assertion.assertion_type is AssertionType.MISSINGNESS
         and any(
-            ref.ref_type in {"missing_cell", "macro_observation"}
+            ref.ref_type in _OBSERVATION_REF_TYPES
             for ref in assertion.data_refs
         )
         for assertion in claim.assertions
     )
+
+
+def _status_value(value: object) -> str:
+    return str(getattr(value, "value", value))
+
+
+def _accepted_missingness_observation(
+    ref,
+    resolver: Stage1DatasetResolver,
+) -> tuple[CanonicalObservation | None, str | None]:
+    """Resolve and prove one accepted missing canonical observation."""
+
+    try:
+        observation = resolver.resolve_observation_ref(ref)
+    except (TypeError, ValueError):
+        return None, f"accepted_missingness_observation_unresolved:{ref.ref_id}"
+    if observation is None:
+        return None, f"accepted_missingness_observation_unresolved:{ref.ref_id}"
+    if (
+        observation.entity_id != ref.entity
+        or observation.period_id != ref.period
+        or observation.metric_id != ref.metric_id
+    ):
+        return None, f"accepted_missingness_scope_mismatch:{ref.ref_id}"
+    if (
+        observation.dataset_id != resolver.dataset_ref.dataset_id
+        or observation.dataset_snapshot_id != resolver.dataset_ref.dataset_snapshot_id
+    ):
+        return None, f"accepted_missingness_dataset_identity_mismatch:{ref.ref_id}"
+    if (
+        _status_value(observation.validation_status) != "missing"
+        or observation.value is not None
+        or observation.missing_reason != "DATA_UNAVAILABLE"
+    ):
+        return None, f"accepted_missingness_state_not_proven:{ref.ref_id}"
+    return observation, None
+
+
+def _accepted_missingness_proof(
+    claims: Sequence[AtomicClaim],
+    resolver: Stage1DatasetResolver | None,
+) -> tuple[bool, tuple[str, ...]]:
+    assertions = tuple(
+        assertion
+        for claim in claims
+        for assertion in claim.assertions
+        if assertion.assertion_type is AssertionType.MISSINGNESS
+        and any(ref.ref_type in _OBSERVATION_REF_TYPES for ref in assertion.data_refs)
+    )
+    if not assertions:
+        return False, ()
+    if resolver is None:
+        return False, ("accepted_missingness_resolver_required",)
+    diagnostics: list[str] = []
+    accepted = False
+    for assertion in assertions:
+        refs = tuple(
+            ref for ref in assertion.data_refs if ref.ref_type in _OBSERVATION_REF_TYPES
+        )
+        if not refs:
+            continue
+        assertion_passed = True
+        for ref in refs:
+            observation, diagnostic = _accepted_missingness_observation(ref, resolver)
+            if observation is None:
+                assertion_passed = False
+                if diagnostic is not None:
+                    diagnostics.append(diagnostic)
+        if assertion_passed:
+            accepted = True
+    return accepted, tuple(dict.fromkeys(diagnostics))
 
 
 def deterministic_coverage_violations(
@@ -186,6 +262,7 @@ def deterministic_coverage_violations(
     claims: Sequence[AtomicClaim],
     *,
     stage1_report: Stage1ValidationReport | None = None,
+    dataset_resolver: Stage1DatasetResolver | None = None,
 ) -> tuple[str, ...]:
     """Return only checks that are deterministic before semantic judging.
 
@@ -197,6 +274,9 @@ def deterministic_coverage_violations(
     violations: list[str] = []
     plan_requirement_ids = {item.requirement_id for item in plan.requirements}
     plan_link_ids = {item.link_id for item in plan.applicable_links}
+    if dataset_resolver is not None:
+        if plan.dataset_ref != dataset_resolver.dataset_ref:
+            violations.append("analysis_plan_dataset_identity_mismatch")
     claim_ids = [claim.claim_id for claim in claims]
     if len(claim_ids) != len(set(claim_ids)):
         violations.append("duplicate_claim_ids")
@@ -227,6 +307,9 @@ def deterministic_coverage_violations(
         result_issue_ids.extend(link_result.issue_ids)
         if link_result.link_id not in plan_link_ids:
             violations.append(f"unknown_link_id:{link_result.link_id}")
+    result_link_ids = [item.link_id for item in result.applicable_link_results]
+    missing_link_ids = sorted(plan_link_ids - set(result_link_ids))
+    violations.extend(f"omitted_link_result:{item}" for item in missing_link_ids)
     for issue in result.critique_issues:
         result_claim_ids.extend(issue.affected_claim_ids)
         if issue.issue_id not in issue_ids:
@@ -271,23 +354,35 @@ def deterministic_coverage_violations(
             )
             continue
         has_numeric = any(_has_numeric_assertion(claim) for claim in matching_claims)
-        has_missingness = any(
-            _has_explicit_missingness(claim) for claim in matching_claims
+        has_missingness_shape = any(
+            _has_missingness_shape(claim) for claim in matching_claims
+        )
+        accepted_missingness, missingness_proof_violations = _accepted_missingness_proof(
+            matching_claims, dataset_resolver
+        )
+        violations.extend(
+            f"{item}:{requirement.requirement_id}"
+            for item in missingness_proof_violations
         )
         if numeric_gate_passed is False and has_numeric:
             violations.append(
                 f"numeric_claim_rejected_by_stage1:{requirement.requirement_id}"
             )
-        if requirement.fulfillment_policy is FulfillmentPolicy.VALID_VALUE_REQUIRED:
-            if has_missingness and not has_numeric:
+        if requirement.fulfillment_policy is FulfillmentPolicy.DISCLOSURE_REQUIRED:
+            if not any(claim.limitation.strip() for claim in matching_claims):
+                violations.append(
+                    f"disclosure_requirement_not_fulfilled:{requirement.requirement_id}"
+                )
+        elif requirement.fulfillment_policy is FulfillmentPolicy.VALID_VALUE_REQUIRED:
+            if has_missingness_shape and not has_numeric:
                 violations.append(
                     f"missingness_not_allowed:{requirement.requirement_id}"
                 )
-        elif not has_numeric and not has_missingness:
+        elif not has_numeric and not accepted_missingness:
             violations.append(
                 f"missing_aware_requirement_has_no_value_or_missingness:{requirement.requirement_id}"
             )
-        elif has_missingness and stage1_report is not None and not stage1_report.passed:
+        elif accepted_missingness and stage1_report is not None and not stage1_report.passed:
             violations.append(
                 f"accepted_missingness_requires_stage1_pass:{requirement.requirement_id}"
             )
@@ -301,6 +396,7 @@ def validate_deterministic_coverage(
     claims: Sequence[AtomicClaim],
     *,
     stage1_report: Stage1ValidationReport | None = None,
+    dataset_resolver: Stage1DatasetResolver | None = None,
 ) -> None:
     """Fail closed on deterministic plan/result/claim identity violations."""
 
@@ -309,6 +405,7 @@ def validate_deterministic_coverage(
         result,
         claims,
         stage1_report=stage1_report,
+        dataset_resolver=dataset_resolver,
     )
     if violations:
         raise SemanticContractError(";".join(violations))
@@ -320,6 +417,7 @@ def validate_structured_critic_result(
     claims: Sequence[AtomicClaim],
     *,
     stage1_report: Stage1ValidationReport | None = None,
+    dataset_resolver: Stage1DatasetResolver | None = None,
 ) -> None:
     """Validate a future critic result without evaluating semantic entailment."""
 
@@ -328,4 +426,5 @@ def validate_structured_critic_result(
         result,
         claims,
         stage1_report=stage1_report,
+        dataset_resolver=dataset_resolver,
     )

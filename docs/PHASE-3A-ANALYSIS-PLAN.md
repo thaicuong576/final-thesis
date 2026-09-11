@@ -27,11 +27,13 @@ Implementation:
 
 ## AnalysisPlan schema
 
-`AnalysisPlan` version hiện tại là `analysis-plan-v1` và gồm:
+`AnalysisPlan` version hiện tại là `analysis-plan-v2` và gồm:
 
 | Field | Ý nghĩa |
 | --- | --- |
 | `plan_version` | Version của contract |
+| `dataset_id` | Identity của dataset mà request đã chọn |
+| `dataset_snapshot_id` | Identity bất biến của snapshot được dùng cho run |
 | `query_id` | Identity của câu hỏi |
 | `normalized_question` | Câu hỏi đã chuẩn hóa trước generation |
 | `scope` | Entities, periods, company metrics, macro indicators và peer universe |
@@ -58,19 +60,22 @@ Mỗi requirement có stable `requirement_id`, mô tả, agent cần tham gia, s
 entity/period/metric, `inference_ceiling`, `fulfillment_policy`,
 `missing_data_policy` và `critical`.
 
-Hai fulfillment policy được phép:
+Ba fulfillment policy được phép:
 
 - `VALID_VALUE_REQUIRED`: cần một giá trị/claim hợp lệ; missing không thể được
   dùng để hoàn thành requirement.
 - `VALUE_OR_ACCEPTED_MISSINGNESS`: chấp nhận một giá trị hợp lệ **hoặc** một
-  missingness disclosure có typed reference tới ô Gold missing đã được Stage 1
-  chấp nhận. Pending, fallback, unaccepted hoặc silently omitted data không
-  thỏa policy này.
+  missingness disclosure có typed reference tới một canonical observation mà
+  dataset provider xác nhận là `MISSING` với allowed missing reason. Pending,
+  fallback, unaccepted hoặc silently omitted data không thỏa policy này.
+- `DISCLOSURE_REQUIRED`: dành riêng cho requirement về limitation/missingness
+  disclosure; kiểm tra deterministic chỉ yêu cầu disclosure claim có limitation,
+  không biến limitation thành yêu cầu numeric value.
 
 `missing_data_policy` làm rõ cơ chế tương ứng:
 
 - `reject_missing`
-- `accepted_gold_missingness`
+- `accepted_missingness`
 - `not_applicable` cho requirement disclosure không yêu cầu một observation.
 
 `InferenceCeiling.CAUSAL` bị từ chối khi plan có
@@ -94,7 +99,7 @@ tự động là contradiction.
 
 ## Frozen TCB macro question
 
-`build_tcb_macro_analysis_plan()` tạo plan deterministic cho
+`build_tcb_macro_analysis_plan(dataset_ref)` tạo plan deterministic cho
 `TCB_macro_to_bank_q4` với:
 
 - entity: `VN`, `TCB`;
@@ -113,7 +118,7 @@ Stable requirements:
 | `R3` | TCB ROA | `VALID_VALUE_REQUIRED` |
 | `R4` | TCB ROE | `VALID_VALUE_REQUIRED` |
 | `R5` | Quan hệ macro context ↔ bank performance | `VALUE_OR_ACCEPTED_MISSINGNESS`, association-only |
-| `R6` | Không suy luận causal từ một kỳ | `VALID_VALUE_REQUIRED`, limitation-only |
+| `R6` | Không suy luận causal từ một kỳ | `DISCLOSURE_REQUIRED`, limitation-only |
 | `R7` | Disclosure về unavailable observations/limitations | `VALUE_OR_ACCEPTED_MISSINGNESS` |
 
 ## Semantic evaluation contracts
@@ -152,11 +157,14 @@ partially fulfilled / unfulfilled requirement IDs, applicable-link results và
 - mọi requirement ID trong result tồn tại trong plan và mỗi requirement được
   phân loại đúng một trạng thái;
 - mọi claim ID trỏ tới một `AtomicClaim` canonical;
-- mọi link ID trỏ tới `ApplicableLink` đã khai báo;
+- mọi link ID trỏ tới `ApplicableLink` đã khai báo và mỗi link khai báo nhận
+  đúng một `ApplicableLinkResult`;
 - issue references trỏ tới `CritiqueIssue` hiện có;
 - duplicate/unknown IDs fail closed;
 - accepted missingness chỉ được coi là hợp lệ khi claim có structured
-  missingness reference và caller truyền một Stage-1 report đã pass;
+  missingness reference và dataset resolver trả về canonical observation đúng
+  entity/period/metric với trạng thái `MISSING`, giá trị null và allowed reason;
+  Stage-1 pass vẫn là điều kiện riêng, không thay thế provider resolution;
 - numeric claim không thể làm requirement missing-aware hợp lệ nếu numeric
   gate của Stage 1 đã fail.
 

@@ -1030,3 +1030,19 @@ transferability test recorded in `docs/ARCHITECTURAL-GUARDRAILS.md`.
 The guardrail is enforced as a repository-level pre-flight and by the focused
 architecture guard test. A task that materially conflicts with it must stop
 and report the affected components and minimum correction before code changes.
+
+## D-065: Implement Phase 0 as three reviewable slices
+
+Status: Accepted for the current implementation sequence.
+
+Phase 0 is divided into three isolated reviewable commits. Phase 0A defines
+raw-source descriptors, explicit field mappings, a small metric registry,
+snapshot identity, and deterministic onboarding validation contracts. Phase 0B
+will implement exactly one CSV-to-canonical-snapshot vertical slice and a
+canonical SQLite provider. Phase 0C will add only the minimal document/evidence
+boundary and transferability smoke test. No Phase 0 slice may silently expand
+into a complete ETL platform, RAG, critic/revision, UI redesign, or Phase 3B.
+
+Reason: the application architecture must be proven through a narrow
+non-Gold source path while keeping the reusable core independent from physical
+storage and keeping each review diff auditable.

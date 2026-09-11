@@ -204,6 +204,113 @@ def _limitation_claim() -> AtomicClaim:
     )
 
 
+def _numeric_claim() -> AtomicClaim:
+    reference = ClaimDataRef(
+        ref_id="macro-credit-growth-value",
+        ref_type="macro_observation",
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.credit_growth",
+    )
+    assertion = StructuredAssertion(
+        assertion_id="numeric-a1",
+        assertion_type=AssertionType.METRIC_VALUE,
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.credit_growth",
+        asserted_value=15.08,
+        unit="percent",
+        data_refs=(reference,),
+    )
+    return AtomicClaim(
+        claim_id="claim-macro-credit-growth-value",
+        claim_text="System credit growth was 15.08% in 2024_Q4.",
+        claim_type="factual",
+        title="Credit-growth value",
+        interpretation="The reported value is available.",
+        limitation="The observation is limited to the defined period.",
+        scope=ClaimScope(
+            entities=("VN",),
+            periods=("2024_Q4",),
+            metric_ids=("macro.credit_growth",),
+        ),
+        assertions=(assertion,),
+        inference_type=InferenceType.FACT,
+    )
+
+
+def _mixed_scope_claim(*, off_scope_assertion: StructuredAssertion) -> AtomicClaim:
+    macro_reference = ClaimDataRef(
+        ref_id="macro-credit-growth-reference-only",
+        ref_type="macro_observation",
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.credit_growth",
+    )
+    macro_assertion = StructuredAssertion(
+        assertion_id="macro-reference-only",
+        assertion_type=AssertionType.REFERENCE_ONLY,
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.credit_growth",
+        data_refs=(macro_reference,),
+    )
+    return AtomicClaim(
+        claim_id="claim-mixed-scope",
+        claim_text="The requested macro context is discussed with a separate bank fact.",
+        claim_type="factual",
+        title="Mixed-scope claim",
+        interpretation="Only assertions in the requirement scope can fulfill it.",
+        limitation="The bank assertion is outside the macro requirement scope.",
+        scope=ClaimScope(
+            entities=("VN", "TCB"),
+            periods=("2024_Q4",),
+            metric_ids=("macro.credit_growth", "bank.roa"),
+        ),
+        assertions=(macro_assertion, off_scope_assertion),
+        inference_type=InferenceType.FACT,
+    )
+
+
+def _bank_missing_assertion() -> StructuredAssertion:
+    reference = ClaimDataRef(
+        ref_id="bank-roa-missing",
+        ref_type="observation",
+        entity="TCB",
+        period="2024_Q4",
+        metric_id="bank.roa",
+    )
+    return StructuredAssertion(
+        assertion_id="bank-missing",
+        assertion_type=AssertionType.MISSINGNESS,
+        entity="TCB",
+        period="2024_Q4",
+        metric_id="bank.roa",
+        operator=AssertionOperator.MISSING,
+        data_refs=(reference,),
+    )
+
+
+def _bank_numeric_assertion() -> StructuredAssertion:
+    reference = ClaimDataRef(
+        ref_id="bank-roa-value",
+        ref_type="observation",
+        entity="TCB",
+        period="2024_Q4",
+        metric_id="bank.roa",
+    )
+    return StructuredAssertion(
+        assertion_id="bank-numeric",
+        assertion_type=AssertionType.METRIC_VALUE,
+        entity="TCB",
+        period="2024_Q4",
+        metric_id="bank.roa",
+        asserted_value=1.2,
+        unit="percent",
+        data_refs=(reference,),
+    )
+
+
 def _passing_stage1() -> Stage1ValidationReport:
     gates = {
         gate_id: HardGateResult(
@@ -323,6 +430,72 @@ class Phase3AContractTests(unittest.TestCase):
             (claim,),
             stage1_report=_passing_stage1(),
             dataset_resolver=_missing_resolver(),
+        )
+
+    def test_off_scope_missingness_cannot_fulfill_macro_requirement(self):
+        claim = _mixed_scope_claim(off_scope_assertion=_bank_missing_assertion())
+        with self.assertRaisesRegex(
+            SemanticContractError,
+            "missing_aware_requirement_has_no_value_or_missingness:R1",
+        ):
+            validate_structured_critic_result(
+                _minimal_plan(),
+                _result(claims=("claim-mixed-scope",)),
+                (claim,),
+                stage1_report=_passing_stage1(),
+                dataset_resolver=_ResolverFixture(
+                    _missing_observation().model_copy(
+                        update={
+                            "observation_id": "bank-roa-missing",
+                            "entity_id": "TCB",
+                            "metric_id": "bank.roa",
+                        }
+                    )
+                ),
+            )
+
+    def test_off_scope_numeric_value_cannot_fulfill_valid_macro_requirement(self):
+        requirement = AnalysisRequirement(
+            requirement_id="R1",
+            requirement_type=RequirementType.FACTUAL_OBSERVATION,
+            description="Report the observation.",
+            required_agents=(AnalysisAgent.MACRO,),
+            entities=("VN",),
+            periods=("2024_Q4",),
+            metric_ids=("macro.credit_growth",),
+            inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
+            fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+            missing_data_policy=MissingDataPolicy.REJECT_MISSING,
+        )
+        claim = _mixed_scope_claim(off_scope_assertion=_bank_numeric_assertion())
+        with self.assertRaisesRegex(
+            SemanticContractError,
+            "valid_value_required_not_fulfilled:R1",
+        ):
+            validate_structured_critic_result(
+                _minimal_plan(requirement=requirement),
+                _result(claims=("claim-mixed-scope",)),
+                (claim,),
+            )
+
+    def test_matching_numeric_assertion_fulfills_valid_value_requirement(self):
+        requirement = AnalysisRequirement(
+            requirement_id="R1",
+            requirement_type=RequirementType.FACTUAL_OBSERVATION,
+            description="Report the observation.",
+            required_agents=(AnalysisAgent.MACRO,),
+            entities=("VN",),
+            periods=("2024_Q4",),
+            metric_ids=("macro.credit_growth",),
+            inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
+            fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+            missing_data_policy=MissingDataPolicy.REJECT_MISSING,
+        )
+        validate_structured_critic_result(
+            _minimal_plan(requirement=requirement),
+            _result(claims=("claim-macro-credit-growth-value",)),
+            (_numeric_claim(),),
+            stage1_report=_passing_stage1(),
         )
 
     def test_association_only_plan_rejects_causal_inference_ceiling(self):

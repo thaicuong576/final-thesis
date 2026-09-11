@@ -22,6 +22,7 @@ from .schema import (
     AtomicClaim,
     CritiqueIssue,
     Stage1ValidationReport,
+    StructuredAssertion,
 )
 
 
@@ -149,18 +150,26 @@ def _claim_matches_requirement(
     claim: AtomicClaim,
     requirement: AnalysisRequirement,
 ) -> bool:
-    allowed_entities = set(requirement.entities)
-    allowed_periods = set(requirement.periods)
-    allowed_metrics = set(requirement.metric_ids)
     return any(
-        assertion.entity in allowed_entities
-        and assertion.period in allowed_periods
-        and assertion.metric_id in allowed_metrics
+        assertion_matches_requirement(assertion, requirement)
         for assertion in claim.assertions
     )
 
 
-def _has_numeric_assertion(claim: AtomicClaim) -> bool:
+def assertion_matches_requirement(
+    assertion: StructuredAssertion,
+    requirement: AnalysisRequirement,
+) -> bool:
+    """Check whether one assertion is in a requirement's exact scope."""
+
+    return (
+        assertion.entity in requirement.entities
+        and assertion.period in requirement.periods
+        and assertion.metric_id in requirement.metric_ids
+    )
+
+
+def _has_numeric_assertion(assertions: Sequence[StructuredAssertion]) -> bool:
     return any(
         assertion.assertion_type
         in {
@@ -170,18 +179,18 @@ def _has_numeric_assertion(claim: AtomicClaim) -> bool:
             AssertionType.AGGREGATE,
         }
         and assertion.asserted_value is not None
-        for assertion in claim.assertions
+        for assertion in assertions
     )
 
 
-def _has_missingness_shape(claim: AtomicClaim) -> bool:
+def _has_missingness_shape(assertions: Sequence[StructuredAssertion]) -> bool:
     return any(
         assertion.assertion_type is AssertionType.MISSINGNESS
         and any(
             ref.ref_type in _OBSERVATION_REF_TYPES
             for ref in assertion.data_refs
         )
-        for assertion in claim.assertions
+        for assertion in assertions
     )
 
 
@@ -222,23 +231,22 @@ def _accepted_missingness_observation(
 
 
 def _accepted_missingness_proof(
-    claims: Sequence[AtomicClaim],
+    assertions: Sequence[StructuredAssertion],
     resolver: Stage1DatasetResolver | None,
 ) -> tuple[bool, tuple[str, ...]]:
-    assertions = tuple(
+    candidate_assertions = tuple(
         assertion
-        for claim in claims
-        for assertion in claim.assertions
+        for assertion in assertions
         if assertion.assertion_type is AssertionType.MISSINGNESS
         and any(ref.ref_type in _OBSERVATION_REF_TYPES for ref in assertion.data_refs)
     )
-    if not assertions:
+    if not candidate_assertions:
         return False, ()
     if resolver is None:
         return False, ("accepted_missingness_resolver_required",)
     diagnostics: list[str] = []
     accepted = False
-    for assertion in assertions:
+    for assertion in candidate_assertions:
         refs = tuple(
             ref for ref in assertion.data_refs if ref.ref_type in _OBSERVATION_REF_TYPES
         )
@@ -353,12 +361,16 @@ def deterministic_coverage_violations(
                 f"requirement_has_no_matching_claim:{requirement.requirement_id}"
             )
             continue
-        has_numeric = any(_has_numeric_assertion(claim) for claim in matching_claims)
-        has_missingness_shape = any(
-            _has_missingness_shape(claim) for claim in matching_claims
+        matching_assertions = tuple(
+            assertion
+            for claim in matching_claims
+            for assertion in claim.assertions
+            if assertion_matches_requirement(assertion, requirement)
         )
+        has_numeric = _has_numeric_assertion(matching_assertions)
+        has_missingness_shape = _has_missingness_shape(matching_assertions)
         accepted_missingness, missingness_proof_violations = _accepted_missingness_proof(
-            matching_claims, dataset_resolver
+            matching_assertions, dataset_resolver
         )
         violations.extend(
             f"{item}:{requirement.requirement_id}"
@@ -374,9 +386,14 @@ def deterministic_coverage_violations(
                     f"disclosure_requirement_not_fulfilled:{requirement.requirement_id}"
                 )
         elif requirement.fulfillment_policy is FulfillmentPolicy.VALID_VALUE_REQUIRED:
-            if has_missingness_shape and not has_numeric:
-                violations.append(
+            if not has_numeric:
+                violation = (
                     f"missingness_not_allowed:{requirement.requirement_id}"
+                    if has_missingness_shape
+                    else f"valid_value_required_not_fulfilled:{requirement.requirement_id}"
+                )
+                violations.append(
+                    violation
                 )
         elif not has_numeric and not accepted_missingness:
             violations.append(

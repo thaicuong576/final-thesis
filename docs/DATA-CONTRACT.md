@@ -194,9 +194,6 @@ Rules:
 - `agent_id` must equal the role that received the request. The runtime uses
   `single_agent`, `macro`, `sector`, `company`, `orchestrator`, and
   `verification` as role identifiers; the role is part of the call trace.
-- `macro`, `sector`, and `company` are available capabilities, not mandatory
-  stages. A role is active only when required by the request-derived
-  `AnalysisPlan`; an inactive role is `NOT_APPLICABLE`, not a failed role.
 - Every published metric has a corresponding unit, period, observation ID/source
   ID, and evidence or explicit source-record locator.
 - Agents preserve nulls and quality flags.
@@ -246,51 +243,6 @@ All numeric boundary fields reject `NaN` and infinite values.
 When a call is dispatched from a `BaselineJob`, the resulting runtime result and
 run manifest also carry that job's stable `job_id`. Direct offline fixture calls
 may leave this field null for backward compatibility.
-
-## Phase 3 semantic applicability and revision contract
-
-The semantic critic runs only after synthesis has produced canonical candidate
-claims and Stage-1 deterministic acceptance has evaluated those claims. Every
-re-synthesis follows the same order:
-
-```text
-canonical candidate claims
-  → Stage-1
-  → semantic critic
-  → plan-valid CritiqueIssue[]
-  → affected active specialists only
-  → re-synthesis
-  → Stage-1 again
-```
-
-The six semantic dimensions are evaluated against the frozen `AnalysisPlan`.
-A dimension with no evaluation target is explicitly `NOT_APPLICABLE`, not a
-score of zero or one. It contributes neither a failure nor a perfect score.
-The quality total renormalizes the policy weights over applicable dimensions:
-
-```text
-sum(score[d] * weight[d] for applicable d)
-/ sum(weight[d] for applicable d)
-```
-
-This is a required Phase 3B-0 contract correction; provider adapters must not
-decide applicability or perform the renormalization.
-
-Critique issues are validated against the frozen plan before routing. The
-affected agent must be active in the plan. A `RECONCILE_CROSS_LEVEL` issue is
-valid only for a declared `ApplicableLink`; its link result must be known and
-unique. Unknown, omitted, or duplicate applicable-link results are malformed.
-
-`ACCEPT_WITH_LIMITATIONS` may represent only genuine data or evidence
-availability/insufficiency. The semantic contract must distinguish data
-availability from evidence availability (for example `MISSING_DATA` and
-`MISSING_EVIDENCE`) and must not use limited acceptance for reasoning defects,
-unsupported inference, hard-gate failures, unresolved contradictions, or
-provider/system failures.
-
-The current implementation has the Phase 3A result and acceptance-state
-contracts but no semantic evaluator or revision controller yet. The clauses
-above define the next compatibility slice; they do not claim runtime support.
 
 ## Run configuration and prompt version
 

@@ -7,13 +7,137 @@ import type {
 } from './types';
 
 /**
+ * Formats periods into a human-readable signature dynamically grouping by year.
+ * e.g. "Q1–Q4/2024" if all 4 quarters, or "Q1–Q2/2024", or "Q1/2024, Q3/2024".
+ * No hardcoded years or "length === 4" assumptions.
+ */
+export function formatPeriodsSignature(periods: Period[]): string {
+  if (!periods || periods.length === 0) return '';
+
+  const byYear = new Map<number, number[]>();
+  for (const p of periods) {
+    const quarters = byYear.get(p.year) || [];
+    if (!quarters.includes(p.quarter)) {
+      quarters.push(p.quarter);
+    }
+    byYear.set(p.year, quarters);
+  }
+
+  const parts: string[] = [];
+  for (const [year, quarters] of byYear.entries()) {
+    quarters.sort((a, b) => a - b);
+    if (quarters.length === 4 && quarters[0] === 1 && quarters[3] === 4) {
+      parts.push(`Q1–Q4/${year}`);
+    } else if (
+      quarters.length > 1 &&
+      quarters[quarters.length - 1] - quarters[0] === quarters.length - 1
+    ) {
+      parts.push(`Q${quarters[0]}–Q${quarters[quarters.length - 1]}/${year}`);
+    } else {
+      parts.push(quarters.map((q) => `Q${q}/${year}`).join(', '));
+    }
+  }
+
+  return parts.join(' · ');
+}
+
+export interface PlanCapabilitiesParams {
+  entities: Entity[];
+  capabilities: AnalysisCapabilities;
+  rawQuestion?: string;
+  forcePeerComparison?: boolean;
+}
+
+/**
+ * Plans analytical capabilities dynamically based on user intent and dataset capabilities.
+ * The user adjusts business/data scope; the planner decides which capabilities to run.
+ */
+export function planAnalyticalCapabilities({
+  entities,
+  capabilities,
+  rawQuestion = '',
+  forcePeerComparison = false
+}: PlanCapabilitiesParams): AnalyticalCapabilityItem[] {
+  const normalized = rawQuestion.toLowerCase();
+  const selectedCapabilities: AnalyticalCapabilityItem[] = [];
+
+  // 1. Company Analysis: Selected IF AND ONLY IF specific target entities are included
+  if (entities.length > 0) {
+    selectedCapabilities.push({
+      id: 'company',
+      label: 'Phân tích doanh nghiệp',
+      description: `Phân tích dữ liệu tài chính của ${entities.map((e) => e.ticker).join(', ')}`,
+      selected: true
+    });
+  }
+
+  // 2. Peer / Reference Universe Analysis:
+  // Selected when explicit comparison is requested, multiple entities exist,
+  // or a sector-level analysis is requested without single-company focus.
+  const isPeerComparisonRequested =
+    normalized.includes('so sánh') ||
+    normalized.includes('nhóm so sánh') ||
+    normalized.includes('nhóm tham chiếu') ||
+    normalized.includes('đối sánh') ||
+    normalized.includes('benchmark') ||
+    normalized.includes('ngành') ||
+    normalized.includes('toàn hệ thống') ||
+    normalized.includes('toàn ngành') ||
+    normalized.includes('trung vị') ||
+    normalized.includes('dẫn đầu') ||
+    normalized.includes('tốt hơn') ||
+    normalized.includes('kém') ||
+    normalized.includes('xếp hạng');
+
+  const hasMacroOnlyKeywords =
+    (normalized.includes('vĩ mô') ||
+      normalized.includes('lãi suất') ||
+      normalized.includes('chính sách tiền tệ')) &&
+    !isPeerComparisonRequested;
+
+  const shouldActivatePeer =
+    Boolean(capabilities.peerUniverse) &&
+    (forcePeerComparison ||
+      isPeerComparisonRequested ||
+      entities.length > 1 ||
+      (entities.length === 0 && !hasMacroOnlyKeywords));
+
+  if (shouldActivatePeer && capabilities.peerUniverse) {
+    selectedCapabilities.push({
+      id: 'peer',
+      label: 'Nhóm tham chiếu',
+      description: `Đối sánh cùng kỳ với ${capabilities.peerUniverse.label}`,
+      selected: true
+    });
+  }
+
+  // 3. Macro Context Analysis: Selected when macroeconomic keywords are present
+  // and macro capability is available in dataset capabilities.
+  const isMacroRequested =
+    normalized.includes('vĩ mô') ||
+    normalized.includes('lãi suất') ||
+    normalized.includes('chính sách tiền tệ') ||
+    normalized.includes('tín dụng') ||
+    normalized.includes('ngân hàng nhà nước') ||
+    normalized.includes('sbv') ||
+    normalized.includes('lạm phát');
+
+  if (isMacroRequested && capabilities.macro.status !== 'UNAVAILABLE') {
+    selectedCapabilities.push({
+      id: 'macro',
+      label: 'Bối cảnh vĩ mô',
+      description: 'Tích hợp diễn biến chính sách tiền tệ và tăng trưởng tín dụng',
+      selected: true
+    });
+  }
+
+  return selectedCapabilities;
+}
+
+/**
  * Client-side intent parser for Screen 1 prototype.
- * NOTE: This is a client-side preview/mock implementation of the query-adaptive
- * request interpretation. In production, this will be replaced by the backend
- * planning endpoint that returns a validated AnalysisPlan.
- *
- * All entities, periods, metrics, and universe references are derived from the
- * injected AnalysisCapabilities contract.
+ * NOTE: All entities, periods, metrics, and universe references are derived dynamically
+ * from the injected AnalysisCapabilities contract.
  */
 export function parseAnalysisQuestion(
   question: string,
@@ -21,8 +145,8 @@ export function parseAnalysisQuestion(
 ): ParseResult {
   const normalized = question.toLowerCase();
 
-  // 1. Check for unsupported requests against capability boundaries
-  const mismatch = detectScopeMismatch(normalized, capabilities);
+  // 1. Check for unsupported requests dynamically against capability boundaries
+  const mismatch = detectScopeMismatch(question, normalized, capabilities);
   if (mismatch.isMismatch) {
     const emptyScope: ParsedScope = {
       entities: [],
@@ -46,8 +170,32 @@ export function parseAnalysisQuestion(
     return normalized.includes(ticker) || normalized.includes(name);
   });
 
-  const finalEntities: Entity[] =
-    matchedEntities.length > 0 ? matchedEntities : capabilities.entities;
+  // Determine if question is Peer-only or Macro-only (no specific entity named)
+  const isPeerCues =
+    normalized.includes('so sánh') ||
+    normalized.includes('nhóm so sánh') ||
+    normalized.includes('nhóm tham chiếu') ||
+    normalized.includes('đối sánh') ||
+    normalized.includes('toàn ngành') ||
+    normalized.includes('toàn hệ thống') ||
+    normalized.includes('ngành');
+
+  const isMacroCues =
+    normalized.includes('vĩ mô') ||
+    normalized.includes('lãi suất') ||
+    normalized.includes('chính sách tiền tệ') ||
+    normalized.includes('tín dụng') ||
+    normalized.includes('ngân hàng nhà nước') ||
+    normalized.includes('sbv') ||
+    normalized.includes('lạm phát');
+
+  let finalEntities: Entity[] = [];
+  if (matchedEntities.length > 0) {
+    finalEntities = matchedEntities;
+  } else if (!isPeerCues && !isMacroCues) {
+    // High-level or general question with no entity specified: default to all dataset entities
+    finalEntities = capabilities.entities;
+  }
 
   // 3. Extract supported periods from capabilities
   const matchedPeriods = capabilities.periods.filter((period) => {
@@ -120,63 +268,22 @@ export function parseAnalysisQuestion(
   }
 
   // 5. Query-Adaptive Capability Selection (AnalysisPlan)
-  // Determine which analytical capabilities are selected for this query
-  const selectedCapabilities: AnalyticalCapabilityItem[] = [];
-
-  // A. Company Analysis: Always selected when evaluating entity/entities
-  selectedCapabilities.push({
-    id: 'company',
-    label: 'Phân tích doanh nghiệp',
-    description: `Phân tích dữ liệu tài chính của ${finalEntities.map((e) => e.ticker).join(', ')}`,
-    selected: true
+  const selectedCapabilities = planAnalyticalCapabilities({
+    entities: finalEntities,
+    capabilities,
+    rawQuestion: question
   });
 
-  // B. Peer / Reference Universe Analysis: Selected when comparison, ranking,
-  // or multiple entities are requested
-  const isPeerComparisonRequested =
-    normalized.includes('so sánh') ||
-    normalized.includes('nhóm so sánh') ||
-    normalized.includes('nhóm tham chiếu') ||
-    normalized.includes('đối sánh') ||
-    normalized.includes('benchmark') ||
-    normalized.includes('ngành') ||
-    normalized.includes('toàn hệ thống') ||
-    normalized.includes('dẫn đầu') ||
-    normalized.includes('tốt hơn') ||
-    normalized.includes('kém') ||
-    matchedEntities.length > 1;
+  // 6. Build concise scope signature dynamically
+  const entitySig =
+    finalEntities.length > 0
+      ? finalEntities.map((e) => e.ticker).join(' · ')
+      : selectedCapabilities.some((c) => c.id === 'peer')
+      ? capabilities.peerUniverse?.label || 'Toàn ngành'
+      : selectedCapabilities.some((c) => c.id === 'macro')
+      ? 'Toàn hệ thống'
+      : '';
 
-  if (isPeerComparisonRequested && capabilities.peerUniverse) {
-    selectedCapabilities.push({
-      id: 'peer',
-      label: 'Nhóm tham chiếu',
-      description: `Đối sánh cùng kỳ với ${capabilities.peerUniverse.label}`,
-      selected: true
-    });
-  }
-
-  // C. Macro Context Analysis: Selected when macroeconomic keywords are present
-  // and macro capability is available
-  const isMacroRequested =
-    normalized.includes('vĩ mô') ||
-    normalized.includes('lãi suất') ||
-    normalized.includes('chính sách tiền tệ') ||
-    normalized.includes('tín dụng') ||
-    normalized.includes('ngân hàng nhà nước') ||
-    normalized.includes('sbv') ||
-    normalized.includes('lạm phát');
-
-  if (isMacroRequested && capabilities.macro.status !== 'UNAVAILABLE') {
-    selectedCapabilities.push({
-      id: 'macro',
-      label: 'Bối cảnh vĩ mô',
-      description: 'Tích hợp diễn biến chính sách tiền tệ và tăng trưởng tín dụng',
-      selected: true
-    });
-  }
-
-  // 6. Build concise scope signature: e.g. "TCB · Q1–Q4/2024 · ROE"
-  const entitySig = finalEntities.map((e) => e.ticker).join(' · ');
   const periodSig = formatPeriodsSignature(finalPeriods);
   const metricSig = finalMetrics.map((m) => m.acronym).join(' · ');
   const scopeSignature = [entitySig, periodSig, metricSig].filter(Boolean).join(' · ');
@@ -200,13 +307,12 @@ export function parseAnalysisQuestion(
   };
 }
 
-function formatPeriodsSignature(periods: Period[]): string {
-  if (periods.length === 0) return '';
-  if (periods.length === 4) return 'Q1–Q4/2024';
-  return periods.map((p) => `Q${p.quarter}/${p.year}`).join(', ');
-}
-
+/**
+ * Dynamically detects mismatch between user question and active AnalysisCapabilities.
+ * Does NOT rely on hardcoded bank lists or past years.
+ */
 function detectScopeMismatch(
+  rawQuestion: string,
   normalized: string,
   capabilities: AnalysisCapabilities
 ): ScopeMismatch {
@@ -214,36 +320,115 @@ function detectScopeMismatch(
   const unsupportedPeriods: string[] = [];
   const unsupportedMetrics: string[] = [];
 
-  // Out-of-scope bank cues for prototype testing
-  const knownOtherBanks = ['bidv', 'ctg', 'stb', 'hdb', 'shb', 'tpbank', 'tpb', 'lpbank', 'lpb'];
-  for (const b of knownOtherBanks) {
-    if (normalized.includes(b)) {
-      unsupportedEntities.push(b.toUpperCase());
+  const supportedTickers = new Set(capabilities.entities.map((e) => e.ticker.toUpperCase()));
+  const supportedNames = capabilities.entities.map((e) => e.name.toLowerCase());
+  const supportedYears = new Set(capabilities.periods.map((p) => p.year));
+  const supportedMetricAcronyms = new Set(capabilities.metrics.map((m) => m.acronym.toUpperCase()));
+
+  // 1. Dynamic 4-digit year detection (e.g. 2025, 2023, 2022)
+  const yearMatches = rawQuestion.match(/\b(19\d\d|20\d\d)\b/g);
+  if (yearMatches) {
+    for (const yrStr of yearMatches) {
+      const yr = parseInt(yrStr, 10);
+      if (!supportedYears.has(yr) && !unsupportedPeriods.includes(yrStr)) {
+        unsupportedPeriods.push(yrStr);
+      }
     }
   }
 
-  // Out-of-scope years for prototype testing
-  const pastYears = ['2023', '2022', '2021', '2020'];
-  for (const yr of pastYears) {
-    if (normalized.includes(yr)) {
-      unsupportedPeriods.push(yr);
-    }
-  }
-
-  // Out-of-scope metrics
-  const knownOtherMetrics: { key: string; label: string }[] = [
-    { key: 'eps', label: 'EPS' },
-    { key: 'p/e', label: 'P/E' },
-    { key: 'pe ', label: 'P/E' },
-    { key: 'casa', label: 'CASA' },
-    { key: 'nim', label: 'NIM' },
-    { key: 'cir', label: 'CIR' },
-    { key: 'car', label: 'CAR' }
+  // 2. Dynamic financial metric extraction & non-membership detection
+  const candidateMetricAcronyms = [
+    'EPS',
+    'PE',
+    'P/E',
+    'PB',
+    'P/B',
+    'NIM',
+    'CASA',
+    'CIR',
+    'CAR',
+    'LDR',
+    'COF',
+    'YOEA',
+    'NOI',
+    'EBIT',
+    'EBITDA'
   ];
-  for (const m of knownOtherMetrics) {
-    if (normalized.includes(m.key)) {
-      if (!unsupportedMetrics.includes(m.label)) {
-        unsupportedMetrics.push(m.label);
+
+  for (const acr of candidateMetricAcronyms) {
+    const escaped = acr.replace('/', '\\/');
+    const reg = new RegExp(`(^|[^a-zA-Z0-9/])${escaped}([^a-zA-Z0-9/]|$)`, 'i');
+    if (reg.test(rawQuestion)) {
+      const isSupported =
+        supportedMetricAcronyms.has(acr.toUpperCase()) ||
+        capabilities.metrics.some((m) => m.acronym.toUpperCase() === acr.toUpperCase());
+      if (!isSupported) {
+        const displayLabel = acr === 'PE' ? 'P/E' : acr === 'PB' ? 'P/B' : acr;
+        if (!unsupportedMetrics.includes(displayLabel)) {
+          unsupportedMetrics.push(displayLabel);
+        }
+      }
+    }
+  }
+
+  // 3. Dynamic entity / ticker non-membership detection
+  // Exclude common financial/macro/quarter acronyms from being treated as entities
+  const nonEntityAcronyms = new Set([
+    'SBV',
+    'NHNN',
+    'GDP',
+    'CPI',
+    'VND',
+    'USD',
+    'Q1',
+    'Q2',
+    'Q3',
+    'Q4',
+    'NPL',
+    'LLR',
+    'ROA',
+    'ROE',
+    ...candidateMetricAcronyms
+  ]);
+
+  // Strategy A: 3-4 letter uppercase tokens in raw query
+  const uppercaseTokens = rawQuestion.match(/\b[A-Z]{3,4}\b/g) || [];
+  for (const tok of uppercaseTokens) {
+    const upper = tok.toUpperCase();
+    if (nonEntityAcronyms.has(upper)) continue;
+    if (supportedTickers.has(upper)) continue;
+    if (!unsupportedEntities.includes(upper)) {
+      unsupportedEntities.push(upper);
+    }
+  }
+
+  // Strategy B: Mentions following entity cues (e.g. "ngân hàng VIB", "cổ phiếu VIB", "mã VIB")
+  const entityCueRegex = /(?:ngân hàng|nhà băng|cổ phiếu|mã|bank)\s+([a-zA-Z0-9_]+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = entityCueRegex.exec(rawQuestion)) !== null) {
+    const candidate = match[1].trim();
+    const upper = candidate.toUpperCase();
+    const lower = candidate.toLowerCase();
+    if (nonEntityAcronyms.has(upper)) continue;
+    const isSupported =
+      supportedTickers.has(upper) ||
+      supportedNames.some((name) => name.includes(lower));
+    if (!isSupported && !unsupportedEntities.includes(upper)) {
+      unsupportedEntities.push(upper);
+    }
+  }
+
+  // Strategy C: 3-4 letter tokens ending with bank or ticker-like consonant patterns (vib, ctg, bidv, etc.)
+  const words = normalized.split(/[\s,?.!/—–-]+/).filter(Boolean);
+  for (const w of words) {
+    if (w.length >= 3 && w.length <= 4) {
+      const upper = w.toUpperCase();
+      if (nonEntityAcronyms.has(upper)) continue;
+      if (supportedTickers.has(upper)) continue;
+      if (w.endsWith('b') || w.endsWith('v') || w.endsWith('bank') || w === 'ctg') {
+        if (!unsupportedEntities.includes(upper)) {
+          unsupportedEntities.push(upper);
+        }
       }
     }
   }
@@ -254,7 +439,7 @@ function detectScopeMismatch(
     unsupportedMetrics.length > 0;
 
   const availableCapabilitiesSummary = {
-    periods: 'Q1–Q4/2024',
+    periods: formatPeriodsSignature(capabilities.periods),
     metrics: capabilities.metrics.map((m) => m.acronym).join(', '),
     entities: capabilities.entities.map((e) => e.ticker).join(', ')
   };

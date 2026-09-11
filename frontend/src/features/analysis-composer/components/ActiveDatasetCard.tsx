@@ -1,4 +1,5 @@
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
+import { formatPeriodsSignature } from '../model/intentParser';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Database, Check } from 'lucide-react';
@@ -11,6 +12,7 @@ interface ActiveDatasetCardProps {
 export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatasetCardProps) {
   const entityTickers = capabilities.entities.map((e) => e.ticker).join(' · ');
   const metricAcronyms = capabilities.metrics.map((m) => m.acronym).join(' · ');
+  const periodSig = formatPeriodsSignature(capabilities.periods);
 
   return (
     <div className="border border-line bg-white rounded-lg p-4 shadow-surface">
@@ -34,8 +36,12 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
             <span className="font-medium text-ink">{entityTickers}</span>
-            <span aria-hidden="true">•</span>
-            <span>Q1–Q4/2024</span>
+            {periodSig && (
+              <>
+                <span aria-hidden="true">•</span>
+                <span>{periodSig}</span>
+              </>
+            )}
             <span aria-hidden="true">•</span>
             <span>{metricAcronyms}</span>
           </div>

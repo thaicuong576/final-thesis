@@ -172,7 +172,7 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
     expect(await screen.findByText('Khởi tạo quy trình thành công')).toBeInTheDocument();
   });
 
-  it('opens ScopeAdjustmentDrawer and allows fine-tuning entities, metrics, and analytical capabilities', async () => {
+  it('opens ScopeAdjustmentDrawer and allows fine-tuning business scope without manual specialist controls', async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -186,10 +186,13 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
     // Drawer is open
     expect(await screen.findByText('Chỉnh phạm vi phân tích')).toBeInTheDocument();
     expect(
-      screen.getByText('Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động.')
+      screen.getByText(/Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động/)
     ).toBeInTheDocument();
 
-    // Toggle TCB
+    // Critical constraint: NO manual specialist/capability controls in ScopeAdjustmentDrawer
+    expect(screen.queryByText('Khả năng phân tích sử dụng')).not.toBeInTheDocument();
+
+    // Toggle TCB in business entities
     const tcbChip = screen.getByRole('button', { name: 'TCB' });
     await user.click(tcbChip);
 

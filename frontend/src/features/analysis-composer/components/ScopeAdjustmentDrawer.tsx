@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
-import type { AnalyticalCapabilityId, AnalyticalCapabilityItem, ParsedScope } from '../model/types';
+import type { ParsedScope } from '../model/types';
+import {
+  formatPeriodsSignature,
+  planAnalyticalCapabilities
+} from '../model/intentParser';
 import {
   Sheet,
   SheetContent,
@@ -36,8 +40,8 @@ export function ScopeAdjustmentDrawer({
   const [selectedMetricIds, setSelectedMetricIds] = useState<string[]>(
     currentScope.metrics.map((m) => m.id)
   );
-  const [selectedCapabilityIds, setSelectedCapabilityIds] = useState<AnalyticalCapabilityId[]>(
-    currentScope.analysisPlan.selectedCapabilities.map((c) => c.id)
+  const [includePeerUniverse, setIncludePeerUniverse] = useState<boolean>(
+    currentScope.analysisPlan.selectedCapabilities.some((c) => c.id === 'peer')
   );
 
   function toggleEntity(id: string) {
@@ -58,46 +62,25 @@ export function ScopeAdjustmentDrawer({
     );
   }
 
-  function toggleCapability(id: AnalyticalCapabilityId) {
-    setSelectedCapabilityIds((prev) =>
-      prev.includes(id) ? (prev.length > 1 ? prev.filter((item) => item !== id) : prev) : [...prev, id]
-    );
-  }
-
   function handleSave() {
     const nextEntities = capabilities.entities.filter((e) => selectedEntityIds.includes(e.id));
     const nextPeriods = capabilities.periods.filter((p) => selectedPeriodIds.includes(p.id));
     const nextMetrics = capabilities.metrics.filter((m) => selectedMetricIds.includes(m.id));
 
-    // Rebuild capability items
-    const allPossibleCapabilities: AnalyticalCapabilityItem[] = [
-      {
-        id: 'company',
-        label: 'Phân tích doanh nghiệp',
-        description: `Phân tích dữ liệu tài chính của ${nextEntities.map((e) => e.ticker).join(', ')}`,
-        selected: selectedCapabilityIds.includes('company')
-      },
-      {
-        id: 'peer',
-        label: 'Nhóm tham chiếu',
-        description: `Đối sánh cùng kỳ với ${capabilities.peerUniverse.label}`,
-        selected: selectedCapabilityIds.includes('peer')
-      },
-      {
-        id: 'macro',
-        label: 'Bối cảnh vĩ mô',
-        description: 'Tích hợp diễn biến chính sách tiền tệ và tăng trưởng tín dụng',
-        selected: selectedCapabilityIds.includes('macro')
-      }
-    ];
+    // The system automatically plans analytical capabilities based on user's adjusted scope
+    const nextSelectedCapabilities = planAnalyticalCapabilities({
+      entities: nextEntities,
+      capabilities,
+      forcePeerComparison: includePeerUniverse
+    });
 
-    const nextSelectedCapabilities = allPossibleCapabilities.filter((c) => c.selected);
-
-    const entitySig = nextEntities.map((e) => e.ticker).join(' · ');
-    const periodSig =
-      nextPeriods.length === 4
-        ? 'Q1–Q4/2024'
-        : nextPeriods.map((p) => `Q${p.quarter}/${p.year}`).join(', ');
+    const entitySig =
+      nextEntities.length > 0
+        ? nextEntities.map((e) => e.ticker).join(' · ')
+        : includePeerUniverse
+        ? capabilities.peerUniverse?.label || 'Toàn ngành'
+        : '';
+    const periodSig = formatPeriodsSignature(nextPeriods);
     const metricSig = nextMetrics.map((m) => m.acronym).join(' · ');
     const scopeSignature = [entitySig, periodSig, metricSig].filter(Boolean).join(' · ');
 
@@ -127,42 +110,11 @@ export function ScopeAdjustmentDrawer({
               <span>Chỉnh phạm vi phân tích</span>
             </SheetTitle>
             <SheetDescription className="text-xs text-muted">
-              Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động.
+              Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động. Hệ thống sẽ tự động xác định các năng lực phân tích tương ứng.
             </SheetDescription>
           </SheetHeader>
 
           <div className="space-y-5 text-xs">
-            {/* Analytical Capabilities (Query-Adaptive Toggles) */}
-            <div className="space-y-2">
-              <label className="font-semibold text-ink block">
-                Khả năng phân tích sử dụng
-              </label>
-              <div className="space-y-1.5">
-                {[
-                  { id: 'company' as const, label: 'Phân tích doanh nghiệp' },
-                  { id: 'peer' as const, label: 'Nhóm tham chiếu' },
-                  { id: 'macro' as const, label: 'Bối cảnh vĩ mô' }
-                ].map((cap) => {
-                  const isSelected = selectedCapabilityIds.includes(cap.id);
-                  return (
-                    <button
-                      key={cap.id}
-                      type="button"
-                      onClick={() => toggleCapability(cap.id)}
-                      className={`w-full p-2.5 rounded-md border text-left text-xs transition flex items-center justify-between ${
-                        isSelected
-                          ? 'border-[#1c5d9c] bg-[#f5f8fb] text-ink font-semibold'
-                          : 'border-line bg-white text-muted hover:border-slate-400'
-                      }`}
-                    >
-                      <span>{cap.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-[#1c5d9c]" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Entities */}
             <div className="space-y-2">
               <label className="font-semibold text-ink block">
@@ -189,6 +141,34 @@ export function ScopeAdjustmentDrawer({
                 })}
               </div>
             </div>
+
+            {/* Peer comparison universe scope */}
+            {capabilities.peerUniverse && (
+              <div className="space-y-2">
+                <label className="font-semibold text-ink block">
+                  Phạm vi đối sánh tham chiếu
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIncludePeerUniverse(!includePeerUniverse)}
+                  className={`w-full p-2.5 rounded-md border text-left text-xs transition flex items-center justify-between ${
+                    includePeerUniverse
+                      ? 'border-[#1c5d9c] bg-[#f5f8fb] text-ink font-semibold'
+                      : 'border-line bg-white text-muted hover:border-slate-400'
+                  }`}
+                >
+                  <div>
+                    <span className="font-medium text-ink">{capabilities.peerUniverse.label}</span>
+                    <p className="text-[11px] text-muted font-normal mt-0.5">
+                      {capabilities.peerUniverse.description}
+                    </p>
+                  </div>
+                  {includePeerUniverse && (
+                    <Check className="w-3.5 h-3.5 text-[#1c5d9c] shrink-0 ml-2" />
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Periods */}
             <div className="space-y-2">

@@ -1,4 +1,5 @@
 import type { ParseResult } from '../model/types';
+import { formatPeriodsSignature } from '../model/intentParser';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, ArrowRight, Settings2, Check } from 'lucide-react';
@@ -20,6 +21,11 @@ export function RequestInterpretationCard({
 }: RequestInterpretationCardProps) {
   const { rawQuestion, scope } = parseResult;
   const { selectedCapabilities } = scope.analysisPlan;
+
+  const entityDisplay =
+    scope.entities.length > 0
+      ? scope.entities.map((e) => e.ticker).join(', ')
+      : scope.referenceUniverseLabel || 'Toàn hệ thống';
 
   return (
     <div className="border border-line bg-white rounded-xl p-6 shadow-surface space-y-6">
@@ -57,14 +63,12 @@ export function RequestInterpretationCard({
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted pt-0.5">
           <span>
-            <strong>Doanh nghiệp:</strong> {scope.entities.map((e) => e.ticker).join(', ')}
+            <strong>Doanh nghiệp:</strong> {entityDisplay}
           </span>
           <span aria-hidden="true">•</span>
           <span>
             <strong>Chu kỳ:</strong>{' '}
-            {scope.periods.length === 4
-              ? 'Q1–Q4/2024'
-              : scope.periods.map((p) => `Q${p.quarter}/${p.year}`).join(', ')}
+            {formatPeriodsSignature(scope.periods)}
           </span>
           <span aria-hidden="true">•</span>
           <span>

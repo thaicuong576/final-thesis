@@ -19,6 +19,7 @@ from .dataset_contract import AnalyticalLevel
 
 
 ONBOARDING_CONTRACT_VERSION = "onboarding-contract-v1"
+CONTENT_MANIFEST_VERSION = "content-manifest-v1"
 
 
 class DatasetSnapshotStatus(StrEnum):
@@ -108,6 +109,7 @@ class DatasetSnapshotMetadata(BaseModel):
     source_content_hash: str = Field(min_length=1)
     mapping_version: str = Field(min_length=1)
     validation_version: str = Field(min_length=1)
+    content_manifest_hash: str | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def validate_metadata(self) -> "DatasetSnapshotMetadata":
@@ -121,6 +123,8 @@ class DatasetSnapshotMetadata(BaseModel):
             "validation_version",
         ):
             _require_text(getattr(self, field_name), field_name)
+        if self.content_manifest_hash is not None:
+            _require_text(self.content_manifest_hash, "content_manifest_hash")
         return self
 
 
@@ -356,6 +360,7 @@ def compute_dataset_snapshot_id(
     source_content_hash: str,
     mapping_version: str,
     validation_version: str,
+    content_manifest_hash: str | None = None,
 ) -> str:
     """Derive a stable snapshot identity from source and accepted transformations."""
 
@@ -365,8 +370,81 @@ def compute_dataset_snapshot_id(
         "mapping_version": _require_text(mapping_version, "mapping_version"),
         "validation_version": _require_text(validation_version, "validation_version"),
     }
+    if content_manifest_hash is not None:
+        parts["content_manifest_hash"] = _require_text(
+            content_manifest_hash,
+            "content_manifest_hash",
+        )
     encoded = json.dumps(parts, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return f"snapshot-{sha256(encoded).hexdigest()}"
+
+
+def _manifest_item(value: Any, *, identity_field: str, drop_fields: set[str]) -> dict[str, Any]:
+    if isinstance(value, BaseModel):
+        item = value.model_dump(mode="json")
+    elif isinstance(value, dict):
+        item = dict(value)
+    else:
+        raise TypeError("content manifest items must be mappings or Pydantic models")
+    item = {
+        str(key): child
+        for key, child in item.items()
+        if key not in drop_fields
+    }
+    if not str(item.get(identity_field, "")).strip():
+        raise ValueError(f"content manifest item requires {identity_field}")
+    return item
+
+
+def compute_content_manifest_hash(
+    *,
+    sources: Sequence[Any],
+    documents: Sequence[Any] = (),
+    evidence: Sequence[Any] = (),
+    mapping_version: str,
+    validation_version: str,
+) -> str:
+    """Hash the complete accepted analytical content universe deterministically.
+
+    Dataset/snapshot identity fields on documents are derived from this hash,
+    so they are intentionally excluded to avoid a circular identity. Content,
+    provenance, locators, and quotes remain part of the manifest.
+    """
+
+    source_items = [
+        _manifest_item(
+            item,
+            identity_field="source_ref",
+            drop_fields={"retrieved_at"},
+        )
+        for item in sources
+    ]
+    document_items = [
+        _manifest_item(
+            item,
+            identity_field="document_id",
+            drop_fields={"dataset_id", "dataset_snapshot_id"},
+        )
+        for item in documents
+    ]
+    evidence_items = [
+        _manifest_item(
+            item,
+            identity_field="evidence_id",
+            drop_fields=set(),
+        )
+        for item in evidence
+    ]
+    payload = {
+        "manifest_version": CONTENT_MANIFEST_VERSION,
+        "mapping_version": _require_text(mapping_version, "mapping_version"),
+        "validation_version": _require_text(validation_version, "validation_version"),
+        "sources": sorted(source_items, key=lambda item: item["source_ref"]),
+        "documents": sorted(document_items, key=lambda item: item["document_id"]),
+        "evidence": sorted(evidence_items, key=lambda item: item["evidence_id"]),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return f"manifest-{sha256(encoded).hexdigest()}"
 
 
 def compute_field_mapping_version(mapping: FieldMappingSpec) -> str:
@@ -386,6 +464,7 @@ def build_snapshot_metadata(
     *,
     mapping_version: str,
     validation_version: str,
+    content_manifest_hash: str | None = None,
     status: DatasetSnapshotStatus = DatasetSnapshotStatus.CANDIDATE,
     created_at: datetime | None = None,
 ) -> DatasetSnapshotMetadata:
@@ -402,6 +481,7 @@ def build_snapshot_metadata(
         raw_descriptor.content_hash,
         mapping_version,
         validation_version,
+        content_manifest_hash,
     )
     return DatasetSnapshotMetadata(
         dataset_id=dataset_id,
@@ -411,6 +491,7 @@ def build_snapshot_metadata(
         source_content_hash=raw_descriptor.content_hash,
         mapping_version=mapping_version,
         validation_version=validation_version,
+        content_manifest_hash=content_manifest_hash,
     )
 
 
@@ -446,6 +527,7 @@ def validate_snapshot_metadata(
         raw_descriptor.content_hash,
         metadata.mapping_version,
         metadata.validation_version,
+        metadata.content_manifest_hash,
     )
     if metadata.dataset_snapshot_id != expected_id:
         raise ValueError("snapshot ID does not match source and transformation versions")

@@ -56,6 +56,10 @@ class DatasetDocument(BaseModel):
             raise ValueError("unsupported document contract version")
         if "/" in self.source_ref or "\\" in self.source_ref:
             raise ValueError("document source_ref must be an opaque reference")
-        if _contains_local_path(self.publisher) or _contains_local_path(self.metadata):
+        if (
+            _contains_local_path(self.title)
+            or _contains_local_path(self.publisher)
+            or _contains_local_path(self.metadata)
+        ):
             raise ValueError("document metadata must not contain local paths")
         return self

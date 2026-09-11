@@ -31,7 +31,9 @@ from .onboarding_contract import (
     OnboardingValidationReport,
     OnboardingValidationStatus,
     build_snapshot_metadata,
+    compute_content_manifest_hash,
     compute_field_mapping_version,
+    compute_dataset_snapshot_id,
     validate_field_mapping,
 )
 from .schema import QualityStatus
@@ -62,8 +64,15 @@ class CanonicalDatasetCandidate:
     metrics: tuple[DatasetMetric, ...]
     observations: tuple[CanonicalObservation, ...]
     peer_universes: tuple[PeerUniverse, ...] = ()
+    additional_sources: tuple[DatasetSource, ...] = ()
     documents: tuple[DatasetDocument, ...] = ()
     evidence: tuple[DatasetEvidence, ...] = ()
+
+    @property
+    def all_sources(self) -> tuple[DatasetSource, ...]:
+        """Return the primary structured source followed by additions."""
+
+        return (self.source, *self.additional_sources)
 
 
 @dataclass(frozen=True)
@@ -353,6 +362,38 @@ def normalize_csv_dataset(
     )
     if status is OnboardingValidationStatus.VALID:
         source = source.model_copy(update={"validation_status": QualityStatus.VALID})
+    content_manifest_hash = compute_content_manifest_hash(
+        sources=(source,),
+        mapping_version=mapping_version,
+        validation_version=ONBOARDING_VALIDATION_VERSION,
+    )
+    final_snapshot_id = compute_dataset_snapshot_id(
+        dataset_id,
+        staged.raw_descriptor.content_hash,
+        mapping_version,
+        ONBOARDING_VALIDATION_VERSION,
+        content_manifest_hash,
+    )
+    metadata = metadata.model_copy(
+        update={
+            "dataset_snapshot_id": final_snapshot_id,
+            "content_manifest_hash": content_manifest_hash,
+        }
+    )
+    observations = [
+        item.model_copy(
+            update={
+                "dataset_snapshot_id": final_snapshot_id,
+                "observation_id": _observation_id(
+                    final_snapshot_id,
+                    item.entity_id,
+                    item.period_id,
+                    item.metric_id,
+                ),
+            }
+        )
+        for item in observations
+    ]
     report = OnboardingValidationReport(
         dataset_id=dataset_id,
         candidate_snapshot_id=metadata.dataset_snapshot_id,

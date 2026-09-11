@@ -229,7 +229,11 @@ class DatasetToolRuntime:
         return universe
 
     def _ensure_sources(self, source_refs: Sequence[str]) -> None:
-        if not set(source_refs).issubset(self._discovered_source_refs):
+        available_source_refs = (
+            self._discovered_source_refs
+            | set(self.context.capability_catalog.source_refs)
+        )
+        if not set(source_refs).issubset(available_source_refs):
             raise DatasetToolError("evidence source outside discovered request scope")
 
     def _remember_observation(self, observation: CanonicalObservation | None) -> None:

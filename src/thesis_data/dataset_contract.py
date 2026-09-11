@@ -203,6 +203,7 @@ class DatasetCapabilityCatalog(BaseModel):
     periods: tuple[DatasetPeriod, ...] = Field(min_length=1)
     metrics: tuple[DatasetMetric, ...] = Field(min_length=1)
     peer_universes: tuple[PeerUniverse, ...] = Field(default_factory=tuple)
+    source_refs: tuple[str, ...] = Field(default_factory=tuple)
     supported_operations: tuple[SupportedOperation, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -221,6 +222,10 @@ class DatasetCapabilityCatalog(BaseModel):
         operations = list(self.supported_operations)
         if len(operations) != len(set(operations)):
             raise ValueError("supported operations must be unique")
+        if len(self.source_refs) != len(set(self.source_refs)):
+            raise ValueError("source refs must be unique")
+        if any(not item.strip() for item in self.source_refs):
+            raise ValueError("source refs must be non-empty")
         entity_ids = {item.entity_id for item in self.entities}
         for universe in self.peer_universes:
             if not set(universe.entity_ids).issubset(entity_ids):

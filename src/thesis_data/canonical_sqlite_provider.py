@@ -76,6 +76,8 @@ class CanonicalSqliteDatasetProvider:
             raise DatasetProviderError("canonical dataset contract version is unsupported")
         if row["schema_version"] != CANONICAL_SNAPSHOT_SCHEMA_VERSION:
             raise DatasetProviderError("canonical dataset schema version is unsupported")
+        if not str(row["content_manifest_hash"]).strip():
+            raise DatasetProviderError("canonical dataset content manifest is invalid")
         return row
 
     def _physical_dataset_ref(self) -> DatasetRef:
@@ -177,6 +179,12 @@ class CanonicalSqliteDatasetProvider:
                             entity_ids=members,
                         )
                     )
+            source_refs = tuple(
+                str(row["source_ref"])
+                for row in connection.execute(
+                    "SELECT source_ref FROM sources ORDER BY source_ref"
+                ).fetchall()
+            )
             evidence_count = 0
             if "evidence" in self._tables(connection):
                 evidence_count = int(
@@ -209,6 +217,7 @@ class CanonicalSqliteDatasetProvider:
             periods=periods,
             metrics=metrics,
             peer_universes=tuple(peer_universes),
+            source_refs=source_refs,
             supported_operations=tuple(operations),
         )
 

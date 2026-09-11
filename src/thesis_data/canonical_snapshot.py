@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 from pathlib import Path
 import sqlite3
@@ -13,13 +14,15 @@ from .onboarding_contract import (
     DatasetSnapshotMetadata,
     OnboardingValidationReport,
     RawDatasetDescriptor,
+    compute_content_manifest_hash,
+    compute_dataset_snapshot_id,
     promote_snapshot_metadata,
 )
 from .onboarding_validation import CanonicalDatasetCandidate
 from .schema import QualityStatus
 
 
-CANONICAL_SNAPSHOT_SCHEMA_VERSION = "canonical-snapshot-v1"
+CANONICAL_SNAPSHOT_SCHEMA_VERSION = "canonical-snapshot-v2"
 
 
 def _enum_value(value: object) -> object:
@@ -43,6 +46,7 @@ def _create_schema(connection: sqlite3.Connection) -> None:
             source_content_hash TEXT NOT NULL,
             mapping_version TEXT NOT NULL,
             validation_version TEXT NOT NULL,
+            content_manifest_hash TEXT NOT NULL,
             CHECK (status = 'accepted')
         )
         """,
@@ -155,8 +159,11 @@ def _validate_candidate(
         raise ValueError("materialization requires accepted metadata")
     if candidate.source.content_hash != raw_descriptor.content_hash:
         raise ValueError("canonical source hash does not match raw descriptor")
-    if candidate.source.validation_status is not QualityStatus.VALID:
-        raise ValueError("canonical source must be valid before publication")
+    source_refs = [item.source_ref for item in candidate.all_sources]
+    if len(source_refs) != len(set(source_refs)):
+        raise ValueError("canonical source refs must be unique")
+    if any(item.validation_status is not QualityStatus.VALID for item in candidate.all_sources):
+        raise ValueError("every canonical source must be valid before publication")
     if not candidate.entities or not candidate.periods or not candidate.metrics:
         raise ValueError("accepted canonical snapshot must contain entities, periods, and metrics")
     entity_ids = {item.entity_id for item in candidate.entities}
@@ -184,20 +191,26 @@ def _validate_candidate(
     if len(evidence_ids) != len(set(evidence_ids)):
         raise ValueError("evidence IDs must be unique")
     document_id_set = set(document_ids)
+    document_sources = {
+        document.document_id: document.source_ref
+        for document in candidate.documents
+    }
     for document in candidate.documents:
         if (
             document.dataset_id != accepted_metadata.dataset_id
             or document.dataset_snapshot_id != accepted_metadata.dataset_snapshot_id
         ):
             raise ValueError("document dataset identity does not match snapshot metadata")
-        if document.source_ref != candidate.source.source_ref:
-            raise ValueError("document source does not resolve to the candidate source")
+        if document.source_ref not in source_refs:
+            raise ValueError("document source does not resolve to the snapshot")
     for item in candidate.evidence:
         if (
-            item.source_ref != candidate.source.source_ref
+            item.source_ref not in source_refs
             or item.document_id not in document_id_set
         ):
             raise ValueError("evidence source/document does not resolve in the snapshot")
+        if item.source_ref != document_sources[item.document_id]:
+            raise ValueError("evidence source does not match its document source")
         if item.entity_id is not None and item.entity_id not in entity_ids:
             raise ValueError("evidence entity does not resolve in the snapshot")
         if item.period_id is not None and item.period_id not in period_ids:
@@ -216,6 +229,73 @@ def _validate_candidate(
     for universe in candidate.peer_universes:
         if not set(universe.entity_ids).issubset(entity_ids):
             raise ValueError("peer universe contains an unknown entity")
+
+
+def _bind_candidate_to_final_snapshot(
+    candidate: CanonicalDatasetCandidate,
+    accepted_metadata: DatasetSnapshotMetadata,
+    raw_descriptor: RawDatasetDescriptor,
+) -> tuple[CanonicalDatasetCandidate, DatasetSnapshotMetadata]:
+    """Bind all candidate objects to the deterministic complete-content ID."""
+
+    if candidate.metadata.dataset_id != accepted_metadata.dataset_id:
+        raise ValueError("candidate dataset ID does not match accepted metadata")
+    for observation in candidate.observations:
+        if (
+            observation.dataset_id != accepted_metadata.dataset_id
+            or observation.dataset_snapshot_id != candidate.metadata.dataset_snapshot_id
+        ):
+            raise ValueError("candidate observation identity does not match candidate metadata")
+    for document in candidate.documents:
+        if (
+            document.dataset_id != accepted_metadata.dataset_id
+            or document.dataset_snapshot_id != candidate.metadata.dataset_snapshot_id
+        ):
+            raise ValueError("candidate document identity does not match candidate metadata")
+
+    manifest_hash = compute_content_manifest_hash(
+        sources=candidate.all_sources,
+        documents=candidate.documents,
+        evidence=candidate.evidence,
+        mapping_version=accepted_metadata.mapping_version,
+        validation_version=accepted_metadata.validation_version,
+    )
+    final_snapshot_id = compute_dataset_snapshot_id(
+        accepted_metadata.dataset_id,
+        raw_descriptor.content_hash,
+        accepted_metadata.mapping_version,
+        accepted_metadata.validation_version,
+        manifest_hash,
+    )
+    final_metadata = accepted_metadata.model_copy(
+        update={
+            "dataset_snapshot_id": final_snapshot_id,
+            "content_manifest_hash": manifest_hash,
+        }
+    )
+    bound_candidate = replace(
+        candidate,
+        metadata=final_metadata,
+        observations=tuple(
+            item.model_copy(
+                update={
+                    "dataset_id": final_metadata.dataset_id,
+                    "dataset_snapshot_id": final_snapshot_id,
+                }
+            )
+            for item in candidate.observations
+        ),
+        documents=tuple(
+            item.model_copy(
+                update={
+                    "dataset_id": final_metadata.dataset_id,
+                    "dataset_snapshot_id": final_snapshot_id,
+                }
+            )
+            for item in candidate.documents
+        ),
+    )
+    return bound_candidate, final_metadata
 
 
 def _insert_observation(connection: sqlite3.Connection, item: CanonicalObservation) -> None:
@@ -260,6 +340,11 @@ def materialize_canonical_snapshot(
         candidate.metadata,
         validation_report,
     )
+    candidate, accepted_metadata = _bind_candidate_to_final_snapshot(
+        candidate,
+        accepted_metadata,
+        raw_descriptor,
+    )
     _validate_candidate(candidate, accepted_metadata, raw_descriptor)
     target = Path(db_path)
     target_existed_before = target.exists()
@@ -279,8 +364,8 @@ def materialize_canonical_snapshot(
             INSERT INTO dataset_metadata (
                 dataset_id, dataset_snapshot_id, contract_version, schema_version,
                 status, created_at, source_content_hash, mapping_version,
-                validation_version
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                validation_version, content_manifest_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 accepted_metadata.dataset_id,
@@ -292,28 +377,29 @@ def materialize_canonical_snapshot(
                 accepted_metadata.source_content_hash,
                 accepted_metadata.mapping_version,
                 accepted_metadata.validation_version,
+                accepted_metadata.content_manifest_hash,
             ),
         )
-        source = candidate.source
-        connection.execute(
-            """
-            INSERT INTO sources (
-                source_ref, source_type, source_tier, source_url, publisher,
-                retrieved_at, content_hash, validation_status, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                source.source_ref,
-                source.source_type,
-                _enum_value(source.source_tier),
-                source.source_url,
-                source.publisher,
-                source.retrieved_at,
-                source.content_hash,
-                _enum_value(source.validation_status),
-                source.notes,
-            ),
-        )
+        for source in candidate.all_sources:
+            connection.execute(
+                """
+                INSERT INTO sources (
+                    source_ref, source_type, source_tier, source_url, publisher,
+                    retrieved_at, content_hash, validation_status, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    source.source_ref,
+                    source.source_type,
+                    _enum_value(source.source_tier),
+                    source.source_url,
+                    source.publisher,
+                    source.retrieved_at,
+                    source.content_hash,
+                    _enum_value(source.validation_status),
+                    source.notes,
+                ),
+            )
         for entity in candidate.entities:
             connection.execute(
                 "INSERT INTO entities VALUES (?, ?, ?, ?)",

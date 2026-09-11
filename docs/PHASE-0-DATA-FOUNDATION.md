@@ -54,6 +54,22 @@ The CSV adapter is one ingestion implementation, not part of the application
 contract. The canonical SQLite provider exposes only the generic provider
 interface to the application.
 
+The provenance topology is deliberately split while remaining inside one
+immutable snapshot:
+
+```text
+Structured source
+    → CanonicalObservation
+
+Document source
+    → DatasetDocument
+        → DatasetEvidence
+```
+
+The structured source and document source can therefore have independent
+source references and content hashes. A document/evidence source is not forced
+to reuse the CSV source.
+
 ### Unstructured evidence
 
 Phase 0C defines a minimal `DatasetDocument` and reuses `DatasetEvidence` with
@@ -66,6 +82,14 @@ metric binding.
 The provider advertises `get_evidence` only when the canonical snapshot has
 one or more evidence rows. A structured CSV snapshot with no evidence remains
 valid and simply does not advertise that operation.
+
+The accepted canonical SQLite schema is explicitly versioned as
+`canonical-snapshot-v2`. Its `content_manifest_hash` binds the complete
+accepted content universe: canonical source identities and hashes, document
+content/source references, evidence identities/locators/quotes, and the
+structured mapping/validation versions. Consequently, changing document
+content or changing an evidence quote/locator creates a different accepted
+snapshot identity even when the CSV bytes are unchanged.
 
 This phase does not implement PDF parsing, OCR, chunking, embeddings, RAG,
 semantic search, document ranking, or model-based extraction. Those are future
@@ -93,6 +117,11 @@ that all datasets have identical schemas or semantics.
 ## Integrity rules
 
 - Dataset and snapshot identities are part of every canonical observation.
+- Accepted documents and persisted evidence carry the final snapshot identity;
+  provisional candidate IDs are not retained in the materialized snapshot.
+- Source, document, and evidence IDs are unique within a snapshot, and every
+  document/evidence source relationship is resolved and matched before
+  publication.
 - A provider rejects persisted rows whose identity differs from the requested
   `DatasetRef`; it never normalizes a physical mismatch into the request.
 - The canonical provider accepts exactly the supported onboarding and snapshot

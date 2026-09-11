@@ -1,0 +1,157 @@
+{
+  "adjudication_id": "macro-final-source-adjudication-2024-q4-v1",
+  "scope": {
+    "period": "2024_Q4",
+    "indicators": ["macro.policy_rate", "macro.credit_growth"]
+  },
+  "promotion_performed": false,
+  "schema_or_runtime_modified": false,
+  "policy_rate": {
+    "candidate": {
+      "indicator_id": "macro.policy_rate",
+      "definition": "SBV refinancing rate",
+      "candidate_value": 4.5,
+      "unit": "percent_per_annum",
+      "reported_effective_from": "2023-06-19",
+      "analytical_period": "2024_Q4",
+      "alignment_method": "latest_effective_state_at_period_end_v1",
+      "source_observation_date": "2023-06-19",
+      "analytical_period_end": "2024-12-31",
+      "source_observation_at_period_end_created": false
+    },
+    "checker_a": {
+      "checker_id": "checker-a-sbv-policy-field-validation-v1",
+      "method": "Independent field-level validation from the official structured-content response and the official overview page",
+      "source_checks": [
+        {
+          "artifact_id": "sbv_policy_rates_history_api",
+          "local_path": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-history-api.json",
+          "expected_sha256": "1C691FCAE3FC6E9406659C88AB582F515266715347791EF5A54446217A80B7AE",
+          "actual_sha256": "1C691FCAE3FC6E9406659C88AB582F515266715347791EF5A54446217A80B7AE",
+          "hash_match": true
+        },
+        {
+          "artifact_id": "sbv_policy_rates_overview_page",
+          "local_path": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-overview.html",
+          "expected_sha256": "8979E69ABD0248D858DD6BE1ABD2BBE5D707641740C82FA67B61BB66D26A606F",
+          "actual_sha256": "8979E69ABD0248D858DD6BE1ABD2BBE5D707641740C82FA67B61BB66D26A606F",
+          "hash_match": true
+        }
+      ],
+      "checks": {
+        "specifically_refinancing_rate": "PASS: nested loaiLaiSuat is Lãi suất tái cấp vốn",
+        "value_exactly_4_5": "PASS: nested giaTri is 4,500%",
+        "effective_date_interpretation": "PASS: Decision 1123/QĐ-NHNN was issued 16/06/2023 and the official record title/friendly URL identifies the effective event as 19-06-2023; stale ngayApDung metadata is excluded",
+        "locator_exact": "PASS: the official record title/friendly URL and Decision 1123/QĐ-NHNN field resolve the effective-date evidence; overview HTML is retained as rate/decision support and its stale date cell is excluded",
+        "no_later_change_on_or_before_cutoff": "PASS within returned SBV history collection: totalCount=1 and the only accepted refinancing event is effective 2023-06-19; no later pre-cutoff event is returned",
+        "carry_forward_not_fabricated_observation": "PASS: 2024-12-31 is retained as analytical boundary only; source event date remains 2023-06-19"
+      },
+      "result": "PASS"
+    },
+    "checker_b": {
+      "checker_id": "checker-b-sbv-policy-cross-source-period-validation-v1",
+      "method": "Independent cross-source and period-semantic validation using the official page, official collection response, and the browser-rendered regulated-rate representation",
+      "source_checks": [
+        {
+          "artifact_id": "sbv_policy_rates_history_api",
+          "local_path": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-history-api.json",
+          "expected_sha256": "1C691FCAE3FC6E9406659C88AB582F515266715347791EF5A54446217A80B7AE",
+          "actual_sha256": "1C691FCAE3FC6E9406659C88AB582F515266715347791EF5A54446217A80B7AE",
+          "hash_match": true
+        },
+        {
+          "artifact_id": "sbv_policy_rates_regulated_page",
+          "local_path": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-regulated.html",
+          "expected_sha256": "6BE43CD8A958FFACFFA06EC5F0DCA7AD240F49FED9283BF2BE72990E21B0B1BE",
+          "actual_sha256": "6BE43CD8A958FFACFFA06EC5F0DCA7AD240F49FED9283BF2BE72990E21B0B1BE",
+          "hash_match": true
+        }
+      ],
+      "checks": {
+        "specifically_refinancing_rate": "PASS: page label is Lãi suất tái cấp vốn",
+        "value_exactly_4_5": "PASS: page and structured record both display 4,500%",
+        "effective_date_interpretation": "PASS for Q4 mapping: Decision 1123/QĐ-NHNN dated 16/06/2023 establishes the 19-06-2023 effective event; later page displays are after the 2024-12-31 cutoff",
+        "locator_exact": "PASS: official structured collection record identity, decision field, and reviewed official page representations resolve to the candidate rate; the stale date display is not used",
+        "no_later_change_on_or_before_cutoff": "PASS: no official record showing a different refinancing value effective on or before 2024-12-31 was found in the returned history collection or reviewed page representations",
+        "carry_forward_not_fabricated_observation": "PASS: candidate uses state carry-forward and does not relabel the source event as dated 2024-12-31"
+      },
+      "result": "PASS"
+    },
+    "adjudication_issue": {
+      "issue": "The raw API ngayApDung field and overview date cell retain a stale 19/03/2023 representation, while the official record title/friendly URL is 19-06-2023 and Decision 1123/QĐ-NHNN is dated 16/06/2023.",
+      "impact": "The discrepancy is resolved by the authoritative decision identity and record identity; it does not change the 4.500% value or introduce a later pre-cutoff refinancing event.",
+      "resolution": "Use 2023-06-19 as effective_from and observation_date, retain the raw artifacts unchanged, and never rewrite or invent a 2024-12-31 source observation."
+    },
+    "final_candidate_status": "READY_FOR_MACRO_GOLD",
+    "quality_status": "candidate_reviewed_not_promoted",
+    "promotion_status": "not_promoted"
+  },
+  "credit_growth": {
+    "frozen_definition": "Percentage change in total credit outstanding to the Vietnamese economy at 2024-12-31 compared with 2023-12-31",
+    "source_trace": [
+      {
+        "source_id": "sbv_credit_growth_lead_2025_03_18",
+        "url": "https://sbv.gov.vn/vi/w/sbv624617",
+        "page_identity": "Hoạt động quản lý hạn mức tín dụng tại các ngân hàng thương mại Việt Nam trong bối cảnh chuyển đổi số",
+        "published_at": "2025-03-18T15:38:00+07:00",
+        "publisher": "SBV portal; categorized under Tạp chí Ngân hàng and Fintech - Nghiên cứu trao đổi",
+        "authors": ["Đào Mỹ Hằng", "Nguyễn Thị Hòa"],
+        "classification": "official_portal_hosted_research_article_not_official_statistical_or_administrative_statement",
+        "claim_locator": "local HTML lines 6109-6110; article section 2.1",
+        "reported_value": 15.08,
+        "reported_value_unit": "percent",
+        "reported_date_semantics": "the prose says year 2024; it does not provide a machine-resolvable 2024-12-31 observation locator",
+        "underlying_source_cited": "No specific underlying SBV series, report, table, conference statement, annual report, or source ID is cited for the 15.08% sentence. The bibliography provides only a generic reference to commercial-bank financial statements, annual reports, and websites.",
+        "primary_source_trace_result": "not_established"
+      },
+      {
+        "source_id": "sbv_credit_growth_article_2024_09_17",
+        "url": "https://sbv.gov.vn/vi/w/sbv615626",
+        "classification": "official_observation_but_out_of_frozen_period",
+        "reported_value": 7.38,
+        "as_of_date": "2024-09-17",
+        "exclusion_reason": "OUT_OF_FROZEN_PERIOD"
+      },
+      {
+        "source_id": "sbv_credit_statistics_api_2024",
+        "url": "https://sbv.gov.vn/o/article/v1.0/articles?scopeKey=20117&contentStructureId=10034332&pageSize=200&filter=status%20eq%200%20and%20Date62813077%20ne%20%27%27%20and%20Date62813077%20ge%20%272024-01-01%27%20and%20Date62813077%20le%20%272024-12-31%27",
+        "classification": "official_query_negative_result",
+        "result": "articles=[]; totalCount=0"
+      }
+    ],
+    "exact_origin_of_15_08": "A research-style statement in the SBV-hosted article body. The article does not expose a traceable primary origin for the number; therefore it cannot be validated as Macro Gold.",
+    "primary_sbv_year_end_source_discovered": null,
+    "final_status": "PRIMARY_SOURCE_NOT_ESTABLISHED",
+    "quality_status": "missing",
+    "missing_reason": "DATA_UNAVAILABLE",
+    "gold_eligibility": "rejected",
+    "checker_a": {
+      "checker_id": "checker-a-sbv-credit-q4-missingness-v1",
+      "method": "Independent bounded trace of official SBV year-end statistical and article routes",
+      "reviewed_artifact_ids": ["sbv_credit_statistics_route", "sbv_credit_statistics_api_2024", "sbv_credit_growth_lead_2025_03_18"],
+      "checks": {
+        "frozen_definition": true,
+        "no_exact_q4_primary_observation": true,
+        "no_official_year_end_stock_pair": true,
+        "secondary_15_08_rejected": true,
+        "accepted_missing_decision": true
+      },
+      "result": "PASS"
+    },
+    "checker_b": {
+      "checker_id": "checker-b-sbv-credit-q4-source-adjudication-v1",
+      "method": "Independent cross-check of the bounded official SBV routes and the 18/03/2025 hosted research lead",
+      "reviewed_artifact_ids": ["sbv_credit_statistics_route", "sbv_credit_statistics_api_2024", "sbv_credit_growth_lead_2025_03_18"],
+      "checks": {
+        "frozen_definition": true,
+        "no_exact_q4_primary_observation": true,
+        "no_official_year_end_stock_pair": true,
+        "secondary_15_08_rejected": true,
+        "accepted_missing_decision": true
+      },
+      "result": "PASS"
+    }
+  },
+  "both_frozen_cells_ready_for_macro_gold_schema_implementation": false,
+  "reason_schema_gate": "Policy candidate has passed source adjudication but is intentionally not promoted; credit-growth primary source is not established and remains missing."
+}

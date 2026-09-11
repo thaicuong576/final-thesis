@@ -94,7 +94,7 @@ CREATE TABLE macro_observations_v2 (
     reason TEXT,
     source_series_id TEXT,
     indicator_definition_version TEXT NOT NULL,
-    frequency TEXT NOT NULL,
+    frequency TEXT,
     observation_date TEXT,
     effective_from TEXT,
     as_of_date TEXT,

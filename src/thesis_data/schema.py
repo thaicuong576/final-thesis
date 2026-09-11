@@ -218,7 +218,10 @@ class MacroObservationV2(BaseModel):
     reason: str | None = None
     source_series_id: str | None = Field(default=None, min_length=1)
     indicator_definition_version: str = Field(min_length=1)
-    frequency: str = Field(min_length=1)
+    # Frequency describes the original source series.  An accepted missing
+    # row has no source observation, so its source-native frequency is
+    # intentionally nullable; valid rows must still provide it below.
+    frequency: str | None = Field(default=None, min_length=1)
     observation_date: date | None = None
     effective_from: date | None = None
     as_of_date: date | None = None
@@ -243,6 +246,7 @@ class MacroObservationV2(BaseModel):
                 "unit": self.unit,
                 "source_id": self.source_id,
                 "source_series_id": self.source_series_id,
+                "frequency": self.frequency,
                 "observation_date": self.observation_date,
                 "as_of_date": self.as_of_date,
                 "alignment_method": self.alignment_method,
@@ -266,6 +270,14 @@ class MacroObservationV2(BaseModel):
                 raise ValueError("missing macro observation requires reason")
             if not self.adjudication_ref:
                 raise ValueError("missing macro observation requires adjudication_ref")
+            if self.frequency is not None:
+                raise ValueError(
+                    "accepted missing macro observation must not invent source frequency"
+                )
+            if len(self.review_check_ids) < 2:
+                raise ValueError(
+                    "accepted missing macro observation requires two independent review checks"
+                )
         elif self.value is None and not self.reason:
             raise ValueError("non-valid null macro observation requires reason")
         return self

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+import json
 import sqlite3
 from typing import Sequence
 
@@ -276,7 +277,7 @@ def get_macro_context(
                        macro.unit, macro.period, macro.source_id,
                        macro.quality_status, macro.reason, macro.adjudication_ref,
                        source.quality_status AS source_quality_status,
-                       source.source_tier
+                       source.source_tier, macro.review_check_ids_json
                 FROM macro_observations_v2 AS macro
                 LEFT JOIN source_records AS source ON source.source_id = macro.source_id
                 WHERE macro.period = ? AND macro.indicator_id IN ({})
@@ -285,6 +286,18 @@ def get_macro_context(
                 (period, *indicator_ids),
             ).fetchall()
         v2_keys = {(row[1], row[4]) for row in v2_rows}
+        def has_independent_reviews(raw: str | None) -> bool:
+            try:
+                checks = json.loads(raw or "[]")
+            except (TypeError, json.JSONDecodeError):
+                return False
+            return (
+                isinstance(checks, list)
+                and len(checks) >= 2
+                and all(isinstance(check, str) and check for check in checks)
+                and len(set(checks)) == len(checks)
+            )
+
         rows = [
             row
             for row in v2_rows
@@ -298,6 +311,7 @@ def get_macro_context(
                 row[6] == "missing"
                 and row[7] == "DATA_UNAVAILABLE"
                 and bool(row[8])
+                and has_independent_reviews(row[11])
             )
         ]
         legacy_indicators = tuple(
@@ -307,7 +321,7 @@ def get_macro_context(
             rows.extend(
                 (
                     row[0], row[1], row[2], row[3], row[4], row[5],
-                    "valid", None, None, row[6], row[7],
+                    "valid", None, None, row[6], row[7], "[]",
                 )
                 for row in connection.execute(
                     """
@@ -338,7 +352,7 @@ def get_macro_context(
     source_ids: set[str] = set()
     missing_reasons: dict[str, str] = {}
     quality_flags: list[str] = []
-    for observation_id, indicator, value, unit, row_period, source_id, status, reason, _adjudication_ref, _source_quality, _source_tier in rows:
+    for observation_id, indicator, value, unit, row_period, source_id, status, reason, _adjudication_ref, _source_quality, _source_tier, _review_check_ids in rows:
         if status == "missing":
             observation_ids.add(observation_id)
             units[indicator] = unit or "unknown"

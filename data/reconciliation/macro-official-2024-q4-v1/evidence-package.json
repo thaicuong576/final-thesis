@@ -1,0 +1,71 @@
+{
+  "package_id": "macro-official-evidence-2024-q4-v1",
+  "status": "candidate_only_not_gold",
+  "period": "2024_Q4",
+  "evidence": [
+    {
+      "indicator_id": "macro.policy_rate",
+      "period": "2024_Q4",
+      "source_id": "sbv_policy_rates_history_api",
+      "source_url": "https://sbv.gov.vn/o/headless-delivery/v1.0/content-structures/3450482/structured-contents?pageSize=100&sort=datePublished:desc",
+      "source_type": "official SBV structured-content API",
+      "source_locator": "items[0].title=19-06-2023; items[0].friendlyUrlPath=19-06-2023-1; banglaiSuats nested fields loaiLaiSuat|giaTri|vanBanQuyetDinh",
+      "evidence_fact": "SBV structured content record 3451452 identifies the 19-06-2023 refinancing-rate event, reports 4.500%, and cites Decision 1123/QĐ-NHNN dated 16/06/2023. The stale ngayApDung field is not used for date mapping.",
+      "resolved_effective_from": "2023-06-19",
+      "supports": ["rate_value", "effective_date", "decision_identity"],
+      "does_not_by_itself_prove": ["absence of any superseding policy-rate event after 2023-03-19"],
+      "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-history-api.json"
+    },
+    {
+      "indicator_id": "macro.policy_rate",
+      "period": "2024_Q4",
+      "source_id": "sbv_policy_rates_overview_page",
+      "source_url": "https://sbv.gov.vn/vi/l%C3%A3i-su%E1%BA%A5t1",
+      "source_type": "official SBV web page",
+      "source_locator": "Lãi suất tái cấp vốn row; local lines 5271-5274; rate/decision support only",
+      "evidence_fact": "The official page displays 4.500% for Lãi suất tái cấp vốn and Decision 1123/QĐ-NHNN; its stale date cell is not used for the effective-date mapping.",
+      "resolved_effective_from": "2023-06-19",
+      "supports": ["rate_value", "effective_date", "decision_identity"],
+      "does_not_by_itself_prove": ["complete historical event absence without human reconciliation"],
+      "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-overview.html"
+    },
+    {
+      "indicator_id": "macro.credit_growth",
+      "period": "2024_Q4",
+      "source_id": "sbv_credit_growth_article_2024_09_17",
+      "source_url": "https://sbv.gov.vn/vi/w/sbv615626",
+      "source_type": "official SBV news article",
+      "source_locator": "article-content; local lines 6099-6105",
+      "evidence_fact": "SBV reports system credit growth of 7.38% as of 17/09/2024 versus end-2023.",
+      "supports": ["mid-period_observation_only"],
+      "exclusion_reason": "OUT_OF_FROZEN_PERIOD; not a Q4 period-end observation",
+      "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-credit-growth-2024-09-17.html"
+    },
+    {
+      "indicator_id": "macro.credit_growth",
+      "period": "2024_Q4",
+      "source_id": "sbv_credit_statistics_api_2024",
+      "source_url": "https://sbv.gov.vn/o/article/v1.0/articles?scopeKey=20117&contentStructureId=10034332&pageSize=200&filter=status%20eq%200%20and%20Date62813077%20ne%20%27%27%20and%20Date62813077%20ge%20%272024-01-01%27%20and%20Date62813077%20le%20%272024-12-31%27",
+      "source_type": "official SBV article API",
+      "source_locator": "articles[]",
+      "evidence_fact": "The official query returned an empty list for the 2024 date range.",
+      "supports": ["bounded_acquisition_negative_result"],
+      "exclusion_reason": "NO_Q4_DATA_RETURNED",
+      "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-credit-statistics-api-2024.json"
+    },
+    {
+      "indicator_id": "macro.credit_growth",
+      "period": "2024_Q4",
+      "source_id": "sbv_credit_growth_lead_2025_03_18",
+      "source_url": "https://sbv.gov.vn/vi/w/sbv624617",
+      "source_type": "official SBV portal-hosted research article",
+      "source_locator": "article metadata lines 6061-6064; claim body lines 6109-6110; authors lines 6171-6172",
+      "evidence_fact": "The article, published 18/03/2025 and authored by Đào Mỹ Hằng and Nguyễn Thị Hòa, states that 2024 credit growth reached 15.08%.",
+      "supports": ["existence_of_secondary_statement_only"],
+      "exclusion_reason": "PRIMARY_SOURCE_NOT_ESTABLISHED",
+      "gold_eligibility": "rejected",
+      "missing_primary_elements": ["official statistical or administrative source identity", "2024-12-31 measurement locator", "2023-12-31 comparison basis", "raw year-end stock inputs or official series ID"],
+      "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-credit-growth-lead-2025-03-18.html"
+    }
+  ]
+}

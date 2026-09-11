@@ -1,0 +1,111 @@
+{
+  "acquisition_id": "macro-official-2024-q4-v1",
+  "retrieved_at_utc": "2026-09-10T18:36:37.0624448Z",
+  "scope": {
+    "period": "2024_Q4",
+    "indicators": ["macro.policy_rate", "macro.credit_growth"]
+  },
+  "gold_promotion": "not_performed",
+  "candidate_cells": [
+    {
+      "indicator_id": "macro.policy_rate",
+      "period": "2024_Q4",
+      "status": "DERIVABLE_FROM_OFFICIAL_INPUTS",
+      "quality_status": "candidate_pending_two_human_checks",
+      "candidate_value": 4.5,
+      "unit": "percent_per_annum",
+      "definition": "SBV refinancing rate (Lãi suất tái cấp vốn), not a mixture of SBV operating rates",
+      "observation_date": "2023-06-19",
+      "observation_date_semantics": "official effective-date event; not the analytical period-end date",
+      "as_of_date": "2024-12-31",
+      "as_of_date_semantics": "analytical alignment boundary only; not a source observation date",
+      "effective_from": "2023-06-19",
+      "period_basis": "quarter_end_state",
+      "alignment_method": "latest_effective_state_at_period_end_v1",
+      "transformation_version": "state_carry_forward_v1",
+      "source_series_id": "SBV.content-structure-3450482.record-3451452.banglaiSuats.refinancing_rate",
+      "source_id": "sbv_policy_rates_history_api",
+      "input_observation_ids": [],
+      "source_locator": [
+        "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-history-api.json#/items/0/title+friendlyUrlPath",
+        "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-history-api.json#/items/0/contentFields[name=banglaiSuats][nestedContentFields name=loaiLaiSuat|giaTri|vanBanQuyetDinh]",
+        "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-overview.html:5271-5274 (rate/decision support; legacy date cell excluded)"
+      ],
+      "source_evidence": {
+        "publisher": "State Bank of Vietnam",
+        "source_type": "official SBV structured content and official page",
+        "decision_identity": "1123/QĐ-NHNN ngày 16/06/2023",
+        "source_value": "4,500%",
+        "source_effective_date": "19/06/2023",
+        "source_effective_date_iso": "2023-06-19",
+        "source_effective_date_semantics": "Decision 1123/QĐ-NHNN issued 16/06/2023; official record title/friendly URL is 19-06-2023; stale API ngayApDung field is excluded from date mapping",
+        "source_record_id": "3451452"
+      },
+      "source_adjudication_status": "READY_FOR_MACRO_GOLD",
+      "promotion_status": "not_promoted",
+      "adjudication_ref": "data/reconciliation/macro-official-2024-q4-v1/final-source-adjudication.json",
+      "quality_status_after_review": "candidate_reviewed_not_promoted",
+      "unresolved": [
+        "The raw API ngayApDung field and overview date cell retain a stale 19/03/2023 representation, while the same official record is identified as 19-06-2023 and cites Decision 1123/QĐ-NHNN dated 16/06/2023.",
+        "Two independent checks must confirm that 2023-06-19 is the effective date, that no superseding refinancing-rate event applies before 2024-12-31, and that the Q4 mapping is a carry-forward interpretation."
+      ]
+    },
+    {
+      "indicator_id": "macro.credit_growth",
+      "period": "2024_Q4",
+      "status": "UNAVAILABLE",
+      "quality_status": "missing_pending_acquisition",
+      "candidate_value": null,
+      "unit": "percent",
+      "definition": "System credit growth relative to end-2023, assigned to Q4 only from an exact Q4 as-of observation or traceable official year-end credit stocks",
+      "observation_date": null,
+      "as_of_date": null,
+      "period_basis": "ytd_vs_end_2023",
+      "alignment_method": null,
+      "transformation_version": null,
+      "source_series_id": null,
+      "source_id": null,
+      "input_observation_ids": [],
+      "source_locator": [],
+      "excluded_candidates": [
+        {
+          "value": 7.38,
+          "unit": "percent",
+          "as_of_date": "2024-09-17",
+          "source_id": "sbv_credit_growth_article_2024_09_17",
+          "reason_code": "OUT_OF_FROZEN_PERIOD",
+          "notes": "Official observed mid-September value; not Q4 period-end."
+        },
+        {
+          "value": 15.0,
+          "unit": "percent",
+          "as_of_date": null,
+          "source_id": "sbv_credit_growth_article_2024_09_17",
+          "reason_code": "TARGET_ORIENTATION_NOT_OBSERVATION",
+          "notes": "Official article describes 15% as an orientation/target; it is not an observed credit-growth fact."
+        }
+      ],
+      "negative_evidence": [
+        "Official SBV statistics route returned no 2024 records through its date filter.",
+        "Official SBV article API query for 2024 returned totalCount=0.",
+        "No pair of official 2023-12-31 and 2024-12-31 system credit stock observations was acquired."
+      ],
+      "source_adjudication_status": "PRIMARY_SOURCE_NOT_ESTABLISHED",
+      "quality_status": "missing",
+      "missing_reason": "DATA_UNAVAILABLE",
+      "adjudication_ref": "data/reconciliation/macro-official-2024-q4-v1/final-source-adjudication.json",
+      "secondary_lead": {
+        "source_id": "sbv_credit_growth_lead_2025_03_18",
+        "article_url": "https://sbv.gov.vn/vi/w/sbv624617",
+        "published_at": "2025-03-18T15:38:00+07:00",
+        "authors": ["Đào Mỹ Hằng", "Nguyễn Thị Hòa"],
+        "categories": ["Tạp chí Ngân hàng", "Fintech - Nghiên cứu trao đổi"],
+        "reported_value": 15.08,
+        "reported_value_unit": "percent",
+        "source_classification": "official_portal_hosted_research_article",
+        "gold_eligibility": "rejected_primary_source_not_established",
+        "reason": "The body contains a research statement without a traceable official year-end statistical source, raw stock inputs, source series ID, or reproducible locator."
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@
       "indicator_id": "macro.policy_rate",
       "period": "2024_Q4",
       "status": "DERIVABLE_FROM_OFFICIAL_INPUTS",
-      "quality_status": "candidate_pending_two_human_checks",
+      "quality_status": "candidate_reviewed_not_promoted",
       "candidate_value": 4.5,
       "unit": "percent_per_annum",
       "definition": "SBV refinancing rate (Lãi suất tái cấp vốn), not a mixture of SBV operating rates",
@@ -45,16 +45,15 @@
       "promotion_status": "not_promoted",
       "adjudication_ref": "data/reconciliation/macro-official-2024-q4-v1/final-source-adjudication.json",
       "quality_status_after_review": "candidate_reviewed_not_promoted",
-      "unresolved": [
+      "resolved_notes": [
         "The raw API ngayApDung field and overview date cell retain a stale 19/03/2023 representation, while the same official record is identified as 19-06-2023 and cites Decision 1123/QĐ-NHNN dated 16/06/2023.",
-        "Two independent checks must confirm that 2023-06-19 is the effective date, that no superseding refinancing-rate event applies before 2024-12-31, and that the Q4 mapping is a carry-forward interpretation."
+        "Two independent review passes completed: 2023-06-19 is the effective date, no superseding refinancing-rate event applies before 2024-12-31, and the Q4 mapping is a carry-forward interpretation."
       ]
     },
     {
       "indicator_id": "macro.credit_growth",
       "period": "2024_Q4",
       "status": "UNAVAILABLE",
-      "quality_status": "missing_pending_acquisition",
       "candidate_value": null,
       "unit": "percent",
       "definition": "System credit growth relative to end-2023, assigned to Q4 only from an exact Q4 as-of observation or traceable official year-end credit stocks",

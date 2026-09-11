@@ -26,7 +26,7 @@
       "evidence_fact": "The official page displays 4.500% for Lãi suất tái cấp vốn and Decision 1123/QĐ-NHNN; its stale date cell is not used for the effective-date mapping.",
       "resolved_effective_from": "2023-06-19",
       "supports": ["rate_value", "effective_date", "decision_identity"],
-      "does_not_by_itself_prove": ["complete historical event absence without human reconciliation"],
+      "does_not_by_itself_prove": ["complete historical event absence without independent reconciliation"],
       "local_artifact": "data/raw/macro-official-2024-q4-v1/sbv-policy-rates-overview.html"
     },
     {

@@ -43,6 +43,7 @@ from thesis_data.schema import (
     InferenceType,
     Stage1ValidationReport,
     StructuredAssertion,
+    UnresolvedReasonCode,
 )
 from thesis_data.semantic_critic import (
     SemanticEvaluationError,
@@ -131,6 +132,30 @@ def _company_plan(query_id="company-query") -> AnalysisPlan:
     )
 
 
+def _company_two_requirement_plan() -> AnalysisPlan:
+    base = _company_plan("company-two-requirements")
+    second_requirement = AnalysisRequirement(
+        requirement_id="R2",
+        requirement_type=RequirementType.FACTUAL_OBSERVATION,
+        description="Report the second company observation.",
+        required_agents=(AnalysisAgent.COMPANY,),
+        entities=("TCB",),
+        periods=("2024_Q4",),
+        metric_ids=("bank.roe",),
+        inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
+        fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+        missing_data_policy=MissingDataPolicy.REJECT_MISSING,
+    )
+    return base.model_copy(
+        update={
+            "scope": base.scope.model_copy(
+                update={"company_metric_ids": ("bank.roa", "bank.roe")}
+            ),
+            "requirements": base.requirements + (second_requirement,),
+        }
+    )
+
+
 def _company_claim() -> AtomicClaim:
     ref = ClaimDataRef(
         ref_id="company-roa",
@@ -202,15 +227,19 @@ def _issue(
     issue_type=CritiqueIssueType.MISSING_DATA,
     action=CritiqueAction.REQUERY_DATA,
     agent="company",
+    affected_requirement_ids=(),
+    unresolved_reason_code=None,
 ) -> CritiqueIssue:
     return CritiqueIssue(
         issue_id=issue_id,
         issue_type=issue_type,
         severity=CritiqueSeverity.MAJOR,
         affected_agent=agent,
+        affected_requirement_ids=tuple(affected_requirement_ids),
         description="The candidate needs a bounded data follow-up.",
         required_action=action,
         resolution_status=status,
+        unresolved_reason_code=unresolved_reason_code,
     )
 
 
@@ -219,6 +248,7 @@ def _result(
     evaluator_version: str,
     *,
     fulfilled=(),
+    partial=(),
     issues=(),
     link_results=(),
     supporting_claim_ids=(),
@@ -227,10 +257,12 @@ def _result(
     if cross_applicable is None:
         cross_applicable = bool(plan.applicable_links)
     fulfilled = tuple(fulfilled)
+    partial = tuple(partial)
     unfulfilled = tuple(
         requirement.requirement_id
         for requirement in plan.requirements
         if requirement.requirement_id not in fulfilled
+        and requirement.requirement_id not in partial
     )
     dimensions = tuple(
         SemanticDimensionResult(
@@ -260,6 +292,7 @@ def _result(
         critique_issues=tuple(issues),
         fulfilled_requirement_ids=fulfilled,
         unfulfilled_requirement_ids=unfulfilled,
+        partially_fulfilled_requirement_ids=partial,
         applicable_link_results=tuple(link_results),
     )
 
@@ -404,6 +437,34 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         self.assertEqual(client.responses.calls[0]["model"], "gpt-5.6-luna")
         self.assertNotIn("tools", client.responses.calls[0])
 
+    def test_payload_preserves_frozen_scope_and_causal_policy(self):
+        base_plan = _company_plan()
+        plan = base_plan.model_copy(
+            update={
+                "scope": base_plan.scope.model_copy(
+                    update={"comparison_universe": ("TCB",)}
+                )
+            }
+        )
+        critic, client = self._critic_with(_result(plan, "placeholder"))
+        client.responses.responses[0] = FakeResponse(
+            _encoded(_result(plan, critic.evaluator_version))
+        )
+
+        critic.evaluate(
+            plan=plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+
+        payload = json.loads(client.responses.calls[0]["input"])
+        self.assertEqual(payload["analysis_scope"]["comparison_universe"], ["TCB"])
+        self.assertEqual(
+            payload["causal_claim_policy"],
+            CausalClaimPolicy.ASSOCIATION_ONLY.value,
+        )
+
     def test_responses_request_uses_strict_complete_json_schema(self):
         version = "openai-semantic-critic-v1:gpt-5.6-luna"
         schema = structured_critic_response_schema(version)
@@ -471,6 +532,42 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         self.assertEqual(payload["prior_issue_ids"], ["prior-issue"])
         self.assertEqual(payload["prior_open_issues"][0]["description"], prior.description)
         self.assertEqual(output.critique_issues[0].resolution_status, CritiqueIssueStatus.RESOLVED)
+
+    def test_prior_issue_ids_without_details_fail_before_provider_invocation(self):
+        plan = _company_plan()
+        for context in (
+            SemanticRoundContext(
+                round_number=1,
+                prior_issue_ids=("prior-issue",),
+            ),
+            SemanticRoundContext.model_construct(
+                round_number=1,
+                prior_issue_ids=("prior-issue", "another-issue"),
+                prior_issues=(_issue("prior-issue"),),
+            ),
+        ):
+            with self.subTest(context=context):
+                client = FakeClient()
+                critic = OpenAISemanticCritic(client=client, config=_config())
+                with self.assertRaisesRegex(
+                    OpenAISemanticCriticError,
+                    "openai_semantic_critic_prior_issue_details_missing",
+                ):
+                    critic.evaluate(
+                        plan=plan,
+                        claims=(),
+                        stage1_report=_stage1(),
+                        round_context=context,
+                    )
+                self.assertEqual(len(client.responses.calls), 0)
+
+    def test_non_prefetched_retrieval_mode_is_rejected(self):
+        config = _config().model_copy(update={"retrieval_mode": "tool_calling"})
+        with self.assertRaisesRegex(
+            OpenAISemanticCriticError,
+            "openai_semantic_critic_retrieval_mode_invalid",
+        ):
+            OpenAISemanticCritic(client=FakeClient(), config=config)
 
     def test_prior_issue_rename_or_disappearance_fails_closed(self):
         plan = _company_plan()
@@ -707,13 +804,19 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         claim = _company_claim()
         client = FakeClient()
         critic = OpenAISemanticCritic(client=client, config=_config())
-        first_issue = _issue("resolve-me")
+        first_issue = _issue("resolve-me", affected_requirement_ids=("R1",))
         first = _result(plan, critic.evaluator_version, issues=(first_issue,))
         second = _result(
             plan,
             critic.evaluator_version,
             fulfilled=("R1",),
-            issues=(_issue("resolve-me", status=CritiqueIssueStatus.RESOLVED),),
+            issues=(
+                _issue(
+                    "resolve-me",
+                    status=CritiqueIssueStatus.RESOLVED,
+                    affected_requirement_ids=("R1",),
+                ),
+            ),
         )
         client.responses.responses.extend(
             [FakeResponse(_encoded(first)), FakeResponse(_encoded(second))]
@@ -736,6 +839,168 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         )
         self.assertEqual(result.acceptance_state.final_decision.value, "ACCEPT")
         self.assertEqual(len(client.responses.calls), 2)
+
+    def test_controller_rejects_issue_identity_laundering_into_limited_acceptance(self):
+        plan = _company_plan("identity-laundering")
+        claim = _company_claim()
+        client = FakeClient()
+        critic = OpenAISemanticCritic(client=client, config=_config())
+        first_issue = _issue(
+            "I1",
+            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+            action=CritiqueAction.REVISE_CLAIM,
+            affected_requirement_ids=("R1",),
+        )
+        second_issue = _issue(
+            "I1",
+            issue_type=CritiqueIssueType.MISSING_DATA,
+            status=CritiqueIssueStatus.UNRESOLVED,
+            affected_requirement_ids=("R1",),
+            unresolved_reason_code=UnresolvedReasonCode.DATA_UNAVAILABLE,
+        )
+        client.responses.responses.extend(
+            [
+                FakeResponse(
+                    _encoded(_result(plan, critic.evaluator_version, issues=(first_issue,)))
+                ),
+                FakeResponse(
+                    _encoded(
+                        _result(
+                            plan,
+                            critic.evaluator_version,
+                            partial=("R1",),
+                            issues=(second_issue,),
+                        )
+                    )
+                ),
+            ]
+        )
+        controller = BoundedRevisionController(
+            policy=AcceptancePolicy(policy_version="identity-test", provisional_threshold=0.75),
+            stage1_evaluator=_Stage1Sequence([_stage1(), _stage1()]),
+            semantic_critic=critic,
+            revision_executor=_RevisionExecutor(claim),
+        )
+
+        result = controller.run(
+            run_id="identity-laundering",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(result.acceptance_state.final_decision.value, "FAIL_ACCEPTANCE")
+        self.assertEqual(
+            result.terminal_reason,
+            "prior_issue_identity_changed:I1:issue_type",
+        )
+        self.assertNotEqual(
+            result.acceptance_state.final_decision.value,
+            "ACCEPT_WITH_LIMITATIONS",
+        )
+
+    def test_controller_rejects_changed_prior_issue_agent(self):
+        plan = _company_plan("identity-agent")
+        claim = _company_claim()
+        client = FakeClient()
+        critic = OpenAISemanticCritic(client=client, config=_config())
+        first_issue = _issue(
+            "I1",
+            affected_requirement_ids=("R1",),
+            agent="company",
+        )
+        second_issue = _issue(
+            "I1",
+            affected_requirement_ids=("R1",),
+            agent="orchestrator",
+            status=CritiqueIssueStatus.RESOLVED,
+        )
+        client.responses.responses.extend(
+            [
+                FakeResponse(
+                    _encoded(_result(plan, critic.evaluator_version, issues=(first_issue,)))
+                ),
+                FakeResponse(
+                    _encoded(
+                        _result(
+                            plan,
+                            critic.evaluator_version,
+                            fulfilled=("R1",),
+                            issues=(second_issue,),
+                        )
+                    )
+                ),
+            ]
+        )
+        controller = BoundedRevisionController(
+            policy=AcceptancePolicy(policy_version="identity-agent-test", provisional_threshold=0.75),
+            stage1_evaluator=_Stage1Sequence([_stage1(), _stage1()]),
+            semantic_critic=critic,
+            revision_executor=_RevisionExecutor(claim),
+        )
+
+        result = controller.run(
+            run_id="identity-agent",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(
+            result.terminal_reason,
+            "prior_issue_identity_changed:I1:affected_agent",
+        )
+
+    def test_controller_rejects_changed_prior_issue_requirements(self):
+        plan = _company_two_requirement_plan()
+        claim = _company_claim()
+        client = FakeClient()
+        critic = OpenAISemanticCritic(client=client, config=_config())
+        first_issue = _issue(
+            "I1",
+            affected_requirement_ids=("R2",),
+        )
+        second_issue = _issue(
+            "I1",
+            status=CritiqueIssueStatus.UNRESOLVED,
+            affected_requirement_ids=("R1",),
+            unresolved_reason_code=UnresolvedReasonCode.DATA_UNAVAILABLE,
+        )
+        client.responses.responses.extend(
+            [
+                FakeResponse(
+                    _encoded(_result(plan, critic.evaluator_version, issues=(first_issue,)))
+                ),
+                FakeResponse(
+                    _encoded(
+                        _result(
+                            plan,
+                            critic.evaluator_version,
+                            partial=("R1",),
+                            issues=(second_issue,),
+                        )
+                    )
+                ),
+            ]
+        )
+        controller = BoundedRevisionController(
+            policy=AcceptancePolicy(policy_version="identity-requirements-test", provisional_threshold=0.75),
+            stage1_evaluator=_Stage1Sequence([_stage1(), _stage1()]),
+            semantic_critic=critic,
+            revision_executor=_RevisionExecutor(claim),
+        )
+
+        result = controller.run(
+            run_id="identity-requirements",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(
+            result.terminal_reason,
+            "prior_issue_identity_changed:I1:affected_requirement_ids",
+        )
 
 
 if __name__ == "__main__":

@@ -222,12 +222,40 @@ def _validate_issue_lifecycle(
     issue_status_ledger: dict[str, CritiqueIssueStatus],
     previous_open_ids: frozenset[str],
     result: StructuredCriticResult,
+    previous_open_issues: Sequence[CritiqueIssue] = (),
 ) -> None:
     current = {issue.issue_id: issue for issue in result.critique_issues}
     for issue_id in sorted(previous_open_ids):
         if issue_id not in current:
             raise RevisionControllerError(f"prior_issue_disappeared:{issue_id}")
-    for issue_id, issue in current.items():
+
+    previous_by_id = {issue.issue_id: issue for issue in previous_open_issues}
+    for issue_id in sorted(previous_by_id):
+        current_issue = current.get(issue_id)
+        if current_issue is None:
+            continue
+        previous_issue = previous_by_id[issue_id]
+        if current_issue.issue_type != previous_issue.issue_type:
+            raise RevisionControllerError(
+                f"prior_issue_identity_changed:{issue_id}:issue_type"
+            )
+        if current_issue.affected_agent != previous_issue.affected_agent:
+            raise RevisionControllerError(
+                f"prior_issue_identity_changed:{issue_id}:affected_agent"
+            )
+        previous_requirement_ids = tuple(
+            sorted(set(previous_issue.affected_requirement_ids))
+        )
+        current_requirement_ids = tuple(
+            sorted(set(current_issue.affected_requirement_ids))
+        )
+        if current_requirement_ids != previous_requirement_ids:
+            raise RevisionControllerError(
+                f"prior_issue_identity_changed:{issue_id}:affected_requirement_ids"
+            )
+
+    for issue_id in sorted(current):
+        issue = current[issue_id]
         prior_status = issue_status_ledger.get(issue_id)
         if prior_status in {
             CritiqueIssueStatus.RESOLVED,
@@ -398,6 +426,10 @@ class RevisionWorkflowKernel:
                 dict(state.issue_status_ledger),
                 frozenset(state.previous_open_issue_ids),
                 artifact.critic_result,
+                tuple(
+                    issue.model_copy(deep=True)
+                    for issue in state.previous_open_issues
+                ),
             )
         except (SemanticEvaluationError, RevisionControllerError) as exc:
             round_state = self._build_round(

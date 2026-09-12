@@ -181,6 +181,8 @@ def _render_critic_payload(
         "dataset_id": plan.dataset_id,
         "dataset_snapshot_id": plan.dataset_snapshot_id,
         "query_id": plan.query_id,
+        "analysis_scope": plan.scope.model_dump(mode="json"),
+        "causal_claim_policy": plan.causal_claim_policy.value,
         "normalized_analytical_question": plan.normalized_question,
         "frozen_requirements": [
             requirement.model_dump(mode="json")
@@ -297,6 +299,10 @@ class OpenAISemanticCritic:
     ) -> None:
         if config.provider_id != "openai":
             raise OpenAISemanticCriticError("openai_semantic_critic_provider_invalid")
+        if config.retrieval_mode != "prefetched":
+            raise OpenAISemanticCriticError(
+                "openai_semantic_critic_retrieval_mode_invalid"
+            )
         self._client = client
         self._config = config.model_copy(deep=True)
         self._evaluator_version = (
@@ -321,6 +327,14 @@ class OpenAISemanticCritic:
             raise OpenAISemanticCriticError("openai_semantic_critic_stage1_invalid")
         if not isinstance(round_context, SemanticRoundContext):
             raise OpenAISemanticCriticError("openai_semantic_critic_context_invalid")
+        if round_context.prior_issue_ids:
+            prior_issue_detail_ids = tuple(
+                issue.issue_id for issue in round_context.prior_issues
+            )
+            if prior_issue_detail_ids != tuple(round_context.prior_issue_ids):
+                raise OpenAISemanticCriticError(
+                    "openai_semantic_critic_prior_issue_details_missing"
+                )
         normalized_claims = tuple(claims)
         if any(not isinstance(claim, AtomicClaim) for claim in normalized_claims):
             raise OpenAISemanticCriticError("openai_semantic_critic_claims_invalid")

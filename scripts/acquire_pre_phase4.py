@@ -506,46 +506,113 @@ def build_candidates(source_ids: set[str]) -> list[dict[str, Any]]:
     return candidates
 
 
-def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
-        encoding="utf-8",
-    )
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        raise FileNotFoundError(f"missing acquisition registry: {path}")
+    rows: list[dict[str, Any]] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON at {path}:{line_number}") from exc
+        if not isinstance(row, dict):
+            raise ValueError(f"registry row is not an object at {path}:{line_number}")
+        rows.append(row)
+    return rows
 
 
-def run() -> dict[str, int]:
-    records, failures = build_records()
-    all_records = records + failures
-    for row in records:
-        path = ROOT / row["local_path"]
-        if not path.is_file() or path.stat().st_size == 0:
-            raise FileNotFoundError(f"missing or empty acquisition artifact: {path}")
+def validate_manifest(records: list[dict[str, Any]]) -> tuple[set[str], set[str]]:
+    if not records:
+        raise ValueError("acquisition manifest is empty")
 
-    ids = [row["source_id"] for row in all_records]
+    ids = [row.get("source_id") for row in records]
+    if any(not source_id for source_id in ids):
+        raise ValueError("manifest row is missing source_id")
     if len(ids) != len(set(ids)):
         raise ValueError("duplicate source_id in acquisition manifest")
-    document_ids = [row["document_id"] for row in records if row["record_type"] == "document"]
+
+    document_ids = [
+        row.get("document_id")
+        for row in records
+        if row.get("record_type") == "document"
+    ]
+    if any(not document_id for document_id in document_ids):
+        raise ValueError("document row is missing document_id")
     if len(document_ids) != len(set(document_ids)):
         raise ValueError("duplicate document_id in acquisition manifest")
 
-    source_ids = set(ids)
-    candidates = build_candidates(source_ids)
-    write_jsonl(MANIFEST_PATH, all_records)
-    write_jsonl(CANDIDATE_PATH, candidates)
+    retrieved_source_ids: set[str] = set()
+    failed_source_ids: set[str] = set()
+    for row in records:
+        record_type = row.get("record_type")
+        source_id = row["source_id"]
+        if record_type == "failed_route":
+            if row.get("local_path") is not None or row.get("content_hash_sha256") is not None:
+                raise ValueError(f"failed route contains a local artifact: {source_id}")
+            failed_source_ids.add(source_id)
+            continue
+        if record_type not in {"structured_artifact", "document"}:
+            raise ValueError(f"unknown manifest record_type: {record_type}")
+        local_path = row.get("local_path")
+        expected_hash = row.get("content_hash_sha256")
+        if not local_path or not expected_hash:
+            raise ValueError(f"retrieved row lacks path/hash: {source_id}")
+        path = ROOT / local_path
+        if not path.is_file() or path.stat().st_size == 0:
+            raise FileNotFoundError(f"missing or empty acquisition artifact: {path}")
+        if sha256(path) != expected_hash:
+            raise ValueError(f"artifact hash mismatch: {source_id}")
+        retrieved_source_ids.add(source_id)
 
+    if retrieved_source_ids & failed_source_ids:
+        raise ValueError("source_id is both retrieved and failed")
+    return retrieved_source_ids, failed_source_ids
+
+
+def validate_candidates(
+    candidates: list[dict[str, Any]],
+    retrieved_source_ids: set[str],
+    failed_source_ids: set[str],
+) -> None:
+    if not candidates:
+        raise ValueError("candidate registry is empty")
+    for candidate in candidates:
+        source_id = candidate.get("source_id")
+        quality_status = candidate.get("quality_status")
+        if quality_status not in {"review_required", "missing"}:
+            raise ValueError(f"candidate has unsupported promotion state: {candidate.get('candidate_id')}")
+        if source_id is not None:
+            if source_id in failed_source_ids:
+                raise ValueError(f"candidate references failed route: {source_id}")
+            if source_id not in retrieved_source_ids:
+                raise ValueError(f"candidate references unknown source ID: {source_id}")
+        if quality_status == "missing":
+            if candidate.get("value") is not None or "DATA_UNAVAILABLE" not in candidate.get("reason", ""):
+                raise ValueError(f"missing candidate lacks explicit unavailable semantics: {candidate.get('candidate_id')}")
+
+
+def run() -> dict[str, int]:
+    """Verify the committed package without rewriting any acquisition metadata."""
+    records = read_jsonl(MANIFEST_PATH)
+    candidates = read_jsonl(CANDIDATE_PATH)
+    retrieved_source_ids, failed_source_ids = validate_manifest(records)
+    validate_candidates(candidates, retrieved_source_ids, failed_source_ids)
     return {
-        "retrieved_records": len(records),
-        "failed_routes": len(failures),
+        "retrieved_records": len(retrieved_source_ids),
+        "failed_routes": len(failed_source_ids),
         "candidate_observations": len(candidates),
-        "documents": sum(row["record_type"] == "document" for row in records),
-        "structured_artifacts": sum(row["record_type"] == "structured_artifact" for row in records),
+        "documents": sum(row.get("record_type") == "document" for row in records),
+        "structured_artifacts": sum(
+            row.get("record_type") == "structured_artifact" for row in records
+        ),
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--verify", action="store_true", help="verify and rewrite the manifest")
+    parser.add_argument("--verify", action="store_true", help="verify the committed package")
     args = parser.parse_args()
     if not args.verify:
         parser.error("only --verify is supported in this acquisition-only script")

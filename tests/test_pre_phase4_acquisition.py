@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -68,6 +70,20 @@ class PrePhase4AcquisitionTests(unittest.TestCase):
     def test_peer_sample_is_not_registered_as_native_sector(self) -> None:
         text = MANIFEST.read_text(encoding="utf-8") + CANDIDATES.read_text(encoding="utf-8")
         self.assertNotIn("five-bank peer median", text.lower())
+
+    def test_verify_is_read_only_and_idempotent(self) -> None:
+        before_manifest = MANIFEST.read_bytes()
+        before_candidates = CANDIDATES.read_bytes()
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "acquire_pre_phase4.py"), "--verify"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(MANIFEST.read_bytes(), before_manifest)
+        self.assertEqual(CANDIDATES.read_bytes(), before_candidates)
 
 
 if __name__ == "__main__":

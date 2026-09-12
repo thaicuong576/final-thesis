@@ -91,6 +91,15 @@ sources, not five-bank peer data. The package registers:
 
 No company observation was relabelled as a native sector observation.
 
+## Successful official sources
+
+The successful source package consists of National Statistics Office PDFs and
+landing pages, prior-acquired State Bank of Vietnam public API/page artifacts,
+and Government Portal legal documents. The manifest records the publisher,
+source URL, retrieval method, timestamp when known, source tier and hash for
+each item. The SBV-hosted research article is retained for discovery and
+cross-check only; it is not treated as primary evidence.
+
 ## Unstructured corpus inventory
 
 The unstructured lane stops after preservation and hashing. No chunking,
@@ -148,6 +157,49 @@ entity remains independent and the missing candidate is explicit.
 
 The full candidate reconciliation is in
 [reconciliation.md](../data/reconciliation/pre-phase4-acquisition-v1/reconciliation.md).
+
+## Downloaded artifact inventory
+
+The package contains `16` retrieved files:
+
+- `7` structured artifacts under
+  `data/raw/pre-phase4-acquisition-v1/structured/`;
+- `9` unstructured documents under
+  `data/raw/pre-phase4-acquisition-v1/documents/`.
+
+The exact file-level inventory, including local paths, original filenames,
+MIME types and SHA-256 hashes, is the machine-readable
+[acquisition manifest](../data/manifests/pre-phase4-acquisition-v1.jsonl).
+The raw package is preserved byte-for-byte; the scoped `.gitattributes` rule
+prevents Windows line-ending conversion for these artifacts.
+
+## Candidate observations
+
+The candidate registry contains five records and no `ACCEPTED` record:
+
+| Candidate | Value/status | Interpretation |
+|---|---:|---|
+| `macro.policy_rate` | `4.5`, `REVIEW_REQUIRED` | SBV refinancing rate, carried from 2023-06-19 to 2024-12-31 |
+| `macro.credit_growth` | `15.1`, `REVIEW_REQUIRED` | NSO year-end candidate, rounded source-native value |
+| `sector.system_credit_growth` | `15.1`, `REVIEW_REQUIRED` | Aggregate candidate, not five-bank peer data |
+| `sector.system_credit_outstanding` | `NULL`, `REVIEW_REQUIRED` | Exact official table row mapping pending |
+| `sector.system_npl_ratio` | `NULL`, `MISSING` | `DATA_UNAVAILABLE`; no sufficiently clear official year-end observation |
+
+The complete normalized records, raw values, locators and reasons are in the
+[candidate registry](../data/reconciliation/pre-phase4-acquisition-v1/candidate-observations.jsonl).
+
+## Unresolved/missing data
+
+- `macro.credit_growth` remains review-required because the `15.1%` source is
+  rounded and still needs reconciliation against the frozen contract and any
+  exact year-end stock inputs.
+- `sector.system_credit_outstanding` remains unmapped until a controlled
+  table/row extraction establishes the exact aggregate definition and value.
+- `sector.system_npl_ratio` remains explicit `MISSING / DATA_UNAVAILABLE`.
+- The existing policy-rate adjudication is preserved, but this acquisition
+  pass does not promote a new Gold observation.
+- The `15.08%` SBV-hosted research statement remains secondary and is not used
+  to resolve the macro credit-growth cell.
 
 ## Credit-growth reconciliation
 
@@ -216,12 +268,15 @@ unstable; the package does not depend on silently repeating those routes.
 
 - Acquisition verification: PASS (`16` retrieved records, `7` structured
   artifacts, `9` documents, `6` failed routes, `5` candidates).
-- Focused acquisition and existing data/regression tests: `42/42` PASS.
+- Focused acquisition and existing data/regression tests: `43/43` PASS.
 - Architecture guard: PASS.
 - Python compile check (`compileall`): PASS.
-- Whitespace check (`git diff --check`): PASS.
-- Correctly configured full-suite run (`PYTHONPATH=src`): `599` tests run,
-  `589` passed, `5` failures and `5` errors. The untouched canonical base
+- Non-raw code/metadata whitespace check (`git diff --check`): PASS. Downloaded
+  HTML source files contain source-native trailing whitespace; they were left
+  unchanged so their manifest hashes remain exact.
+- Raw artifact byte/hash check: PASS for all `16` retrieved files.
+- Correctly configured full-suite run (`PYTHONPATH=src`): `600` tests run,
+  `590` passed, `5` failures and `5` errors. The untouched canonical base
   produced the same pre-existing `5` failures and `5` errors on `593` tests;
   the acquisition package therefore introduced no observed change to those
   baseline failures. The failures concern ignored historical Gold/review

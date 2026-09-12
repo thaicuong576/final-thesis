@@ -42,6 +42,7 @@ from thesis_data.semantic_evaluation import (
     SemanticDimensionApplicability,
     SemanticDimensionResult,
     StructuredCriticResult,
+    validate_structured_critic_result,
 )
 from thesis_data.semantic_critic import SemanticRoundContext
 
@@ -123,6 +124,63 @@ def _company_claim() -> AtomicClaim:
     )
 
 
+def _two_requirement_company_plan() -> AnalysisPlan:
+    from thesis_data.analysis_plan import (
+        AnalysisRequirement,
+        FulfillmentPolicy,
+        InferenceCeiling,
+        MissingDataPolicy,
+        RequirementType,
+    )
+
+    plan = _company_plan()
+    second_requirement = AnalysisRequirement(
+        requirement_id="R2",
+        requirement_type=RequirementType.FACTUAL_OBSERVATION,
+        description="Report the second company observation.",
+        required_agents=(AnalysisAgent.COMPANY,),
+        entities=("TCB",),
+        periods=("2024_Q4",),
+        metric_ids=("bank.roe",),
+        inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
+        fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+        missing_data_policy=MissingDataPolicy.REJECT_MISSING,
+    )
+    return plan.model_copy(
+        update={
+            "scope": plan.scope.model_copy(
+                update={"company_metric_ids": ("bank.roa", "bank.roe")}
+            ),
+            "requirements": plan.requirements + (second_requirement,),
+        }
+    )
+
+
+def _company_roe_claim() -> AtomicClaim:
+    claim = _company_claim()
+    assertion = claim.assertions[0].model_copy(
+        update={
+            "assertion_id": "company-roe-assertion",
+            "metric_id": "bank.roe",
+            "asserted_value": 12.4,
+            "data_refs": (
+                claim.assertions[0].data_refs[0].model_copy(
+                    update={"ref_id": "company-roe", "metric_id": "bank.roe"}
+                ),
+            ),
+        }
+    )
+    return claim.model_copy(
+        update={
+            "claim_id": "company-roe-claim",
+            "claim_text": "TCB ROE was 12.4% in 2024_Q4.",
+            "title": "Company ROE",
+            "scope": claim.scope.model_copy(update={"metric_ids": ("bank.roe",)}),
+            "assertions": (assertion,),
+        }
+    )
+
+
 def _stage1(passed: bool = True) -> Stage1ValidationReport:
     gate_ids = (
         "numeric_accuracy",
@@ -161,12 +219,14 @@ def _issue(
     action=CritiqueAction.REVISE_CLAIM,
     severity=CritiqueSeverity.MAJOR,
     reason=None,
+    affected_requirement_ids=(),
 ) -> CritiqueIssue:
     return CritiqueIssue(
         issue_id=issue_id,
         issue_type=issue_type,
         severity=severity,
         affected_agent=agent,
+        affected_requirement_ids=tuple(affected_requirement_ids),
         description="Fixture issue.",
         required_action=action,
         resolution_status=status,
@@ -593,6 +653,7 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         issue = _issue(
             status=CritiqueIssueStatus.UNRESOLVED,
             reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
+            affected_requirement_ids=("R1",),
         )
         controller, _, _, _, _, _ = _controller(
             plan=plan,
@@ -605,6 +666,107 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
             initial_payload_version="payload-initial",
         )
         self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.ACCEPT_WITH_LIMITATIONS)
+
+    def test_partial_requirement_accepts_only_when_limitation_explicitly_affects_it(self):
+        plan = _two_requirement_company_plan()
+        issue = _issue(
+            issue_id="missing-r1",
+            status=CritiqueIssueStatus.UNRESOLVED,
+            reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
+            affected_requirement_ids=("R1",),
+        )
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(
+                    plan,
+                    fulfilled=("R2",),
+                    partial=("R1",),
+                    issues=(issue,),
+                    score=0.9,
+                )
+            ],
+        )
+        result = controller.run(
+            run_id="partial-r1-limited",
+            plan=plan,
+            claims=(_company_claim(), _company_roe_claim()),
+            initial_payload_version="payload-initial",
+        )
+        self.assertEqual(
+            result.acceptance_state.final_decision,
+            AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+        )
+
+    def test_unrelated_limitation_cannot_justify_partial_requirement(self):
+        plan = _two_requirement_company_plan()
+        issue = _issue(
+            issue_id="missing-r2",
+            status=CritiqueIssueStatus.UNRESOLVED,
+            reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
+            affected_requirement_ids=("R2",),
+        )
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(
+                    plan,
+                    fulfilled=("R2",),
+                    partial=("R1",),
+                    issues=(issue,),
+                    score=0.9,
+                )
+            ],
+        )
+        result = controller.run(
+            run_id="partial-r1-unrelated-limitation",
+            plan=plan,
+            claims=(_company_claim(), _company_roe_claim()),
+            initial_payload_version="payload-initial",
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+
+    def test_limitation_without_requirement_attribution_cannot_justify_partial(self):
+        plan = _two_requirement_company_plan()
+        issue = _issue(
+            issue_id="unattributed-missing",
+            status=CritiqueIssueStatus.UNRESOLVED,
+            reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
+        )
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(
+                    plan,
+                    fulfilled=("R2",),
+                    partial=("R1",),
+                    issues=(issue,),
+                    score=0.9,
+                )
+            ],
+        )
+        result = controller.run(
+            run_id="partial-r1-unattributed-limitation",
+            plan=plan,
+            claims=(_company_claim(), _company_roe_claim()),
+            initial_payload_version="payload-initial",
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+
+    def test_unknown_issue_requirement_attribution_fails_semantic_plan_validation(self):
+        plan = _company_plan()
+        result = _result(
+            plan,
+            issues=(_issue(issue_id="unknown-requirement", affected_requirement_ids=("R99",)),),
+        )
+        with self.assertRaisesRegex(ValueError, "unknown_requirement_id:R99"):
+            validate_structured_critic_result(plan, result, ())
+
+    def test_issue_requirement_attribution_is_unique_and_non_empty(self):
+        with self.assertRaises(ValueError):
+            _issue(affected_requirement_ids=("R1", "R1"))
+        with self.assertRaises(ValueError):
+            _issue(affected_requirement_ids=("",))
 
     def test_unresolved_reasoning_defect_terminates_fail(self):
         plan = _company_plan()
@@ -844,6 +1006,75 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         )
         self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
         self.assertIn("issue_terminal_reopened", result.terminal_reason)
+
+    def test_terminal_issue_cannot_reopen_after_an_intermediate_omission(self):
+        plan = _company_plan()
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(
+                    plan,
+                    issues=(
+                        _issue(issue_id="A", status=CritiqueIssueStatus.RESOLVED),
+                        _issue(issue_id="B"),
+                    ),
+                ),
+                _result(
+                    plan,
+                    issues=(
+                        _issue(issue_id="B", status=CritiqueIssueStatus.RESOLVED),
+                        _issue(issue_id="C"),
+                    ),
+                ),
+                _result(
+                    plan,
+                    issues=(
+                        _issue(issue_id="A"),
+                        _issue(issue_id="C", status=CritiqueIssueStatus.RESOLVED),
+                    ),
+                ),
+            ],
+            revision_results=[
+                _revision((_company_claim(),)),
+                _revision((_company_claim(),)),
+            ],
+        )
+        result = controller.run(
+            run_id="terminal-reopen-after-omission",
+            plan=plan,
+            claims=(_company_claim(),),
+            initial_payload_version="payload-initial",
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+        self.assertIn("issue_terminal_reopened:A", result.terminal_reason)
+
+    def test_terminal_issue_omitted_permanently_is_allowed(self):
+        plan = _company_plan()
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(
+                    plan,
+                    issues=(
+                        _issue(issue_id="A", status=CritiqueIssueStatus.RESOLVED),
+                        _issue(issue_id="B"),
+                    ),
+                ),
+                _result(
+                    plan,
+                    fulfilled=("R1",),
+                    issues=(_issue(issue_id="B", status=CritiqueIssueStatus.RESOLVED),),
+                ),
+            ],
+            revision_results=[_revision((_company_claim(),))],
+        )
+        result = controller.run(
+            run_id="terminal-omitted",
+            plan=plan,
+            claims=(_company_claim(),),
+            initial_payload_version="payload-initial",
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.ACCEPT)
 
     def test_plan_is_unchanged_after_revision_rounds(self):
         plan = _company_plan()

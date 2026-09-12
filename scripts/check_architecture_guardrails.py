@@ -42,6 +42,17 @@ FORBIDDEN_CORE_TEXT = (
     "peer-median-gold-v1",
 )
 FIXED_ISSUER_LITERAL = re.compile(r"\b(?:ACB|TCB|VPB|MBB|VCB)\b")
+FORBIDDEN_CORE_IMPORT_ROOTS = frozenset({"langgraph", "langchain", "openai"})
+
+
+def _import_roots(tree: ast.AST) -> frozenset[str]:
+    roots: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            roots.add(node.module.split(".", 1)[0])
+        elif isinstance(node, ast.Import):
+            roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+    return frozenset(roots)
 
 
 def _check() -> list[str]:
@@ -69,6 +80,12 @@ def _check() -> list[str]:
         except SyntaxError as exc:
             failures.append(f"application core does not parse: {path.relative_to(ROOT)}: {exc}")
             continue
+        forbidden_imports = sorted(_import_roots(tree) & FORBIDDEN_CORE_IMPORT_ROOTS)
+        for module_root in forbidden_imports:
+            failures.append(
+                f"forbidden framework/provider import in application core: "
+                f"{module_root} ({path.relative_to(ROOT)})"
+            )
         imported_modules = {
             node.module
             for node in ast.walk(tree)

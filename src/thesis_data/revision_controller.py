@@ -219,7 +219,7 @@ def _issue_ids_by_status(
 
 
 def _validate_issue_lifecycle(
-    previous_statuses: dict[str, CritiqueIssueStatus],
+    issue_status_ledger: dict[str, CritiqueIssueStatus],
     previous_open_ids: frozenset[str],
     result: StructuredCriticResult,
 ) -> None:
@@ -228,7 +228,7 @@ def _validate_issue_lifecycle(
         if issue_id not in current:
             raise RevisionControllerError(f"prior_issue_disappeared:{issue_id}")
     for issue_id, issue in current.items():
-        prior_status = previous_statuses.get(issue_id)
+        prior_status = issue_status_ledger.get(issue_id)
         if prior_status in {
             CritiqueIssueStatus.RESOLVED,
             CritiqueIssueStatus.EXPLAINED,
@@ -278,7 +278,7 @@ class BoundedRevisionController:
         original_plan_payload = plan.model_dump(mode="python")
 
         rounds: list[AcceptanceRound] = []
-        previous_issue_statuses: dict[str, CritiqueIssueStatus] = {}
+        issue_status_ledger: dict[str, CritiqueIssueStatus] = {}
         previous_open_ids = frozenset[str]()
         round_number = 0
         current_payload_version = initial_payload_version
@@ -322,7 +322,7 @@ class BoundedRevisionController:
                     dataset_resolver=dataset_resolver,
                 )
                 _validate_issue_lifecycle(
-                    previous_issue_statuses,
+                    issue_status_ledger,
                     previous_open_ids,
                     artifact.critic_result,
                 )
@@ -360,10 +360,13 @@ class BoundedRevisionController:
                 orchestrator_payload_version=orchestrator_payload_version_for_round,
             )
             rounds.append(round_state)
-            previous_issue_statuses = {
-                issue.issue_id: issue.resolution_status
-                for issue in artifact.critic_result.critique_issues
-            }
+            for issue in artifact.critic_result.critique_issues:
+                if issue.resolution_status in {
+                    CritiqueIssueStatus.RESOLVED,
+                    CritiqueIssueStatus.EXPLAINED,
+                    CritiqueIssueStatus.UNRESOLVED,
+                }:
+                    issue_status_ledger[issue.issue_id] = issue.resolution_status
 
             if decision is not AcceptanceDecision.REVISE:
                 if decision is AcceptanceDecision.FAIL_ACCEPTANCE:
@@ -515,6 +518,16 @@ class BoundedRevisionController:
         if result.partially_fulfilled_requirement_ids:
             if not unresolved_issues or not all(
                 _limited_issue_allowed(issue) for issue in unresolved_issues
+            ):
+                return AcceptanceDecision.FAIL_ACCEPTANCE, quality_total
+            limitation_requirement_ids = {
+                requirement_id
+                for issue in unresolved_issues
+                if _limited_issue_allowed(issue)
+                for requirement_id in issue.affected_requirement_ids
+            }
+            if not set(result.partially_fulfilled_requirement_ids).issubset(
+                limitation_requirement_ids
             ):
                 return AcceptanceDecision.FAIL_ACCEPTANCE, quality_total
         if unresolved_issues:

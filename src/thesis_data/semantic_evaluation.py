@@ -393,6 +393,7 @@ def deterministic_coverage_violations(
     violations.extend(f"omitted_link_result:{item}" for item in missing_link_ids)
     for issue in result.critique_issues:
         result_claim_ids.extend(issue.affected_claim_ids)
+        result_requirement_ids.extend(issue.affected_requirement_ids)
         if issue.issue_id not in issue_ids:
             violations.append(f"unknown_issue_id:{issue.issue_id}")
         if issue.affected_agent not in allowed_issue_agents:

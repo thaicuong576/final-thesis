@@ -620,6 +620,7 @@ class CritiqueIssue(BaseModel):
     severity: CritiqueSeverity
     affected_agent: str = Field(min_length=1)
     affected_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    affected_requirement_ids: tuple[str, ...] = Field(default_factory=tuple)
     description: str = Field(min_length=1)
     evidence_refs: tuple[str, ...] = Field(default_factory=tuple)
     required_action: CritiqueAction
@@ -641,6 +642,13 @@ class CritiqueIssue(BaseModel):
                 )
         elif self.unresolved_reason_code is not None:
             raise ValueError("unresolved_reason_code is only valid for unresolved issues")
+        if any(
+            not isinstance(requirement_id, str) or not requirement_id.strip()
+            for requirement_id in self.affected_requirement_ids
+        ):
+            raise ValueError("affected_requirement_ids must contain non-empty strings")
+        if len(self.affected_requirement_ids) != len(set(self.affected_requirement_ids)):
+            raise ValueError("affected_requirement_ids must be unique")
         return self
 
 

@@ -237,8 +237,47 @@ def _validate_issue_lifecycle(
             raise RevisionControllerError(f"issue_terminal_reopened:{issue_id}")
 
 
-class BoundedRevisionController:
-    """Execute the bounded, framework-neutral semantic revision workflow."""
+def _stable_payload_hash(payload: object) -> str:
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
+
+
+def _plan_payload_hash(plan: AnalysisPlan) -> str:
+    return _stable_payload_hash(plan.model_dump(mode="json"))
+
+
+class RevisionWorkflowState(BaseModel):
+    """Serializable domain state shared by controller and workflow adapters."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str = Field(min_length=1)
+    plan: AnalysisPlan
+    plan_payload_hash: str = Field(min_length=1)
+    current_claims: tuple[AtomicClaim, ...]
+    current_candidate_hash: str = Field(min_length=1)
+    current_payload_version: str = Field(min_length=1)
+    current_round_number: int = Field(ge=0)
+    rounds: tuple[AcceptanceRound, ...] = Field(default_factory=tuple)
+    issue_status_ledger: dict[str, CritiqueIssueStatus] = Field(default_factory=dict)
+    previous_open_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
+    revised_agents_for_round: tuple[str, ...] = Field(default_factory=tuple)
+    worker_payload_versions_for_round: dict[str, str] = Field(default_factory=dict)
+    orchestrator_payload_version_for_round: str | None = None
+    current_disposition: AcceptanceDecision | None = None
+    current_critic_result: StructuredCriticResult | None = None
+    terminal_reason: str | None = None
+    final_result: BoundedRevisionResult | None = None
+
+
+class RevisionWorkflowKernel:
+    """One framework-neutral step kernel for the bounded revision workflow."""
 
     def __init__(
         self,
@@ -255,163 +294,208 @@ class BoundedRevisionController:
         self._revision_executor = revision_executor
         self._acceptance_model_version = acceptance_model_version
 
-    def run(
+    def initial_state(
         self,
         *,
         run_id: str,
         plan: AnalysisPlan,
         claims: Sequence[AtomicClaim],
         initial_payload_version: str,
-        dataset_resolver: Stage1DatasetResolver | None = None,
-    ) -> BoundedRevisionResult:
+    ) -> RevisionWorkflowState:
         if not run_id.strip():
             raise ValueError("run_id must be non-empty")
         if not initial_payload_version.strip():
             raise ValueError("initial_payload_version must be non-empty")
         if not isinstance(plan, AnalysisPlan):
             raise RevisionControllerError("analysis_plan_type_invalid")
-
         current_claims = tuple(claims)
         if any(not isinstance(claim, AtomicClaim) for claim in current_claims):
             raise RevisionControllerError("claims_type_invalid")
-        candidate_hash(plan, current_claims)
-        original_plan_payload = plan.model_dump(mode="python")
+        current_hash = candidate_hash(plan, current_claims)
+        return RevisionWorkflowState(
+            run_id=run_id,
+            plan=plan.model_copy(deep=True),
+            plan_payload_hash=_plan_payload_hash(plan),
+            current_claims=tuple(
+                claim.model_copy(deep=True) for claim in current_claims
+            ),
+            current_candidate_hash=current_hash,
+            current_payload_version=initial_payload_version,
+            current_round_number=0,
+        )
 
-        rounds: list[AcceptanceRound] = []
-        issue_status_ledger: dict[str, CritiqueIssueStatus] = {}
-        previous_open_ids = frozenset[str]()
-        round_number = 0
-        current_payload_version = initial_payload_version
-        revised_agents_for_round: tuple[str, ...] = ()
-        worker_payload_versions_for_round: dict[str, str] = {}
-        orchestrator_payload_version_for_round: str | None = None
-        terminal_reason: str | None = None
+    def evaluate_current_round(
+        self,
+        state: RevisionWorkflowState,
+        *,
+        dataset_resolver: Stage1DatasetResolver | None = None,
+    ) -> RevisionWorkflowState:
+        state = self._copy_state(state)
+        if state.current_disposition is not None:
+            raise RevisionControllerError("round_already_evaluated")
 
-        while True:
-            current_hash = candidate_hash(plan, current_claims)
-            stage1_report = self._evaluate_stage1(plan, current_claims)
-            if not stage1_report.passed:
-                terminal_reason = "stage1_failed"
-                rounds.append(
-                    self._build_round(
-                        round_number=round_number,
-                        candidate_hash_value=current_hash,
-                        claims=current_claims,
-                        payload_version=current_payload_version,
-                        stage1_report=stage1_report,
-                        result=None,
-                        decision=AcceptanceDecision.FAIL_ACCEPTANCE,
-                        revised_agents=revised_agents_for_round,
-                        worker_payload_versions=worker_payload_versions_for_round,
-                        orchestrator_payload_version=orchestrator_payload_version_for_round,
-                    )
-                )
-                break
-
-            context = SemanticRoundContext(
-                round_number=round_number,
-                prior_issue_ids=tuple(sorted(previous_open_ids)),
-            )
-            try:
-                artifact = evaluate_semantic_round(
-                    self._semantic_critic,
-                    plan=plan,
-                    claims=current_claims,
-                    stage1_report=stage1_report,
-                    round_context=context,
-                    dataset_resolver=dataset_resolver,
-                )
-                _validate_issue_lifecycle(
-                    issue_status_ledger,
-                    previous_open_ids,
-                    artifact.critic_result,
-                )
-            except (SemanticEvaluationError, RevisionControllerError) as exc:
-                terminal_reason = str(exc)
-                rounds.append(
-                    self._build_round(
-                        round_number=round_number,
-                        candidate_hash_value=current_hash,
-                        claims=current_claims,
-                        payload_version=current_payload_version,
-                        stage1_report=stage1_report,
-                        result=None,
-                        decision=AcceptanceDecision.FAIL_ACCEPTANCE,
-                        revised_agents=revised_agents_for_round,
-                        worker_payload_versions=worker_payload_versions_for_round,
-                        orchestrator_payload_version=orchestrator_payload_version_for_round,
-                    )
-                )
-                break
-
-            decision, quality_total = self._decide(artifact, round_number)
+        current_hash = candidate_hash(state.plan, state.current_claims)
+        stage1_report = self._evaluate_stage1(state.plan, state.current_claims)
+        if not stage1_report.passed:
             round_state = self._build_round(
-                round_number=round_number,
+                state=state,
                 candidate_hash_value=current_hash,
-                claims=current_claims,
-                payload_version=current_payload_version,
                 stage1_report=stage1_report,
-                result=artifact.critic_result,
-                quality_scores=artifact.quality_scores,
-                quality_total=quality_total,
-                decision=decision,
-                revised_agents=revised_agents_for_round,
-                worker_payload_versions=worker_payload_versions_for_round,
-                orchestrator_payload_version=orchestrator_payload_version_for_round,
+                result=None,
+                decision=AcceptanceDecision.FAIL_ACCEPTANCE,
             )
-            rounds.append(round_state)
-            for issue in artifact.critic_result.critique_issues:
-                if issue.resolution_status in {
-                    CritiqueIssueStatus.RESOLVED,
-                    CritiqueIssueStatus.EXPLAINED,
-                    CritiqueIssueStatus.UNRESOLVED,
-                }:
-                    issue_status_ledger[issue.issue_id] = issue.resolution_status
-
-            if decision is not AcceptanceDecision.REVISE:
-                if decision is AcceptanceDecision.FAIL_ACCEPTANCE:
-                    terminal_reason = self._failure_reason(artifact, round_number)
-                break
-
-            try:
-                revision = self._execute_revision(
-                    plan=plan,
-                    claims=current_claims,
-                    candidate_hash_value=current_hash,
-                    result=artifact.critic_result,
-                    next_round_number=round_number + 1,
-                )
-            except (RevisionControllerError, TypeError, ValueError) as exc:
-                terminal_reason = str(exc)
-                rounds[-1] = self._replace_decision(
-                    round_state,
-                    AcceptanceDecision.FAIL_ACCEPTANCE,
-                )
-                break
-
-            current_claims = tuple(
-                claim.model_copy(deep=True) for claim in revision.revised_claims
+            return state.model_copy(
+                update={
+                    "current_candidate_hash": current_hash,
+                    "rounds": state.rounds + (round_state,),
+                    "current_disposition": AcceptanceDecision.FAIL_ACCEPTANCE,
+                    "current_critic_result": None,
+                    "terminal_reason": "stage1_failed",
+                }
             )
-            current_payload_version = revision.payload_version
-            revised_agents_for_round = tuple(revision.revised_agents)
-            worker_payload_versions_for_round = dict(revision.worker_payload_versions)
-            orchestrator_payload_version_for_round = revision.orchestrator_payload_version
-            previous_open_ids = frozenset(
+
+        context = SemanticRoundContext(
+            round_number=state.current_round_number,
+            prior_issue_ids=tuple(sorted(state.previous_open_issue_ids)),
+        )
+        try:
+            artifact = evaluate_semantic_round(
+                self._semantic_critic,
+                plan=state.plan,
+                claims=state.current_claims,
+                stage1_report=stage1_report,
+                round_context=context,
+                dataset_resolver=dataset_resolver,
+            )
+            _validate_issue_lifecycle(
+                dict(state.issue_status_ledger),
+                frozenset(state.previous_open_issue_ids),
+                artifact.critic_result,
+            )
+        except (SemanticEvaluationError, RevisionControllerError) as exc:
+            round_state = self._build_round(
+                state=state,
+                candidate_hash_value=current_hash,
+                stage1_report=stage1_report,
+                result=None,
+                decision=AcceptanceDecision.FAIL_ACCEPTANCE,
+            )
+            return state.model_copy(
+                update={
+                    "current_candidate_hash": current_hash,
+                    "rounds": state.rounds + (round_state,),
+                    "current_disposition": AcceptanceDecision.FAIL_ACCEPTANCE,
+                    "current_critic_result": None,
+                    "terminal_reason": str(exc),
+                }
+            )
+
+        decision, quality_total = self._decide(artifact, state.current_round_number)
+        round_state = self._build_round(
+            state=state,
+            candidate_hash_value=current_hash,
+            stage1_report=stage1_report,
+            result=artifact.critic_result,
+            quality_scores=artifact.quality_scores,
+            quality_total=quality_total,
+            decision=decision,
+        )
+        issue_status_ledger = dict(state.issue_status_ledger)
+        for issue in artifact.critic_result.critique_issues:
+            if issue.resolution_status in {
+                CritiqueIssueStatus.RESOLVED,
+                CritiqueIssueStatus.EXPLAINED,
+                CritiqueIssueStatus.UNRESOLVED,
+            }:
+                issue_status_ledger[issue.issue_id] = issue.resolution_status
+        terminal_reason = (
+            self._failure_reason(artifact, state.current_round_number)
+            if decision is AcceptanceDecision.FAIL_ACCEPTANCE
+            else None
+        )
+        return state.model_copy(
+            update={
+                "current_candidate_hash": current_hash,
+                "rounds": state.rounds + (round_state,),
+                "issue_status_ledger": issue_status_ledger,
+                "current_disposition": decision,
+                "current_critic_result": artifact.critic_result.model_copy(deep=True),
+                "terminal_reason": terminal_reason,
+            }
+        )
+
+    def execute_revision_step(self, state: RevisionWorkflowState) -> RevisionWorkflowState:
+        state = self._copy_state(state)
+        if state.current_disposition is not AcceptanceDecision.REVISE:
+            raise RevisionControllerError("revision_step_requires_revise_disposition")
+        if state.current_critic_result is None:
+            raise RevisionControllerError("revision_critic_result_missing")
+        try:
+            revision = self._execute_revision(
+                plan=state.plan,
+                claims=state.current_claims,
+                candidate_hash_value=state.current_candidate_hash,
+                result=state.current_critic_result,
+                next_round_number=state.current_round_number + 1,
+            )
+        except (RevisionControllerError, TypeError, ValueError) as exc:
+            failed_round = self._replace_decision(
+                state.rounds[-1],
+                AcceptanceDecision.FAIL_ACCEPTANCE,
+            )
+            return state.model_copy(
+                update={
+                    "rounds": state.rounds[:-1] + (failed_round,),
+                    "current_disposition": AcceptanceDecision.FAIL_ACCEPTANCE,
+                    "current_critic_result": None,
+                    "terminal_reason": str(exc),
+                }
+            )
+
+        revised_claims = tuple(
+            claim.model_copy(deep=True) for claim in revision.revised_claims
+        )
+        next_hash = candidate_hash(state.plan, revised_claims)
+        previous_open_issue_ids = tuple(
+            sorted(
                 issue.issue_id
-                for issue in artifact.critic_result.critique_issues
+                for issue in state.current_critic_result.critique_issues
                 if issue.resolution_status is CritiqueIssueStatus.OPEN
             )
-            round_number += 1
+        )
+        return state.model_copy(
+            update={
+                "current_claims": revised_claims,
+                "current_candidate_hash": next_hash,
+                "current_payload_version": revision.payload_version,
+                "current_round_number": state.current_round_number + 1,
+                "previous_open_issue_ids": previous_open_issue_ids,
+                "revised_agents_for_round": tuple(revision.revised_agents),
+                "worker_payload_versions_for_round": dict(
+                    revision.worker_payload_versions
+                ),
+                "orchestrator_payload_version_for_round": revision.orchestrator_payload_version,
+                "current_disposition": None,
+                "current_critic_result": None,
+                "terminal_reason": None,
+            }
+        )
 
-        if plan.model_dump(mode="python") != original_plan_payload:
+    def finalize(self, state: RevisionWorkflowState) -> BoundedRevisionResult:
+        state = self._copy_state(state)
+        if _plan_payload_hash(state.plan) != state.plan_payload_hash:
             raise RevisionControllerError("analysis_plan_mutated")
+        if state.current_disposition in {None, AcceptanceDecision.REVISE}:
+            raise RevisionControllerError("workflow_not_terminal")
+        if not state.rounds:
+            raise RevisionControllerError("workflow_has_no_rounds")
 
-        final_round = rounds[-1]
+        final_round = state.rounds[-1]
         acceptance_state = ReportAcceptanceState(
             acceptance_model_version=self._acceptance_model_version,
-            run_id=run_id,
+            run_id=state.run_id,
             policy=self._policy.model_copy(deep=True),
-            rounds=tuple(rounds),
+            rounds=tuple(state.rounds),
             final_payload_version=(
                 final_round.final_payload_version
                 if final_round.acceptance_decision
@@ -426,10 +510,18 @@ class BoundedRevisionController:
         )
         return BoundedRevisionResult(
             acceptance_state=acceptance_state,
-            final_claims=tuple(claim.model_copy(deep=True) for claim in current_claims),
-            final_candidate_hash=candidate_hash(plan, current_claims),
-            terminal_reason=terminal_reason,
+            final_claims=tuple(
+                claim.model_copy(deep=True) for claim in state.current_claims
+            ),
+            final_candidate_hash=candidate_hash(state.plan, state.current_claims),
+            terminal_reason=state.terminal_reason,
         )
+
+    @staticmethod
+    def _copy_state(state: RevisionWorkflowState) -> RevisionWorkflowState:
+        if not isinstance(state, RevisionWorkflowState):
+            raise RevisionControllerError("workflow_state_type_invalid")
+        return state.model_copy(deep=True)
 
     def _evaluate_stage1(
         self,
@@ -541,28 +633,26 @@ class BoundedRevisionController:
     def _build_round(
         self,
         *,
-        round_number: int,
+        state: RevisionWorkflowState,
         candidate_hash_value: str,
-        claims: Sequence[AtomicClaim],
-        payload_version: str,
         stage1_report: Stage1ValidationReport,
         result: StructuredCriticResult | None,
         decision: AcceptanceDecision,
-        revised_agents: Sequence[str],
         quality_scores=None,
         quality_total: float | None = None,
-        worker_payload_versions: dict[str, str] | None = None,
-        orchestrator_payload_version: str | None = None,
     ) -> AcceptanceRound:
         issues = result.critique_issues if result is not None else ()
         resolved_ids, unresolved_ids, unresolved_reasons = _issue_ids_by_status(issues)
         return AcceptanceRound(
-            round_number=round_number,
+            round_number=state.current_round_number,
             candidate_hash=candidate_hash_value,
-            candidate_claim_ids=tuple(claim.claim_id for claim in claims),
-            candidate_payload_version=payload_version,
-            worker_payload_versions=worker_payload_versions or {},
-            orchestrator_payload_version=orchestrator_payload_version or payload_version,
+            candidate_claim_ids=tuple(claim.claim_id for claim in state.current_claims),
+            candidate_payload_version=state.current_payload_version,
+            worker_payload_versions=dict(state.worker_payload_versions_for_round),
+            orchestrator_payload_version=(
+                state.orchestrator_payload_version_for_round
+                or state.current_payload_version
+            ),
             critique_issues=tuple(issues),
             resolved_issue_ids=resolved_ids,
             unresolved_issue_ids=unresolved_ids,
@@ -571,9 +661,9 @@ class BoundedRevisionController:
             quality_total=quality_total,
             provisional_threshold=self._policy.provisional_threshold,
             affected_agents=tuple(sorted({issue.affected_agent for issue in issues})),
-            revised_agents=tuple(revised_agents),
+            revised_agents=tuple(state.revised_agents_for_round),
             final_payload_version=(
-                payload_version
+                state.current_payload_version
                 if decision
                 in {
                     AcceptanceDecision.ACCEPT,
@@ -607,3 +697,51 @@ class BoundedRevisionController:
         if result.partially_fulfilled_requirement_ids:
             return "partial_requirement_not_limited_acceptance_eligible"
         return "semantic_quality_or_acceptance_policy_failed"
+
+
+class BoundedRevisionController:
+    """Execute the bounded, framework-neutral semantic revision workflow."""
+
+    def __init__(
+        self,
+        *,
+        policy: AcceptancePolicy,
+        stage1_evaluator: Stage1Evaluator,
+        semantic_critic: SemanticCritic,
+        revision_executor: RevisionExecutor | None,
+        acceptance_model_version: str = REVISION_CONTROLLER_VERSION,
+    ) -> None:
+        self._kernel = RevisionWorkflowKernel(
+            policy=policy,
+            stage1_evaluator=stage1_evaluator,
+            semantic_critic=semantic_critic,
+            revision_executor=revision_executor,
+            acceptance_model_version=acceptance_model_version,
+        )
+
+    def run(
+        self,
+        *,
+        run_id: str,
+        plan: AnalysisPlan,
+        claims: Sequence[AtomicClaim],
+        initial_payload_version: str,
+        dataset_resolver: Stage1DatasetResolver | None = None,
+    ) -> BoundedRevisionResult:
+        state = self._kernel.initial_state(
+            run_id=run_id,
+            plan=plan,
+            claims=claims,
+            initial_payload_version=initial_payload_version,
+        )
+        while True:
+            state = self._kernel.evaluate_current_round(
+                state,
+                dataset_resolver=dataset_resolver,
+            )
+            if state.current_disposition is not AcceptanceDecision.REVISE:
+                break
+            state = self._kernel.execute_revision_step(state)
+            if state.current_disposition is AcceptanceDecision.FAIL_ACCEPTANCE:
+                break
+        return self._kernel.finalize(state)

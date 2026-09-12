@@ -1,0 +1,151 @@
+{
+  "actions" : {
+    "get" : {
+      "method" : "GET",
+      "href" : "https://sbv.gov.vn/o/headless-delivery/v1.0/content-structures/3450482/structured-contents"
+    }
+  },
+  "facets" : [ ],
+  "items" : [ {
+    "actions" : {
+      "get-rendered-content" : {
+        "method" : "GET",
+        "href" : "https://sbv.gov.vn/o/headless-delivery/v1.0/structured-contents/3451452/rendered-content/{contentTemplateId}"
+      },
+      "get-rendered-content-by-display-page" : {
+        "method" : "GET",
+        "href" : "https://sbv.gov.vn/o/headless-delivery/v1.0/structured-contents/3451452/rendered-content-by-display-page/{displayPageKey}"
+      },
+      "get" : {
+        "method" : "GET",
+        "href" : "https://sbv.gov.vn/o/headless-delivery/v1.0/structured-contents/3451452"
+      }
+    },
+    "availableLanguages" : [ "vi-VN" ],
+    "contentFields" : [ {
+      "contentFieldValue" : {
+        "data" : "2023-03-18T17:00:00Z"
+      },
+      "dataType" : "date",
+      "label" : "Ngày",
+      "name" : "ngayApDung",
+      "nestedContentFields" : [ ],
+      "repeatable" : false
+    }, {
+      "contentFieldValue" : { },
+      "dataType" : "",
+      "label" : "Bảng lãi suất Field Set",
+      "name" : "banglaiSuats",
+      "nestedContentFields" : [ {
+        "contentFieldValue" : {
+          "data" : "Lãi suất tái chiết khấu",
+          "value" : "Lãi suất tái chiết khấu"
+        },
+        "dataType" : "string",
+        "inputControl" : "select",
+        "label" : "Loại lãi suất",
+        "name" : "loaiLaiSuat",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      }, {
+        "contentFieldValue" : {
+          "data" : "3,000%"
+        },
+        "dataType" : "string",
+        "inputControl" : "text",
+        "label" : "Giá trị",
+        "name" : "giaTri",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      }, {
+        "contentFieldValue" : {
+          "data" : "1123/QĐ-NHNN ngày 16/06/2023"
+        },
+        "dataType" : "string",
+        "inputControl" : "text",
+        "label" : "Văn bản quyết định",
+        "name" : "vanBanQuyetDinh",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      } ],
+      "repeatable" : true
+    }, {
+      "contentFieldValue" : { },
+      "dataType" : "",
+      "label" : "Bảng lãi suất Field Set",
+      "name" : "banglaiSuats",
+      "nestedContentFields" : [ {
+        "contentFieldValue" : {
+          "data" : "Lãi suất tái cấp vốn",
+          "value" : "Lãi suất tái cấp vốn"
+        },
+        "dataType" : "string",
+        "inputControl" : "select",
+        "label" : "Loại lãi suất",
+        "name" : "loaiLaiSuat",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      }, {
+        "contentFieldValue" : {
+          "data" : "4,500%"
+        },
+        "dataType" : "string",
+        "inputControl" : "text",
+        "label" : "Giá trị",
+        "name" : "giaTri",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      }, {
+        "contentFieldValue" : {
+          "data" : "1123/QĐ-NHNN ngày 16/06/2023"
+        },
+        "dataType" : "string",
+        "inputControl" : "text",
+        "label" : "Văn bản quyết định",
+        "name" : "vanBanQuyetDinh",
+        "nestedContentFields" : [ ],
+        "repeatable" : false
+      } ],
+      "repeatable" : true
+    } ],
+    "contentStructureId" : 3450482,
+    "creator" : {
+      "additionalName" : "",
+      "contentType" : "UserAccount",
+      "familyName" : "Hệ Thống",
+      "givenName" : "Quản Trị",
+      "id" : 20123,
+      "name" : "Quản Trị Hệ Thống"
+    },
+    "customFields" : [ ],
+    "dateCreated" : "2025-10-26T18:37:00Z",
+    "dateModified" : "2026-06-11T07:11:40Z",
+    "datePublished" : "2025-10-26T18:37:00Z",
+    "description" : "",
+    "externalReferenceCode" : "17562966-7e6b-e6c0-ee49-f97a0a6eb818",
+    "friendlyUrlPath" : "19-06-2023-1",
+    "id" : 3451452,
+    "key" : "3451450",
+    "keywords" : [ ],
+    "neverExpire" : true,
+    "numberOfComments" : 0,
+    "priority" : 0.0,
+    "relatedContents" : [ ],
+    "renderedContents" : [ {
+      "contentTemplateId" : "3450579",
+      "contentTemplateName" : "Bảng lãi suất",
+      "markedAsDefault" : true,
+      "renderedContentURL" : "https://sbv.gov.vn/o/headless-delivery/v1.0/structured-contents/3451452/rendered-content/3450579"
+    } ],
+    "siteId" : 20117,
+    "structuredContentFolderId" : 3451424,
+    "subscribed" : false,
+    "taxonomyCategoryBriefs" : [ ],
+    "title" : "19-06-2023",
+    "uuid" : "0d65859c-6ac6-7c5d-75b6-165c46270c74"
+  } ],
+  "lastPage" : 1,
+  "page" : 1,
+  "pageSize" : 100,
+  "totalCount" : 1
+}

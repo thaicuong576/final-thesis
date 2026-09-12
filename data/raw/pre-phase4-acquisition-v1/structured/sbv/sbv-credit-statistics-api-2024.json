@@ -1,0 +1,8 @@
+{
+  "articles" : [ ],
+  "lastPage" : 1,
+  "page" : 1,
+  "pageSize" : 200,
+  "totalCount" : 0,
+  "xClassName" : "vn.gov.sbv.article.headless.dto.v1_0.PageArticle"
+}

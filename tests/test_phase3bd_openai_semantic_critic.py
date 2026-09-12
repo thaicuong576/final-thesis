@@ -332,6 +332,30 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         critic = OpenAISemanticCritic(client=client, config=_config())
         return critic, client
 
+    def _run_controller_with_results(self, *, plan, run_id, results_builder):
+        claim = _company_claim()
+        client = FakeClient()
+        critic = OpenAISemanticCritic(client=client, config=_config())
+        results = results_builder(critic.evaluator_version)
+        client.responses.responses.extend(
+            FakeResponse(_encoded(result)) for result in results
+        )
+        controller = BoundedRevisionController(
+            policy=AcceptancePolicy(
+                policy_version=f"{run_id}-policy",
+                provisional_threshold=0.75,
+            ),
+            stage1_evaluator=_Stage1Sequence([_stage1() for _ in results]),
+            semantic_critic=critic,
+            revision_executor=_RevisionExecutor(claim),
+        )
+        return controller.run(
+            run_id=run_id,
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        ), client
+
     def test_valid_company_result_passes_evaluate_semantic_round(self):
         plan = _company_plan()
         claim = _company_claim()
@@ -1001,6 +1025,171 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
             result.terminal_reason,
             "prior_issue_identity_changed:I1:affected_requirement_ids",
         )
+
+    def test_historical_issue_reuse_after_omission_fails_closed(self):
+        plan = _company_plan("historical-identity")
+
+        def results(version):
+            return (
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(
+                        _issue(
+                            "A",
+                            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+                            action=CritiqueAction.REVISE_CLAIM,
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                        _issue("B", affected_requirement_ids=("R1",)),
+                    ),
+                ),
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(
+                        _issue(
+                            "B",
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                        _issue("C", affected_requirement_ids=("R1",)),
+                    ),
+                ),
+                _result(
+                    plan,
+                    version,
+                    partial=("R1",),
+                    issues=(
+                        _issue(
+                            "A",
+                            affected_requirement_ids=("R1",),
+                            status=CritiqueIssueStatus.UNRESOLVED,
+                            unresolved_reason_code=UnresolvedReasonCode.DATA_UNAVAILABLE,
+                        ),
+                        _issue(
+                            "C",
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                    ),
+                ),
+            )
+
+        result, client = self._run_controller_with_results(
+            plan=plan,
+            run_id="historical-identity",
+            results_builder=results,
+        )
+
+        self.assertEqual(
+            result.acceptance_state.final_decision.value,
+            "FAIL_ACCEPTANCE",
+        )
+        self.assertEqual(
+            result.terminal_reason,
+            "historical_issue_identity_changed:A:issue_type",
+        )
+        self.assertNotEqual(
+            result.acceptance_state.final_decision.value,
+            "ACCEPT_WITH_LIMITATIONS",
+        )
+        self.assertEqual(len(client.responses.calls), 3)
+
+    def test_historical_terminal_status_change_after_omission_fails_closed(self):
+        plan = _company_plan("historical-terminal-status")
+
+        def results(version):
+            return (
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(
+                        _issue(
+                            "A",
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                        _issue("B", affected_requirement_ids=("R1",)),
+                    ),
+                ),
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(
+                        _issue(
+                            "B",
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                        _issue(
+                            "A",
+                            status=CritiqueIssueStatus.UNRESOLVED,
+                            affected_requirement_ids=("R1",),
+                            unresolved_reason_code=UnresolvedReasonCode.DATA_UNAVAILABLE,
+                        ),
+                    ),
+                ),
+            )
+
+        result, _ = self._run_controller_with_results(
+            plan=plan,
+            run_id="historical-terminal-status",
+            results_builder=results,
+        )
+
+        self.assertEqual(
+            result.acceptance_state.final_decision.value,
+            "FAIL_ACCEPTANCE",
+        )
+        self.assertEqual(
+            result.terminal_reason,
+            "historical_issue_terminal_status_changed:A",
+        )
+
+    def test_historical_resolved_issue_can_reappear_with_same_identity_and_status(self):
+        plan = _company_plan("historical-terminal-repeat")
+
+        def results(version):
+            resolved_a = _issue(
+                "A",
+                status=CritiqueIssueStatus.RESOLVED,
+                affected_requirement_ids=("R1",),
+            )
+            return (
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(resolved_a, _issue("B", affected_requirement_ids=("R1",))),
+                ),
+                _result(
+                    plan,
+                    version,
+                    fulfilled=("R1",),
+                    issues=(
+                        _issue(
+                            "B",
+                            status=CritiqueIssueStatus.RESOLVED,
+                            affected_requirement_ids=("R1",),
+                        ),
+                        resolved_a,
+                    ),
+                ),
+            )
+
+        result, _ = self._run_controller_with_results(
+            plan=plan,
+            run_id="historical-terminal-repeat",
+            results_builder=results,
+        )
+
+        self.assertEqual(result.acceptance_state.final_decision.value, "ACCEPT")
 
 
 if __name__ == "__main__":

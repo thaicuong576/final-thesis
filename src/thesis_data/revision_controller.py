@@ -223,12 +223,18 @@ def _validate_issue_lifecycle(
     previous_open_ids: frozenset[str],
     result: StructuredCriticResult,
     previous_open_issues: Sequence[CritiqueIssue] = (),
+    previous_rounds: Sequence[AcceptanceRound] = (),
 ) -> None:
     current = {issue.issue_id: issue for issue in result.critique_issues}
     for issue_id in sorted(previous_open_ids):
         if issue_id not in current:
             raise RevisionControllerError(f"prior_issue_disappeared:{issue_id}")
 
+    terminal_statuses = {
+        CritiqueIssueStatus.RESOLVED,
+        CritiqueIssueStatus.EXPLAINED,
+        CritiqueIssueStatus.UNRESOLVED,
+    }
     previous_by_id = {issue.issue_id: issue for issue in previous_open_issues}
     for issue_id in sorted(previous_by_id):
         current_issue = current.get(issue_id)
@@ -254,15 +260,67 @@ def _validate_issue_lifecycle(
                 f"prior_issue_identity_changed:{issue_id}:affected_requirement_ids"
             )
 
+    historical_identity: dict[str, tuple[CritiqueIssueType, str, tuple[str, ...]]] = {}
+    historical_terminal_status: dict[str, CritiqueIssueStatus] = {}
+
+    def observe(issue: CritiqueIssue) -> None:
+        issue_id = issue.issue_id
+        identity = (
+            issue.issue_type,
+            issue.affected_agent,
+            tuple(sorted(set(issue.affected_requirement_ids))),
+        )
+        previous_identity = historical_identity.get(issue_id)
+        if previous_identity is not None:
+            if identity[0] != previous_identity[0]:
+                raise RevisionControllerError(
+                    f"historical_issue_identity_changed:{issue_id}:issue_type"
+                )
+            if identity[1] != previous_identity[1]:
+                raise RevisionControllerError(
+                    f"historical_issue_identity_changed:{issue_id}:affected_agent"
+                )
+            if identity[2] != previous_identity[2]:
+                raise RevisionControllerError(
+                    f"historical_issue_identity_changed:{issue_id}:affected_requirement_ids"
+                )
+        else:
+            historical_identity[issue_id] = identity
+
+        previous_terminal_status = historical_terminal_status.get(issue_id)
+        if previous_terminal_status is not None:
+            if issue.resolution_status is CritiqueIssueStatus.OPEN:
+                # Preserve the established public diagnostic for terminal
+                # issue reopening while applying it across the full history.
+                raise RevisionControllerError(f"issue_terminal_reopened:{issue_id}")
+            if issue.resolution_status is not previous_terminal_status:
+                raise RevisionControllerError(
+                    f"historical_issue_terminal_status_changed:{issue_id}"
+                )
+        elif issue.resolution_status in terminal_statuses:
+            historical_terminal_status[issue_id] = issue.resolution_status
+
+    for round_state in previous_rounds:
+        for issue in round_state.critique_issues:
+            observe(issue)
+    for issue_id in sorted(previous_by_id):
+        observe(previous_by_id[issue_id])
     for issue_id in sorted(current):
-        issue = current[issue_id]
+        observe(current[issue_id])
+
+    # Keep compatibility with older/in-memory callers that provide only the
+    # terminal status ledger rather than persisted round history.
+    for issue_id in sorted(current):
         prior_status = issue_status_ledger.get(issue_id)
-        if prior_status in {
-            CritiqueIssueStatus.RESOLVED,
-            CritiqueIssueStatus.EXPLAINED,
-            CritiqueIssueStatus.UNRESOLVED,
-        } and issue.resolution_status is CritiqueIssueStatus.OPEN:
+        if prior_status not in terminal_statuses:
+            continue
+        current_status = current[issue_id].resolution_status
+        if current_status is CritiqueIssueStatus.OPEN:
             raise RevisionControllerError(f"issue_terminal_reopened:{issue_id}")
+        if current_status is not prior_status:
+            raise RevisionControllerError(
+                f"historical_issue_terminal_status_changed:{issue_id}"
+            )
 
 
 def _stable_payload_hash(payload: object) -> str:
@@ -430,6 +488,7 @@ class RevisionWorkflowKernel:
                     issue.model_copy(deep=True)
                     for issue in state.previous_open_issues
                 ),
+                tuple(state.rounds),
             )
         except (SemanticEvaluationError, RevisionControllerError) as exc:
             round_state = self._build_round(

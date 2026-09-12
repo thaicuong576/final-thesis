@@ -110,6 +110,13 @@ export function projectAnalysisSession(
       }
 
       case 'SPECIALIST_STARTED': {
+        if (
+          currentPhase === 'INITIALIZING' ||
+          currentPhase === 'PLANNING' ||
+          currentPhase === 'DISPATCHING'
+        ) {
+          currentPhase = 'EXECUTING';
+        }
         const session = specialistSessions[event.payload.invocationId];
         if (session) {
           session.status = 'ANALYZING';
@@ -120,6 +127,13 @@ export function projectAnalysisSession(
       }
 
       case 'SPECIALIST_ACTIVITY': {
+        if (
+          currentPhase === 'INITIALIZING' ||
+          currentPhase === 'PLANNING' ||
+          currentPhase === 'DISPATCHING'
+        ) {
+          currentPhase = 'EXECUTING';
+        }
         const session = specialistSessions[event.payload.invocationId];
         if (session) {
           session.activities.push(event.payload.activity);

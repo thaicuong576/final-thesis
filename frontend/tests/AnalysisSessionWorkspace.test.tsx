@@ -4,9 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateAnalysisPage } from '../src/pages/create-analysis/CreateAnalysisPage';
+import type { ParseResult } from '../src/features/analysis-composer';
 import {
   AnalysisSessionWorkspace,
   projectAnalysisSession,
+  buildMockEventsFromParseResult,
+  getEventsForParseResult,
   mockCompanyOnlyEvents,
   mockCompanyPeerEvents,
   mockTargetedRevisionEvents,
@@ -289,8 +292,8 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
     expect(screen.queryByText(/ROE của TCB thay đổi thế nào/)).not.toBeInTheDocument();
   });
 
-  // M. BLOCKER 4: REMOVE FABRICATED FINANCIAL CLAIMS FROM MOCK ARTIFACTS
-  it('Evidence discipline: mock artifacts contain no fabricated financial claims (NIM, operating cost, capital adequacy, 1.2x median)', () => {
+  // M. BLOCKER 1 & 4: REMOVE FABRICATED FINANCIAL CLAIMS FROM MOCK ARTIFACTS
+  it('Evidence discipline: mock artifacts contain no fabricated financial claims (NIM, operating cost, capital adequacy, 1.2x median, peer median, percentile 50, liquidity support)', () => {
     const fixtures = [
       ...mockCompanyOnlyEvents,
       ...mockCompanyPeerEvents,
@@ -302,7 +305,10 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
       /\bNIM\b/i,
       /1\.2x/i,
       /chi phí hoạt động/i,
-      /an toàn vốn/i
+      /an toàn vốn/i,
+      /trung vị/i,
+      /phân vị/i,
+      /hỗ trợ thanh khoản/i
     ];
 
     fixtures.forEach((event) => {
@@ -311,6 +317,78 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
         expect(serialized).not.toMatch(pattern);
       });
     });
+  });
+
+  // P. BLOCKER 2: EMPTY ANALYSIS PLAN PRODUCES 0 SPECIALIST INVOCATIONS (NO COMPANY FALLBACK)
+  it('Empty AnalysisPlan produces 0 SPECIALIST_INVOKED events (no default company fallback)', () => {
+    const parseResult: ParseResult = {
+      rawQuestion: 'Câu hỏi không gắn với chuyên môn nào',
+      scope: {
+        entities: [],
+        periods: [],
+        metrics: [],
+        topicLabels: [],
+        scopeSignature: 'Trống',
+        analysisPlan: {
+          selectedCapabilities: []
+        }
+      },
+      mismatch: {
+        isMismatch: false,
+        availableCapabilitiesSummary: { periods: '', metrics: '', entities: '' }
+      }
+    };
+    const events = buildMockEventsFromParseResult(parseResult);
+    const invokedEvents = events.filter((e) => e.type === 'SPECIALIST_INVOKED');
+    expect(invokedEvents).toHaveLength(0);
+
+    const vm = projectAnalysisSession(events);
+    expect(vm.invocations).toHaveLength(0);
+    expect(vm.currentPhase).toBe('READY_FOR_REPORT');
+  });
+
+  // Q. BLOCKER 3: PREFIX PHASE PROGRESSION IN PROJECTOR
+  it('Prefix phase progression: PLAN_CREATED -> DISPATCHING -> SPECIALIST_INVOKED -> DISPATCHING -> SPECIALIST_STARTED -> EXECUTING -> SPECIALIST_ACTIVITY -> EXECUTING -> REVIEW_STARTED -> REVIEWING', () => {
+    const planCreatedIdx = mockCompanyOnlyEvents.findIndex((e) => e.type === 'PLAN_CREATED');
+    const specialistInvokedIdx = mockCompanyOnlyEvents.findIndex((e) => e.type === 'SPECIALIST_INVOKED');
+    const specialistStartedIdx = mockCompanyOnlyEvents.findIndex((e) => e.type === 'SPECIALIST_STARTED');
+    const specialistActivityIdx = mockCompanyOnlyEvents.findIndex((e) => e.type === 'SPECIALIST_ACTIVITY');
+    const reviewStartedIdx = mockCompanyOnlyEvents.findIndex((e) => e.type === 'REVIEW_STARTED');
+
+    expect(projectAnalysisSession(mockCompanyOnlyEvents.slice(0, planCreatedIdx + 1)).currentPhase).toBe('DISPATCHING');
+    expect(projectAnalysisSession(mockCompanyOnlyEvents.slice(0, specialistInvokedIdx + 1)).currentPhase).toBe('DISPATCHING');
+    expect(projectAnalysisSession(mockCompanyOnlyEvents.slice(0, specialistStartedIdx + 1)).currentPhase).toBe('EXECUTING');
+    expect(projectAnalysisSession(mockCompanyOnlyEvents.slice(0, specialistActivityIdx + 1)).currentPhase).toBe('EXECUTING');
+    expect(projectAnalysisSession(mockCompanyOnlyEvents.slice(0, reviewStartedIdx + 1)).currentPhase).toBe('REVIEWING');
+  });
+
+  // R. BLOCKER 4: TARGETED REVISION DOES NOT SILENTLY OVERRIDE PARSERESULT
+  it('Targeted revision does not silently override actual ParseResult in getEventsForParseResult', () => {
+    const parseResult: ParseResult = {
+      rawQuestion: 'Tỷ lệ nợ xấu của ACB thay đổi thế nào trong năm 2024?',
+      scope: {
+        entities: [{ id: 'acb', ticker: 'ACB', name: 'ACB' }],
+        periods: [{ id: '2024-q1', quarter: 1, year: 2024 }],
+        metrics: [{ id: 'npl', label: 'Nợ xấu', acronym: 'NPL', topicId: 'risk' }],
+        topicLabels: ['Chất lượng tài sản'],
+        scopeSignature: 'ACB · Q1/2024 · NPL',
+        analysisPlan: {
+          selectedCapabilities: [{ id: 'company', label: 'Phân tích doanh nghiệp', selected: true }]
+        }
+      },
+      mismatch: {
+        isMismatch: false,
+        availableCapabilitiesSummary: { periods: '', metrics: '', entities: '' }
+      }
+    };
+    const events = getEventsForParseResult(parseResult);
+    expect(events[0].type).toBe('USER_REQUEST_CONFIRMED');
+    if (events[0].type === 'USER_REQUEST_CONFIRMED') {
+      expect(events[0].payload.rawQuestion).toBe('Tỷ lệ nợ xấu của ACB thay đổi thế nào trong năm 2024?');
+    }
+    // Ensure it is dynamic, not the hardcoded mockTargetedRevisionEvents (which uses TCB)
+    expect(events.some((e) => JSON.stringify(e).includes('ACB'))).toBe(true);
+    expect(events.some((e) => JSON.stringify(e).includes('TCB'))).toBe(false);
   });
 
   // N. BLOCKER 5: EXTENSIBLE SPECIALIST DECOUPLING WITH FALLBACK ICON

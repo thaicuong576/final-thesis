@@ -45,12 +45,6 @@ export function getScenarioEvents(key?: string | null): AnalysisSessionEvent[] {
  * Maps an interpreted ParseResult from Screen 1 to an event-sourced mock stream.
  * Dynamically builds events matching the confirmed question and scope to prevent silent scope substitution.
  */
-export function getEventsForParseResult(
-  parseResult: ParseResult,
-  options: { withTargetedRevision?: boolean } = {}
-): AnalysisSessionEvent[] {
-  if (options.withTargetedRevision) {
-    return mockTargetedRevisionEvents;
-  }
+export function getEventsForParseResult(parseResult: ParseResult): AnalysisSessionEvent[] {
   return buildMockEventsFromParseResult(parseResult);
 }

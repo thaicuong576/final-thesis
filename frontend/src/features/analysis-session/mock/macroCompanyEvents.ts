@@ -125,11 +125,11 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
     payload: {
       invocationId: 'inv-company',
       artifact: {
-        headline: '3 nhận định · 4 quan sát tài chính',
+        headline: '3 nhận định cấu trúc · 4 quan sát số liệu',
         findings: [
-          'Tỷ lệ nợ xấu NPL và tỷ lệ bao phủ nợ xấu Coverage của TCB phản ánh chuỗi quan sát đầy đủ trong năm 2024.',
-          'Các chỉ tiêu sinh lời ROA và ROE được ghi nhận đồng bộ cùng chu kỳ công bố số liệu chất lượng tài sản.',
-          'Dữ liệu tài chính của TCB đã được xác thực tính nhất quán trước khi tích hợp bối cảnh vĩ mô.'
+          'Đã tạo 3 nhận định từ chuỗi số liệu NPL, Coverage, ROA, ROE của TCB trong chu kỳ Q1–Q4/2024.',
+          'Toàn bộ các quan sát số liệu đã được đối soát nguồn gốc từ báo cáo tài chính kiểm toán.',
+          '6 dẫn chứng số liệu đã được liên kết và xác thực tính nhất quán trước khi tích hợp bối cảnh vĩ mô.'
         ],
         evidenceCount: 6,
         version: 1
@@ -144,10 +144,10 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
     payload: {
       invocationId: 'inv-macro',
       artifact: {
-        headline: '2 nhận định vĩ mô · 4 dẫn chứng',
+        headline: '2 nhận định bối cảnh · 4 dẫn chứng',
         findings: [
-          'Chính sách tiền tệ linh hoạt và lãi suất điều hành duy trì hỗ trợ thanh khoản toàn hệ thống ngân hàng.',
-          'Tăng trưởng tín dụng toàn ngành đạt mục tiêu định hướng trong chu kỳ 2024.'
+          'Đã trích xuất chuỗi thời gian lãi suất điều hành và tăng trưởng tín dụng chu kỳ Q1–Q4/2024.',
+          '4 dẫn chứng bối cảnh vĩ mô toàn ngành đã được đối chiếu đồng bộ theo quý.'
         ],
         evidenceCount: 4,
         version: 1

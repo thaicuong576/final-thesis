@@ -24,7 +24,6 @@ import {
   getEventsForParseResult,
   resolveScenarioKey,
   type AnalysisSessionEvent,
-  type CanonicalScenarioKey,
   type DriverMode
 } from '../../features/analysis-session';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
@@ -40,7 +39,6 @@ export function CreateAnalysisPage() {
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [activeEvents, setActiveEvents] = useState<AnalysisSessionEvent[]>([]);
-  const [activeScenarioKey, setActiveScenarioKey] = useState<CanonicalScenarioKey>('company-only');
   const [driverMode, setDriverMode] = useState<DriverMode>('FROZEN');
   const [driverStep, setDriverStep] = useState<number | undefined>(undefined);
   const [datasetSelectorOpen, setDatasetSelectorOpen] = useState(false);
@@ -60,7 +58,6 @@ export function CreateAnalysisPage() {
     if (scenarioParam) {
       const canonicalKey = resolveScenarioKey(scenarioParam);
       const events = getScenarioEvents(canonicalKey);
-      setActiveScenarioKey(canonicalKey);
       setActiveEvents(events);
       setDriverMode(isAutoplay ? 'AUTOPLAY' : 'FROZEN');
       if (stepParam) {
@@ -122,13 +119,6 @@ export function CreateAnalysisPage() {
       ...parseResult,
       scope: updatedScope
     });
-  }
-
-  function handleSelectScenario(scenarioKey: CanonicalScenarioKey) {
-    setActiveScenarioKey(scenarioKey);
-    const events = getScenarioEvents(scenarioKey);
-    setActiveEvents(events);
-    setDriverStep(undefined);
   }
 
   async function handleConfirmAndAnalyze() {
@@ -249,8 +239,6 @@ export function CreateAnalysisPage() {
               driverMode={driverMode}
               driverStep={driverStep}
               onBackToComposer={() => setMode('DEFAULT')}
-              onSelectScenario={handleSelectScenario}
-              activeScenarioKey={activeScenarioKey}
             />
           )}
         </div>

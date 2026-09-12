@@ -104,11 +104,11 @@ export const mockCompanyOnlyEvents: AnalysisSessionEvent[] = [
     payload: {
       invocationId: 'inv-company',
       artifact: {
-        headline: '3 nhận định · 4 quan sát tài chính',
+        headline: '3 nhận định cấu trúc · 4 quan sát số liệu',
         findings: [
-          'TCB duy trì tỷ suất sinh lời trên vốn chủ sở hữu (ROE) với chuỗi số liệu ổn định qua các quý năm 2024.',
-          'Biên độ dao động của ROE giữa các quý phản ánh đúng quan sát từ chuỗi số liệu gốc.',
-          'Toàn bộ 4 quan sát số liệu của ROE đã được đối soát nguồn gốc từ báo cáo tài chính kiểm toán.'
+          'Đã tạo 3 nhận định từ chuỗi số liệu ROE của TCB trong chu kỳ Q1–Q4/2024.',
+          'Đã đối soát toàn bộ 4 quan sát số liệu theo từng quý từ báo cáo tài chính kiểm toán.',
+          '4 dẫn chứng số liệu đã được liên kết và xác thực tính nhất quán.'
         ],
         evidenceCount: 4,
         version: 1

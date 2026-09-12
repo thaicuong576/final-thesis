@@ -8,8 +8,6 @@ import { useAnalysisSessionDriver, type DriverMode } from '../mock/MockAnalysisS
 import { SessionContextBar } from './SessionContextBar';
 import { OrchestratorThread } from './OrchestratorThread';
 import { SpecialistSessionSheet } from './SpecialistSessionSheet';
-import type { CanonicalScenarioKey } from '../mock/scenarioRegistry';
-
 interface AnalysisSessionWorkspaceProps {
   // Can receive either direct viewModel or event list for driver
   viewModel?: AnalysisSessionViewModel;
@@ -17,8 +15,6 @@ interface AnalysisSessionWorkspaceProps {
   driverMode?: DriverMode;
   driverStep?: number;
   onBackToComposer?: () => void;
-  onSelectScenario?: (scenarioKey: CanonicalScenarioKey) => void;
-  activeScenarioKey?: string;
   // Compatibility prop with previous snapshot signature:
   session?: AnalysisSessionViewModel;
 }
@@ -29,9 +25,7 @@ export function AnalysisSessionWorkspace({
   events = [],
   driverMode = 'FROZEN',
   driverStep,
-  onBackToComposer,
-  onSelectScenario: _onSelectScenario,
-  activeScenarioKey: _activeScenarioKey
+  onBackToComposer
 }: AnalysisSessionWorkspaceProps) {
   // If events are passed, drive state with useAnalysisSessionDriver; otherwise use provided viewModel/session
   const hasEvents = events.length > 0;

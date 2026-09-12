@@ -126,7 +126,7 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
       invocationId: 'inv-peer',
       activity: {
         id: 'act-cp-p2',
-        description: 'Đã tính trung vị và độ phân tán của nhóm tham chiếu',
+        description: 'Đã đối soát số liệu cùng kỳ của nhóm tham chiếu',
         type: 'DATA_RETRIEVAL'
       }
     }
@@ -139,11 +139,11 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
     payload: {
       invocationId: 'inv-company',
       artifact: {
-        headline: '3 nhận định · 4 quan sát tài chính',
+        headline: '3 nhận định cấu trúc · 4 quan sát số liệu',
         findings: [
-          'TCB duy trì tỷ suất sinh lời ROA và ROE có đầy đủ quan sát trong 4 quý năm 2024.',
-          'Dữ liệu chỉ tiêu phản ánh nhất quán với báo cáo tài chính đã công bố.',
-          'Các giá trị số liệu được đối soát nguồn gốc từ chuỗi dữ liệu chuẩn hóa.'
+          'Đã tạo 3 nhận định từ chuỗi số liệu ROA và ROE của TCB trong chu kỳ Q1–Q4/2024.',
+          'Toàn bộ các quan sát số liệu đã được đối soát nguồn gốc từ báo cáo tài chính kiểm toán.',
+          '4 dẫn chứng số liệu đã được liên kết và xác thực tính nhất quán.'
         ],
         evidenceCount: 4,
         version: 1
@@ -160,9 +160,9 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định đối sánh · 6 dẫn chứng',
         findings: [
-          'TCB nằm trong nhóm ngân hàng có chỉ số sinh lời ROA và ROE cao hơn trung vị nhóm tham chiếu.',
-          'Vị thế tương đối của ROA và ROE duy trì trên phân vị 50 của 5 ngân hàng cùng nhóm.',
-          'Dữ liệu đối sánh được chuẩn hóa cùng chu kỳ kế toán với nhóm tham chiếu.'
+          'Đã hoàn tất đối sánh cùng kỳ chỉ số ROA và ROE với nhóm tham chiếu cho chu kỳ Q1–Q4/2024.',
+          'Các quan sát đối sánh đã được đồng bộ chuẩn hóa cùng chu kỳ kế toán với 5 ngân hàng cùng nhóm.',
+          '6 dẫn chứng đối sánh đã được liên kết với chuỗi dữ liệu chuẩn hóa.'
         ],
         evidenceCount: 6,
         version: 1

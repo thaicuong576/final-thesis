@@ -20,9 +20,7 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     scope.scopeSignature ||
     [entitySymbols, periodLabels, metricLabels].filter(Boolean).join(' \u00b7 ');
 
-  const selectedCaps = scope.analysisPlan?.selectedCapabilities?.length
-    ? scope.analysisPlan.selectedCapabilities
-    : [{ id: 'company' as const, label: 'Ph\u00e2n t\u00edch doanh nghi\u1ec7p', selected: true }];
+  const selectedCaps = scope.analysisPlan?.selectedCapabilities || [];
 
   const events: AnalysisSessionEvent[] = [];
   let seq = 1;
@@ -58,7 +56,7 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
   const capIds: SpecialistId[] = selectedCaps.map((c) => c.id);
   const capLabels = selectedCaps.map((c) => c.label).join(', ');
 
-  let planSummary = 'Ph\u00e2n t\u00edch t\u00e0i ch\u00ednh th\u00edch \u1ee9ng';
+  let planSummary = 'Kh\u00f4ng y\u00eau c\u1ea7u chuy\u00ean m\u00f4n';
   if (capIds.includes('macro') && capIds.includes('company')) {
     planSummary = 'T\u00edch h\u1ee3p v\u0129 m\u00f4 v\u00e0 doanh nghi\u1ec7p';
   } else if (capIds.includes('peer') && capIds.includes('company')) {
@@ -71,6 +69,11 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     planSummary = 'Ph\u00e2n t\u00edch doanh nghi\u1ec7p \u0111\u01a1n m\u1ee5c ti\u00eau';
   }
 
+  const planMessage =
+    selectedCaps.length > 0
+      ? '\u0110\u00e3 x\u00e1c \u0111\u1ecbnh ph\u1ea1m vi ' + scopeSignature + '. Y\u00eau c\u1ea7u n\u00e0y c\u1ea7n ' + capLabels.toLowerCase() + '. \u0110\u00e3 giao ' + selectedCaps.length + ' nhi\u1ec7m v\u1ee5 chuy\u00ean m\u00f4n.'
+      : '\u0110\u00e3 x\u00e1c \u0111\u1ecbnh ph\u1ea1m vi ' + scopeSignature + '. Y\u00eau c\u1ea7u kh\u00f4ng c\u1ea7n kh\u1edfi t\u1ea1o nhi\u1ec7m v\u1ee5 chuy\u00ean m\u00f4n.';
+
   events.push({
     eventId: 'evt-dyn-' + String(seq).padStart(2, '0'),
     sequence: seq++,
@@ -79,7 +82,7 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     payload: {
       requiredSpecialists: capIds,
       planSummary,
-      message: '\u0110\u00e3 x\u00e1c \u0111\u1ecbnh ph\u1ea1m vi ' + scopeSignature + '. Y\u00eau c\u1ea7u n\u00e0y c\u1ea7n ' + capLabels.toLowerCase() + '. \u0110\u00e3 giao ' + selectedCaps.length + ' nhi\u1ec7m v\u1ee5 chuy\u00ean m\u00f4n.'
+      message: planMessage
     }
   });
 
@@ -151,13 +154,13 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     });
 
     timeMs += 400;
-    let descValidation = '\u0110\u00e3 ki\u1ec3m tra t\u00ednh h\u1ee3p l\u1ec7 c\u1ee7a ngu\u1ed3n d\u1eef li\u1ec7u';
+    let descValidation = 'Đã kiểm tra tính hợp lệ của nguồn dữ liệu';
     if (cap.id === 'company') {
-      descValidation = '\u0110\u00e3 ki\u1ec3m tra c\u00e1c quan s\u00e1t s\u1ed1 li\u1ec7u h\u1ee3p l\u1ec7 cho ' + metricLabels;
+      descValidation = 'Đã kiểm tra các quan sát số liệu hợp lệ cho ' + metricLabels;
     } else if (cap.id === 'peer') {
-      descValidation = '\u0110\u00e3 t\u00ednh to\u00e1n ph\u00e2n v\u1ecb v\u00e0 m\u1ee9c trung v\u1ecb nh\u00f3m tham chi\u1ebfu';
+      descValidation = 'Đã chuẩn hóa định dạng và đối soát số liệu nhóm tham chiếu';
     } else if (cap.id === 'macro') {
-      descValidation = '\u0110\u00e3 \u0111\u1ed1i chi\u1ebfu chu\u1ed7i th\u1eddi gian s\u1ed1 li\u1ec7u v\u0129 m\u00f4 li\u00ean quan';
+      descValidation = 'Đã đối chiếu chuỗi thời gian số liệu vĩ mô liên quan';
     }
 
     events.push({
@@ -176,37 +179,37 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     });
   });
 
-  // 7. Specialist Output Created (Grounded, non-fabricated observations)
+  // 7. Specialist Output Created (Grounded, structural observations)
   selectedCaps.forEach((cap) => {
     timeMs += 600;
-    let headline = '3 nh\u1eadn \u0111\u1ecbnh \u00b7 4 quan s\u00e1t s\u1ed1 li\u1ec7u';
+    let headline = '3 nhận định cấu trúc · 4 quan sát số liệu';
     let findings: string[] = [];
 
     if (cap.id === 'company') {
-      headline = '3 nh\u1eadn \u0111\u1ecbnh t\u00e0i ch\u00ednh \u00b7 4 quan s\u00e1t s\u1ed1 li\u1ec7u';
+      headline = '3 nhận định cấu trúc · ' + (entitySymbols ? 'Dữ liệu ' + entitySymbols : 'Báo cáo tài chính');
       findings = [
-        'D\u1eef li\u1ec7u t\u00e0i ch\u00ednh cho ' + entitySymbols + ' trong chu k\u1ef3 ' + periodLabels + ' ghi nh\u1eadn \u0111\u1ea7y \u0111\u1ee7 chu\u1ed7i quan s\u00e1t c\u1ee7a ' + metricLabels + '.',
-        'Di\u1ec5n bi\u1ebfn c\u1ee7a ' + metricLabels + ' ph\u1ea3n \u00e1nh \u0111\u00fang c\u00e1c quan s\u00e1t th\u1ef1c nghi\u1ec7m \u0111\u01b0\u1ee3c \u0111\u1ed1i so\u00e1t t\u1eeb b\u00e1o c\u00e1o t\u00e0i ch\u00ednh.',
-        'To\u00e0n b\u1ed9 d\u1eef li\u1ec7u t\u00e0i ch\u00ednh c\u1ee7a ' + entitySymbols + ' \u0111\u00e3 \u0111\u01b0\u1ee3c x\u00e1c th\u1ef1c t\u00ednh nh\u1ea5t qu\u00e1n v\u00e0 ngu\u1ed3n g\u1ed1c s\u1ed1 li\u1ec7u.'
+        'Đã tạo 3 nhận định cấu trúc từ chuỗi số liệu ' + metricLabels + ' của ' + entitySymbols + ' (' + periodLabels + ').',
+        'Toàn bộ các quan sát số liệu đã được đối soát nguồn gốc từ báo cáo tài chính kiểm toán.',
+        'Đã xác thực tính nhất quán và hoàn thiện liên kết dẫn chứng số liệu.'
       ];
     } else if (cap.id === 'peer') {
-      headline = '3 nh\u1eadn \u0111\u1ecbnh \u0111\u1ed1i s\u00e1nh \u00b7 5 d\u1eabn ch\u1ee9ng';
+      headline = '3 nhận định đối sánh · 6 dẫn chứng';
       findings = [
-        'V\u1ecb th\u1ebf t\u01b0\u01a1ng \u0111\u1ed1i c\u1ee7a ' + entitySymbols + ' \u0111\u01b0\u1ee3c \u0111\u1eb7t trong t\u01b0\u01a1ng quan ph\u00e2n v\u1ecb v\u1edbi c\u00e1c ng\u00e2n h\u00e0ng c\u00f9ng nh\u00f3m.',
-        'Ch\u1ec9 ti\u00eau ' + metricLabels + ' \u0111\u01b0\u1ee3c \u0111\u1ed1i chi\u1ebfu theo th\u1ee9 v\u1ecb v\u00e0 \u0111\u1ed9 ph\u00e2n t\u00e1n c\u1ee7a nh\u00f3m tham chi\u1ebfu c\u00f9ng k\u1ef3.',
-        'D\u1eef li\u1ec7u \u0111\u1ed1i s\u00e1nh \u0111\u01b0\u1ee3c chu\u1ea9n h\u00f3a c\u00f9ng chu k\u1ef3 b\u00e1o c\u00e1o t\u00e0i ch\u00ednh.'
+        'Đã hoàn tất đối sánh cùng kỳ chỉ số ' + metricLabels + ' với nhóm tham chiếu cho chu kỳ ' + periodLabels + '.',
+        'Các điểm dữ liệu nhóm tham chiếu đã được đồng bộ cùng kỳ báo cáo tài chính.',
+        '6 dẫn chứng đối sánh đã được trích xuất và liên kết với chuỗi quan sát chuẩn hóa.'
       ];
     } else if (cap.id === 'macro') {
-      headline = '2 nh\u1eadn \u0111\u1ecbnh v\u0129 m\u00f4 \u00b7 4 d\u1eabn ch\u1ee9ng';
+      headline = '2 nhận định bối cảnh · 4 dẫn chứng';
       findings = [
-        'Ch\u00ednh s\u00e1ch ti\u1ec1n t\u1ec7 linh ho\u1ea1t v\u00e0 l\u00e3i su\u1ea5t \u0111i\u1ec1u h\u00e0nh duy tr\u00ec h\u1ed7 tr\u1ee3 thanh kho\u1ea3n to\u00e0n h\u1ec7 th\u1ed1ng ng\u00e2n h\u00e0ng.',
-        'B\u1ed1i c\u1ea3nh thanh kho\u1ea3n v\u00e0 t\u0103ng tr\u01b0\u1edfng t\u00edn d\u1ee5ng to\u00e0n h\u1ec7 th\u1ed1ng cung c\u1ea5p c\u0103n c\u1ee9 \u0111\u1ed1i chi\u1ebfu cho chu k\u1ef3 ' + periodLabels + '.'
+        'Đã trích xuất chuỗi thời gian lãi suất điều hành và tăng trưởng tín dụng chu kỳ ' + periodLabels + '.',
+        '4 dẫn chứng bối cảnh vĩ mô toàn ngành đã được đối chiếu đồng bộ theo quý.'
       ];
     } else {
-      headline = '2 nh\u1eadn \u0111\u1ecbnh chuy\u00ean m\u00f4n \u00b7 3 d\u1eabn ch\u1ee9ng';
+      headline = '2 nhận định chuyên môn · 3 dẫn chứng';
       findings = [
-        'D\u1eef li\u1ec7u chuy\u00ean m\u00f4n cho ' + cap.label + ' \u0111\u01b0\u1ee3c tr\u00edch xu\u1ea5t t\u1eeb ngu\u1ed3n d\u1eef li\u1ec7u chu\u1ea9n h\u00f3a.',
-        'C\u00e1c ti\u00eau ch\u00ed ph\u00e2n t\u00edch \u0111\u00e3 \u0111\u01b0\u1ee3c ki\u1ec3m tra theo ph\u01b0\u01a1ng ph\u00e1p lu\u1eadn quy chu\u1ea9n.'
+        'Dữ liệu chuyên môn cho ' + cap.label + ' đã được trích xuất từ nguồn dữ liệu chuẩn hóa.',
+        'Các tiêu chí phân tích đã được kiểm tra theo phương pháp luận quy chuẩn.'
       ];
     }
 
@@ -249,7 +252,10 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     occurredAtMs: timeMs,
     type: 'REVIEW_STARTED',
     payload: {
-      message: '\u0110\u00e3 nh\u1eadn \u0111\u1ee7 k\u1ebft qu\u1ea3 t\u1eeb c\u00e1c chuy\u00ean m\u00f4n v\u00e0 ho\u00e0n t\u1ea5t ki\u1ec3m tra t\u00ednh nh\u1ea5t qu\u00e1n.'
+      message:
+        selectedCaps.length > 0
+          ? 'Đã nhận đủ kết quả từ các chuyên môn và hoàn tất kiểm tra tính nhất quán.'
+          : 'Đã hoàn tất kiểm tra yêu cầu và tính hợp lệ của phạm vi phân tích.'
     }
   });
 

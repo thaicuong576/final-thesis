@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { DataPage } from '../pages/data/DataPage';
 import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage';
 import { ReportsPlaceholderPage } from '../pages/reports/ReportsPlaceholderPage';
+import { WorkflowMonitorPage } from '../pages/workflow/WorkflowMonitorPage';
 
 export const router = createBrowserRouter([
   {
@@ -11,6 +12,10 @@ export const router = createBrowserRouter([
   {
     path: '/analysis',
     element: <CreateAnalysisPage />
+  },
+  {
+    path: '/analysis/:runId',
+    element: <WorkflowMonitorPage />
   },
   {
     path: '/data',
@@ -24,6 +29,6 @@ export const router = createBrowserRouter([
     path: '/reports',
     element: <ReportsPlaceholderPage />
   }
-  // Reserved routes (/analysis/:runId, /reports/:reportId, /research) are intentionally
+  // Reserved routes (/reports/:reportId, /research) are intentionally
   // not registered until their product surfaces are designed and implemented.
 ]);

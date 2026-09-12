@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { analysisService } from '../../entities/analysis/api/analysisService';
@@ -33,6 +33,7 @@ export function CreateAnalysisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -105,6 +106,11 @@ export function CreateAnalysisPage() {
         receipt.message ||
           'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
       );
+
+      const hasPeer = parseResult.scope.analysisPlan.selectedCapabilities.some((c) => c.id === 'peer');
+      const targetScenario = hasPeer ? 'COMPANY_PEER' : 'COMPANY_ONLY';
+      const targetRunId = `run-${Date.now()}`;
+      navigate(`/analysis/${targetRunId}?scenario=${targetScenario}`);
     } finally {
       setIsSubmitting(false);
     }

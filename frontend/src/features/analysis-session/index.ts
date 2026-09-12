@@ -2,6 +2,7 @@ export * from './model/types';
 export * from './model/projector';
 
 export * from './mock/scenarioRegistry';
+export * from './mock/dynamicEventGenerator';
 export * from './mock/MockAnalysisSessionDriver';
 export * from './mock/companyOnlyEvents';
 export * from './mock/companyPeerEvents';

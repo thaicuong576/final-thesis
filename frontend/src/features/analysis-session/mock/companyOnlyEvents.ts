@@ -91,7 +91,7 @@ export const mockCompanyOnlyEvents: AnalysisSessionEvent[] = [
       invocationId: 'inv-company',
       activity: {
         id: 'act-c-3',
-        description: 'Đã tính toán biên sinh lời và phân rã các nhân tố ROE',
+        description: 'Đã tính toán và đối soát chuỗi giá trị ROE theo từng quý',
         type: 'DATA_RETRIEVAL'
       }
     }
@@ -106,11 +106,11 @@ export const mockCompanyOnlyEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định · 4 quan sát tài chính',
         findings: [
-          'TCB duy trì hiệu quả sinh lời vững chắc trong năm 2024 với ROE cải thiện qua từng quý.',
-          'Biên thu nhập lãi thuần và kiểm soát chi phí hoạt động đóng góp tích cực vào tỷ suất sinh lời.',
-          'Chất lượng tài sản và bộ đệm dự phòng rủi ro bảo đảm tỷ lệ an toàn vốn cao.'
+          'TCB duy trì tỷ suất sinh lời trên vốn chủ sở hữu (ROE) với chuỗi số liệu ổn định qua các quý năm 2024.',
+          'Biên độ dao động của ROE giữa các quý phản ánh đúng quan sát từ chuỗi số liệu gốc.',
+          'Toàn bộ 4 quan sát số liệu của ROE đã được đối soát nguồn gốc từ báo cáo tài chính kiểm toán.'
         ],
-        evidenceCount: 6,
+        evidenceCount: 4,
         version: 1
       }
     }
@@ -145,7 +145,16 @@ export const mockCompanyOnlyEvents: AnalysisSessionEvent[] = [
   {
     eventId: 'evt-c-13',
     sequence: 13,
-    occurredAtMs: 8200,
+    occurredAtMs: 8000,
+    type: 'SYNTHESIS_COMPLETED',
+    payload: {
+      message: 'Đã hoàn thành cấu trúc hóa báo cáo và liên kết nguồn dữ liệu đối soát.'
+    }
+  },
+  {
+    eventId: 'evt-c-14',
+    sequence: 14,
+    occurredAtMs: 8600,
     type: 'REPORT_READY',
     payload: {
       message: 'Đã hoàn tất kiểm tra và tổng hợp kết quả phân tích. Báo cáo đã sẵn sàng.'

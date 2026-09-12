@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +10,8 @@ import {
   mockCompanyOnlyEvents,
   mockCompanyPeerEvents,
   mockTargetedRevisionEvents,
-  mockMacroCompanyEvents
+  mockMacroCompanyEvents,
+  type AnalysisSessionEvent
 } from '../src/features/analysis-session';
 
 function renderPage(initialEntry = '/analysis') {
@@ -223,5 +224,140 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
     expect(screen.queryByText(/REVISION_REQUESTED/)).not.toBeInTheDocument();
     expect(screen.queryByText(/REPORT_READY/)).not.toBeInTheDocument();
     expect(screen.queryByText(/THINKING_PROCESS/)).not.toBeInTheDocument();
+  });
+
+  // J. BLOCKER 1: NORMAL CONFIRMED RUN AUTOPLAYS SEQUENTIALLY
+  it('Normal confirmed run starts in AUTOPLAY: initial session does not immediately show REPORT_READY and advances sequentially', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderPage('/analysis');
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'ROE của TCB thay đổi thế nào trong năm 2024?');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    const confirmBtn = await screen.findByRole('button', { name: /Xác nhận & phân tích/ });
+    await user.click(confirmBtn);
+
+    // Initial session must be active, but at step 1 it does NOT show REPORT_READY CTA
+    expect(await screen.findByText('Phiên phân tích đa tác tử')).toBeInTheDocument();
+    expect(screen.queryByText('Báo cáo phân tích đã sẵn sàng')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
+
+    // Advance timers across all emitted events
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15000);
+    });
+
+    // Now REPORT_READY has arrived sequentially
+    expect(await screen.findByText('Báo cáo phân tích đã sẵn sàng')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Xem báo cáo phân tích/ })).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  // K. BLOCKER 2: NO VISIBLE SCENARIO SWITCHER IN NORMAL ANALYST UI
+  it('Normal session UI never exposes demo scenario switcher controls to analysts', () => {
+    const viewModel = projectAnalysisSession(mockCompanyOnlyEvents);
+    render(<AnalysisSessionWorkspace viewModel={viewModel} />);
+
+    expect(screen.queryByText('Kịch bản minh chứng:')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Doanh nghiệp (TCB)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Doanh nghiệp + Peer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hiệu chỉnh có chủ đích' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Vĩ mô + Doanh nghiệp' })).not.toBeInTheDocument();
+  });
+
+  // L. BLOCKER 3: NO SILENT SCOPE SUBSTITUTION (ACB / NPL PRESERVATION)
+  it('No silent scope substitution: arbitrary ParseResult preserves actual question, entity, and metric, omitting TCB/ROE', async () => {
+    const user = userEvent.setup();
+    renderPage('/analysis');
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'Tỷ lệ nợ xấu của ACB thay đổi thế nào trong năm 2024?');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    const confirmBtn = await screen.findByRole('button', { name: /Xác nhận & phân tích/ });
+    await user.click(confirmBtn);
+
+    // Session displays ACB and NPL, preserving exact user question and scope
+    expect(await screen.findByText(/Tỷ lệ nợ xấu của ACB thay đổi thế nào trong năm 2024\?/)).toBeInTheDocument();
+    expect(screen.getByText(/ACB · Q1–Q4\/2024 · NPL/)).toBeInTheDocument();
+
+    // TCB and ROE must NOT be present as substituted scope
+    expect(screen.queryByText(/TCB · Q1–Q4\/2024 · ROE/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ROE của TCB thay đổi thế nào/)).not.toBeInTheDocument();
+  });
+
+  // M. BLOCKER 4: REMOVE FABRICATED FINANCIAL CLAIMS FROM MOCK ARTIFACTS
+  it('Evidence discipline: mock artifacts contain no fabricated financial claims (NIM, operating cost, capital adequacy, 1.2x median)', () => {
+    const fixtures = [
+      ...mockCompanyOnlyEvents,
+      ...mockCompanyPeerEvents,
+      ...mockTargetedRevisionEvents,
+      ...mockMacroCompanyEvents
+    ];
+
+    const prohibitedPatterns = [
+      /\bNIM\b/i,
+      /1\.2x/i,
+      /chi phí hoạt động/i,
+      /an toàn vốn/i
+    ];
+
+    fixtures.forEach((event) => {
+      const serialized = JSON.stringify(event);
+      prohibitedPatterns.forEach((pattern) => {
+        expect(serialized).not.toMatch(pattern);
+      });
+    });
+  });
+
+  // N. BLOCKER 5: EXTENSIBLE SPECIALIST DECOUPLING WITH FALLBACK ICON
+  it('Extensible specialist decoupling: non-standard specialistId renders with fallback icon', () => {
+    const customEvents: AnalysisSessionEvent[] = [
+      {
+        eventId: 'evt-custom-01',
+        sequence: 1,
+        occurredAtMs: 0,
+        type: 'USER_REQUEST_CONFIRMED',
+        payload: {
+          rawQuestion: 'Đánh giá rủi ro tín dụng của TCB',
+          datasetName: 'Ngân hàng Việt Nam 2024',
+          scopeSignature: 'TCB · 2024 · Risk'
+        }
+      },
+      {
+        eventId: 'evt-custom-02',
+        sequence: 2,
+        occurredAtMs: 500,
+        type: 'SPECIALIST_INVOKED',
+        payload: {
+          invocationId: 'inv-risk',
+          specialistId: 'risk_management', // Non-standard specialistId
+          label: 'Quản trị rủi ro',
+          assignment: 'Đánh giá khẩu vị rủi ro và các chỉ số an toàn tín dụng'
+        }
+      }
+    ];
+
+    const viewModel = projectAnalysisSession(customEvents);
+    render(<AnalysisSessionWorkspace viewModel={viewModel} />);
+
+    const customCard = screen.getByRole('button', {
+      name: /Xem chi tiết phiên Quản trị rủi ro/
+    });
+    expect(customCard).toBeInTheDocument();
+    expect(within(customCard).getByText('Quản trị rủi ro')).toBeInTheDocument();
+  });
+
+  // O. BLOCKER 5: SYNTHESIS LIFECYCLE COMPLETENESS
+  it('Synthesis lifecycle: includes SYNTHESIS_STARTED, SYNTHESIS_COMPLETED, and REPORT_READY', () => {
+    const types = mockCompanyOnlyEvents.map((e) => e.type);
+    expect(types).toContain('SYNTHESIS_STARTED');
+    expect(types).toContain('SYNTHESIS_COMPLETED');
+    expect(types).toContain('REPORT_READY');
+    expect(types.indexOf('SYNTHESIS_STARTED')).toBeLessThan(types.indexOf('SYNTHESIS_COMPLETED'));
+    expect(types.indexOf('SYNTHESIS_COMPLETED')).toBeLessThan(types.indexOf('REPORT_READY'));
   });
 });

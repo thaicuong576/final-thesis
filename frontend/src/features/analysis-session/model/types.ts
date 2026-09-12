@@ -1,4 +1,4 @@
-export type SpecialistId = 'company' | 'peer' | 'macro';
+export type SpecialistId = string;
 
 export type SpecialistStatus =
   | 'PREPARING' // "Đang bắt đầu"
@@ -114,29 +114,104 @@ export interface AnalysisSessionViewModel {
   reportReady: boolean;
 }
 
-// Event Contract
-export type AnalysisSessionEventType =
-  | 'USER_REQUEST_CONFIRMED'
-  | 'PLANNING_STARTED'
-  | 'PLAN_CREATED'
-  | 'SPECIALIST_INVOKED'
-  | 'SPECIALIST_STARTED'
-  | 'SPECIALIST_ACTIVITY'
-  | 'SPECIALIST_OUTPUT_CREATED'
-  | 'SPECIALIST_COMPLETED'
-  | 'REVIEW_STARTED'
-  | 'REVIEW_FEEDBACK_CREATED'
-  | 'REVISION_REQUESTED'
-  | 'REVISION_ACTIVITY'
-  | 'REVISION_COMPLETED'
-  | 'SYNTHESIS_STARTED'
-  | 'SYNTHESIS_COMPLETED'
-  | 'REPORT_READY';
-
-export interface AnalysisSessionEvent<TPayload = any> {
-  eventId: string;
-  sequence: number;
-  occurredAtMs: number;
-  type: AnalysisSessionEventType;
-  payload: TPayload;
+// Strongly typed payload interfaces
+export interface UserRequestConfirmedPayload {
+  rawQuestion: string;
+  datasetName: string;
+  scopeSignature: string;
 }
+
+export interface PlanningStartedPayload {
+  message?: string;
+}
+
+export interface PlanCreatedPayload {
+  requiredSpecialists: SpecialistId[];
+  planSummary: string;
+  message: string;
+}
+
+export interface SpecialistInvokedPayload {
+  invocationId: string;
+  specialistId: SpecialistId;
+  label: string;
+  assignment: string;
+}
+
+export interface SpecialistStartedPayload {
+  invocationId: string;
+}
+
+export interface SpecialistActivityPayload {
+  invocationId: string;
+  activity: ObservableActivity;
+}
+
+export interface SpecialistOutputCreatedPayload {
+  invocationId: string;
+  artifact: SpecialistArtifactSummary;
+}
+
+export interface SpecialistCompletedPayload {
+  invocationId: string;
+}
+
+export interface ReviewStartedPayload {
+  message?: string;
+}
+
+export interface ReviewFeedbackCreatedPayload {
+  invocationId: string;
+  review: ReviewFeedback;
+}
+
+export interface RevisionRequestedPayload {
+  invocationId: string;
+  round: number;
+  maxRounds: number;
+  reason: string;
+  orchestratorMessage: string;
+}
+
+export interface RevisionActivityPayload {
+  invocationId: string;
+  activity: ObservableActivity;
+}
+
+export interface RevisionCompletedPayload {
+  invocationId: string;
+  artifact?: SpecialistArtifactSummary;
+}
+
+export interface SynthesisStartedPayload {
+  message?: string;
+}
+
+export interface SynthesisCompletedPayload {
+  message?: string;
+}
+
+export interface ReportReadyPayload {
+  message?: string;
+}
+
+// Event Contract: Strongly typed discriminated union
+export type AnalysisSessionEvent =
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'USER_REQUEST_CONFIRMED'; payload: UserRequestConfirmedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'PLANNING_STARTED'; payload: PlanningStartedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'PLAN_CREATED'; payload: PlanCreatedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SPECIALIST_INVOKED'; payload: SpecialistInvokedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SPECIALIST_STARTED'; payload: SpecialistStartedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SPECIALIST_ACTIVITY'; payload: SpecialistActivityPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SPECIALIST_OUTPUT_CREATED'; payload: SpecialistOutputCreatedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SPECIALIST_COMPLETED'; payload: SpecialistCompletedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVIEW_STARTED'; payload: ReviewStartedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVIEW_FEEDBACK_CREATED'; payload: ReviewFeedbackCreatedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVISION_REQUESTED'; payload: RevisionRequestedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVISION_ACTIVITY'; payload: RevisionActivityPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVISION_COMPLETED'; payload: RevisionCompletedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_STARTED'; payload: SynthesisStartedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_COMPLETED'; payload: SynthesisCompletedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REPORT_READY'; payload: ReportReadyPayload };
+
+export type AnalysisSessionEventType = AnalysisSessionEvent['type'];

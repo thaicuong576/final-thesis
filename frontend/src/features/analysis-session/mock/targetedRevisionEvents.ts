@@ -113,11 +113,11 @@ export const mockTargetedRevisionEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định · 4 quan sát tài chính',
         findings: [
-          'TCB duy trì tỷ suất sinh lời vượt trội với ROE bình quân đạt mức cao trong nhóm ngân hàng thương mại.',
-          'Biên thu nhập và chi phí hoạt động duy trì ở mức tối ưu.',
-          'Chất lượng tài sản và bộ đệm dự phòng rủi ro tuân thủ quy chuẩn.'
+          'TCB duy trì tỷ suất sinh lời ROA và ROE có đầy đủ quan sát trong 4 quý năm 2024.',
+          'Dữ liệu chỉ tiêu phản ánh nhất quán với báo cáo tài chính đã công bố.',
+          'Các giá trị số liệu được đối soát nguồn gốc từ chuỗi dữ liệu chuẩn hóa.'
         ],
-        evidenceCount: 6,
+        evidenceCount: 4,
         version: 1
       }
     }
@@ -141,9 +141,9 @@ export const mockTargetedRevisionEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định đối sánh v1 · 5 dẫn chứng',
         findings: [
-          'TCB xếp vị trí nhóm đầu về chỉ số sinh lời so với trung vị ngành.',
-          'Biên sinh lời tài sản cao hơn mức trung vị của nhóm so sánh (dữ liệu tạm thời Q3).',
-          'Bộ đệm dự phòng bao nợ xấu nằm trong nhóm kiểm soát rủi ro an toàn.'
+          'TCB nằm trong nhóm ngân hàng có tỷ suất sinh lời cao hơn trung vị nhóm tham chiếu.',
+          'Chỉ số ROA và ROE của TCB duy trì vị thế trên phân vị 50 (sử dụng dữ liệu tạm thời Q3).',
+          'Dữ liệu đối sánh bước đầu phản ánh phân bố tương quan giữa các ngân hàng cùng nhóm.'
         ],
         evidenceCount: 5,
         version: 1
@@ -235,9 +235,9 @@ export const mockTargetedRevisionEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định đối sánh chuẩn hóa · 6 dẫn chứng',
         findings: [
-          'TCB xếp vị trí nhóm đầu về chỉ số sinh lời so với trung vị ngành cả 4 quý.',
-          'Biên sinh lời tài sản cao hơn 1.2x mức trung vị nhóm tham chiếu trong Q4/2024.',
-          'Quy mô bộ đệm nợ xấu nằm trong nửa trên của các ngân hàng đối sánh.'
+          'TCB nằm trong nhóm ngân hàng có tỷ suất sinh lời cao hơn trung vị nhóm tham chiếu cả 4 quý.',
+          'Chỉ số ROA và ROE của TCB duy trì vị thế trên phân vị 50 sau khi đồng bộ dữ liệu Q4/2024.',
+          'Toàn bộ 6 dẫn chứng đối sánh đã được chuẩn hóa đồng nhất kỳ báo cáo.'
         ],
         evidenceCount: 6,
         version: 2
@@ -257,7 +257,17 @@ export const mockTargetedRevisionEvents: AnalysisSessionEvent[] = [
   {
     eventId: 'evt-tr-21',
     sequence: 21,
-    occurredAtMs: 10000,
+    occurredAtMs: 9800,
+    type: 'SYNTHESIS_COMPLETED',
+    payload: {
+      message:
+        'Đã hoàn thành cấu trúc hóa báo cáo và liên kết nguồn dữ liệu sau hiệu chỉnh.'
+    }
+  },
+  {
+    eventId: 'evt-tr-22',
+    sequence: 22,
+    occurredAtMs: 10400,
     type: 'REPORT_READY',
     payload: {
       message:

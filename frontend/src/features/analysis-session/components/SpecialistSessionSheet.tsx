@@ -6,7 +6,7 @@ import {
   SheetDescription
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Users, Globe, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Building2, Users, Globe, Briefcase, CheckCircle2, RefreshCw } from 'lucide-react';
 import type { SpecialistSessionState, SpecialistStatus } from '../model/types';
 import { ObservableActivityTimeline } from './ObservableActivityTimeline';
 import { SpecialistArtifactSummaryBlock } from './SpecialistArtifactSummaryBlock';
@@ -40,6 +40,8 @@ export function SpecialistSessionSheet({
         return <Users className="w-4 h-4 text-ink" aria-hidden="true" />;
       case 'macro':
         return <Globe className="w-4 h-4 text-ink" aria-hidden="true" />;
+      default:
+        return <Briefcase className="w-4 h-4 text-ink" aria-hidden="true" />;
     }
   };
 

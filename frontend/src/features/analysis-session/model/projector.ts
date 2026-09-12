@@ -246,6 +246,16 @@ export function projectAnalysisSession(
 
       case 'SYNTHESIS_COMPLETED': {
         currentPhase = 'SYNTHESIZING';
+        if (event.payload.message) {
+          threadItems.push({
+            id: event.eventId,
+            type: 'ORCHESTRATOR_MESSAGE',
+            senderLabel: 'Điều phối',
+            message: event.payload.message,
+            phase: 'SYNTHESIZING',
+            occurredAtMs: event.occurredAtMs
+          });
+        }
         break;
       }
 

@@ -84,7 +84,7 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
       invocationId: 'inv-company',
       activity: {
         id: 'act-mc-c1',
-        description: 'Đã truy xuất dữ liệu chi phí vốn và biên lãi thuần của TCB',
+        description: 'Đã truy xuất chuỗi số liệu NPL, Coverage, ROA, ROE của TCB',
         type: 'DATA_RETRIEVAL'
       }
     }
@@ -127,9 +127,9 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định · 4 quan sát tài chính',
         findings: [
-          'Biên lãi thuần NIM của TCB duy trì ổn định nhờ tối ưu hóa chi phí vốn trong môi trường lãi suất thấp.',
-          'Thu nhập từ dịch vụ và kinh doanh ngoại hối tiếp tục hỗ trợ tổng thu nhập hoạt động.',
-          'Tỷ lệ bao nợ xấu duy trì ở ngưỡng an toàn trên 100%.'
+          'Tỷ lệ nợ xấu NPL và tỷ lệ bao phủ nợ xấu Coverage của TCB phản ánh chuỗi quan sát đầy đủ trong năm 2024.',
+          'Các chỉ tiêu sinh lời ROA và ROE được ghi nhận đồng bộ cùng chu kỳ công bố số liệu chất lượng tài sản.',
+          'Dữ liệu tài chính của TCB đã được xác thực tính nhất quán trước khi tích hợp bối cảnh vĩ mô.'
         ],
         evidenceCount: 6,
         version: 1
@@ -193,7 +193,16 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
   {
     eventId: 'evt-mc-17',
     sequence: 17,
-    occurredAtMs: 8100,
+    occurredAtMs: 7900,
+    type: 'SYNTHESIS_COMPLETED',
+    payload: {
+      message: 'Đã hoàn thành cấu trúc hóa báo cáo tích hợp vĩ mô và doanh nghiệp.'
+    }
+  },
+  {
+    eventId: 'evt-mc-18',
+    sequence: 18,
+    occurredAtMs: 8500,
     type: 'REPORT_READY',
     payload: {
       message: 'Đã hoàn tất kiểm tra và tổng hợp kết quả phân tích. Báo cáo đã sẵn sàng.'

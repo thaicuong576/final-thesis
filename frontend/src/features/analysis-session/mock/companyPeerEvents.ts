@@ -141,11 +141,11 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định · 4 quan sát tài chính',
         findings: [
-          'TCB duy trì tỷ suất sinh lời vượt trội với ROE bình quân đạt mức cao trong nhóm ngân hàng thương mại.',
-          'Biên thu nhập và chi phí hoạt động duy trì ở mức tối ưu.',
-          'Chất lượng tài sản và bộ đệm dự phòng rủi ro tuân thủ quy chuẩn.'
+          'TCB duy trì tỷ suất sinh lời ROA và ROE có đầy đủ quan sát trong 4 quý năm 2024.',
+          'Dữ liệu chỉ tiêu phản ánh nhất quán với báo cáo tài chính đã công bố.',
+          'Các giá trị số liệu được đối soát nguồn gốc từ chuỗi dữ liệu chuẩn hóa.'
         ],
-        evidenceCount: 6,
+        evidenceCount: 4,
         version: 1
       }
     }
@@ -160,9 +160,9 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '3 nhận định đối sánh · 6 dẫn chứng',
         findings: [
-          'TCB xếp vị trí nhóm đầu về chỉ số sinh lời so với trung vị ngành.',
-          'Biên sinh lời tài sản cao hơn 1.2x mức trung vị nhóm tham chiếu.',
-          'Quy mô bộ đệm nợ xấu nằm trong nửa trên của các ngân hàng đối sánh.'
+          'TCB nằm trong nhóm ngân hàng có chỉ số sinh lời ROA và ROE cao hơn trung vị nhóm tham chiếu.',
+          'Vị thế tương đối của ROA và ROE duy trì trên phân vị 50 của 5 ngân hàng cùng nhóm.',
+          'Dữ liệu đối sánh được chuẩn hóa cùng chu kỳ kế toán với nhóm tham chiếu.'
         ],
         evidenceCount: 6,
         version: 1
@@ -208,7 +208,16 @@ export const mockCompanyPeerEvents: AnalysisSessionEvent[] = [
   {
     eventId: 'evt-cp-18',
     sequence: 18,
-    occurredAtMs: 8200,
+    occurredAtMs: 8000,
+    type: 'SYNTHESIS_COMPLETED',
+    payload: {
+      message: 'Đã hoàn thành cấu trúc hóa báo cáo đối sánh và liên kết nguồn dữ liệu.'
+    }
+  },
+  {
+    eventId: 'evt-cp-19',
+    sequence: 19,
+    occurredAtMs: 8600,
     type: 'REPORT_READY',
     payload: {
       message: 'Đã hoàn tất kiểm tra và tổng hợp kết quả phân tích. Báo cáo đã sẵn sàng.'

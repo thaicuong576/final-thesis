@@ -5,6 +5,9 @@ import { mockTargetedRevisionEvents } from './targetedRevisionEvents';
 import { mockMacroCompanyEvents } from './macroCompanyEvents';
 import type { ParseResult } from '../../analysis-composer/model/types';
 
+import { buildMockEventsFromParseResult } from './dynamicEventGenerator';
+export { buildMockEventsFromParseResult } from './dynamicEventGenerator';
+
 export type CanonicalScenarioKey =
   | 'company-only'
   | 'company-peer'
@@ -39,26 +42,15 @@ export function getScenarioEvents(key?: string | null): AnalysisSessionEvent[] {
 }
 
 /**
- * Maps an interpreted ParseResult from Screen 1 to the most appropriate
- * deterministic scenario event fixture.
+ * Maps an interpreted ParseResult from Screen 1 to an event-sourced mock stream.
+ * Dynamically builds events matching the confirmed question and scope to prevent silent scope substitution.
  */
 export function getEventsForParseResult(
   parseResult: ParseResult,
   options: { withTargetedRevision?: boolean } = {}
 ): AnalysisSessionEvent[] {
-  const selectedCapIds = parseResult.scope.analysisPlan.selectedCapabilities.map((c) => c.id);
-
-  const hasPeer = selectedCapIds.includes('peer');
-  const hasMacro = selectedCapIds.includes('macro');
-
-  if (options.withTargetedRevision && hasPeer) {
+  if (options.withTargetedRevision) {
     return mockTargetedRevisionEvents;
   }
-  if (hasMacro) {
-    return mockMacroCompanyEvents;
-  }
-  if (hasPeer) {
-    return mockCompanyPeerEvents;
-  }
-  return mockCompanyOnlyEvents;
+  return buildMockEventsFromParseResult(parseResult);
 }

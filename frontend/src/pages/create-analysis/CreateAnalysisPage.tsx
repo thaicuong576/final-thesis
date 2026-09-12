@@ -153,10 +153,10 @@ export function CreateAnalysisPage() {
           'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
       );
 
-      // Start Analysis Session event stream
+      // Start Analysis Session event stream with autoplay for normal confirmed runs
       const events = getEventsForParseResult(parseResult);
       setActiveEvents(events);
-      setDriverMode('FROZEN');
+      setDriverMode('AUTOPLAY');
       setDriverStep(undefined);
       setMode('SESSION');
     } finally {

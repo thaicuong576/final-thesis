@@ -1,4 +1,4 @@
-import { Building2, Users, Globe, RefreshCw, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
+import { Building2, Users, Globe, Briefcase, RefreshCw, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { SpecialistSessionState, SpecialistStatus } from '../model/types';
 
@@ -19,6 +19,8 @@ export function InlineSpecialistInvocationCard({
         return <Users className="w-4 h-4 text-ink" aria-hidden="true" />;
       case 'macro':
         return <Globe className="w-4 h-4 text-ink" aria-hidden="true" />;
+      default:
+        return <Briefcase className="w-4 h-4 text-ink" aria-hidden="true" />;
     }
   };
 

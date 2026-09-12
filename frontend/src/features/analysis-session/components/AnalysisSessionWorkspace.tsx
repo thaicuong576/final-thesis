@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import type {
   AnalysisSessionEvent,
   AnalysisSessionViewModel,
@@ -31,8 +30,8 @@ export function AnalysisSessionWorkspace({
   driverMode = 'FROZEN',
   driverStep,
   onBackToComposer,
-  onSelectScenario,
-  activeScenarioKey
+  onSelectScenario: _onSelectScenario,
+  activeScenarioKey: _activeScenarioKey
 }: AnalysisSessionWorkspaceProps) {
   // If events are passed, drive state with useAnalysisSessionDriver; otherwise use provided viewModel/session
   const hasEvents = events.length > 0;
@@ -71,70 +70,6 @@ export function AnalysisSessionWorkspace({
 
   return (
     <div className="space-y-6">
-      {/* Demo Scenario Switcher for Acceptance Verification */}
-      {onSelectScenario && (
-        <div className="bg-[#f8fafc] border border-line rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink">Kịch bản minh chứng:</span>
-            <span className="text-muted">Kiểm tra dòng sự kiện tác tử</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Button
-              type="button"
-              variant={
-                activeScenarioKey === 'company-only' || activeScenarioKey === 'SCENARIO_A'
-                  ? 'default'
-                  : 'outline'
-              }
-              size="sm"
-              onClick={() => onSelectScenario('company-only')}
-              className="h-7 text-xs px-2.5"
-            >
-              Doanh nghiệp (TCB)
-            </Button>
-            <Button
-              type="button"
-              variant={
-                activeScenarioKey === 'company-peer' || activeScenarioKey === 'SCENARIO_B'
-                  ? 'default'
-                  : 'outline'
-              }
-              size="sm"
-              onClick={() => onSelectScenario('company-peer')}
-              className="h-7 text-xs px-2.5"
-            >
-              Doanh nghiệp + Peer
-            </Button>
-            <Button
-              type="button"
-              variant={
-                activeScenarioKey === 'targeted-revision' || activeScenarioKey === 'SCENARIO_C'
-                  ? 'default'
-                  : 'outline'
-              }
-              size="sm"
-              onClick={() => onSelectScenario('targeted-revision')}
-              className="h-7 text-xs px-2.5"
-            >
-              Hiệu chỉnh có chủ đích
-            </Button>
-            <Button
-              type="button"
-              variant={
-                activeScenarioKey === 'macro-company' || activeScenarioKey === 'SCENARIO_D'
-                  ? 'default'
-                  : 'outline'
-              }
-              size="sm"
-              onClick={() => onSelectScenario('macro-company')}
-              className="h-7 text-xs px-2.5"
-            >
-              Vĩ mô + Doanh nghiệp
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Layer A: Compact Session Context Bar */}
       <SessionContextBar

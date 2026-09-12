@@ -18,6 +18,8 @@ from .acceptance_resolver import Stage1DatasetResolver
 from .analysis_plan import AnalysisPlan
 from .schema import (
     AtomicClaim,
+    CritiqueIssue,
+    CritiqueIssueStatus,
     HardGateResult,
     QualityDimensionScores,
     Stage1ValidationReport,
@@ -51,13 +53,24 @@ class SemanticRoundContext(BaseModel):
     case_id: str | None = Field(default=None, min_length=1)
     round_number: int = Field(ge=0)
     prior_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
+    prior_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
-    def validate_issue_ids(self) -> "SemanticRoundContext":
+    def validate_issue_context(self) -> "SemanticRoundContext":
         if len(self.prior_issue_ids) != len(set(self.prior_issue_ids)):
             raise ValueError("prior_issue_ids must be unique")
         if any(not issue_id.strip() for issue_id in self.prior_issue_ids):
             raise ValueError("prior_issue_ids must contain non-empty strings")
+        issue_ids = tuple(issue.issue_id for issue in self.prior_issues)
+        if len(issue_ids) != len(set(issue_ids)):
+            raise ValueError("prior_issues IDs must be unique")
+        if any(
+            issue.resolution_status is not CritiqueIssueStatus.OPEN
+            for issue in self.prior_issues
+        ):
+            raise ValueError("prior_issues must contain only OPEN issues")
+        if self.prior_issues and self.prior_issue_ids != issue_ids:
+            raise ValueError("prior_issue_ids must match prior_issues IDs")
         return self
 
 

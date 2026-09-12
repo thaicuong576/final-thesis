@@ -23,6 +23,7 @@ from .schema import (
     AcceptanceDecision,
     AcceptanceRound,
     AtomicClaim,
+    CritiqueIssue,
     CritiqueIssueStatus,
 )
 from .semantic_evaluation import StructuredCriticResult
@@ -41,6 +42,7 @@ class LangGraphRevisionState(TypedDict, total=False):
     rounds: tuple[AcceptanceRound, ...]
     issue_status_ledger: dict[str, CritiqueIssueStatus]
     previous_open_issue_ids: tuple[str, ...]
+    previous_open_issues: tuple[CritiqueIssue, ...]
     revised_agents_for_round: tuple[str, ...]
     worker_payload_versions_for_round: dict[str, str]
     orchestrator_payload_version_for_round: str | None

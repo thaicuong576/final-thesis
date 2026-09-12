@@ -267,6 +267,7 @@ class RevisionWorkflowState(BaseModel):
     rounds: tuple[AcceptanceRound, ...] = Field(default_factory=tuple)
     issue_status_ledger: dict[str, CritiqueIssueStatus] = Field(default_factory=dict)
     previous_open_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
+    previous_open_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
     revised_agents_for_round: tuple[str, ...] = Field(default_factory=tuple)
     worker_payload_versions_for_round: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version_for_round: str | None = None
@@ -274,6 +275,24 @@ class RevisionWorkflowState(BaseModel):
     current_critic_result: StructuredCriticResult | None = None
     terminal_reason: str | None = None
     final_result: BoundedRevisionResult | None = None
+
+    @model_validator(mode="after")
+    def validate_previous_open_issue_context(self) -> "RevisionWorkflowState":
+        if len(self.previous_open_issue_ids) != len(set(self.previous_open_issue_ids)):
+            raise ValueError("previous_open_issue_ids must be unique")
+        if any(not issue_id.strip() for issue_id in self.previous_open_issue_ids):
+            raise ValueError("previous_open_issue_ids must contain non-empty strings")
+        issue_ids = tuple(issue.issue_id for issue in self.previous_open_issues)
+        if len(issue_ids) != len(set(issue_ids)):
+            raise ValueError("previous_open_issues IDs must be unique")
+        if any(
+            issue.resolution_status is not CritiqueIssueStatus.OPEN
+            for issue in self.previous_open_issues
+        ):
+            raise ValueError("previous_open_issues must contain only OPEN issues")
+        if self.previous_open_issues and self.previous_open_issue_ids != issue_ids:
+            raise ValueError("previous_open_issue_ids must match previous_open_issues IDs")
+        return self
 
 
 class RevisionWorkflowKernel:
@@ -356,7 +375,15 @@ class RevisionWorkflowKernel:
 
         context = SemanticRoundContext(
             round_number=state.current_round_number,
-            prior_issue_ids=tuple(sorted(state.previous_open_issue_ids)),
+            prior_issue_ids=(
+                tuple(issue.issue_id for issue in state.previous_open_issues)
+                if state.previous_open_issues
+                else tuple(sorted(state.previous_open_issue_ids))
+            ),
+            prior_issues=tuple(
+                issue.model_copy(deep=True)
+                for issue in state.previous_open_issues
+            ),
         )
         try:
             artifact = evaluate_semantic_round(
@@ -456,13 +483,13 @@ class RevisionWorkflowKernel:
             claim.model_copy(deep=True) for claim in revision.revised_claims
         )
         next_hash = candidate_hash(state.plan, revised_claims)
-        previous_open_issue_ids = tuple(
+        previous_open_issues = tuple(
             sorted(
-                issue.issue_id
-                for issue in state.current_critic_result.critique_issues
-                if issue.resolution_status is CritiqueIssueStatus.OPEN
+                _open_issues(state.current_critic_result),
+                key=lambda issue: issue.issue_id,
             )
         )
+        previous_open_issue_ids = tuple(issue.issue_id for issue in previous_open_issues)
         return state.model_copy(
             update={
                 "current_claims": revised_claims,
@@ -470,6 +497,9 @@ class RevisionWorkflowKernel:
                 "current_payload_version": revision.payload_version,
                 "current_round_number": state.current_round_number + 1,
                 "previous_open_issue_ids": previous_open_issue_ids,
+                "previous_open_issues": tuple(
+                    issue.model_copy(deep=True) for issue in previous_open_issues
+                ),
                 "revised_agents_for_round": tuple(revision.revised_agents),
                 "worker_payload_versions_for_round": dict(
                     revision.worker_payload_versions

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, Globe, CheckCircle2, RefreshCw } from 'lucide-react';
-import type { SpecialistInvocation, SpecialistStatus } from '../model/types';
+import type { SpecialistSessionState, SpecialistStatus } from '../model/types';
 import { ObservableActivityTimeline } from './ObservableActivityTimeline';
 import { SpecialistArtifactSummaryBlock } from './SpecialistArtifactSummaryBlock';
 import { ReviewFeedbackBlock } from './ReviewFeedbackBlock';
@@ -16,20 +16,24 @@ import { RevisionRoundBlock } from './RevisionRoundBlock';
 interface SpecialistSessionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  invocation: SpecialistInvocation | null;
+  session?: SpecialistSessionState | null;
+  invocation?: SpecialistSessionState | null; // Compatibility alias
 }
 
 export function SpecialistSessionSheet({
   open,
   onOpenChange,
-  invocation
+  session,
+  invocation: legacyInvocation
 }: SpecialistSessionSheetProps) {
-  if (!invocation) {
+  const currentSession = session || legacyInvocation;
+
+  if (!currentSession) {
     return null;
   }
 
   const getSpecialistIcon = () => {
-    switch (invocation.specialistId) {
+    switch (currentSession.specialistId) {
       case 'company':
         return <Building2 className="w-4 h-4 text-ink" aria-hidden="true" />;
       case 'peer':
@@ -42,6 +46,15 @@ export function SpecialistSessionSheet({
   const getStatusBadge = (status: SpecialistStatus, label: string) => {
     switch (status) {
       case 'COMPLETED':
+        return (
+          <Badge
+            variant="outline"
+            className="bg-[#edf7f3] text-[#2f6f5e] border-[#bce2d3] gap-1 px-2 py-0.5 text-xs font-semibold"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#2f6f5e]" aria-hidden="true" />
+            {label}
+          </Badge>
+        );
       case 'OUTPUT_CREATED':
         return (
           <Badge
@@ -82,6 +95,12 @@ export function SpecialistSessionSheet({
     }
   };
 
+  const hasMultipleArtifacts = currentSession.artifactHistory.length > 1;
+  const initialArtifact = currentSession.artifactHistory[0] || currentSession.artifact;
+  const revisedArtifact = hasMultipleArtifacts
+    ? currentSession.artifactHistory[currentSession.artifactHistory.length - 1]
+    : null;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-6 space-y-6">
@@ -92,10 +111,10 @@ export function SpecialistSessionSheet({
                 {getSpecialistIcon()}
               </div>
               <SheetTitle className="text-base font-semibold text-ink">
-                {invocation.label}
+                {currentSession.label}
               </SheetTitle>
             </div>
-            {getStatusBadge(invocation.status, invocation.statusLabel)}
+            {getStatusBadge(currentSession.status, currentSession.statusLabel)}
           </div>
 
           <SheetDescription className="text-xs text-muted leading-relaxed">
@@ -109,28 +128,45 @@ export function SpecialistSessionSheet({
             Nhiệm vụ được phân công
           </span>
           <p className="text-xs text-ink font-medium leading-relaxed">
-            {invocation.assignment}
+            {currentSession.assignment}
           </p>
         </div>
 
-        {/* Section 2: Review Feedback from Orchestrator (if present) */}
-        {invocation.review && (
-          <ReviewFeedbackBlock review={invocation.review} />
+        {/* Section 2: Initial Artifact (v1) if available */}
+        {initialArtifact && (
+          <div className="space-y-2">
+            {hasMultipleArtifacts && (
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                Kết quả ban đầu (v1)
+              </span>
+            )}
+            <SpecialistArtifactSummaryBlock artifact={initialArtifact} />
+          </div>
         )}
 
-        {/* Section 3: Targeted Revision Progress (if present) */}
-        {invocation.revision && (
-          <RevisionRoundBlock revision={invocation.revision} />
+        {/* Section 3: Review Feedback from Orchestrator (if present) */}
+        {currentSession.review && (
+          <ReviewFeedbackBlock review={currentSession.review} />
         )}
 
-        {/* Section 4: Specialist Artifact Summary (if generated) */}
-        {invocation.artifact && (
-          <SpecialistArtifactSummaryBlock artifact={invocation.artifact} />
+        {/* Section 4: Targeted Revision Progress (if present) */}
+        {currentSession.revision && (
+          <RevisionRoundBlock revision={currentSession.revision} />
         )}
 
-        {/* Section 5: Observable Activities Timeline */}
-        {invocation.activities.length > 0 && (
-          <ObservableActivityTimeline activities={invocation.activities} />
+        {/* Section 5: Revised Artifact (v2) if present */}
+        {revisedArtifact && (
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#2f6f5e]">
+              Kết quả sau hiệu chỉnh (v2)
+            </span>
+            <SpecialistArtifactSummaryBlock artifact={revisedArtifact} />
+          </div>
+        )}
+
+        {/* Section 6: Observable Activities Timeline */}
+        {currentSession.activities.length > 0 && (
+          <ObservableActivityTimeline activities={currentSession.activities} />
         )}
       </SheetContent>
     </Sheet>

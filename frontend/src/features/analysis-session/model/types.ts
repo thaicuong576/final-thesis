@@ -1,7 +1,7 @@
 export type SpecialistId = 'company' | 'peer' | 'macro';
 
 export type SpecialistStatus =
-  | 'PREPARING' // "Đang chuẩn bị"
+  | 'PREPARING' // "Đang bắt đầu"
   | 'ANALYZING' // "Đang phân tích"
   | 'OUTPUT_CREATED' // "Đã tạo kết quả"
   | 'REVIEWING' // "Đang kiểm tra"
@@ -36,8 +36,8 @@ export interface RevisionRound {
   completedAt?: string;
 }
 
-export interface SpecialistInvocation {
-  id: string;
+export interface SpecialistSessionState {
+  invocationId: string;
   specialistId: SpecialistId;
   label: string;
   assignment: string;
@@ -46,12 +46,14 @@ export interface SpecialistInvocation {
   observationSummary: string;
   activities: ObservableActivity[];
   artifact?: SpecialistArtifactSummary;
+  artifactHistory: SpecialistArtifactSummary[];
   review?: ReviewFeedback;
   revision?: RevisionRound;
 }
 
 export type OrchestratorPhase =
   | 'INITIALIZING'
+  | 'PLANNING'
   | 'DISPATCHING'
   | 'EXECUTING'
   | 'REVIEWING'
@@ -59,23 +61,82 @@ export type OrchestratorPhase =
   | 'SYNTHESIZING'
   | 'READY_FOR_REPORT';
 
-export interface OrchestratorEntry {
+export interface OrchestratorMessageEntry {
   id: string;
   role: 'orchestrator';
   senderLabel: string;
   message: string;
-  timestamp?: string;
   phase: OrchestratorPhase;
 }
 
-export interface AnalysisSession {
+// Chronological thread items
+export type ThreadItem =
+  | {
+      id: string;
+      type: 'USER_MESSAGE';
+      question: string;
+      occurredAtMs: number;
+    }
+  | {
+      id: string;
+      type: 'ORCHESTRATOR_MESSAGE';
+      senderLabel: string;
+      message: string;
+      phase: OrchestratorPhase;
+      occurredAtMs: number;
+    }
+  | {
+      id: string;
+      type: 'SPECIALIST_INVOCATION';
+      invocationId: string;
+      specialistId: SpecialistId;
+      label: string;
+      assignment: string;
+      occurredAtMs: number;
+    }
+  | {
+      id: string;
+      type: 'REPORT_READY_ACTION';
+      message: string;
+      occurredAtMs: number;
+    };
+
+export interface AnalysisSessionViewModel {
   sessionId: string;
   rawQuestion: string;
   datasetName: string;
   scopeSignature: string;
   currentPhase: OrchestratorPhase;
   phaseLabel: string;
-  orchestratorEntries: OrchestratorEntry[];
-  invocations: SpecialistInvocation[]; // Strictly only invoked specialists
+  threadItems: ThreadItem[];
+  specialistSessions: Record<string, SpecialistSessionState>;
+  invocations: SpecialistSessionState[]; // Preserves ordered list of currently active specialist sessions
   reportReady: boolean;
+}
+
+// Event Contract
+export type AnalysisSessionEventType =
+  | 'USER_REQUEST_CONFIRMED'
+  | 'PLANNING_STARTED'
+  | 'PLAN_CREATED'
+  | 'SPECIALIST_INVOKED'
+  | 'SPECIALIST_STARTED'
+  | 'SPECIALIST_ACTIVITY'
+  | 'SPECIALIST_OUTPUT_CREATED'
+  | 'SPECIALIST_COMPLETED'
+  | 'REVIEW_STARTED'
+  | 'REVIEW_FEEDBACK_CREATED'
+  | 'REVISION_REQUESTED'
+  | 'REVISION_ACTIVITY'
+  | 'REVISION_COMPLETED'
+  | 'SYNTHESIS_STARTED'
+  | 'SYNTHESIS_COMPLETED'
+  | 'REPORT_READY';
+
+export interface AnalysisSessionEvent<TPayload = any> {
+  eventId: string;
+  sequence: number;
+  occurredAtMs: number;
+  type: AnalysisSessionEventType;
+  payload: TPayload;
 }

@@ -1,8 +1,8 @@
 import { Sparkles } from 'lucide-react';
-import type { OrchestratorEntry as OrchestratorEntryType } from '../model/types';
+import type { OrchestratorMessageEntry } from '../model/types';
 
 interface OrchestratorEntryProps {
-  entry: OrchestratorEntryType;
+  entry: OrchestratorMessageEntry;
 }
 
 export function OrchestratorEntry({ entry }: OrchestratorEntryProps) {

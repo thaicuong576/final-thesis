@@ -20,9 +20,12 @@ import {
 } from '../../features/analysis-composer';
 import {
   AnalysisSessionWorkspace,
-  createAnalysisSession,
-  type AnalysisSession,
-  type DemoScenarioKey
+  getScenarioEvents,
+  getEventsForParseResult,
+  resolveScenarioKey,
+  type AnalysisSessionEvent,
+  type CanonicalScenarioKey,
+  type DriverMode
 } from '../../features/analysis-session';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
@@ -36,8 +39,10 @@ export function CreateAnalysisPage() {
   const [mode, setMode] = useState<PageMode>('DEFAULT');
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
-  const [session, setSession] = useState<AnalysisSession | null>(null);
-  const [activeScenarioKey, setActiveScenarioKey] = useState<DemoScenarioKey | undefined>(undefined);
+  const [activeEvents, setActiveEvents] = useState<AnalysisSessionEvent[]>([]);
+  const [activeScenarioKey, setActiveScenarioKey] = useState<CanonicalScenarioKey>('company-only');
+  const [driverMode, setDriverMode] = useState<DriverMode>('FROZEN');
+  const [driverStep, setDriverStep] = useState<number | undefined>(undefined);
   const [datasetSelectorOpen, setDatasetSelectorOpen] = useState(false);
   const [scopeDrawerOpen, setScopeDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,45 +52,27 @@ export function CreateAnalysisPage() {
   useEffect(() => {
     if (!capabilities) return;
 
-    const scenarioParam = searchParams.get('scenario');
+    // Audit and demo parameter support: mockScenario or scenario + mockStep + autoplay
+    const scenarioParam = searchParams.get('mockScenario') || searchParams.get('scenario');
+    const stepParam = searchParams.get('mockStep');
+    const isAutoplay = searchParams.get('autoplay') === 'true';
+
     if (scenarioParam) {
-      if (scenarioParam === 'COMPANY_ONLY' || scenarioParam === 'A') {
-        const q = 'ROE của TCB thay đổi thế nào trong năm 2024?';
-        const parsed = parseAnalysisQuestion(q, capabilities);
-        setParseResult(parsed);
-        setCurrentQuestion(q);
-        setSession(createAnalysisSession(parsed, capabilities));
-        setActiveScenarioKey('SCENARIO_A');
-        setMode('SESSION');
-        return;
-      } else if (scenarioParam === 'COMPANY_PEER' || scenarioParam === 'B') {
-        const q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
-        const parsed = parseAnalysisQuestion(q, capabilities);
-        setParseResult(parsed);
-        setCurrentQuestion(q);
-        setSession(createAnalysisSession(parsed, capabilities));
-        setActiveScenarioKey('SCENARIO_B');
-        setMode('SESSION');
-        return;
-      } else if (scenarioParam === 'TARGETED_REVISION' || scenarioParam === 'C') {
-        const q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
-        const parsed = parseAnalysisQuestion(q, capabilities);
-        setParseResult(parsed);
-        setCurrentQuestion(q);
-        setSession(createAnalysisSession(parsed, capabilities, { withTargetedRevision: true }));
-        setActiveScenarioKey('SCENARIO_C');
-        setMode('SESSION');
-        return;
-      } else if (scenarioParam === 'MACRO_COMPANY' || scenarioParam === 'D') {
-        const q = 'Lãi suất điều hành liên quan thế nào đến TCB trong năm 2024?';
-        const parsed = parseAnalysisQuestion(q, capabilities);
-        setParseResult(parsed);
-        setCurrentQuestion(q);
-        setSession(createAnalysisSession(parsed, capabilities));
-        setActiveScenarioKey('SCENARIO_D');
-        setMode('SESSION');
-        return;
+      const canonicalKey = resolveScenarioKey(scenarioParam);
+      const events = getScenarioEvents(canonicalKey);
+      setActiveScenarioKey(canonicalKey);
+      setActiveEvents(events);
+      setDriverMode(isAutoplay ? 'AUTOPLAY' : 'FROZEN');
+      if (stepParam) {
+        const parsedStep = parseInt(stepParam, 10);
+        if (!isNaN(parsedStep)) {
+          setDriverStep(parsedStep);
+        }
+      } else {
+        setDriverStep(undefined);
       }
+      setMode('SESSION');
+      return;
     }
 
     const q = searchParams.get('q');
@@ -137,25 +124,11 @@ export function CreateAnalysisPage() {
     });
   }
 
-  function handleSelectScenario(scenarioKey: DemoScenarioKey) {
-    if (!capabilities) return;
+  function handleSelectScenario(scenarioKey: CanonicalScenarioKey) {
     setActiveScenarioKey(scenarioKey);
-    let q = '';
-    let withRevision = false;
-    if (scenarioKey === 'SCENARIO_A') {
-      q = 'ROE của TCB thay đổi thế nào trong năm 2024?';
-    } else if (scenarioKey === 'SCENARIO_B') {
-      q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
-    } else if (scenarioKey === 'SCENARIO_C') {
-      q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
-      withRevision = true;
-    } else if (scenarioKey === 'SCENARIO_D') {
-      q = 'Lãi suất điều hành liên quan thế nào đến TCB trong năm 2024?';
-    }
-    const parsed = parseAnalysisQuestion(q, capabilities);
-    setParseResult(parsed);
-    setCurrentQuestion(q);
-    setSession(createAnalysisSession(parsed, capabilities, { withTargetedRevision: withRevision }));
+    const events = getScenarioEvents(scenarioKey);
+    setActiveEvents(events);
+    setDriverStep(undefined);
   }
 
   async function handleConfirmAndAnalyze() {
@@ -180,9 +153,11 @@ export function CreateAnalysisPage() {
           'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
       );
 
-      // Initialize analysis session
-      const newSession = createAnalysisSession(parseResult, capabilities);
-      setSession(newSession);
+      // Start Analysis Session event stream
+      const events = getEventsForParseResult(parseResult);
+      setActiveEvents(events);
+      setDriverMode('FROZEN');
+      setDriverStep(undefined);
       setMode('SESSION');
     } finally {
       setIsSubmitting(false);
@@ -268,9 +243,11 @@ export function CreateAnalysisPage() {
             </div>
           )}
 
-          {mode === 'SESSION' && session && (
+          {mode === 'SESSION' && (
             <AnalysisSessionWorkspace
-              session={session}
+              events={activeEvents}
+              driverMode={driverMode}
+              driverStep={driverStep}
               onBackToComposer={() => setMode('DEFAULT')}
               onSelectScenario={handleSelectScenario}
               activeScenarioKey={activeScenarioKey}

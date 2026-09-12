@@ -189,8 +189,11 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
       screen.getByText(/Công cụ hiệu chỉnh thứ cấp khi bạn muốn điều chỉnh kết quả bóc tách tự động/)
     ).toBeInTheDocument();
 
-    // Critical constraint: NO manual specialist/capability controls in ScopeAdjustmentDrawer
+    // Critical constraint: NO manual specialist/capability controls or peer toggles in ScopeAdjustmentDrawer
     expect(screen.queryByText('Khả năng phân tích sử dụng')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Nhóm tham chiếu/ })).not.toBeInTheDocument();
+    // Contextual read-only peer disclosure is present when plan includes Peer analysis
+    expect(screen.getByText('Nhóm tham chiếu liên kết')).toBeInTheDocument();
 
     // Toggle TCB in business entities
     const tcbChip = screen.getByRole('button', { name: 'TCB' });

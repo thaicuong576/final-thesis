@@ -81,23 +81,58 @@ describe('intentParser (Query-Adaptive & Capability-Driven)', () => {
     expect(result.scope.scopeSignature).not.toContain('ROE');
   });
 
-  it('REGRESSION: preserves Macro + Company intent when business scope is adjusted', () => {
-    const initialQuestion = 'Lãi suất điều hành liên quan thế nào đến TCB?';
-    const parsed = parseAnalysisQuestion(initialQuestion, mockCapabilities);
+  it('REGRESSION A: "ROE của TCB thay đổi thế nào?" -> adjusting period/metric does not introduce Peer', () => {
+    const question = 'ROE của TCB thay đổi thế nào?';
+    const parsed = parseAnalysisQuestion(question, mockCapabilities);
 
-    const initialCapIds = parsed.scope.analysisPlan.selectedCapabilities.map((c) => c.id);
-    expect(initialCapIds).toContain('company');
-    expect(initialCapIds).toContain('macro');
+    expect(parsed.scope.analysisPlan.selectedCapabilities.map((c) => c.id)).toEqual(['company']);
 
-    // User adjusts period only without changing macro intent
-    const replannedCapabilities = planAnalyticalCapabilities({
+    // User adjusts period/metric in ScopeAdjustmentDrawer
+    const replanned = planAnalyticalCapabilities({
       entities: parsed.scope.entities,
       capabilities: mockCapabilities,
-      rawQuestion: parsed.rawQuestion,
-      preserveCapabilities: initialCapIds
+      rawQuestion: parsed.rawQuestion
     });
 
-    const replannedCapIds = replannedCapabilities.map((c) => c.id);
+    const replannedCapIds = replanned.map((c) => c.id);
+    expect(replannedCapIds).toEqual(['company']);
+    expect(replannedCapIds).not.toContain('peer');
+    expect(replannedCapIds).not.toContain('macro');
+  });
+
+  it('REGRESSION B: "TCB sinh lời tốt hơn hay kém nhóm so sánh?" -> adjusting period/metric preserves Peer because QUESTION requires it', () => {
+    const question = 'TCB sinh lời tốt hơn hay kém nhóm so sánh?';
+    const parsed = parseAnalysisQuestion(question, mockCapabilities);
+
+    expect(parsed.scope.analysisPlan.selectedCapabilities.map((c) => c.id)).toEqual(['company', 'peer']);
+
+    // User adjusts period/metric in ScopeAdjustmentDrawer
+    const replanned = planAnalyticalCapabilities({
+      entities: parsed.scope.entities,
+      capabilities: mockCapabilities,
+      rawQuestion: parsed.rawQuestion
+    });
+
+    const replannedCapIds = replanned.map((c) => c.id);
+    expect(replannedCapIds).toContain('company');
+    expect(replannedCapIds).toContain('peer');
+    expect(replannedCapIds).not.toContain('macro');
+  });
+
+  it('REGRESSION C: "Lãi suất điều hành liên quan thế nào đến TCB?" -> adjusting period still preserves Company + Macro', () => {
+    const question = 'Lãi suất điều hành liên quan thế nào đến TCB?';
+    const parsed = parseAnalysisQuestion(question, mockCapabilities);
+
+    expect(parsed.scope.analysisPlan.selectedCapabilities.map((c) => c.id)).toEqual(['company', 'macro']);
+
+    // User adjusts period only in ScopeAdjustmentDrawer
+    const replanned = planAnalyticalCapabilities({
+      entities: parsed.scope.entities,
+      capabilities: mockCapabilities,
+      rawQuestion: parsed.rawQuestion
+    });
+
+    const replannedCapIds = replanned.map((c) => c.id);
     expect(replannedCapIds).toContain('company');
     expect(replannedCapIds).toContain('macro');
     expect(replannedCapIds).not.toContain('peer');
@@ -232,13 +267,5 @@ describe('intentParser (Query-Adaptive & Capability-Driven)', () => {
       capabilities: mockCapabilities
     });
     expect(multiPlan.map((c) => c.id)).toEqual(['company', 'peer']);
-
-    // Single entity with forcePeerComparison -> company + peer
-    const forcedPeerPlan = planAnalyticalCapabilities({
-      entities: [tcb],
-      capabilities: mockCapabilities,
-      forcePeerComparison: true
-    });
-    expect(forcedPeerPlan.map((c) => c.id)).toEqual(['company', 'peer']);
   });
 });

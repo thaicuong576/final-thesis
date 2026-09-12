@@ -1,6 +1,5 @@
 import type { AnalysisCapabilities, Entity, Metric, Period } from '@/entities/capability/model/types';
 import type {
-  AnalyticalCapabilityId,
   AnalyticalCapabilityItem,
   ParseResult,
   ParsedScope,
@@ -46,20 +45,17 @@ export interface PlanCapabilitiesParams {
   entities: Entity[];
   capabilities: AnalysisCapabilities;
   rawQuestion?: string;
-  forcePeerComparison?: boolean;
-  preserveCapabilities?: AnalyticalCapabilityId[];
 }
 
 /**
  * Plans analytical capabilities dynamically based on user intent and dataset capabilities.
- * The user adjusts business/data scope; the planner decides which capabilities to run.
+ * The user adjusts business/data scope; the planner decides which capabilities to run freshly
+ * from the preserved rawQuestion and adjusted business scope without sticky capability flags.
  */
 export function planAnalyticalCapabilities({
   entities,
   capabilities,
-  rawQuestion = '',
-  forcePeerComparison = false,
-  preserveCapabilities = []
+  rawQuestion = ''
 }: PlanCapabilitiesParams): AnalyticalCapabilityItem[] {
   const normalized = rawQuestion.toLowerCase();
   const selectedCapabilities: AnalyticalCapabilityItem[] = [];
@@ -75,10 +71,9 @@ export function planAnalyticalCapabilities({
   }
 
   // 2. Peer / Reference Universe Analysis:
-  // Selected when explicit comparison is requested, multiple entities exist,
+  // Selected when explicit comparison is requested in the question, multiple entities exist,
   // or a sector-level analysis is requested without single-company focus.
   const isPeerComparisonRequested =
-    preserveCapabilities.includes('peer') ||
     normalized.includes('so sánh') ||
     normalized.includes('nhóm so sánh') ||
     normalized.includes('nhóm tham chiếu') ||
@@ -101,8 +96,7 @@ export function planAnalyticalCapabilities({
 
   const shouldActivatePeer =
     Boolean(capabilities.peerUniverse) &&
-    (forcePeerComparison ||
-      isPeerComparisonRequested ||
+    (isPeerComparisonRequested ||
       entities.length > 1 ||
       (entities.length === 0 && !hasMacroOnlyKeywords));
 
@@ -115,10 +109,9 @@ export function planAnalyticalCapabilities({
     });
   }
 
-  // 3. Macro Context Analysis: Selected when macroeconomic keywords are present
+  // 3. Macro Context Analysis: Selected when macroeconomic keywords are present in rawQuestion
   // and macro capability is available in dataset capabilities.
   const isMacroRequested =
-    preserveCapabilities.includes('macro') ||
     normalized.includes('vĩ mô') ||
     normalized.includes('lãi suất') ||
     normalized.includes('chính sách tiền tệ') ||

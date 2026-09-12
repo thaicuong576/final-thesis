@@ -42,9 +42,8 @@ export function ScopeAdjustmentDrawer({
   const [selectedMetricIds, setSelectedMetricIds] = useState<string[]>(
     currentScope.metrics.map((m) => m.id)
   );
-  const [includePeerUniverse, setIncludePeerUniverse] = useState<boolean>(
-    currentScope.analysisPlan.selectedCapabilities.some((c) => c.id === 'peer')
-  );
+
+  const isPeerActive = currentScope.analysisPlan.selectedCapabilities.some((c) => c.id === 'peer');
 
   function toggleEntity(id: string) {
     setSelectedEntityIds((prev) =>
@@ -71,23 +70,21 @@ export function ScopeAdjustmentDrawer({
 
     const effectiveRawQuestion = rawQuestion || currentScope.rawQuestion || '';
 
-    // The system automatically plans analytical capabilities based on user's adjusted scope
-    // while preserving the original analytical intent/question
+    // Replan freshly using preserved rawQuestion and adjusted business scope without sticky flags
     const nextSelectedCapabilities = planAnalyticalCapabilities({
       entities: nextEntities,
       capabilities,
-      rawQuestion: effectiveRawQuestion,
-      forcePeerComparison: includePeerUniverse,
-      preserveCapabilities: currentScope.analysisPlan.selectedCapabilities.map((c) => c.id)
+      rawQuestion: effectiveRawQuestion
     });
 
+    const nextIsPeerActive = nextSelectedCapabilities.some((c) => c.id === 'peer');
     const isMacroOnly =
       nextSelectedCapabilities.length === 1 && nextSelectedCapabilities[0].id === 'macro';
 
     const entitySig =
       nextEntities.length > 0
         ? nextEntities.map((e) => e.ticker).join(' · ')
-        : includePeerUniverse
+        : nextIsPeerActive
         ? capabilities.peerUniverse?.label || 'Toàn ngành'
         : isMacroOnly
         ? 'Toàn hệ thống'
@@ -155,31 +152,19 @@ export function ScopeAdjustmentDrawer({
               </div>
             </div>
 
-            {/* Peer comparison universe scope */}
-            {capabilities.peerUniverse && (
-              <div className="space-y-2">
-                <label className="font-semibold text-ink block">
-                  Phạm vi đối sánh tham chiếu
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setIncludePeerUniverse(!includePeerUniverse)}
-                  className={`w-full p-2.5 rounded-md border text-left text-xs transition flex items-center justify-between ${
-                    includePeerUniverse
-                      ? 'border-[#1c5d9c] bg-[#f5f8fb] text-ink font-semibold'
-                      : 'border-line bg-white text-muted hover:border-slate-400'
-                  }`}
-                >
-                  <div>
-                    <span className="font-medium text-ink">{capabilities.peerUniverse.label}</span>
-                    <p className="text-[11px] text-muted font-normal mt-0.5">
-                      {capabilities.peerUniverse.description}
-                    </p>
-                  </div>
-                  {includePeerUniverse && (
-                    <Check className="w-3.5 h-3.5 text-[#1c5d9c] shrink-0 ml-2" />
-                  )}
-                </button>
+            {/* Contextual Peer Universe (read-only disclosure if Peer analysis is part of plan) */}
+            {isPeerActive && capabilities.peerUniverse && (
+              <div className="space-y-1.5 p-3 rounded-lg bg-canvas border border-line">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-ink">Nhóm tham chiếu liên kết</span>
+                  <span className="text-[10px] text-muted font-medium">Cố định theo bộ dữ liệu</span>
+                </div>
+                <div className="text-xs font-semibold text-ink">
+                  {capabilities.peerUniverse.label}
+                </div>
+                <p className="text-[11px] text-muted leading-relaxed">
+                  {capabilities.peerUniverse.description}
+                </p>
               </div>
             )}
 

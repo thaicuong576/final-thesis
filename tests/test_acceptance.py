@@ -716,13 +716,11 @@ class AcceptanceTests(unittest.TestCase):
             description="Available evidence was ignored.",
             required_action=CritiqueAction.REMOVE_CLAIM,
             resolution_status=CritiqueIssueStatus.UNRESOLVED,
-            unresolved_reason_code=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
         )
         with self.assertRaises(ValueError):
             AcceptanceRound(
                 round_number=0, hard_gate_results=self.passed_gates(), critique_issues=(issue,),
                 unresolved_issue_ids=("issue-reasoning",),
-                unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
                 quality_scores=self.quality_scores(),
                 quality_total=1.0, provisional_threshold=0.75, final_payload_version="payload-v1",
                 acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
@@ -737,7 +735,6 @@ class AcceptanceTests(unittest.TestCase):
             description="The available worker outputs were not synthesized.",
             required_action=CritiqueAction.REVISE_CLAIM,
             resolution_status=CritiqueIssueStatus.UNRESOLVED,
-            unresolved_reason_code=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
         )
         with self.assertRaises(ValueError):
             AcceptanceRound(
@@ -745,7 +742,6 @@ class AcceptanceTests(unittest.TestCase):
                 hard_gate_results=self.passed_gates(),
                 critique_issues=(issue,),
                 unresolved_issue_ids=("issue-incomplete",),
-                unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
                 quality_scores=self.quality_scores(),
                 quality_total=1.0,
                 provisional_threshold=0.75,

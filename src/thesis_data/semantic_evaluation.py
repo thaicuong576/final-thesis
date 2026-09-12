@@ -391,7 +391,6 @@ def deterministic_coverage_violations(
     result_link_ids = [item.link_id for item in result.applicable_link_results]
     missing_link_ids = sorted(plan_link_ids - set(result_link_ids))
     violations.extend(f"omitted_link_result:{item}" for item in missing_link_ids)
-    issues_by_id = {issue.issue_id: issue for issue in result.critique_issues}
     for issue in result.critique_issues:
         result_claim_ids.extend(issue.affected_claim_ids)
         if issue.issue_id not in issue_ids:
@@ -434,13 +433,6 @@ def deterministic_coverage_violations(
     for issue in result.critique_issues:
         if issue.issue_id not in issue_ids:
             violations.append(f"unknown_issue_id:{issue.issue_id}")
-    for link_result in result.applicable_link_results:
-        for issue_id in link_result.issue_ids:
-            issue = issues_by_id.get(issue_id)
-            if issue is not None and issue.required_action is not CritiqueAction.RECONCILE_CROSS_LEVEL:
-                violations.append(
-                    f"undeclared_link_issue_relation:{link_result.link_id}:{issue_id}"
-                )
 
     numeric_gate_passed = None
     if stage1_report is not None:

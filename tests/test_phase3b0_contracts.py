@@ -341,29 +341,10 @@ class Phase3B0ContractTests(unittest.TestCase):
         self.assertEqual(round_state.acceptance_decision, AcceptanceDecision.ACCEPT_WITH_LIMITATIONS)
 
     def test_missing_data_with_evidence_reason_is_rejected(self):
-        issue = _issue(
-            status=CritiqueIssueStatus.UNRESOLVED,
-            reason=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
-        )
-        with self.assertRaisesRegex(ValueError, "data/evidence availability"):
-            AcceptanceRound(
-                round_number=0,
-                hard_gate_results=_gates(),
-                critique_issues=(issue,),
-                unresolved_issue_ids=(issue.issue_id,),
-                unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
-                quality_scores=QualityDimensionScores(
-                    groundedness=1.0,
-                    cross_level_integration=1.0,
-                    answer_coverage=1.0,
-                    logical_soundness=1.0,
-                    uncertainty_limitations=1.0,
-                    analytical_usefulness=1.0,
-                ),
-                quality_total=1.0,
-                provisional_threshold=0.75,
-                final_payload_version="payload-v1",
-                acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+        with self.assertRaisesRegex(ValueError, "availability family"):
+            _issue(
+                status=CritiqueIssueStatus.UNRESOLVED,
+                reason=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
             )
 
     def test_missing_evidence_with_evidence_reason_supports_limited_acceptance(self):
@@ -396,31 +377,12 @@ class Phase3B0ContractTests(unittest.TestCase):
         self.assertEqual(round_state.acceptance_decision, AcceptanceDecision.ACCEPT_WITH_LIMITATIONS)
 
     def test_missing_evidence_with_data_reason_is_rejected(self):
-        issue = _issue(
-            issue_type=CritiqueIssueType.MISSING_EVIDENCE,
-            action=CritiqueAction.RETRIEVE_EVIDENCE,
-            status=CritiqueIssueStatus.UNRESOLVED,
-            reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
-        )
-        with self.assertRaisesRegex(ValueError, "data/evidence availability"):
-            AcceptanceRound(
-                round_number=0,
-                hard_gate_results=_gates(),
-                critique_issues=(issue,),
-                unresolved_issue_ids=(issue.issue_id,),
-                unresolved_reason_codes=(UnresolvedReasonCode.DATA_UNAVAILABLE,),
-                quality_scores=QualityDimensionScores(
-                    groundedness=1.0,
-                    cross_level_integration=1.0,
-                    answer_coverage=1.0,
-                    logical_soundness=1.0,
-                    uncertainty_limitations=1.0,
-                    analytical_usefulness=1.0,
-                ),
-                quality_total=1.0,
-                provisional_threshold=0.75,
-                final_payload_version="payload-v1",
-                acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+        with self.assertRaisesRegex(ValueError, "availability family"):
+            _issue(
+                issue_type=CritiqueIssueType.MISSING_EVIDENCE,
+                action=CritiqueAction.RETRIEVE_EVIDENCE,
+                status=CritiqueIssueStatus.UNRESOLVED,
+                reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
             )
 
     def test_inactive_issue_agent_fails_closed(self):
@@ -524,38 +486,129 @@ class Phase3B0ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(SemanticContractError, "link_result_ambiguous"):
             validate_structured_critic_result(two_link_plan, multiple, ())
 
-    def test_link_result_relation_must_be_declared_for_reconciliation(self):
+    def test_non_reconcile_issues_may_attach_to_declared_link(self):
         plan = _plan(with_link=True)
-        issue = _issue(agent="orchestrator", action=CritiqueAction.REVISE_CLAIM)
+        divergence = _issue(
+            issue_id="divergence-1",
+            issue_type=CritiqueIssueType.MEANINGFUL_DIVERGENCE,
+            action=CritiqueAction.ADD_LIMITATION,
+            agent="orchestrator",
+        )
+        missing_evidence = _issue(
+            issue_id="evidence-1",
+            issue_type=CritiqueIssueType.MISSING_EVIDENCE,
+            action=CritiqueAction.RETRIEVE_EVIDENCE,
+            agent="orchestrator",
+        )
         result = _result(
             plan,
-            issues=(issue,),
+            issues=(divergence, missing_evidence),
             link_results=(
                 ApplicableLinkResult(
                     link_id="L1",
                     score=1.0,
-                    rationale="undeclared relation",
-                    issue_ids=(issue.issue_id,),
+                    rationale="declared link with non-reconcile issues",
+                    issue_ids=(divergence.issue_id, missing_evidence.issue_id),
                 ),
             ),
         )
-        with self.assertRaisesRegex(SemanticContractError, "undeclared_link_issue_relation"):
-            validate_structured_critic_result(plan, result, ())
+        validate_structured_critic_result(plan, result, ())
 
     def test_unsupported_reasoning_issue_cannot_produce_limited_acceptance(self):
         issue = _issue(
             issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
             action=CritiqueAction.REVISE_CLAIM,
             status=CritiqueIssueStatus.UNRESOLVED,
-            reason=UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,
         )
-        with self.assertRaisesRegex(ValueError, "data/evidence availability"):
+        with self.assertRaisesRegex(ValueError, "limited acceptance requires explicit"):
             AcceptanceRound(
                 round_number=0,
                 hard_gate_results=_gates(),
                 critique_issues=(issue,),
                 unresolved_issue_ids=(issue.issue_id,),
-                unresolved_reason_codes=(UnresolvedReasonCode.EVIDENCE_UNAVAILABLE,),
+                quality_scores=QualityDimensionScores(
+                    groundedness=1.0,
+                    cross_level_integration=1.0,
+                    answer_coverage=1.0,
+                    logical_soundness=1.0,
+                    uncertainty_limitations=1.0,
+                    analytical_usefulness=1.0,
+                ),
+                quality_total=1.0,
+                provisional_threshold=0.75,
+                final_payload_version="payload-v1",
+                acceptance_decision=AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+            )
+
+    def test_unresolved_unsupported_claim_without_reason_is_valid(self):
+        issue = _issue(
+            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+            action=CritiqueAction.REVISE_CLAIM,
+            status=CritiqueIssueStatus.UNRESOLVED,
+        )
+        self.assertIsNone(issue.unresolved_reason_code)
+
+    def test_fail_acceptance_persists_unresolved_reasoning_issue(self):
+        issue = _issue(
+            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+            action=CritiqueAction.REVISE_CLAIM,
+            status=CritiqueIssueStatus.UNRESOLVED,
+        )
+        round_state = AcceptanceRound(
+            round_number=0,
+            hard_gate_results=_gates(),
+            critique_issues=(issue,),
+            unresolved_issue_ids=(issue.issue_id,),
+            quality_scores=QualityDimensionScores(
+                groundedness=0.0,
+                cross_level_integration=1.0,
+                answer_coverage=0.0,
+                logical_soundness=0.0,
+                uncertainty_limitations=0.0,
+                analytical_usefulness=0.0,
+            ),
+            quality_total=0.0,
+            provisional_threshold=0.75,
+            final_payload_version=None,
+            acceptance_decision=AcceptanceDecision.FAIL_ACCEPTANCE,
+        )
+        self.assertEqual(round_state.unresolved_issue_ids, (issue.issue_id,))
+
+    def test_accept_rejects_open_issue(self):
+        issue = _issue(status=CritiqueIssueStatus.OPEN)
+        with self.assertRaisesRegex(ValueError, "OPEN critique issues"):
+            AcceptanceRound(
+                round_number=0,
+                hard_gate_results=_gates(),
+                critique_issues=(issue,),
+                quality_scores=QualityDimensionScores(
+                    groundedness=1.0,
+                    cross_level_integration=1.0,
+                    answer_coverage=1.0,
+                    logical_soundness=1.0,
+                    uncertainty_limitations=1.0,
+                    analytical_usefulness=1.0,
+                ),
+                quality_total=1.0,
+                provisional_threshold=0.75,
+                final_payload_version="payload-v1",
+                acceptance_decision=AcceptanceDecision.ACCEPT,
+            )
+
+    def test_limited_acceptance_rejects_open_issue(self):
+        open_issue = _issue(issue_id="open-1", status=CritiqueIssueStatus.OPEN)
+        missing_issue = _issue(
+            issue_id="missing-1",
+            status=CritiqueIssueStatus.UNRESOLVED,
+            reason=UnresolvedReasonCode.DATA_UNAVAILABLE,
+        )
+        with self.assertRaisesRegex(ValueError, "OPEN critique issues"):
+            AcceptanceRound(
+                round_number=0,
+                hard_gate_results=_gates(),
+                critique_issues=(open_issue, missing_issue),
+                unresolved_issue_ids=(missing_issue.issue_id,),
+                unresolved_reason_codes=(UnresolvedReasonCode.DATA_UNAVAILABLE,),
                 quality_scores=QualityDimensionScores(
                     groundedness=1.0,
                     cross_level_integration=1.0,

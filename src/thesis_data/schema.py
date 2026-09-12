@@ -627,11 +627,16 @@ class CritiqueIssue(BaseModel):
 
     @model_validator(mode="after")
     def validate_unresolved_reason(self) -> "CritiqueIssue":
-        data_reasons = set(UnresolvedReasonCode)
         if self.resolution_status is CritiqueIssueStatus.UNRESOLVED:
-            if self.unresolved_reason_code not in data_reasons:
+            allowed_reasons = _LIMITED_ACCEPTANCE_REASON_CODES.get(self.issue_type)
+            if allowed_reasons is None:
+                if self.unresolved_reason_code is not None:
+                    raise ValueError(
+                        "reasoning issues cannot claim data/evidence availability"
+                    )
+            elif self.unresolved_reason_code not in allowed_reasons:
                 raise ValueError(
-                    "unresolved issues require an allowed data/evidence reason code"
+                    "unresolved reason does not match the issue availability family"
                 )
         elif self.unresolved_reason_code is not None:
             raise ValueError("unresolved_reason_code is only valid for unresolved issues")
@@ -863,6 +868,14 @@ class AcceptanceRound(BaseModel):
             }
         ):
             raise ValueError("unresolved_reason_codes must be backed by critique issues")
+        if self.acceptance_decision in {
+            AcceptanceDecision.ACCEPT,
+            AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,
+        } and any(
+            issue.resolution_status is CritiqueIssueStatus.OPEN
+            for issue in self.critique_issues
+        ):
+            raise ValueError("accepted rounds cannot contain OPEN critique issues")
         if self.acceptance_decision is AcceptanceDecision.ACCEPT:
             if self.unresolved_issue_ids or self.unresolved_reason_codes:
                 raise ValueError("ACCEPT cannot contain unresolved issues or reasons")

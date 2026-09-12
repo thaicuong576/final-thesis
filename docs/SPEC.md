@@ -21,16 +21,26 @@ it require?
 
 ## Empirical scope policy
 
-The first reproducible baseline uses the smallest source-reconciled scope that
-can satisfy the readiness gate. The default first-baseline scope is the
-48-cell feasibility pilot: ACB, TCB, and VPB across `2024_Q1`--`2024_Q4` and
-four core metrics. The original five-bank/eight-quarter design remains a
-provisional upper bound and may be promoted to an 80-cell or 200-cell
-expansion only after the pilot's source coverage, conflict rate, and review
-throughput pass the decision tree. Unchecked expansion rows are not a
-readiness requirement for the first baseline.
+The current validated thesis demonstration scope is a five-bank peer sample,
+not the full Vietnamese banking sector:
 
-## Provisional upper-bound scope
+- Issuers: `ACB`, `TCB`, `VPB`, `MBB`, and `VCB`.
+- Periods: `2024_Q1` through `2024_Q4`.
+- Primary metrics: NPL, coverage, ROA, and ROE.
+- Peer universe: the validated five-bank sample, with peer statistics computed
+  only from accepted observations in that universe.
+
+This is an 80-cell target scope before any explicitly recorded exclusions or
+accepted missingness. The active analytical capabilities for a request are
+still selected by its frozen `AnalysisPlan`; a five-bank peer dataset does not
+make sector-wide claims valid by itself.
+
+## Historical planning and superseded feasibility scope
+
+The following scopes are retained as research history and are not the current
+architecture or data scope.
+
+### Original upper-bound planning scope
 
 ### Issuers and periods
 
@@ -48,7 +58,7 @@ readiness requirement for the first baseline.
 - Sector outputs: median, percentile, and period-over-period change from accepted observations only.
 - Macro context: policy-rate movement and credit-growth context, plus other indicators only when period-aligned authoritative sources are available.
 
-## First-baseline pilot scope
+### Superseded three-bank pilot
 
 - Issuers: `ACB`, `TCB`, and `VPB`.
 - Periods: `2024_Q1`, `2024_Q2`, `2024_Q3`, and `2024_Q4`.
@@ -58,15 +68,12 @@ readiness requirement for the first baseline.
 - The pilot contains 48 target cells and is the default scope for the first
   provider-backed baseline after Gold promotion.
 
-The full draft question set contains one macro-to-bank question. Because the
-current official macro route has not yet produced a period-aligned 2024_Q4 Gold
-observation, the primary evaluation may use the separate
-`experiments/question-set-core-v1.json` (13 bank-focused questions, 39 jobs
-across the three arms). The macro question remains a pre-registered extension
-and is not included in the primary aggregate until its macro observations pass
-the same Gold policy. This narrows the evaluation track, not the system
-architecture: Macro, Sector/Peer, and Company remain available capabilities,
-while the active set is selected from the request-derived AnalysisPlan.
+The former `experiments/question-set-core-v1.json` bank-focused pilot and its
+13-question/39-job three-arm layout are retained as historical feasibility
+artifacts. They are not the current default demonstration scope. Macro context
+is included only when requested by the frozen plan and supported by the
+dataset's accepted macro observations; otherwise it is not fabricated or
+implicitly added to the report.
 
 Metric definitions, units, period rules, source tiers, and formula tests are maintained in `docs/METRIC-DICTIONARY.md`.
 
@@ -78,12 +85,16 @@ Raw inputs are immutable. A missing value is represented as null with a reason. 
 
 ## System outputs
 
-1. A structured company and sector analysis report.
-2. A peer comparison table based on accepted observations.
-3. A source-linked evidence trail.
-4. A critique/revision history with resolved, explained, or unresolved outcomes.
-5. A data-quality report with coverage and limitations.
-6. A reproducible run record containing snapshot identity, configuration, model calls, timing, and cost.
+1. A structured analysis report for the analytical capabilities required by the
+   frozen `AnalysisPlan`.
+2. Peer/sector comparison outputs only when the plan declares them applicable;
+   they are based on accepted observations in the validated peer universe.
+3. Macro context only when the plan requests it and accepted macro observations
+   are available.
+4. A source-linked evidence trail.
+5. A critique/revision history with resolved, explained, or unresolved outcomes.
+6. A data-quality report with coverage and limitations.
+7. A reproducible run record containing snapshot identity, configuration, model calls, timing, and cost.
 
 ## Required phases
 
@@ -118,9 +129,9 @@ artifacts and are not exposed as a product architecture selector.
 
 ## Data-foundation exit criteria
 
-- A versioned selected-scope configuration is frozen for the first baseline;
-  by default this is the 3-issuer/4-period pilot above. An 80- or 200-cell
-  expansion must pass the same gates independently before it is included.
+- A versioned selected-scope configuration is frozen for the current
+  five-issuer/four-period demonstration above. Any later expansion must pass
+  the same gates independently before it is included.
 - Coverage is reported for every selected ticker, primary metric, and period.
 - Every metric has a documented formula, unit, source, and period rule.
 - Raw files and API responses are preserved unchanged.

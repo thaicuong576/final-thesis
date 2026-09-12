@@ -123,6 +123,7 @@ class CritiqueIssueStatus(StrEnum):
 class AcceptanceDecision(StrEnum):
     ACCEPT = "ACCEPT"
     ACCEPT_WITH_LIMITATIONS = "ACCEPT_WITH_LIMITATIONS"
+    REVISE = "REVISE"
     FAIL_ACCEPTANCE = "FAIL_ACCEPTANCE"
 
 
@@ -815,6 +816,9 @@ class AcceptanceRound(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     round_number: int = Field(ge=0)
+    candidate_hash: str | None = Field(default=None, min_length=1)
+    candidate_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    candidate_payload_version: str | None = Field(default=None, min_length=1)
     worker_payload_versions: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version: str | None = None
     critique_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
@@ -846,6 +850,8 @@ class AcceptanceRound(BaseModel):
             raise ValueError("acceptance round must persist all Stage-1 hard gates")
         if self.quality_total is not None and self.quality_scores is None:
             raise ValueError("quality_total requires quality_scores")
+        if len(self.candidate_claim_ids) != len(set(self.candidate_claim_ids)):
+            raise ValueError("candidate_claim_ids must be unique")
         issue_ids = {issue.issue_id for issue in self.critique_issues}
         if not set(self.resolved_issue_ids).issubset(issue_ids):
             raise ValueError("resolved_issue_ids must reference round critique issues")
@@ -908,6 +914,18 @@ class AcceptanceRound(BaseModel):
                 raise ValueError("accepted rounds cannot bypass a failed Stage-1 hard gate")
             if not self.final_payload_version:
                 raise ValueError("accepted rounds require final_payload_version")
+        if self.acceptance_decision is AcceptanceDecision.REVISE:
+            if self.final_payload_version is not None:
+                raise ValueError("REVISE rounds cannot have final_payload_version")
+            if self.quality_scores is None or self.quality_total is None:
+                raise ValueError("REVISE rounds require semantic quality results")
+            if any(not gate.passed for gate in self.hard_gate_results.values()):
+                raise ValueError("REVISE rounds cannot bypass a failed Stage-1 hard gate")
+            if not any(
+                issue.resolution_status is CritiqueIssueStatus.OPEN
+                for issue in self.critique_issues
+            ):
+                raise ValueError("REVISE rounds require an actionable OPEN critique issue")
         return self
 
 
@@ -966,6 +984,10 @@ class ReportAcceptanceState(BaseModel):
             raise ValueError("final statement IDs must be unique")
         if self.final_decision is not self.rounds[-1].acceptance_decision:
             raise ValueError("final_decision must match the last acceptance round")
+        if self.final_decision is AcceptanceDecision.REVISE:
+            raise ValueError("ReportAcceptanceState.final_decision cannot be REVISE")
+        if self.rounds[-1].acceptance_decision is AcceptanceDecision.REVISE:
+            raise ValueError("final round cannot have REVISE disposition")
         if self.final_decision in {
             AcceptanceDecision.ACCEPT,
             AcceptanceDecision.ACCEPT_WITH_LIMITATIONS,

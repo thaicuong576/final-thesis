@@ -14,6 +14,7 @@ export interface AnalysisPlanPreview {
 }
 
 export interface ParsedScope {
+  rawQuestion?: string;
   entities: Entity[];
   periods: Period[];
   metrics: Metric[];

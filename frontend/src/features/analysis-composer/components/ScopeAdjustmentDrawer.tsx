@@ -21,6 +21,7 @@ interface ScopeAdjustmentDrawerProps {
   onOpenChange: (open: boolean) => void;
   capabilities: AnalysisCapabilities;
   currentScope: ParsedScope;
+  rawQuestion?: string;
   onApplyScope: (updatedScope: ParsedScope) => void;
 }
 
@@ -29,6 +30,7 @@ export function ScopeAdjustmentDrawer({
   onOpenChange,
   capabilities,
   currentScope,
+  rawQuestion,
   onApplyScope
 }: ScopeAdjustmentDrawerProps) {
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>(
@@ -67,28 +69,39 @@ export function ScopeAdjustmentDrawer({
     const nextPeriods = capabilities.periods.filter((p) => selectedPeriodIds.includes(p.id));
     const nextMetrics = capabilities.metrics.filter((m) => selectedMetricIds.includes(m.id));
 
+    const effectiveRawQuestion = rawQuestion || currentScope.rawQuestion || '';
+
     // The system automatically plans analytical capabilities based on user's adjusted scope
+    // while preserving the original analytical intent/question
     const nextSelectedCapabilities = planAnalyticalCapabilities({
       entities: nextEntities,
       capabilities,
-      forcePeerComparison: includePeerUniverse
+      rawQuestion: effectiveRawQuestion,
+      forcePeerComparison: includePeerUniverse,
+      preserveCapabilities: currentScope.analysisPlan.selectedCapabilities.map((c) => c.id)
     });
+
+    const isMacroOnly =
+      nextSelectedCapabilities.length === 1 && nextSelectedCapabilities[0].id === 'macro';
 
     const entitySig =
       nextEntities.length > 0
         ? nextEntities.map((e) => e.ticker).join(' · ')
         : includePeerUniverse
         ? capabilities.peerUniverse?.label || 'Toàn ngành'
+        : isMacroOnly
+        ? 'Toàn hệ thống'
         : '';
     const periodSig = formatPeriodsSignature(nextPeriods);
-    const metricSig = nextMetrics.map((m) => m.acronym).join(' · ');
+    const metricSig = isMacroOnly ? '' : nextMetrics.map((m) => m.acronym).join(' · ');
     const scopeSignature = [entitySig, periodSig, metricSig].filter(Boolean).join(' · ');
 
     onApplyScope({
       ...currentScope,
+      rawQuestion: effectiveRawQuestion,
       entities: nextEntities,
       periods: nextPeriods,
-      metrics: nextMetrics,
+      metrics: isMacroOnly ? [] : nextMetrics,
       scopeSignature,
       analysisPlan: {
         selectedCapabilities: nextSelectedCapabilities

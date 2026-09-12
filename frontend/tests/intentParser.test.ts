@@ -60,7 +60,7 @@ describe('intentParser (Query-Adaptive & Capability-Driven)', () => {
     expect(capIds).not.toContain('macro');
   });
 
-  it('correctly produces Macro-only capability when question asks for macroeconomic policy without company or peer comparison', () => {
+  it('REGRESSION: does not pollute Macro-only scope with company metrics (NPL, Coverage, ROA, ROE)', () => {
     const question = 'Diễn biến chính sách tiền tệ và lãi suất điều hành trong năm 2024';
     const result = parseAnalysisQuestion(question, mockCapabilities);
 
@@ -71,6 +71,78 @@ describe('intentParser (Query-Adaptive & Capability-Driven)', () => {
     expect(capIds).toEqual(['macro']);
     expect(capIds).not.toContain('company');
     expect(capIds).not.toContain('peer');
+
+    // Crucial: company metrics must NOT be attached to a Macro-only request
+    expect(result.scope.metrics).toHaveLength(0);
+    expect(result.scope.scopeSignature).toBe('Toàn hệ thống · Q1–Q4/2024');
+    expect(result.scope.scopeSignature).not.toContain('NPL');
+    expect(result.scope.scopeSignature).not.toContain('Coverage');
+    expect(result.scope.scopeSignature).not.toContain('ROA');
+    expect(result.scope.scopeSignature).not.toContain('ROE');
+  });
+
+  it('REGRESSION: preserves Macro + Company intent when business scope is adjusted', () => {
+    const initialQuestion = 'Lãi suất điều hành liên quan thế nào đến TCB?';
+    const parsed = parseAnalysisQuestion(initialQuestion, mockCapabilities);
+
+    const initialCapIds = parsed.scope.analysisPlan.selectedCapabilities.map((c) => c.id);
+    expect(initialCapIds).toContain('company');
+    expect(initialCapIds).toContain('macro');
+
+    // User adjusts period only without changing macro intent
+    const replannedCapabilities = planAnalyticalCapabilities({
+      entities: parsed.scope.entities,
+      capabilities: mockCapabilities,
+      rawQuestion: parsed.rawQuestion,
+      preserveCapabilities: initialCapIds
+    });
+
+    const replannedCapIds = replannedCapabilities.map((c) => c.id);
+    expect(replannedCapIds).toContain('company');
+    expect(replannedCapIds).toContain('macro');
+    expect(replannedCapIds).not.toContain('peer');
+  });
+
+  it('resolves explicit supported years and quarters dynamically from a multi-year capability fixture', () => {
+    const multiYearCapabilities = {
+      ...mockCapabilities,
+      periods: [
+        { id: '2023-q1', quarter: 1, year: 2023 },
+        { id: '2023-q2', quarter: 2, year: 2023 },
+        { id: '2023-q3', quarter: 3, year: 2023 },
+        { id: '2023-q4', quarter: 4, year: 2023 },
+        { id: '2024-q1', quarter: 1, year: 2024 },
+        { id: '2024-q2', quarter: 2, year: 2024 },
+        { id: '2024-q3', quarter: 3, year: 2024 },
+        { id: '2024-q4', quarter: 4, year: 2024 },
+        { id: '2025-q1', quarter: 1, year: 2025 },
+        { id: '2025-q2', quarter: 2, year: 2025 },
+        { id: '2025-q3', quarter: 3, year: 2025 },
+        { id: '2025-q4', quarter: 4, year: 2025 }
+      ]
+    };
+
+    // 1. Explicit year only -> only that year's 4 quarters
+    const resYearOnly = parseAnalysisQuestion('ROE của TCB trong năm 2024', multiYearCapabilities);
+    expect(resYearOnly.mismatch.isMismatch).toBe(false);
+    expect(resYearOnly.scope.periods).toHaveLength(4);
+    expect(resYearOnly.scope.periods.every((p) => p.year === 2024)).toBe(true);
+    expect(resYearOnly.scope.scopeSignature).toContain('Q1–Q4/2024');
+
+    // 2. Both explicit year and quarter -> only Q4/2024
+    const resYearAndQuarter = parseAnalysisQuestion('ROE TCB Q4/2024', multiYearCapabilities);
+    expect(resYearAndQuarter.mismatch.isMismatch).toBe(false);
+    expect(resYearAndQuarter.scope.periods).toHaveLength(1);
+    expect(resYearAndQuarter.scope.periods[0]).toEqual({
+      id: '2024-q4',
+      quarter: 4,
+      year: 2024
+    });
+    expect(resYearAndQuarter.scope.scopeSignature).toContain('Q4/2024');
+
+    // 3. Neither explicit year nor quarter -> all 12 periods
+    const resNoPeriod = parseAnalysisQuestion('ROE của TCB', multiYearCapabilities);
+    expect(resNoPeriod.scope.periods).toHaveLength(12);
   });
 
   it('correctly produces all three capabilities for broad contextual multi-bank request', () => {

@@ -201,6 +201,7 @@ export function CreateAnalysisPage() {
           onOpenChange={setScopeDrawerOpen}
           capabilities={capabilities}
           currentScope={parseResult.scope}
+          rawQuestion={parseResult.rawQuestion}
           onApplyScope={handleScopeOverride}
         />
       )}

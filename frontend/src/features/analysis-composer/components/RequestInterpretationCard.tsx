@@ -72,7 +72,10 @@ export function RequestInterpretationCard({
           </span>
           <span aria-hidden="true">•</span>
           <span>
-            <strong>Chỉ tiêu:</strong> {scope.metrics.map((m) => m.acronym).join(', ')}
+            <strong>Chỉ tiêu:</strong>{' '}
+            {scope.metrics.length > 0
+              ? scope.metrics.map((m) => m.acronym).join(', ')
+              : 'Không áp dụng (Bối cảnh vĩ mô)'}
           </span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import type { AnalysisCapabilities, Entity, Metric, Period } from '@/entities/capability/model/types';
 import type {
+  AnalyticalCapabilityId,
   AnalyticalCapabilityItem,
   ParseResult,
   ParsedScope,
@@ -46,6 +47,7 @@ export interface PlanCapabilitiesParams {
   capabilities: AnalysisCapabilities;
   rawQuestion?: string;
   forcePeerComparison?: boolean;
+  preserveCapabilities?: AnalyticalCapabilityId[];
 }
 
 /**
@@ -56,7 +58,8 @@ export function planAnalyticalCapabilities({
   entities,
   capabilities,
   rawQuestion = '',
-  forcePeerComparison = false
+  forcePeerComparison = false,
+  preserveCapabilities = []
 }: PlanCapabilitiesParams): AnalyticalCapabilityItem[] {
   const normalized = rawQuestion.toLowerCase();
   const selectedCapabilities: AnalyticalCapabilityItem[] = [];
@@ -75,6 +78,7 @@ export function planAnalyticalCapabilities({
   // Selected when explicit comparison is requested, multiple entities exist,
   // or a sector-level analysis is requested without single-company focus.
   const isPeerComparisonRequested =
+    preserveCapabilities.includes('peer') ||
     normalized.includes('so sánh') ||
     normalized.includes('nhóm so sánh') ||
     normalized.includes('nhóm tham chiếu') ||
@@ -114,6 +118,7 @@ export function planAnalyticalCapabilities({
   // 3. Macro Context Analysis: Selected when macroeconomic keywords are present
   // and macro capability is available in dataset capabilities.
   const isMacroRequested =
+    preserveCapabilities.includes('macro') ||
     normalized.includes('vĩ mô') ||
     normalized.includes('lãi suất') ||
     normalized.includes('chính sách tiền tệ') ||
@@ -135,15 +140,21 @@ export function planAnalyticalCapabilities({
 }
 
 /**
- * Client-side intent parser for Screen 1 prototype.
- * NOTE: All entities, periods, metrics, and universe references are derived dynamically
+ * Client-side intent parser for Screen 1 prototype (heuristic / mock implementation).
+ *
+ * NOTE: This is an explicit frontend prototype/mock heuristic for developer preview
+ * and UI validation. The authoritative production AnalysisPlan will come from the backend
+ * planner according to the data contract. It is intentionally kept simple and not a general NLP engine.
+ *
+ * All entities, periods, metrics, and universe references are derived dynamically
  * from the injected AnalysisCapabilities contract.
  */
 export function parseAnalysisQuestion(
-  question: string,
+  rawQuestion: string,
   capabilities: AnalysisCapabilities
 ): ParseResult {
-  const normalized = question.toLowerCase();
+  const question = rawQuestion;
+  const normalized = rawQuestion.toLowerCase();
 
   // 1. Check for unsupported requests dynamically against capability boundaries
   const mismatch = detectScopeMismatch(question, normalized, capabilities);
@@ -197,12 +208,35 @@ export function parseAnalysisQuestion(
     finalEntities = capabilities.entities;
   }
 
-  // 3. Extract supported periods from capabilities
-  const matchedPeriods = capabilities.periods.filter((period) => {
-    const qStr = `q${period.quarter}`;
-    const quyStr = `quý ${period.quarter}`;
-    return normalized.includes(qStr) || normalized.includes(quyStr);
-  });
+  // 3. Extract supported periods from capabilities dynamically
+  // Capability-driven period resolution: resolve explicit years and quarters without hardcoded years
+  const supportedYears = new Set(capabilities.periods.map((p) => p.year));
+  const yearMatches = rawQuestion.match(/\b(19\d\d|20\d\d)\b/g);
+  const explicitYears = yearMatches
+    ? [...new Set(yearMatches.map((y) => parseInt(y, 10)).filter((y) => supportedYears.has(y)))]
+    : [];
+
+  const explicitQuarters: number[] = [];
+  for (let q = 1; q <= 4; q++) {
+    const qRegex = new RegExp(`(\\bq${q}\\b|quý\\s*${q}\\b)`, 'i');
+    if (qRegex.test(rawQuestion)) {
+      explicitQuarters.push(q);
+    }
+  }
+
+  let matchedPeriods: Period[] = [];
+  if (explicitYears.length > 0 && explicitQuarters.length > 0) {
+    // Both explicit year and quarter specified (e.g. "ROE TCB Q4/2024")
+    matchedPeriods = capabilities.periods.filter(
+      (p) => explicitYears.includes(p.year) && explicitQuarters.includes(p.quarter)
+    );
+  } else if (explicitYears.length > 0) {
+    // Explicit year specified without specific quarter (e.g. "ROE của TCB trong năm 2024")
+    matchedPeriods = capabilities.periods.filter((p) => explicitYears.includes(p.year));
+  } else if (explicitQuarters.length > 0) {
+    // Explicit quarter specified without specific year
+    matchedPeriods = capabilities.periods.filter((p) => explicitQuarters.includes(p.quarter));
+  }
 
   const finalPeriods: Period[] =
     matchedPeriods.length > 0 ? matchedPeriods : capabilities.periods;
@@ -260,13 +294,6 @@ export function parseAnalysisQuestion(
     }
   }
 
-  const finalMetrics =
-    matchedMetrics.length > 0 ? matchedMetrics : capabilities.metrics;
-
-  if (topicLabels.length === 0) {
-    topicLabels.push('Chất lượng tài sản & Khả năng sinh lời');
-  }
-
   // 5. Query-Adaptive Capability Selection (AnalysisPlan)
   const selectedCapabilities = planAnalyticalCapabilities({
     entities: finalEntities,
@@ -274,13 +301,32 @@ export function parseAnalysisQuestion(
     rawQuestion: question
   });
 
+  const isMacroOnly =
+    selectedCapabilities.length === 1 && selectedCapabilities[0].id === 'macro';
+
+  let finalMetrics: Metric[] = [];
+  if (isMacroOnly) {
+    // If request is Macro-only, do not attach company metrics (NPL, Coverage, ROA, ROE).
+    // The current capability contract has no explicit macro metric catalog,
+    // so company metric scope is represented as empty / not applicable.
+    finalMetrics = [];
+    if (topicLabels.length === 0) {
+      topicLabels.push('Bối cảnh vĩ mô');
+    }
+  } else {
+    finalMetrics = matchedMetrics.length > 0 ? matchedMetrics : capabilities.metrics;
+    if (topicLabels.length === 0) {
+      topicLabels.push('Chất lượng tài sản & Khả năng sinh lời');
+    }
+  }
+
   // 6. Build concise scope signature dynamically
   const entitySig =
     finalEntities.length > 0
       ? finalEntities.map((e) => e.ticker).join(' · ')
       : selectedCapabilities.some((c) => c.id === 'peer')
       ? capabilities.peerUniverse?.label || 'Toàn ngành'
-      : selectedCapabilities.some((c) => c.id === 'macro')
+      : isMacroOnly
       ? 'Toàn hệ thống'
       : '';
 
@@ -289,6 +335,7 @@ export function parseAnalysisQuestion(
   const scopeSignature = [entitySig, periodSig, metricSig].filter(Boolean).join(' · ');
 
   const scope: ParsedScope = {
+    rawQuestion: question,
     entities: finalEntities,
     periods: finalPeriods,
     metrics: finalMetrics,

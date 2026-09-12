@@ -203,4 +203,53 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
     // Inferred summary updated
     expect(screen.getByText(/ACB · TCB · Q1–Q4\/2024/)).toBeInTheDocument();
   });
+
+  it('REGRESSION: preserves Macro + Company capabilities when analyst adjusts period in ScopeAdjustmentDrawer', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'Lãi suất điều hành liên quan thế nào đến TCB?');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    // Interpreted state contains Company + Macro
+    expect(await screen.findByText('Phân tích doanh nghiệp')).toBeInTheDocument();
+    expect(screen.getByText('Bối cảnh vĩ mô')).toBeInTheDocument();
+    expect(screen.queryByText('Nhóm tham chiếu')).not.toBeInTheDocument();
+
+    // Open ScopeAdjustmentDrawer and adjust period
+    const adjustBtn = screen.getByRole('button', { name: /Chỉnh phạm vi/ });
+    await user.click(adjustBtn);
+
+    // Toggle a period (e.g. Q1/2024)
+    const q1Chip = screen.getByRole('button', { name: /Q1\/2024/ });
+    await user.click(q1Chip);
+
+    // Save changes
+    const saveBtn = screen.getByRole('button', { name: 'Lưu thay đổi' });
+    await user.click(saveBtn);
+
+    // Both Company and Macro MUST remain applicable
+    expect(await screen.findByText('Phân tích doanh nghiệp')).toBeInTheDocument();
+    expect(screen.getByText('Bối cảnh vĩ mô')).toBeInTheDocument();
+    expect(screen.queryByText('Nhóm tham chiếu')).not.toBeInTheDocument();
+  });
+
+  it('REGRESSION: renders semantically consistent empty metric scope for Macro-only requests', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const composer = await screen.findByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    await user.type(composer, 'Diễn biến chính sách tiền tệ và lãi suất điều hành trong năm 2024');
+    await user.click(screen.getByRole('button', { name: /Bắt đầu phân tích/ }));
+
+    expect(await screen.findByText('Hệ thống hiểu yêu cầu')).toBeInTheDocument();
+    expect(screen.getByText('Toàn hệ thống · Q1–Q4/2024')).toBeInTheDocument();
+    expect(screen.getByText('Không áp dụng (Bối cảnh vĩ mô)')).toBeInTheDocument();
+
+    // Only Macro capability is active
+    expect(screen.getByText('Bối cảnh vĩ mô')).toBeInTheDocument();
+    expect(screen.queryByText('Phân tích doanh nghiệp')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nhóm tham chiếu')).not.toBeInTheDocument();
+  });
 });

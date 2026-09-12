@@ -112,7 +112,7 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
       invocationId: 'inv-macro',
       activity: {
         id: 'act-mc-m2',
-        description: 'Đã truy xuất bối cảnh tăng trưởng tín dụng toàn hệ thống',
+        description: 'Đã truy xuất dữ liệu bối cảnh vĩ mô khả dụng',
         type: 'DATA_RETRIEVAL'
       }
     }
@@ -146,7 +146,7 @@ export const mockMacroCompanyEvents: AnalysisSessionEvent[] = [
       artifact: {
         headline: '2 nhận định bối cảnh · 4 dẫn chứng',
         findings: [
-          'Đã trích xuất chuỗi thời gian lãi suất điều hành và tăng trưởng tín dụng chu kỳ Q1–Q4/2024.',
+          'Đã trích xuất chuỗi thời gian lãi suất điều hành và bối cảnh vĩ mô khả dụng cho chu kỳ Q1–Q4/2024.',
           '4 dẫn chứng bối cảnh vĩ mô toàn ngành đã được đối chiếu đồng bộ theo quý.'
         ],
         evidenceCount: 4,

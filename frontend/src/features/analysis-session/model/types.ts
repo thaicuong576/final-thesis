@@ -59,7 +59,8 @@ export type OrchestratorPhase =
   | 'REVIEWING'
   | 'REVISING'
   | 'SYNTHESIZING'
-  | 'READY_FOR_REPORT';
+  | 'READY_FOR_REPORT'
+  | 'BLOCKED';
 
 export interface OrchestratorMessageEntry {
   id: string;
@@ -195,6 +196,10 @@ export interface ReportReadyPayload {
   message?: string;
 }
 
+export interface RunBlockedPayload {
+  reason: string;
+}
+
 // Event Contract: Strongly typed discriminated union
 export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'USER_REQUEST_CONFIRMED'; payload: UserRequestConfirmedPayload }
@@ -212,6 +217,7 @@ export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'REVISION_COMPLETED'; payload: RevisionCompletedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_STARTED'; payload: SynthesisStartedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_COMPLETED'; payload: SynthesisCompletedPayload }
-  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REPORT_READY'; payload: ReportReadyPayload };
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'REPORT_READY'; payload: ReportReadyPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'RUN_BLOCKED'; payload: RunBlockedPayload };
 
 export type AnalysisSessionEventType = AnalysisSessionEvent['type'];

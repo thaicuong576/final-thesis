@@ -319,8 +319,8 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
     });
   });
 
-  // P. BLOCKER 2: EMPTY ANALYSIS PLAN PRODUCES 0 SPECIALIST INVOCATIONS (NO COMPANY FALLBACK)
-  it('Empty AnalysisPlan produces 0 SPECIALIST_INVOKED events (no default company fallback)', () => {
+  // P. BLOCKER 2: EMPTY ANALYSIS PLAN MUST NOT PRODUCE REPORT_READY -> TERMINATES IN BLOCKED
+  it('Empty AnalysisPlan produces 0 specialist invocations, emits RUN_BLOCKED, and terminates in BLOCKED without report synthesis', () => {
     const parseResult: ParseResult = {
       rawQuestion: 'Câu hỏi không gắn với chuyên môn nào',
       scope: {
@@ -339,12 +339,37 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
       }
     };
     const events = buildMockEventsFromParseResult(parseResult);
+
+    // 1. Zero specialist invocations
     const invokedEvents = events.filter((e) => e.type === 'SPECIALIST_INVOKED');
     expect(invokedEvents).toHaveLength(0);
 
+    // 2. Terminal RUN_BLOCKED emitted, no REPORT_READY or synthesis events
+    const blockedEvents = events.filter((e) => e.type === 'RUN_BLOCKED');
+    expect(blockedEvents).toHaveLength(1);
+    expect(blockedEvents[0].payload.reason).toBe(
+      'Không có chuyên môn phân tích phù hợp với yêu cầu trong phạm vi dữ liệu hiện tại.'
+    );
+    expect(events.filter((e) => e.type === 'REVIEW_STARTED')).toHaveLength(0);
+    expect(events.filter((e) => e.type === 'SYNTHESIS_STARTED')).toHaveLength(0);
+    expect(events.filter((e) => e.type === 'SYNTHESIS_COMPLETED')).toHaveLength(0);
+    expect(events.filter((e) => e.type === 'REPORT_READY')).toHaveLength(0);
+
+    // 3. Projector derives BLOCKED phase and reportReady === false
     const vm = projectAnalysisSession(events);
     expect(vm.invocations).toHaveLength(0);
-    expect(vm.currentPhase).toBe('READY_FOR_REPORT');
+    expect(vm.currentPhase).toBe('BLOCKED');
+    expect(vm.phaseLabel).toBe('Cần điều chỉnh yêu cầu');
+    expect(vm.reportReady).toBe(false);
+
+    // 4. UI renders normal orchestrator explanation, context badge, and NO report CTA
+    render(<AnalysisSessionWorkspace viewModel={vm} />);
+    expect(
+      screen.getByText('Không có chuyên môn phân tích phù hợp với yêu cầu trong phạm vi dữ liệu hiện tại.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Cần điều chỉnh yêu cầu')).toBeInTheDocument();
+    expect(screen.queryByText('Báo cáo phân tích đã sẵn sàng')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
   });
 
   // Q. BLOCKER 3: PREFIX PHASE PROGRESSION IN PROJECTOR

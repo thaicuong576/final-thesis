@@ -86,6 +86,22 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     }
   });
 
+  // Terminal Edge Case: Empty Analysis Plan must emit RUN_BLOCKED and stop without report synthesis
+  if (selectedCaps.length === 0) {
+    timeMs += 400;
+    events.push({
+      eventId: 'evt-dyn-' + String(seq).padStart(2, '0'),
+      sequence: seq++,
+      occurredAtMs: timeMs,
+      type: 'RUN_BLOCKED',
+      payload: {
+        reason:
+          'Không có chuyên môn phân tích phù hợp với yêu cầu trong phạm vi dữ liệu hiện tại.'
+      }
+    });
+    return events;
+  }
+
   // 4. Invocations
   selectedCaps.forEach((cap) => {
     timeMs += 300;
@@ -202,7 +218,7 @@ export function buildMockEventsFromParseResult(parseResult: ParseResult): Analys
     } else if (cap.id === 'macro') {
       headline = '2 nhận định bối cảnh · 4 dẫn chứng';
       findings = [
-        'Đã trích xuất chuỗi thời gian lãi suất điều hành và tăng trưởng tín dụng chu kỳ ' + periodLabels + '.',
+        'Đã trích xuất chuỗi thời gian lãi suất điều hành và bối cảnh vĩ mô khả dụng cho chu kỳ ' + periodLabels + '.',
         '4 dẫn chứng bối cảnh vĩ mô toàn ngành đã được đối chiếu đồng bộ theo quý.'
       ];
     } else {

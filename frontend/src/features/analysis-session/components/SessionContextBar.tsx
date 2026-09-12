@@ -22,6 +22,8 @@ export function SessionContextBar({
     switch (phase) {
       case 'READY_FOR_REPORT':
         return 'bg-[#edf7f3] text-[#2f6f5e] border-[#bce2d3]';
+      case 'BLOCKED':
+        return 'bg-[#fef2f2] text-[#991b1b] border-[#fecaca]';
       case 'REVISING':
         return 'bg-[#fef9ee] text-[#b47d14] border-[#f5dfaa]';
       case 'REVIEWING':
@@ -51,6 +53,8 @@ export function SessionContextBar({
                 className={`w-1.5 h-1.5 rounded-full ${
                   currentPhase === 'READY_FOR_REPORT'
                     ? 'bg-[#2f6f5e]'
+                    : currentPhase === 'BLOCKED'
+                    ? 'bg-[#dc2626]'
                     : currentPhase === 'REVISING'
                     ? 'bg-[#b47d14] animate-pulse'
                     : 'bg-[#0066cc]'

@@ -14,7 +14,8 @@ const phaseLabelMap: Record<OrchestratorPhase, string> = {
   REVIEWING: 'Đang kiểm tra tính nhất quán',
   REVISING: 'Đang hiệu chỉnh chuyên môn liên quan',
   SYNTHESIZING: 'Đang tổng hợp kết quả',
-  READY_FOR_REPORT: 'Sẵn sàng tạo báo cáo'
+  READY_FOR_REPORT: 'Sẵn sàng tạo báo cáo',
+  BLOCKED: 'Cần điều chỉnh yêu cầu'
 };
 
 /**
@@ -290,6 +291,20 @@ export function projectAnalysisSession(
           id: `${event.eventId}-cta`,
           type: 'REPORT_READY_ACTION',
           message: 'Báo cáo phân tích đã sẵn sàng',
+          occurredAtMs: event.occurredAtMs
+        });
+        break;
+      }
+
+      case 'RUN_BLOCKED': {
+        currentPhase = 'BLOCKED';
+        reportReady = false;
+        threadItems.push({
+          id: event.eventId,
+          type: 'ORCHESTRATOR_MESSAGE',
+          senderLabel: 'Điều phối',
+          message: event.payload.reason,
+          phase: 'BLOCKED',
           occurredAtMs: event.occurredAtMs
         });
         break;

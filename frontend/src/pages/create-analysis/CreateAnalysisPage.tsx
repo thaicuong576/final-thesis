@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { analysisService } from '../../entities/analysis/api/analysisService';
@@ -18,26 +18,78 @@ import {
   type ParsedScope,
   type Screen1Mode
 } from '../../features/analysis-composer';
+import {
+  AnalysisSessionWorkspace,
+  createAnalysisSession,
+  type AnalysisSession,
+  type DemoScenarioKey
+} from '../../features/analysis-session';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
+
+type PageMode = Screen1Mode | 'SESSION';
 
 export function CreateAnalysisPage() {
   const capabilitiesQuery = useAnalysisCapabilities();
   const capabilities = capabilitiesQuery.data;
 
-  const [mode, setMode] = useState<Screen1Mode>('DEFAULT');
+  const [mode, setMode] = useState<PageMode>('DEFAULT');
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [session, setSession] = useState<AnalysisSession | null>(null);
+  const [activeScenarioKey, setActiveScenarioKey] = useState<DemoScenarioKey | undefined>(undefined);
   const [datasetSelectorOpen, setDatasetSelectorOpen] = useState(false);
   const [scopeDrawerOpen, setScopeDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!capabilities) return;
+
+    const scenarioParam = searchParams.get('scenario');
+    if (scenarioParam) {
+      if (scenarioParam === 'COMPANY_ONLY' || scenarioParam === 'A') {
+        const q = 'ROE của TCB thay đổi thế nào trong năm 2024?';
+        const parsed = parseAnalysisQuestion(q, capabilities);
+        setParseResult(parsed);
+        setCurrentQuestion(q);
+        setSession(createAnalysisSession(parsed, capabilities));
+        setActiveScenarioKey('SCENARIO_A');
+        setMode('SESSION');
+        return;
+      } else if (scenarioParam === 'COMPANY_PEER' || scenarioParam === 'B') {
+        const q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
+        const parsed = parseAnalysisQuestion(q, capabilities);
+        setParseResult(parsed);
+        setCurrentQuestion(q);
+        setSession(createAnalysisSession(parsed, capabilities));
+        setActiveScenarioKey('SCENARIO_B');
+        setMode('SESSION');
+        return;
+      } else if (scenarioParam === 'TARGETED_REVISION' || scenarioParam === 'C') {
+        const q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
+        const parsed = parseAnalysisQuestion(q, capabilities);
+        setParseResult(parsed);
+        setCurrentQuestion(q);
+        setSession(createAnalysisSession(parsed, capabilities, { withTargetedRevision: true }));
+        setActiveScenarioKey('SCENARIO_C');
+        setMode('SESSION');
+        return;
+      } else if (scenarioParam === 'MACRO_COMPANY' || scenarioParam === 'D') {
+        const q = 'Lãi suất điều hành liên quan thế nào đến TCB trong năm 2024?';
+        const parsed = parseAnalysisQuestion(q, capabilities);
+        setParseResult(parsed);
+        setCurrentQuestion(q);
+        setSession(createAnalysisSession(parsed, capabilities));
+        setActiveScenarioKey('SCENARIO_D');
+        setMode('SESSION');
+        return;
+      }
+    }
+
     const q = searchParams.get('q');
-    if (q && capabilities && mode === 'DEFAULT') {
+    if (q && mode === 'DEFAULT') {
       handleQuestionSubmit(q);
     }
   }, [searchParams, capabilities, mode]);
@@ -85,6 +137,27 @@ export function CreateAnalysisPage() {
     });
   }
 
+  function handleSelectScenario(scenarioKey: DemoScenarioKey) {
+    if (!capabilities) return;
+    setActiveScenarioKey(scenarioKey);
+    let q = '';
+    let withRevision = false;
+    if (scenarioKey === 'SCENARIO_A') {
+      q = 'ROE của TCB thay đổi thế nào trong năm 2024?';
+    } else if (scenarioKey === 'SCENARIO_B') {
+      q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
+    } else if (scenarioKey === 'SCENARIO_C') {
+      q = 'TCB sinh lời tốt hơn hay kém nhóm so sánh trong năm 2024?';
+      withRevision = true;
+    } else if (scenarioKey === 'SCENARIO_D') {
+      q = 'Lãi suất điều hành liên quan thế nào đến TCB trong năm 2024?';
+    }
+    const parsed = parseAnalysisQuestion(q, capabilities);
+    setParseResult(parsed);
+    setCurrentQuestion(q);
+    setSession(createAnalysisSession(parsed, capabilities, { withTargetedRevision: withRevision }));
+  }
+
   async function handleConfirmAndAnalyze() {
     if (!capabilities || !parseResult) return;
     const isMacroSelected = parseResult.scope.analysisPlan.selectedCapabilities.some((c) => c.id === 'macro');
@@ -107,10 +180,10 @@ export function CreateAnalysisPage() {
           'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
       );
 
-      const hasPeer = parseResult.scope.analysisPlan.selectedCapabilities.some((c) => c.id === 'peer');
-      const targetScenario = hasPeer ? 'COMPANY_PEER' : 'COMPANY_ONLY';
-      const targetRunId = `run-${Date.now()}`;
-      navigate(`/analysis/${targetRunId}?scenario=${targetScenario}`);
+      // Initialize analysis session
+      const newSession = createAnalysisSession(parseResult, capabilities);
+      setSession(newSession);
+      setMode('SESSION');
     } finally {
       setIsSubmitting(false);
     }
@@ -137,11 +210,13 @@ export function CreateAnalysisPage() {
     >
       <div className="min-h-[calc(100vh-100px)] bg-canvas py-6 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          {/* Active Dataset Anchor Card */}
-          <ActiveDatasetCard
-            capabilities={capabilities}
-            onOpenSelector={() => setDatasetSelectorOpen(true)}
-          />
+          {/* Active Dataset Anchor Card (Only displayed in composer/interpretation modes) */}
+          {mode !== 'SESSION' && (
+            <ActiveDatasetCard
+              capabilities={capabilities}
+              onOpenSelector={() => setDatasetSelectorOpen(true)}
+            />
+          )}
 
           {/* Submission Success Banner */}
           {submissionSuccessMessage && (
@@ -154,7 +229,7 @@ export function CreateAnalysisPage() {
             </Alert>
           )}
 
-          {/* SCREEN 1 STATE MACHINE */}
+          {/* SCREEN 1 & SCREEN 2 STATE MACHINE */}
           {mode === 'DEFAULT' && (
             <div className="space-y-6">
               <HeroComposer
@@ -191,6 +266,15 @@ export function CreateAnalysisPage() {
                 onOpenDatasetSelector={() => setDatasetSelectorOpen(true)}
               />
             </div>
+          )}
+
+          {mode === 'SESSION' && session && (
+            <AnalysisSessionWorkspace
+              session={session}
+              onBackToComposer={() => setMode('DEFAULT')}
+              onSelectScenario={handleSelectScenario}
+              activeScenarioKey={activeScenarioKey}
+            />
           )}
         </div>
       </div>

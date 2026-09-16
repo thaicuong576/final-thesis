@@ -60,3 +60,40 @@ Before each major phase, complete the guardrail pre-flight questions and record
 any new Gold/SQLite/physical-schema coupling. Passing tests alone is not
 architectural acceptance; changes must also preserve the core/application
 boundary and the transferability rule.
+
+## GitHub Flow and branch safety
+
+`main` is the only canonical integration branch. Never implement directly on
+`main`.
+
+Before any code, data, documentation, experiment, or UI change, an agent must:
+
+1. fetch `origin/main`;
+2. verify the expected base SHA and a clean working tree;
+3. create a dedicated short-lived branch using the documented branch prefix;
+4. keep the change scoped;
+5. run appropriate verification;
+6. commit with a Conventional Commit title;
+7. push the branch and open a Pull Request to `main`;
+8. stop for review.
+
+Do not merge the Pull Request unless the user explicitly authorizes the merge.
+After a PR is merged, every subsequent task must start from the new latest
+`main` HEAD. Do not force-push `main`, rewrite its history, or start new work
+from a stale feature branch.
+
+Every coding handoff must report:
+
+```text
+Base SHA:
+Branch:
+Commit SHA:
+PR:
+Changed files:
+Tests:
+Known failures:
+Working-tree status:
+```
+
+See `CONTRIBUTING.md` and `docs/SDLC.md` for the repository workflow and
+change-type gates.

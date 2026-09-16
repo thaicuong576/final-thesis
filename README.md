@@ -24,6 +24,8 @@ The event history is recorded in `.agents/project-state/events.jsonl`.
 ## Canonical files
 
 - `AGENTS.md` — project rules and ownership boundaries.
+- `CONTRIBUTING.md` — GitHub Flow contribution rules and PR requirements.
+- `docs/SDLC.md` — canonical branch, lifecycle, change-type gates, CI limits, and historical-branch policy.
 - `docs/SPEC.md` — approved scope and acceptance criteria.
 - `docs/ARCHITECTURE.md` — system layers and runtime flow.
 - `docs/DATA-CONTRACT.md` — typed data and agent payload contracts.
@@ -73,6 +75,10 @@ reports/           experiment outputs and thesis-ready tables
 ```
 
 ## Working rule
+
+`main` is the only canonical integration branch. All new work starts from the
+latest `main`, uses a dedicated short-lived branch, and reaches `main` through
+a reviewed Pull Request. Never develop directly on `main` or force-push it.
 
 No provider-backed comparative multi-agent experiment begins until the
 data-foundation exit criteria in `docs/SPEC.md` are met. Guarded deterministic

@@ -1,12 +1,16 @@
 # Branch inventory — 2026-09-16
 
-This inventory was captured after fetching all remote refs. The comparison
-base is the accepted canonical commit:
+This is the pre-cleanup inventory captured after fetching all remote refs. The
+comparison base at capture time was the accepted canonical commit:
 
 `a83044886752b1ec6e5402014220875d87bbd18f`
 
-The repository default branch is now `main`, and `origin/main` points to that
-same SHA. No branch is deleted or rewritten by this migration.
+The repository default branch was already `main`, and `origin/main` pointed to
+that same SHA at capture time. The subsequent verified cleanup is recorded in
+[`BRANCH-CLEANUP-2026-09-16.md`](BRANCH-CLEANUP-2026-09-16.md), which is the
+authoritative final-state report. This file is retained as the historical
+pre-cleanup snapshot; it is not a claim that the listed historical branches
+remain on the remote.
 
 ## Remote branches
 
@@ -82,9 +86,7 @@ or merge it into `main` without an explicit file-level migration decision.
 
 ## Cleanup decision
 
-No open Pull Requests or open Issues were found during the preflight. Even so,
-no branch is deleted in this governance migration. Completed ancestor/equal
-branches should first receive immutable milestone tags where useful, then be
-deleted in a later explicit cleanup action. Diverged/active branches remain
-retained until their owners decide whether to archive them or submit a
-separate scoped PR.
+No open Pull Requests or open Issues were found during the preflight. The
+historical branch deletion and milestone-tag decisions made after this
+snapshot are recorded in the final cleanup report. Diverged/active branches
+remain retained pending their separate archive or scoped-migration decisions.

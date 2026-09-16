@@ -8,8 +8,10 @@ branch history, or runtime behavior was changed by this audit.
 The prerequisite merge was verified before this branch was created:
 
 - PR #4, `chore/historical-branch-cleanup`, is `MERGED` into `main`.
-- `origin/main` and this audit branch both resolve to
-  `2b77b938f2c314020aabf448535a890bc173f088`.
+- `origin/main` resolved to `2b77b938f2c314020aabf448535a890bc173f088`
+  when this audit branch was created.
+- The audit branch is intentionally ahead of that base after the audit-only
+  commit; `main` remains unchanged.
 - Default branch is `main`.
 - Audit branch: `chore/repository-hygiene-audit`.
 - Audit worktree: `D:/eddie-projects/personal-projects/final-thesis-repository-hygiene-audit`.
@@ -495,7 +497,7 @@ Commands were run from the audit worktree after the read-only inspection:
 | `npm run lint` | **PASS**. |
 | `npm test -- --run` | **PASS** — 2 test files, 15 tests. |
 | `npm run build` | **PASS** — 1,738 modules transformed; Vite emitted a non-blocking >500 kB chunk warning. |
-| `git diff --check` | To be rerun after adding this report. |
+| `git diff --check` | **PASS** on the staged audit report before commit; the clean final tree was rechecked after commit. |
 
 The Python failures are themselves part of the hygiene finding: a clean clone
 does not contain all artifacts assumed by the historical test suite. They must
@@ -507,9 +509,17 @@ Base SHA: `2b77b938f2c314020aabf448535a890bc173f088`
 
 Branch: `chore/repository-hygiene-audit`
 
-Commit SHA: to be recorded after the audit-only commit
+Initial audit commit SHA: `7527f08bbbf882a3366bdac1a758a12a71741c2b`.
 
-PR: to be opened from `chore/repository-hygiene-audit` into `main`; do not merge
+Corrective metadata commit: recorded by the PR head and remote branch after the
+follow-up correction. The exact current commit SHA is intentionally not copied
+into this file: a Git commit ID hashes its own content, so embedding the final
+commit ID in the file would create an impossible self-reference. The PR head,
+`git rev-parse origin/chore/repository-hygiene-audit`, and the final handoff
+message are the authoritative current-commit record.
+
+PR: [#5](https://github.com/thaicuong576/final-thesis/pull/5),
+`chore/repository-hygiene-audit` → `main`, currently OPEN; do not merge
 automatically.
 
 Changed files: only `docs/REPOSITORY-HYGIENE-AUDIT-2026-09-16.md`.
@@ -522,8 +532,8 @@ artifacts and plan-hash drift.
 Known failures: listed in the verification table and should be tracked as
 reproducibility/data-publication debt, not silently suppressed.
 
-Working-tree status: must be clean except for the committed report after
-commit/push; ignored audit dependencies/build output are not tracked.
+Working-tree status: CLEAN (`git status --porcelain` is empty). The ignored
+audit dependencies/build output are not tracked.
 
 Summary:
 

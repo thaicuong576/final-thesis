@@ -6,8 +6,9 @@ must start from the latest `main`.
 
 ## Required workflow
 
-Every meaningful code, data, documentation, experiment, or UI change must use
-a new short-lived branch and a Pull Request:
+Every repository change must use a new short-lived branch, commit, and Pull
+Request. This includes code, data, documentation, tests, configuration,
+templates, metadata, experiments, and UI changes:
 
 ```text
 fetch main → create branch → scoped change → test → commit → push → PR

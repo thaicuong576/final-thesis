@@ -27,7 +27,8 @@ research/specification
   → retest/release
 ```
 
-For each meaningful change:
+For every repository change — including code, data, documentation, tests,
+configuration, templates, metadata, experiments, and UI changes —:
 
 1. `git fetch origin`.
 2. Switch to `main` and run `git pull --ff-only origin main`.

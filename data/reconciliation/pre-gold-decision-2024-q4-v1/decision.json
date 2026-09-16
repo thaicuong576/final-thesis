@@ -1,0 +1,165 @@
+{
+  "decision_id": "pre-gold-decision-2024-q4-v1",
+  "decision_type": "bounded_pre_gold_reconciliation",
+  "decision_status": "resolved_with_gold_promotion_pending",
+  "base_acquisition_id": "pre-phase4-acquisition-v1",
+  "base_canonical_commit": "92eaf3161bd6e811776e8f172bdc309737a6bb0e",
+  "scope": {
+    "analytical_period": "2024_Q4",
+    "period_end": "2024-12-31",
+    "frozen_macro_indicators": [
+      "macro.policy_rate",
+      "macro.credit_growth"
+    ],
+    "proposed_sector_capabilities": [
+      "sector.system_credit_growth",
+      "sector.system_credit_outstanding",
+      "sector.system_npl_ratio"
+    ]
+  },
+  "source_registry": {
+    "manifest": "data/manifests/pre-phase4-acquisition-v1.jsonl",
+    "primary_artifact": {
+      "source_id": "nso_statistical_yearbook_2024_pdf",
+      "publisher": "National Statistics Office of Vietnam",
+      "source_tier": "primary",
+      "local_path": "data/raw/pre-phase4-acquisition-v1/structured/nso/NGTK-Cuc-TK-2024_BQ.pdf",
+      "source_url": "https://www.nso.gov.vn/wp-content/uploads/2025/06/NGTK-Cuc-TK-2024_BQ.pdf",
+      "sha256": "ab73742e1feab560305a1adac04c2e70e7435b98af53bd903d5abf0ac3e8bb85"
+    }
+  },
+  "macro_credit_growth": {
+    "decision": "DEFINITIONAL_MATCH_ACCEPTED_CANDIDATE",
+    "source_status": "DIRECT_OFFICIAL",
+    "metric_id": "macro.credit_growth",
+    "entity_scope": "Vietnamese economy; credit institutions and foreign-bank branches",
+    "period": "2024_Q4",
+    "as_of_date": "2024-12-31",
+    "period_basis": "annual_change_vs_end_2023",
+    "value": 15.1,
+    "unit": "percent",
+    "source_native_value": "15,1%",
+    "definition_match": true,
+    "period_match": true,
+    "entity_scope_match": true,
+    "source_locator": {
+      "table_artifact": "nso_statistical_yearbook_2024_pdf",
+      "table_pdf_page": 263,
+      "table_printed_page": 102,
+      "table_title_vi": "Dư nợ tín dụng của các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài tại thời điểm 31/12 hàng năm",
+      "table_title_en": "Credit outstanding of credit institutions, branches of foreign bank as of annual 31st December",
+      "growth_row": "Tốc độ tăng - Growth rate (%) / Số dư - Outstanding",
+      "growth_column": "Sơ bộ/Prel. 2024",
+      "definition_pdf_page": 222,
+      "definition_locator": "definition of credit outstanding to the Vietnamese economy"
+    },
+    "stock_inputs_preserved": [
+      {
+        "period_end": "2023-12-31",
+        "value": 13569.7,
+        "unit": "VND_trillion",
+        "raw_value": "13,569.7",
+        "column": "2023"
+      },
+      {
+        "period_end": "2024-12-31",
+        "value": 15617.1,
+        "unit": "VND_trillion",
+        "raw_value": "15,617.1",
+        "column": "Sơ bộ/Prel. 2024"
+      }
+    ],
+    "derived_cross_check": {
+      "formula": "(15617.1 / 13569.7 - 1) * 100",
+      "unrounded_percent": "15.08802700133385410141712790",
+      "rounded_to_source_precision": 15.1,
+      "is_replacement_for_source_native_value": false
+    },
+    "preliminary_publication": true,
+    "quality_status": "review_required",
+    "promotion_status": "not_promoted",
+    "promotion_blocker": "Gold promotion remains governed by the existing Macro Gold review/materialization contract; this pass does not manufacture a valid Gold row or change the frozen runtime.",
+    "excluded_value": {
+      "value": 15.08,
+      "source_id": "sbv_credit_growth_lead_2025_03_18",
+      "reason": "secondary_research_statement_without_traceable_primary_year_end_basis"
+    }
+  },
+  "macro_sector_reconciliation": {
+    "decision": "REUSE_ONE_UNDERLYING_OBSERVATION",
+    "underlying_observation_id": "nso_statistical_yearbook_2024_table_102_credit_growth_2024_q4",
+    "new_sector_credit_growth_observation_created": false,
+    "source_fact": "The NSO table reports one aggregate year-end credit-growth fact. No duplicate sector.system_credit_growth observation is created.",
+    "capability_mappings": [
+      {
+        "capability": "macro",
+        "metric_id": "macro.credit_growth",
+        "mapping_status": "candidate_mapping"
+      },
+      {
+        "capability": "sector",
+        "metric_id": "sector.system_credit_growth",
+        "mapping_status": "proposed_alias_only_not_canonical"
+      }
+    ],
+    "mapping_rule": "A provider/domain capability may expose the same underlying observation only when its metric definition, entity scope and period basis are declared compatible. The sector alias is not a promoted metric or observation in this pass."
+  },
+  "sector_system_credit_outstanding": {
+    "decision": "EXACT_TABLE_ROW_MAPPED_CANDIDATE",
+    "metric_id": "sector.system_credit_outstanding",
+    "entity": "VN_BANKING_SYSTEM",
+    "period": "2024_Q4",
+    "as_of_date": "2024-12-31",
+    "period_basis": "point_in_time_year_end",
+    "value": 15617.1,
+    "unit": "VND_trillion",
+    "source_native_value": "15,617.1",
+    "source_id": "nso_statistical_yearbook_2024_pdf",
+    "source_locator": {
+      "pdf_page": 263,
+      "printed_page": 102,
+      "table_title_vi": "Dư nợ tín dụng của các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài tại thời điểm 31/12 hàng năm",
+      "row": "Số dư - Outstanding",
+      "column": "Sơ bộ/Prel. 2024",
+      "unit_label": "Nghìn tỷ đồng - Trill. dongs",
+      "definition_pdf_page": 222
+    },
+    "entity_scope_match": true,
+    "date_match": true,
+    "unit_match": true,
+    "quality_status": "review_required",
+    "promotion_status": "not_promoted",
+    "promotion_blocker": "The exact source mapping is resolved, but this candidate has not passed the independent Gold review/materialization gate."
+  },
+  "sector_system_npl_ratio": {
+    "decision": "RETAIN_ACCEPTED_MISSINGNESS_CANDIDATE",
+    "metric_id": "sector.system_npl_ratio",
+    "entity": "VN_BANKING_SYSTEM",
+    "period": "2024_Q4",
+    "value": null,
+    "unit": "percent",
+    "quality_status": "missing",
+    "missing_reason": "DATA_UNAVAILABLE",
+    "source_id": null,
+    "peer_substitution_used": false,
+    "decision_note": "No native official year-end system NPL observation was established; the five-bank peer sample is not a sector substitute."
+  },
+  "gold_promotion": {
+    "performed": false,
+    "existing_macro_gold_artifacts_modified": false,
+    "raw_acquisition_artifacts_modified": false,
+    "required_before_promotion": [
+      "independent validation/review requirements for any new candidate",
+      "existing Macro Gold source and acceptance contract",
+      "fail-closed snapshot materialization and experiment preflight"
+    ]
+  },
+  "guardrail_preflight": {
+    "no_broad_search": true,
+    "no_rag_or_vector_processing": true,
+    "no_phase_4_implementation": true,
+    "no_five_bank_peer_as_sector_fact": true,
+    "raw_sources_immutable": true,
+    "single_underlying_fact_not_duplicated": true
+  }
+}

@@ -1102,3 +1102,28 @@ rule/architecture sync
 No step in this decision authorizes changes to historical benchmark artifacts,
 the existing Gold dataset, the Phase 0–3A locked semantics, or the normal
 product's introduction of an A/B/C architecture selector.
+
+## D-067: Resolve the bounded pre-Gold 2024 Q4 macro/sector decision debt
+
+Status: Accepted for candidate reconciliation; Gold promotion remains pending.
+
+The official National Statistics Office 2024 Statistical Yearbook provides a
+direct year-end aggregate credit-growth observation of `15.1%` at
+`2024-12-31` compared with end-2023, with the frozen `VN` entity scope and
+`annual_change_vs_end_2023` period basis. The source-native one-decimal value
+is retained; the `15.08%` SBV-hosted research statement remains excluded as a
+secondary lead. The exact table/row and source hash are recorded in the
+versioned pre-Gold decision package.
+
+One underlying aggregate fact is reused by capability mapping. This decision
+does not create a duplicate `sector.system_credit_growth` observation. The
+exact yearbook `Outstanding / Prel. 2024` row maps a candidate
+`sector.system_credit_outstanding` value of `15,617.1` trillion VND at
+`2024-12-31`, but it remains review-required and unpromoted. Native
+`sector.system_npl_ratio` remains `missing / DATA_UNAVAILABLE`; the five-bank
+peer sample is not a substitute.
+
+Reason: semantic reconciliation must be completed before Phase 4, while Gold
+promotion still requires the existing independent review, source contract and
+fail-closed materialization gate. This decision changes no raw artifact,
+schema, runtime or historical Gold snapshot.

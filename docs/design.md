@@ -1,5 +1,10 @@
 # Product UI identity
 
+> [!IMPORTANT]
+> **Canonical Source of Truth**:
+> The project-wide design guideline is defined in [`.agent/design.md`](file:///d:/eddie-projects/personal-projects/final-thesis/.agent/design.md) ("Universal Software Product Design System") and enforced by [`.agent/rules/design-system.md`](file:///d:/eddie-projects/personal-projects/final-thesis/.agent/rules/design-system.md) and [`AGENTS.md`](file:///d:/eddie-projects/personal-projects/final-thesis/AGENTS.md).
+> All product surfaces, screens, components, states, styling, and interactions must strictly obey `.agent/design.md`.
+
 The thesis reference application is a financial analyst workspace. It helps
 analysts understand which validated data is available, define an analysis
 request, observe the business-level workflow, and produce a defensible report.

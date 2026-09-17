@@ -157,23 +157,23 @@ export function CreateAnalysisPage() {
     <WorkspaceShell
       activeSection="analysis"
       context={
-        <div className="mx-auto w-full max-w-[1200px] px-5 py-2.5 lg:px-8">
+        <div className="mx-auto w-full max-w-[1120px] px-4 py-2.5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <span>Không gian làm việc</span>
-              <span>/</span>
-              <span className="font-semibold text-ink">Phân tích tài chính</span>
+            <div className="flex items-center gap-2 text-xs text-ink-secondary font-mono">
+              <span>KHÔNG GIAN</span>
+              <span className="text-border-strong">/</span>
+              <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
             </div>
-            <div className="hidden sm:flex items-center gap-2 text-xs text-muted">
-              <span className="w-2 h-2 rounded-full bg-[#2f6f5e]" aria-hidden="true" />
-              <span>Hệ thống phân tích cấp bậc sẵn sàng</span>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
+              <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
+              <span className="font-mono text-[11px]">HỆ THỐNG PHÂN TÍCH CẤP BẬC SẴN SÀNG</span>
             </div>
           </div>
         </div>
       }
     >
-      <div className="min-h-[calc(100vh-100px)] bg-canvas py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <div className="min-h-[calc(100vh-80px)] bg-workspace py-5 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1120px] space-y-4">
           {/* Active Dataset Anchor Card (Only displayed in composer/interpretation modes) */}
           {mode !== 'SESSION' && (
             <ActiveDatasetCard
@@ -184,9 +184,9 @@ export function CreateAnalysisPage() {
 
           {/* Submission Success Banner */}
           {submissionSuccessMessage && (
-            <Alert className="border-[#bce2d3] bg-[#edf7f3] text-[#2f6f5e]">
-              <CheckCircle2 className="h-4 w-4 text-[#2f6f5e]" />
-              <AlertTitle className="text-xs font-semibold">Khởi tạo quy trình thành công</AlertTitle>
+            <Alert className="border-[#2f9e62]/30 bg-[#e4f4ea] text-[#2f9e62]">
+              <CheckCircle2 className="h-4 w-4 text-[#2f9e62]" />
+              <AlertTitle className="text-xs font-bold">Khởi tạo quy trình thành công</AlertTitle>
               <AlertDescription className="text-xs text-ink mt-1">
                 {submissionSuccessMessage}
               </AlertDescription>
@@ -195,14 +195,14 @@ export function CreateAnalysisPage() {
 
           {/* SCREEN 1 & SCREEN 2 STATE MACHINE */}
           {mode === 'DEFAULT' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <HeroComposer
                 initialQuestion={currentQuestion}
                 onSubmit={handleQuestionSubmit}
                 isSubmitting={isSubmitting}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 <SuggestedQuestions onSelectPrompt={handleSelectSuggestion} />
                 <RecentReportsSummary />
               </div>
@@ -265,8 +265,8 @@ export function CreateAnalysisPage() {
 
 function LoadingState() {
   return (
-    <div className="grid min-h-[60vh] place-items-center bg-canvas p-6">
-      <p className="text-sm text-muted" role="status">
+    <div className="grid min-h-[60vh] place-items-center bg-workspace p-6">
+      <p className="text-xs font-mono text-ink-secondary" role="status">
         Đang chuẩn bị bộ dữ liệu và động cơ phân tích…
       </p>
     </div>
@@ -275,10 +275,10 @@ function LoadingState() {
 
 function ErrorState() {
   return (
-    <div className="grid min-h-[60vh] place-items-center bg-canvas p-6">
-      <div className="border border-[#e4c0bb] bg-white p-6 text-center max-w-md rounded-lg shadow-surface">
-        <p className="font-semibold text-blocked">Không thể kết nối bộ dữ liệu.</p>
-        <p className="mt-2 text-xs text-muted leading-relaxed">
+    <div className="grid min-h-[60vh] place-items-center bg-workspace p-6">
+      <div className="border border-[#c84b3f]/30 bg-card p-6 text-center max-w-md rounded-md">
+        <p className="font-bold text-sm text-blocked">Không thể kết nối bộ dữ liệu.</p>
+        <p className="mt-2 text-xs text-ink-secondary leading-relaxed">
           Vui lòng kiểm tra lại dịch vụ cung cấp dữ liệu hoặc chọn nguồn dữ liệu khác để tiếp tục.
         </p>
       </div>

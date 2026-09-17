@@ -33,17 +33,25 @@ export function HeroComposer({
   const isValid = question.trim().length > 0;
 
   return (
-    <div className="space-y-4">
-      <div className="text-center sm:text-left space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary">
+            Bàn làm việc phân tích
+          </span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
+            TỰ ĐỘNG BÓC TÁCH PHẠM VI
+          </span>
+        </div>
+        <h1 className="text-lg font-bold tracking-tight text-ink">
           Bạn muốn phân tích điều gì?
         </h1>
-        <p className="text-xs text-muted leading-relaxed max-w-2xl">
+        <p className="text-xs text-ink-secondary leading-relaxed">
           Nhập câu hỏi phân tích bằng ngôn ngữ tự nhiên. Hệ thống phân tích đa tác tử sẽ tự động trích xuất phạm vi và lập luận dựa trên bằng chứng.
         </p>
       </div>
 
-      <div className="border-2 border-[#1c5d9c] bg-white rounded-xl p-4 shadow-surface space-y-3 transition-shadow focus-within:shadow-md">
+      <div className="border border-line bg-card rounded-md p-4 space-y-3 transition-colors focus-within:border-border-focus focus-within:ring-1 focus-within:ring-border-focus">
         <label htmlFor="analysis-hero-composer" className="sr-only">
           Câu hỏi phân tích
         </label>
@@ -56,19 +64,19 @@ export function HeroComposer({
           rows={3}
           maxLength={500}
           placeholder="So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất."
-          className="border-0 p-0 text-sm text-ink placeholder:text-slate-400 focus-visible:ring-0 resize-none shadow-none leading-relaxed"
+          className="border-0 p-0 text-sm text-ink placeholder:text-ink-tertiary focus-visible:ring-0 resize-none shadow-none leading-relaxed bg-transparent"
         />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-[#f0f2f4]">
-          <div className="text-[11px] text-muted flex items-center gap-1.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-line">
+          <div className="text-[11px] text-ink-secondary flex items-center gap-1.5 font-mono">
             <span aria-hidden="true">💡</span>
             <span>Tự động phân tách thực thể & chỉ tiêu từ câu hỏi</span>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-muted">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-ink-secondary">
               <span>Nhấn</span>
-              <kbd className="rounded border border-line bg-canvas px-1.5 py-0.5 text-[10px] font-medium text-ink">
+              <kbd className="rounded border border-line bg-surface-secondary px-1.5 py-0.5 text-[10px] font-mono text-ink">
                 ⌘ / Ctrl + ↵
               </kbd>
             </span>
@@ -77,7 +85,7 @@ export function HeroComposer({
               type="button"
               onClick={handleSubmit}
               disabled={!isValid || isSubmitting}
-              className="bg-ink hover:bg-[#263849] text-white font-semibold text-xs h-10 px-5 gap-2 shadow-xs transition"
+              className="h-9 px-4 text-xs font-semibold gap-1.5"
             >
               <span>Bắt đầu phân tích</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />

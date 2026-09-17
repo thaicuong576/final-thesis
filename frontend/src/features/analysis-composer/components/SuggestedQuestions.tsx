@@ -19,12 +19,12 @@ const DEFAULT_SUGGESTIONS = [
 
 export function SuggestedQuestions({ onSelectPrompt }: SuggestedQuestionsProps) {
   return (
-    <div className="border border-line bg-white rounded-lg p-4 space-y-3 shadow-surface">
+    <div className="border border-line bg-card rounded-md p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
+        <h3 className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary">
           Gợi ý câu hỏi phân tích
         </h3>
-        <span className="text-[11px] text-muted">Bấm để điền mẫu</span>
+        <span className="text-[10px] font-mono text-ink-tertiary">BẤM ĐỂ ĐIỀN MẪU</span>
       </div>
 
       <div className="space-y-2">
@@ -33,12 +33,12 @@ export function SuggestedQuestions({ onSelectPrompt }: SuggestedQuestionsProps) 
             key={idx}
             type="button"
             onClick={() => onSelectPrompt(item.prompt)}
-            className="w-full text-left p-3 rounded-md bg-[#f7f6f2] hover:bg-[#e9eef2] hover:border-[#8eb6da] border border-transparent transition text-xs text-ink group"
+            className="w-full text-left p-2.5 rounded-md bg-surface-secondary hover:bg-surface-hover border border-border-subtle hover:border-border transition-colors text-xs text-ink group"
           >
-            <div className="font-semibold text-ink group-hover:text-[#1c5d9c] transition-colors mb-0.5">
+            <div className="font-bold text-ink group-hover:text-amber-active transition-colors mb-0.5">
               • {item.title}
             </div>
-            <div className="text-[11px] text-muted line-clamp-2">
+            <div className="text-[11px] text-ink-secondary line-clamp-2 leading-relaxed">
               {item.prompt}
             </div>
           </button>

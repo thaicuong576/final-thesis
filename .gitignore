@@ -17,7 +17,7 @@ experiments/outputs/provider/
 # handoff. Keep them available locally for reproducible runs.
 data/
 experiments/outputs/
-reports/
+/reports/
 tmp/
 .tmp-pdf-qa/
 .codex-finalizer/

@@ -28,18 +28,18 @@ export function RequestInterpretationCard({
       : scope.referenceUniverseLabel || 'Toàn hệ thống';
 
   return (
-    <div className="border border-line bg-white rounded-xl p-6 shadow-surface space-y-6">
+    <div className="border border-line bg-card rounded-md p-5 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-line pb-4">
         <div className="space-y-1">
           <Badge
             variant="outline"
-            className="bg-[#edf7f3] text-[#2f6f5e] border-[#bce2d3] gap-1 px-2 py-0.5 text-xs font-semibold"
+            className="bg-[#e4f4ea] text-[#2f9e62] border-[#2f9e62]/30 gap-1 px-2 py-0.5 text-xs font-semibold"
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#2f6f5e]" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#2f9e62]" />
             Hệ thống hiểu yêu cầu
           </Badge>
-          <h2 className="text-base font-semibold text-ink">Xác nhận kế hoạch phân tích</h2>
-          <p className="text-xs text-muted italic line-clamp-2">
+          <h2 className="text-base font-bold text-ink">Xác nhận kế hoạch phân tích</h2>
+          <p className="text-xs text-ink-secondary italic line-clamp-2">
             “{rawQuestion}”
           </p>
         </div>
@@ -47,32 +47,32 @@ export function RequestInterpretationCard({
         <button
           type="button"
           onClick={onEditQuestion}
-          className="text-xs font-medium text-muted hover:text-ink underline self-start shrink-0"
+          className="text-xs font-medium text-ink-secondary hover:text-ink underline self-start shrink-0"
         >
           Nhập lại câu hỏi
         </button>
       </div>
 
       {/* Query-Adaptive Section 1: Phạm vi hệ thống nhận diện */}
-      <div className="p-4 bg-canvas rounded-lg border border-line space-y-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">
+      <div className="p-3.5 bg-surface-secondary rounded-md border border-border-subtle space-y-2">
+        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary block">
           Phạm vi hệ thống nhận diện
         </span>
-        <div className="text-sm font-semibold text-ink">
+        <div className="text-sm font-bold text-ink">
           {scope.scopeSignature}
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted pt-0.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-secondary pt-0.5">
           <span>
-            <strong>Doanh nghiệp:</strong> {entityDisplay}
+            <strong className="text-ink">Doanh nghiệp:</strong> {entityDisplay}
           </span>
-          <span aria-hidden="true">•</span>
+          <span aria-hidden="true" className="text-border-strong">•</span>
           <span>
-            <strong>Chu kỳ:</strong>{' '}
+            <strong className="text-ink">Chu kỳ:</strong>{' '}
             {formatPeriodsSignature(scope.periods)}
           </span>
-          <span aria-hidden="true">•</span>
+          <span aria-hidden="true" className="text-border-strong">•</span>
           <span>
-            <strong>Chỉ tiêu:</strong>{' '}
+            <strong className="text-ink">Chỉ tiêu:</strong>{' '}
             {scope.metrics.length > 0
               ? scope.metrics.map((m) => m.acronym).join(', ')
               : 'Không áp dụng (Bối cảnh vĩ mô)'}
@@ -82,22 +82,22 @@ export function RequestInterpretationCard({
 
       {/* Query-Adaptive Section 2: Phân tích sẽ sử dụng */}
       <div className="space-y-2.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">
+        <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary block">
           Phân tích sẽ sử dụng
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {selectedCapabilities.map((cap) => (
             <div
               key={cap.id}
-              className="flex items-start gap-2.5 p-3 rounded-lg bg-[#edf7f3] border border-[#bce2d3] text-xs"
+              className="flex items-start gap-2.5 p-3 rounded-md bg-[#e4f4ea]/60 border border-[#2f9e62]/30 text-xs"
             >
-              <div className="mt-0.5 grid place-items-center w-4 h-4 rounded-full bg-[#2f6f5e] text-white shrink-0">
+              <div className="mt-0.5 grid place-items-center w-4 h-4 rounded-full bg-[#2f9e62] text-white shrink-0">
                 <Check className="w-2.5 h-2.5 stroke-[3]" />
               </div>
               <div className="min-w-0">
-                <div className="font-semibold text-[#2f6f5e]">{cap.label}</div>
+                <div className="font-bold text-ink">{cap.label}</div>
                 {cap.description && (
-                  <div className="text-[11px] text-[#2f6f5e]/80 mt-0.5">
+                  <div className="text-[11px] text-ink-secondary mt-0.5">
                     {cap.description}
                   </div>
                 )}
@@ -113,9 +113,9 @@ export function RequestInterpretationCard({
           type="button"
           variant="outline"
           onClick={onOpenScopeAdjustment}
-          className="border-line hover:bg-canvas text-xs font-semibold text-ink gap-2 self-start sm:self-auto"
+          className="text-xs font-semibold gap-2 self-start sm:self-auto"
         >
-          <Settings2 className="w-3.5 h-3.5 text-muted" />
+          <Settings2 className="w-3.5 h-3.5 text-ink-secondary" />
           <span>Chỉnh phạm vi</span>
         </Button>
 
@@ -124,7 +124,7 @@ export function RequestInterpretationCard({
             type="button"
             variant="ghost"
             onClick={onEditQuestion}
-            className="text-xs font-medium text-muted hover:text-ink"
+            className="text-xs font-medium text-ink-secondary hover:text-ink"
           >
             Hủy
           </Button>
@@ -133,7 +133,7 @@ export function RequestInterpretationCard({
             type="button"
             onClick={onConfirm}
             disabled={isConfirming}
-            className="bg-[#1c5d9c] hover:bg-[#154676] text-white font-semibold text-xs h-10 px-5 gap-2 shadow-xs transition"
+            className="h-9 px-4 text-xs font-semibold gap-1.5"
           >
             <span>Xác nhận & phân tích</span>
             <ArrowRight className="w-3.5 h-3.5" />

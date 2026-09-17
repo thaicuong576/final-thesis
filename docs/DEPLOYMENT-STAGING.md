@@ -221,18 +221,28 @@ This prevents 404 errors when a user bookmarks or hard-refreshes any SPA route.
 
 Supabase provides the managed PostgreSQL database instance.
 
+### Active Staging Database Project
+
+- **Project Name**: `Final thesis`
+- **Project Ref**: `klaukirnadifltzhqidg`
+- **Organization**: `Eddie Agent` (`pomhwmgylzkjnjnjsrbb`)
+- **Region**: `Southeast Asia (Singapore)` (`ap-southeast-1`)
+- **Dashboard URL**: `https://supabase.com/dashboard/project/klaukirnadifltzhqidg`
+
 ### Obtaining the Connection String
 
 In the Supabase Dashboard:
-1. Navigate to **Project Settings** → **Database**.
-2. Locate **Connection parameters**.
-3. For serverless / managed cloud runtimes like Render:
-   - **Recommended**: Connection Pooling via Supavisor (**Port 6543**, Transaction Mode).
-   - Connection string format:
-     ```text
-     postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require
-     ```
-4. Set this value in Render under environment variable `DATABASE_URL`.
+1. Open [Project Settings → Database](https://supabase.com/dashboard/project/klaukirnadifltzhqidg/settings/database).
+2. Locate **Connection string** (or click the **Connect** modal in the top header).
+3. Select **Transaction Pooler** (Supavisor on **Port 6543**, recommended for Render managed backend):
+   ```text
+   postgresql://postgres.klaukirnadifltzhqidg:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
+   ```
+4. Alternatively, for Session mode (**Port 5432**):
+   ```text
+   postgresql://postgres.klaukirnadifltzhqidg:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+   ```
+5. Set this connection string in the Render service environment as `DATABASE_URL`.
 
 ### Database Invariant for Sprint 0
 

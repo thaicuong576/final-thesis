@@ -180,15 +180,22 @@ services:
 
 ## 6. Vercel Frontend Deployment
 
-### Project Settings on Vercel
+### Active Staging / Production Deployment
 
-1. **Framework Preset**: Vite.
-2. **Root Directory**: `frontend`.
-3. **Build Command**: `npm run build` (runs `tsc -b && vite build`).
-4. **Output Directory**: `dist`.
-5. **Install Command**: `npm ci`.
-6. **Environment Variables**:
-   - `VITE_API_BASE_URL`: `https://[your-render-service].onrender.com`
+- **Project Name**: `final-thesis-frontend`
+- **Project ID**: `prj_4M0YPjycNLG5aK7atZKlSbbl61IU`
+- **Scope**: `eddies-projects-69fa3178`
+- **Canonical URL**: `https://final-thesis-frontend.vercel.app`
+- **Git Connection**: `https://github.com/thaicuong576/final-thesis` (monitored for automatic deployments)
+- **Framework Preset**: Vite
+- **Root Directory**: `frontend`
+- **Build Command**: `npm run build` (`tsc -b && vite build`)
+- **Output Directory**: `dist`
+- **Install Command**: `npm ci`
+- **Configured Environment Variables**:
+  - `VITE_API_BASE_URL`: `https://final-thesis-api.onrender.com` (Production & Preview)
+
+### Project Settings on Vercel (Reference)
 
 ### SPA Routing & Page Refresh Configuration
 

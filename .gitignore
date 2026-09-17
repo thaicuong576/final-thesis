@@ -26,6 +26,7 @@ tmp/
 # Frontend build and dependency artifacts.
 frontend/node_modules/
 frontend/dist/
+.vercel/
 
 # Binary/source artifacts that should not enter the source repository.
 *.pdf

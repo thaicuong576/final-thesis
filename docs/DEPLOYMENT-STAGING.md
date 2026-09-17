@@ -80,7 +80,7 @@ Infrastructure & Providers
 
 | Variable | Required | Staging Example | Purpose |
 |---|---|---|---|
-| `VITE_API_BASE_URL` | Yes | `https://final-thesis-api.onrender.com` | Base URL for FastAPI backend endpoints. |
+| `VITE_API_BASE_URL` | Yes | `https://final-thesis-zgwt.onrender.com` | Base URL for FastAPI backend endpoints. |
 
 > [!CAUTION]
 > **Secret Boundary Rule**:
@@ -131,7 +131,27 @@ Visit `http://localhost:5173`.
 
 ## 5. Render Web Service Deployment
 
-Render deploys the FastAPI application directly from Git using `render.yaml` or manual service setup.
+Render deploys the FastAPI application directly from Git using `render.yaml` or managed web service setup.
+
+### Active Staging Web Service
+
+- **Service Name**: `final-thesis`
+- **Service ID**: `srv-dam0348u01pc73avsorg`
+- **Service Slug**: `final-thesis-zgwt`
+- **Primary URL**: `https://final-thesis-zgwt.onrender.com`
+- **Dashboard URL**: `https://dashboard.render.com/web/srv-dam0348u01pc73avsorg`
+- **Region**: Singapore (`singapore`)
+- **Plan**: Free
+- **Branch**: `feat/deployment-walking-skeleton`
+- **Build Command**: `pip install -r requirements-render.txt`
+- **Start Command**: `uvicorn thesis_api.main:app --host 0.0.0.0 --port $PORT`
+- **Health Check Path**: `/api/health`
+- **Active Environment Variables**:
+  - `PYTHONPATH`: `src`
+  - `APP_ENV`: `staging`
+  - `DATABASE_URL`: `postgresql://postgres.klaukirnadifltzhqidg:[SECRET]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require`
+  - `CORS_ORIGINS`: `["http://localhost:5173","https://final-thesis-frontend.vercel.app"]`
+  - `CORS_ORIGIN_REGEX`: `^https://.*final-thesis.*\.vercel\.app$`
 
 ### Blueprint Specifications (`render.yaml`)
 
@@ -161,21 +181,6 @@ services:
         sync: false
 ```
 
-### Render Dashboard Manual Setup (Alternative)
-
-1. **Create Web Service**: Connect `thaicuong576/final-thesis` repository.
-2. **Environment**: Python 3.
-3. **Region**: Singapore (`singapore`) or closest region to Supabase project.
-4. **Build Command**: `pip install -r requirements-render.txt`.
-5. **Start Command**: `uvicorn thesis_api.main:app --host 0.0.0.0 --port $PORT`.
-6. **Health Check Path**: `/api/health`.
-7. **Environment Variables**:
-   - `PYTHONPATH`: `src`
-   - `APP_ENV`: `staging`
-   - `DATABASE_URL`: *(Supabase connection string)*
-   - `CORS_ORIGINS`: `https://[your-vercel-app].vercel.app`
-   - `CORS_ORIGIN_REGEX`: `^https://.*final-thesis.*\.vercel\.app$`
-
 ---
 
 ## 6. Vercel Frontend Deployment
@@ -193,7 +198,7 @@ services:
 - **Output Directory**: `dist`
 - **Install Command**: `npm ci`
 - **Configured Environment Variables**:
-  - `VITE_API_BASE_URL`: `https://final-thesis-api.onrender.com` (Production & Preview)
+  - `VITE_API_BASE_URL`: `https://final-thesis-zgwt.onrender.com` (Production & Preview)
 
 ### Project Settings on Vercel (Reference)
 
@@ -267,44 +272,59 @@ Render free-tier instances spin down after 15 minutes without incoming HTTP traf
 
 ### Job Configuration on cron-job.org
 
-1. **URL**: `https://[your-render-api].onrender.com/api/health`
-2. **Method**: `GET`
-3. **Schedule**: Every 10 minutes (`*/10 * * * *`).
-4. **Failure Alerts**: Email notification after 2 consecutive failures.
+- **Job ID**: `8462735`
+- **Title**: `final-thesis-api-staging-heartbeat`
+- **URL**: `https://final-thesis-zgwt.onrender.com/api/health`
+- **Method**: `GET`
+- **Schedule**: Every 10 minutes (`0,10,20,30,40,50` min past every hour)
+- **Status**: Enabled (Active)
+- **Timezone**: `Asia/Ho_Chi_Minh`
 
 ---
 
 ## 9. Smoke Test Acceptance Verification
 
-Before accepting a deployment, execute the following smoke tests:
+Verified live against the active staging deployment:
 
 ### 1. Backend Liveness Probe
 ```bash
-curl -i https://[RENDER_SERVICE_URL]/api/health
+curl -i https://final-thesis-zgwt.onrender.com/api/health
 ```
-- **Expected**: HTTP 200 OK
+- **Result**: HTTP 200 OK
 - **Response**: `{"status": "ok", "service": "final-thesis-api"}`
 
 ### 2. Safe Version Probe
 ```bash
-curl -i https://[RENDER_SERVICE_URL]/api/version
+curl -i https://final-thesis-zgwt.onrender.com/api/version
 ```
-- **Expected**: HTTP 200 OK
-- **Response**: `{"service": "final-thesis-api", "environment": "staging", "revision": "<git-sha>"}`
+- **Result**: HTTP 200 OK
+- **Response**: `{"service": "final-thesis-api", "environment": "staging", "revision": "1bec250621a5f37796a5657279e3bb6eaba2d7aa"}`
 - **Verification**: Zero secret tokens, passwords, or connection URLs in response headers or body.
 
-### 3. Database Readiness Probe
+### 3. Database Readiness Probe (Supabase Reachability)
 ```bash
-curl -i https://[RENDER_SERVICE_URL]/api/ready
+curl -i https://final-thesis-zgwt.onrender.com/api/ready
 ```
-- **Expected (Connected)**: HTTP 200 OK, `{"status": "ready", "database": "connected"}`
-- **Expected (Unconfigured/Down)**: HTTP 503 Service Unavailable, `{"status": "unavailable", ...}`
+- **Result**: HTTP 200 OK
+- **Response**: `{"status": "ready", "database": "connected"}`
+- **Verification**: Backend successfully executes `SELECT 1;` against Supabase pooler on port 6543 via SSL.
 
-### 4. Frontend Browser Checks
-1. Open `https://[VERCEL_APP_URL]/` → Redirects cleanly to `/analysis`.
-2. Navigate to `/data` → Renders data foundation status view.
-3. Hard refresh on `/analysis` and `/data` → Verifies SPA rewrite works without 404.
-4. Inspect Browser Network tab: verify no client errors and verify that no secrets are present in client bundles.
+### 4. CORS Preflight Probe
+```bash
+curl -i -X OPTIONS https://final-thesis-zgwt.onrender.com/api/health \
+  -H "Origin: https://final-thesis-frontend.vercel.app" \
+  -H "Access-Control-Request-Method: GET"
+```
+- **Result**: HTTP 200 OK
+- **Headers**:
+  - `access-control-allow-origin: https://final-thesis-frontend.vercel.app`
+  - `access-control-allow-methods: GET, POST, OPTIONS`
+
+### 5. Frontend Browser & SPA Routing Checks
+1. `https://final-thesis-frontend.vercel.app/` → HTTP 200 OK, client redirects cleanly to `/analysis`.
+2. `https://final-thesis-frontend.vercel.app/analysis` → HTTP 200 OK, SPA rewrites cleanly without 404 on refresh.
+3. `https://final-thesis-frontend.vercel.app/data` → HTTP 200 OK, renders data foundation status view.
+4. Browser Network tab / bundle audit: zero secrets present in client bundles.
 
 ---
 

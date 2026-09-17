@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     app_name: str = Field(default="final-thesis-api", alias="APP_NAME")
     app_env: str = Field(default="development", alias="APP_ENV")
     database_url: str | None = Field(default=None, alias="DATABASE_URL")
-    cors_origins: list[str] = Field(
+    cors_origins: list[str] | str = Field(
         default_factory=lambda: ["http://localhost:5173"],
         alias="CORS_ORIGINS",
     )
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     render_git_commit: str | None = Field(default=None, alias="RENDER_GIT_COMMIT")
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", mode="plain")
     @classmethod
     def _parse_cors_origins(cls, value: object) -> list[str]:
         if isinstance(value, str):

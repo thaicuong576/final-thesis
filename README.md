@@ -17,9 +17,6 @@ comparative claims remain blocked until formal `READY_FOR_BASELINE`, advisor
 scope/cutoff confirmation, and provider/model transport configuration are
 recorded.
 
-The current state is recorded in `.agents/project-state/current.json`.
-
-The event history is recorded in `.agents/project-state/events.jsonl`.
 
 ## Canonical files
 

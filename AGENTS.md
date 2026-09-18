@@ -12,10 +12,6 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/design.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
 
-Dynamic project truth lives in `.agents/project-state/current.json` and `.agents/project-state/events.jsonl`.
-
-Worker handoffs live in `.agents/handoffs/`.
-
 Do not treat chat history, model memory, or an unrecorded assumption as project truth.
 
 ## Operating principles
@@ -25,7 +21,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.
-6. Every material decision, assumption, blocker, and verification result must be recorded in the project state or a handoff.
+6. Every material decision, assumption, blocker, and verification result must be recorded in git commits and pull requests.
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.
 8. Secrets belong in local ignored configuration or a secret manager and must never be committed or pasted into reports.
 9. Production deployment and access to real financial services require explicit approval.

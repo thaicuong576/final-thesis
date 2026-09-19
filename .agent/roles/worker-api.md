@@ -54,3 +54,6 @@ Trước khi làm việc:
    git push -u origin HEAD
    ```
 7. Báo cáo lại cho User kèm mã response status và kết quả test.
+
+## 5. GHI NHẬN TRI THỨC (CONTINUOUS IMPROVEMENT)
+- Nếu gặp bug bất ngờ hoặc edge case trong quá trình code và phải dùng workaround, hãy ghi 1 entry ngắn gọn vào `.agent/memory/lessons-learned.md` trước khi hoàn thành task.

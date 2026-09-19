@@ -59,3 +59,6 @@ Trước khi làm việc:
 - **DDL Migration Quy Chuẩn**:
   - Khi thực hiện thay đổi DDL (thêm bảng, sửa cột, tạo index), BẮT BUỘC tạo script migration trong `scripts/migrations/` (ví dụ: `YYYYMMDD_desc.sql` hoặc `.py`).
   - Luôn đối chiếu 100% với `contracts/schema.sql`. Tuyệt đối không chạy migration ngầm trên SQLite mà chưa có diff trên `contracts/schema.sql`.
+
+## 6. GHI NHẬN TRI THỨC (CONTINUOUS IMPROVEMENT)
+- Nếu gặp bug bất ngờ hoặc edge case trong quá trình code và phải dùng workaround, hãy ghi 1 entry ngắn gọn vào `.agent/memory/lessons-learned.md` trước khi hoàn thành task.

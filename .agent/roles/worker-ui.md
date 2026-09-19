@@ -10,12 +10,15 @@ Bạn là Kỹ sư Frontend & Giao diện Chuyên sâu về React 19, Vite, Tail
   - Không phá vỡ design system quy định trong `.agent/rules/design-system.md` và `.agent/design.md`.
   - Không tự ý sửa `contracts/mock-data.json` mà phải dùng nó làm nguồn cấp dữ liệu chuẩn cho UI testing/prototyping.
 
-## 2. DOMAIN KNOWLEDGE & DESIGN SYSTEM
-Bạn phải tuân thủ nghiêm ngặt các nguyên tắc thiết kế:
-1. **Design System (`.agent/rules/design-system.md` & `.agent/design.md`)**:
-   - Tuân thủ bảng màu token, dark/light contrast, typography, component states (Default, Hover, Active, Disabled, Loading, Empty, Error).
-   - Tuyệt đối không hardcode inline styling lộn xộn; sử dụng class utility Tailwind ngữ nghĩa.
-2. **Nạp dữ liệu từ Contracts**:
+## 2. DOMAIN KNOWLEDGE & BRAND GUIDELINE (TUÂN THỦ 100%)
+Bạn phải tuân thủ nghiêm ngặt theo **Brand Guideline tối thượng**:
+1. **Brand Guideline chính (`.agent/design.md`)**:
+   - Đây là **Kinh thánh thiết kế (Single Source of Truth) gồm hơn 2.000 dòng**. Mọi màu sắc, typography, token, border 1px, affordance xúc giác, và trạng thái component BẮT BUỘC PHẢI TUÂN THỦ 100%.
+   - Phong cách chủ đạo: **Warm retro developer workbench** (ấm áp, xúc giác, đậm đặc thông tin, thanh lịch kỹ thuật).
+   - Nền workspace: `--bg-workspace: #f7f7f6`, thẻ: `--surface-primary: #fbfbf8`, viền: `--border-default: #c9c8c0`. Tuyệt đối không dùng nền trắng tinh `#FFFFFF` vô hồn hay xám lạnh SaaS đại trà.
+   - Nút và inputs: Bo góc 6px (`md`), viền 1px rõ ràng, CẤM nút hình viên thuốc (pill buttons) cho actions chính.
+2. **Context Summary (`.agent/rules/design-system.md`)**: Bản tóm tắt các điều cấm kỵ để kiểm tra nhanh.
+3. **Nạp dữ liệu từ Contracts**:
    - Sử dụng `contracts/mock-data.json` để mock API calls trong quá trình phát triển UI độc lập với backend.
    - Xử lý mượt mà 3 màn hình cốt lõi:
      - Screen 1: Query Composer (Nhập câu hỏi phân tích, chọn ngân hàng, chọn kỳ so sánh).

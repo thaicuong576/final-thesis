@@ -9,13 +9,13 @@ $RepoRoot = (Get-Location).Path
 $DirSafeName = $BranchName -replace '/', '-'
 $WorktreePath = Join-Path $RepoRoot ".worktrees\$DirSafeName"
 
-Write-Host "🌱 Fetching remote origin/main..." -ForegroundColor Cyan
+Write-Host "[INIT] Fetching remote origin/main..." -ForegroundColor Cyan
 git fetch origin main
 
-Write-Host "🚀 Khởi tạo Git Worktree tại: $WorktreePath..." -ForegroundColor Cyan
+Write-Host "[INIT] Creating Git Worktree at: $WorktreePath..." -ForegroundColor Cyan
 git worktree add -b $BranchName "$WorktreePath" origin/main
 
-Write-Host "🔗 Kế thừa Local State và Runtime configs..." -ForegroundColor Cyan
+Write-Host "[LINK] Linking local state and runtime configs..." -ForegroundColor Cyan
 
 if (Test-Path "$RepoRoot\.env") {
     cmd /c mklink /H "$WorktreePath\.env" "$RepoRoot\.env" 2>$null
@@ -52,5 +52,5 @@ if (Test-Path "$RepoRoot\frontend\node_modules") {
     cmd /c mklink /J "$FrontendDest\node_modules" "$RepoRoot\frontend\node_modules" 2>$null
 }
 
-Write-Host "✅ Worktree đã sẵn sàng!" -ForegroundColor Green
-Write-Host "👉 Chuyển context làm việc: cd $WorktreePath" -ForegroundColor Yellow
+Write-Host "[OK] Worktree is ready!" -ForegroundColor Green
+Write-Host "[CONTEXT] Switch directory: cd $WorktreePath" -ForegroundColor Yellow

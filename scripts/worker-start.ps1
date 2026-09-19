@@ -18,16 +18,30 @@ git worktree add -b $BranchName "$WorktreePath" origin/main
 Write-Host "🔗 Kế thừa Local State và Runtime configs..." -ForegroundColor Cyan
 
 if (Test-Path "$RepoRoot\.env") {
-    Copy-Item "$RepoRoot\.env" "$WorktreePath\.env"
+    cmd /c mklink /H "$WorktreePath\.env" "$RepoRoot\.env" 2>$null
+    if (-not (Test-Path "$WorktreePath\.env")) {
+        Copy-Item "$RepoRoot\.env" "$WorktreePath\.env"
+    }
 }
 
-# Link real database finance_master_v2.sqlite
-if (Test-Path "$RepoRoot\data\processed\finance_master_v2.sqlite") {
-    $DestDir = "$WorktreePath\data\processed"
+# Link real database finance_master_v2.sqlite and WAL files
+$DbDir = "$RepoRoot\data\processed"
+$DestDir = "$WorktreePath\data\processed"
+if (Test-Path "$DbDir\finance_master_v2.sqlite") {
     New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
-    cmd /c mklink "$DestDir\finance_master_v2.sqlite" "$RepoRoot\data\processed\finance_master_v2.sqlite" 2>$null
-    if (-not (Test-Path "$DestDir\finance_master_v2.sqlite")) {
-        Copy-Item "$RepoRoot\data\processed\finance_master_v2.sqlite" "$DestDir\finance_master_v2.sqlite"
+    $DbFiles = @("finance_master_v2.sqlite", "finance_master_v2.sqlite-wal", "finance_master_v2.sqlite-shm")
+    foreach ($file in $DbFiles) {
+        $srcFile = Join-Path $DbDir $file
+        $dstFile = Join-Path $DestDir $file
+        if (Test-Path $srcFile) {
+            cmd /c mklink /H "$dstFile" "$srcFile" 2>$null
+            if (-not (Test-Path "$dstFile")) {
+                cmd /c mklink "$dstFile" "$srcFile" 2>$null
+            }
+            if (-not (Test-Path "$dstFile")) {
+                Copy-Item "$srcFile" "$dstFile"
+            }
+        }
     }
 }
 

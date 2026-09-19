@@ -22,17 +22,23 @@ git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" origin/main
 echo "🔗 Ke thua Local State va Runtime configs..."
 
 if [ -f "$REPO_ROOT/.env" ]; then
-  cp "$REPO_ROOT/.env" "$WORKTREE_PATH/.env"
+  ln -f "$REPO_ROOT/.env" "$WORKTREE_PATH/.env" 2>/dev/null || cp "$REPO_ROOT/.env" "$WORKTREE_PATH/.env"
 fi
 
 if [ -d "$REPO_ROOT/.venv" ]; then
   ln -s "$REPO_ROOT/.venv" "$WORKTREE_PATH/.venv" 2>/dev/null || cp -r "$REPO_ROOT/.venv" "$WORKTREE_PATH/.venv" 2>/dev/null || true
 fi
 
-# Link real database finance_master_v2.sqlite
-if [ -f "$REPO_ROOT/data/processed/finance_master_v2.sqlite" ]; then
-  mkdir -p "$WORKTREE_PATH/data/processed"
-  ln -s "$REPO_ROOT/data/processed/finance_master_v2.sqlite" "$WORKTREE_PATH/data/processed/finance_master_v2.sqlite" 2>/dev/null || cp "$REPO_ROOT/data/processed/finance_master_v2.sqlite" "$WORKTREE_PATH/data/processed/finance_master_v2.sqlite"
+# Link real database finance_master_v2.sqlite and WAL files
+DB_DIR="$REPO_ROOT/data/processed"
+WORKTREE_DB_DIR="$WORKTREE_PATH/data/processed"
+if [ -f "$DB_DIR/finance_master_v2.sqlite" ]; then
+  mkdir -p "$WORKTREE_DB_DIR"
+  for f in finance_master_v2.sqlite finance_master_v2.sqlite-wal finance_master_v2.sqlite-shm; do
+    if [ -f "$DB_DIR/$f" ]; then
+      ln -s "$DB_DIR/$f" "$WORKTREE_DB_DIR/$f" 2>/dev/null || ln -f "$DB_DIR/$f" "$WORKTREE_DB_DIR/$f" 2>/dev/null || cp "$DB_DIR/$f" "$WORKTREE_DB_DIR/$f"
+    fi
+  done
 fi
 
 if [ -d "$REPO_ROOT/frontend/node_modules" ]; then

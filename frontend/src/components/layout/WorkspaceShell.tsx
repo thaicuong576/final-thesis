@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { BarChart3, FileText, UserRound } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
   SidebarContent,
@@ -30,18 +31,15 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
     <SidebarProvider defaultOpen className="min-h-screen bg-workspace text-ink">
       <Sidebar collapsible="icon" className="border-r border-line bg-surface-secondary">
         <SidebarHeader className="min-h-[64px] justify-center px-4 py-3 border-b border-line bg-surface-secondary group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-3">
-          <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
-            <Link to="/analysis" className="flex items-center gap-2.5 text-xs font-semibold tracking-[-0.01em] text-ink group min-w-0" title="Phân tích tài chính">
-              <span className="grid size-7 shrink-0 place-items-center rounded-md border border-amber-border bg-amber text-ink shadow-[0_1px_0_rgba(98,63,0,0.55)] transition group-hover:bg-amber-hover" aria-hidden="true">
-                <BarChart3 className="size-4 stroke-[2.2]" />
-              </span>
-              <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-                <span className="font-bold text-[13px] text-ink leading-tight truncate">Phân tích tài chính</span>
-                <span className="text-[10px] font-mono text-ink-tertiary truncate">STAGING · WORKBENCH</span>
-              </div>
-            </Link>
-            <SidebarTrigger className="hidden md:flex shrink-0 text-ink-secondary hover:text-ink hover:bg-surface-hover group-data-[collapsible=icon]:hidden" aria-label="Thu gọn thanh điều hướng" />
-          </div>
+          <Link to="/analysis" className="flex items-center gap-2.5 text-xs font-semibold tracking-[-0.01em] text-ink group group-data-[collapsible=icon]:justify-center">
+            <span className="grid size-7 shrink-0 place-items-center rounded-md border border-amber-border bg-amber text-ink shadow-[0_1px_0_rgba(98,63,0,0.55)] transition group-hover:bg-amber-hover" aria-hidden="true">
+              <BarChart3 className="size-4 stroke-[2.2]" />
+            </span>
+            <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+              <span className="font-bold text-[13px] text-ink leading-tight truncate">Phân tích tài chính</span>
+              <span className="text-[10px] font-mono text-ink-tertiary truncate">STAGING · WORKBENCH</span>
+            </div>
+          </Link>
         </SidebarHeader>
 
         <SidebarContent className="bg-surface-secondary">
@@ -68,12 +66,15 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
       </Sidebar>
 
       <SidebarInset className="min-h-screen bg-workspace">
-        <div className="flex min-h-11 items-center gap-3 border-b border-line bg-card px-4">
-          <SidebarTrigger aria-label="Mở điều hướng" className="-ml-1" />
-          <span className="text-xs font-bold text-ink">Phân tích tài chính</span>
-        </div>
-
-        {context && <header className="border-b border-line bg-card">{context}</header>}
+        <header className="flex min-h-11 items-center gap-2.5 border-b border-line bg-card px-4">
+          <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1" />
+          <Separator orientation="vertical" className="h-4 bg-line" />
+          <div className="flex-1 min-w-0">
+            {context ?? (
+              <span className="text-xs font-bold text-ink">Phân tích tài chính</span>
+            )}
+          </div>
+        </header>
 
         <main className="min-w-0 flex-1">{children}</main>
       </SidebarInset>

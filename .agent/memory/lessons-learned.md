@@ -59,3 +59,28 @@ Dữ liệu vàng đã được trích xuất, chuẩn hóa và kiểm thử th�
 - Tên file duy nhất và chuẩn hóa của tầng dữ liệu là: `data/processed/finance_master_v2.sqlite`.
 - Toàn bộ DDL schema được dump trực tiếp từ file này vào `contracts/schema.sql`.
 - Mọi worker, test suite và bootstrap scripts bắt buộc chỉ sử dụng đường dẫn: `data/processed/finance_master_v2.sqlite`.
+
+---
+
+## [LESSON-004] Thiết lập `PYTHONPATH` khi chạy Unittest trên Windows PowerShell
+
+- **Date:** 2026-09-19
+- **Scope:** `tests/`, `scripts/`, Auditor & Worker test verification
+- **Status:** `ACTIVE` -> Đã đưa vào `04-definition-of-done.md`.
+
+### 1. Context & Symptom
+Khi thực thi lệnh test backend trên Windows PowerShell bằng cú pháp inline Unix `PYTHONPATH=src python -m unittest ...`, PowerShell báo lỗi cú pháp hoặc gán biến thất bại, dẫn đến `ModuleNotFoundError: No module named 'thesis_data'` và hàng chục test bị lỗi giả định (false negatives). Tương tự, nếu bọc `powershell -Command "$env:PYTHONPATH='src'..."` trong chuỗi con thì biến môi trường có thể bị mất scope nếu không dùng đúng định dạng.
+
+### 2. Root Cause
+PowerShell không hỗ trợ cú pháp gán biến môi trường inline trên cùng dòng như Bash (`VAR=val command`). PowerShell yêu cầu gán biến môi trường thông qua `$env:NAME = "value"` phân tách bằng dấu chấm phẩy `;`.
+
+### 3. Workaround & Permanent Solution
+- Lệnh chuẩn xác trên Windows PowerShell là:
+  ```powershell
+  $env:PYTHONPATH="src"; python -m unittest discover -s tests -q
+  ```
+- Trên Bash / Linux / macOS:
+  ```bash
+  PYTHONPATH=src python -m unittest discover -s tests -q
+  ```
+- Toàn bộ 499 tests backend đều vượt qua (PASS) với 0 failures và 0 errors khi `PYTHONPATH` được cấu hình chính xác.

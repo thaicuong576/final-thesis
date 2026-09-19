@@ -2,13 +2,17 @@ name: Frontend validation
 
 on:
   push:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+    paths-ignore:
+      - '.agent/**'
+      - '**.md'
+      - 'contracts/**'
+      - '.gitignore'
   pull_request:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
+    paths-ignore:
+      - '.agent/**'
+      - '**.md'
+      - 'contracts/**'
+      - '.gitignore'
 
 jobs:
   validate:

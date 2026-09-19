@@ -99,8 +99,10 @@ Brand personality is appropriate in:
 
 Core working areas such as tables, forms, editors, filters, and dashboards should prioritize clarity over character.
 
----
+## 2.7 Domain Alignment & Multi-Agent Boundaries
 
+- **Language**: All user-facing product copy is Vietnamese.
+- **Reasoning Boundaries**: No raw internal chain-of-thought, scratchpads, or system prompt leaks in UI. Present clean business-level workflow states (planning, delegation, review, revision, artifact synthesis).
 
 ---
 

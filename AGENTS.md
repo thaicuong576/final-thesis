@@ -26,7 +26,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 8. Secrets belong in local ignored configuration or a secret manager and must never be committed or pasted into reports.
 9. Production deployment and access to real financial services require explicit approval.
 10. `docs/ARCHITECTURAL-GUARDRAILS.md` is binding. If a task conflicts with it, stop and report the conflict before implementation.
-11. The modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) is the binding brand guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/rules/design/` and `.agent/rules/design-system.md`.
+11. The modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) is the binding brand guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/rules/design/`.
 
 ## Ownership
 

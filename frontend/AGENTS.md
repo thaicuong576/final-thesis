@@ -1,6 +1,6 @@
 # Frontend Agent Instructions & Design System Contract
 
-All frontend code in this directory must strictly comply with the modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) and `.agent/rules/design-system.md`.
+All frontend code in this directory must strictly comply with the modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`).
 
 ## Mandatory Guidelines
 1. **Source of Truth**: Read `.agent/rules/design/README.md` and relevant topic modules before designing, modifying, or creating UI components, pages, or styles.

@@ -52,6 +52,9 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
     - If active telemetry inspection is deemed necessary to monitor worker progress, the sampling interval MUST strictly be at least 3 minutes (>= 180 seconds) per check. Rapid polling is strictly prohibited.
+17. **Mandatory Post-Merge Worktree Cleanup & Pure Lineage**:
+    - Once a Pull Request is merged into `main`, the Lead Orchestrator MUST immediately execute `scripts/sync-and-cleanup.*` to remove the merged child worktree and delete the local feature branch, followed by pruning stale remote refs via `git remote prune origin`.
+    - Every subsequent feature or bugfix task MUST start on a freshly created Git Worktree branched from the latest `main` HEAD (`scripts/worker-start.*`). Reusing, reviving, or continuing work inside a stale or merged branch/worktree is strictly forbidden.
 
 ## Ownership
 
@@ -100,9 +103,12 @@ Before any code, data, documentation, experiment, or UI change, an agent must:
 8. stop for review.
 
 Do not merge the Pull Request unless the user explicitly authorizes the merge.
-After a PR is merged, every subsequent task must start from the new latest
-`main` HEAD. Do not force-push `main`, rewrite its history, or start new work
-from a stale feature branch.
+
+**Post-Merge Cleanup & Pure Lineage Protocol**:
+Immediately after a Pull Request is merged into `main`:
+1. The Lead Orchestrator must fetch and pull the latest `origin/main`.
+2. Run `scripts/sync-and-cleanup.* -BranchName <merged-branch>` to remove the worktree and delete the local feature branch, followed by `git remote prune origin`.
+3. Every subsequent task must start from a freshly created Git Worktree branched from the latest `main` HEAD (`scripts/worker-start.* -BranchName <new-branch>`). Never force-push `main`, rewrite its history, or start new work from a stale or merged feature branch.
 
 Every coding handoff must report:
 

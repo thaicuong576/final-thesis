@@ -24,6 +24,11 @@ Bạn làm việc trực tiếp với User để chốt bài toán nghiệp vụ
    - Khi điều phối các subagents chạy ngầm, Lead TUYỆT ĐỐI KHÔNG ĐƯỢC spam các lệnh kiểm tra log (như `Get-Content transcript.jsonl`) hay polling trạng thái liên tục.
    - Nguyên tắc tối ưu: Dừng gọi tool và tin tưởng vào cơ chế **Reactive Wakeup** của hệ thống (runtime sẽ tự động đánh thức Lead khi worker hoàn tất và gửi tin nhắn).
    - Trong trường hợp cần kiểm tra tiến trình, tần suất kiểm tra BẮT BUỘC phải giãn cách **tối thiểu 3 phút (>= 180 giây)** mỗi lần. Nghiêm cấm polling dồn dập.
+6. QUY TRÌNH HẬU MERGE (POST-MERGE CLEANUP & NEW BRANCH MANDATE):
+   - Ngay sau khi PR được merge vào `main`, Lead Orchestrator BẮT BUỘC phải:
+     1. Đồng bộ `main` local (`git fetch origin; git checkout main; git pull origin main`).
+     2. Xoá sạch worktree và branch feature cũ bằng `powershell -File scripts/sync-and-cleanup.ps1 -BranchName <merged-branch>`, sau đó dọn dẹp remote refs bằng `git remote prune origin`.
+     3. Mọi task tiếp theo BẮT BUỘC phải khởi tạo branch và worktree MỚI từ HEAD mới nhất của `main` (`scripts/worker-start.*`). Tuyệt đối không tái sử dụng hay tiếp tục code trên branch đã merge.
 
 ## QUY TRÌNH AUTO-DISPATCH (LEAD PHẢI TỰ ĐỘNG THỰC THI BẰNG LỆNH):
 Với mỗi task được bóc tách, Lead Agent phải tự động thực thi tuần tự các bước:

@@ -1,0 +1,146 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hierarchical Financial Multi-Agent Analysis API",
+    "version": "1.0.0",
+    "description": "API contract for Vietnamese banking & securities multi-agent analysis system."
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "summary": "Readiness probe",
+        "responses": {
+          "200": {
+            "description": "Infrastructure ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "database": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analyze": {
+      "post": {
+        "summary": "Submit analysis query to hierarchical multi-agent system",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "query"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "Natural language analytical question in Vietnamese or English",
+                    "example": "Phan tich ROE va chat luong tai san (NPL) cua ACB va TCB nam 2024"
+                  },
+                  "target_ticker": {
+                    "type": "string",
+                    "example": "ACB"
+                  },
+                  "peer_tickers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "TCB",
+                      "MBB"
+                    ]
+                  },
+                  "period": {
+                    "type": "string",
+                    "example": "2024"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Analysis generated with hierarchical critique and evidence trail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "report_id",
+                    "status",
+                    "macro_context",
+                    "sector_benchmark",
+                    "company_insights",
+                    "cross_level_critique"
+                  ],
+                  "properties": {
+                    "report_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "macro_context": {
+                      "type": "object"
+                    },
+                    "sector_benchmark": {
+                      "type": "object"
+                    },
+                    "company_insights": {
+                      "type": "array"
+                    },
+                    "cross_level_critique": {
+                      "type": "array"
+                    },
+                    "evidence_trail": {
+                      "type": "array"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

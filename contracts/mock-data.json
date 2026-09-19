@@ -1,0 +1,62 @@
+{
+  "session_id": "mock-session-2024-acb-tcb",
+  "query": "Phân tích tỷ suất sinh lời ROE và chất lượng tài sản (NPL) của ACB và TCB năm 2024",
+  "target_ticker": "ACB",
+  "peer_tickers": [
+    "TCB",
+    "MBB"
+  ],
+  "period": "2024",
+  "macro_context": {
+    "sbv_policy_rate": 4.5,
+    "system_credit_growth": 15.08,
+    "interest_rate_trend": "Accommodative monetary policy by SBV supporting private credit recovery",
+    "source": "SBV Annual Direction 2024"
+  },
+  "sector_benchmark": {
+    "sector": "Banking",
+    "peer_median_roe": 18.2,
+    "peer_median_nim": 3.65,
+    "peer_median_npl": 1.62,
+    "peer_median_cir": 33.4,
+    "peer_median_casa": 28.5
+  },
+  "company_insights": [
+    {
+      "ticker": "ACB",
+      "roe": 21.4,
+      "nim": 3.82,
+      "npl": 1.21,
+      "cir": 31.8,
+      "casa": 23.2,
+      "assessment": "Strong asset quality with NPL well below industry median; high capital efficiency."
+    },
+    {
+      "ticker": "TCB",
+      "roe": 17.8,
+      "nim": 4.15,
+      "npl": 1.45,
+      "cir": 32.5,
+      "casa": 41.2,
+      "assessment": "High NIM driven by retail and bond yields; industry-leading CASA ratio."
+    }
+  ],
+  "cross_level_critique": [
+    {
+      "dimension": "NPL vs Sector Margin Pressure",
+      "finding": "ACB preserved retail asset quality despite elevated consumer delinquency across tier-2 peers.",
+      "confidence": 0.94,
+      "evidence_ref": "ACB-FY24-AR-p42"
+    }
+  ],
+  "evidence_trail": [
+    {
+      "metric": "ROE",
+      "ticker": "ACB",
+      "period": "2024",
+      "value": 21.4,
+      "source_doc": "Báo cáo tài chính hợp nhất kiểm toán 2024",
+      "table_locator": "Báo cáo kết quả hoạt động kinh doanh"
+    }
+  ]
+}

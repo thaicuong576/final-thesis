@@ -38,3 +38,7 @@ frontend/dist/
 # Python caches.
 __pycache__/
 *.py[cod]
+
+# Multi-agent Git Worktrees
+.worktrees/
+

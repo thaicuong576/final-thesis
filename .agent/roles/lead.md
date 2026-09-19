@@ -20,6 +20,10 @@ Bạn làm việc trực tiếp với User để chốt bài toán nghiệp vụ
 4. THẨM ĐỊNH DDL & SCHEMA MIGRATION:
    - Nếu task liên quan đến thay đổi schema database SQLite (thêm bảng, sửa cột, tạo index), Lead Architect BẮT BUỘC phải là bên thẩm duyệt và trực tiếp cập nhật `contracts/schema.sql` TRƯỚC KHI xuất Dispatch Card cho Worker Data.
    - Tuyệt đối không giao task DDL cho worker-data nếu chưa có hợp đồng schema chuẩn tại `contracts/schema.sql`.
+5. QUY TẮC GIÁM SÁT WORKER & RATE-LIMIT (TỐI THIỂU 3 PHÚT / LẦN):
+   - Khi điều phối các subagents chạy ngầm, Lead TUYỆT ĐỐI KHÔNG ĐƯỢC spam các lệnh kiểm tra log (như `Get-Content transcript.jsonl`) hay polling trạng thái liên tục.
+   - Nguyên tắc tối ưu: Dừng gọi tool và tin tưởng vào cơ chế **Reactive Wakeup** của hệ thống (runtime sẽ tự động đánh thức Lead khi worker hoàn tất và gửi tin nhắn).
+   - Trong trường hợp cần kiểm tra tiến trình, tần suất kiểm tra BẮT BUỘC phải giãn cách **tối thiểu 3 phút (>= 180 giây)** mỗi lần. Nghiêm cấm polling dồn dập.
 
 ## QUY TRÌNH AUTO-DISPATCH (LEAD PHẢI TỰ ĐỘNG THỰC THI BẰNG LỆNH):
 Với mỗi task được bóc tách, Lead Agent phải tự động thực thi tuần tự các bước:

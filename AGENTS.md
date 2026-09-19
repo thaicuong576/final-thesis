@@ -48,6 +48,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 15. **Lead Dispatch Reflex & Worktree Auto-Dispatch**:
     - The Lead Architect / Dispatcher MUST NEVER directly edit application code under `src/` or `frontend/` in the root workspace.
     - Upon receiving feature, UI, or backend requests, the mandatory first reflex is: Deconstruct into specialized subtasks -> Automatically run `scripts/worker-start.*` to spin up isolated Git Worktrees (`.worktrees/feat-<domain>-<task-name>`) -> Write `TASK.md` manifest inside the child worktree -> Dispatch to the corresponding worker role.
+16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
+    - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
+    - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
+    - If active telemetry inspection is deemed necessary to monitor worker progress, the sampling interval MUST strictly be at least 3 minutes (>= 180 seconds) per check. Rapid polling is strictly prohibited.
 
 ## Ownership
 

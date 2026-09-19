@@ -10,7 +10,7 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 ## Canonical context
 
-Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/design.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
+Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/design/README.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
 
 Do not treat chat history, model memory, or an unrecorded assumption as project truth.
 
@@ -26,7 +26,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 8. Secrets belong in local ignored configuration or a secret manager and must never be committed or pasted into reports.
 9. Production deployment and access to real financial services require explicit approval.
 10. `docs/ARCHITECTURAL-GUARDRAILS.md` is binding. If a task conflicts with it, stop and report the conflict before implementation.
-11. `.agent/design.md` is the binding design guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/design.md` and `.agent/rules/design-system.md`.
+11. The modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) is the binding brand guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/rules/design/`.
 
 ## Ownership
 
@@ -34,7 +34,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 - The data specialist owns ingestion, normalization, metric calculation, and data-quality reports.
 - The evidence specialist owns PDF parsing, source metadata, and retrieval quality.
 - The agent-system specialist owns agent prompts, tools, routing, critique, and synthesis.
-- The frontend / design specialist owns product surfaces, components, tokens, interactions, and design guideline compliance against `.agent/design.md`.
+- The frontend / design specialist owns product surfaces, components, tokens, interactions, and design guideline compliance against `.agent/rules/design/`.
 - The test specialist owns fixtures, regression tests, experiment execution, and evidence of results.
 - A reviewer may report findings but must not silently rewrite another specialist's work.
 

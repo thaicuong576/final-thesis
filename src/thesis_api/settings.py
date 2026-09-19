@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Sequence
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,7 +29,24 @@ class Settings(BaseSettings):
     cors_origin_regex: str | None = Field(default=None, alias="CORS_ORIGIN_REGEX")
     app_revision: str | None = Field(default=None, alias="APP_REVISION")
     render_git_commit: str | None = Field(default=None, alias="RENDER_GIT_COMMIT")
+    sqlite_db_path: str = Field(
+        default="data/processed/finance_master_v2.sqlite",
+        alias="SQLITE_DB_PATH",
+    )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+
+    def get_sqlite_path(self) -> Path:
+        """Resolve canonical SQLite database path."""
+        p = Path(self.sqlite_db_path)
+        if p.is_absolute() and p.exists():
+            return p
+        if p.exists():
+            return p.resolve()
+        repo_root = Path(__file__).resolve().parents[2]
+        repo_path = repo_root / self.sqlite_db_path
+        if repo_path.exists():
+            return repo_path.resolve()
+        return p.resolve()
 
     @field_validator("cors_origins", mode="plain")
     @classmethod

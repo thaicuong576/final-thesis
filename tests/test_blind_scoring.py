@@ -73,6 +73,9 @@ class BlindScoringTests(unittest.TestCase):
         db_path = root / "data" / "processed" / "gold-bank-2025-pilot-v1-adjudicated-v2.sqlite"
         question_path = root / "experiments" / "question-set-core-v1.json"
 
+        if not run_dir.exists():
+            self.skipTest("Provider run directory not available in worktree")
+
         manifests = load_provider_manifests(run_dir)
         packets, private_map = build_blind_packets(
             run_dir, db_path, question_path, seed="blind-v1"

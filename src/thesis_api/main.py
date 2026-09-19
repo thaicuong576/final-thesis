@@ -6,12 +6,15 @@ from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import check_database_connection
+from .schemas import AnalysisRequest, AnalysisResponse
+from .service import AnalysisEngine
 from .settings import Settings, get_settings
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
+    engine = AnalysisEngine(current_settings.get_sqlite_path())
 
     app = FastAPI(
         title="Final Thesis API",
@@ -59,6 +62,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def version() -> dict[str, str]:
         """Safe deployment metadata reporting environment and revision without secrets."""
         return current_settings.get_version_metadata()
+
+    @app.post(
+        "/api/analyze",
+        response_model=AnalysisResponse,
+        summary="Submit analysis query to hierarchical multi-agent system",
+    )
+    def analyze(request: AnalysisRequest) -> AnalysisResponse:
+        """Analyze financial health and CAMEL ratios across macro, sector, and company dimensions."""
+        return engine.analyze(request)
 
     return app
 

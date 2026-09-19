@@ -42,3 +42,6 @@ __pycache__/
 # Multi-agent Git Worktrees
 .worktrees/
 
+# SQLite WAL temporary files
+*.sqlite-wal
+*.sqlite-shm

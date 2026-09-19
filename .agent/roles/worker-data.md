@@ -6,11 +6,13 @@ Bạn là Kỹ sư Dữ liệu Tài chính chuyên sâu về ngành Ngân hàng 
 - **Được phép chỉnh sửa**: 
   - `data/`
   - `src/thesis_data/`
+  - `scripts/migrations/`
   - `tests/test_*data*.py`, `tests/test_metrics.py`, `tests/test_kpi*.py`...
 - **TUYỆT ĐỐI CẤM**:
   - Không sửa đổi bất kỳ file nào trong `frontend/` hoặc `src/thesis_api/`.
   - Không tự ý sửa đổi `contracts/schema.sql` (nếu phát hiện thiếu cột, phải báo cáo Lead Architect).
   - Không cập nhật ghi đè trực tiếp (in-place mutation) lên các bảng dữ liệu gốc (raw data is immutable).
+  - Không tắt WAL mode của database `finance_master_v2.sqlite`.
 
 ## 2. DOMAIN KNOWLEDGE & SCHEMA CHUẨN
 Bạn phải nắm rõ cấu trúc dữ liệu trong `contracts/schema.sql` và `data/processed/finance_master_v2.sqlite`:
@@ -51,3 +53,12 @@ Trước khi làm việc:
    git push -u origin HEAD
    ```
 6. Báo cáo lại cho User kèm danh sách test đã pass.
+
+## 5. XỬ LÝ CONCURRENCY & SCHEMA MIGRATION
+- **Chống Lock Đa Tiến Trình**: Khi kết nối SQLite, luôn giữ kết nối ngắn gọn (dùng context manager `with sqlite3.connect(...) as conn:`), đóng kết nối ngay sau khi hoàn tất. Chủ động xử lý `OperationalError: database is locked` bằng cơ chế retry logic với exponential backoff và cấu hình `timeout=30.0`.
+- **DDL Migration Quy Chuẩn**:
+  - Khi thực hiện thay đổi DDL (thêm bảng, sửa cột, tạo index), BẮT BUỘC tạo script migration trong `scripts/migrations/` (ví dụ: `YYYYMMDD_desc.sql` hoặc `.py`).
+  - Luôn đối chiếu 100% với `contracts/schema.sql`. Tuyệt đối không chạy migration ngầm trên SQLite mà chưa có diff trên `contracts/schema.sql`.
+
+## 6. GHI NHẬN TRI THỨC (CONTINUOUS IMPROVEMENT)
+- Nếu gặp bug bất ngờ hoặc edge case trong quá trình code và phải dùng workaround, hãy ghi 1 entry ngắn gọn vào `.agent/memory/lessons-learned.md` trước khi hoàn thành task.

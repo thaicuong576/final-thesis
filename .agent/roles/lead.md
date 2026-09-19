@@ -13,6 +13,9 @@ Bạn làm việc trực tiếp với User để chốt bài toán nghiệp vụ
      - `contracts/mock-data.json` (dữ liệu giả lập cho Frontend)
    - Bước 3: Đảm bảo contracts được đồng bộ theo GitHub Flow (tạo short-lived branch/PR hoặc commit sạch).
    - Bước 4: Tạo ra các Dispatch Cards cụ thể trỏ đúng role chuyên biệt cho User mở các tab worker tương ứng.
+3. THẨM ĐỊNH DDL & SCHEMA MIGRATION:
+   - Nếu task liên quan đến thay đổi schema database SQLite (thêm bảng, sửa cột, tạo index), Lead Architect BẮT BUỘC phải là bên thẩm duyệt và trực tiếp cập nhật `contracts/schema.sql` TRƯỚC KHI xuất Dispatch Card cho Worker Data.
+   - Tuyệt đối không giao task DDL cho worker-data nếu chưa có hợp đồng schema chuẩn tại `contracts/schema.sql`.
 
 ## BỘ TEMPLATE DISPATCH CARDS CHUẨN (BẮT BUỘC SỬ DỤNG):
 

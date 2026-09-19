@@ -10,7 +10,7 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 ## Canonical context
 
-Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/guardrails.md`, `.agent/rules/design/README.md`, `.agent/memory/lessons-learned.md`, `.agent/workflows/retrospective.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant. For specialized subtasks, consult contracts in `contracts/` and role definitions in `.agent/roles/`.
+Before acting, read this file, `.agent/foundation/*` (Spec Zero - Single Source of Truth cho toàn bộ dự án: `01-project-charter.md`, `02-domain-invariants.md`, `03-system-architecture.md`, `04-definition-of-done.md`), `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/guardrails.md`, `.agent/rules/design/README.md`, `.agent/memory/lessons-learned.md`, `.agent/workflows/retrospective.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant. For specialized subtasks, consult contracts in `contracts/` and role definitions in `.agent/roles/`.
 
 Do not treat chat history, model memory, or an unrecorded assumption as project truth.
 
@@ -32,6 +32,9 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
     - Whenever any change, refactoring, or upgrade is made to repository architecture, infrastructure, schemas, rules, or workflows, the agent MUST immediately update `AGENTS.md` and related context files.
     - Future agent sessions rely on `AGENTS.md` as their primary ground truth. If a structural or architectural change is not documented in `AGENTS.md`, future sessions will lose context.
     - Any unforeseen bug, edge case, or workaround discovered during execution MUST be logged in `.agent/memory/lessons-learned.md` before completing the task.
+14. **Foundational Mandate & Spec Zero (`.agent/foundation/`)**:
+    - The 4 core documents in `.agent/foundation/` (`01-project-charter.md`, `02-domain-invariants.md`, `03-system-architecture.md`, `04-definition-of-done.md`) are the supreme architectural and domain invariants.
+    - All role prompts (`lead.md`, `worker-data.md`, `worker-api.md`, `worker-ui.md`, `auditor.md`) are strictly anchored to these foundations. Any conflict must be resolved in favor of Foundation.
 
 ## Ownership
 

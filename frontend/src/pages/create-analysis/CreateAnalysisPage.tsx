@@ -157,17 +157,15 @@ export function CreateAnalysisPage() {
     <WorkspaceShell
       activeSection="analysis"
       context={
-        <div className="mx-auto w-full max-w-[1120px] px-4 py-2.5 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-ink-secondary font-mono">
-              <span>KHÔNG GIAN</span>
-              <span className="text-border-strong">/</span>
-              <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
-              <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
-              <span className="font-mono text-[11px]">HỆ THỐNG PHÂN TÍCH CẤP BẬC SẴN SÀNG</span>
-            </div>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2 text-xs text-ink-secondary font-mono">
+            <span>KHÔNG GIAN</span>
+            <span className="text-border-strong">/</span>
+            <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
+            <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
+            <span className="font-mono text-[11px]">HỆ THỐNG PHÂN TÍCH CẤP BẬC SẴN SÀNG</span>
           </div>
         </div>
       }

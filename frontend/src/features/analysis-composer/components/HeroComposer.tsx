@@ -1,7 +1,7 @@
 import { useState, useRef, type KeyboardEvent } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Lightbulb } from 'lucide-react';
 
 interface HeroComposerProps {
   initialQuestion?: string;
@@ -47,7 +47,7 @@ export function HeroComposer({
           Bạn muốn phân tích điều gì?
         </h1>
         <p className="text-xs text-ink-secondary leading-relaxed">
-          Nhập câu hỏi phân tích bằng ngôn ngữ tự nhiên. Hệ thống phân tích đa tác tử sẽ tự động trích xuất phạm vi và lập luận dựa trên bằng chứng.
+          Nhập câu hỏi phân tích để tự động trích xuất phạm vi, đối sánh số liệu và lập luận bằng chứng.
         </p>
       </div>
 
@@ -69,8 +69,8 @@ export function HeroComposer({
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-line">
           <div className="text-[11px] text-ink-secondary flex items-center gap-1.5 font-mono">
-            <span aria-hidden="true">💡</span>
-            <span>Tự động phân tách thực thể & chỉ tiêu từ câu hỏi</span>
+            <Lightbulb className="size-3.5 stroke-[1.8] text-amber" />
+            <span>Tự động phân tách thực thể & chỉ tiêu</span>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">

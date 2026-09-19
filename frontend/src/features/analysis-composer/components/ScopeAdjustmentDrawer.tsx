@@ -138,14 +138,14 @@ export function ScopeAdjustmentDrawer({
                       key={entity.id}
                       type="button"
                       onClick={() => toggleEntity(entity.id)}
-                      className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
                         isSelected
                           ? 'border-[#1c5d9c] bg-[#f5f8fb] text-[#1c5d9c]'
                           : 'border-line bg-white text-muted hover:border-slate-400'
                       }`}
                     >
-                      {isSelected && '✓ '}
-                      {entity.ticker}
+                      {isSelected && <Check className="size-3.5 stroke-[2]" />}
+                      <span>{entity.ticker}</span>
                     </button>
                   );
                 })}
@@ -181,14 +181,14 @@ export function ScopeAdjustmentDrawer({
                       key={period.id}
                       type="button"
                       onClick={() => togglePeriod(period.id)}
-                      className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
                         isSelected
                           ? 'border-[#1c5d9c] bg-[#f5f8fb] text-[#1c5d9c]'
                           : 'border-line bg-white text-muted hover:border-slate-400'
                       }`}
                     >
-                      {isSelected && '✓ '}
-                      Q{period.quarter}/{period.year}
+                      {isSelected && <Check className="size-3.5 stroke-[2]" />}
+                      <span>Q{period.quarter}/{period.year}</span>
                     </button>
                   );
                 })}

@@ -10,7 +10,7 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 ## Canonical context
 
-Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/design/README.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
+Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/guardrails.md`, `.agent/rules/design/README.md`, `.agent/memory/lessons-learned.md`, `.agent/workflows/retrospective.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant. For specialized subtasks, consult contracts in `contracts/` and role definitions in `.agent/roles/`.
 
 Do not treat chat history, model memory, or an unrecorded assumption as project truth.
 
@@ -27,6 +27,11 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 9. Production deployment and access to real financial services require explicit approval.
 10. `docs/ARCHITECTURAL-GUARDRAILS.md` is binding. If a task conflicts with it, stop and report the conflict before implementation.
 11. The modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) is the binding brand guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/rules/design/`.
+12. **Multi-Agent SDLC & Worktree Isolation**: All feature development must operate within isolated Git Worktrees (`.worktrees/<branch-name>/`) created via `scripts/worker-start.*` and cleaned via `scripts/sync-and-cleanup.*`. The SQLite database `data/processed/finance_master_v2.sqlite` runs strictly in WAL mode. Database schema migrations follow Contract-First in `contracts/schema.sql`. Configuration `.env` is synchronized across worktrees via NTFS Hardlinks (`mklink /H`).
+13. **Living Architecture & Instruction Synchronization (Mandatory Self-Update)**:
+    - Whenever any change, refactoring, or upgrade is made to repository architecture, infrastructure, schemas, rules, or workflows, the agent MUST immediately update `AGENTS.md` and related context files.
+    - Future agent sessions rely on `AGENTS.md` as their primary ground truth. If a structural or architectural change is not documented in `AGENTS.md`, future sessions will lose context.
+    - Any unforeseen bug, edge case, or workaround discovered during execution MUST be logged in `.agent/memory/lessons-learned.md` before completing the task.
 
 ## Ownership
 

@@ -35,6 +35,9 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 14. **Foundational Mandate & Spec Zero (`.agent/foundation/`)**:
     - The 4 core documents in `.agent/foundation/` (`01-project-charter.md`, `02-domain-invariants.md`, `03-system-architecture.md`, `04-definition-of-done.md`) are the supreme architectural and domain invariants.
     - All role prompts (`lead.md`, `worker-data.md`, `worker-api.md`, `worker-ui.md`, `auditor.md`) are strictly anchored to these foundations. Any conflict must be resolved in favor of Foundation.
+15. **Lead Dispatch Reflex & Worktree Auto-Dispatch**:
+    - The Lead Architect / Dispatcher MUST NEVER directly edit application code under `src/` or `frontend/` in the root workspace.
+    - Upon receiving feature, UI, or backend requests, the mandatory first reflex is: Deconstruct into specialized subtasks -> Automatically run `scripts/worker-start.*` to spin up isolated Git Worktrees (`.worktrees/feat-<domain>-<task-name>`) -> Write `TASK.md` manifest inside the child worktree -> Dispatch to the corresponding worker role.
 
 ## Ownership
 

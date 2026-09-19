@@ -10,7 +10,7 @@ The thesis source artifacts are read-only references and must not be rewritten a
 
 ## Canonical context
 
-Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/design/README.md` (and `.agent/design.md`), and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
+Before acting, read this file, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/CONSTRAINTS.md`, `.agent/rules/design/README.md`, and the binding `docs/ARCHITECTURAL-GUARDRAILS.md` as relevant.
 
 Do not treat chat history, model memory, or an unrecorded assumption as project truth.
 

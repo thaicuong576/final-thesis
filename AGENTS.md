@@ -47,6 +47,8 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
     - All role prompts (`lead.md`, `worker-data.md`, `worker-api.md`, `worker-ui.md`, `auditor.md`) are strictly anchored to these foundations. Any conflict must be resolved in favor of Foundation.
 15. **Lead Dispatch Reflex & Linear Worktree Auto-Dispatch**:
     - The Lead Architect / Dispatcher MUST NEVER directly edit application code under `src/` or `frontend/` in the root workspace.
+    - **Zero-Delay UI/Bug Dispatch (1-Turn Mandate)**: Khi có feedback UI/bug: Dispatch ngay cho Worker trong 1 turn, TUYỆT ĐỐI KHÔNG nán lại đọc file code hay tự mình inspect mã nguồn ứng dụng ở root.
+    - **Mandatory Screenshot & Image Forwarding**: Bất kỳ khi nào người dùng có đính kèm ảnh: Bắt buộc chuyển toàn bộ image path vào prompt khởi tạo của worker ngay từ đầu.
     - Upon receiving feature, UI, or backend requests, the mandatory first reflex is:
       1. Create a Linear issue (`THES-X`) with conventional title, scope, spec references, and binding contracts.
       2. Automatically run `scripts/worker-start.* feat/THES-X-<task-name>` to spin up an isolated Git Worktree (`.worktrees/feat-THES-X-<task-name>`).

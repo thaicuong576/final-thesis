@@ -11,6 +11,14 @@ import json
 import sys
 from pathlib import Path
 
+# Force UTF-8 on Windows consoles to safely display Vietnamese & Unicode
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Ensure src is in Python path when run directly
 repo_root = Path(__file__).resolve().parents[1]
 src_dir = repo_root / "src"

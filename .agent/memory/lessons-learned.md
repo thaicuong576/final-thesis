@@ -203,3 +203,42 @@ Khi triển khai kết nối SSE stream từ Screen 2 (`AnalysisSessionWorkspace
 - **Zero-Hardcode Policy**: Mọi cấu hình kết nối API của frontend bắt buộc phải resolve qua `process.env.VITE_API_BASE_URL` (Vite config) và `import.meta.env.VITE_API_BASE_URL` (Client code) với fallback mặc định trỏ về URL Render staging, tuyệt đối không hardcode IP localhost.
 - **Dynamic UI Messaging**: Các thông báo lỗi kết nối trên UI phải lấy URL động từ config (`backendTarget`), không viết chết chuỗi IP trong template string.
 
+---
+
+## [LESSON-010] Bắt buộc kiểm tra CI/CD & Merge Conflicts trước khi Handoff
+
+- **Date:** 2026-09-21
+- **Scope:** Lead Orchestrator, Worker subagents, PR verification, CI/CD pipelines, Definition of Done
+- **Status:** `ACTIVE` -> Đã chuẩn hóa vào quy trình Handoff bắt buộc.
+
+### 1. Context & Symptom
+Sau khi worker hoàn thành code và mở Pull Request, worker hoặc Lead vội vàng báo cáo handoff cho User và yêu cầu merge khi chưa kiểm tra trạng thái thực tế của pipeline CI/CD trên GitHub Actions. Hậu quả:
+- CI/CD trên GitHub Actions bị fail ở bước `tsc -b && npm run build` do lỗi kiểu TypeScript hoặc lỗi môi trường mà khâu test cục bộ bị bỏ sót.
+- Người dùng nhận thông báo sẵn sàng merge nhưng khi mở GitHub thì thấy biểu tượng dấu chéo đỏ (Checks failed) hoặc Merge Conflict, làm gián đoạn luồng làm việc và giảm uy tín chất lượng.
+
+### 2. Root Cause
+- Agent chỉ chạy `npm test` hoặc unittest cục bộ mà không chạy full `npm run build` (`tsc -b && vite build`) trước khi push.
+- Sau khi push PR, Agent không có thói quen kiểm tra vòng lặp kết quả CI/CD (`gh pr checks <PR>` hoặc `gh run list`), mà mặc định cho rằng code pass ở local là CI sẽ xanh.
+- Bỏ qua việc kiểm tra thuộc tính `mergeable` và `mergeStateStatus` của PR sau khi rebase hoặc push commit mới.
+
+### 3. Workaround & Permanent Solution (Mandatory CI/CD Verification Protocol)
+1. **Trước khi Push Commit**:
+   - Bắt buộc chạy full production build:
+     - Frontend: `npx tsc -b && npm run build` và `npm test -- --run`.
+     - Backend: `$env:PYTHONPATH="src"; python -m unittest discover -s tests -q`.
+2. **Sau khi Mở / Đẩy PR (Mandatory CI Verification Loop)**:
+   - Agent **BẮT BUỘC** phải chạy lệnh kiểm tra trạng thái CI/CD của GitHub Actions:
+     ```bash
+     gh pr checks <PR_NUMBER>
+     ```
+   - **Nếu CI/CD fail**:
+     - Lập tức lấy log chi tiết bằng `gh run view <RUN_ID> --log-failed`.
+     - Phân tích nguyên nhân, audit/debug, fix code ngay trong worktree.
+     - Commit, push bản vá lại lên nhánh PR.
+     - Tiếp tục kiểm tra lại quá trình CI/CD.
+3. **Quy tắc Dừng Handoff**:
+   - Agent **CHỈ ĐƯỢC PHÉP DỪNG TURN VÀ BÁO CÁO CHO USER KHI**:
+     1. **100% CI/CD checks đã hoàn tất và PASS (Màu xanh / Success)**.
+     2. **PR ở trạng thái CLEAN / MERGEABLE (Zero Merge Conflicts)**.
+   - Tuyệt đối không được handoff khi CI/CD còn đang fail hoặc chưa hoàn tất kiểm định.
+

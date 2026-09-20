@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from .database import check_database_connection
 from .schemas import AnalysisRequest, AnalysisResponse
-from .service import AnalysisEngine
+from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 
 
@@ -44,7 +45,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/ready", summary="Readiness probe")
     def ready(response: Response) -> dict[str, str]:
-        """Readiness endpoint verifying Supabase PostgreSQL infrastructure connectivity."""
+        """Readiness endpoint verifying database infrastructure connectivity."""
         is_connected, message = check_database_connection(current_settings.database_url)
         if is_connected:
             return {
@@ -71,6 +72,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def analyze(request: AnalysisRequest) -> AnalysisResponse:
         """Analyze financial health and CAMEL ratios across macro, sector, and company dimensions."""
         return engine.analyze(request)
+
+    @app.post(
+        "/api/analyze/stream",
+        summary="Stream analysis session events (SSE)",
+        response_class=StreamingResponse,
+    )
+    def analyze_stream(request: AnalysisRequest) -> StreamingResponse:
+        """Stream real-time execution lifecycle events as Server-Sent Events (SSE)."""
+        return StreamingResponse(
+            stream_analysis_query(request, db_path=current_settings.get_sqlite_path()),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     return app
 

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useSearchParams, useInRouterContext } from 'react-router-dom';
-import { Radio, RotateCw } from 'lucide-react';
+import { Radio, RotateCw, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type {
@@ -220,7 +220,7 @@ function AnalysisSessionWorkspaceContent({
     !hasEventsProp;
 
   const handleToggleMode = () => {
-    if (activeMode === 'LIVE') {
+    if (isActuallyLive) {
       setActiveMode('MOCK');
       liveStream.switchToMock();
     } else {
@@ -262,8 +262,17 @@ function AnalysisSessionWorkspaceContent({
           onClick={handleToggleMode}
           className="h-6 px-2 text-[10px] font-mono text-ink-secondary hover:text-ink hover:bg-surface-secondary border border-border-subtle"
         >
-          <RotateCw className="w-2.5 h-2.5 mr-1" aria-hidden="true" />
-          {activeMode === 'LIVE' ? 'Chuyển Mock' : 'Kết nối Live'}
+          {isActuallyLive ? (
+            <>
+              <RotateCw className="w-2.5 h-2.5 mr-1" aria-hidden="true" />
+              Chuyển Mock
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-2.5 h-2.5 mr-1" aria-hidden="true" />
+              Kết nối Live
+            </>
+          )}
         </Button>
       )}
     </div>
@@ -277,19 +286,22 @@ function AnalysisSessionWorkspaceContent({
   return (
     <div className="space-y-4">
       {/* Backend Fallback Notification Banner */}
-      {liveStream.isMockFallback && activeMode === 'LIVE' && (
+      {liveStream.isMockFallback && (
         <div className="border border-[#d88b00]/30 bg-[#fbefcf] text-[#78350f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-[#cf8500] shrink-0" aria-hidden="true" />
             <span>
-              Không thể kết nối Live SSE tới backend (127.0.0.1:8000). Hệ thống đã tự động chuyển sang chế độ Demo Mock để không làm gián đoạn phân tích.
+              Không thể kết nối Live SSE tới backend ({liveStream.backendTarget || 'https://final-thesis-zgwt.onrender.com'}). Hệ thống đã tự động chuyển sang chế độ Demo Mock để không làm gián đoạn phân tích.
             </span>
           </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => liveStream.retry()}
+            onClick={() => {
+              setActiveMode('LIVE');
+              liveStream.retry();
+            }}
             className="h-6 text-[11px] px-2.5 border-[#d88b00]/40 text-[#78350f] hover:bg-[#d88b00]/10 shrink-0 self-start sm:self-auto"
           >
             Thử lại Live

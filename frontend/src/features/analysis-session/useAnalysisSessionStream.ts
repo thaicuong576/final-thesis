@@ -53,6 +53,7 @@ export interface UseAnalysisSessionStreamReturn {
   error: Error | null;
   connectionMode: StreamConnectionMode;
   isMockFallback: boolean;
+  backendTarget: string;
   report: AnalysisReport | null;
   startStream: (req?: AnalysisStreamRequest) => Promise<void>;
   cancelStream: () => void;
@@ -154,6 +155,32 @@ export function normalizeAnalysisResponseToReport(
   };
 }
 
+export const DEFAULT_RENDER_BACKEND = 'https://final-thesis-zgwt.onrender.com';
+
+export function getResolvedApiEndpoint(customEndpoint?: string): string {
+  if (customEndpoint) return customEndpoint;
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+    const base = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+    return `${base}/api/analyze/stream`;
+  }
+  return '/api/analyze/stream';
+}
+
+export function getBackendTargetDisplay(customEndpoint?: string): string {
+  if (customEndpoint && customEndpoint.startsWith('http')) {
+    try {
+      const url = new URL(customEndpoint);
+      return url.origin;
+    } catch {
+      return customEndpoint;
+    }
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  return DEFAULT_RENDER_BACKEND;
+}
+
 /**
  * React hook connecting to POST /api/analyze/stream SSE endpoint.
  * Supports progressive event reduction into AnalysisSessionViewModel via projectAnalysisSession.
@@ -164,11 +191,19 @@ export function useAnalysisSessionStream({
   autoStart = true,
   fallbackToMockOnError = true,
   mockEvents,
-  apiEndpoint = '/api/analyze/stream',
+  apiEndpoint,
   onEvent,
   onComplete,
   onError
 }: UseAnalysisSessionStreamOptions = {}): UseAnalysisSessionStreamReturn {
+  const resolvedEndpoint = useMemo(
+    () => getResolvedApiEndpoint(apiEndpoint),
+    [apiEndpoint]
+  );
+  const backendTarget = useMemo(
+    () => getBackendTargetDisplay(apiEndpoint),
+    [apiEndpoint]
+  );
   const [connectionMode, setConnectionMode] = useState<StreamConnectionMode>('LIVE');
   const [isMockFallback, setIsMockFallback] = useState(false);
   const [events, setEvents] = useState<AnalysisSessionEvent[]>([]);
@@ -235,7 +270,7 @@ export function useAnalysisSessionStream({
           period: targetReq.period ?? '2024'
         };
 
-        const response = await fetch(apiEndpoint, {
+        const response = await fetch(resolvedEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -322,7 +357,7 @@ export function useAnalysisSessionStream({
         }
       }
     },
-    [activeRequest, apiEndpoint, fallbackToMockOnError, onEvent, onComplete, onError, switchToMockInternal]
+    [activeRequest, resolvedEndpoint, fallbackToMockOnError, onEvent, onComplete, onError, switchToMockInternal]
   );
 
   const cancelStream = useCallback(() => {
@@ -393,6 +428,7 @@ export function useAnalysisSessionStream({
     error,
     connectionMode,
     isMockFallback,
+    backendTarget,
     report,
     startStream,
     cancelStream,

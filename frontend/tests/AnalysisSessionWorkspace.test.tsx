@@ -581,5 +581,27 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
       })
     );
   });
+
+  it('[THES-8] Displays fallback banner with dynamic backend target and "Kết nối Live" toggle button when backend fails', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Failed to fetch'));
+
+    render(
+      <MemoryRouter initialEntries={['/session']}>
+        <AnalysisSessionWorkspace isLiveStream={true} />
+      </MemoryRouter>
+    );
+
+    // After failure, it falls back to mock mode
+    expect(await screen.findByText('Demo Mock Mode')).toBeInTheDocument();
+
+    // Fallback banner displays target backend (Render URL)
+    expect(
+      screen.getByText(/Không thể kết nối Live SSE tới backend \(https:\/\/final-thesis-zgwt\.onrender\.com\)/)
+    ).toBeInTheDocument();
+
+    // In mock mode, the toggle button offers "Kết nối Live", NOT "Chuyển Mock"
+    expect(screen.getByRole('button', { name: /Kết nối Live/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Chuyển Mock/i })).not.toBeInTheDocument();
+  });
 });
 

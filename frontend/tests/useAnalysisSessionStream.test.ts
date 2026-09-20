@@ -279,5 +279,24 @@ describe('useAnalysisSessionStream Unit & Integration Tests', () => {
 
       expect(result.current.connectionMode).toBe('LIVE');
     });
+
+    it('resolves custom apiEndpoint and backend target properly', () => {
+      const { result } = renderHook(() =>
+        useAnalysisSessionStream({
+          apiEndpoint: 'https://custom-backend.com/api/analyze/stream',
+          autoStart: false
+        })
+      );
+
+      expect(result.current.backendTarget).toBe('https://custom-backend.com');
+
+      const { result: defaultResult } = renderHook(() =>
+        useAnalysisSessionStream({
+          autoStart: false
+        })
+      );
+
+      expect(defaultResult.current.backendTarget).toBe('https://final-thesis-zgwt.onrender.com');
+    });
   });
 });

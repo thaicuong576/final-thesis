@@ -6,14 +6,17 @@
 
 ---
 
-## 1. BA TRỤ CỘT NGHIỆM THU TỐI THƯỢNG (CORE DOD CRITERIA)
+## 1. BỐN TRỤ CỘT NGHIỆM THU TỐI THƯỢNG (CORE DOD CRITERIA)
 
-Một tính năng, một module hoặc một nhánh phát triển chỉ được coi là **HOÀN THÀNH (DONE)** khi thỏa mãn đồng thời cả 3 trụ cột dưới đây:
+Một tính năng, một module hoặc một nhánh phát triển chỉ được coi là **HOÀN THÀNH (DONE)** khi thỏa mãn đồng thời cả 4 trụ cột dưới đây:
 
 ---
 
-### Trụ cột 1: Truy vết Nguồn gốc 100% (Metric Provenance)
-Mọi số liệu tài chính hiển thị trên giao diện (bảng số liệu, biểu đồ CAMEL, tóm tắt chỉ số) hoặc trích dẫn trong báo cáo phân tích BẮT BUỘC phải truy vết được nguồn gốc xác thực:
+### Trụ cột 1: Truy vết Nguồn gốc & Chuỗi Chân lý Khẳng định (Metric & Claim Provenance)
+Mọi số liệu tài chính hiển thị trên giao diện (bảng số liệu, biểu đồ CAMEL, tóm tắt chỉ số) hoặc trích dẫn trong báo cáo phân tích BẮT BUỘC phải tuân thủ chuỗi kiến tạo chân lý:
+```text
+evidence → structured assertion → AtomicClaim → synthesis → report statement
+```
 
 1. **Truy nguyên tầng Dữ liệu (Database Provenance)**:
    - Mỗi giá trị số phải gắn liền với bản ghi trong `financial_observations` hoặc `ratio_observations` trong SQLite (`finance_master_v2.sqlite`).
@@ -21,18 +24,18 @@ Mọi số liệu tài chính hiển thị trên giao diện (bảng số liệu
 2. **Truy nguyên tầng Bằng chứng (Document Evidence Trail)**:
    - Mỗi số liệu trích dẫn phải liên kết đến `document_records` hoặc `source_records`.
    - Phải cung cấp định danh tài liệu (`source_document`), số trang (`page_number`), và vị trí bảng/dòng cụ thể (`source_locator`, ví dụ: `page:42;table:Báo cáo kết quả hoạt động kinh doanh;row:Thu nhập lãi thuần`).
-3. **Cấm tuyệt đối số liệu mồ côi (Zero Orphan Metrics)**:
-   - Nghiêm cấm đưa ra số liệu phần trăm hoặc con số tài chính mà không có bản ghi xuất xứ trong cơ sở dữ liệu.
+3. **Cấm tuyệt đối số liệu mồ côi (Zero Orphan Metrics / Zero Orphan Claims)**:
+   - Nghiêm cấm đưa ra nhận định hoặc con số tài chính mà không có bản ghi xuất xứ trong cơ sở dữ liệu và liên kết đến `AtomicClaim`.
 
 ---
 
-### Trụ cột 2: Toàn vẹn Bộ Kiểm thử 100% (Test Suite Integrity)
-Mọi thay đổi code không được phép gây ra hồi quy (regression). Trước khi đề xuất merge, tất cả 4 bộ kiểm tra sau phải PASS hoàn toàn:
+### Trụ cột 2: Toàn vẹn Bộ Kiểm thử 100% (Test Suite Integrity & Stage-1 Deterministic Gate)
+Mọi thay đổi code không được phép gây ra hồi quy (regression). Trước khi đề xuất merge, tất cả các bộ kiểm tra sau phải PASS hoàn toàn:
 
 | Lớp kiểm thử | Lệnh thực thi | Tiêu chuẩn PASS bắt buộc |
 |---|---|---|
 | **Architecture Guardrails** | `python scripts/check_architecture_guardrails.py` | `ARCHITECTURE_GUARDRAILS: PASS` |
-| **Backend Unit Tests** | `$env:PYTHONPATH="src"; python -m unittest discover -s tests -q` | `Ran 499 tests... OK` (0 failures, 0 errors) |
+| **Backend Unit Tests** | `$env:PYTHONPATH="src"; python -m unittest discover -s tests -q` | `Ran 503 tests... OK` (0 failures, 0 errors) |
 | **Frontend Unit Tests** | `cd frontend; npm test -- --run` | `46 passed (46)` |
 | **Frontend Build Integrity** | `cd frontend; npm run build` | Build thành công (`tsc -b && vite build`), zero lỗi TypeScript |
 
@@ -45,7 +48,7 @@ Mọi thay đổi code không được phép gây ra hồi quy (regression). Tr�
 
 1. **Cô lập trong Git Worktree**:
    - Tất cả các worker bắt buộc phải làm việc trong thư mục worktree riêng biệt nằm trong `.worktrees/`.
-   - Khởi tạo qua script: `.\scripts\worker-start.ps1 -BranchName feat/<role>-<task>` hoặc `bash scripts/worker-start.sh feat/<role>-<task>`.
+   - Khởi tạo qua script: `powershell -File scripts/worker-start.ps1 feat/THES-X-<task>` hoặc `bash scripts/worker-start.sh feat/THES-X-<task>`.
 2. **Không commit chéo folder (Strict Boundary Separation)**:
    - **Worker Data**: Chỉ commit trong `data/`, `src/thesis_data/`, `scripts/migrations/`, `tests/test_*data*.py`...
    - **Worker API**: Chỉ commit trong `src/thesis_api/`, `src/thesis_agents/`, `tests/test_api_*.py`...
@@ -54,7 +57,16 @@ Mọi thay đổi code không được phép gây ra hồi quy (regression). Tr�
    - Bất kỳ diff nào vi phạm ranh giới thư mục đều sẽ bị **Auditor REJECT ngay lập tức**.
 3. **Quy chuẩn Commit và Pull Request**:
    - Tiêu đề commit theo Conventional Commits: `feat:`, `fix:`, `test:`, `docs:`, `chore:`.
-   - Không commit trực tiếp lên nhánh `main`. Nhánh `main` chỉ được cập nhật thông qua Squash Merge trên GitHub sau khi User phê duyệt.
+   - Không commit trực tiếp lên nhánh `main`. Nhánh `main` chỉ được cập nhật thông qua Pull Request trên GitHub sau khi User phê duyệt.
+
+---
+
+### Trụ cột 4: SDLC là Bất biến Dự án & Triển khai Staging (SDLC as a Project Invariant)
+1. **Nhịp Delivery Chuẩn tắc**:
+   `branch (worktree) → tests → PR → review → merge → staging deploy → smoke test`
+2. **Nghiệm thu End-to-End**:
+   - Đối với các vertical slice quan trọng, code complete hoặc PR merged chưa đủ để xem là hoàn thành nếu có tác động tới application runtime.
+   - Bắt buộc kiểm tra smoke test trên môi trường staging (Vercel Preview / Render) để xác nhận hệ thống vận hành đúng trước khi đóng task.
 
 ---
 

@@ -8,15 +8,27 @@
 
 ## 1. TÔN CHỈ TỐI THƯỢNG (NORTH STAR GOAL)
 
-Xây dựng và thực nghiệm hệ thống **Hierarchical Multi-Agent System** chuyên sâu phân tích và phản biện Báo cáo Tài chính của các Ngân hàng Thương mại Cổ phần niêm yết tại Việt Nam theo khung **CAMEL**, kết hợp đối sánh chéo với toàn ngành (**Peer Benchmark**).
+Dự án này là một **kiến trúc phân tích tài chính đa-agent có khả năng tái sử dụng (Reusable Financial Analysis Architecture)**, trong đó hệ thống **không chạy một pipeline cố định** mà lập kế hoạch theo từng yêu cầu phân tích (**Query-Adaptive Planning**) và chỉ kích hoạt những năng lực phân tích thực sự cần thiết.
 
-Hệ thống hoạt động theo phương pháp luận phân tầng từ trên xuống (**Top-Down Hierarchical Analysis**):
-1. **Macro Level (Vĩ mô)**: Nắm bắt chu kỳ chính sách tiền tệ của Ngân hàng Nhà nước (NHNN), lãi suất điều hành, và mục tiêu tăng trưởng tín dụng toàn hệ thống.
-2. **Sector Level (Ngành / Đối thủ)**: Tính toán phân vị và trung vị ngành đối chuẩn (Peer Median Benchmark) để xác định vị thế cạnh tranh.
-3. **Company Level (Doanh nghiệp)**: Đi sâu phân tích sức khỏe tài chính nội tại của ngân hàng mục tiêu theo 5 trụ cột CAMEL.
-4. **Cross-Level Critique (Phản biện chéo)**: Giám sát mâu thuẫn giữa hiệu quả doanh nghiệp và bối cảnh ngành/vĩ mô thông qua vòng lặp phản biện có kiểm soát (Supervised / Bounded Critique Loop).
+- **Không phải pipeline tuần tự cưỡng ép**: `Macro Policy Context`, `Sector/Peer Comparison` và `Company Financial Performance (CAMEL)` là các **analytical capabilities độc lập**, không phải ba stage bắt buộc phải chạy trong mọi truy vấn.
+- **Mục tiêu then chốt**: Tạo ra các phân tích có thể truy xuất ngược 100% đến dữ liệu và bằng chứng (`AtomicClaim` & `EvidenceTrail`), có kiểm soát chất lượng xác định bằng luật (**Stage 1 Deterministic Acceptance**), có phản biện ngữ nghĩa và hiệu đính có giới hạn (**Stage 2 Semantic Critique & Bounded Revision**), đồng thời giữ ranh giới sạch để frontend, database, orchestration framework hoặc data provider có thể được thay thế mà không phải viết lại analytical core.
+- **Vai trò của Web Application**: Chỉ là **Reference Implementation** để chứng minh tính khả thi end-to-end của kiến trúc, không phải bản thân kiến trúc.
 
-Mục tiêu học thuật then chốt của luận văn là **chứng minh bằng thực nghiệm**: Hệ thống Multi-Agent phân tầng có phản biện đạt độ chính xác thực tế (**factual correctness**), tính truy vết bằng chứng (**evidence traceability**) và tính nhất quán xuyên tầng (**cross-level consistency**) vượt trội so với mô hình **Single-Agent baseline** chạy trên cùng một tập dữ liệu đóng băng và cùng một bộ quy tắc.
+> **Tuyên ngôn North Star (Formal Charter Mandate)**:  
+> *"A reusable, query-adaptive hierarchical multi-agent financial-analysis architecture in which an Orchestrator plans and composes only the analytical capabilities required by each request, with evidence-grounded outputs, bounded critique/revision, deterministic quality controls, and replaceable enterprise data interfaces, demonstrated through an end-to-end web application for financial analysts."*
+
+### 1.1. Ba Đối tượng Chân lý Runtime Cốt lõi (Three Core Runtime Truth Objects)
+Toàn bộ tính tái hiện (reproducibility) và giải trình (explainability) của kiến trúc tựa trên 3 hợp đồng trung tâm:
+1. **`AnalysisPlan` (Ràng buộc Thực thi)**: Xác định hệ thống sẽ phân tích cái gì, entities nào, periods nào, và capability nào được phép kích hoạt cho request đó.
+2. **`DatasetSnapshot` (Ràng buộc Tri thức/Dữ liệu)**: Xác định tập dữ liệu đóng băng nào được phép coi là sự thật tài chính cho lượt chạy đó.
+3. **`AtomicClaim` (Ràng buộc Kết quả Đầu ra)**: Xác định hệ thống đang khẳng định điều gì và assertion đó dựa trên bằng chứng số liệu (`EvidenceSnippet` / `Observation`) cụ thể nào.
+
+### 1.2. Mục tiêu Nghiên cứu Học thuật
+Chứng minh bằng thực nghiệm: Hệ thống phân tầng thích ứng truy vấn (Query-Adaptive Hierarchical Workflow with Bounded Critique/Revision) vượt trội so với mô hình **Single-Agent baseline** chạy trên cùng một `DatasetSnapshot` về:
+- Độ chính xác thực tế (**factual correctness**).
+- Tính truy vết bằng chứng (**evidence traceability**).
+- Tính nhất quán xuyên tầng (**cross-level consistency**).
+- Giá trị thông tin phân tích (**analytical usefulness**).
 
 ---
 

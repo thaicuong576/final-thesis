@@ -65,6 +65,11 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
     - Every feature, refactoring, or bugfix task must be tracked via an issue in team `THES` on Linear (`https://linear.app/eddiephung`).
     - Worktrees and branch names must be bound to the Linear ticket key (`feat/THES-X-...`).
     - Pull Request titles and descriptions must cite the ticket (`[THES-X]`) for real-time bidirectional status tracking and automated workflow state transitions.
+19. **Mandatory CI/CD Verification & Conflict Resolution Loop (Zero-Failure Handoff)**:
+    - An agent must NEVER handoff or request the user to review/merge a Pull Request until all remote CI/CD checks have completed with a passing status.
+    - After opening a PR or pushing any commit, the agent MUST run `gh pr checks <PR_NUMBER>` to monitor pipeline execution.
+    - If any CI/CD check fails or a merge conflict arises (`mergeable: CONFLICTING`), the agent must immediately inspect failed logs (`gh run view <RUN_ID> --log-failed`), audit/debug the failure, push fixes to the feature branch, and re-verify until 100% checks pass and zero merge conflicts remain before concluding the handoff.
+
 
 ## Ownership
 

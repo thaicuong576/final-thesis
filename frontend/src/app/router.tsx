@@ -3,6 +3,7 @@ import { DataPage } from '../pages/data/DataPage';
 import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage';
 import { ReportPage } from '../pages/reports/ReportPage';
 import { ReportsListPage } from '../pages/reports/ReportsListPage';
+import { ReportErrorElement } from '../pages/reports/ReportErrorElement';
 
 export const router = createBrowserRouter([
   {
@@ -27,10 +28,12 @@ export const router = createBrowserRouter([
   },
   {
     path: '/reports',
-    element: <ReportsListPage />
+    element: <ReportsListPage />,
+    errorElement: <ReportErrorElement />
   },
   {
     path: '/reports/:id',
-    element: <ReportPage />
+    element: <ReportPage />,
+    errorElement: <ReportErrorElement />
   }
 ]);

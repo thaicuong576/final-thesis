@@ -12,32 +12,32 @@ export interface AnalysisPlan {
 }
 
 export interface MacroContext {
-  sbv_policy_rate: number;
-  system_credit_growth: number;
+  sbv_policy_rate: number | null;
+  system_credit_growth: number | null;
   interest_rate_trend: string;
   source: string;
 }
 
 export interface SectorBenchmark {
   sector: string;
-  peer_median_roe: number;
-  peer_median_nim: number;
-  peer_median_npl: number;
-  peer_median_cir: number;
-  peer_median_casa: number;
-  peer_median_car: number;
-  peer_median_ldr: number;
+  peer_median_roe: number | null;
+  peer_median_nim: number | null;
+  peer_median_npl: number | null;
+  peer_median_cir: number | null;
+  peer_median_casa: number | null;
+  peer_median_car: number | null;
+  peer_median_ldr: number | null;
 }
 
 export interface CompanyInsight {
   ticker: string;
-  roe: number;
-  nim: number;
-  npl: number;
-  cir: number;
-  casa: number;
-  car: number;
-  ldr: number;
+  roe: number | null;
+  nim: number | null;
+  npl: number | null;
+  cir: number | null;
+  casa: number | null;
+  car: number | null;
+  ldr: number | null;
   assessment: string;
 }
 
@@ -73,7 +73,7 @@ export interface EvidenceTrailItem {
   metric: string;
   ticker: string;
   period: string;
-  value: number;
+  value: number | string | null;
   source_doc: string;
   table_locator: string;
   provenance_hash: string;

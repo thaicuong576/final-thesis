@@ -1,4 +1,5 @@
 import { Scale, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { formatMetric } from '@/shared/lib/formatting';
 import type { CompanyInsight, SectorBenchmark } from '../model/types';
 
 interface SectorBenchmarkMatrixProps {
@@ -142,11 +143,17 @@ export function SectorBenchmarkMatrix({
           </thead>
           <tbody className="divide-y divide-line">
             {BENCHMARK_METRICS.map((m) => {
-              const medianVal = sectorBenchmark[m.key] as number;
-              const targetVal = targetInsight ? (targetInsight[m.insightKey] as number) : undefined;
-              const peerVal = peerInsight ? (peerInsight[m.insightKey] as number) : undefined;
+              const medianVal = sectorBenchmark[m.key];
+              const targetVal = targetInsight ? targetInsight[m.insightKey] : undefined;
+              const peerVal = peerInsight ? peerInsight[m.insightKey] : undefined;
 
-              const delta = targetVal !== undefined ? targetVal - medianVal : undefined;
+              const hasTarget = targetVal !== null && targetVal !== undefined && !isNaN(Number(targetVal));
+              const hasMedian = medianVal !== null && medianVal !== undefined && !isNaN(Number(medianVal));
+
+              const delta =
+                hasTarget && hasMedian
+                  ? Number(targetVal) - Number(medianVal)
+                  : undefined;
               const isFavorable =
                 delta !== undefined
                   ? m.higherIsBetter
@@ -165,15 +172,15 @@ export function SectorBenchmarkMatrix({
                     <span className="text-ink-tertiary"> — {m.description}</span>
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono font-bold text-ink bg-amber-soft/10">
-                    {targetVal !== undefined ? `${targetVal.toFixed(2)}%` : '—'}
+                    {targetInsight ? formatMetric(targetVal, 2) : '—'}
                   </td>
                   {peerInsight && (
                     <td className="py-2.5 px-3 text-right font-mono text-ink-secondary">
-                      {peerVal !== undefined ? `${peerVal.toFixed(2)}%` : '—'}
+                      {formatMetric(peerVal, 2)}
                     </td>
                   )}
                   <td className="py-2.5 px-3 text-right font-mono font-semibold text-ink">
-                    {medianVal.toFixed(2)}%
+                    {formatMetric(medianVal, 2)}
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono">
                     {delta !== undefined ? (
@@ -195,7 +202,7 @@ export function SectorBenchmarkMatrix({
                         )}
                         <span>
                           {delta > 0 ? '+' : ''}
-                          {delta.toFixed(2)}%
+                          {formatMetric(delta, 2)}
                         </span>
                       </span>
                     ) : (

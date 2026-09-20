@@ -8,6 +8,7 @@ import {
   Droplets
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { formatMetric } from '@/shared/lib/formatting';
 import type { CompanyInsight } from '../model/types';
 
 interface CompanyCamelBreakdownProps {
@@ -53,7 +54,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
       if (acb && tcb) {
         return `TCB sở hữu đệm vốn CAR ấn tượng 14.5% nhờ chiến lược tích lũy lợi nhuận giữ lại qua nhiều năm, tạo dư địa mở rộng bảng cân đối vượt trội. ACB duy trì CAR 12.8%, tuân thủ an toàn theo chuẩn mực Basel II với cấu trúc tài sản rủi ro bán lẻ lành mạnh.`;
       }
-      return `Hệ số CAR đạt ${acb?.car ?? 12.8}%, bảo đảm bộ đệm rủi ro vững chắc trước các biến động chu kỳ kinh tế vĩ mô.`;
+      return `Hệ số CAR đạt ${formatMetric(acb?.car ?? 12.8, 1)}, bảo đảm bộ đệm rủi ro vững chắc trước các biến động chu kỳ kinh tế vĩ mô.`;
     }
   },
   {
@@ -76,7 +77,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
       if (acb && tcb) {
         return `ACB duy trì nợ xấu NPL chỉ 1.21%, thấp hơn đáng kể so với trung vị ngành (1.62%) và TCB (1.45%). Chính sách cho vay thận trọng, tập trung 94% vào bán lẻ và DNNVV có tài sản bảo đảm là nhà ở giúp ACB giữ chi phí trích lập dự phòng ở mức tối ưu.`;
       }
-      return `Chất lượng tài sản tiếp tục là lợi thế cạnh tranh nòng cốt với tỷ lệ nợ xấu ${acb?.npl ?? 1.21}%, kiểm soát chặt chẽ trong nhóm dẫn đầu toàn ngành.`;
+      return `Chất lượng tài sản tiếp tục là lợi thế cạnh tranh nòng cốt với tỷ lệ nợ xấu ${formatMetric(acb?.npl ?? 1.21, 2)}, kiểm soát chặt chẽ trong nhóm dẫn đầu toàn ngành.`;
     }
   },
   {
@@ -99,7 +100,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
       if (acb && tcb) {
         return `Cả ACB (CIR 31.8%) và TCB (CIR 32.5%) đều đạt hiệu suất vận hành vượt trội so với trung vị ngành (33.4%). Nỗ lực tự động hóa quy trình nội bộ và kênh giao dịch số giúp cả hai định chế tài chính tiết giảm chi phí quản lý vận hành đáng kể.`;
       }
-      return `CIR duy trì ở mức ${acb?.cir ?? 31.8}%, phản ánh kỷ luật tài chính nghiêm ngặt và năng lực kiểm soát chi phí hoạt động xuất sắc.`;
+      return `CIR duy trì ở mức ${formatMetric(acb?.cir ?? 31.8, 1)}, phản ánh kỷ luật tài chính nghiêm ngặt và năng lực kiểm soát chi phí hoạt động xuất sắc.`;
     }
   },
   {
@@ -128,7 +129,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
       if (acb && tcb) {
         return `ACB dẫn đầu về hiệu suất sinh lời ROE đạt 21.4% (vượt 3.2 điểm % so với trung vị ngành), trong khi TCB sở hữu biên lãi thuần NIM 4.15% (vượt 50 bps so với trung vị). ACB tối ưu hóa đòn bẩy và chi phí tín dụng, còn TCB tận dụng triệt để lợi thế giá vốn tiền gửi rẻ.`;
       }
-      return `Khả năng sinh lời vượt trội với ROE ${acb?.roe ?? 21.4}% và NIM ${acb?.nim ?? 3.82}%, phản ánh cơ cấu thu nhập cân bằng và hiệu quả sinh lời vững bền.`;
+      return `Khả năng sinh lời vượt trội với ROE ${formatMetric(acb?.roe ?? 21.4, 1)} và NIM ${formatMetric(acb?.nim ?? 3.82, 2)}, phản ánh cơ cấu thu nhập cân bằng và hiệu quả sinh lời vững bền.`;
     }
   },
   {
@@ -157,7 +158,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
       if (acb && tcb) {
         return `TCB áp đảo với tỷ lệ CASA dẫn đầu toàn hệ thống 41.2%, hạ thấp đáng kể chi phí vốn đầu vào (COF). ACB duy trì LDR 82.5% đảm bảo tối ưu hóa dòng tiền huy động trong giới hạn an toàn 85% của NHNN.`;
       }
-      return `Thanh khoản tuân thủ nghiêm ngặt chuẩn mực NHNN với LDR ${acb?.ldr ?? 82.5}% và tỷ lệ CASA ${acb?.casa ?? 23.2}%.`;
+      return `Thanh khoản tuân thủ nghiêm ngặt chuẩn mực NHNN với LDR ${formatMetric(acb?.ldr ?? 82.5, 1)} và tỷ lệ CASA ${formatMetric(acb?.casa ?? 23.2, 1)}.`;
     }
   }
 ];
@@ -242,7 +243,7 @@ export function CompanyCamelBreakdown({
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-ink-secondary">
-                  ROE: {insight.roe.toFixed(1)}% · NIM: {insight.nim.toFixed(2)}%
+                  ROE: {formatMetric(insight.roe, 1)} · NIM: {formatMetric(insight.nim, 2)}
                 </span>
               </div>
 
@@ -297,8 +298,7 @@ export function CompanyCamelBreakdown({
                             {c.ticker}:
                           </span>
                           <span className="text-xs font-bold text-ink">
-                            {Number(c[m.key]).toFixed(2)}
-                            {m.unit}
+                            {formatMetric(c[m.key], 2, m.unit)}
                           </span>
                         </div>
                       ))}

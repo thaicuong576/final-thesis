@@ -9,6 +9,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { formatMetric } from '@/shared/lib/formatting';
 import type { AtomicClaim, ClaimType, CritiqueItem } from '../model/types';
 
 interface CrossLevelCritiqueGraphProps {
@@ -82,7 +83,7 @@ export function CrossLevelCritiqueGraph({
                     {item.dimension}
                   </span>
                   <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded bg-card border border-border text-[#1b4332]">
-                    Độ tin cậy {(item.confidence * 100).toFixed(1)}%
+                    Độ tin cậy {item.confidence != null && !isNaN(Number(item.confidence)) ? formatMetric(item.confidence * 100, 1) : 'N/A'}
                   </span>
                 </div>
 
@@ -172,7 +173,7 @@ export function CrossLevelCritiqueGraph({
                     <span className="font-mono text-xs text-ink-secondary">
                       Độ tin cậy:{' '}
                       <strong className="text-ink">
-                        {(claim.confidence * 100).toFixed(1)}%
+                        {claim.confidence != null && !isNaN(Number(claim.confidence)) ? formatMetric(claim.confidence * 100, 1) : 'N/A'}
                       </strong>
                     </span>
 

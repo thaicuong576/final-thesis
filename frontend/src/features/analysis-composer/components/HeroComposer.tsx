@@ -23,16 +23,10 @@ export function HeroComposer({
   onOpenScopeAdjustment,
   isSubmitting = false
 }: HeroComposerProps) {
-  const [question, setQuestion] = useState(
-    controlledQuestion !== undefined ? controlledQuestion : initialQuestion
-  );
+  const isControlled = controlledQuestion !== undefined;
+  const [internalQuestion, setInternalQuestion] = useState(initialQuestion);
+  const question = isControlled ? controlledQuestion : internalQuestion;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (controlledQuestion !== undefined) {
-      setQuestion(controlledQuestion);
-    }
-  }, [controlledQuestion]);
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current;
@@ -61,7 +55,9 @@ export function HeroComposer({
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const val = e.target.value;
-    setQuestion(val);
+    if (!isControlled) {
+      setInternalQuestion(val);
+    }
     onQuestionChange?.(val);
   }
 

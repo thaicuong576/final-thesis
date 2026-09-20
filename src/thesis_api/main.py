@@ -80,8 +80,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def analyze_stream(request: AnalysisRequest) -> StreamingResponse:
         """Stream real-time execution lifecycle events as Server-Sent Events (SSE)."""
+        step_delay = 0.0 if current_settings.app_env == "test" else 0.35
         return StreamingResponse(
-            stream_analysis_query(request, db_path=current_settings.get_sqlite_path()),
+            stream_analysis_query(
+                request,
+                db_path=current_settings.get_sqlite_path(),
+                step_delay=step_delay,
+            ),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",

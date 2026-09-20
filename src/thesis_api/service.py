@@ -718,14 +718,15 @@ class AnalysisEngine:
         finally:
             connection.close()
 
-    def stream_analysis(self, request: AnalysisRequest) -> Iterator[str]:
+    def stream_analysis(self, request: AnalysisRequest, step_delay: float = 0.35) -> Iterator[str]:
         """Stream SSE analysis lifecycle events."""
-        yield from stream_analysis_query(request, db_path=self.db_path)
+        yield from stream_analysis_query(request, db_path=self.db_path, step_delay=step_delay)
 
 
 def stream_analysis_query(
     req: AnalysisRequest,
     db_path: Path | None = None,
+    step_delay: float = 0.35,
 ) -> Iterator[str]:
     """Generate Server-Sent Events (SSE) stream adhering to contracts/openapi.json and contracts/mock-data.json."""
     resolved_db_path = db_path or get_settings().get_sqlite_path()
@@ -779,6 +780,8 @@ def stream_analysis_query(
     )
 
     # 3. PLAN_CREATED
+    if step_delay > 0:
+        time.sleep(step_delay)
     spec_names = ", ".join(c.capitalize() for c in required_capabilities)
     yield _emit(
         "PLAN_CREATED",
@@ -825,6 +828,9 @@ def stream_analysis_query(
             },
         )
 
+        if step_delay > 0:
+            time.sleep(min(step_delay, 0.25))
+
         # SPECIALIST_ACTIVITY
         yield _emit(
             "SPECIALIST_ACTIVITY",
@@ -838,6 +844,9 @@ def stream_analysis_query(
                 },
             },
         )
+
+        if step_delay > 0:
+            time.sleep(min(step_delay, 0.25))
 
         # SPECIALIST_OUTPUT_CREATED
         yield _emit(
@@ -865,6 +874,8 @@ def stream_analysis_query(
         )
 
     # 5. REVIEW_STARTED
+    if step_delay > 0:
+        time.sleep(min(step_delay, 0.25))
     yield _emit(
         "REVIEW_STARTED",
         {
@@ -875,6 +886,8 @@ def stream_analysis_query(
     # 6. Revision Flow (if macro/hierarchical critique triggers semantic review)
     company_inv_id = f"inv-company-{report_id}"
     if has_macro:
+        if step_delay > 0:
+            time.sleep(min(step_delay, 0.25))
         yield _emit(
             "REVIEW_FEEDBACK_CREATED",
             {
@@ -911,6 +924,9 @@ def stream_analysis_query(
             },
         )
 
+        if step_delay > 0:
+            time.sleep(min(step_delay, 0.25))
+
         yield _emit(
             "REVISION_COMPLETED",
             {
@@ -928,6 +944,8 @@ def stream_analysis_query(
         )
 
     # 7. SYNTHESIS_STARTED
+    if step_delay > 0:
+        time.sleep(step_delay)
     yield _emit(
         "SYNTHESIS_STARTED",
         {
@@ -1049,6 +1067,8 @@ def stream_analysis_query(
     )
 
     # 9. REPORT_READY
+    if step_delay > 0:
+        time.sleep(step_delay)
     yield _emit(
         "REPORT_READY",
         {

@@ -23,10 +23,18 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="APP_ENV")
     database_url: str | None = Field(default=None, alias="DATABASE_URL")
     cors_origins: list[str] | str = Field(
-        default_factory=lambda: ["http://localhost:5173"],
+        default_factory=lambda: [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://final-thesis-frontend.vercel.app",
+            "https://fin-ai.eddiephung.me",
+        ],
         alias="CORS_ORIGINS",
     )
-    cors_origin_regex: str | None = Field(default=None, alias="CORS_ORIGIN_REGEX")
+    cors_origin_regex: str | None = Field(
+        default=r"^https?://([a-zA-Z0-9-]+\.)?(vercel\.app|eddiephung\.me)(:[0-9]+)?$|^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
+        alias="CORS_ORIGIN_REGEX",
+    )
     app_revision: str | None = Field(default=None, alias="APP_REVISION")
     render_git_commit: str | None = Field(default=None, alias="RENDER_GIT_COMMIT")
     sqlite_db_path: str = Field(

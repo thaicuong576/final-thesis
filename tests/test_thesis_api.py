@@ -109,6 +109,21 @@ class ThesisApiTests(unittest.TestCase):
             "https://staging.final-thesis.vercel.app",
         )
 
+    def test_cors_custom_domain_allowed(self) -> None:
+        default_settings = Settings()
+        app = create_app(default_settings)
+        client = TestClient(app)
+        headers = {
+            "Origin": "https://fin-ai.eddiephung.me",
+            "Access-Control-Request-Method": "POST",
+        }
+        response = client.options("/api/analyze/stream", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers.get("access-control-allow-origin"),
+            "https://fin-ai.eddiephung.me",
+        )
+
     def test_settings_cors_origins_parsing(self) -> None:
         # Comma-separated string
         s1 = Settings(CORS_ORIGINS="http://localhost:5173, https://example.com")

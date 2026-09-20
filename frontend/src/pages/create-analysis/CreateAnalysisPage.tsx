@@ -47,20 +47,50 @@ export function CreateAnalysisPage() {
   const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
 
-  const handleQuestionSubmit = useCallback((question: string) => {
-    if (!capabilities) return;
-    setCurrentQuestion(question);
-    setSubmissionSuccessMessage(null);
+  const handleQuestionChange = useCallback(
+    (question: string) => {
+      setCurrentQuestion(question);
+      if (!capabilities) return;
+      if (!question.trim()) {
+        setParseResult(null);
+        return;
+      }
+      const result = parseAnalysisQuestion(question, capabilities);
+      setParseResult(result);
+    },
+    [capabilities]
+  );
 
-    const result = parseAnalysisQuestion(question, capabilities);
-    setParseResult(result);
+  const handleQuestionSubmit = useCallback(
+    (question: string) => {
+      if (!capabilities) return;
+      const trimmed = question.trim();
+      if (!trimmed) return;
+      setCurrentQuestion(trimmed);
+      setSubmissionSuccessMessage(null);
 
-    if (result.mismatch.isMismatch) {
-      setMode('MISMATCH');
-    } else {
-      setMode('INTERPRETED');
-    }
-  }, [capabilities]);
+      const result = parseAnalysisQuestion(trimmed, capabilities);
+      setParseResult(result);
+
+      if (result.mismatch.isMismatch) {
+        setMode('MISMATCH');
+      } else {
+        setMode('INTERPRETED');
+      }
+    },
+    [capabilities]
+  );
+
+  const handleSelectSuggestion = useCallback(
+    (promptText: string) => {
+      setCurrentQuestion(promptText);
+      if (!capabilities) return;
+      const result = parseAnalysisQuestion(promptText, capabilities);
+      setParseResult(result);
+      // DO NOT auto-submit: let analyst review/edit before execution
+    },
+    [capabilities]
+  );
 
   useEffect(() => {
     if (!capabilities) return;
@@ -106,10 +136,6 @@ export function CreateAnalysisPage() {
         <ErrorState />
       </WorkspaceShell>
     );
-  }
-
-  function handleSelectSuggestion(promptText: string) {
-    handleQuestionSubmit(promptText);
   }
 
   function handleScopeOverride(updatedScope: ParsedScope) {
@@ -159,20 +185,20 @@ export function CreateAnalysisPage() {
       context={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            <span>KHÔNG GIAN</span>
+            <span>Không gian</span>
             <span className="text-border-strong">/</span>
-            <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
+            <span className="font-semibold text-ink">Bàn làm việc phân tích</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
             <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
-            <span className="font-mono text-[11px]">HỆ THỐNG PHÂN TÍCH CẤP BẬC SẴN SÀNG</span>
+            <span className="font-mono text-[11px]">Hệ thống phân tích sẵn sàng</span>
           </div>
         </div>
       }
     >
       <div className="min-h-[calc(100vh-80px)] bg-workspace py-5 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[1120px] space-y-4">
-          {/* Active Dataset Anchor Card (Only displayed in composer/interpretation modes) */}
+        <div className="mx-auto max-w-[1120px] space-y-5">
+          {/* Active Dataset Context Bar (Only displayed in composer/interpretation modes) */}
           {mode !== 'SESSION' && (
             <ActiveDatasetCard
               capabilities={capabilities}
@@ -191,22 +217,25 @@ export function CreateAnalysisPage() {
             </Alert>
           )}
 
-          {/* SCREEN 1 & SCREEN 2 STATE MACHINE */}
+          {/* SCREEN 1: DEFAULT HERO WORKSPACE */}
           {mode === 'DEFAULT' && (
-            <div className="space-y-4">
+            <div className="space-y-6 pt-1">
               <HeroComposer
-                initialQuestion={currentQuestion}
+                question={currentQuestion}
+                onQuestionChange={handleQuestionChange}
                 onSubmit={handleQuestionSubmit}
+                parsedScope={parseResult?.scope || null}
+                onOpenScopeAdjustment={() => setScopeDrawerOpen(true)}
                 isSubmitting={isSubmitting}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                <SuggestedQuestions onSelectPrompt={handleSelectSuggestion} />
-                <RecentReportsSummary />
-              </div>
+              <SuggestedQuestions onSelectPrompt={handleSelectSuggestion} />
+
+              <RecentReportsSummary />
             </div>
           )}
 
+          {/* SCREEN 1: INTERPRETED STATE */}
           {mode === 'INTERPRETED' && parseResult && (
             <div className="space-y-4">
               <RequestInterpretationCard
@@ -219,6 +248,7 @@ export function CreateAnalysisPage() {
             </div>
           )}
 
+          {/* SCREEN 1: MISMATCH STATE */}
           {mode === 'MISMATCH' && parseResult && (
             <div className="space-y-4">
               <ScopeMismatchAlert
@@ -230,6 +260,7 @@ export function CreateAnalysisPage() {
             </div>
           )}
 
+          {/* SCREEN 2: ANALYSIS SESSION WORKSPACE */}
           {mode === 'SESSION' && (
             <AnalysisSessionWorkspace
               events={activeEvents}
@@ -247,7 +278,7 @@ export function CreateAnalysisPage() {
         onOpenChange={setDatasetSelectorOpen}
       />
 
-      {parseResult && (
+      {scopeDrawerOpen && parseResult && (
         <ScopeAdjustmentDrawer
           open={scopeDrawerOpen}
           onOpenChange={setScopeDrawerOpen}

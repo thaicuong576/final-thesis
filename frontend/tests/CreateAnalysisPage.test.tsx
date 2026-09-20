@@ -45,7 +45,7 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
     expect(screen.queryByLabelText('Q1/2024')).not.toBeInTheDocument();
   });
 
-  it('renders suggested analytical prompts and populates the question', async () => {
+  it('renders suggested analytical prompts and populates the question without auto-submitting', async () => {
     const user = userEvent.setup();
     renderPage();
 
@@ -56,7 +56,25 @@ describe('CreateAnalysisPage (Clean-Room Screen 1 - Query-Adaptive)', () => {
 
     await user.click(suggestion);
 
-    // Clicking a suggestion submits the question and moves to Interpretation state
+    // Clicking a suggestion populates composer text and reveals Parsed Scope feedback without auto-submitting
+    const composer = screen.getByPlaceholderText(/So sánh chất lượng tài sản của ACB, TCB và MBB/);
+    expect(composer).toHaveValue(
+      'So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất.'
+    );
+
+    expect(await screen.findByText('Đã nhận diện:')).toBeInTheDocument();
+    expect(screen.getByText('ACB')).toBeInTheDocument();
+    expect(screen.getByText('TCB')).toBeInTheDocument();
+    expect(screen.getByText('MBB')).toBeInTheDocument();
+
+    // Still on composer screen; user has not confirmed or executed yet
+    expect(screen.queryByText('Xác nhận kế hoạch phân tích')).not.toBeInTheDocument();
+
+    // Now user clicks CTA to submit question and transition to interpreted state
+    const ctaBtn = screen.getByRole('button', { name: /Bắt đầu phân tích/ });
+    expect(ctaBtn).not.toBeDisabled();
+    await user.click(ctaBtn);
+
     expect(await screen.findByText('Hệ thống hiểu yêu cầu')).toBeInTheDocument();
     expect(screen.getByText('Xác nhận kế hoạch phân tích')).toBeInTheDocument();
     expect(screen.getByText(/ACB · TCB · MBB/)).toBeInTheDocument();

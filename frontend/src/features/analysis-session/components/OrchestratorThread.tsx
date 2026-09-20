@@ -1,10 +1,50 @@
 import { CheckCircle2, FileText } from 'lucide-react';
+import { useNavigate, useInRouterContext } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { SpecialistSessionState, ThreadItem } from '../model/types';
 import { UserQuestionEntry } from './UserQuestionEntry';
 import { OrchestratorEntry } from './OrchestratorEntry';
 import { InlineSpecialistInvocationCard } from './InlineSpecialistInvocationCard';
+
+function SafeReportButton({ targetPath = '/reports/mock-session-2024-acb-tcb' }: { targetPath?: string }) {
+  const inRouter = useInRouterContext();
+  if (inRouter) {
+    return <RouterReportButton targetPath={targetPath} />;
+  }
+  return <StaticReportButton targetPath={targetPath} />;
+}
+
+function RouterReportButton({ targetPath }: { targetPath: string }) {
+  const navigate = useNavigate();
+  return (
+    <Button
+      type="button"
+      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto"
+      onClick={() => navigate(targetPath)}
+    >
+      <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+      Xem báo cáo phân tích
+    </Button>
+  );
+}
+
+function StaticReportButton({ targetPath }: { targetPath: string }) {
+  return (
+    <Button
+      type="button"
+      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto"
+      onClick={() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = targetPath;
+        }
+      }}
+    >
+      <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+      Xem báo cáo phân tích
+    </Button>
+  );
+}
 
 interface OrchestratorThreadProps {
   threadItems: ThreadItem[];
@@ -80,18 +120,7 @@ export function OrchestratorThread({
                       </p>
                     </div>
 
-                    <Button
-                      type="button"
-                      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto"
-                      onClick={() => {
-                        alert(
-                          'Khóa luận tốt nghiệp: Màn hình Báo cáo phân tích chuyên sâu (Final Report) được triển khai ở pha kế tiếp.'
-                        );
-                      }}
-                    >
-                      <FileText className="w-3.5 h-3.5" aria-hidden="true" />
-                      Xem báo cáo phân tích
-                    </Button>
+                    <SafeReportButton targetPath="/reports/mock-session-2024-acb-tcb" />
                   </div>
                 </div>
               );

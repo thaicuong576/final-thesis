@@ -184,10 +184,8 @@ export function CreateAnalysisPage() {
       activeSection="analysis"
       context={
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            <span>Không gian</span>
-            <span className="text-border-strong">/</span>
-            <span className="font-semibold text-ink">Bàn làm việc phân tích</span>
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
             <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />

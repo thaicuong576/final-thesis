@@ -153,3 +153,27 @@ Khi người dùng gửi feedback về giao diện (UI bugs, styling đen, sai l
 ### 3. Workaround & Permanent Solution
 - **Quy tắc 1 Turn Dispatch:** Khi có feedback UI hoặc bug, Lead BẮT BUỘC phải dispatch ngay cho Worker trong 1 turn duy nhất, không nán lại đọc file code ứng dụng ở root.
 - **Bắt buộc chuyển toàn bộ Image Paths:** Bất kỳ khi nào người dùng upload ảnh, Lead BẮT BUỘC phải trích xuất toàn bộ file paths từ metadata và đưa thẳng vào prompt khởi tạo của worker ngay từ đầu để worker sử dụng `view_file` đối chiếu hình ảnh.
+
+---
+
+## [LESSON-008] PowerShell Remove-Item Recurse Xâm thực Directory Junctions (`frontend/node_modules`)
+
+- **Date:** 2026-09-20
+- **Scope:** `scripts/sync-and-cleanup.ps1`, `scripts/worker-start.ps1`, Git Worktree cleanup
+- **Status:** `ACTIVE` -> Đã vá trực tiếp vào `scripts/sync-and-cleanup.ps1`.
+
+### 1. Context & Symptom
+Khi chạy `scripts/sync-and-cleanup.ps1 -BranchName <branch>` để thu hồi worktree cũ, thư mục gốc `frontend/node_modules` ở root bất ngờ bị xoá sạch toàn bộ packages, khiến các lệnh `vitest` và `tsc` ở root báo lỗi `not recognized as an internal or external command`.
+
+### 2. Root Cause
+- Trên Windows, `frontend/node_modules` trong worktree được gắn kết bằng Directory Junction (`cmd /c mklink /J`).
+- Trong PowerShell 5.1, lệnh `Remove-Item -Recurse -Force $WorktreePath` có hành vi duyệt đệ quy (recursive traversal) xuyên qua các reparse points (Directory Junctions) và xoá toàn bộ files trong thư mục đích trước khi xoá junction link.
+
+### 3. Workaround & Permanent Solution
+- Trước khi gọi `git worktree remove` hoặc `Remove-Item -Recurse $WorktreePath`, BẮT BUỘC phải tách (unmount/detach) Directory Junction bằng lệnh cmd chuẩn:
+  ```powershell
+  if (Test-Path "$WorktreePath\frontend\node_modules") {
+      cmd /c rmdir "$WorktreePath\frontend\node_modules" 2>$null
+  }
+  ```
+  Lệnh `rmdir` của Windows chỉ xoá điểm nối junction mà tuyệt đối không làm ảnh hưởng đến dữ liệu của thư mục gốc.

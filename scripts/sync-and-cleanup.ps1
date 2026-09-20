@@ -14,6 +14,9 @@ if ($BranchName) {
     $WorktreePath = ".worktrees\$DirSafeName"
 
     Write-Host "[CLEANUP] Removing worktree: $WorktreePath..." -ForegroundColor Cyan
+    if (Test-Path "$WorktreePath\frontend\node_modules") {
+        cmd /c rmdir "$WorktreePath\frontend\node_modules" 2>$null
+    }
     if (Test-Path $WorktreePath) {
         git worktree remove "$WorktreePath" --force 2>$null
         if (Test-Path $WorktreePath) {

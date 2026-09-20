@@ -8,3 +8,4 @@ export * from './components/CompanyCamelBreakdown';
 export * from './components/CrossLevelCritiqueGraph';
 export * from './components/EvidenceTrailTable';
 export * from './components/AnalysisReportWorkspace';
+export { formatMetric } from '../../shared/lib/formatting';

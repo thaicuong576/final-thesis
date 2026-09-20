@@ -172,9 +172,11 @@ export function EvidenceTrailTable({
                       {item.period}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-right font-bold text-ink whitespace-nowrap">
-                      {typeof item.value === 'number'
+                      {item.value === null || item.value === undefined
+                        ? '—'
+                        : typeof item.value === 'number' && !isNaN(item.value)
                         ? item.value.toFixed(2)
-                        : item.value}
+                        : String(item.value)}
                     </td>
                     <td className="py-2.5 px-3 text-ink max-w-xs truncate">
                       {item.source_doc}

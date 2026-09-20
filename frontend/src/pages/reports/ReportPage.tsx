@@ -6,6 +6,7 @@ import {
   getReportById,
   type AnalysisReport
 } from '@/features/analysis-report';
+import { ReportErrorBoundary } from './ReportErrorBoundary';
 
 interface ReportPageProps {
   report?: AnalysisReport;
@@ -15,10 +16,15 @@ export function ReportPage({ report: propReport }: ReportPageProps) {
   const { id } = useParams<{ id?: string }>();
   const inRouter = useInRouterContext();
 
-  if (inRouter) {
-    return <RouterBoundReportPage id={id} propReport={propReport} />;
-  }
-  return <ReportPageContent id={id} propReport={propReport} />;
+  return (
+    <ReportErrorBoundary>
+      {inRouter ? (
+        <RouterBoundReportPage id={id} propReport={propReport} />
+      ) : (
+        <ReportPageContent id={id} propReport={propReport} />
+      )}
+    </ReportErrorBoundary>
+  );
 }
 
 function RouterBoundReportPage({

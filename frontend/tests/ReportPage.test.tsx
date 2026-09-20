@@ -8,8 +8,13 @@ import { ReportsListPage } from '../src/pages/reports/ReportsListPage';
 import {
   mockPeerComparisonReport,
   mockCompanyOnlyReport,
-  mockFullHierarchicalReport
+  mockFullHierarchicalReport,
+  CompanyCamelBreakdown,
+  SectorBenchmarkMatrix,
+  formatMetric,
+  type AnalysisReport
 } from '../src/features/analysis-report';
+import { ReportErrorBoundary } from '../src/pages/reports/ReportErrorBoundary';
 import { OrchestratorThread } from '../src/features/analysis-session/components/OrchestratorThread';
 
 // Unicode Regex detecting all common emojis (Zero Emoji Policy guard)
@@ -299,4 +304,214 @@ describe('Screen 3 - Financial Analysis Report Artifact Page (Clean-Room)', () =
 
     expect(await screen.findByTestId('report-page-target')).toBeInTheDocument();
   });
+
+  // =========================================================================
+  // 9. [THES-10] SAFE METRIC FORMATTER UNIT TESTS
+  // =========================================================================
+  describe('[THES-10] formatMetric utility', () => {
+    it('gracefully returns "N/A" for null, undefined, empty string, and NaN', () => {
+      expect(formatMetric(null)).toBe('N/A');
+      expect(formatMetric(undefined)).toBe('N/A');
+      expect(formatMetric(NaN)).toBe('N/A');
+      expect(formatMetric('' as unknown as number)).toBe('N/A');
+      expect(formatMetric(null, 2, '%')).toBe('N/A');
+      expect(formatMetric(undefined, 2, ' bps')).toBe('N/A');
+    });
+
+    it('formats valid positive, zero, and negative numbers with custom digits and suffix', () => {
+      expect(formatMetric(21.4, 1)).toBe('21.4%');
+      expect(formatMetric(18.2, 2)).toBe('18.20%');
+      expect(formatMetric(0, 1)).toBe('0.0%');
+      expect(formatMetric(-1.25, 2)).toBe('-1.25%');
+      expect(formatMetric(15.082, 2, ' bps')).toBe('15.08 bps');
+      expect(formatMetric(4.5, 1, '')).toBe('4.5');
+    });
+  });
+
+  // =========================================================================
+  // 10. [THES-10] NULL FINANCIAL METRICS HANDLING IN REPORT COMPONENTS
+  // =========================================================================
+  describe('[THES-10] Null Financial Metrics Graceful Handling', () => {
+    const mockNullMetricsReport: AnalysisReport = {
+      report_id: 'rep-2024-acb-stream',
+      status: 'completed',
+      query: 'Phân tích sức khỏe tài chính ngân hàng ACB năm 2024 trực tiếp từ luồng',
+      target_ticker: 'ACB',
+      peer_tickers: ['TCB'],
+      period: '2024',
+      analysis_plan: {
+        plan_id: 'plan-acb-null',
+        query: 'Phân tích sức khỏe tài chính ngân hàng ACB năm 2024 trực tiếp từ luồng',
+        target_ticker: 'ACB',
+        peer_tickers: ['TCB'],
+        period: '2024',
+        required_capabilities: ['macro', 'sector', 'company'],
+        applicable_links: ['peer_comparison', 'macro_transmission'],
+        dataset_snapshot_id: 'ds-2024-q4',
+        rationale: 'Kế hoạch phân tích',
+        known_limitations: ['Một số chỉ tiêu chưa được công bố đầy đủ']
+      },
+      macro_context: {
+        sbv_policy_rate: null,
+        system_credit_growth: null,
+        interest_rate_trend: 'Mặt bằng lãi suất duy trì ổn định',
+        source: 'NHNN 2024'
+      },
+      sector_benchmark: {
+        sector: 'Ngân hàng thương mại',
+        peer_median_roe: null,
+        peer_median_nim: null,
+        peer_median_npl: 1.62,
+        peer_median_cir: null,
+        peer_median_casa: null,
+        peer_median_car: null,
+        peer_median_ldr: null
+      },
+      company_insights: [
+        {
+          ticker: 'ACB',
+          roe: null,
+          nim: null,
+          npl: null,
+          cir: null,
+          casa: null,
+          car: null,
+          ldr: null,
+          assessment: 'ACB duy trì hoạt động an toàn dù một số chỉ tiêu chưa công bố.'
+        },
+        {
+          ticker: 'TCB',
+          roe: null,
+          nim: null,
+          npl: 1.45,
+          cir: null,
+          casa: null,
+          car: null,
+          ldr: null,
+          assessment: 'TCB duy trì nguồn vốn mạnh mẽ.'
+        }
+      ],
+      cross_level_critique: [
+        {
+          dimension: 'Tương quan vĩ mô',
+          finding: 'Không đủ số liệu để đánh giá truyền dẫn',
+          confidence: 0.85
+        }
+      ],
+      atomic_claims: [
+        {
+          claim_id: 'claim-1',
+          capability: 'company',
+          ticker: 'ACB',
+          metric: 'NPL',
+          period: '2024',
+          statement: 'ACB kiểm soát nợ xấu chặt chẽ',
+          claim_type: 'factual_observation',
+          evidence_refs: ['ev-1'],
+          confidence: 0.9,
+          stage1_status: 'accepted',
+          stage2_critique_status: 'sound'
+        }
+      ],
+      evidence_trail: [
+        {
+          evidence_id: 'ev-1',
+          metric: 'NPL',
+          ticker: 'ACB',
+          period: '2024',
+          value: null,
+          source_doc: 'BCTC ACB 2024',
+          table_locator: 'Thuyết minh',
+          provenance_hash: 'hash-1'
+        }
+      ],
+      revision_summary: {
+        rounds_executed: 1,
+        max_rounds: 3,
+        status: 'passed',
+        reason: 'Đạt kiểm định chất lượng',
+        revised_capabilities: []
+      },
+      limitations: ['Dữ liệu CAR, CASA, LDR chưa có trong kỳ báo cáo']
+    };
+
+    it('renders SectorBenchmarkMatrix with null values without throwing TypeError', () => {
+      render(
+        <SectorBenchmarkMatrix
+          sectorBenchmark={mockNullMetricsReport.sector_benchmark!}
+          targetTicker="ACB"
+          peerTickers={['TCB']}
+          companyInsights={mockNullMetricsReport.company_insights}
+        />
+      );
+
+      // Should display 'N/A' for null metrics instead of crashing
+      expect(screen.getAllByText('N/A').length).toBeGreaterThanOrEqual(1);
+      // NPL median is 1.62%, should be formatted
+      expect(screen.getByText('1.62%')).toBeInTheDocument();
+      // Peer NPL is 1.45%
+      expect(screen.getByText('1.45%')).toBeInTheDocument();
+    });
+
+    it('renders CompanyCamelBreakdown with null values without throwing TypeError', () => {
+      render(
+        <CompanyCamelBreakdown
+          companyInsights={mockNullMetricsReport.company_insights}
+          targetTicker="ACB"
+        />
+      );
+
+      // Header ROE/NIM should display 'ROE: N/A · NIM: N/A'
+      expect(screen.getAllByText('ROE: N/A · NIM: N/A').length).toBeGreaterThanOrEqual(1);
+      // Metrics rows should display 'N/A'
+      expect(screen.getAllByText('N/A').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders full ReportPage with null metrics without crashing and adheres to Zero Emoji', () => {
+      const { container } = renderReportPage(
+        '/reports/rep-2024-acb-stream',
+        mockNullMetricsReport
+      );
+
+      // Macro context with null values displays N/A
+      expect(screen.getByText('Bối cảnh chính sách tiền tệ')).toBeInTheDocument();
+      expect(screen.getAllByText('N/A').length).toBeGreaterThanOrEqual(2);
+
+      // Evidence trail with null value renders '—'
+      expect(screen.getByText('Tra cứu bằng chứng và nguồn gốc số liệu')).toBeInTheDocument();
+      expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1);
+
+      // Verify Zero Emoji
+      expect(EMOJI_REGEX.test(container.textContent || '')).toBe(false);
+    });
+
+    it('catches render errors in ReportErrorBoundary and presents Warm Retro error fallback card', () => {
+      function BuggyComponent(): React.ReactNode {
+        throw new Error('Test boundary crash: Cannot read properties of null (reading "toFixed")');
+      }
+
+      // Suppress console.error in this error boundary test
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { container } = render(
+        <MemoryRouter>
+          <ReportErrorBoundary>
+            <BuggyComponent />
+          </ReportErrorBoundary>
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText('Không thể kết xuất báo cáo phân tích')).toBeInTheDocument();
+      expect(screen.getByText(/Test boundary crash/i)).toBeInTheDocument();
+      expect(screen.getAllByRole('link', { name: /Thư viện báo cáo/i }).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByRole('link', { name: /Bàn làm việc phân tích/i }).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByRole('button', { name: /Thử tải lại/i })).toBeInTheDocument();
+
+      // Zero Emoji policy verification on error surface
+      expect(EMOJI_REGEX.test(container.textContent || '')).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });
+

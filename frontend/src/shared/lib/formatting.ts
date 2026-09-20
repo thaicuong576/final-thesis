@@ -41,3 +41,17 @@ export function formatCapabilityTimestamp(timestamp: string) {
 export function formatGoldVersion(version: string) {
   return `Gold v${version}`;
 }
+
+/**
+ * Gracefully formats financial metrics with fallback to 'N/A' when values are null, undefined, or invalid.
+ */
+export function formatMetric(
+  value: number | string | null | undefined,
+  digits = 1,
+  suffix = '%'
+): string {
+  if (value === null || value === undefined || value === '' || isNaN(Number(value))) {
+    return 'N/A';
+  }
+  return `${Number(value).toFixed(digits)}${suffix}`;
+}

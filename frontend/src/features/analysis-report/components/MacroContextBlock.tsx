@@ -1,4 +1,5 @@
 import { Landmark, TrendingUp, Percent, FileText } from 'lucide-react';
+import { formatMetric } from '@/shared/lib/formatting';
 import type { MacroContext } from '../model/types';
 
 interface MacroContextBlockProps {
@@ -38,7 +39,7 @@ export function MacroContextBlock({ macroContext }: MacroContextBlockProps) {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold tracking-tight text-ink">
-              {macroContext.sbv_policy_rate.toFixed(1)}%
+              {formatMetric(macroContext.sbv_policy_rate, 1)}
             </span>
             <span className="text-[11px] text-ink-tertiary font-mono">Tái cấp vốn</span>
           </div>
@@ -57,7 +58,7 @@ export function MacroContextBlock({ macroContext }: MacroContextBlockProps) {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold tracking-tight text-[#1b4332]">
-              {macroContext.system_credit_growth.toFixed(2)}%
+              {formatMetric(macroContext.system_credit_growth, 2)}
             </span>
             <span className="text-[11px] text-ink-tertiary font-mono">Cả năm 2024</span>
           </div>

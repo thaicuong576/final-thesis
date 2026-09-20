@@ -8,7 +8,7 @@ interface AnalysisPlanBannerProps {
 }
 
 const CAPABILITY_LABELS: Record<string, string> = {
-  company: 'Phân tích CAMEL (Doanh nghiệp)',
+  company: 'Phân tích sức khỏe tài chính doanh nghiệp',
   sector: 'Đối chuẩn trung vị ngành',
   macro: 'Chính sách tiền tệ vĩ mô'
 };
@@ -35,18 +35,21 @@ export function AnalysisPlanBanner({
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
-            Kế hoạch phân tích & Ràng buộc thực thi
+            Kế hoạch phân tích
           </h2>
-          <span className="font-mono text-[11px] text-ink-tertiary bg-surface-secondary px-2 py-0.5 rounded border border-border">
-            {plan.plan_id}
-          </span>
         </div>
 
         {revisionSummary && (
           <div className="flex items-center gap-1.5 text-xs text-ink-secondary font-mono">
             <CheckCircle2 className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
             <span>
-              Thẩm định: {revisionSummary.rounds_executed}/{revisionSummary.max_rounds} vòng ({revisionSummary.status === 'passed' ? 'Phê duyệt ngay' : revisionSummary.status})
+              Thẩm định: {revisionSummary.rounds_executed}/{revisionSummary.max_rounds} vòng (
+              {revisionSummary.status === 'passed'
+                ? 'Phê duyệt ngay'
+                : revisionSummary.status === 'revised_and_passed'
+                ? 'Đã hiệu đính'
+                : revisionSummary.status}
+              )
             </span>
           </div>
         )}

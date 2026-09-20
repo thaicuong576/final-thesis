@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { AnalysisReport } from '../model/types';
+import { SAMPLE_REPORTS } from '../mock/mockReports';
 
 interface ReportHeaderBarProps {
   report: AnalysisReport;
@@ -41,48 +42,72 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
   return (
     <div className="sticky top-0 z-20 border-b border-line bg-card shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/95">
       <div className="mx-auto max-w-[1280px] px-4 py-3 sm:px-6 lg:px-8">
-        {/* Navigation & Quality Assurance Badges */}
+        {/* Navigation, Quick Switcher & Quality Assurance Badges */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-2.5">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Button
               asChild
               variant="outline"
               size="sm"
-              className="h-8 px-2.5 text-xs font-semibold gap-1.5 border-line bg-surface-secondary text-ink hover:bg-surface-hover"
+              className="h-8 px-2.5 text-xs font-semibold gap-1.5 border-line bg-surface-secondary text-ink hover:bg-surface-hover shrink-0"
             >
-              <Link to="/analysis">
+              <Link to="/reports">
                 <ArrowLeft className="size-3.5 shrink-0" aria-hidden="true" />
-                <span>Trở về bàn làm việc</span>
+                <span>Thư viện báo cáo</span>
               </Link>
             </Button>
 
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-ink-secondary">
-              <span className="font-mono text-[11px] uppercase tracking-wider">
-                MÃ BÁO CÁO:
+            {/* Quick switcher for 3 sample reports */}
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-ink-tertiary hidden md:inline-block">
+                Xem nhanh:
               </span>
-              <span className="font-mono font-bold text-ink bg-surface-secondary px-1.5 py-0.5 rounded border border-border">
-                {report.report_id}
-              </span>
+              {SAMPLE_REPORTS.map((s) => {
+                const isActive = s.report.report_id === report.report_id;
+                return (
+                  <Link
+                    key={s.id}
+                    to={`/reports/${s.slug}`}
+                    className={`px-2.5 py-1 text-xs font-mono rounded transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'bg-amber text-ink font-bold border border-amber-border shadow-xs'
+                        : 'bg-surface-secondary text-ink-secondary hover:text-ink hover:bg-surface-hover border border-border font-medium'
+                    }`}
+                  >
+                    {s.shortName}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Stage 1 acceptance */}
+            {/* Stage 1 acceptance: Kiểm tra số học: Đạt */}
             <span className="inline-flex items-center gap-1.5 rounded border border-[#a3cfbb] bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#1b4332]">
               <ShieldCheck className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
-              <span>Stage 1: Verified</span>
+              <span>Kiểm tra số học: Đạt</span>
             </span>
 
-            {/* Stage 2 acceptance */}
-            <span className="inline-flex items-center gap-1.5 rounded border border-slate-300 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">
+            {/* Stage 2 acceptance: Phản biện logic: Đạt */}
+            <span
+              className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs font-medium ${
+                report.revision_summary?.status === 'revised_and_passed'
+                  ? 'border-amber-border/70 bg-amber-soft text-ink font-semibold'
+                  : 'border-slate-300 bg-slate-100 text-slate-800'
+              }`}
+            >
               <CheckCircle2 className="size-3.5 text-slate-600" aria-hidden="true" />
-              <span>Stage 2: Sound</span>
+              <span>
+                {report.revision_summary?.status === 'revised_and_passed'
+                  ? 'Phản biện logic: Đã hiệu đính'
+                  : 'Phản biện logic: Đạt'}
+              </span>
             </span>
 
-            {/* Snapshot ID */}
+            {/* Friendly Data Snapshot Label */}
             <span className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-secondary px-2 py-0.5 text-xs font-mono text-ink-secondary">
               <Database className="size-3 text-ink-tertiary" aria-hidden="true" />
-              <span>{report.analysis_plan.dataset_snapshot_id}</span>
+              <span>Dữ liệu Q4/2024</span>
             </span>
           </div>
         </div>
@@ -138,7 +163,7 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
               type="button"
               size="sm"
               onClick={handleExportJson}
-              className="h-8 px-3 text-xs font-semibold gap-1.5 bg-ink text-text-inverse hover:bg-[#333330]"
+              className="h-8 px-3 text-xs font-semibold gap-1.5 bg-amber text-ink border border-amber-border hover:bg-amber-hover shadow-xs"
             >
               <Download className="size-3.5" aria-hidden="true" />
               <span>Xuất báo cáo</span>

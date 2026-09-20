@@ -16,11 +16,8 @@ export function MacroContextBlock({ macroContext }: MacroContextBlockProps) {
         <div className="flex items-center gap-2">
           <Landmark className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-sm font-bold tracking-tight text-ink">
-            Bối cảnh chính sách tiền tệ & Kinh tế vĩ mô
+            Bối cảnh chính sách tiền tệ
           </h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-            MACRO CONTEXT
-          </span>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-ink-secondary font-mono">

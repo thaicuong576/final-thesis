@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { DataPage } from '../pages/data/DataPage';
 import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage';
 import { ReportPage } from '../pages/reports/ReportPage';
+import { ReportsListPage } from '../pages/reports/ReportsListPage';
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +23,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/reports',
-    element: <ReportPage />
+    element: <ReportsListPage />
   },
   {
     path: '/reports/:id',

@@ -47,11 +47,8 @@ export function EvidenceTrailTable({
         <div className="flex items-center gap-2">
           <Database className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-sm font-bold tracking-tight text-ink">
-            Dấu vết bằng chứng & Nguồn gốc số liệu (Evidence Trail)
+            Tra cứu bằng chứng và nguồn gốc số liệu
           </h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-            AUDIT TRAIL
-          </span>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-[#1b4332] font-mono bg-[#e8f5ee] px-2 py-0.5 rounded border border-[#a3cfbb]">

@@ -54,11 +54,8 @@ export function CrossLevelCritiqueGraph({
         <div className="flex items-center gap-2">
           <GitBranch className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-sm font-bold tracking-tight text-ink">
-            Phản biện đa cấp & Đồ thị luận điểm nguyên tử
+            Luận điểm phân tích và phản biện
           </h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-            STAGE 1 & STAGE 2 CRITIQUE
-          </span>
         </div>
 
         <div className="text-xs text-ink-secondary font-mono">
@@ -71,7 +68,7 @@ export function CrossLevelCritiqueGraph({
         <div className="space-y-2.5">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-secondary">
             <Sparkles className="size-3.5 text-amber-border" aria-hidden="true" />
-            <span>Phát hiện phản biện tương quan liên tầng (Cross-Level Critique)</span>
+            <span>Phát hiện phản biện tương quan liên tầng</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -112,7 +109,7 @@ export function CrossLevelCritiqueGraph({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-secondary">
             <FileCheck className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
-            <span>Đồ thị khẳng định có thể kiểm chứng (Atomic Claims)</span>
+            <span>Đồ thị khẳng định có thể kiểm chứng</span>
           </div>
           <span className="text-[11px] font-mono text-ink-tertiary">
             Mọi luận điểm đều liên kết với bằng chứng BCTC
@@ -151,15 +148,23 @@ export function CrossLevelCritiqueGraph({
                       className="text-[10px] font-mono bg-[#e8f5ee] text-[#1b4332] border-[#a3cfbb] gap-1"
                     >
                       <ShieldCheck className="size-3" aria-hidden="true" />
-                      <span>Stage 1: Passed</span>
+                      <span>Kiểm tra số học: Đạt</span>
                     </Badge>
 
                     <Badge
                       variant="outline"
-                      className="text-[10px] font-mono bg-slate-100 text-slate-800 border-slate-300 gap-1"
+                      className={`text-[10px] font-mono gap-1 ${
+                        claim.stage2_critique_status === 'revised'
+                          ? 'bg-amber-soft text-ink border-amber-border/70 font-semibold'
+                          : 'bg-slate-100 text-slate-800 border-slate-300'
+                      }`}
                     >
-                      <CheckCircle2 className="size-3" aria-hidden="true" />
-                      <span>Stage 2: Sound</span>
+                      <CheckCircle2 className="size-3 text-slate-600" aria-hidden="true" />
+                      <span>
+                        {claim.stage2_critique_status === 'revised'
+                          ? 'Phản biện logic: Đã hiệu đính'
+                          : 'Phản biện logic: Đạt'}
+                      </span>
                     </Badge>
                   </div>
 

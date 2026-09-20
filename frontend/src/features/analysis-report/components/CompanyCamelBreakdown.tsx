@@ -41,7 +41,7 @@ const CAMEL_PILLARS: CamelPillarDef[] = [
     description: 'Năng lực nguồn vốn tự có bảo vệ ngân hàng trước tổn thất tín dụng bất ngờ.',
     metrics: [
       {
-        label: 'Tỷ lệ an toàn vốn (CAR Basel II)',
+        label: 'Tỷ lệ an toàn vốn (CAR)',
         key: 'car',
         unit: '%',
         benchmarkNote: 'Quy chuẩn NHNN tối thiểu 8.0%, trung vị ngành 11.8%'
@@ -179,11 +179,8 @@ export function CompanyCamelBreakdown({
         <div className="flex items-center gap-2">
           <Building2 className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-sm font-bold tracking-tight text-ink">
-            Bóc tách chuyên sâu 5 trụ cột CAMEL
+            Phân tích sức khỏe tài chính 5 trụ cột
           </h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-            CAMEL FRAMEWORK
-          </span>
         </div>
 
         {/* Pillar Filter Pills */}
@@ -193,7 +190,7 @@ export function CompanyCamelBreakdown({
             onClick={() => setSelectedPillar('all')}
             className={`px-2 py-1 text-xs font-mono font-medium rounded transition-colors ${
               selectedPillar === 'all'
-                ? 'bg-ink text-text-inverse font-bold'
+                ? 'bg-amber text-ink border border-amber-border font-bold'
                 : 'bg-surface-secondary text-ink hover:bg-surface-hover border border-border'
             }`}
           >
@@ -275,9 +272,6 @@ export function CompanyCamelBreakdown({
                     <h3 className="text-xs font-bold text-ink flex items-center gap-1.5">
                       <Icon className="size-3.5 text-ink-secondary" aria-hidden="true" />
                       <span>{pillar.nameVi}</span>
-                      <span className="text-ink-tertiary font-mono font-normal">
-                        ({pillar.title})
-                      </span>
                     </h3>
                     <p className="text-[11px] text-ink-secondary">
                       {pillar.description}

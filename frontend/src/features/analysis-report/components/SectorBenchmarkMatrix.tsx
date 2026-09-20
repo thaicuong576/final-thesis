@@ -68,7 +68,7 @@ const BENCHMARK_METRICS: BenchmarkMetricRow[] = [
     key: 'peer_median_car',
     insightKey: 'car',
     code: 'CAR',
-    label: 'Hệ số an toàn vốn (Basel II)',
+    label: 'Hệ số an toàn vốn',
     description: 'Đệm vốn tự có bảo vệ trước rủi ro tín dụng, thị trường và hoạt động',
     unit: '%',
     higherIsBetter: true
@@ -103,11 +103,8 @@ export function SectorBenchmarkMatrix({
         <div className="flex items-center gap-2">
           <Scale className="size-4 text-ink-secondary" aria-hidden="true" />
           <h2 className="text-sm font-bold tracking-tight text-ink">
-            Ma trận đối chuẩn trung vị ngành ngân hàng
+            Đối chuẩn trung vị ngành ngân hàng
           </h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-            SECTOR BENCHMARK
-          </span>
         </div>
 
         <div className="text-xs text-ink-secondary font-mono">

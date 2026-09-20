@@ -45,9 +45,13 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 14. **Foundational Mandate & Spec Zero (`.agent/foundation/`)**:
     - The 4 core documents in `.agent/foundation/` (`01-project-charter.md`, `02-domain-invariants.md`, `03-system-architecture.md`, `04-definition-of-done.md`) are the supreme architectural and domain invariants.
     - All role prompts (`lead.md`, `worker-data.md`, `worker-api.md`, `worker-ui.md`, `auditor.md`) are strictly anchored to these foundations. Any conflict must be resolved in favor of Foundation.
-15. **Lead Dispatch Reflex & Worktree Auto-Dispatch**:
+15. **Lead Dispatch Reflex & Linear Worktree Auto-Dispatch**:
     - The Lead Architect / Dispatcher MUST NEVER directly edit application code under `src/` or `frontend/` in the root workspace.
-    - Upon receiving feature, UI, or backend requests, the mandatory first reflex is: Deconstruct into specialized subtasks -> Automatically run `scripts/worker-start.*` to spin up isolated Git Worktrees (`.worktrees/feat-<domain>-<task-name>`) -> Write `TASK.md` manifest inside the child worktree -> Dispatch to the corresponding worker role.
+    - Upon receiving feature, UI, or backend requests, the mandatory first reflex is:
+      1. Create a Linear issue (`THES-X`) with conventional title, scope, spec references, and binding contracts.
+      2. Automatically run `scripts/worker-start.* feat/THES-X-<task-name>` to spin up an isolated Git Worktree (`.worktrees/feat-THES-X-<task-name>`).
+      3. Write `TASK.md` manifest inside the child worktree referencing the Linear issue, role, contracts, scope, and verification criteria.
+      4. Mandate worker to name PRs starting with `feat(<domain>): [THES-X] <title>` to enable automatic two-way GitHub-Linear synchronization and auto-closure on merge.
 16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
@@ -55,6 +59,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 17. **Mandatory Post-Merge Worktree Cleanup & Pure Lineage**:
     - Once a Pull Request is merged into `main`, the Lead Orchestrator MUST immediately execute `scripts/sync-and-cleanup.*` to remove the merged child worktree and delete the local feature branch, followed by pruning stale remote refs via `git remote prune origin`.
     - Every subsequent feature or bugfix task MUST start on a freshly created Git Worktree branched from the latest `main` HEAD (`scripts/worker-start.*`). Reusing, reviving, or continuing work inside a stale or merged branch/worktree is strictly forbidden.
+18. **Linear Issue Tracking & GitHub Integration**:
+    - Every feature, refactoring, or bugfix task must be tracked via an issue in team `THES` on Linear (`https://linear.app/eddiephung`).
+    - Worktrees and branch names must be bound to the Linear ticket key (`feat/THES-X-...`).
+    - Pull Request titles and descriptions must cite the ticket (`[THES-X]`) for real-time bidirectional status tracking and automated workflow state transitions.
 
 ## Ownership
 

@@ -30,61 +30,72 @@ Bạn làm việc trực tiếp với User để chốt bài toán nghiệp vụ
      2. Xoá sạch worktree và branch feature cũ bằng `powershell -File scripts/sync-and-cleanup.ps1 -BranchName <merged-branch>`, sau đó dọn dẹp remote refs bằng `git remote prune origin`.
      3. Mọi task tiếp theo BẮT BUỘC phải khởi tạo branch và worktree MỚI từ HEAD mới nhất của `main` (`scripts/worker-start.*`). Tuyệt đối không tái sử dụng hay tiếp tục code trên branch đã merge.
 
-## QUY TRÌNH AUTO-DISPATCH (LEAD PHẢI TỰ ĐỘNG THỰC THI BẰNG LỆNH):
-Với mỗi task được bóc tách, Lead Agent phải tự động thực thi tuần tự các bước:
-1. **Khởi tạo Branch & Worktree**:
-   Chạy lệnh terminal:
-   - PowerShell (Windows): `powershell -File scripts/worker-start.ps1 -BranchName feat/<domain>-<task-name>`
-   - Bash: `bash scripts/worker-start.sh feat/<domain>-<task-name>`
-2. **Khởi tạo Task Manifest ngay trong Worktree con**:
-   Tạo file `.worktrees/feat-<domain>-<task-name>/TASK.md` chứa đầy đủ:
-   - **Assigned Role**: Trỏ thẳng vào `@.agent/roles/worker-<domain>.md`
-   - **Contracts Binding**: Trích dẫn các schema cần đọc trong `contracts/`
-   - **Scope & Non-Goals**: Những gì worker được làm và tuyệt đối không được làm
-   - **Test Command**: Lệnh test bắt buộc phải pass trước khi commit
-3. **Báo cáo lại cho User**:
-   In ra danh sách các worktree đã được dispatch kèm hướng dẫn chuyển tab/mở thư mục để worker thực thi.
+## QUY TRÌNH AUTO-DISPATCH VỚI LINEAR (LEAD PHẢI TỰ ĐỘNG THỰC THI BẰNG LỆNH):
+Mỗi khi User đưa ra tính năng, refactor hoặc bugfix:
+
+### 1. BƯỚC 1 - TẠO LINEAR ISSUE:
+- Gọi tool Linear MCP (hoặc Linear GraphQL API) để tạo issue mới thuộc team hiện tại (`THES`).
+- **Title**: Chuẩn conventional (ví dụ: `feat(ui): refactor tabbar and clean typography`).
+- **Description**: Ghi rõ Scope, Spec, và các file contract liên quan (`contracts/`).
+- **Lấy mã Issue ID** được trả về (ví dụ: `THES-15`).
+
+### 2. BƯỚC 2 - SPAWN WORKTREE GẮN VỚI ISSUE ID:
+- Tự động chạy lệnh terminal tạo worktree gắn liền với mã ticket:
+  - PowerShell (Windows): `powershell -File scripts/worker-start.ps1 feat/THES-15-<ten-task-ngan-gon>`
+  - Bash: `bash scripts/worker-start.sh feat/THES-15-<ten-task-ngan-gon>`
+- Khởi tạo file `TASK.md` bên trong worktree đó chứa đầy đủ:
+  - **Issue Reference**: `THES-15` (kèm URL Linear)
+  - **Assigned Role**: Trỏ thẳng vào `@.agent/roles/worker-<domain>.md`
+  - **Contracts Binding**: Trích dẫn các schema cần đọc trong `contracts/`
+  - **Scope & Non-Goals**: Những gì worker được làm và tuyệt đối không được làm
+  - **Test Command**: Lệnh test bắt buộc phải pass trước khi commit
+
+### 3. BƯỚC 3 - QUY ƯỚC WORKER KHI MỞ PR:
+- Hướng dẫn worker trong `TASK.md`: Khi mở PR, tên PR phải bắt đầu bằng mã issue (ví dụ: `feat(ui): [THES-15] refactor tabbar`) và description PR trỏ về ticket Linear tương ứng để GitHub tự động đồng bộ sang Linear và tự động đóng ticket khi merge.
 
 ## BỘ TEMPLATE DISPATCH CARDS CHUẨN (BẮT BUỘC SỬ DỤNG):
 
 ---
 ### 📋 DISPATCH CARD - DATA WORKER
+- **Linear Ticket**: `THES-XX` (kèm link Linear)
 - **Role Context**: `@.agent/roles/worker-data.md`
-- **Tên Branch**: `feat/data-<task-name>`
+- **Tên Branch**: `feat/THES-XX-<task-name>`
 - **Contracts cần đọc**: `@contracts/schema.sql`
 - **Ranh giới cho phép**: `data/`, `src/thesis_data/`
 - **Nhiệm vụ cụ thể**:
   [Mô tả chi tiết việc cần làm, logic trích xuất hoặc công thức CAMEL cần tính]
 - **Khởi tạo Worktree**:
-  - PowerShell (Windows): `.\scripts\worker-start.ps1 -BranchName feat/data-<task-name>`
-  - Bash: `bash scripts/worker-start.sh feat/data-<task-name>`
-- **Chuyển context**: `cd .worktrees\feat-data-<task-name>`
+  - PowerShell (Windows): `powershell -File scripts/worker-start.ps1 feat/THES-XX-<task-name>`
+  - Bash: `bash scripts/worker-start.sh feat/THES-XX-<task-name>`
+- **Chuyển context**: `cd .worktrees\feat-THES-XX-<task-name>`
 
 ---
 ### 📋 DISPATCH CARD - API WORKER
+- **Linear Ticket**: `THES-XX` (kèm link Linear)
 - **Role Context**: `@.agent/roles/worker-api.md`
-- **Tên Branch**: `feat/api-<task-name>`
+- **Tên Branch**: `feat/THES-XX-<task-name>`
 - **Contracts cần đọc**: `@contracts/openapi.json`, `@contracts/schema.sql`
 - **Ranh giới cho phép**: `src/thesis_api/`, `src/thesis_agents/`
 - **Nhiệm vụ cụ thể**:
   [Mô tả chi tiết endpoint FastAPI, Pydantic schemas hoặc luồng tác tử LangGraph cần xây dựng]
 - **Khởi tạo Worktree**:
-  - PowerShell (Windows): `.\scripts\worker-start.ps1 -BranchName feat/api-<task-name>`
-  - Bash: `bash scripts/worker-start.sh feat/api-<task-name>`
-- **Chuyển context**: `cd .worktrees\feat-api-<task-name>`
+  - PowerShell (Windows): `powershell -File scripts/worker-start.ps1 feat/THES-XX-<task-name>`
+  - Bash: `bash scripts/worker-start.sh feat/THES-XX-<task-name>`
+- **Chuyển context**: `cd .worktrees\feat-THES-XX-<task-name>`
 
 ---
 ### 📋 DISPATCH CARD - UI WORKER
+- **Linear Ticket**: `THES-XX` (kèm link Linear)
 - **Role Context**: `@.agent/roles/worker-ui.md`
-- **Tên Branch**: `feat/ui-<task-name>`
+- **Tên Branch**: `feat/THES-XX-<task-name>`
 - **Contracts cần đọc**: `@contracts/mock-data.json`, `@contracts/openapi.json`
 - **Ranh giới cho phép**: `frontend/`
 - **Nhiệm vụ cụ thể**:
   [Mô tả chi tiết component, view báo cáo hoặc trạng thái tương tác cần dựng]
 - **Khởi tạo Worktree**:
-  - PowerShell (Windows): `.\scripts\worker-start.ps1 -BranchName feat/ui-<task-name>`
-  - Bash: `bash scripts/worker-start.sh feat/ui-<task-name>`
-- **Chuyển context**: `cd .worktrees\feat-ui-<task-name>`
+  - PowerShell (Windows): `powershell -File scripts/worker-start.ps1 feat/THES-XX-<task-name>`
+  - Bash: `bash scripts/worker-start.sh feat/THES-XX-<task-name>`
+- **Chuyển context**: `cd .worktrees\feat-THES-XX-<task-name>`
 
 ---
 ### 🔍 DISPATCH CARD - CODE & ARCHITECTURE AUDITOR

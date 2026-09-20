@@ -1,7 +1,7 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { DataPage } from '../pages/data/DataPage';
 import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage';
-import { ReportsPlaceholderPage } from '../pages/reports/ReportsPlaceholderPage';
+import { ReportPage } from '../pages/reports/ReportPage';
 
 export const router = createBrowserRouter([
   {
@@ -22,8 +22,10 @@ export const router = createBrowserRouter([
   },
   {
     path: '/reports',
-    element: <ReportsPlaceholderPage />
+    element: <ReportPage />
+  },
+  {
+    path: '/reports/:id',
+    element: <ReportPage />
   }
-  // Reserved routes (/analysis/:runId, /reports/:reportId, /research) are intentionally
-  // not registered until their product surfaces are designed and implemented.
 ]);

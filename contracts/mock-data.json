@@ -1,12 +1,34 @@
 {
-  "session_id": "mock-session-2024-acb-tcb",
-  "query": "Phân tích tỷ suất sinh lời ROE và chất lượng tài sản (NPL) của ACB và TCB năm 2024",
+  "session_id": "mock-session-peer-acb-tcb",
+  "report_id": "rep-2024-acb-tcb-peer",
+  "status": "completed",
+  "query": "So sánh hiệu quả hoạt động (ROE, NIM) và rủi ro nợ xấu (NPL) giữa ACB và TCB năm 2024",
   "target_ticker": "ACB",
   "peer_tickers": [
     "TCB",
     "MBB"
   ],
   "period": "2024",
+  "analysis_plan": {
+    "plan_id": "plan-peer-acb-tcb-2024",
+    "query": "So sánh hiệu quả hoạt động (ROE, NIM) và rủi ro nợ xấu (NPL) giữa ACB và TCB năm 2024",
+    "target_ticker": "ACB",
+    "peer_tickers": [
+      "TCB",
+      "MBB"
+    ],
+    "period": "2024",
+    "required_capabilities": [
+      "company",
+      "sector"
+    ],
+    "applicable_links": [
+      "peer_comparison"
+    ],
+    "dataset_snapshot_id": "snap-2024-q4-v1",
+    "rationale": "Yêu cầu so sánh hiệu quả và chất lượng tài sản giữa ngân hàng mục tiêu và nhóm đối thủ, kích hoạt Doanh nghiệp và Đối chuẩn ngành.",
+    "known_limitations": []
+  },
   "macro_context": {
     "sbv_policy_rate": 4.5,
     "system_credit_growth": 15.08,
@@ -19,7 +41,9 @@
     "peer_median_nim": 3.65,
     "peer_median_npl": 1.62,
     "peer_median_cir": 33.4,
-    "peer_median_casa": 28.5
+    "peer_median_casa": 28.5,
+    "peer_median_car": 11.8,
+    "peer_median_ldr": 78.4
   },
   "company_insights": [
     {
@@ -29,7 +53,9 @@
       "npl": 1.21,
       "cir": 31.8,
       "casa": 23.2,
-      "assessment": "Strong asset quality with NPL well below industry median; high capital efficiency."
+      "car": 12.8,
+      "ldr": 82.5,
+      "assessment": "ACB đạt tỷ suất ROE 21.4% cao hơn trung vị ngành (18.2%) nhờ tối ưu hóa chi phí (CIR 31.8%) và kiểm soát rủi ro tín dụng chặt chẽ (NPL 1.21%)."
     },
     {
       "ticker": "TCB",
@@ -38,25 +64,1208 @@
       "npl": 1.45,
       "cir": 32.5,
       "casa": 41.2,
-      "assessment": "High NIM driven by retail and bond yields; industry-leading CASA ratio."
+      "car": 14.5,
+      "ldr": 77.2,
+      "assessment": "TCB vượt trội về NIM (4.15% vs 3.65% trung vị) nhờ tỷ lệ CASA dẫn đầu ngành 41.2% và đệm vốn CAR 14.5% vững chắc."
     }
   ],
   "cross_level_critique": [
     {
-      "dimension": "NPL vs Sector Margin Pressure",
-      "finding": "ACB preserved retail asset quality despite elevated consumer delinquency across tier-2 peers.",
+      "dimension": "ROE vs CIR Trade-off",
+      "finding": "ACB đạt ROE cao hơn TCB (21.4% vs 17.8%) nhờ chi phí dự phòng rủi ro tín dụng thấp hơn và CIR tối ưu hơn (31.8% vs 32.5%).",
       "confidence": 0.94,
       "evidence_ref": "ACB-FY24-AR-p42"
+    },
+    {
+      "dimension": "NIM & Cost of Funds",
+      "finding": "TCB có NIM cao hơn ACB (4.15% vs 3.82%) chủ yếu nhờ tỷ lệ CASA 41.2% giúp hạ giá vốn huy động.",
+      "confidence": 0.95,
+      "evidence_ref": "TCB-FY24-AR-p58"
+    }
+  ],
+  "atomic_claims": [
+    {
+      "claim_id": "claim-acb-roe-peer",
+      "capability": "company",
+      "ticker": "ACB",
+      "metric": "ROE",
+      "period": "2024",
+      "statement": "ROE của ACB năm 2024 đạt 21.4%, vượt trung vị ngành ngân hàng 3.2 điểm %.",
+      "claim_type": "peer_comparison",
+      "evidence_refs": [
+        "ev-acb-roe-2024",
+        "ev-median-roe-2024"
+      ],
+      "confidence": 0.98,
+      "stage1_status": "accepted",
+      "stage2_critique_status": "sound"
+    },
+    {
+      "claim_id": "claim-tcb-nim-peer",
+      "capability": "company",
+      "ticker": "TCB",
+      "metric": "NIM",
+      "period": "2024",
+      "statement": "NIM của TCB năm 2024 đạt 4.15%, vượt 50 bps so với trung vị nhóm ngân hàng đối chuẩn (3.65%).",
+      "claim_type": "peer_comparison",
+      "evidence_refs": [
+        "ev-tcb-nim-2024",
+        "ev-median-nim-2024"
+      ],
+      "confidence": 0.97,
+      "stage1_status": "accepted",
+      "stage2_critique_status": "sound"
     }
   ],
   "evidence_trail": [
     {
+      "evidence_id": "ev-acb-roe-2024",
       "metric": "ROE",
       "ticker": "ACB",
       "period": "2024",
       "value": 21.4,
-      "source_doc": "Báo cáo tài chính hợp nhất kiểm toán 2024",
-      "table_locator": "Báo cáo kết quả hoạt động kinh doanh"
+      "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - ACB",
+      "table_locator": "Báo cáo kết quả hoạt động kinh doanh",
+      "provenance_hash": "hash-acb-pl-2024"
+    },
+    {
+      "evidence_id": "ev-tcb-nim-2024",
+      "metric": "NIM",
+      "ticker": "TCB",
+      "period": "2024",
+      "value": 4.15,
+      "source_doc": "Báo cáo thường niên 2024 - TCB",
+      "table_locator": "Bảng tổng hợp chỉ tiêu tài chính chủ yếu",
+      "provenance_hash": "hash-tcb-nim-2024"
+    },
+    {
+      "evidence_id": "ev-median-roe-2024",
+      "metric": "peer_median_roe",
+      "ticker": "SECTOR",
+      "period": "2024",
+      "value": 18.2,
+      "source_doc": "Tổng hợp chỉ số ngành ngân hàng niêm yết 2024",
+      "table_locator": "Ma trận đối chuẩn ngành",
+      "provenance_hash": "hash-sector-median-2024"
+    },
+    {
+      "evidence_id": "ev-median-nim-2024",
+      "metric": "peer_median_nim",
+      "ticker": "SECTOR",
+      "period": "2024",
+      "value": 3.65,
+      "source_doc": "Tổng hợp chỉ số ngành ngân hàng niêm yết 2024",
+      "table_locator": "Ma trận đối chuẩn ngành",
+      "provenance_hash": "hash-sector-median-2024"
     }
-  ]
+  ],
+  "revision_summary": {
+    "rounds_executed": 0,
+    "max_rounds": 2,
+    "status": "passed",
+    "reason": "Hoàn thành thẩm định Stage 1 và Stage 2 không phát hiện mâu thuẫn đối chuẩn.",
+    "revised_capabilities": []
+  },
+  "limitations": [],
+  "scenarios": {
+    "scenario_company_only": {
+      "session_id": "mock-session-company-acb",
+      "report_id": "rep-2024-acb-solo",
+      "status": "completed",
+      "query": "Phân tích sức khỏe tài chính và các chỉ tiêu CAMEL của ACB năm 2024",
+      "target_ticker": "ACB",
+      "peer_tickers": [],
+      "period": "2024",
+      "analysis_plan": {
+        "plan_id": "plan-company-acb-2024",
+        "query": "Phân tích sức khỏe tài chính và các chỉ tiêu CAMEL của ACB năm 2024",
+        "target_ticker": "ACB",
+        "peer_tickers": [],
+        "period": "2024",
+        "required_capabilities": [
+          "company"
+        ],
+        "applicable_links": [],
+        "dataset_snapshot_id": "snap-2024-q4-v1",
+        "rationale": "Yêu cầu phân tích độc lập ACB theo 5 trụ cột CAMEL, không kích hoạt đối chuẩn ngành hay vĩ mô.",
+        "known_limitations": [
+          "Không đối sánh với trung vị ngành vì yêu cầu phân tích độc lập ngân hàng mục tiêu."
+        ]
+      },
+      "macro_context": null,
+      "sector_benchmark": null,
+      "company_insights": [
+        {
+          "ticker": "ACB",
+          "roe": 21.4,
+          "nim": 3.82,
+          "npl": 1.21,
+          "cir": 31.8,
+          "casa": 23.2,
+          "car": 12.8,
+          "ldr": 82.5,
+          "assessment": "Chất lượng tài sản ACB duy trì vượt trội với tỷ lệ nợ xấu 1.21%. Hiệu quả sinh lời vốn chủ sở hữu (ROE 21.4%) và đệm an toàn vốn (CAR 12.8%) vững chắc nhờ chiến lược bán lẻ thận trọng."
+        }
+      ],
+      "cross_level_critique": [],
+      "atomic_claims": [
+        {
+          "claim_id": "claim-acb-roe-solo",
+          "capability": "company",
+          "ticker": "ACB",
+          "metric": "ROE",
+          "period": "2024",
+          "statement": "ROE của ACB năm 2024 đạt 21.4%, phản ánh khả năng sinh lời trên vốn chủ sở hữu cao và ổn định.",
+          "claim_type": "factual_observation",
+          "evidence_refs": [
+            "ev-acb-roe-2024"
+          ],
+          "confidence": 0.99,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "sound"
+        },
+        {
+          "claim_id": "claim-acb-npl-solo",
+          "capability": "company",
+          "ticker": "ACB",
+          "metric": "NPL",
+          "period": "2024",
+          "statement": "Tỷ lệ nợ xấu của ACB tại thời điểm kết thúc năm tài chính 2024 là 1.21%, kiểm soát tốt trong ngưỡng an toàn.",
+          "claim_type": "factual_observation",
+          "evidence_refs": [
+            "ev-acb-npl-2024"
+          ],
+          "confidence": 0.99,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "sound"
+        }
+      ],
+      "evidence_trail": [
+        {
+          "evidence_id": "ev-acb-roe-2024",
+          "metric": "ROE",
+          "ticker": "ACB",
+          "period": "2024",
+          "value": 21.4,
+          "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - ACB",
+          "table_locator": "Báo cáo kết quả hoạt động kinh doanh",
+          "provenance_hash": "hash-acb-pl-2024"
+        },
+        {
+          "evidence_id": "ev-acb-npl-2024",
+          "metric": "NPL",
+          "ticker": "ACB",
+          "period": "2024",
+          "value": 1.21,
+          "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - ACB",
+          "table_locator": "Thuyết minh cho vay khách hàng theo nhóm nợ",
+          "provenance_hash": "hash-acb-loan-2024"
+        }
+      ],
+      "revision_summary": {
+        "rounds_executed": 0,
+        "max_rounds": 2,
+        "status": "passed",
+        "reason": "Các khẳng định số học đạt chuẩn Stage 1 và được phê chuẩn tại vòng thẩm định đầu tiên.",
+        "revised_capabilities": []
+      },
+      "limitations": [
+        "Báo cáo không bao gồm đối chuẩn trung vị ngành do phạm vi yêu cầu chỉ phân tích nội tại ACB."
+      ],
+      "stream_events": [
+        {
+          "eventId": "comp-only-evt-1",
+          "sequence": 1,
+          "occurredAtMs": 100,
+          "type": "USER_REQUEST_CONFIRMED",
+          "payload": {
+            "rawQuestion": "Phân tích sức khỏe tài chính và các chỉ tiêu CAMEL của ACB năm 2024",
+            "datasetName": "Ngân hàng Việt Nam 2024",
+            "scopeSignature": "ACB | Độc lập | 2024"
+          }
+        },
+        {
+          "eventId": "comp-only-evt-2",
+          "sequence": 2,
+          "occurredAtMs": 300,
+          "type": "PLANNING_STARTED",
+          "payload": {
+            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và đối chiếu catalog dữ liệu khả dụng..."
+          }
+        },
+        {
+          "eventId": "comp-only-evt-3",
+          "sequence": 3,
+          "occurredAtMs": 600,
+          "type": "PLAN_CREATED",
+          "payload": {
+            "requiredSpecialists": [
+              "company"
+            ],
+            "planSummary": "Kích hoạt 1 năng lực phân tích (Company) cho ACB.",
+            "message": "Đã lập kế hoạch phân tích thích ứng (Company). Đóng băng DatasetSnapshot snap-2024-q4-v1."
+          }
+        },
+        {
+          "eventId": "comp-only-evt-4",
+          "sequence": 4,
+          "occurredAtMs": 850,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-company-comp-only",
+            "specialistId": "company",
+            "label": "Chuyên viên Phân tích CAMEL (ACB)",
+            "assignment": "Bóc tách 5 trụ cột CAMEL của ACB và đối thủ"
+          }
+        },
+        {
+          "eventId": "comp-only-evt-5",
+          "sequence": 5,
+          "occurredAtMs": 1000,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-company-comp-only"
+          }
+        },
+        {
+          "eventId": "comp-only-evt-6",
+          "sequence": 6,
+          "occurredAtMs": 1350,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-company-comp-only",
+            "activity": {
+              "id": "act-company-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho company...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "comp-only-evt-7",
+          "sequence": 7,
+          "occurredAtMs": 1650,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-company-comp-only",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Phân tích CAMEL (ACB)",
+              "findings": [
+                "Dữ liệu company đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "comp-only-evt-8",
+          "sequence": 8,
+          "occurredAtMs": 1750,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-company-comp-only"
+          }
+        },
+        {
+          "eventId": "comp-only-evt-9",
+          "sequence": 9,
+          "occurredAtMs": 1950,
+          "type": "REVIEW_STARTED",
+          "payload": {
+            "message": "Điều phối viên thực hiện kiểm tra toàn vẹn Stage 1 và phản biện ngữ nghĩa Stage 2..."
+          }
+        },
+        {
+          "eventId": "comp-only-evt-10",
+          "sequence": 10,
+          "occurredAtMs": 2200,
+          "type": "SYNTHESIS_STARTED",
+          "payload": {
+            "message": "Đang tổng hợp các AtomicClaim đã thẩm định thành báo cáo hoàn chỉnh..."
+          }
+        },
+        {
+          "eventId": "comp-only-evt-11",
+          "sequence": 11,
+          "occurredAtMs": 2500,
+          "type": "SYNTHESIS_COMPLETED",
+          "payload": {
+            "message": "Đã hoàn tất cấu trúc Claim Graph và tổng hợp nhận định báo cáo."
+          }
+        },
+        {
+          "eventId": "comp-only-evt-12",
+          "sequence": 12,
+          "occurredAtMs": 2600,
+          "type": "REPORT_READY",
+          "payload": {
+            "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo."
+          }
+        }
+      ]
+    },
+    "scenario_peer_comparison": {
+      "session_id": "mock-session-peer-acb-tcb",
+      "report_id": "rep-2024-acb-tcb-peer",
+      "status": "completed",
+      "query": "So sánh hiệu quả hoạt động (ROE, NIM) và rủi ro nợ xấu (NPL) giữa ACB và TCB năm 2024",
+      "target_ticker": "ACB",
+      "peer_tickers": [
+        "TCB",
+        "MBB"
+      ],
+      "period": "2024",
+      "analysis_plan": {
+        "plan_id": "plan-peer-acb-tcb-2024",
+        "query": "So sánh hiệu quả hoạt động (ROE, NIM) và rủi ro nợ xấu (NPL) giữa ACB và TCB năm 2024",
+        "target_ticker": "ACB",
+        "peer_tickers": [
+          "TCB",
+          "MBB"
+        ],
+        "period": "2024",
+        "required_capabilities": [
+          "company",
+          "sector"
+        ],
+        "applicable_links": [
+          "peer_comparison"
+        ],
+        "dataset_snapshot_id": "snap-2024-q4-v1",
+        "rationale": "Yêu cầu so sánh hiệu quả và chất lượng tài sản giữa ngân hàng mục tiêu và nhóm đối thủ, kích hoạt Doanh nghiệp và Đối chuẩn ngành.",
+        "known_limitations": []
+      },
+      "macro_context": null,
+      "sector_benchmark": {
+        "sector": "Banking",
+        "peer_median_roe": 18.2,
+        "peer_median_nim": 3.65,
+        "peer_median_npl": 1.62,
+        "peer_median_cir": 33.4,
+        "peer_median_casa": 28.5,
+        "peer_median_car": 11.8,
+        "peer_median_ldr": 78.4
+      },
+      "company_insights": [
+        {
+          "ticker": "ACB",
+          "roe": 21.4,
+          "nim": 3.82,
+          "npl": 1.21,
+          "cir": 31.8,
+          "casa": 23.2,
+          "car": 12.8,
+          "ldr": 82.5,
+          "assessment": "ACB đạt tỷ suất ROE 21.4% cao hơn trung vị ngành (18.2%) nhờ tối ưu hóa chi phí (CIR 31.8%) và kiểm soát rủi ro tín dụng chặt chẽ (NPL 1.21%)."
+        },
+        {
+          "ticker": "TCB",
+          "roe": 17.8,
+          "nim": 4.15,
+          "npl": 1.45,
+          "cir": 32.5,
+          "casa": 41.2,
+          "car": 14.5,
+          "ldr": 77.2,
+          "assessment": "TCB vượt trội về NIM (4.15% vs 3.65% trung vị) nhờ tỷ lệ CASA dẫn đầu ngành 41.2% và đệm vốn CAR 14.5% vững chắc."
+        }
+      ],
+      "cross_level_critique": [
+        {
+          "dimension": "ROE vs CIR Trade-off",
+          "finding": "ACB đạt ROE cao hơn TCB (21.4% vs 17.8%) nhờ chi phí dự phòng rủi ro tín dụng thấp hơn và CIR tối ưu hơn (31.8% vs 32.5%).",
+          "confidence": 0.94,
+          "evidence_ref": "ACB-FY24-AR-p42"
+        },
+        {
+          "dimension": "NIM & Cost of Funds",
+          "finding": "TCB có NIM cao hơn ACB (4.15% vs 3.82%) chủ yếu nhờ tỷ lệ CASA 41.2% giúp hạ giá vốn huy động.",
+          "confidence": 0.95,
+          "evidence_ref": "TCB-FY24-AR-p58"
+        }
+      ],
+      "atomic_claims": [
+        {
+          "claim_id": "claim-acb-roe-peer",
+          "capability": "company",
+          "ticker": "ACB",
+          "metric": "ROE",
+          "period": "2024",
+          "statement": "ROE của ACB năm 2024 đạt 21.4%, vượt trung vị ngành ngân hàng 3.2 điểm %.",
+          "claim_type": "peer_comparison",
+          "evidence_refs": [
+            "ev-acb-roe-2024",
+            "ev-median-roe-2024"
+          ],
+          "confidence": 0.98,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "sound"
+        },
+        {
+          "claim_id": "claim-tcb-nim-peer",
+          "capability": "company",
+          "ticker": "TCB",
+          "metric": "NIM",
+          "period": "2024",
+          "statement": "NIM của TCB năm 2024 đạt 4.15%, vượt 50 bps so với trung vị nhóm ngân hàng đối chuẩn (3.65%).",
+          "claim_type": "peer_comparison",
+          "evidence_refs": [
+            "ev-tcb-nim-2024",
+            "ev-median-nim-2024"
+          ],
+          "confidence": 0.97,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "sound"
+        }
+      ],
+      "evidence_trail": [
+        {
+          "evidence_id": "ev-acb-roe-2024",
+          "metric": "ROE",
+          "ticker": "ACB",
+          "period": "2024",
+          "value": 21.4,
+          "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - ACB",
+          "table_locator": "Báo cáo kết quả hoạt động kinh doanh",
+          "provenance_hash": "hash-acb-pl-2024"
+        },
+        {
+          "evidence_id": "ev-tcb-nim-2024",
+          "metric": "NIM",
+          "ticker": "TCB",
+          "period": "2024",
+          "value": 4.15,
+          "source_doc": "Báo cáo thường niên 2024 - TCB",
+          "table_locator": "Bảng tổng hợp chỉ tiêu tài chính chủ yếu",
+          "provenance_hash": "hash-tcb-nim-2024"
+        },
+        {
+          "evidence_id": "ev-median-roe-2024",
+          "metric": "peer_median_roe",
+          "ticker": "SECTOR",
+          "period": "2024",
+          "value": 18.2,
+          "source_doc": "Tổng hợp chỉ số ngành ngân hàng niêm yết 2024",
+          "table_locator": "Ma trận đối chuẩn ngành",
+          "provenance_hash": "hash-sector-median-2024"
+        },
+        {
+          "evidence_id": "ev-median-nim-2024",
+          "metric": "peer_median_nim",
+          "ticker": "SECTOR",
+          "period": "2024",
+          "value": 3.65,
+          "source_doc": "Tổng hợp chỉ số ngành ngân hàng niêm yết 2024",
+          "table_locator": "Ma trận đối chuẩn ngành",
+          "provenance_hash": "hash-sector-median-2024"
+        }
+      ],
+      "revision_summary": {
+        "rounds_executed": 0,
+        "max_rounds": 2,
+        "status": "passed",
+        "reason": "Hoàn thành thẩm định Stage 1 và Stage 2 không phát hiện mâu thuẫn đối chuẩn.",
+        "revised_capabilities": []
+      },
+      "limitations": [],
+      "stream_events": [
+        {
+          "eventId": "peer-comp-evt-1",
+          "sequence": 1,
+          "occurredAtMs": 100,
+          "type": "USER_REQUEST_CONFIRMED",
+          "payload": {
+            "rawQuestion": "So sánh hiệu quả hoạt động (ROE, NIM) và rủi ro nợ xấu (NPL) giữa ACB và TCB năm 2024",
+            "datasetName": "Ngân hàng Việt Nam 2024",
+            "scopeSignature": "ACB | TCB | 2024"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-2",
+          "sequence": 2,
+          "occurredAtMs": 300,
+          "type": "PLANNING_STARTED",
+          "payload": {
+            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và đối chiếu catalog dữ liệu khả dụng..."
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-3",
+          "sequence": 3,
+          "occurredAtMs": 600,
+          "type": "PLAN_CREATED",
+          "payload": {
+            "requiredSpecialists": [
+              "company",
+              "sector"
+            ],
+            "planSummary": "Kích hoạt 2 năng lực phân tích (Company, Sector) cho ACB.",
+            "message": "Đã lập kế hoạch phân tích thích ứng (Company, Sector). Đóng băng DatasetSnapshot snap-2024-q4-v1."
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-4",
+          "sequence": 4,
+          "occurredAtMs": 850,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-company-peer-comp",
+            "specialistId": "company",
+            "label": "Chuyên viên Phân tích CAMEL (ACB)",
+            "assignment": "Bóc tách 5 trụ cột CAMEL của ACB và đối thủ"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-5",
+          "sequence": 5,
+          "occurredAtMs": 1000,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-company-peer-comp"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-6",
+          "sequence": 6,
+          "occurredAtMs": 1350,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-company-peer-comp",
+            "activity": {
+              "id": "act-company-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho company...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-7",
+          "sequence": 7,
+          "occurredAtMs": 1650,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-company-peer-comp",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Phân tích CAMEL (ACB)",
+              "findings": [
+                "Dữ liệu company đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-8",
+          "sequence": 8,
+          "occurredAtMs": 1750,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-company-peer-comp"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-9",
+          "sequence": 9,
+          "occurredAtMs": 2000,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-sector-peer-comp",
+            "specialistId": "sector",
+            "label": "Chuyên viên Đối chuẩn Ngành",
+            "assignment": "Tính toán trung vị đối thủ ngành ngân hàng (ACB, TCB, MBB, VPB, VCB)"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-10",
+          "sequence": 10,
+          "occurredAtMs": 2150,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-sector-peer-comp"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-11",
+          "sequence": 11,
+          "occurredAtMs": 2500,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-sector-peer-comp",
+            "activity": {
+              "id": "act-sector-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho sector...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-12",
+          "sequence": 12,
+          "occurredAtMs": 2800,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-sector-peer-comp",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Đối chuẩn Ngành",
+              "findings": [
+                "Dữ liệu sector đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-13",
+          "sequence": 13,
+          "occurredAtMs": 2900,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-sector-peer-comp"
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-14",
+          "sequence": 14,
+          "occurredAtMs": 3100,
+          "type": "REVIEW_STARTED",
+          "payload": {
+            "message": "Điều phối viên thực hiện kiểm tra toàn vẹn Stage 1 và phản biện ngữ nghĩa Stage 2..."
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-15",
+          "sequence": 15,
+          "occurredAtMs": 3350,
+          "type": "SYNTHESIS_STARTED",
+          "payload": {
+            "message": "Đang tổng hợp các AtomicClaim đã thẩm định thành báo cáo hoàn chỉnh..."
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-16",
+          "sequence": 16,
+          "occurredAtMs": 3650,
+          "type": "SYNTHESIS_COMPLETED",
+          "payload": {
+            "message": "Đã hoàn tất cấu trúc Claim Graph và tổng hợp nhận định báo cáo."
+          }
+        },
+        {
+          "eventId": "peer-comp-evt-17",
+          "sequence": 17,
+          "occurredAtMs": 3750,
+          "type": "REPORT_READY",
+          "payload": {
+            "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo."
+          }
+        }
+      ]
+    },
+    "scenario_full_hierarchical": {
+      "session_id": "mock-session-full-hierarchical",
+      "report_id": "rep-2024-full-macro-sector-camel",
+      "status": "completed",
+      "query": "Đánh giá toàn diện tác động chính sách tiền tệ NHNN đến NIM và nợ xấu (NPL) của ACB và TCB năm 2024",
+      "target_ticker": "ACB",
+      "peer_tickers": [
+        "TCB",
+        "MBB"
+      ],
+      "period": "2024",
+      "analysis_plan": {
+        "plan_id": "plan-full-hierarchical-2024",
+        "query": "Đánh giá toàn diện tác động chính sách tiền tệ NHNN đến NIM và nợ xấu (NPL) của ACB và TCB năm 2024",
+        "target_ticker": "ACB",
+        "peer_tickers": [
+          "TCB",
+          "MBB"
+        ],
+        "period": "2024",
+        "required_capabilities": [
+          "macro",
+          "sector",
+          "company"
+        ],
+        "applicable_links": [
+          "macro_transmission",
+          "peer_comparison",
+          "cross_level_stress"
+        ],
+        "dataset_snapshot_id": "snap-2024-q4-v1",
+        "rationale": "Yêu cầu phân tích tác động xuyên tầng từ chính sách vĩ mô sang trung vị ngành và từng ngân hàng, kích hoạt đầy đủ 3 năng lực phân tích.",
+        "known_limitations": []
+      },
+      "macro_context": {
+        "sbv_policy_rate": 4.5,
+        "system_credit_growth": 15.08,
+        "interest_rate_trend": "Accommodative monetary policy by SBV supporting private credit recovery",
+        "source": "SBV Annual Direction 2024"
+      },
+      "sector_benchmark": {
+        "sector": "Banking",
+        "peer_median_roe": 18.2,
+        "peer_median_nim": 3.65,
+        "peer_median_npl": 1.62,
+        "peer_median_cir": 33.4,
+        "peer_median_casa": 28.5,
+        "peer_median_car": 11.8,
+        "peer_median_ldr": 78.4
+      },
+      "company_insights": [
+        {
+          "ticker": "ACB",
+          "roe": 21.4,
+          "nim": 3.82,
+          "npl": 1.21,
+          "cir": 31.8,
+          "casa": 23.2,
+          "car": 12.8,
+          "ldr": 82.5,
+          "assessment": "ACB duy trì chất lượng tài sản an toàn cao (NPL 1.21%) và NIM phục hồi lên 3.82% nhờ cơ cấu danh mục cho vay thận trọng thích ứng tốt với chính sách tiền tệ nới lỏng."
+        },
+        {
+          "ticker": "TCB",
+          "roe": 17.8,
+          "nim": 4.15,
+          "npl": 1.45,
+          "cir": 32.5,
+          "casa": 41.2,
+          "car": 14.5,
+          "ldr": 77.2,
+          "assessment": "TCB hưởng lợi lớn từ mặt bằng lãi suất thấp thông qua tỷ lệ CASA 41.2%, giúp NIM đạt 4.15% dẫn đầu phân khúc ngân hàng thương mại cổ phần tư nhân."
+        }
+      ],
+      "cross_level_critique": [
+        {
+          "dimension": "Macro Rate Transmission to NIM",
+          "finding": "Chính sách nới lỏng của NHNN hỗ trợ giảm chi phí vốn nhanh hơn lãi suất cho vay, tạo điều kiện mở rộng NIM tại TCB (4.15%) và bảo toàn NIM tại ACB (3.82%).",
+          "confidence": 0.94,
+          "evidence_ref": "SBV-Dir24-p12"
+        },
+        {
+          "dimension": "Credit Growth vs Asset Quality Stress",
+          "finding": "Tăng trưởng tín dụng toàn hệ thống đạt 15.08% gây áp lực nợ xấu tăng ở phân khúc tiêu dùng, tuy nhiên tỷ lệ nợ xấu của ACB (1.21%) vẫn thấp hơn trung vị toàn ngành (1.62%).",
+          "confidence": 0.95,
+          "evidence_ref": "ACB-FY24-AR-p42"
+        }
+      ],
+      "atomic_claims": [
+        {
+          "claim_id": "claim-macro-sbv-rate",
+          "capability": "macro",
+          "ticker": null,
+          "metric": "sbv_policy_rate",
+          "period": "2024",
+          "statement": "Lãi suất tái cấp vốn của NHNN giữ ở mức 4.5% trong năm 2024 nhằm hỗ trợ phục hồi tăng trưởng kinh tế.",
+          "claim_type": "policy_transmission",
+          "evidence_refs": [
+            "ev-sbv-rate-2024"
+          ],
+          "confidence": 0.99,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "sound"
+        },
+        {
+          "claim_id": "claim-cross-nim-trans",
+          "capability": "synthesis",
+          "ticker": "TCB",
+          "metric": "NIM",
+          "period": "2024",
+          "statement": "Tác động truyền dẫn từ lãi suất điều hành thấp giúp TCB duy trì NIM 4.15% nhờ tỷ trọng tiền gửi không kỳ hạn CASA 41.2%.",
+          "claim_type": "synthesis_evaluation",
+          "evidence_refs": [
+            "ev-sbv-rate-2024",
+            "ev-tcb-casa-2024",
+            "ev-tcb-nim-2024"
+          ],
+          "confidence": 0.95,
+          "stage1_status": "accepted",
+          "stage2_critique_status": "revised"
+        }
+      ],
+      "evidence_trail": [
+        {
+          "evidence_id": "ev-sbv-rate-2024",
+          "metric": "sbv_policy_rate",
+          "ticker": "MACRO",
+          "period": "2024",
+          "value": 4.5,
+          "source_doc": "Quyết định điều hành lãi suất NHNN 2024",
+          "table_locator": "Điều 1",
+          "provenance_hash": "hash-sbv-rate-2024"
+        },
+        {
+          "evidence_id": "ev-acb-npl-2024",
+          "metric": "NPL",
+          "ticker": "ACB",
+          "period": "2024",
+          "value": 1.21,
+          "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - ACB",
+          "table_locator": "Thuyết minh cho vay khách hàng theo nhóm nợ",
+          "provenance_hash": "hash-acb-loan-2024"
+        },
+        {
+          "evidence_id": "ev-tcb-casa-2024",
+          "metric": "CASA",
+          "ticker": "TCB",
+          "period": "2024",
+          "value": 41.2,
+          "source_doc": "Báo cáo tài chính kiểm toán hợp nhất 2024 - TCB",
+          "table_locator": "Thuyết minh tiền gửi của khách hàng",
+          "provenance_hash": "hash-tcb-dep-2024"
+        },
+        {
+          "evidence_id": "ev-tcb-nim-2024",
+          "metric": "NIM",
+          "ticker": "TCB",
+          "period": "2024",
+          "value": 4.15,
+          "source_doc": "Báo cáo thường niên 2024 - TCB",
+          "table_locator": "Bảng tổng hợp chỉ tiêu tài chính chủ yếu",
+          "provenance_hash": "hash-tcb-nim-2024"
+        }
+      ],
+      "revision_summary": {
+        "rounds_executed": 1,
+        "max_rounds": 2,
+        "status": "revised_and_passed",
+        "reason": "Hiệu đính nhận định về độ trễ truyền dẫn chi phí vốn sang NIM sau khi đối chiếu thuyết minh chi phí lãi quý 4.",
+        "revised_capabilities": [
+          "company"
+        ]
+      },
+      "limitations": [],
+      "stream_events": [
+        {
+          "eventId": "full-hier-evt-1",
+          "sequence": 1,
+          "occurredAtMs": 100,
+          "type": "USER_REQUEST_CONFIRMED",
+          "payload": {
+            "rawQuestion": "Đánh giá toàn diện tác động chính sách tiền tệ NHNN đến NIM và nợ xấu (NPL) của ACB và TCB năm 2024",
+            "datasetName": "Ngân hàng Việt Nam 2024",
+            "scopeSignature": "ACB | TCB | 2024"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-2",
+          "sequence": 2,
+          "occurredAtMs": 300,
+          "type": "PLANNING_STARTED",
+          "payload": {
+            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và đối chiếu catalog dữ liệu khả dụng..."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-3",
+          "sequence": 3,
+          "occurredAtMs": 600,
+          "type": "PLAN_CREATED",
+          "payload": {
+            "requiredSpecialists": [
+              "macro",
+              "sector",
+              "company"
+            ],
+            "planSummary": "Kích hoạt 3 năng lực phân tích (Macro, Sector, Company) cho ACB.",
+            "message": "Đã lập kế hoạch phân tích thích ứng (Macro, Sector, Company). Đóng băng DatasetSnapshot snap-2024-q4-v1."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-4",
+          "sequence": 4,
+          "occurredAtMs": 850,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-macro-full-hier",
+            "specialistId": "macro",
+            "label": "Chuyên viên Vĩ mô & Chính sách",
+            "assignment": "Trích xuất định hướng lãi suất điều hành và trần tín dụng NHNN 2024"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-5",
+          "sequence": 5,
+          "occurredAtMs": 1000,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-macro-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-6",
+          "sequence": 6,
+          "occurredAtMs": 1350,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-macro-full-hier",
+            "activity": {
+              "id": "act-macro-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho macro...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-7",
+          "sequence": 7,
+          "occurredAtMs": 1650,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-macro-full-hier",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Vĩ mô & Chính sách",
+              "findings": [
+                "Dữ liệu macro đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-8",
+          "sequence": 8,
+          "occurredAtMs": 1750,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-macro-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-9",
+          "sequence": 9,
+          "occurredAtMs": 2000,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-sector-full-hier",
+            "specialistId": "sector",
+            "label": "Chuyên viên Đối chuẩn Ngành",
+            "assignment": "Tính toán trung vị đối thủ ngành ngân hàng (ACB, TCB, MBB, VPB, VCB)"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-10",
+          "sequence": 10,
+          "occurredAtMs": 2150,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-sector-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-11",
+          "sequence": 11,
+          "occurredAtMs": 2500,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-sector-full-hier",
+            "activity": {
+              "id": "act-sector-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho sector...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-12",
+          "sequence": 12,
+          "occurredAtMs": 2800,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-sector-full-hier",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Đối chuẩn Ngành",
+              "findings": [
+                "Dữ liệu sector đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-13",
+          "sequence": 13,
+          "occurredAtMs": 2900,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-sector-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-14",
+          "sequence": 14,
+          "occurredAtMs": 3150,
+          "type": "SPECIALIST_INVOKED",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "specialistId": "company",
+            "label": "Chuyên viên Phân tích CAMEL (ACB)",
+            "assignment": "Bóc tách 5 trụ cột CAMEL của ACB và đối thủ"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-15",
+          "sequence": 15,
+          "occurredAtMs": 3300,
+          "type": "SPECIALIST_STARTED",
+          "payload": {
+            "invocationId": "inv-company-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-16",
+          "sequence": 16,
+          "occurredAtMs": 3650,
+          "type": "SPECIALIST_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "activity": {
+              "id": "act-company-1",
+              "timestamp": "10:00:05",
+              "description": "Truy vấn số liệu và bằng chứng tài chính cho company...",
+              "type": "DATA_RETRIEVAL"
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-17",
+          "sequence": 17,
+          "occurredAtMs": 3950,
+          "type": "SPECIALIST_OUTPUT_CREATED",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "artifact": {
+              "headline": "Báo cáo sơ bộ Chuyên viên Phân tích CAMEL (ACB)",
+              "findings": [
+                "Dữ liệu company đã khớp 100% với báo cáo tài chính đã kiểm toán.",
+                "Chỉ số then chốt được trích xuất với độ tin cậy cao."
+              ],
+              "evidenceCount": 2,
+              "version": 1
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-18",
+          "sequence": 18,
+          "occurredAtMs": 4050,
+          "type": "SPECIALIST_COMPLETED",
+          "payload": {
+            "invocationId": "inv-company-full-hier"
+          }
+        },
+        {
+          "eventId": "full-hier-evt-19",
+          "sequence": 19,
+          "occurredAtMs": 4250,
+          "type": "REVIEW_STARTED",
+          "payload": {
+            "message": "Điều phối viên thực hiện kiểm tra toàn vẹn Stage 1 và phản biện ngữ nghĩa Stage 2..."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-20",
+          "sequence": 20,
+          "occurredAtMs": 4550,
+          "type": "REVIEW_FEEDBACK_CREATED",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "review": {
+              "reviewer": "Điều phối viên (Semantic Critic)",
+              "critiqueSummary": "Độ trễ truyền dẫn lãi suất sang NIM quý 4 cần bổ sung thuyết minh chi phí vốn.",
+              "status": "PENDING_REVISION"
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-21",
+          "sequence": 21,
+          "occurredAtMs": 4750,
+          "type": "REVISION_REQUESTED",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "round": 1,
+            "maxRounds": 2,
+            "reason": "Bổ sung đối chiếu thuyết minh chi phí vốn quý 4 để làm rõ diễn biến NIM.",
+            "orchestratorMessage": "Yêu cầu Chuyên viên CAMEL hiệu đính nhận định về NIM với bằng chứng thuyết minh BCTC."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-22",
+          "sequence": 22,
+          "occurredAtMs": 5150,
+          "type": "REVISION_ACTIVITY",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "activity": {
+              "id": "act-rev-1",
+              "timestamp": "10:00:15",
+              "description": "Bổ sung trích dẫn thuyết minh chi phí lãi và phân rã chênh lệch CASA quý 4.",
+              "type": "REVISION"
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-23",
+          "sequence": 23,
+          "occurredAtMs": 5450,
+          "type": "REVISION_COMPLETED",
+          "payload": {
+            "invocationId": "inv-company-full-hier",
+            "artifact": {
+              "headline": "Báo cáo hiệu đính CAMEL (ACB) v2",
+              "findings": [
+                "Đã đối soát chi phí vốn và thuyết minh lãi suất tiền gửi.",
+                "Nhận định NIM được chứng minh vững chắc với bằng chứng số liệu."
+              ],
+              "evidenceCount": 4,
+              "version": 2
+            }
+          }
+        },
+        {
+          "eventId": "full-hier-evt-24",
+          "sequence": 24,
+          "occurredAtMs": 5700,
+          "type": "SYNTHESIS_STARTED",
+          "payload": {
+            "message": "Đang tổng hợp các AtomicClaim đã thẩm định thành báo cáo hoàn chỉnh..."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-25",
+          "sequence": 25,
+          "occurredAtMs": 6000,
+          "type": "SYNTHESIS_COMPLETED",
+          "payload": {
+            "message": "Đã hoàn tất cấu trúc Claim Graph và tổng hợp nhận định báo cáo."
+          }
+        },
+        {
+          "eventId": "full-hier-evt-26",
+          "sequence": 26,
+          "occurredAtMs": 6100,
+          "type": "REPORT_READY",
+          "payload": {
+            "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo."
+          }
+        }
+      ]
+    }
+  }
 }

@@ -177,3 +177,29 @@ Khi chạy `scripts/sync-and-cleanup.ps1 -BranchName <branch>` để thu hồi w
   }
   ```
   Lệnh `rmdir` của Windows chỉ xoá điểm nối junction mà tuyệt đối không làm ảnh hưởng đến dữ liệu của thư mục gốc.
+
+---
+
+## [LESSON-009] Centralized API Endpoint Resolution & Zero-Hardcode Policy
+
+- **Date:** 2026-09-20
+- **Scope:** Repository Configuration, Environment Management, Lead Orchestrator, Worker UI & API
+- **Status:** `ACTIVE` -> Đã chuẩn hóa `.env.example` và thiết lập biến môi trường `VITE_API_BASE_URL`.
+
+### 1. Context & Symptom
+Khi triển khai kết nối SSE stream từ Screen 2 (`AnalysisSessionWorkspace.tsx`) sang Backend FastAPI:
+- Lead Orchestrator chỉ thị trong `TASK.md` hardcode proxy target về `http://127.0.0.1:8000`.
+- Worker-UI tuân thủ chỉ thị và hardcode fallback hiển thị `127.0.0.1:8000`.
+- Trong khi đó, backend đã được deploy thực tế trên Render tại `https://final-thesis-zgwt.onrender.com` (đã ghi nhận trong `docs/DEPLOYMENT-STAGING.md`).
+- Khi người dùng chạy frontend, màn hình báo lỗi không thể kết nối tới `127.0.0.1:8000` và chuyển sang mock mode, gây trải nghiệm hoang mang và bức xúc cho người dùng.
+
+### 2. Root Cause
+- **Thiếu Configuration-as-Code**: Repo không có file `.env.example` hoặc `.env` chuẩn hóa ở root và frontend, khiến cấu hình backend URL chỉ tồn tại dưới dạng tài liệu văn bản (`DEPLOYMENT-STAGING.md`) mà không được mã hóa vào runtime environment.
+- **Quán tính chủ quan của Lead**: Lead giả định backend chạy localhost mà không tra cứu staging URL trước khi viết `TASK.md`.
+- **Thiếu Dynamic Resolution**: Frontend code không resolve qua `import.meta.env.VITE_API_BASE_URL` kèm default fallback về staging backend.
+
+### 3. Workaround & Permanent Solution
+- **Chuẩn hóa biến môi trường**: Luôn duy trì file `.env.example` và `.env` chuẩn trong repo với `VITE_API_BASE_URL=https://final-thesis-zgwt.onrender.com`.
+- **Zero-Hardcode Policy**: Mọi cấu hình kết nối API của frontend bắt buộc phải resolve qua `process.env.VITE_API_BASE_URL` (Vite config) và `import.meta.env.VITE_API_BASE_URL` (Client code) với fallback mặc định trỏ về URL Render staging, tuyệt đối không hardcode IP localhost.
+- **Dynamic UI Messaging**: Các thông báo lỗi kết nối trên UI phải lấy URL động từ config (`backendTarget`), không viết chết chuỗi IP trong template string.
+

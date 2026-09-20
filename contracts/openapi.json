@@ -2,13 +2,14 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Hierarchical Financial Multi-Agent Analysis API",
-    "version": "1.0.0",
-    "description": "API contract for Vietnamese banking & securities multi-agent analysis system."
+    "version": "1.1.0",
+    "description": "API contract for the Query-Adaptive Hierarchical Multi-Agent Financial Analysis System (Vietnamese Listed Banks & Securities). Supports synchronous execution and real-time Server-Sent Events (SSE) streaming for clean conversational Chat UI."
   },
   "paths": {
     "/api/health": {
       "get": {
         "summary": "Health check",
+        "description": "Returns operational liveness status of the API service.",
         "responses": {
           "200": {
             "description": "Service is healthy",
@@ -16,12 +17,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "status",
+                    "service"
+                  ],
                   "properties": {
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "ok"
                     },
                     "service": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "thesis-financial-api"
                     }
                   }
                 }
@@ -34,19 +41,26 @@
     "/api/ready": {
       "get": {
         "summary": "Readiness probe",
+        "description": "Validates database connectivity and analytical readiness.",
         "responses": {
           "200": {
-            "description": "Infrastructure ready",
+            "description": "Infrastructure is ready",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "status",
+                    "database"
+                  ],
                   "properties": {
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "ready"
                     },
                     "database": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "connected"
                     }
                   }
                 }
@@ -58,41 +72,14 @@
     },
     "/api/analyze": {
       "post": {
-        "summary": "Submit analysis query to hierarchical multi-agent system",
+        "summary": "Submit analysis query (synchronous)",
+        "description": "Executes query-adaptive planning, specialist execution, Stage 1 deterministic validation, Stage 2 semantic critique/revision, and synthesis, returning the full verified report.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": [
-                  "query"
-                ],
-                "properties": {
-                  "query": {
-                    "type": "string",
-                    "description": "Natural language analytical question in Vietnamese or English",
-                    "example": "Phan tich ROE va chat luong tai san (NPL) cua ACB va TCB nam 2024"
-                  },
-                  "target_ticker": {
-                    "type": "string",
-                    "example": "ACB"
-                  },
-                  "peer_tickers": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "example": [
-                      "TCB",
-                      "MBB"
-                    ]
-                  },
-                  "period": {
-                    "type": "string",
-                    "example": "2024"
-                  }
-                }
+                "": "#/components/schemas/AnalysisRequest"
               }
             }
           }
@@ -103,41 +90,618 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "report_id",
-                    "status",
-                    "macro_context",
-                    "sector_benchmark",
-                    "company_insights",
-                    "cross_level_critique"
-                  ],
-                  "properties": {
-                    "report_id": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "macro_context": {
-                      "type": "object"
-                    },
-                    "sector_benchmark": {
-                      "type": "object"
-                    },
-                    "company_insights": {
-                      "type": "array"
-                    },
-                    "cross_level_critique": {
-                      "type": "array"
-                    },
-                    "evidence_trail": {
-                      "type": "array"
-                    }
-                  }
+                  "": "#/components/schemas/AnalysisResponse"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid analytical query or scope parameters"
+          },
+          "500": {
+            "description": "Internal analytical engine or verification failure"
+          }
+        }
+      }
+    },
+    "/api/analyze/stream": {
+      "post": {
+        "summary": "Stream analysis session events (SSE)",
+        "description": "Submits an analysis query and streams real-time execution lifecycle events as Server-Sent Events (text/event-stream) for Chat UI and progressive activity visualization. Concludes with the final report artifact.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "": "#/components/schemas/AnalysisRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events stream emitting serialized AnalysisSessionEvent frames",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Chronological stream of SSE events formatted as event: <type>\\ndata: <json>\\n\\n. Payload matches AnalysisSessionEvent schema."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid analytical query or scope parameters"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisRequest": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language analytical question in Vietnamese or English",
+            "example": "Phan tich ROE va chat luong tai san (NPL) cua ACB va TCB nam 2024"
+          },
+          "target_ticker": {
+            "type": "string",
+            "description": "Primary bank ticker symbol under investigation",
+            "example": "ACB"
+          },
+          "peer_tickers": {
+            "type": "array",
+            "description": "Optional list of peer comparison bank tickers",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "TCB",
+              "MBB"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "description": "Analysis period or fiscal year (e.g. 2024, 2024_Q4)",
+            "example": "2024"
+          }
+        }
+      },
+      "AnalysisPlan": {
+        "type": "object",
+        "required": [
+          "plan_id",
+          "query",
+          "required_capabilities",
+          "dataset_snapshot_id"
+        ],
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "example": "plan-2024-acb-001"
+          },
+          "query": {
+            "type": "string"
+          },
+          "target_ticker": {
+            "type": "string",
+            "nullable": true,
+            "example": "ACB"
+          },
+          "peer_tickers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "TCB",
+              "MBB"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "example": "2024"
+          },
+          "required_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "macro",
+                "sector",
+                "company"
+              ]
+            },
+            "example": [
+              "company",
+              "sector"
+            ]
+          },
+          "applicable_links": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "peer_comparison",
+                "macro_transmission",
+                "cross_level_stress"
+              ]
+            },
+            "example": [
+              "peer_comparison"
+            ]
+          },
+          "dataset_snapshot_id": {
+            "type": "string",
+            "example": "snap-2024-q4-v1"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "known_limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MacroContext": {
+        "type": "object",
+        "properties": {
+          "sbv_policy_rate": {
+            "type": "number",
+            "example": 4.5
+          },
+          "system_credit_growth": {
+            "type": "number",
+            "example": 15.08
+          },
+          "interest_rate_trend": {
+            "type": "string",
+            "example": "Accommodative monetary policy by SBV supporting private credit recovery"
+          },
+          "source": {
+            "type": "string",
+            "example": "SBV Annual Direction 2024"
+          }
+        }
+      },
+      "SectorBenchmark": {
+        "type": "object",
+        "required": [
+          "sector"
+        ],
+        "properties": {
+          "sector": {
+            "type": "string",
+            "example": "Banking"
+          },
+          "peer_median_roe": {
+            "type": "number",
+            "example": 18.2
+          },
+          "peer_median_nim": {
+            "type": "number",
+            "example": 3.65
+          },
+          "peer_median_npl": {
+            "type": "number",
+            "example": 1.62
+          },
+          "peer_median_cir": {
+            "type": "number",
+            "example": 33.4
+          },
+          "peer_median_casa": {
+            "type": "number",
+            "example": 28.5
+          },
+          "peer_median_car": {
+            "type": "number",
+            "example": 11.8
+          },
+          "peer_median_ldr": {
+            "type": "number",
+            "example": 78.4
+          }
+        }
+      },
+      "CompanyInsight": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "assessment"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "example": "ACB"
+          },
+          "roe": {
+            "type": "number",
+            "example": 21.4
+          },
+          "nim": {
+            "type": "number",
+            "example": 3.82
+          },
+          "npl": {
+            "type": "number",
+            "example": 1.21
+          },
+          "cir": {
+            "type": "number",
+            "example": 31.8
+          },
+          "casa": {
+            "type": "number",
+            "example": 23.2
+          },
+          "car": {
+            "type": "number",
+            "example": 12.8
+          },
+          "ldr": {
+            "type": "number",
+            "example": 82.5
+          },
+          "assessment": {
+            "type": "string"
+          }
+        }
+      },
+      "CritiqueItem": {
+        "type": "object",
+        "required": [
+          "dimension",
+          "finding",
+          "confidence"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "example": "NPL vs Sector Margin Pressure"
+          },
+          "finding": {
+            "type": "string",
+            "example": "ACB preserved retail asset quality despite elevated consumer delinquency across tier-2 peers."
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "example": 0.94
+          },
+          "evidence_ref": {
+            "type": "string",
+            "example": "ACB-FY24-AR-p42"
+          }
+        }
+      },
+      "AtomicClaim": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "capability",
+          "statement",
+          "evidence_refs",
+          "stage1_status"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "example": "claim-acb-roe-001"
+          },
+          "capability": {
+            "type": "string",
+            "enum": [
+              "macro",
+              "sector",
+              "company",
+              "synthesis"
+            ]
+          },
+          "ticker": {
+            "type": "string",
+            "nullable": true,
+            "example": "ACB"
+          },
+          "metric": {
+            "type": "string",
+            "nullable": true,
+            "example": "ROE"
+          },
+          "period": {
+            "type": "string",
+            "nullable": true,
+            "example": "2024"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "claim_type": {
+            "type": "string",
+            "enum": [
+              "factual_observation",
+              "peer_comparison",
+              "policy_transmission",
+              "synthesis_evaluation"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "example": 0.98
+          },
+          "stage1_status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ]
+          },
+          "stage2_critique_status": {
+            "type": "string",
+            "enum": [
+              "sound",
+              "revised",
+              "limited"
+            ]
+          }
+        }
+      },
+      "EvidenceTrailItem": {
+        "type": "object",
+        "required": [
+          "metric",
+          "source_doc"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "example": "ev-acb-roe-2024"
+          },
+          "metric": {
+            "type": "string",
+            "example": "ROE"
+          },
+          "ticker": {
+            "type": "string",
+            "example": "ACB"
+          },
+          "period": {
+            "type": "string",
+            "example": "2024"
+          },
+          "value": {
+            "type": "number",
+            "example": 21.4
+          },
+          "source_doc": {
+            "type": "string",
+            "example": "Bao cao tai chinh hop nhat kiem toan 2024"
+          },
+          "table_locator": {
+            "type": "string",
+            "example": "Bao cao ket qua hoat dong kinh doanh"
+          },
+          "provenance_hash": {
+            "type": "string",
+            "example": "sha256-a1b2c3d4e5f6"
+          }
+        }
+      },
+      "BoundedRevisionSummary": {
+        "type": "object",
+        "required": [
+          "rounds_executed",
+          "max_rounds",
+          "status"
+        ],
+        "properties": {
+          "rounds_executed": {
+            "type": "integer",
+            "example": 1
+          },
+          "max_rounds": {
+            "type": "integer",
+            "example": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "revised_and_passed",
+              "accepted_with_limitations",
+              "rejected"
+            ],
+            "example": "revised_and_passed"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Do tre truyen dan lai suat huy dong sang NIM can bo sung thuyet minh BCTC quy 4."
+          },
+          "revised_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "company"
+            ]
+          }
+        }
+      },
+      "AnalysisResponse": {
+        "type": "object",
+        "required": [
+          "report_id",
+          "status",
+          "company_insights",
+          "cross_level_critique"
+        ],
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "example": "rep-2024-acb-001"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "partial",
+              "accepted_with_limitations",
+              "error"
+            ],
+            "example": "completed"
+          },
+          "analysis_plan": {
+            "": "#/components/schemas/AnalysisPlan"
+          },
+          "macro_context": {
+            "anyOf": [
+              {
+                "": "#/components/schemas/MacroContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sector_benchmark": {
+            "anyOf": [
+              {
+                "": "#/components/schemas/SectorBenchmark"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_insights": {
+            "type": "array",
+            "items": {
+              "": "#/components/schemas/CompanyInsight"
+            }
+          },
+          "cross_level_critique": {
+            "type": "array",
+            "items": {
+              "": "#/components/schemas/CritiqueItem"
+            }
+          },
+          "atomic_claims": {
+            "type": "array",
+            "items": {
+              "": "#/components/schemas/AtomicClaim"
+            }
+          },
+          "evidence_trail": {
+            "type": "array",
+            "items": {
+              "": "#/components/schemas/EvidenceTrailItem"
+            }
+          },
+          "revision_summary": {
+            "": "#/components/schemas/BoundedRevisionSummary"
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ObservableActivity": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "DATA_RETRIEVAL",
+              "VALIDATION",
+              "INSIGHT_GENERATION",
+              "REVISION"
+            ]
+          }
+        }
+      },
+      "AnalysisSessionEvent": {
+        "type": "object",
+        "required": [
+          "eventId",
+          "sequence",
+          "occurredAtMs",
+          "type",
+          "payload"
+        ],
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "example": "evt-001"
+          },
+          "sequence": {
+            "type": "integer",
+            "example": 1
+          },
+          "occurredAtMs": {
+            "type": "integer",
+            "example": 150
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "USER_REQUEST_CONFIRMED",
+              "PLANNING_STARTED",
+              "PLAN_CREATED",
+              "SPECIALIST_INVOKED",
+              "SPECIALIST_STARTED",
+              "SPECIALIST_ACTIVITY",
+              "SPECIALIST_OUTPUT_CREATED",
+              "SPECIALIST_COMPLETED",
+              "REVIEW_STARTED",
+              "REVIEW_FEEDBACK_CREATED",
+              "REVISION_REQUESTED",
+              "REVISION_ACTIVITY",
+              "REVISION_COMPLETED",
+              "SYNTHESIS_STARTED",
+              "SYNTHESIS_COMPLETED",
+              "REPORT_READY",
+              "RUN_BLOCKED"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Event-specific typed data dictionary"
           }
         }
       }

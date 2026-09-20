@@ -29,15 +29,22 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
 
+import type { AnalysisStreamRequest } from '../../features/analysis-session/useAnalysisSessionStream';
+
 type PageMode = Screen1Mode | 'SESSION';
 
-export function CreateAnalysisPage() {
+export interface CreateAnalysisPageProps {
+  initialMode?: PageMode;
+}
+
+export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}) {
   const capabilitiesQuery = useAnalysisCapabilities();
   const capabilities = capabilitiesQuery.data;
 
-  const [mode, setMode] = useState<PageMode>('DEFAULT');
+  const [mode, setMode] = useState<PageMode>(initialMode || 'DEFAULT');
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [streamRequest, setStreamRequest] = useState<AnalysisStreamRequest | null>(null);
   const [activeEvents, setActiveEvents] = useState<AnalysisSessionEvent[]>([]);
   const [driverMode, setDriverMode] = useState<DriverMode>('FROZEN');
   const [driverStep, setDriverStep] = useState<number | undefined>(undefined);
@@ -46,6 +53,7 @@ export function CreateAnalysisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
+
 
   const handleQuestionChange = useCallback(
     (question: string) => {
@@ -168,6 +176,19 @@ export function CreateAnalysisPage() {
           'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
       );
 
+      const targetTicker = parseResult.scope.entities[0]?.ticker || 'ACB';
+      const peerTickers = parseResult.scope.entities.slice(1).map((e) => e.ticker);
+      const period = parseResult.scope.periods[0]
+        ? String(parseResult.scope.periods[0].year)
+        : '2024';
+
+      setStreamRequest({
+        query: parseResult.rawQuestion,
+        target_ticker: targetTicker,
+        peer_tickers: peerTickers,
+        period: period
+      });
+
       // Start Analysis Session event stream with autoplay for normal confirmed runs
       const events = getEventsForParseResult(parseResult);
       setActiveEvents(events);
@@ -261,6 +282,7 @@ export function CreateAnalysisPage() {
           {/* SCREEN 2: ANALYSIS SESSION WORKSPACE */}
           {mode === 'SESSION' && (
             <AnalysisSessionWorkspace
+              streamRequest={streamRequest}
               events={activeEvents}
               driverMode={driverMode}
               driverStep={driverStep}

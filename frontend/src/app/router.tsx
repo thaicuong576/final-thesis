@@ -14,6 +14,10 @@ export const router = createBrowserRouter([
     element: <CreateAnalysisPage />
   },
   {
+    path: '/session',
+    element: <CreateAnalysisPage initialMode="SESSION" />
+  },
+  {
     path: '/data',
     element: <DataPage />
   },

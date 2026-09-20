@@ -3,6 +3,7 @@ export * from './model/intentParser';
 export * from './components/ActiveDatasetCard';
 export * from './components/ActiveDatasetContextCard';
 export * from './components/HeroComposer';
+export * from './components/HeroWorkspace';
 export * from './components/SuggestedQuestions';
 export * from './components/RecentReportsSummary';
 export * from './components/RequestInterpretationCard';

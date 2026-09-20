@@ -463,4 +463,123 @@ describe('Event-Driven Orchestrator Analysis Session (Screen 2 Clean-Room)', () 
     expect(types.indexOf('SYNTHESIS_STARTED')).toBeLessThan(types.indexOf('SYNTHESIS_COMPLETED'));
     expect(types.indexOf('SYNTHESIS_COMPLETED')).toBeLessThan(types.indexOf('REPORT_READY'));
   });
+
+  // =========================================================================
+  // P. [THES-8] LIVE SSE STREAM & STATUS BADGE INTEGRATION
+  // =========================================================================
+  it('[THES-8] Displays Demo Mock Mode amber badge when running pre-baked events', () => {
+    const viewModel = projectAnalysisSession(mockCompanyOnlyEvents);
+    render(<AnalysisSessionWorkspace viewModel={viewModel} />);
+
+    expect(screen.getByText('Demo Mock Mode')).toBeInTheDocument();
+    expect(screen.queryByText('Live SSE Stream')).not.toBeInTheDocument();
+  });
+
+  it('[THES-8] Displays Live SSE Stream emerald badge when isLiveStream is active', async () => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            'event: USER_REQUEST_CONFIRMED\ndata: {"eventId":"e1","sequence":1,"occurredAtMs":50,"type":"USER_REQUEST_CONFIRMED","payload":{"rawQuestion":"Live test","datasetName":"Ngân hàng Việt Nam 2024","scopeSignature":"ACB | Độc lập | 2024"}}\n\n'
+          )
+        );
+      }
+    });
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      body: stream
+    } as unknown as Response);
+
+    render(
+      <MemoryRouter initialEntries={['/session?ticker=ACB&period=2024']}>
+        <AnalysisSessionWorkspace isLiveStream={true} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Live SSE Stream')).toBeInTheDocument();
+  });
+
+  it('[THES-8] Wires report navigation and passes generated report artifact to Screen 3', async () => {
+    const user = userEvent.setup();
+    const onViewReportMock = vi.fn();
+
+    const mockReport = {
+      report_id: 'rep-live-session-1',
+      status: 'completed' as const,
+      query: 'Live Query',
+      target_ticker: 'ACB',
+      peer_tickers: ['TCB'],
+      period: '2024',
+      analysis_plan: {
+        plan_id: 'p1',
+        query: 'Live Query',
+        target_ticker: 'ACB',
+        peer_tickers: ['TCB'],
+        period: '2024',
+        required_capabilities: ['company' as const],
+        applicable_links: [],
+        dataset_snapshot_id: 's1',
+        rationale: '',
+        known_limitations: []
+      },
+      macro_context: null,
+      sector_benchmark: null,
+      company_insights: [],
+      cross_level_critique: [],
+      atomic_claims: [],
+      evidence_trail: [],
+      revision_summary: {
+        rounds_executed: 0,
+        max_rounds: 2,
+        status: 'passed' as const,
+        reason: '',
+        revised_capabilities: []
+      },
+      limitations: []
+    };
+
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            'event: USER_REQUEST_CONFIRMED\ndata: {"eventId":"e1","sequence":1,"occurredAtMs":50,"type":"USER_REQUEST_CONFIRMED","payload":{"rawQuestion":"Live Query","datasetName":"Ngân hàng Việt Nam 2024","scopeSignature":"ACB | TCB | 2024"}}\n\n' +
+            `event: REPORT_READY\ndata: {"eventId":"e2","sequence":2,"occurredAtMs":300,"type":"REPORT_READY","payload":{"message":"Hoàn tất báo cáo","reportId":"rep-live-session-1","report":${JSON.stringify(
+              mockReport
+            )}}}\n\n`
+          )
+        );
+        controller.close();
+      }
+    });
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      body: stream
+    } as unknown as Response);
+
+    render(
+      <MemoryRouter initialEntries={['/session']}>
+        <AnalysisSessionWorkspace isLiveStream={true} onViewReport={onViewReportMock} />
+      </MemoryRouter>
+    );
+
+    const reportBtn = await screen.findByRole('button', { name: /Xem báo cáo phân tích/i });
+    expect(reportBtn).toBeInTheDocument();
+
+    await user.click(reportBtn);
+    expect(onViewReportMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        report_id: 'rep-live-session-1',
+        target_ticker: 'ACB'
+      })
+    );
+  });
 });
+

@@ -151,9 +151,17 @@ function AnalysisSessionWorkspaceContent({
     fallbackToMockOnError: true
   });
 
+  const mockDriverEvents = useMemo(() => {
+    if (hasEventsProp) return events;
+    if (liveStream.connectionMode === 'MOCK' && liveStream.events.length > 0) {
+      return liveStream.events;
+    }
+    return [];
+  }, [hasEventsProp, events, liveStream.connectionMode, liveStream.events]);
+
   // 2. Mock Analysis Session Driver
   const mockDriver = useAnalysisSessionDriver({
-    events: hasEventsProp ? events : [],
+    events: mockDriverEvents,
     mode: driverMode,
     step: driverStep
   });
@@ -163,15 +171,14 @@ function AnalysisSessionWorkspaceContent({
     if (externalViewModel) return externalViewModel;
     if (legacySession) return legacySession;
 
-    if (activeMode === 'LIVE' && wantsLiveStream) {
-      if (liveStream.connectionMode === 'MOCK') {
-        // Fallback occurred inside hook
-        return liveStream.viewModel;
+    if (activeMode === 'LIVE') {
+      if (liveStream.connectionMode === 'MOCK' && driverMode === 'AUTOPLAY') {
+        return mockDriver.viewModel;
       }
       return liveStream.viewModel;
     }
 
-    if (hasEventsProp) {
+    if (hasEventsProp || (liveStream.connectionMode === 'MOCK' && mockDriverEvents.length > 0)) {
       return mockDriver.viewModel;
     }
 
@@ -195,11 +202,12 @@ function AnalysisSessionWorkspaceContent({
     externalViewModel,
     legacySession,
     activeMode,
-    wantsLiveStream,
-    liveStream.connectionMode,
     liveStream.viewModel,
+    liveStream.connectionMode,
+    driverMode,
     hasEventsProp,
     mockDriver.viewModel,
+    mockDriverEvents.length,
     dynamicRequest
   ]);
 
@@ -214,10 +222,8 @@ function AnalysisSessionWorkspaceContent({
 
   const isActuallyLive =
     activeMode === 'LIVE' &&
-    wantsLiveStream &&
     liveStream.connectionMode === 'LIVE' &&
-    !hasExternalViewModel &&
-    !hasEventsProp;
+    !liveStream.isMockFallback;
 
   const handleToggleMode = () => {
     if (isActuallyLive) {

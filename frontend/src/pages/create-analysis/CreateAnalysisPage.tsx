@@ -21,7 +21,6 @@ import {
 import {
   AnalysisSessionWorkspace,
   getScenarioEvents,
-  getEventsForParseResult,
   resolveScenarioKey,
   type AnalysisSessionEvent,
   type DriverMode
@@ -45,6 +44,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
   const [currentQuestion, setCurrentQuestion] = useState<string>('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [streamRequest, setStreamRequest] = useState<AnalysisStreamRequest | null>(null);
+  const [isLiveStream, setIsLiveStream] = useState<boolean>(false);
   const [activeEvents, setActiveEvents] = useState<AnalysisSessionEvent[]>([]);
   const [driverMode, setDriverMode] = useState<DriverMode>('FROZEN');
   const [driverStep, setDriverStep] = useState<number | undefined>(undefined);
@@ -113,6 +113,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
       const events = getScenarioEvents(canonicalKey);
       const parsedStep = stepParam ? parseInt(stepParam, 10) : undefined;
       const timer = setTimeout(() => {
+        setIsLiveStream(false);
         setActiveEvents(events);
         setDriverMode(isAutoplay ? 'AUTOPLAY' : 'FROZEN');
         setDriverStep(parsedStep !== undefined && !isNaN(parsedStep) ? parsedStep : undefined);
@@ -189,9 +190,9 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
         period: period
       });
 
-      // Start Analysis Session event stream with autoplay for normal confirmed runs
-      const events = getEventsForParseResult(parseResult);
-      setActiveEvents(events);
+      // Transition to Screen 2 in Live Streaming mode
+      setIsLiveStream(true);
+      setActiveEvents([]);
       setDriverMode('AUTOPLAY');
       setDriverStep(undefined);
       setMode('SESSION');
@@ -283,10 +284,14 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
           {mode === 'SESSION' && (
             <AnalysisSessionWorkspace
               streamRequest={streamRequest}
-              events={activeEvents}
+              isLiveStream={isLiveStream}
+              events={isLiveStream ? undefined : activeEvents}
               driverMode={driverMode}
               driverStep={driverStep}
-              onBackToComposer={() => setMode('DEFAULT')}
+              onBackToComposer={() => {
+                setMode('DEFAULT');
+                setIsLiveStream(false);
+              }}
             />
           )}
         </div>

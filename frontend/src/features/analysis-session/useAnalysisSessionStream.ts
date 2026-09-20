@@ -226,8 +226,60 @@ export function useAnalysisSessionStream({
       const isSolo =
         (req?.peer_tickers && req.peer_tickers.length === 0) ||
         (req?.target_ticker && !req?.peer_tickers);
-      const fallbackEvents = mockEvents ?? (isSolo ? mockCompanyOnlyEvents : mockCompanyPeerEvents);
-      const fallbackReport = isSolo ? mockCompanyOnlyReport : mockPeerComparisonReport;
+
+      let fallbackEvents: AnalysisSessionEvent[] =
+        mockEvents ?? (isSolo ? mockCompanyOnlyEvents : mockCompanyPeerEvents);
+
+      if (!mockEvents && req && (req.target_ticker || req.query)) {
+        const tTicker = req.target_ticker || 'ACB';
+        const pTickers = req.peer_tickers || [];
+        const period = req.period || '2024';
+        const query = req.query || '';
+        const isNpl = query.toLowerCase().includes('nợ xấu') || query.toLowerCase().includes('npl');
+        const metricLabel = isNpl ? 'NPL' : 'ROE';
+        const scopeDesc = pTickers.length > 0
+          ? `${tTicker} · ${pTickers.join(', ')} · ${period}`
+          : `${tTicker} · Q1–Q4/${period} · ${metricLabel}`;
+
+        fallbackEvents = fallbackEvents.map((e) => {
+          let payload = { ...(e.payload as Record<string, unknown>) };
+          if (e.type === 'USER_REQUEST_CONFIRMED') {
+            payload = {
+              ...payload,
+              rawQuestion: query || (payload.rawQuestion as string),
+              scopeSignature: scopeDesc
+            };
+          } else if (e.type === 'PLAN_CREATED' && typeof payload.message === 'string') {
+            payload = {
+              ...payload,
+              message: payload.message
+                .replace(/TCB · Q1–Q4\/2024 · ROE/g, `${tTicker} (${metricLabel})`)
+                .replace(/TCB/g, tTicker)
+                .replace(/ROE/g, metricLabel)
+            };
+          } else if (e.type === 'SPECIALIST_INVOKED' && typeof payload.assignment === 'string') {
+            payload = {
+              ...payload,
+              assignment: payload.assignment.replace(/TCB/g, tTicker).replace(/ROE/g, metricLabel)
+            };
+          }
+          return {
+            ...e,
+            payload
+          } as AnalysisSessionEvent;
+        });
+      }
+
+      const baseReport = isSolo ? mockCompanyOnlyReport : mockPeerComparisonReport;
+      const fallbackReport = req
+        ? {
+            ...baseReport,
+            target_ticker: req.target_ticker || baseReport.target_ticker,
+            peer_tickers: req.peer_tickers ?? baseReport.peer_tickers,
+            period: req.period || baseReport.period,
+            query: req.query || baseReport.query
+          }
+        : baseReport;
 
       setEvents(fallbackEvents);
       setReport(fallbackReport);

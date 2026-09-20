@@ -3,25 +3,70 @@ import { useNavigate, useInRouterContext } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { SpecialistSessionState, ThreadItem } from '../model/types';
+import type { AnalysisReport } from '@/features/analysis-report';
 import { UserQuestionEntry } from './UserQuestionEntry';
 import { OrchestratorEntry } from './OrchestratorEntry';
 import { InlineSpecialistInvocationCard } from './InlineSpecialistInvocationCard';
 
-function SafeReportButton({ targetPath = '/reports/mock-session-2024-acb-tcb' }: { targetPath?: string }) {
-  const inRouter = useInRouterContext();
-  if (inRouter) {
-    return <RouterReportButton targetPath={targetPath} />;
-  }
-  return <StaticReportButton targetPath={targetPath} />;
+interface SafeReportButtonProps {
+  targetPath?: string;
+  reportData?: AnalysisReport | null;
+  onViewReport?: () => void;
 }
 
-function RouterReportButton({ targetPath }: { targetPath: string }) {
+
+function SafeReportButton({
+  targetPath = '/reports/mock-session-2024-acb-tcb',
+  reportData,
+  onViewReport
+}: SafeReportButtonProps) {
+  const inRouter = useInRouterContext();
+  if (inRouter) {
+    return (
+      <RouterReportButton
+        targetPath={targetPath}
+        reportData={reportData}
+        onViewReport={onViewReport}
+      />
+    );
+  }
+  return (
+    <StaticReportButton
+      targetPath={targetPath}
+      reportData={reportData}
+      onViewReport={onViewReport}
+    />
+  );
+}
+
+function RouterReportButton({
+  targetPath,
+  reportData,
+  onViewReport
+}: {
+  targetPath: string;
+  reportData?: AnalysisReport | null;
+  onViewReport?: () => void;
+}) {
   const navigate = useNavigate();
   return (
     <Button
       type="button"
-      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto"
-      onClick={() => navigate(targetPath)}
+      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto cursor-pointer"
+      onClick={() => {
+        if (onViewReport) {
+          onViewReport();
+          return;
+        }
+        if (reportData && typeof window !== 'undefined' && window.sessionStorage) {
+          try {
+            window.sessionStorage.setItem('current_analysis_report', JSON.stringify(reportData));
+          } catch {
+            // ignore
+          }
+        }
+        navigate(targetPath, { state: { report: reportData } });
+      }}
     >
       <FileText className="w-3.5 h-3.5" aria-hidden="true" />
       Xem báo cáo phân tích
@@ -29,12 +74,31 @@ function RouterReportButton({ targetPath }: { targetPath: string }) {
   );
 }
 
-function StaticReportButton({ targetPath }: { targetPath: string }) {
+function StaticReportButton({
+  targetPath,
+  reportData,
+  onViewReport
+}: {
+  targetPath: string;
+  reportData?: AnalysisReport | null;
+  onViewReport?: () => void;
+}) {
   return (
     <Button
       type="button"
-      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto"
+      className="bg-[#2f6f5e] text-white hover:bg-[#25584a] text-xs font-medium gap-1.5 h-8 px-3.5 shadow-sm shrink-0 self-start sm:self-auto cursor-pointer"
       onClick={() => {
+        if (onViewReport) {
+          onViewReport();
+          return;
+        }
+        if (reportData && typeof window !== 'undefined' && window.sessionStorage) {
+          try {
+            window.sessionStorage.setItem('current_analysis_report', JSON.stringify(reportData));
+          } catch {
+            // ignore
+          }
+        }
         if (typeof window !== 'undefined') {
           window.location.href = targetPath;
         }
@@ -50,12 +114,20 @@ interface OrchestratorThreadProps {
   threadItems: ThreadItem[];
   specialistSessions: Record<string, SpecialistSessionState>;
   onSelectSpecialist: (session: SpecialistSessionState) => void;
+  targetReportPath?: string;
+  reportData?: AnalysisReport | null;
+  onViewReport?: () => void;
 }
+
+
 
 export function OrchestratorThread({
   threadItems,
   specialistSessions,
-  onSelectSpecialist
+  onSelectSpecialist,
+  targetReportPath,
+  reportData,
+  onViewReport
 }: OrchestratorThreadProps) {
   return (
     <div className="border border-line bg-white rounded-lg p-5 shadow-surface space-y-4">
@@ -120,7 +192,11 @@ export function OrchestratorThread({
                       </p>
                     </div>
 
-                    <SafeReportButton targetPath="/reports/mock-session-2024-acb-tcb" />
+                    <SafeReportButton
+                      targetPath={targetReportPath || '/reports/mock-session-2024-acb-tcb'}
+                      reportData={reportData}
+                      onViewReport={onViewReport}
+                    />
                   </div>
                 </div>
               );

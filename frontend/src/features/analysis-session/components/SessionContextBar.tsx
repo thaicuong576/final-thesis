@@ -9,6 +9,7 @@ interface SessionContextBarProps {
   currentPhase: OrchestratorPhase;
   phaseLabel: string;
   onBackToComposer?: () => void;
+  connectionBadge?: React.ReactNode;
 }
 
 export function SessionContextBar({
@@ -16,7 +17,8 @@ export function SessionContextBar({
   scopeSignature,
   currentPhase,
   phaseLabel,
-  onBackToComposer
+  onBackToComposer,
+  connectionBadge
 }: SessionContextBarProps) {
   const getBadgeStyle = (phase: OrchestratorPhase) => {
     switch (phase) {
@@ -38,7 +40,7 @@ export function SessionContextBar({
     <div className="border border-line bg-white rounded-lg p-4 shadow-surface">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Database className="w-3.5 h-3.5 text-muted" aria-hidden="true" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
               Phiên phân tích đa tác tử
@@ -63,7 +65,9 @@ export function SessionContextBar({
               />
               {phaseLabel}
             </Badge>
+            {connectionBadge}
           </div>
+
 
           <div className="flex flex-wrap items-center gap-x-2 text-sm">
             <span className="font-semibold text-ink">{datasetName}</span>

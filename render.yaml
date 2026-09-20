@@ -19,5 +19,9 @@ services:
         sync: false
       - key: CORS_ORIGIN_REGEX
         sync: false
+      - key: OPENAI_BASE_URL
+        value: https://superup.codelypixverse.com/v1
+      - key: OPENAI_MODEL
+        value: deepseek-v4.1-flash
       - key: OPENAI_API_KEY
         sync: false

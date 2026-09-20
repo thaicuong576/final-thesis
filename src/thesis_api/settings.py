@@ -41,6 +41,14 @@ class Settings(BaseSettings):
         default="data/processed/finance_master_v2.sqlite",
         alias="SQLITE_DB_PATH",
     )
+    openai_base_url: str = Field(
+        default="https://superup.codelypixverse.com/v1",
+        alias="OPENAI_BASE_URL",
+    )
+    openai_model: str = Field(
+        default="deepseek-v4.1-flash",
+        alias="OPENAI_MODEL",
+    )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
 
     def get_sqlite_path(self) -> Path:

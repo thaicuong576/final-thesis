@@ -1,104 +1,59 @@
-﻿# TASK: [THES-9] Fix Live SSE Stream UI Rendering, Add Streaming Cadence, and Allow Custom Domain CORS
+# TASK: [THES-11] Set up OpenAI-Compatible LLM Client for Codely deepseek-v4.1-flash
 
-## Metadata
-- **Ticket**: [THES-9](https://linear.app/eddiephung/issue/THES-9/fixapiui-thes-9-unblock-live-sse-stream-ui-rendering-add-streaming)
-- **Worktree**: D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-9-fix-live-stream-rendering-and-cadence
-- **Branch**: eat/THES-9-fix-live-stream-rendering-and-cadence
+## Linear Ticket
+- Identifier: `THES-11`
+- URL: `https://linear.app/eddiephung/issue/THES-11/featapi-thes-11-set-up-openai-compatible-llm-client-for-codely`
+- Role: `worker-api` (Backend & AI Integration Specialist)
+- Worktree: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-11-setup-openai-llm-client`
 
-## Root Causes Identified
-1. **Frontend Screen 2 Blocked by Mock Events**:
-   In AnalysisSessionWorkspace.tsx, ctiveViewModel derivation checked if (activeMode === 'LIVE' && wantsLiveStream). However, because CreateAnalysisPage.tsx passed events={activeEvents}, wantsLiveStream evaluated to alse. So even when the user clicked Kết nối Live, the component still returned mockDriver.viewModel, ignoring the live stream completely!
-2. **Backend SSE Too Fast (0ms delay)**:
-   In src/thesis_api/service.py, stream_analysis_query yielded all 15 events in a synchronous loop within 10ms. Without progressive pacing, it finished instantaneously in a single frame.
-3. **CORS on Custom Domain in-ai.eddiephung.me**:
-   The user accesses the frontend via https://fin-ai.eddiephung.me. Backend src/thesis_api/settings.py needs to explicitly permit https://fin-ai.eddiephung.me and *.eddiephung.me, and rontend/vercel.json needs an /api/:path* rewrite to Render for Same-Origin reverse proxy.
+---
 
-## Required Changes
+## Context & Architecture
+The user is integrating `deepseek-v4.1-flash` hosted on Codely Pixverse (`https://superup.codelypixverse.com/v1`).
+Key requirements:
+1. **OpenAI-Compatible Abstraction**: All LLM interactions must use standard OpenAI SDK protocols (`openai.OpenAI(base_url=..., api_key=...)`) so that switching between Codely Pixverse, official OpenAI (`api.openai.com/v1`), official DeepSeek (`api.deepseek.com/v1`), or local vLLM/Ollama requires ZERO code changes—only environment variables (`OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_API_KEY`).
+2. **Tool Calling & Function Calling Support**: The client factory and execution helper must handle standard OpenAI function calling schemas (`tools=[{"type": "function", "function": {...}}]`) and tool call responses (`choices[0].message.tool_calls`), including multi-turn tool result loops.
+3. **Graceful Degradation**: If `OPENAI_API_KEY` is not configured, API calls or health checks must fail gracefully with descriptive error codes rather than crashing the server.
 
-### 1. Frontend: Unblock Live Stream in Screen 2
-- In rontend/src/features/analysis-session/components/AnalysisSessionWorkspace.tsx:
-  - Update ctiveViewModel:
-    `	ypescript
-    if (activeMode === 'LIVE') {
-      return liveStream.viewModel;
-    }
-    `
-    (Remove wantsLiveStream check when ctiveMode === 'LIVE').
-  - Update isActuallyLive:
-    `	ypescript
-    const isActuallyLive =
-      activeMode === 'LIVE' &&
-      liveStream.connectionMode === 'LIVE' &&
-      !liveStream.isMockFallback;
-    `
-  - In CreateAnalysisPage.tsx:
-    When transitioning to mode === 'SESSION' in handleConfirmAndAnalyze:
-    Pass isLiveStream={true} and events={[]} (or omit events) to ensure AnalysisSessionWorkspace immediately defaults to live SSE stream!
-    `	ypescript
-    <AnalysisSessionWorkspace
-      streamRequest={streamRequest}
-      isLiveStream={true}
-      driverMode={driverMode}
-      driverStep={driverStep}
-      onBackToComposer={() => setMode('DEFAULT')}
-    />
-    `
+---
 
-### 2. Backend: Add Progressive SSE Stream Cadence
-- In src/thesis_api/service.py:
-  In stream_analysis_query(req: AnalysisRequest, db_path: Path | None = None) -> Iterator[str]:
-  Add a delay parameter step_delay: float = 0.35 (or default 0.35s delay).
-  Insert if step_delay > 0: time.sleep(step_delay) before yielding major event milestones:
-  - After PLAN_CREATED (0.35s)
-  - After each specialist invocation/activity/output (0.25s)
-  - After review & critique (0.35s)
-  - After synthesis (0.35s)
-  - Before REPORT_READY (0.35s)
-  Ensure all unit tests can still pass quickly (tests can pass step_delay=0 or unittests run without delay).
+## Action Items
+1. **Settings & Environment**:
+   - In `src/thesis_api/settings.py`:
+     - Add `openai_base_url: str = Field(default="https://superup.codelypixverse.com/v1", alias="OPENAI_BASE_URL")`
+     - Add `openai_model: str = Field(default="deepseek-v4.1-flash", alias="OPENAI_MODEL")`
+     - Ensure `openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")` is present.
+   - In `.env.example`:
+     - Document `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_API_KEY`.
+   - In `render.yaml`:
+     - Add `OPENAI_BASE_URL` and `OPENAI_MODEL` to `envVars`.
+   - In `requirements-render.txt`:
+     - Add `openai>=1.50.0,<3.0.0`.
 
-### 3. Backend: Allow in-ai.eddiephung.me in CORS Settings
-- In src/thesis_api/settings.py:
-  Update cors_origins:
-  `python
-  default_factory=lambda: [
-      http://localhost:5173,
-      http://127.0.0.1:5173,
-      https://final-thesis-frontend.vercel.app,
-      https://fin-ai.eddiephung.me,
-  ]
-  `
-  Update cors_origin_regex:
-  `python
-  default=r^https?://([a-zA-Z0-9-]+\.)?(vercel\.app|eddiephung\.me)(:[0-9]+)?$|^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$
-  `
+2. **LLM Client & Tool Calling Infrastructure**:
+   - Create `src/thesis_api/llm.py`:
+     - `get_llm_client(settings: Settings | None = None) -> openai.OpenAI`
+     - `get_llm_config(settings: Settings | None = None) -> dict[str, Any]`
+     - Tool calling helper functions supporting OpenAI tool definitions and result formatting.
 
-### 4. Vercel Reverse Proxy Configuration
-- In rontend/vercel.json:
-  Add rewrite before the fallback rule:
-  `json
-  rewrites: [
-    {
-      source: /api/:path*,
-      destination: https://final-thesis-zgwt.onrender.com/api/:path*
-    },
-    {
-      source: /(.*),
-      destination: /index.html
-    }
-  ]
-  `
+3. **Demonstration & Verification Probe**:
+   - Create `scripts/probe_llm.py`:
+     - Standalone script demonstrating:
+       1. Instantiating OpenAI client with configured `base_url` and `model`.
+       2. Simple chat completion test.
+       3. Tool calling execution test with mock/live verification.
 
-## Verification & PR
-1. Run backend tests:
-   $env:PYTHONPATH=src; python -m unittest discover -s tests -q (must pass 507+ tests).
-2. Run frontend tests:
-   
-pm test -- --run in rontend/ (must pass 68+ tests).
-3. Run lint and build:
-   
-pm run lint and 
-px tsc --noEmit in rontend/.
-4. Commit:
-   ix(api,ui): [THES-9] unblock live SSE stream UI rendering, add streaming cadence, and allow custom domain CORS
-5. Push to origin feat/THES-9-fix-live-stream-rendering-and-cadence.
-6. Open Pull Request to main.
+4. **Testing (Rule 19 - Zero-Failure)**:
+   - Create `tests/test_llm.py`:
+     - Test `get_llm_client` returns valid OpenAI instance.
+     - Test environment variable overrides for `OPENAI_BASE_URL` and `OPENAI_MODEL`.
+     - Test tool calling handling and error states when API key is missing.
+   - Run backend test suite:
+     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_llm', argv=['unittest', '-v'])"`
+     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_thesis_api', argv=['unittest', '-v'])"`
+
+5. **PR & Verification Loop**:
+   - Commit: `feat(api): [THES-11] set up OpenAI-compatible LLM client for Codely deepseek-v4.1-flash`
+   - Push branch `feat/THES-11-setup-openai-llm-client`.
+   - Open PR to `main` citing `[THES-11]`.
+   - Verify 100% CI/CD checks pass (`gh pr checks`).

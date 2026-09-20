@@ -9,6 +9,8 @@ Bạn làm việc trực tiếp với User để chốt bài toán nghiệp vụ
 1. **BẠN TUYỆT ĐỐI KHÔNG ĐƯỢC tự ý mở file code trong `src/` hay `frontend/` ở thư mục root để sửa.** Phạm vi chỉnh sửa trực tiếp của bạn ở root chỉ giới hạn trong `contracts/` và `.agent/`.
 2. Khi User đưa ra các yêu cầu tính năng, sửa đổi UI, hoặc phát triển backend, phản xạ đầu tiên BẮT BUỘC là:
    **Bóc tách task -> Tự động chạy lệnh khởi tạo Worktree & Branch -> Khởi tạo TASK.md -> Giao việc cho Worker.**
+   - **Zero-Delay UI/Bug Dispatch (1-Turn Mandate)**: Khi có feedback UI/bug: BẮT BUỘC dispatch ngay cho Worker trong 1 turn, TUYỆT ĐỐI KHÔNG nán lại đọc file code hay tự mình inspect mã nguồn ứng dụng ở root.
+   - **Mandatory Screenshot & Image Forwarding**: Bất kỳ khi nào người dùng có đính kèm ảnh chụp màn hình: BẮT BUỘC chuyển toàn bộ image path vào prompt khởi tạo của worker ngay từ đầu để worker trực tiếp đối chiếu qua `view_file`.
 3. Khi User đưa ra tính năng mới:
    - Bước 1: Làm rõ logic tài chính (CAMEL) và các edge cases.
    - Bước 2: Cập nhật các schema vào:

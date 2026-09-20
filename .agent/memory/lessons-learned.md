@@ -133,3 +133,23 @@ Khi gửi request tạo hoặc cập nhật Linear Issue có nội dung Tiếng 
     ```
 - **Khắc phục ngay:** Đã viết script Python chuẩn UTF-8 để cập nhật lại toàn bộ description của ticket `THES-6` trên Linear về đúng tiếng Việt chuẩn chỉnh, sắc nét.
 
+---
+
+## [LESSON-007] Zero-Delay UI/Bug Dispatch & Bắt buộc đính kèm ảnh vào Worker Prompt
+
+- **Date:** 2026-09-20
+- **Scope:** Lead Orchestrator, Subagent Invocations, `AGENTS.md` (Rule 15), `.agent/roles/lead.md`
+- **Status:** `ACTIVE` -> Đã đưa vào Rule 15 bắt buộc trong `AGENTS.md` và `lead.md`.
+
+### 1. Context & Symptom
+Khi người dùng gửi feedback về giao diện (UI bugs, styling đen, sai lệch breadcrumb, thiếu màn hình) kèm các ảnh chụp màn hình (`.user_uploaded/media_*.png`):
+- Lead Orchestrator lại rơi vào quán tính sai lầm: tự ý mở file code ứng dụng (`router.tsx`, `ReportHeaderBar.tsx`...) ở root để đọc và tìm hiểu nguyên nhân trước khi dispatch worker.
+- Khi khởi tạo worker bằng `invoke_subagent`, Lead tóm tắt yêu cầu bằng văn bản nhưng quên không truyền các đường dẫn file ảnh (`.png`) vào prompt, khiến worker không nhìn thấy bằng chứng trực quan của người dùng.
+
+### 2. Root Cause
+- Vi phạm nguyên tắc phân vai của Lead Orchestrator: ở root chỉ làm kiến trúc, contracts và điều phối, TUYỆT ĐỐI KHÔNG đọc hay sửa mã nguồn ứng dụng.
+- Subagents chạy trong context độc lập và không tự động nhìn thấy các file media người dùng upload lên chat hội thoại của Lead nếu Lead không truyền tường minh đường dẫn tuyệt đối.
+
+### 3. Workaround & Permanent Solution
+- **Quy tắc 1 Turn Dispatch:** Khi có feedback UI hoặc bug, Lead BẮT BUỘC phải dispatch ngay cho Worker trong 1 turn duy nhất, không nán lại đọc file code ứng dụng ở root.
+- **Bắt buộc chuyển toàn bộ Image Paths:** Bất kỳ khi nào người dùng upload ảnh, Lead BẮT BUỘC phải trích xuất toàn bộ file paths từ metadata và đưa thẳng vào prompt khởi tạo của worker ngay từ đầu để worker sử dụng `view_file` đối chiếu hình ảnh.

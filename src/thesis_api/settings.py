@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         alias="OPENAI_BASE_URL",
     )
     openai_model: str = Field(
-        default="deepseek-v4.1-flash",
+        default="deepseek-v4-pro-0813",
         alias="OPENAI_MODEL",
     )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")

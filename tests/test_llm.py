@@ -29,7 +29,7 @@ class LLMClientTests(unittest.TestCase):
             settings = Settings(_env_file=None)
             config = get_llm_config(settings)
             self.assertEqual(config["base_url"], "https://superup.codelypixverse.com/v1")
-            self.assertEqual(config["model"], "deepseek-v4.1-flash")
+            self.assertEqual(config["model"], "deepseek-v4-pro-0813")
             self.assertFalse(config["is_configured"])
 
     def test_settings_env_overrides(self) -> None:

@@ -74,6 +74,15 @@ def parse_args() -> argparse.Namespace:
 def run_probe() -> int:
     args = parse_args()
 
+    # Load project .env with override to prioritize project settings over ambient OS variables
+    try:
+        from dotenv import load_dotenv
+        env_path = repo_root / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
+    except ImportError:
+        pass
+
     # Load base settings and apply CLI overrides if provided
     settings = Settings()
     if args.base_url:

@@ -61,3 +61,20 @@ CREATE INDEX idx_fin_ticker_period ON financial_observations(ticker,period);
 CREATE INDEX idx_market_ticker_date ON market_daily(ticker,trade_date);
 
 CREATE INDEX idx_ratio_ticker_period ON ratio_observations(ticker,period);
+
+CREATE TABLE IF NOT EXISTS analysis_runs (
+    run_id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    query TEXT NOT NULL,
+    target_ticker TEXT NOT NULL,
+    peer_tickers TEXT,
+    period TEXT NOT NULL,
+    status TEXT NOT NULL,
+    report_json TEXT,
+    events_json TEXT,
+    model_used TEXT,
+    latency_ms INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analysis_runs_target ON analysis_runs(target_ticker, period);

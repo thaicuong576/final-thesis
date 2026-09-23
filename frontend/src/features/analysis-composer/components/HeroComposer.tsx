@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState, type KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import type { ParsedScope } from '../model/types';
 import { formatPeriodsSignature } from '../model/intentParser';
 
@@ -61,6 +61,24 @@ export function HeroComposer({
     onQuestionChange?.(val);
   }
 
+  function handleQuickBankClick(ticker: string) {
+    let next: string;
+    if (!question.trim()) {
+      next = `Đánh giá toàn diện các chỉ số tài chính CAMEL của ${ticker} trong năm 2024.`;
+    } else if (question.includes(ticker)) {
+      return;
+    } else {
+      next = `${question.trim().replace(/[.,;]$/, '')} và ${ticker}.`;
+    }
+    if (!isControlled) {
+      setInternalQuestion(next);
+    }
+    onQuestionChange?.(next);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  }
+
   const isValid = question.trim().length > 0;
 
   // Extract chips for "Đã nhận diện"
@@ -95,8 +113,33 @@ export function HeroComposer({
           Bạn muốn phân tích điều gì?
         </h1>
         <p className="text-xs sm:text-sm text-ink-secondary leading-relaxed">
-          Mô tả câu hỏi, đối tượng hoặc vấn đề bạn muốn kiểm tra.
+          Mô tả câu hỏi, đối tượng hoặc vấn đề bạn muốn kiểm tra trên hệ thống ngân hàng niêm yết.
         </p>
+      </div>
+
+      {/* Quick Bank Interactive Selector Chips */}
+      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+        <span className="text-[11px] font-mono text-ink-secondary flex items-center gap-1 mr-0.5">
+          <Building2 className="w-3 h-3 text-ink-secondary" />
+          <span>Chọn nhanh ngân hàng:</span>
+        </span>
+        {['ACB', 'VCB', 'MBB', 'TCB', 'CTG'].map((ticker) => {
+          const isSelected = parsedScope?.entities.some((e) => e.ticker === ticker) || question.includes(ticker);
+          return (
+            <button
+              key={ticker}
+              type="button"
+              onClick={() => handleQuickBankClick(ticker)}
+              className={`px-2 py-0.5 text-xs font-mono font-semibold rounded transition-all cursor-pointer ${
+                isSelected
+                  ? 'bg-amber text-ink border border-amber-border font-bold'
+                  : 'bg-card text-ink-secondary hover:text-ink hover:bg-surface-hover border border-line'
+              }`}
+            >
+              {isSelected ? `✓ ${ticker}` : `+ ${ticker}`}
+            </button>
+          );
+        })}
       </div>
 
       {/* Hero Composer Box */}
@@ -111,7 +154,7 @@ export function HeroComposer({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           maxLength={500}
-          placeholder="So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất."
+          placeholder="Nhập câu hỏi phân tích tài chính về ACB, VCB, MBB, TCB, CTG... (ví dụ: So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất.)"
           className="w-full min-h-[120px] border-0 p-0 text-sm text-ink placeholder:text-ink-tertiary focus:outline-none focus:ring-0 resize-none leading-relaxed bg-transparent"
         />
 

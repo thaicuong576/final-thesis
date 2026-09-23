@@ -372,6 +372,7 @@ function AnalysisSessionWorkspaceContent({
         onSelectSpecialist={handleOpenSpecialist}
         targetReportPath={targetReportPath}
         reportData={reportArtifact}
+        isStreaming={liveStream.isStreaming}
         onViewReport={
           onViewReport && reportArtifact
             ? () => onViewReport(reportArtifact)

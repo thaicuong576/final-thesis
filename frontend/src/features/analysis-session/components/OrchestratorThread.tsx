@@ -117,9 +117,8 @@ interface OrchestratorThreadProps {
   targetReportPath?: string;
   reportData?: AnalysisReport | null;
   onViewReport?: () => void;
+  isStreaming?: boolean;
 }
-
-
 
 export function OrchestratorThread({
   threadItems,
@@ -127,7 +126,8 @@ export function OrchestratorThread({
   onSelectSpecialist,
   targetReportPath,
   reportData,
-  onViewReport
+  onViewReport,
+  isStreaming = false
 }: OrchestratorThreadProps) {
   return (
     <div className="border border-line bg-white rounded-lg p-5 shadow-surface space-y-4">
@@ -205,6 +205,20 @@ export function OrchestratorThread({
               return null;
           }
         })}
+
+        {/* Animated Pulse / Typing Indicator while agents are thinking */}
+        {isStreaming && !threadItems.some((t) => t.type === 'REPORT_READY_ACTION') && (
+          <div className="ml-11 flex items-center gap-3 p-3.5 rounded-lg border border-amber-border/40 bg-amber-soft/30 text-ink animate-in fade-in duration-300 max-w-2xl">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-border animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 rounded-full bg-amber-border animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 rounded-full bg-amber-border animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span className="text-xs font-mono text-ink-secondary">
+              Điều phối viên & các tác tử chuyên sâu đang truy xuất BCTC và đối chuẩn dữ liệu...
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

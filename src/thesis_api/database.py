@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
-from typing import Tuple
+from pathlib import Path
+import sqlite3
+from typing import Any, Sequence, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -37,3 +40,252 @@ def check_database_connection(
         # Safe logging: log the error type and high-level description without connection string
         logger.warning("Database connectivity probe failed: %s: %s", type(exc).__name__, exc)
         return False, f"Database connectivity failed: {type(exc).__name__}"
+
+
+def ensure_analysis_runs_table(db_path: Path) -> None:
+    """Ensure the analysis_runs table and indexes exist in the SQLite database."""
+    if not db_path.exists():
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        conn = sqlite3.connect(db_path, timeout=10.0)
+        try:
+            conn.execute("PRAGMA journal_mode = wal")
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS analysis_runs (
+                    run_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    query TEXT NOT NULL,
+                    target_ticker TEXT NOT NULL,
+                    peer_tickers TEXT,
+                    period TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    report_json TEXT,
+                    events_json TEXT,
+                    model_used TEXT,
+                    latency_ms INTEGER
+                );
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_analysis_runs_target ON analysis_runs(target_ticker, period);"
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.warning("Could not ensure analysis_runs table: %s", exc)
+
+
+def save_analysis_run(
+    db_path: Path,
+    run_id: str,
+    created_at: str,
+    query: str,
+    target_ticker: str,
+    peer_tickers: Sequence[str] | str | None,
+    period: str,
+    status: str,
+    report_json: str | dict[str, Any] | None = None,
+    events_json: str | list[Any] | None = None,
+    model_used: str | None = None,
+    latency_ms: int | None = None,
+) -> None:
+    """Persist completed or in-flight analysis run into SQLite analysis_runs table."""
+    ensure_analysis_runs_table(db_path)
+
+    peers_str = (
+        json.dumps(list(peer_tickers), ensure_ascii=False)
+        if isinstance(peer_tickers, (list, tuple, set))
+        else (peer_tickers or "[]")
+    )
+    rep_str = (
+        json.dumps(report_json, ensure_ascii=False)
+        if isinstance(report_json, dict)
+        else (report_json or "{}")
+    )
+    evts_str = (
+        json.dumps(events_json, ensure_ascii=False)
+        if isinstance(events_json, list)
+        else (events_json or "[]")
+    )
+
+    try:
+        conn = sqlite3.connect(db_path, timeout=10.0)
+        try:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO analysis_runs (
+                    run_id, created_at, query, target_ticker, peer_tickers,
+                    period, status, report_json, events_json, model_used, latency_ms
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    created_at,
+                    query,
+                    target_ticker,
+                    peers_str,
+                    period,
+                    status,
+                    rep_str,
+                    evts_str,
+                    model_used,
+                    latency_ms,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.error("Failed to save analysis run %s: %s", run_id, exc)
+
+
+def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
+    """List recent analysis runs sorted by created_at DESC."""
+    ensure_analysis_runs_table(db_path)
+    runs: list[dict[str, Any]] = []
+    if not db_path.exists():
+        return runs
+
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT run_id, created_at, query, target_ticker, peer_tickers,
+                       period, status, latency_ms, model_used
+                FROM analysis_runs
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            )
+            for row in cur.fetchall():
+                peers_raw = row["peer_tickers"]
+                peers: list[str] = []
+                if peers_raw:
+                    try:
+                        peers = json.loads(peers_raw)
+                    except Exception:
+                        peers = [p.strip() for p in peers_raw.split(",") if p.strip()]
+                runs.append(
+                    {
+                        "run_id": row["run_id"],
+                        "created_at": row["created_at"],
+                        "query": row["query"],
+                        "target_ticker": row["target_ticker"],
+                        "peer_tickers": peers,
+                        "period": row["period"],
+                        "status": row["status"],
+                        "latency_ms": row["latency_ms"],
+                        "model_used": row["model_used"],
+                    }
+                )
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.warning("Failed to list analysis runs: %s", exc)
+
+    return runs
+
+
+def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
+    """Retrieve full analysis run with report and events by run_id."""
+    ensure_analysis_runs_table(db_path)
+    if not db_path.exists():
+        return None
+
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM analysis_runs WHERE run_id = ? LIMIT 1", (run_id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+
+            peers_raw = row["peer_tickers"]
+            peers: list[str] = []
+            if peers_raw:
+                try:
+                    peers = json.loads(peers_raw)
+                except Exception:
+                    peers = [p.strip() for p in peers_raw.split(",") if p.strip()]
+
+            report_obj: dict[str, Any] | None = None
+            if row["report_json"]:
+                try:
+                    report_obj = json.loads(row["report_json"])
+                except Exception:
+                    report_obj = None
+
+            events_obj: list[Any] = []
+            if row["events_json"]:
+                try:
+                    events_obj = json.loads(row["events_json"])
+                except Exception:
+                    events_obj = []
+
+            return {
+                "run_id": row["run_id"],
+                "created_at": row["created_at"],
+                "query": row["query"],
+                "target_ticker": row["target_ticker"],
+                "peer_tickers": peers,
+                "period": row["period"],
+                "status": row["status"],
+                "report": report_obj,
+                "events": events_obj,
+                "model_used": row["model_used"],
+                "latency_ms": row["latency_ms"],
+            }
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.warning("Failed to get analysis run %s: %s", run_id, exc)
+        return None
+
+
+def get_analysis_report(db_path: Path, report_id_or_run_id: str) -> dict[str, Any] | None:
+    """Retrieve report JSON directly from analysis_runs table."""
+    ensure_analysis_runs_table(db_path)
+    if not db_path.exists():
+        return None
+
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        try:
+            cur = conn.cursor()
+            # 1. Match by run_id
+            cur.execute("SELECT report_json FROM analysis_runs WHERE run_id = ? LIMIT 1", (report_id_or_run_id,))
+            row = cur.fetchone()
+            if row and row[0]:
+                try:
+                    return json.loads(row[0])
+                except Exception:
+                    pass
+
+            # 2. Match by report_id embedded in report_json
+            cur.execute(
+                "SELECT report_json FROM analysis_runs WHERE report_json LIKE ? LIMIT 1",
+                (f'%"report_id": "{report_id_or_run_id}"%',),
+            )
+            row = cur.fetchone()
+            if row and row[0]:
+                try:
+                    return json.loads(row[0])
+                except Exception:
+                    pass
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.warning("Failed to get analysis report %s: %s", report_id_or_run_id, exc)
+
+    return None

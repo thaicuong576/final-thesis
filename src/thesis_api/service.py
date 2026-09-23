@@ -6,6 +6,7 @@ Adheres strictly to contracts/openapi.json and contracts/mock-data.json.
 from __future__ import annotations
 
 import concurrent.futures
+from datetime import datetime, timezone
 import json
 import logging
 from pathlib import Path
@@ -15,6 +16,8 @@ import time
 from typing import Any, Iterator, Sequence
 import uuid
 import sqlite3
+
+from .database import save_analysis_run
 
 from .schemas import (
     AnalysisPlanDTO,
@@ -706,6 +709,7 @@ class AnalysisEngine:
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         """Run full hierarchical multi-agent analysis adhering to the OpenAPI schema."""
+        start_time = time.time()
         plan = build_analysis_plan(request)
         target_ticker, peer_tickers, period = parse_query_entities(
             query=request.query,
@@ -798,7 +802,7 @@ class AnalysisEngine:
 
             status = "completed" if has_valid_target_data else "partial"
 
-            return AnalysisResponse(
+            final_report = AnalysisResponse(
                 report_id=report_id,
                 status=status,
                 analysis_plan=plan,
@@ -817,6 +821,26 @@ class AnalysisEngine:
                 ),
                 limitations=plan.known_limitations,
             )
+
+            try:
+                save_analysis_run(
+                    db_path=self.db_path,
+                    run_id=report_id,
+                    created_at=datetime.now(timezone.utc).isoformat(),
+                    query=request.query,
+                    target_ticker=target_ticker,
+                    peer_tickers=peer_tickers,
+                    period=period,
+                    status=status,
+                    report_json=final_report.model_dump(),
+                    events_json=[],
+                    model_used="engine_direct",
+                    latency_ms=int((time.time() - start_time) * 1000),
+                )
+            except Exception as exc:
+                logger.warning("Failed to persist run in analyze: %s", exc)
+
+            return final_report
         finally:
             connection.close()
 
@@ -838,6 +862,7 @@ def _stream_analysis_query_deterministic(
     resolved_db_path = db_path or get_settings().get_sqlite_path()
     start_time = time.time()
     seq = 1
+    accumulated_events: list[dict[str, Any]] = []
 
     def _elapsed_ms() -> int:
         return max(seq * 50, int((time.time() - start_time) * 1000))
@@ -853,7 +878,9 @@ def _stream_analysis_query_deterministic(
             payload=payload,
         )
         seq += 1
-        json_payload = json.dumps(event_obj.model_dump(by_alias=True), ensure_ascii=False)
+        event_dict = event_obj.model_dump(by_alias=True)
+        accumulated_events.append(event_dict)
+        json_payload = json.dumps(event_dict, ensure_ascii=False)
         return f"event: {event_type}\ndata: {json_payload}\n\n"
 
     # Query-Adaptive Planning
@@ -1175,15 +1202,35 @@ def _stream_analysis_query_deterministic(
     # 9. REPORT_READY
     if step_delay > 0:
         time.sleep(step_delay)
+    final_dump = final_report.model_dump()
     yield _emit(
         "REPORT_READY",
         {
             "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo.",
             "reportId": report_id,
             "summary": f"Hoàn tất phân tích {target_ticker} cho kỳ {period}.",
-            "report": final_report.model_dump(),
+            "report": final_dump,
         },
     )
+
+    try:
+        latency_ms = int((time.time() - start_time) * 1000)
+        save_analysis_run(
+            db_path=resolved_db_path,
+            run_id=report_id,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            query=req.query,
+            target_ticker=target_ticker,
+            peer_tickers=peer_tickers,
+            period=period,
+            status="completed",
+            report_json=final_dump,
+            events_json=accumulated_events,
+            model_used="deterministic",
+            latency_ms=latency_ms,
+        )
+    except Exception as exc:
+        logger.warning("Failed to persist deterministic run %s: %s", report_id, exc)
 
 
 def _stream_analysis_query_dynamic(
@@ -1196,6 +1243,7 @@ def _stream_analysis_query_dynamic(
     resolved_db_path = db_path or get_settings().get_sqlite_path()
     start_time = time.time()
     seq = 1
+    accumulated_events: list[dict[str, Any]] = []
 
     def _elapsed_ms() -> int:
         return max(seq * 50, int((time.time() - start_time) * 1000))
@@ -1211,14 +1259,40 @@ def _stream_analysis_query_dynamic(
             payload=payload,
         )
         seq += 1
-        json_payload = json.dumps(event_obj.model_dump(by_alias=True), ensure_ascii=False)
+        event_dict = event_obj.model_dump(by_alias=True)
+        accumulated_events.append(event_dict)
+        json_payload = json.dumps(event_dict, ensure_ascii=False)
         return f"event: {event_type}\ndata: {json_payload}\n\n"
 
     cfg = llm_config or get_llm_config()
     client = get_llm_client()
     model = cfg.get("model", "deepseek-v4-pro-0813")
 
-    # 1. Orchestrator Dynamic Planning
+    # Fast initial query entity extraction (<1ms, no network I/O)
+    init_target, init_peers, init_period = parse_query_entities(
+        req.query, req.target_ticker, req.peer_tickers, req.period, auto_default_peers=True
+    )
+    scope_desc = "So sánh" if init_peers else "Độc lập"
+
+    # 1. USER_REQUEST_CONFIRMED: Flush immediately (<10ms) to avoid browser freeze!
+    yield _emit(
+        "USER_REQUEST_CONFIRMED",
+        {
+            "rawQuestion": req.query,
+            "datasetName": "Ngân hàng Việt Nam 2024",
+            "scopeSignature": f"{init_target} | {scope_desc} | {init_period}",
+        },
+    )
+
+    # 2. PLANNING_STARTED: Flush immediately (<10ms)
+    yield _emit(
+        "PLANNING_STARTED",
+        {
+            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và xây dựng giả thuyết phân tích...",
+        },
+    )
+
+    # Orchestrator Dynamic Planning (called while client is already connected and receiving SSE)
     orchestrator = OrchestratorAgent()
     plan_dict = orchestrator.plan(
         query=req.query,
@@ -1229,9 +1303,9 @@ def _stream_analysis_query_dynamic(
         model=model,
     )
 
-    target_ticker = plan_dict.get("target_ticker") or "ACB"
-    peer_tickers = plan_dict.get("peer_tickers") or []
-    period = plan_dict.get("period") or "2024"
+    target_ticker = plan_dict.get("target_ticker") or init_target
+    peer_tickers = plan_dict.get("peer_tickers") or init_peers
+    period = plan_dict.get("period") or init_period
     required_capabilities = plan_dict.get("required_capabilities") or ["company"]
     applicable_links = plan_dict.get("applicable_links") or []
     rationale = plan_dict.get("rationale") or f"Phân tích chuyên sâu cho {target_ticker} trong kỳ {period}."
@@ -1248,25 +1322,6 @@ def _stream_analysis_query_dynamic(
         dataset_snapshot_id="snap-2024-q4-v1",
         rationale=rationale,
         known_limitations=plan_dict.get("known_limitations") or [],
-    )
-
-    # 1. USER_REQUEST_CONFIRMED
-    scope_desc = "So sánh" if peer_tickers else "Độc lập"
-    yield _emit(
-        "USER_REQUEST_CONFIRMED",
-        {
-            "rawQuestion": req.query,
-            "datasetName": "Ngân hàng Việt Nam 2024",
-            "scopeSignature": f"{target_ticker} | {scope_desc} | {period}",
-        },
-    )
-
-    # 2. PLANNING_STARTED
-    yield _emit(
-        "PLANNING_STARTED",
-        {
-            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và xây dựng giả thuyết phân tích...",
-        },
     )
 
     if step_delay > 0:
@@ -1698,15 +1753,35 @@ def _stream_analysis_query_dynamic(
         # 8. REPORT_READY
         if step_delay > 0:
             time.sleep(step_delay)
+        final_dump = final_report.model_dump()
         yield _emit(
             "REPORT_READY",
             {
                 "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo.",
                 "reportId": report_id,
                 "summary": f"Hoàn tất phân tích {target_ticker} cho kỳ {period}.",
-                "report": final_report.model_dump(),
+                "report": final_dump,
             },
         )
+
+        try:
+            latency_ms = int((time.time() - start_time) * 1000)
+            save_analysis_run(
+                db_path=resolved_db_path,
+                run_id=report_id,
+                created_at=datetime.now(timezone.utc).isoformat(),
+                query=req.query,
+                target_ticker=target_ticker,
+                peer_tickers=peer_tickers,
+                period=period,
+                status="completed",
+                report_json=final_dump,
+                events_json=accumulated_events,
+                model_used=model,
+                latency_ms=latency_ms,
+            )
+        except Exception as exc:
+            logger.warning("Failed to persist dynamic run %s: %s", report_id, exc)
     finally:
         conn.close()
 

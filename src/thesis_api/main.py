@@ -4,11 +4,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-from .database import check_database_connection
+from .database import (
+    check_database_connection,
+    ensure_analysis_runs_table,
+    get_analysis_report,
+    get_analysis_run,
+    list_analysis_runs,
+)
 from .schemas import AnalysisRequest, AnalysisResponse
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
@@ -17,7 +23,9 @@ from .settings import Settings, get_settings
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
-    engine = AnalysisEngine(current_settings.get_sqlite_path())
+    sqlite_path = current_settings.get_sqlite_path()
+    ensure_analysis_runs_table(sqlite_path)
+    engine = AnalysisEngine(sqlite_path)
 
     app = FastAPI(
         title="Final Thesis API",
@@ -104,6 +112,42 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "X-Accel-Buffering": "no",
             },
         )
+
+    @app.get(
+        "/api/runs",
+        summary="List recent analysis runs stored in SQLite",
+    )
+    def get_runs(limit: int = 20) -> list[dict[str, Any]]:
+        """Retrieve recent analysis runs ordered by created_at DESC."""
+        return list_analysis_runs(current_settings.get_sqlite_path(), limit=limit)
+
+    @app.get(
+        "/api/runs/{run_id}",
+        summary="Retrieve specific analysis run with events and report",
+    )
+    def get_run(run_id: str) -> dict[str, Any]:
+        """Retrieve specific analysis run by run_id."""
+        run_record = get_analysis_run(current_settings.get_sqlite_path(), run_id)
+        if not run_record:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Analysis run {run_id} not found",
+            )
+        return run_record
+
+    @app.get(
+        "/api/reports/{report_id}",
+        summary="Retrieve report artifact by report_id or run_id",
+    )
+    def get_report(report_id: str) -> dict[str, Any]:
+        """Retrieve report artifact directly from analysis_runs in SQLite."""
+        report = get_analysis_report(current_settings.get_sqlite_path(), report_id)
+        if not report:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Report {report_id} not found",
+            )
+        return report
 
     return app
 

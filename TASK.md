@@ -1,51 +1,91 @@
-# Task Manifest: [THES-13] Wire Real SQLite Data Across Frontend & Backend, Optimize Multi-Agent Streaming and Routing
+﻿# Task Manifest: [THES-14] Persist Analysis Runs in SQLite, Fix Live SSE Streaming, Eliminate Mock Data, and Polish Friendly UI
 
 ## 1. Linear Context
-- **Issue**: [THES-13](https://linear.app/eddiephung/issue/THES-13/featapiui-thes-13-wire-real-sqlite-data-across-frontend-and-backend)
-- **Title**: `feat(api,ui): [THES-13] wire real sqlite data across frontend & backend, optimize multi-agent streaming and routing`
-- **User Mandate**: *t nghĩ wire data thật đi, r sửa gấp thếp. đừng mock nữa*
+- **Issue**: [THES-14](https://linear.app/eddiephung/issue/THES-14/featapiui-thes-14-persist-analysis-runs-in-sqlite-fix-live-sse)
+- **Title**: eat(api,ui): [THES-14] persist analysis runs in sqlite, fix live sse streaming, eliminate mock data, and polish friendly ui
+- **User Mandate**:
+  1. Frontend không stream được event từ backend/llm hoạt động
+  2. Chưa có database lưu trữ run / history
+  3. Vẫn còn mock data
+  4. UI nhìn vẫn không friendly
 
 ---
 
-## 2. Scope of Work
+## 2. Detailed Technical Requirements
 
-### A. Backend Real Data Wiring & Streaming Concurrency (`src/thesis_api/`)
-1. **Capabilities Endpoint (`src/thesis_api/service.py` & `main.py`)**:
-   - `GET /api/capabilities` queries `finance_master_v2.sqlite` to return the real list of 27 banks, periods (2021–2024), and live DB status (WAL mode, distinct count).
-2. **Single-Turn Data-Injected Specialists (`src/thesis_api/agents.py`)**:
-   - `CompanySpecialistAgent`: Added `execute_with_data(ticker, period, precomputed_metrics)`: Formats verified SQLite CAMEL metrics directly into prompt for single-turn LLM synthesis without tool calls, adhering to Rule 3. Fallback grounded template implemented.
-   - `SectorSpecialistAgent`: Added `execute_with_data(ticker, period, precomputed_benchmarks)`: Formats verified peer median metrics directly into prompt for single-turn synthesis. Fallback grounded template implemented.
-   - Preserves dynamic tool-calling as a graceful fallback for open-ended queries.
-3. **Immediate Event Emission & Concurrency (`src/thesis_api/service.py`)**:
-   - In `_stream_analysis_query_dynamic`:
-     - Emits `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, and `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") immediately *before* calling the LLM.
-     - Runs `company` and `sector` specialists concurrently using `concurrent.futures.ThreadPoolExecutor(max_workers=2)`.
-     - In fallback stream, maintains `emitted_event_types: set[str]` and deduplicates fallback stream chunks so no duplicate event types are re-emitted if dynamic streaming fails.
+### A. SQLite Run Persistence & API (src/thesis_api/, contracts/schema.sql)
+1. **Schema Migration**:
+   - Add table nalysis_runs to contracts/schema.sql and run CREATE TABLE IF NOT EXISTS analysis_runs (...) in src/thesis_api/database.py or startup:
+     `sql
+     CREATE TABLE IF NOT EXISTS analysis_runs (
+         run_id TEXT PRIMARY KEY,
+         created_at TEXT NOT NULL,
+         query TEXT NOT NULL,
+         target_ticker TEXT NOT NULL,
+         peer_tickers TEXT,
+         period TEXT NOT NULL,
+         status TEXT NOT NULL,
+         report_json TEXT,
+         events_json TEXT,
+         model_used TEXT,
+         latency_ms INTEGER
+     );
+     CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);
+     CREATE INDEX IF NOT EXISTS idx_analysis_runs_target ON analysis_runs(target_ticker, period);
+     `
+2. **Backend Endpoints (src/thesis_api/main.py & service.py)**:
+   - GET /api/runs: Returns list of past analysis runs sorted by created_at DESC (limit 20).
+   - GET /api/runs/{run_id}: Returns run details, events, and report artifact.
+   - GET /api/reports/{report_id}: Returns report artifact directly from nalysis_runs.
+3. **Save Run on Completion**:
+   - When stream_analysis_query emits REPORT_READY, insert the completed run into nalysis_runs in SQLite.
 
-### B. Frontend Real Data Wiring & Persistent Routing (`frontend/src/`)
-1. **Live Capability Provider (`frontend/src/entities/capability/api/capabilityService.ts`)**:
-   - Connects to `/api/capabilities` (resolving `VITE_API_BASE_URL` when configured) to load the real 27 banks and active periods with graceful offline fallback.
-2. **ActiveDatasetCard (`frontend/src/features/analysis-composer/components/ActiveDatasetCard.tsx`)**:
-   - Displays real 27 listed banks (`... (27 NHTM)`), 2021–2024 periods, and SQLite WAL status. Re-exported at `features/create-analysis/components/ActiveDatasetCard.tsx`.
-3. **Persistent Route Navigation (`frontend/src/pages/create-analysis/CreateAnalysisPage.tsx`)**:
-   - Synchronizes session state with URL search params (`?mode=session&ticker=...&period=...&q=...`).
-   - On page reload (F5), parses search params and automatically restores Screen 2 (`AnalysisSessionWorkspace`) with active live streaming.
-   - Clears search params on returning to composer.
-4. **Live Stream First (`frontend/src/features/analysis-session/components/AnalysisSessionWorkspace.tsx`)**:
-   - Supports `fallbackToMockOnError` prop.
-   - Displays a prominent error banner when live SSE connection fails with "Thử lại Live" and "Chuyển Mock" actions, eliminating silent mock fallback.
+### B. Fix Live SSE Streaming (src/thesis_api/service.py & rontend/)
+1. **Instant First Event Flush**:
+   - In _stream_analysis_query_dynamic, yield USER_REQUEST_CONFIRMED and PLANNING_STARTED at tick 0ms **BEFORE** awaiting orchestrator.plan(). This establishes the HTTP 200 SSE connection and flushes the first event to the client immediately (<100ms), eliminating the 8-second browser freeze.
+2. **Direct Backend SSE Endpoint in Frontend (useAnalysisSessionStream.ts)**:
+   - When running on in-ai.eddiephung.me (or production hostname), connect directly to https://final-thesis-zgwt.onrender.com/api/analyze/stream instead of the relative path /api/analyze/stream (which passes through Vercel's buffering rewrite proxy that adds Connection: close).
+
+### C. Eliminate All Remaining Mock Data
+1. **ReportPage (rontend/src/pages/reports/ReportPage.tsx)**:
+   - Fetch real report from GET /api/reports/{id} or GET /api/runs/{id} via React Query / fetch.
+   - If not found or loading, show a clean, friendly loading skeleton or 404 Not Found state, NOT a hardcoded mock report from mockReports.ts.
+2. **RecentReportsSummary (RecentReportsSummary.tsx)**:
+   - Fetch and display real recent analysis runs from GET /api/runs instead of static mock cards.
+
+### D. UI/UX Friendliness Polish (Warm Retro Workbench Style)
+1. **Screen 1 (Composer)**:
+   - Conversational, warm placeholder (Hỏi bất kỳ điều gì về sức khỏe tài chính ACB, VCB, MBB...).
+   - Quick-select interactive chips for popular Vietnamese banks: ACB, VCB, MBB, TCB, CTG.
+   - Clear and friendly empty/helper states.
+2. **Screen 2 (Live Multi-Agent Session)**:
+   - Friendly visual agent status:
+     - Orchestrator: Lập kế hoạch & Phân rã câu hỏi
+     - Company Specialist: Bóc tách BCTC & CAMEL
+     - Sector Specialist: Đối chuẩn Trung vị Ngành
+     - Semantic Critic: Phản biện & Kiểm định Chéo
+   - Animated pulse/typing indicators while agents are thinking.
+   - Clear progress timeline with friendly completion state.
+   - Explicit connection error banner with 1-click retry.
+3. **Screen 3 (Report)**:
+   - Friendly executive summary card with key CAMEL findings.
+   - Visual badges for healthy/warning metrics.
+   - Clean, readable typography with font mono for financial metrics.
 
 ---
 
-## 3. Verification & Acceptance Criteria
+## 3. Verification & Quality Gates
 1. **Backend Tests**:
-   - `$env:PYTHONPATH="src"; python -m unittest discover -s tests -p "test_*.py"`: 537 passed (skipped=4).
+   - $env:PYTHONPATH=src; python -m unittest discover -s tests -q
 2. **Frontend Tests & Build**:
-   - `npm test -- --run`: 6 test files, 74 tests passed.
-   - `npx tsc -b`: 0 errors.
-   - `npm run build`: Production build succeeded in 1.93s.
+   - 
+pm test -- --run
+   - 
+px tsc -b
+   - 
+pm run build
 3. **GitHub PR & Rule 19 (Zero-Failure Handoff)**:
-   - Commit: `feat(api,ui): [THES-13] wire real sqlite data across frontend & backend, optimize multi-agent streaming and routing`
-   - Push branch `feat/THES-13-wire-real-data-and-optimize-streaming` to origin.
-   - Create PR to `main` with `gh pr create`.
-   - Monitor `gh pr checks <PR_NUMBER>` until 100% checks PASS.
+   - Commit: eat(api,ui): [THES-14] persist analysis runs in sqlite, fix live sse streaming, eliminate mock data, and polish friendly ui
+   - Push branch eat/THES-14-persist-runs-fix-streaming-polish-ui to origin.
+   - Open PR to main with gh pr create.
+   - Ensure 100% CI/CD checks PASS before reporting back.

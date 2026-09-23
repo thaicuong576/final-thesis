@@ -16,11 +16,29 @@ export function InlineSpecialistInvocationCard({
       case 'company':
         return <Building2 className="w-4 h-4 text-ink" aria-hidden="true" />;
       case 'peer':
+      case 'sector':
         return <Users className="w-4 h-4 text-ink" aria-hidden="true" />;
       case 'macro':
         return <Globe className="w-4 h-4 text-ink" aria-hidden="true" />;
       default:
         return <Briefcase className="w-4 h-4 text-ink" aria-hidden="true" />;
+    }
+  };
+
+  const getSpecialistRoleLabel = () => {
+    switch (session.specialistId) {
+      case 'company':
+        return 'Chuyên viên CAMEL';
+      case 'peer':
+      case 'sector':
+        return 'Chuyên viên Ngành';
+      case 'macro':
+        return 'Chuyên viên Vĩ mô';
+      case 'critic':
+      case 'semantic_critic':
+        return 'Thẩm định viên';
+      default:
+        return 'Chuyên viên Phân tích';
     }
   };
 
@@ -97,9 +115,14 @@ export function InlineSpecialistInvocationCard({
               <div className="w-6 h-6 rounded-md bg-[#f1f5f9] flex items-center justify-center shrink-0">
                 {getSpecialistIcon()}
               </div>
-              <h3 className="text-xs font-semibold text-ink group-hover:text-[#2f6f5e] transition-colors">
-                {session.label}
-              </h3>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <h3 className="text-xs font-semibold text-ink group-hover:text-[#2f6f5e] transition-colors">
+                  {session.label}
+                </h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-secondary text-ink-secondary border border-border">
+                  {getSpecialistRoleLabel()}
+                </span>
+              </div>
             </div>
             {getStatusBadge(session.status, session.statusLabel)}
           </div>

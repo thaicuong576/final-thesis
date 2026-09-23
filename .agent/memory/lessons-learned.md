@@ -266,4 +266,30 @@ Khi triển khai Dynamic Multi-Agent Cognitive Loop với LLM tool calling (Deep
 3. **Tuân thủ Tuyệt đối Rule 3**:
    - Dù chạy qua LLM hay chạy fallback, 100% số liệu tài chính (`ROE`, `NIM`, `NPL`, `CIR`, `CASA`, `sbv_policy_rate`) đều được trích xuất xác thực từ SQLite, không bao giờ để LLM tự bịa đặt số.
 
+---
 
+## [LESSON-012] Tối ưu Single-Turn Data Injection & Concurrency trong Multi-Agent Streaming
+
+- **Date:** 2026-09-23
+- **Scope:** `src/thesis_api/agents.py`, `src/thesis_api/service.py`, `frontend/src/`
+- **Status:** `ACTIVE` -> Đã chuẩn hóa vào `THES-13`.
+
+### 1. Context & Symptom
+Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orchestrator, Company Specialist, Sector Specialist, Semantic Critic), tổng thời gian xử lý một phiên phân tích lên tới 20–28 giây. Trên giao diện người dùng, màn hình bị khựng/đơ (frozen) trong 7–8 giây với spinner tĩnh, sau đó đột ngột bắn dồn dập 4–5 sự kiện cùng lúc. Ngoài ra, khi F5 tải lại trang, phiên phân tích bị reset về màn hình 1.
+
+### 2. Root Cause
+- **Lãng phí lượt gọi LLM trống (Multi-turn Tool Overhead)**: Orchestrator đã bóc tách rõ ticker mục tiêu và kỳ báo cáo. Tuy nhiên, Specialist vẫn gửi 1 prompt trống sang LLM chỉ để LLM bảo "gọi hàm `get_company_metrics`". Việc này tiêu tốn 3–4s chỉ để làm việc mà Python có thể làm trong 5ms.
+- **Thực thi tuần tự 6 lượt LLM**: Orchestrator (1 lượt) -> Company Specialist (2 lượt) -> Sector Specialist (2 lượt) -> Critic (1 lượt) nối tiếp nhau hoàn toàn.
+- **Generator bị chặn (Synchronous Generator Blocking)**: Generator không yield bất kỳ sự kiện nào trong lúc chờ LLM trả về, dẫn tới hiện tượng burst events.
+- **Thiếu URL State Synchronization**: Trạng thái chuyển đổi từ Screen 1 sang Screen 2 lưu bằng state React nội bộ thay vì URL search params.
+
+### 3. Workaround & Permanent Solution
+1. **Single-Turn Data Injection (Bám sát Rule 3)**:
+   - Python truy vấn sẵn số liệu CAMEL và trung vị ngành từ SQLite (<10ms) và nạp trực tiếp vào prompt của Specialist (`execute_with_data`).
+   - Specialist phân tích và tổng hợp ngay trong 1 lượt LLM duy nhất, cắt giảm 50% số lượt gọi mạng (~7–8s).
+2. **Thực thi Specialist Song song (`ThreadPoolExecutor`)**:
+   - Company Specialist và Sector Specialist thực thi đồng thời, tiết kiệm thêm 4–6s.
+3. **Bắn Sự kiện Tức thì (Instant Event Cadence)**:
+   - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
+4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
+   - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.

@@ -99,5 +99,149 @@ class AgentToolsTests(unittest.TestCase):
         self.assertIsNone(result.output.get("value"))
 
 
+class ThesisApiAgentToolsTests(unittest.TestCase):
+    """Test suite for thesis_api OpenAI tool definitions and SQLite execution dispatcher."""
+
+    def setUp(self) -> None:
+        from thesis_api.settings import get_settings
+
+        self.db_path = get_settings().get_sqlite_path()
+        self.conn = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        self.conn.row_factory = sqlite3.Row
+
+    def tearDown(self) -> None:
+        self.conn.close()
+
+    def test_tool_definitions_schema(self) -> None:
+        """Verify tool schemas strictly adhere to OpenAI function calling specifications."""
+        from thesis_api.agent_tools import (
+            ALL_AGENT_TOOLS,
+            COMPANY_TOOLS,
+            MACRO_TOOLS,
+            SECTOR_TOOLS,
+            TOOL_GET_COMPANY_METRICS,
+            TOOL_GET_MACRO_CONTEXT,
+            TOOL_GET_SECTOR_BENCHMARKS,
+        )
+
+        for tool in ALL_AGENT_TOOLS:
+            self.assertEqual(tool["type"], "function")
+            self.assertIn("function", tool)
+            fn = tool["function"]
+            self.assertIn("name", fn)
+            self.assertIn("description", fn)
+            self.assertIn("parameters", fn)
+            self.assertEqual(fn["parameters"]["type"], "object")
+            self.assertIn("properties", fn["parameters"])
+            self.assertIn("required", fn["parameters"])
+
+        self.assertIn(TOOL_GET_COMPANY_METRICS, COMPANY_TOOLS)
+        self.assertIn(TOOL_GET_SECTOR_BENCHMARKS, SECTOR_TOOLS)
+        self.assertIn(TOOL_GET_MACRO_CONTEXT, MACRO_TOOLS)
+
+    def test_get_company_metrics_execution(self) -> None:
+        """Test retrieving verified CAMEL ratios for target bank from SQLite."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        result = execute_agent_tool(
+            "get_company_metrics",
+            {"ticker": "ACB", "period": "2024"},
+            self.conn,
+        )
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["ticker"], "ACB")
+        self.assertEqual(result["period"], "2024")
+        metrics = result["metrics"]
+        self.assertIn("roe", metrics)
+        self.assertIn("nim", metrics)
+        self.assertIn("npl", metrics)
+        self.assertIn("cir", metrics)
+        self.assertIn("casa", metrics)
+        self.assertIsInstance(metrics["roe"], (int, float))
+        self.assertGreater(metrics["roe"], 0)
+
+    def test_get_company_metrics_filtered_kpis(self) -> None:
+        """Test retrieving filtered KPIs for target bank."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        result = execute_agent_tool(
+            "get_company_metrics",
+            {"ticker": "ACB", "period": "2024", "kpis": ["roe", "npl"]},
+            self.conn,
+        )
+        self.assertEqual(result["status"], "success")
+        metrics = result["metrics"]
+        self.assertIn("roe", metrics)
+        self.assertIn("npl", metrics)
+        self.assertNotIn("cir", metrics)
+        self.assertNotIn("casa", metrics)
+
+    def test_get_sector_benchmarks_execution(self) -> None:
+        """Test calculating sector peer medians from SQLite."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        result = execute_agent_tool(
+            "get_sector_benchmarks",
+            {"sector": "Banking", "period": "2024", "tickers": ["ACB", "TCB", "MBB"]},
+            self.conn,
+        )
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["sector"], "Banking")
+        self.assertEqual(result["period"], "2024")
+        benchmarks = result["benchmarks"]
+        self.assertIn("peer_median_roe", benchmarks)
+        self.assertIn("peer_median_nim", benchmarks)
+        self.assertIn("peer_median_npl", benchmarks)
+        self.assertIn("peer_median_cir", benchmarks)
+        self.assertIn("peer_median_casa", benchmarks)
+        self.assertIsInstance(benchmarks["peer_median_roe"], (int, float))
+
+    def test_get_sector_benchmarks_filtered_kpis(self) -> None:
+        """Test filtering benchmark KPIs."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        result = execute_agent_tool(
+            "get_sector_benchmarks",
+            {"sector": "Banking", "period": "2024", "kpis": ["roe", "npl"]},
+            self.conn,
+        )
+        self.assertEqual(result["status"], "success")
+        benchmarks = result["benchmarks"]
+        self.assertIn("peer_median_roe", benchmarks)
+        self.assertIn("peer_median_npl", benchmarks)
+        self.assertNotIn("peer_median_cir", benchmarks)
+
+    def test_get_macro_context_execution(self) -> None:
+        """Test retrieving macroeconomic context and policy indicators."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        result = execute_agent_tool(
+            "get_macro_context",
+            {"period": "2024"},
+            self.conn,
+        )
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["period"], "2024")
+        self.assertEqual(result["sbv_policy_rate"], 4.5)
+        self.assertEqual(result["system_credit_growth"], 15.08)
+        self.assertIn("Accommodative", result["interest_rate_trend"])
+
+    def test_unknown_tool_raises_error(self) -> None:
+        """Test unknown tool name raises ValueError."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        with self.assertRaises(ValueError) as ctx:
+            execute_agent_tool("non_existent_tool", {}, self.conn)
+        self.assertIn("Unknown agent tool", str(ctx.exception))
+
+    def test_missing_ticker_raises_error(self) -> None:
+        """Test get_company_metrics without ticker raises ValueError."""
+        from thesis_api.agent_tools import execute_agent_tool
+
+        with self.assertRaises(ValueError) as ctx:
+            execute_agent_tool("get_company_metrics", {"period": "2024"}, self.conn)
+        self.assertIn("ticker", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

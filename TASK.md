@@ -1,59 +1,84 @@
-# TASK: [THES-11] Set up OpenAI-Compatible LLM Client for Codely deepseek-v4.1-flash
+# TASK: [THES-12] Implement Dynamic Multi-Agent Cognitive Loop with DeepSeek Tool Calling
 
 ## Linear Ticket
-- Identifier: `THES-11`
-- URL: `https://linear.app/eddiephung/issue/THES-11/featapi-thes-11-set-up-openai-compatible-llm-client-for-codely`
-- Role: `worker-api` (Backend & AI Integration Specialist)
-- Worktree: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-11-setup-openai-llm-client`
+- Identifier: `THES-12`
+- URL: `https://linear.app/eddiephung/issue/THES-12/featapi-thes-12-implement-dynamic-multi-agent-cognitive-loop-with`
+- Role: `worker-api` (Backend & Multi-Agent Specialist)
+- Worktree: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-12-dynamic-multi-agent-loop`
 
 ---
 
-## Context & Architecture
-The user is integrating `deepseek-v4.1-flash` hosted on Codely Pixverse (`https://superup.codelypixverse.com/v1`).
-Key requirements:
-1. **OpenAI-Compatible Abstraction**: All LLM interactions must use standard OpenAI SDK protocols (`openai.OpenAI(base_url=..., api_key=...)`) so that switching between Codely Pixverse, official OpenAI (`api.openai.com/v1`), official DeepSeek (`api.deepseek.com/v1`), or local vLLM/Ollama requires ZERO code changes—only environment variables (`OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_API_KEY`).
-2. **Tool Calling & Function Calling Support**: The client factory and execution helper must handle standard OpenAI function calling schemas (`tools=[{"type": "function", "function": {...}}]`) and tool call responses (`choices[0].message.tool_calls`), including multi-turn tool result loops.
-3. **Graceful Degradation**: If `OPENAI_API_KEY` is not configured, API calls or health checks must fail gracefully with descriptive error codes rather than crashing the server.
+## Architectural Guardrails & Spec Zero Alignment
+1. **Rule 3**: *"Code computes financial metrics; language models retrieve, explain, critique, and synthesize."*
+   - LLMs **never hallucinate or guess** financial numbers. All metrics (`roe`, `nim`, `npl`, `car`, `casa`, `ldr`) are retrieved from the canonical SQLite database (`finance_master_v2.sqlite`) via structured Tool Calling (`get_company_metrics`, `get_sector_benchmarks`, `get_macro_context`).
+2. **Two-Stage Quality Boundary** (`.agent/foundation/03-system-architecture.md` Section 5):
+   - **Stage 1**: Deterministic Acceptance (100% Python code checking arithmetic accuracy, evidence references, and database provenance).
+   - **Stage 2**: Semantic Critique & Bounded Revision (LLM evaluates cross-level coherence, paradox detection, and limits revisions to $\le 2$ rounds).
+3. **SSE Streaming Contract** (`contracts/openapi.json`):
+   - Preserves all event types subscribed by Screen 2 (`AnalysisSessionWorkspace.tsx`):
+     - `USER_REQUEST_CONFIRMED`
+     - `PLAN_CREATED`
+     - `SPECIALIST_ACTIVATED`
+     - `SPECIALIST_ACTIVITY`
+     - `SPECIALIST_OUTPUT_CREATED`
+     - `SPECIALIST_COMPLETED`
+     - `REVIEW_STARTED`
+     - `REVIEW_FEEDBACK_CREATED`
+     - `REVISION_REQUESTED`
+     - `REVISION_ACTIVITY`
+     - `REVISION_COMPLETED`
+     - `SYNTHESIS_STARTED`
+     - `REPORT_READY`
+4. **Graceful Fallback**:
+   - If the LLM API call fails, times out, or has no key configured, the system falls back seamlessly to the deterministic baseline engine so the user experience is never interrupted.
 
 ---
 
 ## Action Items
-1. **Settings & Environment**:
-   - In `src/thesis_api/settings.py`:
-     - Add `openai_base_url: str = Field(default="https://superup.codelypixverse.com/v1", alias="OPENAI_BASE_URL")`
-     - Add `openai_model: str = Field(default="deepseek-v4.1-flash", alias="OPENAI_MODEL")`
-     - Ensure `openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")` is present.
-   - In `.env.example`:
-     - Document `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_API_KEY`.
-   - In `render.yaml`:
-     - Add `OPENAI_BASE_URL` and `OPENAI_MODEL` to `envVars`.
-   - In `requirements-render.txt`:
-     - Add `openai>=1.50.0,<3.0.0`.
+1. **`src/thesis_api/agent_tools.py`**:
+   - Implement OpenAI-compatible function calling schemas:
+     - `TOOL_GET_COMPANY_METRICS`: `{"ticker": str, "period": str, "kpis": list[str]}`
+     - `TOOL_GET_SECTOR_BENCHMARKS`: `{"sector": str, "period": str, "tickers": list[str], "kpis": list[str]}`
+     - `TOOL_GET_MACRO_CONTEXT`: `{"period": str, "indicators": list[str]}`
+   - Implement `execute_agent_tool(tool_name: str, args: dict, conn: sqlite3.Connection) -> dict[str, Any]` querying `finance_master_v2.sqlite`.
 
-2. **LLM Client & Tool Calling Infrastructure**:
-   - Create `src/thesis_api/llm.py`:
-     - `get_llm_client(settings: Settings | None = None) -> openai.OpenAI`
-     - `get_llm_config(settings: Settings | None = None) -> dict[str, Any]`
-     - Tool calling helper functions supporting OpenAI tool definitions and result formatting.
+2. **`src/thesis_api/agents.py`**:
+   - Implement `OrchestratorAgent`: Formulates query intent, dynamic plan, and capability activation with LLM reasoning.
+   - Implement `CompanySpecialistAgent`: Invokes `get_company_metrics` tool, computes CAMEL breakdown, and returns grounded analytical findings.
+   - Implement `SectorSpecialistAgent`: Invokes `get_sector_benchmarks` tool, analyzes competitive positioning against peer medians.
+   - Implement `MacroSpecialistAgent`: Invokes `get_macro_context` tool, analyzes monetary policy transmission.
+   - Implement `SemanticCriticAgent`: Checks cross-level consistency between company micro and sector/macro data, detects paradoxes, determines `ACCEPT` or `REVISE` (bounded revision $\le 2$ rounds).
 
-3. **Demonstration & Verification Probe**:
-   - Create `scripts/probe_llm.py`:
-     - Standalone script demonstrating:
-       1. Instantiating OpenAI client with configured `base_url` and `model`.
-       2. Simple chat completion test.
-       3. Tool calling execution test with mock/live verification.
+3. **`src/thesis_api/service.py`**:
+   - Upgrade `stream_analysis_query`:
+     - If LLM client is configured:
+       - Run Orchestrator dynamic plan -> emit `USER_REQUEST_CONFIRMED` & `PLAN_CREATED`.
+       - For each capability:
+         - Emit `SPECIALIST_ACTIVATED`.
+         - When agent calls tools, emit `SPECIALIST_ACTIVITY` with real tool name and arguments.
+         - Emit `SPECIALIST_OUTPUT_CREATED` with real LLM findings.
+         - Emit `SPECIALIST_COMPLETED`.
+       - Run Stage-1 deterministic validation.
+       - Run Stage-2 Semantic Critic:
+         - Emit `REVIEW_STARTED`.
+         - If critique requires revision: emit `REVIEW_FEEDBACK_CREATED`, `REVISION_REQUESTED`, `REVISION_ACTIVITY`, `REVISION_COMPLETED`.
+       - Run Synthesis:
+         - Emit `SYNTHESIS_STARTED`.
+         - Emit `REPORT_READY` with verified SQLite metrics + LLM narrative insights and claims.
+     - If unconfigured or on error:
+       - Transparently fall back to the existing deterministic generator.
 
-4. **Testing (Rule 19 - Zero-Failure)**:
-   - Create `tests/test_llm.py`:
-     - Test `get_llm_client` returns valid OpenAI instance.
-     - Test environment variable overrides for `OPENAI_BASE_URL` and `OPENAI_MODEL`.
-     - Test tool calling handling and error states when API key is missing.
+4. **Testing**:
+   - Create `tests/test_agent_tools.py` verifying tool execution against SQLite.
+   - Create `tests/test_agents.py` verifying agent prompt construction and mocked tool calling responses.
    - Run backend test suite:
-     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_llm', argv=['unittest', '-v'])"`
+     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_agent_tools', argv=['unittest', '-v'])"`
+     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_agents', argv=['unittest', '-v'])"`
      `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_thesis_api', argv=['unittest', '-v'])"`
+     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_llm', argv=['unittest', '-v'])"`
 
 5. **PR & Verification Loop**:
-   - Commit: `feat(api): [THES-11] set up OpenAI-compatible LLM client for Codely deepseek-v4.1-flash`
-   - Push branch `feat/THES-11-setup-openai-llm-client`.
-   - Open PR to `main` citing `[THES-11]`.
+   - Commit: `feat(api): [THES-12] implement dynamic multi-agent cognitive loop with DeepSeek tool calling`
+   - Push branch `feat/THES-12-dynamic-multi-agent-loop`.
+   - Open PR to `main` citing `[THES-12]`.
    - Verify 100% CI/CD checks pass (`gh pr checks`).

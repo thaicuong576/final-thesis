@@ -91,31 +91,42 @@ function ReportPageContent({
     return null;
   }, [propReport, stateReport, id]);
 
-  const [fetchedReport, setFetchedReport] = useState<AnalysisReport | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(!initialSyncReport && Boolean(id));
-  const [isNotFound, setIsNotFound] = useState<boolean>(false);
+  const [fetchState, setFetchState] = useState<{
+    id: string | undefined;
+    report: AnalysisReport | null;
+    isLoading: boolean;
+    isNotFound: boolean;
+  }>({
+    id,
+    report: null,
+    isLoading: Boolean(id && !initialSyncReport),
+    isNotFound: false
+  });
 
   useEffect(() => {
     if (initialSyncReport || !id) {
-      setIsLoading(false);
       return;
     }
 
     let isMounted = true;
-    setIsLoading(true);
-    setIsNotFound(false);
 
     const fetchReport = async () => {
       try {
         const baseUrl = getApiBaseUrl();
+        const origin =
+          typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
+            ? window.location.origin
+            : '';
+        const base = baseUrl || origin;
+
         // 1. Try GET /api/reports/{id}
-        let res = await fetch(`${baseUrl}/api/reports/${id}`, {
+        let res = await fetch(`${base}/api/reports/${id}`, {
           headers: { Accept: 'application/json' }
         });
 
         // 2. Fallback to GET /api/runs/{id}
         if (!res.ok) {
-          res = await fetch(`${baseUrl}/api/runs/${id}`, {
+          res = await fetch(`${base}/api/runs/${id}`, {
             headers: { Accept: 'application/json' }
           });
         }
@@ -125,21 +136,33 @@ function ReportPageContent({
           const reportData = (data.report || data) as Record<string, unknown>;
           const normalized = normalizeAnalysisResponseToReport(reportData);
           if (isMounted) {
-            setFetchedReport(normalized);
-            setIsLoading(false);
+            setFetchState({
+              id,
+              report: normalized,
+              isLoading: false,
+              isNotFound: false
+            });
           }
           return;
         }
 
         if (isMounted) {
-          setIsNotFound(true);
-          setIsLoading(false);
+          setFetchState({
+            id,
+            report: null,
+            isLoading: false,
+            isNotFound: true
+          });
         }
       } catch (err) {
         console.warn('Failed to fetch report from API:', err);
         if (isMounted) {
-          setIsNotFound(true);
-          setIsLoading(false);
+          setFetchState({
+            id,
+            report: null,
+            isLoading: false,
+            isNotFound: true
+          });
         }
       }
     };
@@ -151,7 +174,9 @@ function ReportPageContent({
     };
   }, [id, initialSyncReport]);
 
-  const activeReport = propReport || initialSyncReport || fetchedReport;
+  const activeReport = propReport || initialSyncReport || (fetchState.id === id ? fetchState.report : null);
+  const isLoading = !initialSyncReport && Boolean(id) && (fetchState.id !== id || fetchState.isLoading);
+  const isNotFound = !initialSyncReport && fetchState.id === id && fetchState.isNotFound;
 
   if (isLoading) {
     return (

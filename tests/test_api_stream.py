@@ -7,7 +7,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from thesis_api.main import create_app
-from thesis_api.schemas import AnalysisResponse, AnalysisSessionEventDTO, ObservableActivityDTO
+from thesis_api.schemas import AnalysisRequest, AnalysisResponse, AnalysisSessionEventDTO, ObservableActivityDTO
 from thesis_api.settings import Settings
 
 
@@ -218,6 +218,62 @@ class ApiStreamIntegrationTests(unittest.TestCase):
             self.assertIsInstance(artifact["findings"], list)
             self.assertGreaterEqual(artifact["evidenceCount"], 1)
             self.assertGreaterEqual(artifact["version"], 1)
+
+    def test_get_capabilities_endpoint(self) -> None:
+        """GET /api/capabilities returns 27 banks, 2021-2024 periods, and SQLite WAL status."""
+        response = self.client.get("/api/capabilities")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        # Check 27 banks
+        self.assertIn("entities", data)
+        self.assertEqual(len(data["entities"]), 27)
+        tickers = [e["ticker"] for e in data["entities"]]
+        self.assertIn("ACB", tickers)
+        self.assertIn("VCB", tickers)
+        self.assertIn("TCB", tickers)
+        self.assertIn("VAB", tickers)
+
+        # Check periods (2021-2024, 16 quarters)
+        self.assertIn("periods", data)
+        self.assertEqual(len(data["periods"]), 16)
+        years = set(p["year"] for p in data["periods"])
+        self.assertEqual(years, {2021, 2022, 2023, 2024})
+
+        # Check database status and journal mode
+        self.assertIn("database_status", data)
+        self.assertIn("journal_mode", data)
+        self.assertIn("readiness", data)
+        self.assertIn("SQLite", data["readiness"])
+
+    def test_stream_fallback_deduplication(self) -> None:
+        """Fallback stream must not duplicate event types that were already emitted before failure."""
+        from unittest.mock import patch
+        from thesis_api.service import stream_analysis_query
+
+        def failing_dynamic_stream(*args, **kwargs):
+            # Emits USER_REQUEST_CONFIRMED and PLANNING_STARTED then fails
+            yield "event: USER_REQUEST_CONFIRMED\ndata: {\"eventId\": \"e1\", \"sequence\": 1, \"occurredAtMs\": 10, \"type\": \"USER_REQUEST_CONFIRMED\", \"payload\": {}}\n\n"
+            yield "event: PLANNING_STARTED\ndata: {\"eventId\": \"e2\", \"sequence\": 2, \"occurredAtMs\": 20, \"type\": \"PLANNING_STARTED\", \"payload\": {}}\n\n"
+            raise RuntimeError("Simulated mid-stream failure")
+
+        req = AnalysisRequest(query="Phân tích ACB 2024")
+
+        with patch("thesis_api.service.get_llm_config", return_value={"is_configured": True}), \
+             patch("thesis_api.service._stream_analysis_query_dynamic", side_effect=failing_dynamic_stream):
+
+            chunks = list(stream_analysis_query(req, step_delay=0))
+            event_types = []
+            for chunk in chunks:
+                for line in chunk.split("\n"):
+                    if line.startswith("event:"):
+                        event_types.append(line.split("event:", 1)[1].strip())
+
+            # Check that USER_REQUEST_CONFIRMED and PLANNING_STARTED appear EXACTLY once
+            self.assertEqual(event_types.count("USER_REQUEST_CONFIRMED"), 1)
+            self.assertEqual(event_types.count("PLANNING_STARTED"), 1)
+            # Check that the rest of the stream completed
+            self.assertIn("REPORT_READY", event_types)
 
 
 if __name__ == "__main__":

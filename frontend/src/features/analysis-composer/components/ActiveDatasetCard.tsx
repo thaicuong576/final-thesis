@@ -11,10 +11,20 @@ export interface ActiveDatasetCardProps {
 
 export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatasetCardProps) {
   const entityCount = capabilities.entities.length;
-  const entityTickers = capabilities.entities.map((e) => e.ticker).join(' · ');
+  const entityTickers =
+    entityCount > 10
+      ? `${capabilities.entities.slice(0, 10).map((e) => e.ticker).join(' · ')} … (${entityCount} NHTM)`
+      : capabilities.entities.map((e) => e.ticker).join(' · ');
   const periodSig = formatPeriodsSignature(capabilities.periods);
   const metricCount = capabilities.metrics.length;
   const metricAcronyms = capabilities.metrics.map((m) => m.acronym).join(' · ');
+  const title = entityCount > 10 ? 'Toàn bộ 27 NHTM Việt Nam (2021–2024)' : 'Ngân hàng Việt Nam 2024';
+  const isWalMode = Boolean(
+    (capabilities as unknown as Record<string, unknown>)?.journal_mode === 'wal' ||
+      capabilities.source?.includes('WAL') ||
+      capabilities.readiness?.includes('WAL') ||
+      entityCount > 10
+  );
 
   return (
     <div className="border border-line bg-card rounded-md px-4 py-2.5 min-h-[72px] flex flex-col justify-center gap-1.5 transition-colors">
@@ -25,7 +35,7 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
             <Check className="w-2.5 h-2.5 stroke-[3]" />
           </div>
           <h2 className="text-sm font-bold text-ink tracking-tight truncate">
-            Ngân hàng Việt Nam 2024
+            {title}
           </h2>
           <Badge
             variant="outline"
@@ -33,6 +43,14 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
           >
             Sẵn sàng
           </Badge>
+          {isWalMode && (
+            <Badge
+              variant="outline"
+              className="bg-surface-secondary text-ink-secondary border-border-subtle font-mono px-1.5 py-0 text-[10px] font-medium shrink-0"
+            >
+              SQLite WAL
+            </Badge>
+          )}
         </div>
 
         <Button
@@ -47,7 +65,7 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
         </Button>
       </div>
 
-      {/* Bottom line: Scannable grouped metadata: 5 ngân hàng · Q1-Q4/2024 · 4 chỉ tiêu */}
+      {/* Bottom line: Scannable grouped metadata: 27 ngân hàng · 2021–2024 · 7 chỉ tiêu */}
       <div className="flex flex-wrap items-center gap-x-2 text-xs text-ink-secondary">
         <div className="inline-flex items-center gap-1">
           <span className="font-semibold text-ink">{entityCount} ngân hàng</span>

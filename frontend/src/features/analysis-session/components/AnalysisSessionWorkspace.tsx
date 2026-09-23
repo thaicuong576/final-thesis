@@ -31,6 +31,7 @@ export interface AnalysisSessionWorkspaceProps {
   streamRequest?: AnalysisStreamRequest | null;
   request?: AnalysisStreamRequest | null;
   isLiveStream?: boolean;
+  fallbackToMockOnError?: boolean;
   onViewReport?: (report: AnalysisReport) => void;
 }
 
@@ -69,6 +70,7 @@ function AnalysisSessionWorkspaceContent({
   streamRequest: propStreamRequest,
   request: legacyStreamRequest,
   isLiveStream: propIsLiveStream,
+  fallbackToMockOnError: propFallbackToMockOnError,
   onViewReport,
   locationState,
   searchParams = new URLSearchParams()
@@ -148,7 +150,7 @@ function AnalysisSessionWorkspaceContent({
   const liveStream = useAnalysisSessionStream({
     request: dynamicRequest,
     autoStart: wantsLiveStream && activeMode === 'LIVE',
-    fallbackToMockOnError: true
+    fallbackToMockOnError: propFallbackToMockOnError ?? true
   });
 
   const mockDriverEvents = useMemo(() => {
@@ -291,6 +293,44 @@ function AnalysisSessionWorkspaceContent({
 
   return (
     <div className="space-y-4">
+      {/* Backend Live Connection Error Banner */}
+      {liveStream.isError && !liveStream.isMockFallback && (
+        <div className="border border-[#c84b3f]/30 bg-[#fdf2f2] text-[#c84b3f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 text-[#c84b3f] shrink-0" aria-hidden="true" />
+            <span>
+              Lỗi kết nối Live SSE tới backend ({liveStream.backendTarget}): {liveStream.error?.message || 'Không thể thiết lập kết nối phân tích thời gian thực'}.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActiveMode('LIVE');
+                liveStream.retry();
+              }}
+              className="h-6 text-[11px] px-2.5 border-[#c84b3f]/40 text-[#c84b3f] hover:bg-[#c84b3f]/10"
+            >
+              Thử lại Live
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActiveMode('MOCK');
+                liveStream.switchToMock();
+              }}
+              className="h-6 text-[11px] px-2.5 border-border-subtle text-ink-secondary hover:text-ink"
+            >
+              Chuyển Mock
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Backend Fallback Notification Banner */}
       {liveStream.isMockFallback && (
         <div className="border border-[#d88b00]/30 bg-[#fbefcf] text-[#78350f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">

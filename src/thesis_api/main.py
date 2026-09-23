@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -63,6 +65,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def version() -> dict[str, str]:
         """Safe deployment metadata reporting environment and revision without secrets."""
         return current_settings.get_version_metadata()
+
+    @app.get(
+        "/api/capabilities",
+        summary="Retrieve analytical capabilities, 27 banks universe, and SQLite status",
+    )
+    def capabilities() -> dict[str, Any]:
+        """Return real catalog of 27 banks, periods (2021-2024), and SQLite database status."""
+        return engine.get_capabilities()
 
     @app.post(
         "/api/analyze",

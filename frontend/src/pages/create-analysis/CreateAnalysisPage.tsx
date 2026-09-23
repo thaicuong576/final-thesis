@@ -52,7 +52,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
   const [scopeDrawerOpen, setScopeDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
 
   const handleQuestionChange = useCallback(
@@ -117,6 +117,31 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
         setActiveEvents(events);
         setDriverMode(isAutoplay ? 'AUTOPLAY' : 'FROZEN');
         setDriverStep(parsedStep !== undefined && !isNaN(parsedStep) ? parsedStep : undefined);
+        setMode('SESSION');
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+
+    // Persistent live session route support: ?mode=session&ticker=...&period=...
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'session' && mode !== 'SESSION') {
+      const ticker = searchParams.get('ticker') || 'TCB';
+      const period = searchParams.get('period') || '2024';
+      const peersParam = searchParams.get('peers');
+      const peers = peersParam ? peersParam.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      const q = searchParams.get('q') || `Phân tích toàn diện ngân hàng ${ticker} năm ${period}`;
+
+      const timer = setTimeout(() => {
+        setStreamRequest({
+          query: q,
+          target_ticker: ticker,
+          peer_tickers: peers,
+          period: period
+        });
+        setIsLiveStream(true);
+        setActiveEvents([]);
+        setDriverMode('AUTOPLAY');
+        setDriverStep(undefined);
         setMode('SESSION');
       }, 0);
       return () => clearTimeout(timer);
@@ -188,6 +213,15 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
         target_ticker: targetTicker,
         peer_tickers: peerTickers,
         period: period
+      });
+
+      // Update URL search parameters so F5 / reload preserves the live session
+      setSearchParams({
+        mode: 'session',
+        ticker: targetTicker,
+        period: period,
+        ...(peerTickers.length > 0 ? { peers: peerTickers.join(',') } : {}),
+        q: parseResult.rawQuestion
       });
 
       // Transition to Screen 2 in Live Streaming mode
@@ -291,6 +325,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
               onBackToComposer={() => {
                 setMode('DEFAULT');
                 setIsLiveStream(false);
+                setSearchParams({});
               }}
             />
           )}

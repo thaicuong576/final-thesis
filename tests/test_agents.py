@@ -342,6 +342,77 @@ class AgentsTests(unittest.TestCase):
             self.assertIn("SYNTHESIS_STARTED", event_types)
             self.assertIn("REPORT_READY", event_types)
 
+    def test_company_specialist_execute_with_data_single_turn(self) -> None:
+        """Test CompanySpecialistAgent execute_with_data runs single-turn prompt without tool calls."""
+        agent = CompanySpecialistAgent()
+        precomputed = {"roe": 21.75, "nim": 3.82, "npl": 1.21, "cir": 31.8, "casa": 23.2}
+
+        # 1. Without LLM client: deterministic template
+        summary, findings = agent.execute_with_data("ACB", 2024, precomputed, client=None)
+        self.assertIsInstance(summary, str)
+        self.assertIsInstance(findings, list)
+        self.assertEqual(len(findings), 3)
+        self.assertIn("21.75%", summary)
+        self.assertEqual(findings[0]["ticker"], "ACB")
+
+        # 2. With LLM client: single-turn call
+        mock_client = MagicMock(spec=openai.OpenAI)
+        mock_resp = MagicMock()
+        mock_resp.choices = [
+            MagicMock(
+                message=MagicMock(
+                    content="- ROE đạt 21.75% vượt trội.\n- NPL 1.21% kiểm soát tốt.\n- CASA 23.2% tối ưu chi phí vốn.",
+                    tool_calls=None,
+                )
+            )
+        ]
+        mock_client.chat.completions.create.return_value = mock_resp
+
+        summary_llm, findings_llm = agent.execute_with_data(
+            "ACB", 2024, precomputed, client=mock_client, model="deepseek-v4-pro-0813"
+        )
+        self.assertEqual(mock_client.chat.completions.create.call_count, 1)
+        self.assertIn("21.75%", summary_llm)
+        self.assertGreaterEqual(len(findings_llm), 2)
+        self.assertEqual(findings_llm[0]["ticker"], "ACB")
+
+    def test_sector_specialist_execute_with_data_single_turn(self) -> None:
+        """Test SectorSpecialistAgent execute_with_data runs single-turn prompt without tool calls."""
+        agent = SectorSpecialistAgent()
+        benchmarks = {
+            "peer_median_roe": 18.2,
+            "peer_median_nim": 3.65,
+            "peer_median_npl": 1.62,
+        }
+        target_metrics = {"roe": 21.75, "npl": 1.21}
+
+        # 1. Without LLM client
+        summary, findings = agent.execute_with_data("ACB", 2024, benchmarks, target_metrics=target_metrics, client=None)
+        self.assertIsInstance(summary, str)
+        self.assertIsInstance(findings, list)
+        self.assertIn("18.2%", summary)
+        self.assertEqual(findings[0]["ticker"], "ACB")
+
+        # 2. With LLM client
+        mock_client = MagicMock(spec=openai.OpenAI)
+        mock_resp = MagicMock()
+        mock_resp.choices = [
+            MagicMock(
+                message=MagicMock(
+                    content="- Trung vị ROE ngành đạt 18.2%.\n- ACB vượt trội trung vị ngành về chất lượng nợ xấu (1.21% vs 1.62%).",
+                    tool_calls=None,
+                )
+            )
+        ]
+        mock_client.chat.completions.create.return_value = mock_resp
+
+        summary_llm, findings_llm = agent.execute_with_data(
+            "ACB", 2024, benchmarks, target_metrics=target_metrics, client=mock_client
+        )
+        self.assertEqual(mock_client.chat.completions.create.call_count, 1)
+        self.assertIn("18.2%", summary_llm)
+        self.assertEqual(len(findings_llm), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

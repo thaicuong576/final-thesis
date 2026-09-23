@@ -1,84 +1,51 @@
-# TASK: [THES-12] Implement Dynamic Multi-Agent Cognitive Loop with DeepSeek Tool Calling
+# Task Manifest: [THES-13] Wire Real SQLite Data Across Frontend & Backend, Optimize Multi-Agent Streaming and Routing
 
-## Linear Ticket
-- Identifier: `THES-12`
-- URL: `https://linear.app/eddiephung/issue/THES-12/featapi-thes-12-implement-dynamic-multi-agent-cognitive-loop-with`
-- Role: `worker-api` (Backend & Multi-Agent Specialist)
-- Worktree: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-12-dynamic-multi-agent-loop`
-
----
-
-## Architectural Guardrails & Spec Zero Alignment
-1. **Rule 3**: *"Code computes financial metrics; language models retrieve, explain, critique, and synthesize."*
-   - LLMs **never hallucinate or guess** financial numbers. All metrics (`roe`, `nim`, `npl`, `car`, `casa`, `ldr`) are retrieved from the canonical SQLite database (`finance_master_v2.sqlite`) via structured Tool Calling (`get_company_metrics`, `get_sector_benchmarks`, `get_macro_context`).
-2. **Two-Stage Quality Boundary** (`.agent/foundation/03-system-architecture.md` Section 5):
-   - **Stage 1**: Deterministic Acceptance (100% Python code checking arithmetic accuracy, evidence references, and database provenance).
-   - **Stage 2**: Semantic Critique & Bounded Revision (LLM evaluates cross-level coherence, paradox detection, and limits revisions to $\le 2$ rounds).
-3. **SSE Streaming Contract** (`contracts/openapi.json`):
-   - Preserves all event types subscribed by Screen 2 (`AnalysisSessionWorkspace.tsx`):
-     - `USER_REQUEST_CONFIRMED`
-     - `PLAN_CREATED`
-     - `SPECIALIST_ACTIVATED`
-     - `SPECIALIST_ACTIVITY`
-     - `SPECIALIST_OUTPUT_CREATED`
-     - `SPECIALIST_COMPLETED`
-     - `REVIEW_STARTED`
-     - `REVIEW_FEEDBACK_CREATED`
-     - `REVISION_REQUESTED`
-     - `REVISION_ACTIVITY`
-     - `REVISION_COMPLETED`
-     - `SYNTHESIS_STARTED`
-     - `REPORT_READY`
-4. **Graceful Fallback**:
-   - If the LLM API call fails, times out, or has no key configured, the system falls back seamlessly to the deterministic baseline engine so the user experience is never interrupted.
+## 1. Linear Context
+- **Issue**: [THES-13](https://linear.app/eddiephung/issue/THES-13/featapiui-thes-13-wire-real-sqlite-data-across-frontend-and-backend)
+- **Title**: `feat(api,ui): [THES-13] wire real sqlite data across frontend & backend, optimize multi-agent streaming and routing`
+- **User Mandate**: *t nghĩ wire data thật đi, r sửa gấp thếp. đừng mock nữa*
 
 ---
 
-## Action Items
-1. **`src/thesis_api/agent_tools.py`**:
-   - Implement OpenAI-compatible function calling schemas:
-     - `TOOL_GET_COMPANY_METRICS`: `{"ticker": str, "period": str, "kpis": list[str]}`
-     - `TOOL_GET_SECTOR_BENCHMARKS`: `{"sector": str, "period": str, "tickers": list[str], "kpis": list[str]}`
-     - `TOOL_GET_MACRO_CONTEXT`: `{"period": str, "indicators": list[str]}`
-   - Implement `execute_agent_tool(tool_name: str, args: dict, conn: sqlite3.Connection) -> dict[str, Any]` querying `finance_master_v2.sqlite`.
+## 2. Scope of Work
 
-2. **`src/thesis_api/agents.py`**:
-   - Implement `OrchestratorAgent`: Formulates query intent, dynamic plan, and capability activation with LLM reasoning.
-   - Implement `CompanySpecialistAgent`: Invokes `get_company_metrics` tool, computes CAMEL breakdown, and returns grounded analytical findings.
-   - Implement `SectorSpecialistAgent`: Invokes `get_sector_benchmarks` tool, analyzes competitive positioning against peer medians.
-   - Implement `MacroSpecialistAgent`: Invokes `get_macro_context` tool, analyzes monetary policy transmission.
-   - Implement `SemanticCriticAgent`: Checks cross-level consistency between company micro and sector/macro data, detects paradoxes, determines `ACCEPT` or `REVISE` (bounded revision $\le 2$ rounds).
+### A. Backend Real Data Wiring & Streaming Concurrency (`src/thesis_api/`)
+1. **Capabilities Endpoint (`src/thesis_api/service.py` & `main.py`)**:
+   - `GET /api/capabilities` queries `finance_master_v2.sqlite` to return the real list of 27 banks, periods (2021–2024), and live DB status (WAL mode, distinct count).
+2. **Single-Turn Data-Injected Specialists (`src/thesis_api/agents.py`)**:
+   - `CompanySpecialistAgent`: Added `execute_with_data(ticker, period, precomputed_metrics)`: Formats verified SQLite CAMEL metrics directly into prompt for single-turn LLM synthesis without tool calls, adhering to Rule 3. Fallback grounded template implemented.
+   - `SectorSpecialistAgent`: Added `execute_with_data(ticker, period, precomputed_benchmarks)`: Formats verified peer median metrics directly into prompt for single-turn synthesis. Fallback grounded template implemented.
+   - Preserves dynamic tool-calling as a graceful fallback for open-ended queries.
+3. **Immediate Event Emission & Concurrency (`src/thesis_api/service.py`)**:
+   - In `_stream_analysis_query_dynamic`:
+     - Emits `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, and `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") immediately *before* calling the LLM.
+     - Runs `company` and `sector` specialists concurrently using `concurrent.futures.ThreadPoolExecutor(max_workers=2)`.
+     - In fallback stream, maintains `emitted_event_types: set[str]` and deduplicates fallback stream chunks so no duplicate event types are re-emitted if dynamic streaming fails.
 
-3. **`src/thesis_api/service.py`**:
-   - Upgrade `stream_analysis_query`:
-     - If LLM client is configured:
-       - Run Orchestrator dynamic plan -> emit `USER_REQUEST_CONFIRMED` & `PLAN_CREATED`.
-       - For each capability:
-         - Emit `SPECIALIST_ACTIVATED`.
-         - When agent calls tools, emit `SPECIALIST_ACTIVITY` with real tool name and arguments.
-         - Emit `SPECIALIST_OUTPUT_CREATED` with real LLM findings.
-         - Emit `SPECIALIST_COMPLETED`.
-       - Run Stage-1 deterministic validation.
-       - Run Stage-2 Semantic Critic:
-         - Emit `REVIEW_STARTED`.
-         - If critique requires revision: emit `REVIEW_FEEDBACK_CREATED`, `REVISION_REQUESTED`, `REVISION_ACTIVITY`, `REVISION_COMPLETED`.
-       - Run Synthesis:
-         - Emit `SYNTHESIS_STARTED`.
-         - Emit `REPORT_READY` with verified SQLite metrics + LLM narrative insights and claims.
-     - If unconfigured or on error:
-       - Transparently fall back to the existing deterministic generator.
+### B. Frontend Real Data Wiring & Persistent Routing (`frontend/src/`)
+1. **Live Capability Provider (`frontend/src/entities/capability/api/capabilityService.ts`)**:
+   - Connects to `/api/capabilities` (resolving `VITE_API_BASE_URL` when configured) to load the real 27 banks and active periods with graceful offline fallback.
+2. **ActiveDatasetCard (`frontend/src/features/analysis-composer/components/ActiveDatasetCard.tsx`)**:
+   - Displays real 27 listed banks (`... (27 NHTM)`), 2021–2024 periods, and SQLite WAL status. Re-exported at `features/create-analysis/components/ActiveDatasetCard.tsx`.
+3. **Persistent Route Navigation (`frontend/src/pages/create-analysis/CreateAnalysisPage.tsx`)**:
+   - Synchronizes session state with URL search params (`?mode=session&ticker=...&period=...&q=...`).
+   - On page reload (F5), parses search params and automatically restores Screen 2 (`AnalysisSessionWorkspace`) with active live streaming.
+   - Clears search params on returning to composer.
+4. **Live Stream First (`frontend/src/features/analysis-session/components/AnalysisSessionWorkspace.tsx`)**:
+   - Supports `fallbackToMockOnError` prop.
+   - Displays a prominent error banner when live SSE connection fails with "Thử lại Live" and "Chuyển Mock" actions, eliminating silent mock fallback.
 
-4. **Testing**:
-   - Create `tests/test_agent_tools.py` verifying tool execution against SQLite.
-   - Create `tests/test_agents.py` verifying agent prompt construction and mocked tool calling responses.
-   - Run backend test suite:
-     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_agent_tools', argv=['unittest', '-v'])"`
-     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_agents', argv=['unittest', '-v'])"`
-     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_thesis_api', argv=['unittest', '-v'])"`
-     `python -c "import sys; sys.path.insert(0, 'src'); import unittest; unittest.main(module='tests.test_llm', argv=['unittest', '-v'])"`
+---
 
-5. **PR & Verification Loop**:
-   - Commit: `feat(api): [THES-12] implement dynamic multi-agent cognitive loop with DeepSeek tool calling`
-   - Push branch `feat/THES-12-dynamic-multi-agent-loop`.
-   - Open PR to `main` citing `[THES-12]`.
-   - Verify 100% CI/CD checks pass (`gh pr checks`).
+## 3. Verification & Acceptance Criteria
+1. **Backend Tests**:
+   - `$env:PYTHONPATH="src"; python -m unittest discover -s tests -p "test_*.py"`: 537 passed (skipped=4).
+2. **Frontend Tests & Build**:
+   - `npm test -- --run`: 6 test files, 74 tests passed.
+   - `npx tsc -b`: 0 errors.
+   - `npm run build`: Production build succeeded in 1.93s.
+3. **GitHub PR & Rule 19 (Zero-Failure Handoff)**:
+   - Commit: `feat(api,ui): [THES-13] wire real sqlite data across frontend & backend, optimize multi-agent streaming and routing`
+   - Push branch `feat/THES-13-wire-real-data-and-optimize-streaming` to origin.
+   - Create PR to `main` with `gh pr create`.
+   - Monitor `gh pr checks <PR_NUMBER>` until 100% checks PASS.

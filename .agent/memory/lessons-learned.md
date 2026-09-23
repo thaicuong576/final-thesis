@@ -242,3 +242,28 @@ Sau khi worker hoàn thành code và mở Pull Request, worker hoặc Lead vội
      2. **PR ở trạng thái CLEAN / MERGEABLE (Zero Merge Conflicts)**.
    - Tuyệt đối không được handoff khi CI/CD còn đang fail hoặc chưa hoàn tất kiểm định.
 
+---
+
+## [LESSON-011] Xử lý Graceful Fallback & Tool Calling khi Upstream LLM Provider Trả về Model Not Found hoặc 503
+
+- **Date:** 2026-09-23
+- **Scope:** `src/thesis_api/agents.py`, `src/thesis_api/service.py`, `src/thesis_api/agent_tools.py`
+- **Status:** `ACTIVE` -> Đã đưa vào multi-agent cognitive loop.
+
+### 1. Context & Symptom
+Khi triển khai Dynamic Multi-Agent Cognitive Loop với LLM tool calling (DeepSeek qua Codely Pixverse / OpenAI API), upstream provider có thể trả về lỗi 503 `model_not_found` (do tên model thay đổi trên gateway hoặc sự cố kênh cung cấp) hoặc lỗi mạng/timeout. Nếu hệ thống không có lớp bọc resilience ở từng agent, phiên streaming SSE sẽ bị crash đột ngột hoặc dừng giữa chừng, vi phạm trải nghiệm người dùng và hợp đồng OpenAPI.
+
+### 2. Root Cause
+- Upstream proxy/gateway LLM của bên thứ ba có thể thay đổi danh sách model khả dụng hoặc gặp sự cố quá tải kênh.
+- Các lệnh tool calling phụ thuộc vào kết nối mạng bên ngoài, không thể đảm bảo 100% SLA cho production streaming.
+
+### 3. Workaround & Permanent Solution
+1. **Grounded Resilient Fallback ở Từng Agent**:
+   - Trong mỗi Specialist Agent (`CompanySpecialistAgent`, `SectorSpecialistAgent`, `MacroSpecialistAgent`) và `SemanticCriticAgent`, bọc toàn bộ khối gọi `execute_chat` trong `try ... except Exception`.
+   - Nếu LLM gọi lỗi hoặc timeout, agent lập tức chuyển sang chế độ deterministic retrieval: tự động query số liệu chuẩn từ SQLite `finance_master_v2.sqlite` qua `execute_agent_tool`, sinh ra các nhận định đã được kiểm định (grounded templates).
+2. **Router An toàn ở Cấp Service**:
+   - `stream_analysis_query` bọc `_stream_analysis_query_dynamic` trong `try ... except`. Nếu xảy ra lỗi khởi tạo, tự động fall back về `_stream_analysis_query_deterministic` để luồng SSE luôn phát đủ 100% sự kiện cho tới `REPORT_READY`.
+3. **Tuân thủ Tuyệt đối Rule 3**:
+   - Dù chạy qua LLM hay chạy fallback, 100% số liệu tài chính (`ROE`, `NIM`, `NPL`, `CIR`, `CASA`, `sbv_policy_rate`) đều được trích xuất xác thực từ SQLite, không bao giờ để LLM tự bịa đặt số.
+
+

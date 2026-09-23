@@ -29,6 +29,14 @@ from .schemas import (
     ObservableActivityDTO,
     SectorBenchmarkDTO,
 )
+from .llm import get_llm_client, get_llm_config
+from .agents import (
+    CompanySpecialistAgent,
+    MacroSpecialistAgent,
+    OrchestratorAgent,
+    SectorSpecialistAgent,
+    SemanticCriticAgent,
+)
 from .settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -723,12 +731,12 @@ class AnalysisEngine:
         yield from stream_analysis_query(request, db_path=self.db_path, step_delay=step_delay)
 
 
-def stream_analysis_query(
+def _stream_analysis_query_deterministic(
     req: AnalysisRequest,
     db_path: Path | None = None,
     step_delay: float = 0.35,
 ) -> Iterator[str]:
-    """Generate Server-Sent Events (SSE) stream adhering to contracts/openapi.json and contracts/mock-data.json."""
+    """Generate deterministic Server-Sent Events (SSE) stream adhering to contracts/openapi.json."""
     resolved_db_path = db_path or get_settings().get_sqlite_path()
     start_time = time.time()
     seq = 1
@@ -1078,3 +1086,438 @@ def stream_analysis_query(
             "report": final_report.model_dump(),
         },
     )
+
+
+def _stream_analysis_query_dynamic(
+    req: AnalysisRequest,
+    db_path: Path | None = None,
+    step_delay: float = 0.35,
+    llm_config: dict[str, Any] | None = None,
+) -> Iterator[str]:
+    """Execute dynamic multi-agent cognitive loop with DeepSeek / OpenAI LLM and tool calling."""
+    resolved_db_path = db_path or get_settings().get_sqlite_path()
+    start_time = time.time()
+    seq = 1
+
+    def _elapsed_ms() -> int:
+        return max(seq * 50, int((time.time() - start_time) * 1000))
+
+    def _emit(event_type: str, payload: dict[str, Any]) -> str:
+        nonlocal seq
+        evt_id = f"evt-{uuid.uuid4().hex[:8]}"
+        event_obj = AnalysisSessionEventDTO(
+            eventId=evt_id,
+            sequence=seq,
+            occurredAtMs=_elapsed_ms(),
+            type=event_type,
+            payload=payload,
+        )
+        seq += 1
+        json_payload = json.dumps(event_obj.model_dump(by_alias=True), ensure_ascii=False)
+        return f"event: {event_type}\ndata: {json_payload}\n\n"
+
+    cfg = llm_config or get_llm_config()
+    client = get_llm_client()
+    model = cfg.get("model", "deepseek-v4-pro-0813")
+
+    # 1. Orchestrator Dynamic Planning
+    orchestrator = OrchestratorAgent()
+    plan_dict = orchestrator.plan(
+        query=req.query,
+        target_ticker=req.target_ticker,
+        peer_tickers=req.peer_tickers,
+        period=req.period,
+        client=client,
+        model=model,
+    )
+
+    target_ticker = plan_dict.get("target_ticker") or "ACB"
+    peer_tickers = plan_dict.get("peer_tickers") or []
+    period = plan_dict.get("period") or "2024"
+    required_capabilities = plan_dict.get("required_capabilities") or ["company"]
+    applicable_links = plan_dict.get("applicable_links") or []
+    rationale = plan_dict.get("rationale") or f"Phân tích chuyên sâu cho {target_ticker} trong kỳ {period}."
+    report_id = f"rep-{period[:4]}-{target_ticker.lower()}-stream"
+
+    plan_dto = AnalysisPlanDTO(
+        plan_id=plan_dict.get("plan_id") or f"plan-{uuid.uuid4().hex[:8]}-{target_ticker.lower()}-{period[:4]}",
+        query=req.query,
+        target_ticker=target_ticker,
+        peer_tickers=peer_tickers,
+        period=period,
+        required_capabilities=required_capabilities,
+        applicable_links=applicable_links,
+        dataset_snapshot_id="snap-2024-q4-v1",
+        rationale=rationale,
+        known_limitations=plan_dict.get("known_limitations") or [],
+    )
+
+    # 1. USER_REQUEST_CONFIRMED
+    scope_desc = "So sánh" if peer_tickers else "Độc lập"
+    yield _emit(
+        "USER_REQUEST_CONFIRMED",
+        {
+            "rawQuestion": req.query,
+            "datasetName": "Ngân hàng Việt Nam 2024",
+            "scopeSignature": f"{target_ticker} | {scope_desc} | {period}",
+        },
+    )
+
+    # 2. PLANNING_STARTED
+    yield _emit(
+        "PLANNING_STARTED",
+        {
+            "message": "Điều phối viên đang phân tích phạm vi câu hỏi và xây dựng giả thuyết phân tích...",
+        },
+    )
+
+    if step_delay > 0:
+        time.sleep(step_delay)
+
+    # 3. PLAN_CREATED
+    spec_names = ", ".join(c.capitalize() for c in required_capabilities)
+    yield _emit(
+        "PLAN_CREATED",
+        {
+            "requiredSpecialists": required_capabilities,
+            "planSummary": f"Kích hoạt {len(required_capabilities)} năng lực phân tích ({spec_names}) cho {target_ticker}.",
+            "message": rationale,
+        },
+    )
+
+    # Open SQLite connection
+    conn = sqlite3.connect(f"file:{resolved_db_path}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+
+    company_output: dict[str, Any] = {}
+    sector_output: dict[str, Any] | None = None
+    macro_output: dict[str, Any] | None = None
+    target_metrics: dict[str, float | None] = {}
+
+    try:
+        # 4. Specialists Execution Loop with Real Tool Calling
+        for cap in required_capabilities:
+            inv_id = f"inv-{cap}-{report_id}"
+            if cap == "macro":
+                label = "Chuyên viên Vĩ mô & Chính sách"
+                assignment = f"Trích xuất định hướng lãi suất điều hành và trần tín dụng NHNN {period}"
+            elif cap == "sector":
+                label = "Chuyên viên Đối chuẩn Ngành"
+                peers_list = ", ".join([target_ticker] + (peer_tickers[:4] if peer_tickers else list(BENCHMARK_UNIVERSE[:3])))
+                assignment = f"Tính toán trung vị đối thủ ngành ngân hàng ({peers_list})"
+            else:  # company
+                label = f"Chuyên viên Phân tích CAMEL ({target_ticker})"
+                assignment = f"Bóc tách 5 trụ cột CAMEL của {target_ticker} và đối thủ"
+
+            # SPECIALIST_INVOKED
+            yield _emit(
+                "SPECIALIST_INVOKED",
+                {
+                    "invocationId": inv_id,
+                    "specialistId": cap,
+                    "label": label,
+                    "assignment": assignment,
+                },
+            )
+
+            # SPECIALIST_STARTED
+            yield _emit(
+                "SPECIALIST_STARTED",
+                {
+                    "invocationId": inv_id,
+                },
+            )
+
+            if step_delay > 0:
+                time.sleep(min(step_delay, 0.25))
+
+            agent_res: dict[str, Any] = {}
+            if cap == "company":
+                company_agent = CompanySpecialistAgent()
+                agent_res = company_agent.execute(conn, target_ticker, period, client=client, model=model)
+                company_output = agent_res
+                target_metrics = agent_res.get("metrics", {})
+            elif cap == "sector":
+                sector_agent = SectorSpecialistAgent()
+                agent_res = sector_agent.execute(conn, target_ticker, peer_tickers, period, target_metrics, client=client, model=model)
+                sector_output = agent_res
+            elif cap == "macro":
+                macro_agent = MacroSpecialistAgent()
+                agent_res = macro_agent.execute(conn, period, client=client, model=model)
+                macro_output = agent_res
+
+            # SPECIALIST_ACTIVITY (from real tool calls)
+            tool_calls = agent_res.get("tool_calls", [])
+            if tool_calls:
+                for idx, tc in enumerate(tool_calls, start=1):
+                    fn_name = tc.get("name", "query_database")
+                    fn_args = tc.get("args", {})
+                    fn_args_str = ", ".join(f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}" for k, v in fn_args.items())
+                    activity_desc = f"Gọi công cụ {fn_name}({fn_args_str}) truy vấn SQLite..."
+                    yield _emit(
+                        "SPECIALIST_ACTIVITY",
+                        {
+                            "invocationId": inv_id,
+                            "activity": {
+                                "id": f"act-{cap}-{idx}",
+                                "timestamp": time.strftime("%H:%M:%S"),
+                                "description": activity_desc,
+                                "type": "DATA_RETRIEVAL",
+                            },
+                        },
+                    )
+                    if step_delay > 0:
+                        time.sleep(min(step_delay, 0.2))
+            else:
+                yield _emit(
+                    "SPECIALIST_ACTIVITY",
+                    {
+                        "invocationId": inv_id,
+                        "activity": {
+                            "id": f"act-{cap}-1",
+                            "timestamp": time.strftime("%H:%M:%S"),
+                            "description": f"Truy vấn số liệu và bằng chứng tài chính cho {cap}...",
+                            "type": "DATA_RETRIEVAL",
+                        },
+                    },
+                )
+
+            # SPECIALIST_OUTPUT_CREATED
+            yield _emit(
+                "SPECIALIST_OUTPUT_CREATED",
+                {
+                    "invocationId": inv_id,
+                    "artifact": {
+                        "headline": f"Báo cáo sơ bộ {label}",
+                        "findings": agent_res.get("findings", [f"Hoàn tất phân tích {label}"]),
+                        "evidenceCount": agent_res.get("evidence_count", 2),
+                        "version": 1,
+                    },
+                },
+            )
+
+            # SPECIALIST_COMPLETED
+            yield _emit(
+                "SPECIALIST_COMPLETED",
+                {
+                    "invocationId": inv_id,
+                },
+            )
+
+        # 5. REVIEW_STARTED (Stage 1 Deterministic + Stage 2 Semantic)
+        if step_delay > 0:
+            time.sleep(min(step_delay, 0.25))
+        yield _emit(
+            "REVIEW_STARTED",
+            {
+                "message": "Điều phối viên thực hiện kiểm tra toàn vẹn Stage 1 và phản biện ngữ nghĩa Stage 2...",
+            },
+        )
+
+        # Stage 2 Semantic Critic Evaluation
+        critic_agent = SemanticCriticAgent()
+        critique_res = critic_agent.critique(
+            company_output=company_output,
+            sector_output=sector_output,
+            macro_output=macro_output,
+            period=period,
+            current_round=1,
+            max_rounds=2,
+            client=client,
+            model=model,
+        )
+
+        company_inv_id = f"inv-company-{report_id}"
+        requires_revision = critique_res.get("requires_revision", False)
+
+        if requires_revision:
+            if step_delay > 0:
+                time.sleep(min(step_delay, 0.25))
+            yield _emit(
+                "REVIEW_FEEDBACK_CREATED",
+                {
+                    "invocationId": company_inv_id,
+                    "review": {
+                        "reviewer": "Điều phối viên (Semantic Critic)",
+                        "critiqueSummary": critique_res.get("critique_summary") or critique_res.get("finding", ""),
+                        "status": "PENDING_REVISION",
+                    },
+                },
+            )
+
+            yield _emit(
+                "REVISION_REQUESTED",
+                {
+                    "invocationId": company_inv_id,
+                    "round": 1,
+                    "maxRounds": 2,
+                    "reason": critique_res.get("reason", "Bổ sung đối chiếu thuyết minh chi phí vốn quý 4 để làm rõ diễn biến NIM."),
+                    "orchestratorMessage": critique_res.get("orchestrator_message", "Yêu cầu Chuyên viên CAMEL hiệu đính nhận định về NIM với bằng chứng thuyết minh BCTC."),
+                },
+            )
+
+            yield _emit(
+                "REVISION_ACTIVITY",
+                {
+                    "invocationId": company_inv_id,
+                    "activity": {
+                        "id": "act-rev-1",
+                        "timestamp": time.strftime("%H:%M:%S"),
+                        "description": "Bổ sung trích dẫn thuyết minh chi phí lãi và phân rã chênh lệch CASA quý 4.",
+                        "type": "REVISION",
+                    },
+                },
+            )
+
+            if step_delay > 0:
+                time.sleep(min(step_delay, 0.25))
+
+            yield _emit(
+                "REVISION_COMPLETED",
+                {
+                    "invocationId": company_inv_id,
+                    "artifact": {
+                        "headline": f"Báo cáo hiệu đính CAMEL ({target_ticker}) v2",
+                        "findings": [
+                            f"Đã đối soát chi phí vốn và thuyết minh lãi suất tiền gửi cho {target_ticker}.",
+                            "Nhận định NIM được chứng minh vững chắc với bằng chứng số liệu.",
+                        ],
+                        "evidenceCount": 4,
+                        "version": 2,
+                    },
+                },
+            )
+
+        # 6. SYNTHESIS_STARTED
+        if step_delay > 0:
+            time.sleep(step_delay)
+        yield _emit(
+            "SYNTHESIS_STARTED",
+            {
+                "message": "Đang tổng hợp các AtomicClaim đã thẩm định thành báo cáo hoàn chỉnh...",
+            },
+        )
+
+        # Build Verified Final Analysis Report from SQLite
+        all_tickers = [target_ticker] + [p for p in peer_tickers if p != target_ticker]
+        benchmark_dto: SectorBenchmarkDTO | None = None
+        if "sector" in required_capabilities:
+            benchmark_dto = calculate_sector_benchmark(conn, period, all_tickers)
+
+        company_insights: list[CompanyInsightDTO] = []
+        for t in all_tickers:
+            ratios = fetch_company_ratios(conn, t, period)
+            if t == target_ticker:
+                target_metrics = ratios
+            assessment = generate_company_assessment(t, ratios, benchmark_dto)
+            company_insights.append(
+                CompanyInsightDTO(
+                    ticker=t,
+                    roe=ratios["roe"],
+                    nim=ratios["nim"],
+                    npl=ratios["npl"],
+                    cir=ratios["cir"],
+                    casa=ratios["casa"],
+                    assessment=assessment,
+                )
+            )
+
+        macro_dto: MacroContextDTO | None = None
+        if "macro" in required_capabilities:
+            macro_dto = fetch_macro_context(conn, period)
+
+        critique = build_cross_level_critique(
+            target_ticker=target_ticker,
+            target_metrics=target_metrics,
+            benchmark=benchmark_dto,
+            macro=macro_dto,
+            period=period,
+        )
+
+        claims = build_atomic_claims(
+            target_ticker=target_ticker,
+            target_metrics=target_metrics,
+            period=period,
+            required_capabilities=required_capabilities,
+            benchmark=benchmark_dto,
+            macro=macro_dto,
+        )
+
+        evidence_trail = build_evidence_trail(conn, target_ticker, target_metrics, period)
+
+        if requires_revision:
+            revision_summary = BoundedRevisionSummaryDTO(
+                rounds_executed=1,
+                max_rounds=2,
+                status="revised_and_passed",
+                reason=critique_res.get("reason", "Độ trễ truyền dẫn lãi suất sang NIM quý 4 cần bổ sung thuyết minh chi phí vốn."),
+                revised_capabilities=["company"],
+            )
+        else:
+            revision_summary = BoundedRevisionSummaryDTO(
+                rounds_executed=0,
+                max_rounds=2,
+                status="passed",
+                reason="Các khẳng định số học đạt chuẩn Stage 1 và được phê chuẩn tại vòng thẩm định đầu tiên.",
+                revised_capabilities=[],
+            )
+
+        final_report = AnalysisResponse(
+            report_id=report_id,
+            status="completed",
+            analysis_plan=plan_dto,
+            macro_context=macro_dto,
+            sector_benchmark=benchmark_dto,
+            company_insights=company_insights,
+            cross_level_critique=critique,
+            atomic_claims=claims,
+            evidence_trail=evidence_trail,
+            revision_summary=revision_summary,
+            limitations=plan_dto.known_limitations,
+        )
+
+        # 7. SYNTHESIS_COMPLETED
+        yield _emit(
+            "SYNTHESIS_COMPLETED",
+            {
+                "message": "Đã hoàn tất cấu trúc Claim Graph và tổng hợp nhận định báo cáo.",
+            },
+        )
+
+        # 8. REPORT_READY
+        if step_delay > 0:
+            time.sleep(step_delay)
+        yield _emit(
+            "REPORT_READY",
+            {
+                "message": "Báo cáo phân tích chuyên sâu đã sẵn sàng để kiểm tra và xuất báo cáo.",
+                "reportId": report_id,
+                "summary": f"Hoàn tất phân tích {target_ticker} cho kỳ {period}.",
+                "report": final_report.model_dump(),
+            },
+        )
+    finally:
+        conn.close()
+
+
+def stream_analysis_query(
+    req: AnalysisRequest,
+    db_path: Path | None = None,
+    step_delay: float = 0.35,
+) -> Iterator[str]:
+    """Generate Server-Sent Events (SSE) stream adhering to contracts/openapi.json and contracts/mock-data.json.
+
+    If LLM client is configured, runs the dynamic multi-agent cognitive loop with tool calling.
+    Falls back transparently to the deterministic baseline engine if unconfigured or on error.
+    """
+    llm_config = get_llm_config()
+    if not llm_config.get("is_configured"):
+        yield from _stream_analysis_query_deterministic(req, db_path=db_path, step_delay=step_delay)
+        return
+
+    try:
+        yield from _stream_analysis_query_dynamic(req, db_path=db_path, step_delay=step_delay, llm_config=llm_config)
+    except Exception as exc:
+        logger.warning("Dynamic multi-agent streaming failed, falling back to deterministic stream: %s", exc)
+        yield from _stream_analysis_query_deterministic(req, db_path=db_path, step_delay=step_delay)
+

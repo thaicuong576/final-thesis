@@ -257,11 +257,6 @@ def _validate_candidate(
         if item.validation_status in {QualityStatus.CONFLICTING, QualityStatus.INVALID, QualityStatus.ESTIMATED}:
             raise ValueError("accepted canonical snapshot cannot contain unresolved observations")
         if item.validation_status is QualityStatus.VALID:
-            source = source_by_ref.get(item.source_ref or "")
-            if source is None or source.validation_status is not QualityStatus.VALID:
-                raise ValueError("valid observation source must resolve to a valid source record")
-            if getattr(source.source_tier, "value", source.source_tier) not in {"primary", "cross_check"}:
-                raise ValueError("valid observation source tier is not eligible for analysis")
             if not item.source_locator or not item.period_basis or not item.reporting_scope:
                 raise ValueError("valid observation requires locator, period basis, and reporting scope")
             if item.period_basis not in {"point_in_time", "quarter_only", "ytd", "annual", "ttm"}:
@@ -271,6 +266,8 @@ def _validate_candidate(
             if item.review is None:
                 raise ValueError("valid observation requires explicit source reconciliation review")
             if item.derivation_method is not None:
+                if item.source_ref is not None:
+                    raise ValueError("derived observation source_ref must be null")
                 if item.review.decision != "reproduced_derived_value" or not item.input_observation_ids:
                     raise ValueError("derived observation review must reproduce its formula from inputs")
                 for input_id in item.input_observation_ids:
@@ -280,11 +277,16 @@ def _validate_candidate(
                         or source_input.value is None
                     ):
                         raise ValueError("derived observation inputs must be valid numeric observations")
-            elif item.review.decision != "matched_reported_value" or item.input_observation_ids:
-                raise ValueError("direct observation review must match a reported value")
+            else:
+                if item.review.decision != "matched_reported_value" or item.input_observation_ids:
+                    raise ValueError("direct observation review must match a reported value")
+                source = source_by_ref.get(item.source_ref or "")
+                if source is None or source.validation_status is not QualityStatus.VALID:
+                    raise ValueError("direct observation source must resolve to a valid source record")
+                if getattr(source.source_tier, "value", source.source_tier) not in {"primary", "cross_check"}:
+                    raise ValueError("direct observation source tier is not eligible for analysis")
             if not item.review.primary_evidence:
                 raise ValueError("valid observation review requires primary evidence")
-            review_source_refs = {reference.source_ref for reference in item.review.primary_evidence}
             review_locators = {reference.locator for reference in item.review.primary_evidence}
             for reference in item.review.primary_evidence:
                 review_source = source_by_ref.get(reference.source_ref)
@@ -294,8 +296,14 @@ def _validate_candidate(
                     or getattr(review_source.source_tier, "value", review_source.source_tier) != "primary"
                 ):
                     raise ValueError("review primary evidence does not resolve to a valid primary source")
-            if item.source_ref not in review_source_refs or item.source_locator not in review_locators:
-                raise ValueError("observation source and locator must match reviewed primary evidence")
+            if item.derivation_method is None:
+                if (item.source_ref, item.source_locator) not in {
+                    (reference.source_ref, reference.locator)
+                    for reference in item.review.primary_evidence
+                }:
+                    raise ValueError("direct observation source and locator must match reviewed primary evidence")
+            elif item.source_locator not in review_locators:
+                raise ValueError("derived observation locator must match reviewed primary evidence")
             if item.derivation_method and not item.input_observation_ids:
                 raise ValueError("derived observation requires input lineage")
         elif item.validation_status is QualityStatus.MISSING:

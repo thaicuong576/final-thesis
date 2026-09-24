@@ -45,7 +45,7 @@ Downloaded files and API responses are immutable and hash-recorded. The existing
 
 ### Normalized and gold plane
 
-Normalized observations use canonical ticker, sector, metric, period, unit, source ID, locator, and quality status fields. Derived values retain input observation IDs and formula versions. A new versioned gold snapshot is created after readiness gates pass; it never overwrites a staging database.
+Normalized observations use canonical ticker, sector, metric, period, unit, locator, and quality status fields. Direct values carry a reviewed source ID; derived values keep a null direct source ID and retain formula versions and input observation IDs so their source trail resolves through those inputs. A new versioned gold snapshot is created after readiness gates pass; it never overwrites a staging database.
 Gold promotion also materializes per-ticker/per-metric coverage summaries so the
 90% coverage gate is auditable rather than inferred from total row counts.
 The comparative experiment entrypoint must pass `src/thesis_data/baseline_gate.py`:

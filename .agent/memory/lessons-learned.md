@@ -321,3 +321,27 @@ contract even though byte count is part of the data readiness audit.
 2. Manually reconcile scanned statement values from rendered pages and retain
    both physical and printed page numbers. OCR/parser output remains a search
    aid and cannot mark a value valid.
+
+## [LESSON-014] Keep Derived Source Lineage on Accepted Inputs
+
+- **Date:** 2026-09-25
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `src/thesis_data/canonical_snapshot.py`
+- **Status:** `ACTIVE`
+
+### 1. Context & Symptom
+Stage1 correctly requires a derived observation to have a null direct
+`source_ref` and to retain its formula and input observation IDs. Bank packet
+conversion was copying the reviewed filing source onto every row, and canonical
+snapshot validation required that direct source even for derived values.
+
+### 2. Root Cause
+The generic packet mapper and materializer applied direct-observation source
+rules before distinguishing reported values from reproducible derived values.
+
+### 3. Permanent Solution
+1. Map direct source and locator from the accepted review evidence.
+2. Map valid derived observations with a null `source_ref`, their reviewed
+   locator, formula version, and input IDs.
+3. Materialization validates primary review evidence and valid numeric inputs
+   for derived observations while keeping direct-source requirements for
+   reported observations.

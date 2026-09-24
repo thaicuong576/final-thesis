@@ -10,6 +10,8 @@ import unittest
 from pydantic import ValidationError
 
 from thesis_data.analysis_request import AnalysisRequest
+from thesis_data.acceptance import validate_stage1_claims
+from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_data.bank_onboarding import (
     build_bank_dataset_candidate,
     parse_bank_onboarding_packet,
@@ -17,12 +19,25 @@ from thesis_data.bank_onboarding import (
 )
 from thesis_data.canonical_snapshot import materialize_canonical_snapshot
 from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
+from thesis_data.dataset_contract import (
+    CanonicalObservation,
+    DatasetSource,
+)
 from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.gold_dataset_provider import GoldSqliteDatasetProvider
 from thesis_data.onboarding_contract import demo_metric_registry
 from thesis_data.storage import create_gold_snapshot_schema
 from thesis_data.transferability import run_metric_probe
-from thesis_data.schema import QualityStatus
+from thesis_data.schema import (
+    AcceptancePolicy,
+    AssertionType,
+    AtomicClaim,
+    ClaimDataRef,
+    ClaimScope,
+    InferenceType,
+    QualityStatus,
+    StructuredAssertion,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -99,12 +114,17 @@ class BankOnboardingPacketTests(unittest.TestCase):
                 self.assertEqual(observation.reporting_scope, "consolidated")
                 self.assertTrue(observation.source_locator.startswith("pdf_page="))
                 self.assertEqual(observation.review.decision, "reproduced_derived_value")
-                source = provider.get_source(ref, observation.source_ref)
-                self.assertEqual(source.validation_status, QualityStatus.VALID)
-                self.assertEqual(source.source_tier, "primary")
+                self.assertIsNone(observation.source_ref)
+                reviewed_source_refs = tuple(sorted({
+                    item.source_ref for item in observation.review.primary_evidence
+                }))
+                for source_ref in reviewed_source_refs:
+                    source = provider.get_source(ref, source_ref)
+                    self.assertEqual(source.validation_status, QualityStatus.VALID)
+                    self.assertEqual(source.source_tier, "primary")
                 evidence = provider.get_evidence(
                     ref,
-                    (observation.source_ref,),
+                    reviewed_source_refs,
                     entity_id="CTG",
                     period_id="2024_Q4",
                     metric_id=metric_id,
@@ -118,11 +138,216 @@ class BankOnboardingPacketTests(unittest.TestCase):
                     self.assertEqual(source_input.validation_status, QualityStatus.VALID)
                     self.assertTrue(source_input.source_locator)
                     self.assertIsNotNone(source_input.review)
+                    if source_input.derivation_method is not None:
+                        self.assertIsNone(source_input.source_ref)
+                    else:
+                        self.assertIsNotNone(source_input.source_ref)
+                        self.assertIn(
+                            (source_input.source_ref, source_input.source_locator),
+                            {
+                                (item.source_ref, item.locator)
+                                for item in source_input.review.primary_evidence
+                            },
+                        )
 
         self.assertAlmostEqual(resolved["bank.npl_g35"].value, 1.2190, places=4)
         self.assertAlmostEqual(resolved["bank.llr_coverage"].value, 174.6762, places=4)
         self.assertEqual(resolved["bank.roa"].value, 1.1536)
         self.assertEqual(resolved["bank.roe"].value, 18.6012)
+
+    def test_stage1_accepts_ctg_derived_metrics_and_rejects_unreviewed_csv(self):
+        packet, candidate, raw_descriptor, report = self.load_packet()
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "ctg-stage1.sqlite"
+            materialize_canonical_snapshot(db_path, candidate, raw_descriptor, report)
+            provider = CanonicalSqliteDatasetProvider(db_path, dataset_id=packet.dataset_id)
+            dataset_ref = provider.current_dataset_ref()
+            npl = provider.get_metric(dataset_ref, "CTG", "2024_Q4", "bank.npl_g35")
+            coverage = provider.get_metric(dataset_ref, "CTG", "2024_Q4", "bank.llr_coverage")
+            self.assertIsNotNone(npl)
+            self.assertIsNotNone(coverage)
+            self.assertIsNone(npl.source_ref)
+            self.assertIsNone(coverage.source_ref)
+            self.assertTrue(npl.derivation_method)
+            self.assertTrue(coverage.derivation_method)
+            self.assertTrue(npl.input_observation_ids)
+            self.assertTrue(coverage.input_observation_ids)
+
+            source_refs_set = set()
+            for observation in (npl, coverage):
+                pending = [observation]
+                visited = set()
+                while pending:
+                    current = pending.pop()
+                    if current.observation_id in visited:
+                        continue
+                    visited.add(current.observation_id)
+                    if current.source_ref is not None:
+                        source_refs_set.add(current.source_ref)
+                        continue
+                    self.assertTrue(current.derivation_method)
+                    self.assertTrue(current.input_observation_ids)
+                    for input_id in current.input_observation_ids:
+                        source_input = provider.resolve_observation(dataset_ref, input_id)
+                        self.assertIsNotNone(source_input)
+                        self.assertEqual(source_input.validation_status, QualityStatus.VALID)
+                        self.assertIsNotNone(source_input.value)
+                        pending.append(source_input)
+            source_refs = tuple(sorted(source_refs_set))
+            evidence_by_metric = {
+                metric_id: provider.get_evidence(
+                    dataset_ref,
+                    source_refs,
+                    entity_id="CTG",
+                    period_id="2024_Q4",
+                    metric_id=metric_id,
+                )[0].evidence_id
+                for metric_id in ("bank.npl_g35", "bank.llr_coverage")
+            }
+            csv_source = DatasetSource(
+                source_ref="upload:unreviewed-ctg-csv",
+                source_type="csv",
+                source_tier="user_supplied",
+                source_url="urn:source:upload:unreviewed-ctg-csv",
+                publisher="User upload",
+                retrieved_at="2026-09-25T00:00:00Z",
+                content_hash="unreviewed-csv-hash",
+                validation_status=QualityStatus.PENDING_VALIDATION,
+            )
+            csv_observation = CanonicalObservation(
+                observation_id="observation-unreviewed-ctg-cir",
+                dataset_id=dataset_ref.dataset_id,
+                dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
+                entity_id="CTG",
+                period_id="2024_Q4",
+                metric_id="bank.cir",
+                value=38.4,
+                unit="percent",
+                source_ref=csv_source.source_ref,
+                source_locator="csv_row=2",
+                period_basis="quarter_only",
+                reporting_scope="consolidated",
+                validation_status=QualityStatus.PENDING_VALIDATION,
+            )
+            derived_claims = tuple(
+                self._numeric_claim(
+                    observation=observation,
+                    evidence_id=evidence_by_metric[observation.metric_id],
+                    source_refs=source_refs,
+                    ref_type="derived_metric",
+                    claim_id=f"ctg-{observation.metric_id}",
+                )
+                for observation in (npl, coverage)
+            )
+            policy = AcceptancePolicy(
+                policy_version="ctg-derived-stage1-regression-v1",
+                provisional_threshold=0.75,
+            )
+            resolver = ProviderStage1DatasetResolver(provider, dataset_ref)
+            accepted_result = validate_stage1_claims(
+                resolver,
+                derived_claims,
+                ClaimScope(
+                    entities=("CTG",),
+                    periods=("2024_Q4",),
+                    metric_ids=("bank.npl_g35", "bank.llr_coverage"),
+                ),
+                policy,
+            )
+            self.assertTrue(accepted_result.passed, accepted_result.model_dump_json())
+
+            class CsvOverlayProvider:
+                def __getattr__(self, name):
+                    return getattr(provider, name)
+
+                def resolve_observation(self, current_ref, observation_id):
+                    if observation_id == csv_observation.observation_id:
+                        return csv_observation
+                    return provider.resolve_observation(current_ref, observation_id)
+
+                def get_source(self, current_ref, source_ref):
+                    if source_ref == csv_source.source_ref:
+                        return csv_source
+                    return provider.get_source(current_ref, source_ref)
+
+            csv_claim = self._numeric_claim(
+                observation=csv_observation,
+                evidence_id=None,
+                source_refs=(csv_source.source_ref,),
+                ref_type="observation",
+                claim_id="ctg-unreviewed-csv",
+                claim_type="candidate",
+                critical=False,
+            )
+            csv_resolver = ProviderStage1DatasetResolver(CsvOverlayProvider(), dataset_ref)
+            csv_result = validate_stage1_claims(
+                csv_resolver,
+                (csv_claim,),
+                ClaimScope(
+                    entities=("CTG",),
+                    periods=("2024_Q4",),
+                    metric_ids=("bank.cir",),
+                ),
+                policy,
+            )
+
+        self.assertFalse(csv_result.passed)
+        self.assertIn(
+            "observation_reference_unaccepted",
+            " ".join(csv_result.gate_results["reference_validity"].violations),
+        )
+        self.assertIn(
+            "source_reference_unaccepted",
+            " ".join(csv_result.gate_results["reference_validity"].violations),
+        )
+
+    @staticmethod
+    def _numeric_claim(
+        *,
+        observation,
+        evidence_id: str | None,
+        source_refs: tuple[str, ...],
+        ref_type: str,
+        claim_id: str,
+        claim_type: str = "numeric",
+        critical: bool = True,
+    ) -> AtomicClaim:
+        data_ref = ClaimDataRef(
+            ref_id=observation.observation_id,
+            ref_type=ref_type,
+            entity=observation.entity_id,
+            period=observation.period_id,
+            metric_id=observation.metric_id,
+        )
+        assertion = StructuredAssertion(
+            assertion_id=f"{claim_id}-assertion",
+            assertion_type=AssertionType.METRIC_VALUE,
+            entity=observation.entity_id,
+            period=observation.period_id,
+            metric_id=observation.metric_id,
+            asserted_value=observation.value,
+            unit=observation.unit,
+            data_refs=(data_ref,),
+        )
+        return AtomicClaim(
+            claim_id=claim_id,
+            claim_text=f"{observation.entity_id} {observation.metric_id} was {observation.value}.",
+            claim_type=claim_type,
+            title=observation.metric_id,
+            interpretation="A reported or deterministically derived metric.",
+            limitation="Stage1 lineage regression fixture.",
+            scope=ClaimScope(
+                entities=(observation.entity_id,),
+                periods=(observation.period_id,),
+                metric_ids=(observation.metric_id,),
+            ),
+            assertions=(assertion,),
+            evidence_refs=(evidence_id,) if evidence_id is not None else (),
+            source_refs=source_refs,
+            inference_type=InferenceType.FACT,
+            support="evidence_backed" if evidence_id is not None else "partially_supported",
+            critical=critical,
+        )
 
     def test_packet_artifact_manifest_fails_closed_on_byte_or_hash_mismatch(self):
         packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())

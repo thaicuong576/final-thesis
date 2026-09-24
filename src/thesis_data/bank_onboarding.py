@@ -590,11 +590,12 @@ def build_bank_dataset_candidate(
             )
         formula = item.formula
         first_evidence = review.primary_evidence[0] if review is not None else None
-        source_ref = (
-            item.candidate_source_id
-            if item.quality_status == "valid"
-            else item.candidate_source_id
-        )
+        if item.quality_status == "valid" and first_evidence is not None:
+            source_ref = None if formula is not None else first_evidence.source_id
+            source_locator = first_evidence.source_locator
+        else:
+            source_ref = item.candidate_source_id
+            source_locator = item.candidate_locator
         observation = CanonicalObservation(
             observation_id=packet_id_map[item.observation_id],
             dataset_id=packet.dataset_id,
@@ -605,7 +606,7 @@ def build_bank_dataset_candidate(
             value=item.value,
             unit=item.unit,
             source_ref=source_ref,
-            source_locator=item.candidate_locator,
+            source_locator=source_locator,
             period_basis=item.period_basis,
             reporting_scope=None if item.reporting_scope == "unknown" else item.reporting_scope,
             review=review_record,

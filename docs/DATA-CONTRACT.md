@@ -45,11 +45,14 @@ exact page, table, or note locator.
 
 The application `CanonicalObservation` carries `source_locator`,
 `period_basis`, and `reporting_scope` as first-class fields, plus structured
-review evidence. Accepted observations require all three fields and a valid
-source. Derived observations also retain formula version and accepted input
-observation IDs. Canonical SQLite schema v3 persists these fields without
-changing Gold v5 physical data; fields absent from an older Gold snapshot, such
-as company `reporting_scope`, remain null at the provider boundary.
+review evidence. Accepted direct observations require a valid reviewed primary
+source and locator. Accepted derived observations keep `source_ref=null`; their
+source trail runs through the formula version and accepted input observation
+IDs, while the reviewed locator records the filing evidence used to reproduce
+the value. Every derived input must itself have valid source or derivation
+provenance. Canonical SQLite schema v3 persists these fields without changing
+Gold v5 physical data; fields absent from an older Gold snapshot, such as
+company `reporting_scope`, remain null at the provider boundary.
 
 Bank ratio mappings use the `bank.*` IDs in `docs/METRIC-DICTIONARY.md`.
 Source-backed formula primitives may use `bank.input.*` IDs, which are exposed
@@ -77,7 +80,11 @@ reason: string | null
 
 Rules:
 
-- Numeric/valid values must include unit, period, source ID, and period basis.
+- Numeric/valid direct values must include unit, period, source ID, source
+  locator, and period basis. Numeric/valid derived values must include unit,
+  period, source locator, period basis, formula version, and accepted input
+  observation IDs; their direct source ID is null and provenance resolves
+  through their inputs.
 - `value=null` is required for missing or zero-denominator results and must include a reason.
 - A reasoned `missing` observation may omit source ID, unit, period basis, and
   locator because no source was found; it must remain excluded from valid-only
@@ -91,6 +98,9 @@ Rules:
   must be reported explicitly by ticker, metric, and period; missing-data
   behavior is evaluated as a separate outcome.
 - A source locator is required for every valid observation; a page/section locator is required for paginated evidence.
+- A valid direct observation's source ID and locator must match its reviewed
+  primary evidence. A valid derived observation's locator must match reviewed
+  primary evidence, and every input must resolve to a valid numeric observation.
 - Conflicting values are retained as separate observations until reconciled.
 
 ## DerivedMetric

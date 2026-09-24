@@ -293,3 +293,24 @@ Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orch
    - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
 4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
    - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.
+
+---
+
+## [LESSON-015] Validate derived arithmetic at snapshot promotion
+
+- **Date:** 2026-09-25
+- **Scope:** new-bank operational snapshot acceptance
+- **Status:** contract accepted in D-071; implementation and E2E test pending.
+
+An accepted observation label plus input IDs does not prove that a supplied
+derived value was actually calculated from those inputs. The current canonical
+snapshot validator checks input existence, and Stage-1 can check claim/value,
+formula version and source lineage, but neither recalculates the ratio. A
+formula unit test also does not prove the onboarding path called that formula.
+
+Before promoting a new-bank derived candidate, call the versioned deterministic
+formula on accepted inputs, verify unit/period/scope and numeric tolerance, and
+record a calculation receipt. Keep this gate in the data promotion boundary;
+Stage-1 then checks the published claim against the accepted result. Until that
+path passes, a CTG packet is a reviewed candidate, not proof of a generic
+derived-metric ingestion guarantee.

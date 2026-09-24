@@ -19,7 +19,7 @@ export function DataPage() {
   const runnableCapabilities = new Set(
     capabilities?.analysis_available === true ? capabilities.implemented_capabilities ?? [] : []
   );
-  const canRunPeerAnalysis = runnableCapabilities.has('peer');
+  const canRunPeerAnalysis = runnableCapabilities.has('sector');
   const canRunMacroAnalysis = runnableCapabilities.has('macro');
 
   return (

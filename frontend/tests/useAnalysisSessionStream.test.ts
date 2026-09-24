@@ -75,6 +75,39 @@ describe('normalizeAnalysisResponseToReport', () => {
     expect(normalized.revision_summary).toBeUndefined();
   });
 
+  it('accepts the composite API DTO when optional analysis fields are explicitly unknown', () => {
+    const normalized = normalizeAnalysisResponseToReport({
+      report_id: 'rep-live-2',
+      status: 'partial',
+      analysis_plan: {
+        plan_id: 'plan-live-2',
+        query: 'Phân tích ROE của ACB trong năm 2024',
+        target_ticker: 'ACB',
+        peer_tickers: [],
+        period: null,
+        required_capabilities: ['company'],
+        applicable_links: [],
+        dataset_snapshot_id: 'snapshot-2',
+        rationale: null,
+        known_limitations: ['Stage 2 was not run.']
+      },
+      atomic_claims: [{
+        claim_id: 'claim-2',
+        capability: 'company',
+        statement: 'ROE observation',
+        claim_type: 'factual_observation',
+        evidence_refs: ['ev-2'],
+        confidence: null,
+        stage1_status: 'accepted',
+        stage2_critique_status: null
+      }]
+    });
+
+    expect(normalized.analysis_plan?.period).toBeNull();
+    expect(normalized.analysis_plan?.rationale).toBeNull();
+    expect(normalized.atomic_claims?.[0].confidence).toBeNull();
+  });
+
   it('rejects a response without an API report id', () => {
     expect(() => normalizeAnalysisResponseToReport({ status: 'partial' })).toThrow(/mã báo cáo/i);
   });

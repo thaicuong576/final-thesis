@@ -57,7 +57,7 @@ export function ReportHeaderBar({ report, isDemo = false }: ReportHeaderBarProps
         )}
         {!isDemo && report.status === 'partial' && (
           <div className="mb-3 rounded-md border border-warning/40 bg-warning-soft/60 p-3 text-xs text-ink" role="status">
-            Kết quả một phần: API chưa công bố phản biện Stage 2 hoặc tóm tắt hiệu đính cho báo cáo này.
+            Kết quả phân tích chưa hoàn tất.
           </div>
         )}
         {/* Navigation, Quick Switcher & Quality Assurance Badges */}

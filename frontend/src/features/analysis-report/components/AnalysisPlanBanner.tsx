@@ -54,7 +54,7 @@ export function AnalysisPlanBanner({
       </div>
 
       <p className="text-xs text-ink leading-relaxed font-normal">
-        {plan.rationale}
+        {plan.rationale?.trim() || 'API không công bố lý do lập kế hoạch cho báo cáo này.'}
       </p>
 
       {/* Execution Constraints Grid */}

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AnalysisSessionEvent, AnalysisSessionViewModel } from './model/types';
 import { projectAnalysisSession } from './model/projector';
 import type { AnalysisReport } from '../analysis-report';
+import { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '@/shared/lib/apiUrl';
+
+export { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface AnalysisStreamRequest {
   query: string;
@@ -125,26 +128,6 @@ export function normalizeAnalysisResponseToReport(
     revision_summary: res.revision_summary,
     limitations: res.limitations
   };
-}
-
-export const DEFAULT_RENDER_BACKEND = 'https://final-thesis-zgwt.onrender.com';
-
-export function getApiBaseUrl(): string {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
-  }
-  if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname.toLowerCase();
-    if (
-      host.includes('eddiephung.me') ||
-      host.includes('vercel.app') ||
-      host.includes('onrender.com') ||
-      (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.endsWith('.local'))
-    ) {
-      return DEFAULT_RENDER_BACKEND;
-    }
-  }
-  return '';
 }
 
 export function getResolvedApiEndpoint(customEndpoint?: string): string {

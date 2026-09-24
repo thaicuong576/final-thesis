@@ -36,7 +36,7 @@ export function ScopeMismatchAlert({
         </p>
 
         <div className="text-[11px] font-mono space-y-1 text-ink-secondary border-t border-warning/20 pt-2">
-          <p className="font-bold text-ink uppercase tracking-wider text-[10px]">Phạm vi sẵn sàng trong bộ dữ liệu hiện hành:</p>
+          <p className="font-bold text-ink uppercase tracking-wider text-[10px]">Phạm vi catalog (khả năng chạy do API xác nhận):</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-1">
             <div>• Chu kỳ hỗ trợ: <strong className="text-ink">{mismatch.availableCapabilitiesSummary.periods}</strong></div>
             <div>• Ngân hàng hỗ trợ: <strong className="text-ink">{mismatch.availableCapabilitiesSummary.entities}</strong></div>

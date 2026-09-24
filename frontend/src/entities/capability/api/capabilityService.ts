@@ -1,4 +1,5 @@
 import type { AnalysisCapabilities } from '../model/types';
+import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface CapabilityService {
   getCapabilities(): Promise<AnalysisCapabilities>;
@@ -6,7 +7,7 @@ export interface CapabilityService {
 
 export const capabilityService: CapabilityService = {
   async getCapabilities(): Promise<AnalysisCapabilities> {
-    const baseUrl = import.meta.env?.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
+    const baseUrl = getApiBaseUrl();
     const response = await fetch(`${baseUrl}/api/capabilities`, {
       headers: { Accept: 'application/json' }
     });

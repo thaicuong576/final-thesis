@@ -3,11 +3,11 @@ export interface AnalysisPlan {
   query: string;
   target_ticker?: string | null;
   peer_tickers: string[];
-  period: string;
+  period?: string | null;
   required_capabilities: ('macro' | 'sector' | 'company')[];
   applicable_links: ('peer_comparison' | 'macro_transmission' | 'cross_level_stress')[];
   dataset_snapshot_id: string;
-  rationale: string;
+  rationale?: string | null;
   known_limitations: string[];
 }
 
@@ -63,7 +63,7 @@ export interface AtomicClaim {
   statement: string;
   claim_type: ClaimType;
   evidence_refs: string[];
-  confidence: number;
+  confidence?: number | null;
   stage1_status?: 'accepted' | 'rejected' | null;
   stage2_critique_status?: 'sound' | 'revised' | 'limited' | null;
 }

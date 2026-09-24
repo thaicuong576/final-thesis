@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { ReportPage } from '../src/pages/reports/ReportPage';
 import { ReportsListPage } from '../src/pages/reports/ReportsListPage';
-import { CompanyCamelBreakdown, SectorBenchmarkMatrix, type AnalysisReport } from '../src/features/analysis-report';
+import { CompanyCamelBreakdown, EvidenceTrailTable, SectorBenchmarkMatrix, type AnalysisReport } from '../src/features/analysis-report';
 
 const partialReport: AnalysisReport = {
   report_id: 'rep-live-42',
@@ -52,10 +52,30 @@ describe('Analysis report truth and provenance', () => {
     expect(screen.queryByText('Kiểm định đối soát BCTC độc lập')).not.toBeInTheDocument();
   });
 
+  it('keeps a composite API report readable when its plan rationale is unknown', () => {
+    renderReport('/reports/rep-live-42', {
+      ...partialReport,
+      analysis_plan: {
+        plan_id: 'plan-live-42',
+        query: partialReport.query!,
+        target_ticker: 'ACB',
+        peer_tickers: [],
+        period: null,
+        required_capabilities: ['company'],
+        applicable_links: [],
+        dataset_snapshot_id: 'snapshot-live-42',
+        rationale: null,
+        known_limitations: []
+      }
+    });
+
+    expect(screen.getByText('API không công bố lý do lập kế hoạch cho báo cáo này.')).toBeInTheDocument();
+  });
+
   it('labels a partial live response and leaves Stage 2 unknown when the API omits it', () => {
     renderReport('/reports/rep-live-42', partialReport);
 
-    expect(screen.getByText('Kết quả một phần: API chưa công bố phản biện Stage 2 hoặc tóm tắt hiệu đính cho báo cáo này.')).toBeInTheDocument();
+    expect(screen.getByText('Kết quả phân tích chưa hoàn tất.')).toBeInTheDocument();
     expect(screen.getByText('Trạng thái API: Kết quả một phần')).toBeInTheDocument();
     expect(screen.getByText('Phản biện: chưa công bố')).toBeInTheDocument();
     expect(screen.queryByText('Kiểm tra số học: Đạt')).not.toBeInTheDocument();
@@ -70,6 +90,22 @@ describe('Analysis report truth and provenance', () => {
     expect(screen.getByRole('button', { name: '#ev-linkable' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '#ev-unlinked' })).not.toBeInTheDocument();
     expect(screen.getByText('#ev-unlinked')).toBeInTheDocument();
+  });
+
+  it('does not link a valid source URL when its locator is missing', () => {
+    const sourceUrl = 'https://example.test/missing-locator.pdf';
+    render(<EvidenceTrailTable evidenceTrail={[{
+      evidence_id: 'ev-no-locator',
+      metric: 'ROE',
+      ticker: 'ACB',
+      period: '2024_Q4',
+      value: 10,
+      source_url: sourceUrl,
+      table_locator: '  '
+    }]} />);
+
+    expect(screen.getByText(sourceUrl)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: sourceUrl })).not.toBeInTheDocument();
   });
 
   it('renders only returned benchmark and company metric values', () => {

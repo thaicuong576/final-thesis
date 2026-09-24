@@ -188,7 +188,7 @@ export function EvidenceTrailTable({
                         : String(item.value)}
                     </td>
                     <td className="py-2.5 px-3 text-ink max-w-xs truncate">
-                      {isHttpUrl(item.source_url || item.source_doc)
+                      {isHttpUrl(item.source_url || item.source_doc) && Boolean(item.table_locator?.trim())
                         ? <a href={item.source_url || item.source_doc || undefined} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-amber-border">{item.source_doc || item.source_url}</a>
                         : item.source_doc || item.source_url || '—'}
                     </td>

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "artifacts": {
+    "vietinbank-2024-audited-consolidated-report": {
+      "artifact_ref": "../raw/bank-onboarding-v1/ctg-2024-consolidated-audited.pdf",
+      "source_url": "https://investor.vietinbank.vn/documents/20126/214683/BCTC%2Bhop%2Bnhat%2Bkiem%2Btoan%2Bnam%2B2024.pdf/a3536120-403d-0b92-4090-4e909fda27c2",
+      "byte_length": 5651992,
+      "content_sha256": "36513DD8B060712B188F9EAB03B1A7F9479AB21E63866DD95E45759D03EC5369",
+      "pdf_page_count": 69,
+      "text_layer_status": "scanned_pdf_manual_visual_review_no_ocr_acceptance"
+    }
+  }
+}

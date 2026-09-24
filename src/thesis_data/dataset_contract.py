@@ -7,11 +7,12 @@ generic application boundary.
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 from hashlib import sha256
 import json
 import math
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -116,6 +117,38 @@ class DatasetEvidence(BaseModel):
     quote: str = Field(min_length=1)
 
 
+class ObservationEvidenceRef(BaseModel):
+    """One exact source location used to reconcile an observation."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_ref: str = Field(min_length=1)
+    locator: str = Field(min_length=1)
+
+
+class ObservationReview(BaseModel):
+    """Human decision that ties one value to primary evidence or its inputs."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    reviewer_id: str = Field(min_length=1)
+    reviewed_at: str = Field(min_length=1)
+    decision: Literal["matched_reported_value", "reproduced_derived_value"]
+    primary_evidence: tuple[ObservationEvidenceRef, ...] = Field(min_length=1)
+    resolution_note: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_evidence_refs(self) -> "ObservationReview":
+        identities = [(item.source_ref, item.locator) for item in self.primary_evidence]
+        if len(identities) != len(set(identities)):
+            raise ValueError("review primary evidence references must be unique")
+        try:
+            datetime.fromisoformat(self.reviewed_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("reviewed_at must be an ISO date-time") from exc
+        return self
+
+
 class CanonicalObservation(BaseModel):
     """One value or explicit missing state in an application dataset."""
 
@@ -130,6 +163,10 @@ class CanonicalObservation(BaseModel):
     value: float | None = None
     unit: str | None = Field(default=None, min_length=1)
     source_ref: str | None = Field(default=None, min_length=1)
+    source_locator: str | None = Field(default=None, min_length=1)
+    period_basis: str | None = Field(default=None, min_length=1)
+    reporting_scope: str | None = Field(default=None, min_length=1)
+    review: ObservationReview | None = None
     validation_status: QualityStatus
     missing_reason: str | None = None
     derivation_method: str | None = Field(default=None, min_length=1)
@@ -149,12 +186,6 @@ class CanonicalObservation(BaseModel):
             has_derivation_provenance = bool(
                 self.derivation_method and self.input_observation_ids
             )
-            if has_source_provenance and (
-                self.derivation_method is not None or self.input_observation_ids
-            ):
-                raise ValueError(
-                    "valid canonical observation must use source or derivation provenance"
-                )
             if not has_source_provenance and not has_derivation_provenance:
                 raise ValueError(
                     "valid canonical observation requires source or derivation provenance"

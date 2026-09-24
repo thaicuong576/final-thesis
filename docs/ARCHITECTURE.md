@@ -82,6 +82,21 @@ quality status.
 Sector benchmarks are filtered to the explicit peer set from the selected
 question when present, or the frozen Gold ticker scope otherwise; unrelated
 sector rows cannot silently change a peer median.
+
+Outside-Gold bank onboarding follows the same provider boundary through a
+separate immutable source packet. Parsing and mapping create a candidate;
+structural success leaves uploaded numeric values pending. A reviewer must
+match each accepted value to a valid primary source and exact locator, declare
+period basis and reporting scope, and preserve formula/input lineage for
+derived values. The generic canonical SQLite v3 provider stores and returns
+these fields without changing the frozen Gold v5 artifact. Bank-specific IDs
+come from the metric dictionary; packet conversion and provider access do not
+branch on an issuer ID or the current five-bank sample.
+
+Scanned PDF evidence is manually reconciled against rendered statement pages.
+OCR or parser output can assist search but cannot promote a candidate; page
+numbering, reporting scope, and source hash remain attached to the reviewed
+observation.
 The run's explicit source policy resolves to an allowlist of source tiers; the
 current `*-primary-only-v1` policies allow only `primary`, and unknown policy
 IDs fail before adapter dispatch. Company, sector, macro, and evidence queries

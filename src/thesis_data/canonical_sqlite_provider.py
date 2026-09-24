@@ -25,6 +25,7 @@ from .dataset_contract import (
     DatasetPeriod,
     DatasetRef,
     DatasetSource,
+    ObservationReview,
     PeerUniverse,
     SupportedOperation,
 )
@@ -234,6 +235,11 @@ class CanonicalSqliteDatasetProvider:
             raise DatasetProviderError(
                 "persisted observation dataset_snapshot_id does not match requested snapshot"
             )
+        review_payload = self._json_object(row["review_json"])
+        try:
+            review = ObservationReview.model_validate(review_payload) if review_payload else None
+        except (TypeError, ValueError) as exc:
+            raise DatasetProviderError("canonical observation review is invalid") from exc
         return CanonicalObservation(
             observation_id=str(row["observation_id"]),
             dataset_id=persisted_dataset_id,
@@ -244,6 +250,10 @@ class CanonicalSqliteDatasetProvider:
             value=float(row["value"]) if row["value"] is not None else None,
             unit=row["unit"],
             source_ref=row["source_ref"],
+            source_locator=row["source_locator"],
+            period_basis=row["period_basis"],
+            reporting_scope=row["reporting_scope"],
+            review=review,
             validation_status=self._status(row["validation_status"]),
             missing_reason=row["missing_reason"],
             derivation_method=row["derivation_method"],

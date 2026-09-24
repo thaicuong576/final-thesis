@@ -21,12 +21,13 @@ from .onboarding_contract import (
     compute_content_manifest_hash,
     compute_dataset_snapshot_id,
     promote_snapshot_metadata,
+    validate_snapshot_metadata,
 )
 from .onboarding_validation import CanonicalDatasetCandidate
 from .schema import QualityStatus
 
 
-CANONICAL_SNAPSHOT_SCHEMA_VERSION = "canonical-snapshot-v2"
+CANONICAL_SNAPSHOT_SCHEMA_VERSION = "canonical-snapshot-v3"
 
 
 def _enum_value(value: object) -> object:
@@ -100,10 +101,14 @@ def _create_schema(connection: sqlite3.Connection) -> None:
             value REAL,
             unit TEXT,
             source_ref TEXT REFERENCES sources(source_ref),
+            source_locator TEXT,
+            period_basis TEXT,
+            reporting_scope TEXT,
             validation_status TEXT NOT NULL,
             missing_reason TEXT,
             derivation_method TEXT,
             input_observation_ids_json TEXT NOT NULL,
+            review_json TEXT NOT NULL,
             metadata_json TEXT NOT NULL,
             UNIQUE (dataset_snapshot_id, entity_id, period_id, metric_id)
         )
@@ -166,8 +171,13 @@ def _validate_candidate(
     source_refs = [item.source_ref for item in candidate.all_sources]
     if len(source_refs) != len(set(source_refs)):
         raise ValueError("canonical source refs must be unique")
-    if any(item.validation_status is not QualityStatus.VALID for item in candidate.all_sources):
-        raise ValueError("every canonical source must be valid before publication")
+    for source in candidate.all_sources:
+        tier = getattr(source.source_tier, "value", source.source_tier)
+        if source.validation_status is QualityStatus.VALID:
+            continue
+        if tier == "user_supplied" and source.validation_status is QualityStatus.PENDING_VALIDATION:
+            continue
+        raise ValueError("non-user-supplied canonical sources must be valid before publication")
     if not candidate.entities or not candidate.periods or not candidate.metrics:
         raise ValueError("accepted canonical snapshot must contain entities, periods, and metrics")
     entity_ids = {item.entity_id for item in candidate.entities}
@@ -186,8 +196,7 @@ def _validate_candidate(
         raise ValueError("observation period is absent from candidate catalog")
     if any(item.metric_id not in metric_ids for item in candidate.observations):
         raise ValueError("observation metric is absent from candidate catalog")
-    if any(item.source_ref != candidate.source.source_ref for item in candidate.observations):
-        raise ValueError("every CSV observation must use the canonical CSV source")
+    source_by_ref = {item.source_ref: item for item in candidate.all_sources}
     document_ids = [item.document_id for item in candidate.documents]
     if len(document_ids) != len(set(document_ids)):
         raise ValueError("document IDs must be unique")
@@ -231,6 +240,7 @@ def _validate_candidate(
     if len(observation_ids) != len(set(observation_ids)):
         raise ValueError("duplicate observation IDs cannot be materialized")
     observation_id_set = set(observation_ids)
+    observation_by_id = {item.observation_id: item for item in candidate.observations}
     for item in candidate.observations:
         expected_observation_id = canonical_observation_id(
             accepted_metadata.dataset_snapshot_id,
@@ -242,6 +252,55 @@ def _validate_candidate(
             raise ValueError("observation ID is not derived from final snapshot identity")
         if any(ref not in observation_id_set for ref in item.input_observation_ids):
             raise ValueError("observation lineage reference does not resolve in candidate")
+        if item.validation_status is QualityStatus.PENDING_VALIDATION:
+            raise ValueError("accepted canonical snapshot cannot contain pending observations")
+        if item.validation_status in {QualityStatus.CONFLICTING, QualityStatus.INVALID, QualityStatus.ESTIMATED}:
+            raise ValueError("accepted canonical snapshot cannot contain unresolved observations")
+        if item.validation_status is QualityStatus.VALID:
+            source = source_by_ref.get(item.source_ref or "")
+            if source is None or source.validation_status is not QualityStatus.VALID:
+                raise ValueError("valid observation source must resolve to a valid source record")
+            if getattr(source.source_tier, "value", source.source_tier) not in {"primary", "cross_check"}:
+                raise ValueError("valid observation source tier is not eligible for analysis")
+            if not item.source_locator or not item.period_basis or not item.reporting_scope:
+                raise ValueError("valid observation requires locator, period basis, and reporting scope")
+            if item.period_basis not in {"point_in_time", "quarter_only", "ytd", "annual", "ttm"}:
+                raise ValueError("valid observation period basis is unsupported")
+            if item.reporting_scope not in {"consolidated", "separate", "system"}:
+                raise ValueError("valid observation reporting scope is unsupported")
+            if item.review is None:
+                raise ValueError("valid observation requires explicit source reconciliation review")
+            if item.derivation_method is not None:
+                if item.review.decision != "reproduced_derived_value" or not item.input_observation_ids:
+                    raise ValueError("derived observation review must reproduce its formula from inputs")
+                for input_id in item.input_observation_ids:
+                    source_input = observation_by_id[input_id]
+                    if (
+                        source_input.validation_status is not QualityStatus.VALID
+                        or source_input.value is None
+                    ):
+                        raise ValueError("derived observation inputs must be valid numeric observations")
+            elif item.review.decision != "matched_reported_value" or item.input_observation_ids:
+                raise ValueError("direct observation review must match a reported value")
+            if not item.review.primary_evidence:
+                raise ValueError("valid observation review requires primary evidence")
+            review_source_refs = {reference.source_ref for reference in item.review.primary_evidence}
+            review_locators = {reference.locator for reference in item.review.primary_evidence}
+            for reference in item.review.primary_evidence:
+                review_source = source_by_ref.get(reference.source_ref)
+                if (
+                    review_source is None
+                    or review_source.validation_status is not QualityStatus.VALID
+                    or getattr(review_source.source_tier, "value", review_source.source_tier) != "primary"
+                ):
+                    raise ValueError("review primary evidence does not resolve to a valid primary source")
+            if item.source_ref not in review_source_refs or item.source_locator not in review_locators:
+                raise ValueError("observation source and locator must match reviewed primary evidence")
+            if item.derivation_method and not item.input_observation_ids:
+                raise ValueError("derived observation requires input lineage")
+        elif item.validation_status is QualityStatus.MISSING:
+            if item.value is not None or not item.missing_reason:
+                raise ValueError("missing observation requires a null value and reason")
     for universe in candidate.peer_universes:
         if not set(universe.entity_ids).issubset(entity_ids):
             raise ValueError("peer universe contains an unknown entity")
@@ -350,10 +409,11 @@ def _insert_observation(connection: sqlite3.Connection, item: CanonicalObservati
         """
         INSERT INTO observations (
             observation_id, dataset_id, dataset_snapshot_id, entity_id,
-            period_id, metric_id, value, unit, source_ref, validation_status,
-            missing_reason, derivation_method, input_observation_ids_json,
+            period_id, metric_id, value, unit, source_ref, source_locator,
+            period_basis, reporting_scope, validation_status, missing_reason,
+            derivation_method, input_observation_ids_json, review_json,
             metadata_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             item.observation_id,
@@ -365,10 +425,14 @@ def _insert_observation(connection: sqlite3.Connection, item: CanonicalObservati
             item.value,
             item.unit,
             item.source_ref,
+            item.source_locator,
+            item.period_basis,
+            item.reporting_scope,
             _enum_value(item.validation_status),
             item.missing_reason,
             item.derivation_method,
             _json(list(item.input_observation_ids)),
+            _json(item.review.model_dump(mode="json") if item.review is not None else {}),
             _json(item.metadata),
         ),
     )
@@ -382,10 +446,24 @@ def materialize_canonical_snapshot(
 ) -> DatasetSnapshotMetadata:
     """Promote and atomically materialize one accepted canonical snapshot."""
 
+    validate_snapshot_metadata(raw_descriptor, candidate.metadata)
+    if candidate.metadata.status is not DatasetSnapshotStatus.CANDIDATE:
+        raise ValueError("only CANDIDATE snapshot metadata can be materialized")
+    if validation_report.dataset_id != candidate.metadata.dataset_id:
+        raise ValueError("validation report dataset ID does not match snapshot metadata")
+    if validation_report.candidate_snapshot_id != candidate.metadata.dataset_snapshot_id:
+        raise ValueError("validation report snapshot ID does not match snapshot metadata")
+    if validation_report.status.value != "VALID":
+        raise ValueError("only a VALID structural validation report can materialize a snapshot")
+    reconciliation_metadata = candidate.metadata.model_copy(
+        update={"status": DatasetSnapshotStatus.ACCEPTED}
+    )
+    _validate_candidate(candidate, reconciliation_metadata, raw_descriptor)
     accepted_metadata = promote_snapshot_metadata(
         raw_descriptor,
         candidate.metadata,
         validation_report,
+        source_reconciled=True,
     )
     candidate, accepted_metadata = _bind_candidate_to_final_snapshot(
         candidate,

@@ -293,3 +293,31 @@ Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orch
    - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
 4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
    - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.
+
+---
+
+## [LESSON-013] Keep Artifact Byte Identity Beside the Strict Onboarding Packet
+
+- **Date:** 2026-09-24
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `data/onboarding/`
+- **Status:** `ACTIVE` -> Included in the provider-neutral packet loader.
+
+### 1. Context & Symptom
+The bank onboarding packet contract records the source URL, exact SHA-256, and
+relative artifact reference, but does not include a byte-length field. The
+official annual report is a scanned PDF without a selectable text layer, so
+page-aware source review also needs a verified immutable artifact and explicit
+page metadata.
+
+### 2. Root Cause
+The exchange packet schema is intentionally strict and rejects undeclared
+source fields. Adding `byte_length` directly to a packet would violate its
+contract even though byte count is part of the data readiness audit.
+
+### 3. Workaround & Permanent Solution
+1. Keep byte length, URL, SHA-256, page count, and scan status in a strict
+   sidecar source manifest; verify all of them against the packet and bytes
+   before constructing a canonical candidate.
+2. Manually reconcile scanned statement values from rendered pages and retain
+   both physical and printed page numbers. OCR/parser output remains a search
+   aid and cannot mark a value valid.

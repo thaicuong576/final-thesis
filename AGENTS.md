@@ -28,6 +28,11 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   CSV structural validation creates only a candidate; accepted numeric values
+   require observation-level source reconciliation to a primary filing with an
+   exact locator, period basis, reporting scope, reviewer, and formula/input
+   lineage where derived. The generic onboarding SQLite provider stores these
+   fields separately from the immutable Gold v5 database.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.

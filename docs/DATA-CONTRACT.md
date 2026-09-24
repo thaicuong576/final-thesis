@@ -35,6 +35,28 @@ Rules:
 - A fallback or context source cannot silently become primary evidence.
 - Failed retrievals remain in manifests but cannot produce valid observations.
 
+## Outside-Gold onboarding and reconciliation
+
+Structural validation only creates a candidate. A valid technical report does
+not accept its values for analysis. Numeric CSV observations and their
+`user_supplied` source stay `pending_validation` until each observation has a
+recorded reviewer decision that resolves to primary filing evidence and an
+exact page, table, or note locator.
+
+The application `CanonicalObservation` carries `source_locator`,
+`period_basis`, and `reporting_scope` as first-class fields, plus structured
+review evidence. Accepted observations require all three fields and a valid
+source. Derived observations also retain formula version and accepted input
+observation IDs. Canonical SQLite schema v3 persists these fields without
+changing Gold v5 physical data; fields absent from an older Gold snapshot, such
+as company `reporting_scope`, remain null at the provider boundary.
+
+Bank ratio mappings use the `bank.*` IDs in `docs/METRIC-DICTIONARY.md`.
+Source-backed formula primitives may use `bank.input.*` IDs, which are exposed
+for lineage and evidence checks. An accepted operational snapshot outside Gold
+does not become benchmark Gold unless it separately passes the Gold coverage,
+label, and independent-checker gates.
+
 ## MetricObservation
 
 ```text

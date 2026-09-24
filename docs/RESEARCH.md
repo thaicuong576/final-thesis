@@ -72,6 +72,41 @@ Official issuer/IR documents, SBV, GSO, HOSE, and HNX are primary sources where 
 - NIM requires earning-asset mapping; CASA and LDR require category/definition mapping; CAR should use a source-disclosed regulatory value in the MVP.
 - Missing values remain null; conflicting source variants are preserved.
 
+## Outside-Gold source-backed transferability packet
+
+The provider-neutral onboarding vertical slice records the VietinBank 2024
+consolidated audited filing at
+[`data/onboarding/ctg-2024-audited-2024q4-v1.json`](../data/onboarding/ctg-2024-audited-2024q4-v1.json).
+The immutable source PDF is
+[`data/raw/bank-onboarding-v1/ctg-2024-consolidated-audited.pdf`](../data/raw/bank-onboarding-v1/ctg-2024-consolidated-audited.pdf),
+retrieved from the issuer's [investor relations filing](https://investor.vietinbank.vn/documents/20126/214683/BCTC%2Bhop%2Bnhat%2Bkiem%2Btoan%2Bnam%2B2024.pdf/a3536120-403d-0b92-4090-4e909fda27c2).
+It is 5,651,992 bytes with SHA-256
+`36513DD8B060712B188F9EAB03B1A7F9479AB21E63866DD95E45759D03EC5369` and has
+69 PDF pages. The sidecar manifest records the byte count, URL, hash, and scan
+status. The statement pages were manually inspected as rendered images because
+the PDF has no selectable text layer; OCR output was not accepted as evidence.
+
+The packet contains reconciled consolidated values for `bank.npl_g35`,
+`bank.llr_coverage`, `bank.roa`, and `bank.roe` at `2024_Q4`. NPL and coverage
+use closing balances from PDF pages 39–40 (printed pages 37–38); FY2024 profit
+and total assets/equity inputs come from pages 7–10 (printed pages 5–8). The
+ratios are 1.2190%, 174.6762%, 1.1536%, and 18.6012%, respectively. ROE uses
+parent-attributable profit divided by average consolidated equity less
+non-controlling interests, matching the metric dictionary. The packet stores
+normalized monetary inputs in VND billion and records each physical/printed
+page, table/note, row, and unit in its observation locator.
+
+The companion
+[`ctg-2024-audited-2024q4-v1-reconciliation.csv`](../data/onboarding/ctg-2024-audited-2024q4-v1-reconciliation.csv)
+lists all 22 reported inputs and reconciled outputs with value, unit, period,
+basis, scope, formula version/input IDs, page locator, reviewer/time, source
+URL, and PDF hash. ROA and ROE are TTM metrics at `2024_Q4`; compare them with
+other TTM values, not quarter-only profitability ratios.
+
+These facts demonstrate reviewed outside-Gold transferability only. They do
+not alter or extend Gold v5, and the existing Gold promotion gates still apply
+before any new bank joins the evaluation benchmark.
+
 ## Research tasks before provider-backed baseline
 
 1. Confirm the pilot-first scope strategy and benchmark cutoff with the advisor;

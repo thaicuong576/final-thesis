@@ -46,13 +46,13 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="percent",
                     analytical_level=AnalyticalLevel.COMPANY,
                 ),
                 FieldMetricMapping(
                     raw_field="ROE (%)",
-                    metric_id="company.roe",
+                    metric_id="bank.roe",
                     unit="percent",
                     analytical_level=AnalyticalLevel.COMPANY,
                 ),
@@ -77,7 +77,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
 
     def test_demo_registry_is_definition_not_capability(self):
         registry = demo_metric_registry()
-        self.assertIsNotNone(registry.get("company.roa"))
+        self.assertIsNotNone(registry.get("bank.roa"))
         self.assertIsNotNone(registry.get("macro.policy_rate"))
         self.assertIsNone(registry.get("company.not_in_registry"))
 
@@ -96,7 +96,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.unknown",
+                    metric_id="bank.unknown",
                     unit="ratio",
                     analytical_level=AnalyticalLevel.COMPANY,
                 ),
@@ -118,7 +118,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="ratio",
                     analytical_level=AnalyticalLevel.COMPANY,
                 ),
@@ -139,13 +139,13 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 metric_mappings=(
                     FieldMetricMapping(
                         raw_field="ROA",
-                        metric_id="company.roa",
+                        metric_id="bank.roa",
                         unit="percent",
                         analytical_level=AnalyticalLevel.COMPANY,
                     ),
                     FieldMetricMapping(
                         raw_field="ROA",
-                        metric_id="company.roe",
+                        metric_id="bank.roe",
                         unit="percent",
                         analytical_level=AnalyticalLevel.COMPANY,
                     ),
@@ -165,7 +165,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                     metric_mappings=(
                         FieldMetricMapping(
                             raw_field="ROA",
-                            metric_id="company.roa",
+                            metric_id="bank.roa",
                             unit="percent",
                             analytical_level=AnalyticalLevel.COMPANY,
                         ),
@@ -228,7 +228,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             candidate_snapshot_id="snapshot-1",
             status=OnboardingValidationStatus.VALID,
             row_count=2,
-            accepted_observation_count=4,
+            candidate_observation_count=4,
             missing_observation_count=0,
             rejected_row_count=0,
         )
@@ -239,7 +239,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 candidate_snapshot_id="snapshot-1",
                 status=OnboardingValidationStatus.INVALID,
                 row_count=2,
-                accepted_observation_count=0,
+                candidate_observation_count=0,
                 missing_observation_count=0,
                 rejected_row_count=2,
             )
@@ -255,7 +255,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 ),
             ),
             row_count=2,
-            accepted_observation_count=1,
+            candidate_observation_count=1,
             missing_observation_count=0,
             rejected_row_count=1,
         )
@@ -267,14 +267,14 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             message="invalid numeric value",
             row_number=2,
             field_name="ROA",
-            metric_id="company.roa",
+            metric_id="bank.roa",
         )
         second = OnboardingValidationIssue(
             code=OnboardingIssueCode.VALUE_INVALID,
             message="changed explanatory wording",
             row_number=2,
             field_name="ROA",
-            metric_id="company.roa",
+            metric_id="bank.roa",
             severity=OnboardingIssueSeverity.WARNING,
         )
         self.assertEqual(
@@ -283,7 +283,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 OnboardingIssueCode.VALUE_INVALID,
                 row_number=2,
                 field_name="ROA",
-                metric_id="company.roa",
+                metric_id="bank.roa",
             ),
         )
         self.assertEqual(first.issue_id, second.issue_id)
@@ -296,7 +296,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 message="invalid numeric value",
                 row_number=2,
                 field_name="ROA",
-                metric_id="company.roa",
+                metric_id="bank.roa",
             )
 
     def test_report_invariants_are_fail_closed_but_warnings_are_allowed(self):
@@ -311,7 +311,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             status=OnboardingValidationStatus.VALID,
             issues=(warning,),
             row_count=2,
-            accepted_observation_count=4,
+            candidate_observation_count=4,
             missing_observation_count=0,
             rejected_row_count=0,
         )
@@ -330,7 +330,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 status=OnboardingValidationStatus.VALID,
                 issues=(error,),
                 row_count=2,
-                accepted_observation_count=0,
+                candidate_observation_count=0,
                 missing_observation_count=0,
                 rejected_row_count=0,
             )
@@ -340,7 +340,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 candidate_snapshot_id="snapshot-1",
                 status=OnboardingValidationStatus.VALID,
                 row_count=2,
-                accepted_observation_count=0,
+                candidate_observation_count=0,
                 missing_observation_count=0,
                 rejected_row_count=1,
             )
@@ -356,7 +356,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                     ),
                 ),
                 row_count=1,
-                accepted_observation_count=0,
+                candidate_observation_count=0,
                 missing_observation_count=0,
                 rejected_row_count=2,
             )
@@ -367,7 +367,7 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 status=OnboardingValidationStatus.INVALID,
                 issues=(warning,),
                 row_count=2,
-                accepted_observation_count=0,
+                candidate_observation_count=0,
                 missing_observation_count=0,
                 rejected_row_count=1,
             )
@@ -384,11 +384,15 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             candidate_snapshot_id=metadata.dataset_snapshot_id,
             status=OnboardingValidationStatus.VALID,
             row_count=1,
-            accepted_observation_count=1,
+            candidate_observation_count=1,
             missing_observation_count=0,
             rejected_row_count=0,
         )
-        accepted = promote_snapshot_metadata(self.raw(), metadata, valid_report)
+        with self.assertRaisesRegex(ValueError, "source reconciliation is required"):
+            promote_snapshot_metadata(self.raw(), metadata, valid_report)
+        accepted = promote_snapshot_metadata(
+            self.raw(), metadata, valid_report, source_reconciled=True
+        )
         self.assertEqual(accepted.status, DatasetSnapshotStatus.ACCEPTED)
         with self.assertRaisesRegex(ValueError, "cannot create ACCEPTED"):
             build_snapshot_metadata(
@@ -409,20 +413,26 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
                 ),
             ),
             row_count=1,
-            accepted_observation_count=0,
+            candidate_observation_count=0,
             missing_observation_count=0,
             rejected_row_count=1,
         )
         with self.assertRaisesRegex(ValueError, "only a VALID"):
-            promote_snapshot_metadata(self.raw(), metadata, invalid_report)
+            promote_snapshot_metadata(
+                self.raw(), metadata, invalid_report, source_reconciled=True
+            )
         mismatch_report = valid_report.model_copy(update={"dataset_id": "other-dataset"})
         with self.assertRaisesRegex(ValueError, "dataset ID"):
-            promote_snapshot_metadata(self.raw(), metadata, mismatch_report)
+            promote_snapshot_metadata(
+                self.raw(), metadata, mismatch_report, source_reconciled=True
+            )
         mismatch_snapshot_report = valid_report.model_copy(
             update={"candidate_snapshot_id": "other-snapshot"}
         )
         with self.assertRaisesRegex(ValueError, "snapshot ID"):
-            promote_snapshot_metadata(self.raw(), metadata, mismatch_snapshot_report)
+            promote_snapshot_metadata(
+                self.raw(), metadata, mismatch_snapshot_report, source_reconciled=True
+            )
 
     def test_snapshot_metadata_schema_is_explicit_and_strict(self):
         with self.assertRaises(ValidationError):

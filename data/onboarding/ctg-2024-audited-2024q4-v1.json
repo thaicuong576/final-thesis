@@ -27,7 +27,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -35,7 +35,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
           }
         ],
         "resolution_note": "Manually reconciled from the Vietnamese row “Nợ dưới tiêu chuẩn (Nhóm 3)”: 2.817.030 triệu VND. Normalized by 1,000 to 2,817.030 billion VND."
@@ -51,7 +51,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -59,7 +59,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance"
           }
         ],
         "resolution_note": "Manually reconciled from the Vietnamese row “Nợ nghi ngờ (Nhóm 4)”: 4.824.119 triệu VND. Normalized by 1,000 to 4,824.119 billion VND."
@@ -75,7 +75,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -83,7 +83,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance"
           }
         ],
         "resolution_note": "Manually reconciled from the Vietnamese row “Nợ có khả năng mất vốn (Nhóm 5)”: 13.348.618 triệu VND. Normalized by 1,000 to 13,348.618 billion VND."
@@ -99,7 +99,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -107,7 +107,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance"
           }
         ],
         "resolution_note": "Manually reconciled from Note 10 total customer loans: 1.721.954.714 triệu VND. Normalized by 1,000 to 1,721,954.714 billion VND."
@@ -123,7 +123,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=40; printed_page=38; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
+      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -131,7 +131,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=40; printed_page=38; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
+            "source_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
           }
         ],
         "resolution_note": "Manually reconciled from Note 11 total closing loan loss provisions: 36.664.125 triệu VND. Normalized by 1,000 to 36,664.125 billion VND."
@@ -147,7 +147,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -155,7 +155,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
           }
         ],
         "resolution_note": "Reproduced as the sum of accepted Note 10 group 3, 4, and 5 closing balances: 2,817.030 + 4,824.119 + 13,348.618 = 20,989.767 billion VND."
@@ -481,7 +481,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -489,7 +489,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=39; printed_page=37; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
           }
         ],
         "resolution_note": "Reproduced with npl-g35-v1 from manually reconciled group 3–5 balances and gross customer loans in Note 10. Result is rounded to four percentage points for display."
@@ -514,7 +514,7 @@
       "reporting_scope": "consolidated",
       "quality_status": "valid",
       "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
-      "candidate_locator": "pdf_page=40; printed_page=38; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
+      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
       "review": {
         "reviewer_id": "codex-worker-data",
         "reviewed_at": "2026-09-24T16:40:16Z",
@@ -522,7 +522,7 @@
         "primary_evidence": [
           {
             "source_id": "vietinbank-2024-audited-consolidated-report",
-            "source_locator": "pdf_page=40; printed_page=38; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
+            "source_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
           }
         ],
         "resolution_note": "Reproduced with llr-coverage-v1 using Note 11 closing provisions 36,664.125 and Note 10 group 3–5 loan balance 20,989.767 billion VND. Result is rounded to four percentage points for display."

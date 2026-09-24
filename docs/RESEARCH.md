@@ -88,7 +88,8 @@ the PDF has no selectable text layer; OCR output was not accepted as evidence.
 
 The packet contains reconciled consolidated values for `bank.npl_g35`,
 `bank.llr_coverage`, `bank.roa`, and `bank.roe` at `2024_Q4`. NPL and coverage
-use closing balances from PDF pages 39–40 (printed pages 37–38); FY2024 profit
+use Note 10 on PDF page 38 (printed page 36) and Note 11 on PDF page 39
+(printed page 37); FY2024 profit
 and total assets/equity inputs come from pages 7–10 (printed pages 5–8). The
 ratios are 1.2190%, 174.6762%, 1.1536%, and 18.6012%, respectively. ROE uses
 parent-attributable profit divided by average consolidated equity less

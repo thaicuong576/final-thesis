@@ -105,6 +105,18 @@ known Python baseline fixture/dependency failures must be repaired before a
 full Python check is made required. Local results must be labeled as local;
 CI status must be read from GitHub.
 
+### SQLite isolation in worktrees
+
+`scripts/worker-start.ps1` and `scripts/worker-start.sh` create an independent
+SQLite snapshot with `scripts/copy_sqlite_snapshot.py`. They must never
+hardlink or symlink `finance_master_v2.sqlite` or its WAL/SHM sidecars to the
+root repository. Only `.env` may be hardlinked for local configuration.
+
+Tests and local APIs must write to a worktree or temporary database. Before and
+after any database-touching regression run, record the SHA-256 of the source
+artifact when that artifact is in scope. A changed source hash is a failed
+isolation gate even when the test assertions pass.
+
 GitHub branch protection and repository rulesets are not available for this
 private repository under the current plan. The project therefore records the
 desired no-direct-push/review policy here and relies on the PR workflow until

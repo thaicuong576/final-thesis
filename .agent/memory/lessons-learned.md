@@ -293,3 +293,24 @@ Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orch
    - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
 4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
    - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.
+
+---
+
+## [LESSON-013] Never hardlink a mutable SQLite database into worktrees
+
+- **Date:** 2026-09-25
+- **Scope:** `scripts/worker-start.ps1`, test/database isolation
+- **Status:** fixed by independent SQLite backup snapshots.
+
+During composite verification, a full test process inserted test analysis runs
+through a worktree path that was an NTFS hardlink to the root
+`finance_master_v2.sqlite`. The root file grew and its SHA-256 changed even
+though the intended runner used temporary copies. WAL mode cannot isolate
+different paths that reference the same underlying file, and hardlinking the
+WAL/SHM sidecars widens the risk.
+
+Only `.env` may be hardlinked. Worktree databases are created with SQLite's
+online backup API, checked before and after the copy, configured independently
+for WAL, and verified not to share file identity. Test configuration remains
+responsible for using temp databases, but an accidental default path can now
+damage only the disposable worktree snapshot rather than the root artifact.

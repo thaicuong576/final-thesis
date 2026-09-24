@@ -24,24 +24,18 @@ if (Test-Path "$RepoRoot\.env") {
     }
 }
 
-# Link real database finance_master_v2.sqlite and WAL files
+# Create an independent SQLite snapshot for the worktree. Never hardlink the
+# mutable database or its WAL/SHM sidecars: a test or local API write through a
+# hardlink would mutate the root data artifact and every other worktree.
 $DbDir = "$RepoRoot\data\processed"
 $DestDir = "$WorktreePath\data\processed"
 if (Test-Path "$DbDir\finance_master_v2.sqlite") {
     New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
-    $DbFiles = @("finance_master_v2.sqlite", "finance_master_v2.sqlite-wal", "finance_master_v2.sqlite-shm")
-    foreach ($file in $DbFiles) {
-        $srcFile = Join-Path $DbDir $file
-        $dstFile = Join-Path $DestDir $file
-        if (Test-Path $srcFile) {
-            cmd /c mklink /H "$dstFile" "$srcFile" 2>$null
-            if (-not (Test-Path "$dstFile")) {
-                cmd /c mklink "$dstFile" "$srcFile" 2>$null
-            }
-            if (-not (Test-Path "$dstFile")) {
-                Copy-Item "$srcFile" "$dstFile"
-            }
-        }
+    $SourceDb = Join-Path $DbDir "finance_master_v2.sqlite"
+    $DestinationDb = Join-Path $DestDir "finance_master_v2.sqlite"
+    & python "$RepoRoot\scripts\copy_sqlite_snapshot.py" --source "$SourceDb" --destination "$DestinationDb"
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $DestinationDb)) {
+        throw "Failed to create an isolated SQLite snapshot for the worktree."
     }
 }
 

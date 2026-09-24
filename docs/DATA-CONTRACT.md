@@ -332,9 +332,9 @@ availability from evidence availability (for example `MISSING_DATA` and
 unsupported inference, hard-gate failures, unresolved contradictions, or
 provider/system failures.
 
-The current implementation has the Phase 3A result and acceptance-state
-contracts but no semantic evaluator or revision controller yet. The clauses
-above define the next compatibility slice; they do not claim runtime support.
+The reusable core now has a semantic evaluator and bounded revision controller,
+with focused Phase 3B tests. The deployed API does not yet route its reports
+through that core, so these clauses do not claim end-to-end runtime support.
 
 ## Run configuration and prompt version
 

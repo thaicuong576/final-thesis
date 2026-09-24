@@ -1202,3 +1202,34 @@ Reason: the current canonical snapshot validator checks that derived input IDs
 exist, but does not recalculate their value. Formula unit tests by themselves
 do not prove a submitted CTG candidate was computed by those formulas. The
 promotion gate must enforce the `code computes financial metrics` invariant.
+
+## D-072: Keep the VPB ROE comparison gate closed while reconciling stale authority records
+
+Status: Investigation confirms strong local source evidence that D-063's VPB
+factual clause is stale, but the comparative gate remains closed until the
+evidence lineage is made authoritative and reviewable from the repository.
+
+A read-only audit on 25 September 2026 checked the hashed official VPB Q1-Q4
+2024 consolidated filings, the two-checker adjudicated ledger, the promotion
+ledger, and local Gold v5. For Q4, filing pages 6 and 8 report FY2024
+parent-attributable profit of 15,778,795 million VND; total equity/NCI of
+139,795,527/5,164,494 million VND for 2023 and
+147,275,262/5,370,287 million VND for 2024. Parent-attributable average equity
+therefore gives ROE 11.411747%, which matches both reviewers and Gold v5.
+Using total consolidated average equity would give 10.992965%. Q1-Q4 Gold
+values and locators likewise state the parent-attributable convention.
+
+However, the raw PDFs, candidate and review ledgers, and Gold v5 SQLite file
+used in this audit are ignored local artifacts rather than Git-bound evidence.
+D-063 and the VPB review README/manifest also contradict the accepted
+adjudicated ledger. Therefore no comparison eligibility statement changes yet.
+Before revising D-063, commit or otherwise bind a non-sensitive evidence
+manifest containing the source/review/Gold hashes, reconcile the stale review
+status records, rerun the comparative definition gate, and receive an
+independent confirmation. Until then, exclude VPB ROE from five-issuer peer
+tasks even though the inspected local artifact supports the corrected value.
+
+Reason: the numeric evidence is strong enough to identify a stale decision,
+but a thesis claim must remain reproducible after the working machine and its
+ignored artifacts are unavailable. Source truth and durable provenance must
+agree before the fail-closed gate is lifted.

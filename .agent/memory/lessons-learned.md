@@ -314,3 +314,23 @@ record a calculation receipt. Keep this gate in the data promotion boundary;
 Stage-1 then checks the published claim against the accepted result. Until that
 path passes, a CTG packet is a reviewed candidate, not proof of a generic
 derived-metric ingestion guarantee.
+
+---
+
+## [LESSON-016] A correct ignored artifact can still conflict with project truth
+
+- **Date:** 2026-09-25
+- **Scope:** VPB ROE comparative eligibility and Gold v5 provenance
+- **Status:** active until D-072 reconciliation is complete.
+
+The local Gold v5 value, official filing calculation and two independent
+reviewers all support parent-attributable VPB ROE, while a later committed
+decision says total equity was used. The local evidence is persuasive but its
+raw PDFs, ledgers and SQLite snapshot are ignored by Git, so another session
+cannot reproduce the conclusion from repository state alone.
+
+When an ignored artifact disproves a committed decision, keep the downstream
+gate closed, record exact source and artifact hashes, reconcile stale manifests
+and commit a non-sensitive evidence manifest before changing eligibility. A
+`valid` row, a recent timestamp or correct local arithmetic does not replace
+durable provenance.

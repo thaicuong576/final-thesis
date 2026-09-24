@@ -1229,6 +1229,11 @@ status records, rerun the comparative definition gate, and receive an
 independent confirmation. Until then, exclude VPB ROE from five-issuer peer
 tasks even though the inspected local artifact supports the corrected value.
 
+The first durable hash and calculation binding is
+`reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json`.
+It deliberately remains `reconciliation_pending`; the stale status records,
+definition-gate rerun and independent manifest confirmation remain required.
+
 Reason: the numeric evidence is strong enough to identify a stale decision,
 but a thesis claim must remain reproducible after the working machine and its
 ignored artifacts are unavailable. Source truth and durable provenance must

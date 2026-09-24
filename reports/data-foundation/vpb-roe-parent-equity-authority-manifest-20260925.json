@@ -89,10 +89,21 @@
     "average_total_equity": 143535394.5,
     "roe_total_equity_percent": 10.9929645263
   },
+  "comparative_definition_gate_rerun": {
+    "checked_at": "2026-09-25T06:45:00+07:00",
+    "gate_manifest_ref": "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json",
+    "gate_manifest_sha256": "4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410",
+    "execution": "thesis_data.comparative_gate.audit_comparative_definition_gate; SQLite mode=ro",
+    "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "cells_checked": 80,
+    "valid_cells": 76,
+    "missing_cells": 4,
+    "eligible": true,
+    "blockers": []
+  },
   "remaining_gates": [
     "reconcile stale D-063 factual clause and stale review README/manifest",
-    "rerun comparative definition gate against exact hashes",
-    "independent reviewer confirms this manifest and gate result"
+    "a distinct independent reviewer confirms this manifest and gate result"
   ],
   "eligibility": "blocked_until_remaining_gates_pass"
 }

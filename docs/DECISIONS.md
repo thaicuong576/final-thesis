@@ -1231,8 +1231,12 @@ tasks even though the inspected local artifact supports the corrected value.
 
 The first durable hash and calculation binding is
 `reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json`.
-It deliberately remains `reconciliation_pending`; the stale status records,
-definition-gate rerun and independent manifest confirmation remain required.
+The 25 September read-only rerun of the hash-matched v5 comparative definition
+gate returned eligible with no blockers across 80 cells (76 valid, four
+missing); its gate-manifest hash and result are now bound there. D-072 remains
+`reconciliation_pending` because stale review status/evidence links still need
+correction and a reviewer distinct from the first auditor must confirm the
+updated manifest and rerun.
 
 Reason: the numeric evidence is strong enough to identify a stale decision,
 but a thesis claim must remain reproducible after the working machine and its

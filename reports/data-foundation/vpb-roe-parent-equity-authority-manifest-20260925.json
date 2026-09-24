@@ -1,0 +1,98 @@
+{
+  "manifest_id": "vpb-roe-parent-equity-authority-20260925",
+  "status": "reconciliation_pending",
+  "created_at": "2026-09-25T06:20:00+07:00",
+  "decision_refs": ["D-063", "D-072"],
+  "scope": {
+    "entity_id": "VPB",
+    "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+    "metric_id": "bank.roe",
+    "reporting_scope": "consolidated",
+    "equity_convention": "parent_attributable_equity"
+  },
+  "source_artifacts": [
+    {
+      "period": "2024_Q1",
+      "artifact_ref": "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q1_consolidated_lookup.pdf",
+      "sha256": "D95829491FB2A5B692E4963318626F659C6E046930113774D9C53EBDBA111B2E",
+      "availability": "local_ignored"
+    },
+    {
+      "period": "2024_Q2",
+      "artifact_ref": "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q2_consolidated_lookup.pdf",
+      "sha256": "ED7C2D77F61C4FFE2C7BF017535A5E6DF63D3FC4FA84E423B56EC3B85EAC03A8",
+      "availability": "local_ignored"
+    },
+    {
+      "period": "2024_Q3",
+      "artifact_ref": "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q3_consolidated_lookup.pdf",
+      "sha256": "13DAB519C2E0BEE18E799E70A6160E9F8DCCF671C3A055962E3BF37C88411AC4",
+      "availability": "local_ignored"
+    },
+    {
+      "period": "2024_Q4",
+      "artifact_ref": "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q4_consolidated_lookup.pdf",
+      "sha256": "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F",
+      "availability": "local_ignored"
+    }
+  ],
+  "review_artifacts": [
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-candidates-v1.jsonl",
+      "sha256": "B8A48A271CD0DCECD1EF0900B50EEEEE95C05DFFFDBA436788316D3A1A1FAEEE",
+      "availability": "local_ignored"
+    },
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_review-ledger-adjudicated-v1.csv",
+      "sha256": "05005D49BB917802A06E992DCCE9E34C7809CEB26F9E63147A1EFBC9EEB5A8FA",
+      "availability": "local_ignored",
+      "review_status": "two_checkers_and_adjudication_accepted"
+    },
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv",
+      "sha256": "4A27D58CFD9FF476946A50BCBF26CA1E5F4E2FEC596CF4ED5C32D39F6978263D",
+      "availability": "local_ignored"
+    }
+  ],
+  "snapshot_artifacts": [
+    {
+      "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+      "artifact_ref": "data/processed/gold-bank-2025-expanded-v5-evidence.sqlite",
+      "sha256": "1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73",
+      "size_bytes": 487424,
+      "availability": "local_ignored"
+    },
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_gold-labels-v5.jsonl",
+      "sha256": "C264CB6680C67B3FEBD33AF41ED8FCFB29A9FD5A771E2F3F954E816E690D7846",
+      "availability": "local_ignored"
+    }
+  ],
+  "accepted_results": [
+    {"period": "2024_Q1", "roe_percent_4dp": 8.0671},
+    {"period": "2024_Q2", "roe_percent_4dp": 8.5867},
+    {"period": "2024_Q3", "roe_percent_4dp": 9.6445},
+    {"period": "2024_Q4", "roe_percent_4dp": 11.4117}
+  ],
+  "q4_independent_recalculation": {
+    "unit": "million_vnd",
+    "source_locator": "pdf_page=6;form=B02a/TCTD-HN and pdf_page=8;form=B03a/TCTD-HN",
+    "profit_attributable_to_bank_shareholders_2024": 15778795,
+    "total_equity_2023": 139795527,
+    "non_controlling_interest_2023": 5164494,
+    "total_equity_2024": 147275262,
+    "non_controlling_interest_2024": 5370287,
+    "parent_attributable_equity_2023": 134631033,
+    "parent_attributable_equity_2024": 141904975,
+    "average_parent_attributable_equity": 138268004,
+    "roe_parent_equity_percent": 11.4117471458,
+    "average_total_equity": 143535394.5,
+    "roe_total_equity_percent": 10.9929645263
+  },
+  "remaining_gates": [
+    "reconcile stale D-063 factual clause and stale review README/manifest",
+    "rerun comparative definition gate against exact hashes",
+    "independent reviewer confirms this manifest and gate result"
+  ],
+  "eligibility": "blocked_until_remaining_gates_pass"
+}

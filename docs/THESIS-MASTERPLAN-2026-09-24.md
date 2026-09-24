@@ -23,6 +23,7 @@ MVP chấp nhận một **gói dữ liệu chuẩn hóa** gồm định danh ng�
 ## 2. Mốc xuất phát đã kiểm chứng và khoảng trống
 
 - Gold v5 có 80 ô mục tiêu, 76 quan sát hợp lệ có evidence và 4 ô thiếu rõ ràng (`reports/analysis-report-v2-final-evaluation-gold-v5-20260909-v4/final-evaluation.md`).
+- Artifact SQLite Gold v5 riêng đã được xác nhận ở local `data/processed/gold-bank-2025-expanded-v5-evidence.sqlite` (487.424 byte, SHA-256 `1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73`), chứa 80 observations, 116 evidence snippets và 17 sources. File này bị ignore, **không phải** `finance_master_v2.sqlite` legacy 126 MB mà app hiện mở. API/deploy cần trỏ tường minh tới artifact Gold v5 đã đóng gói hoặc mount; không dựa vào đường dẫn máy phát triển.
 - Thực nghiệm cũ: 75 jobs dự kiến, 61 hoàn tất, 14 lỗi; 61 packet được chấm mù với 244 dòng tiêu chí. Đây là **pilot lịch sử** về số ngân hàng mỗi yêu cầu; chi phí và lỗi tăng ở cấu hình phức tạp. Không dùng nó như bằng chứng rằng vòng critique/revision cuối cùng đã hoạt động.
 - `docs/ARCHITECTURE.md` xác nhận runtime benchmark hiện còn là scaffold: verification call chưa tạo `CritiqueIssue`, chưa chạy lại specialist bị ảnh hưởng và chưa re-synthesize.
 - Bản `docs/THESIS-DRAFT-CHAPTERS-1-4-VI.md` hiện có **7 chương**, khác outline **6 chương** đã được GVHD duyệt. Chương 1–2 người viết gửi trong phiên làm việc là đầu vào biên tập; artifact thesis nguồn trong `docs/Khoá luận tốt nghiệp - Cường - GVHD_ Lê Văn.md` vẫn chỉ đọc.

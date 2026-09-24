@@ -36,6 +36,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    Gold benchmark promotion; do not silently grant either status.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
+   For numeric claims, Stage-1 may accept exact structured observation/source
+   locator provenance instead of a document snippet; derived claims must
+   reproduce from accepted primary-backed inputs. Unlinked same-document
+   snippets are not claim evidence.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.
 6. Every material decision, assumption, blocker, and verification result must be recorded in git commits and pull requests.
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.

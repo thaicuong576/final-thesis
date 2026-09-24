@@ -1148,3 +1148,25 @@ while the Stage-1 policy properly rejects user-supplied sources as primary
 claim support. Future implementation must align these statuses and preserve
 the source linkage through the canonical provider. No issuer PDF, including
 scan/OCR output, is automatically accepted by this contract alone.
+
+## D-070: Accept exact observation provenance for numeric claims
+
+Status: Accepted as a provider-neutral Stage-1 contract correction; API/core
+implementation and combined E2E verification are pending.
+
+The Gold v5 evidence-snippet table lacks a metric or observation foreign key.
+A source/ticker/period query therefore returns snippets from several metrics;
+attaching all of them to each numeric claim creates a false claim-to-evidence
+graph even when the numeric observation itself is correct. Numeric claims may
+instead pass the critical evidence gate through an accepted direct observation
+with primary source and exact locator, or through a reproducible derived metric
+whose accepted inputs each have primary source and exact locator. Stage-1 must
+validate those links and values through provider interfaces. Narrative/policy
+claims still require document evidence. An unlinked snippet cannot be relabeled
+as if it specifically supports a numeric claim.
+
+This follows the existing data-contract rule that a published metric has
+evidence **or an explicit source-record locator**, and preserves the
+structured/document source-family separation in the architectural guardrails.
+It does not authorize accepting user-supplied CSV numerics, missing locators,
+invalid sources, wrong formulas, or cross-scope claims.

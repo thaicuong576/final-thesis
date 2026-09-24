@@ -134,6 +134,33 @@ reason: string | null
 
 Derived metrics must be reproducible from the listed inputs. Formula code, unit conversion, YTD subtraction, and peer-statistics rules are versioned.
 
+## Evidence for published numeric claims
+
+A critical numeric claim may be supported by **structured observation
+provenance** without a document snippet when the frozen snapshot resolves all
+of the following through the provider:
+
+- a direct claim has the accepted observation ID, matching metric/entity/period,
+  value and unit, an approved primary source record, and that observation's
+  exact source locator;
+- a derived claim has the formula version and accepted input observation IDs,
+  reproduces the stated value under the recorded unit/period basis, and every
+  required input resolves to an approved primary source and exact locator;
+- the claim preserves these observation/source references in its report
+  provenance, including the snapshot ID. A derived result must not pretend its
+  user-supplied CSV is a direct primary source.
+
+Stage-1 rejects missing or invalid source records, locator, inputs, formula,
+scope, or value. This observation route does **not** remove the evidence gate;
+it is a verifiable numeric evidence route. Narrative, policy, and unsupported
+causal claims still require appropriate document snippets with page locators.
+
+Document snippets may be attached as evidence for a particular numeric claim
+only through an explicit reviewed observation-to-snippet association. Matching
+the same source, bank and period—or overlapping PDF pages—is insufficient.
+Unlinked snippets can be shown as related documents but cannot be copied into a
+claim's `evidence_refs` or relabeled with that claim's metric/value/locator.
+
 ## EvidenceSnippet
 
 ```text

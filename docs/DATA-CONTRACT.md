@@ -6,7 +6,7 @@ All contracts are versioned and validated at boundaries. A payload from staging 
 
 ```text
 source_type: api | filing | issuer_ir | policy | market_data | research_report
-source_tier: primary | accelerator | cross_check | context | fallback
+source_tier: primary | accelerator | cross_check | context | fallback | user_supplied
 quality_status: valid | missing | estimated | conflicting | invalid | pending_validation
 agent_status: success | partial | failed
 critique_resolution: resolved | explained | unresolved
@@ -33,7 +33,51 @@ Rules:
 - `source_id` is stable within a snapshot.
 - `content_hash` identifies the retrieved artifact; restatements receive a new record.
 - A fallback or context source cannot silently become primary evidence.
+- A user-supplied CSV is a candidate transport source, not primary evidence for
+  its financial values. Attaching an issuer filing does not automatically
+  upgrade those values; each promoted observation needs a recorded comparison
+  to the filing's exact page, table, or note.
 - Failed retrievals remain in manifests but cannot produce valid observations.
+
+## Onboarding packet and acceptance boundary
+
+`contracts/bank-onboarding-packet-v1.schema.json` describes the exchange packet
+for a bank outside the current Gold sample. It is an input contract, not a new
+physical database schema. A packet identifies its bank and carries immutable
+source descriptors and candidate observations. Each observation identifies its
+metric, period, unit, period basis, reporting scope, and source locator. A
+derived value also lists its input observation IDs and formula version. A
+missing cell has `value: null` and a reason. Source hashes identify the exact
+artifacts reviewed.
+
+There are three distinct gates:
+
+1. **Structural validation:** parse types, explicit mapping, units, periods,
+   supported metric IDs, source references, and `missing ≠ 0`. Passing this gate
+   creates a candidate snapshot; its numeric observations are not yet accepted
+   for a published analysis.
+2. **Source reconciliation:** a reviewer checks each numeric candidate against
+   a primary issuer filing and records its source ID, exact locator, reporting
+   scope, period basis, result, reviewer, time, and notes. A derived metric also
+   records accepted inputs and formula version. Failed or unresolved checks
+   remain pending/conflicting and cannot be represented as valid facts.
+3. **Analysis acceptance:** only a reconciled observation in an immutable
+   validated snapshot may support a published numeric claim. The Stage-1
+   acceptance harness resolves its primary source and locator through the
+   provider; it must reject an unreviewed `user_supplied` CSV value, even when
+   the CSV packet or its technical validation report is called `accepted`.
+
+This case-study acceptance does not imply **Gold benchmark promotion**. The
+existing Gold coverage and independent-checker requirements below continue to
+govern evaluation datasets. A bank may demonstrate transferability through a
+reviewed operational snapshot without joining the frozen five-bank Gold v5
+benchmark. The app must label each snapshot's validation level and supported
+entities, periods, and metrics accurately.
+
+An OCR/parser output follows the same candidate route. Text, tables, or chart
+descriptions from a scanned PDF cannot bypass source reconciliation, and page
+order/locator must survive parsing. Unsupported charts or ambiguous numbers
+remain pending or missing with a reason.
 
 ## MetricObservation
 

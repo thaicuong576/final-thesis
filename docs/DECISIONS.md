@@ -1127,3 +1127,24 @@ Reason: semantic reconciliation must be completed before Phase 4, while Gold
 promotion still requires the existing independent review, source contract and
 fail-closed materialization gate. This decision changes no raw artifact,
 schema, runtime or historical Gold snapshot.
+
+## D-069: Separate bank-input syntax checks from source-backed acceptance
+
+Status: Accepted as the contract for the next data-onboarding implementation;
+no bank outside Gold v5 has been promoted by this decision.
+
+CSV and parser outputs are candidate transport artifacts. A successful schema
+check or mapping does not establish that a numeric value matches a primary
+filing. The bank onboarding packet v1 therefore records immutable source
+hashes, bank/period/metric semantics, locator, period basis, reporting scope,
+missingness, and a per-observation reconciliation decision. A derived value
+also names its inputs and formula version. Only reviewed primary-backed values
+may enter an operational validated snapshot used by a published report; the
+existing Gold benchmark requirements remain separate and unchanged.
+
+This is necessary because the current CSV onboarding path can mark structurally
+valid user-supplied values `VALID` and name its resulting snapshot `accepted`,
+while the Stage-1 policy properly rejects user-supplied sources as primary
+claim support. Future implementation must align these statuses and preserve
+the source linkage through the canonical provider. No issuer PDF, including
+scan/OCR output, is automatically accepted by this contract alone.

@@ -28,6 +28,12 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   For a new bank, a structurally valid CSV or OCR result is a candidate only.
+   Published numeric claims require observation-level reconciliation to a
+   primary source with exact locator, period basis, reporting scope, and a
+   review record under `contracts/bank-onboarding-packet-v1.schema.json` and
+   `docs/DATA-CONTRACT.md`. A reviewed operational snapshot is distinct from
+   Gold benchmark promotion; do not silently grant either status.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.

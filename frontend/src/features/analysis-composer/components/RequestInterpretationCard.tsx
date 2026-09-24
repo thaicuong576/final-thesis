@@ -2,7 +2,7 @@ import type { ParseResult } from '../model/types';
 import { formatPeriodsSignature } from '../model/intentParser';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ArrowRight, Settings2, Check } from 'lucide-react';
+import { ArrowRight, Settings2, Check, Info } from 'lucide-react';
 
 interface RequestInterpretationCardProps {
   parseResult: ParseResult;
@@ -10,6 +10,7 @@ interface RequestInterpretationCardProps {
   onOpenScopeAdjustment: () => void;
   onEditQuestion: () => void;
   isConfirming?: boolean;
+  executionBlockReason?: string | null;
 }
 
 export function RequestInterpretationCard({
@@ -17,7 +18,8 @@ export function RequestInterpretationCard({
   onConfirm,
   onOpenScopeAdjustment,
   onEditQuestion,
-  isConfirming = false
+  isConfirming = false,
+  executionBlockReason
 }: RequestInterpretationCardProps) {
   const { rawQuestion, scope } = parseResult;
   const { selectedCapabilities } = scope.analysisPlan;
@@ -33,14 +35,17 @@ export function RequestInterpretationCard({
         <div className="space-y-1">
           <Badge
             variant="outline"
-            className="bg-[#e4f4ea] text-[#2f9e62] border-[#2f9e62]/30 gap-1 px-2 py-0.5 text-xs font-semibold"
+            className="bg-surface-secondary text-ink-secondary border-border-subtle gap-1 px-2 py-0.5 text-xs font-semibold"
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#2f9e62]" />
-            Hệ thống hiểu yêu cầu
+            <Info className="w-3.5 h-3.5 text-ink-tertiary" aria-hidden="true" />
+            Bản diễn giải từ giao diện
           </Badge>
-          <h2 className="text-base font-bold text-ink">Xác nhận kế hoạch phân tích</h2>
+          <h2 className="text-base font-bold text-ink">Kiểm tra phạm vi trước khi gửi API</h2>
           <p className="text-xs text-ink-secondary italic line-clamp-2">
             “{rawQuestion}”
+          </p>
+          <p className="text-xs text-ink-secondary">
+            Đây là gợi ý phạm vi do giao diện bóc tách. API tạo kế hoạch thực thi nếu snapshot và năng lực đã sẵn sàng.
           </p>
         </div>
 
@@ -56,7 +61,7 @@ export function RequestInterpretationCard({
       {/* Query-Adaptive Section 1: Phạm vi hệ thống nhận diện */}
       <div className="p-3.5 bg-surface-secondary rounded-md border border-border-subtle space-y-2">
         <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary block">
-          Phạm vi hệ thống nhận diện
+          Phạm vi giao diện nhận diện
         </span>
         <div className="text-sm font-bold text-ink">
           {scope.scopeSignature}
@@ -83,7 +88,7 @@ export function RequestInterpretationCard({
       {/* Query-Adaptive Section 2: Phân tích sẽ sử dụng */}
       <div className="space-y-2.5">
         <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary block">
-          Phân tích sẽ sử dụng
+          Năng lực dự kiến gửi tới API
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {selectedCapabilities.map((cap) => (
@@ -108,6 +113,11 @@ export function RequestInterpretationCard({
       </div>
 
       {/* Action CTAs */}
+      {executionBlockReason && (
+        <p role="alert" className="rounded-md border border-warning/40 bg-warning-soft/60 p-3 text-xs leading-relaxed text-ink">
+          Chưa thể chạy phạm vi này: {executionBlockReason}
+        </p>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-line">
         <Button
           type="button"
@@ -132,7 +142,7 @@ export function RequestInterpretationCard({
           <Button
             type="button"
             onClick={onConfirm}
-            disabled={isConfirming}
+            disabled={isConfirming || Boolean(executionBlockReason)}
             className="h-9 px-4 text-xs font-semibold gap-1.5"
           >
             <span>Xác nhận & phân tích</span>

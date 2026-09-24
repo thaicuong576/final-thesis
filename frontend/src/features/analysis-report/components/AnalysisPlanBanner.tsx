@@ -3,7 +3,7 @@ import type { AnalysisPlan, BoundedRevisionSummary } from '../model/types';
 
 interface AnalysisPlanBannerProps {
   plan: AnalysisPlan;
-  revisionSummary?: BoundedRevisionSummary;
+  revisionSummary?: BoundedRevisionSummary | null;
   limitations?: string[];
 }
 
@@ -22,12 +22,10 @@ const LINK_LABELS: Record<string, string> = {
 export function AnalysisPlanBanner({
   plan,
   revisionSummary,
-  limitations = []
+  limitations
 }: AnalysisPlanBannerProps) {
-  const allLimitations = [
-    ...(plan.known_limitations || []),
-    ...limitations
-  ];
+  const allLimitations = [...(plan.known_limitations || []), ...(limitations || [])];
+  const limitationsReported = Array.isArray(plan.known_limitations) || Array.isArray(limitations);
 
   return (
     <section className="border border-line bg-card rounded-lg p-4 space-y-3 shadow-sm">
@@ -117,10 +115,15 @@ export function AnalysisPlanBanner({
             </ul>
           </div>
         </div>
-      ) : (
+      ) : limitationsReported ? (
         <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
           <Info className="size-3 shrink-0" aria-hidden="true" />
           <span>Không có giới hạn phương pháp luận trong phạm vi phân tích này.</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
+          <Info className="size-3 shrink-0" aria-hidden="true" />
+          <span>API không công bố danh sách giới hạn cho báo cáo này.</span>
         </div>
       )}
     </section>

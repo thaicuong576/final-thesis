@@ -1,19 +1,18 @@
 import type { ScopeMismatch } from '../model/types';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ScopeMismatchAlertProps {
   mismatch: ScopeMismatch;
   rawQuestion: string;
   onEditQuestion: () => void;
-  onOpenDatasetSelector: () => void;
 }
 
 export function ScopeMismatchAlert({
   mismatch,
   rawQuestion,
-  onEditQuestion,
-  onOpenDatasetSelector
+  onEditQuestion
 }: ScopeMismatchAlertProps) {
   return (
     <div className="border border-warning/40 bg-card rounded-md p-5 space-y-4">
@@ -57,13 +56,8 @@ export function ScopeMismatchAlert({
           <span>Chỉnh câu hỏi</span>
         </Button>
 
-        <Button
-          type="button"
-          onClick={onOpenDatasetSelector}
-          className="h-9 px-4 text-xs font-semibold gap-1.5 self-end sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Đổi nguồn dữ liệu</span>
+        <Button asChild className="h-9 px-4 text-xs font-semibold gap-1.5 self-end sm:self-auto">
+          <Link to="/data"><RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /><span>Xem phạm vi dữ liệu</span></Link>
         </Button>
       </div>
     </div>

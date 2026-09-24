@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Check,
-  CheckCircle2,
   Copy,
   Database,
   Download,
-  ShieldCheck
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +15,17 @@ import { SAMPLE_REPORTS } from '../mock/mockReports';
 
 interface ReportHeaderBarProps {
   report: AnalysisReport;
+  isDemo?: boolean;
 }
 
-export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
+const REPORT_STATUS_LABELS: Record<NonNullable<AnalysisReport['status']>, string> = {
+  completed: 'Hoàn tất',
+  partial: 'Kết quả một phần',
+  accepted_with_limitations: 'Chấp nhận có giới hạn',
+  error: 'Lỗi'
+};
+
+export function ReportHeaderBar({ report, isDemo = false }: ReportHeaderBarProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = () => {
@@ -42,6 +49,17 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
   return (
     <div className="sticky top-0 z-20 border-b border-line bg-card shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/95">
       <div className="mx-auto max-w-[1280px] px-4 py-3 sm:px-6 lg:px-8">
+        {isDemo && (
+          <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/40 bg-warning-soft/60 p-3 text-xs text-ink" role="note">
+            <Info className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+            <p><strong>Mẫu minh họa, dữ liệu giả lập.</strong> Nội dung này không được lấy từ API và không phải kết quả phân tích thực tế.</p>
+          </div>
+        )}
+        {!isDemo && report.status === 'partial' && (
+          <div className="mb-3 rounded-md border border-warning/40 bg-warning-soft/60 p-3 text-xs text-ink" role="status">
+            Kết quả một phần: API chưa công bố phản biện Stage 2 hoặc tóm tắt hiệu đính cho báo cáo này.
+          </div>
+        )}
         {/* Navigation, Quick Switcher & Quality Assurance Badges */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-2.5">
           <div className="flex flex-wrap items-center gap-2.5">
@@ -57,57 +75,59 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
               </Link>
             </Button>
 
-            {/* Quick switcher for 3 sample reports */}
-            <div className="flex items-center gap-1.5 overflow-x-auto">
-              <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-ink-tertiary hidden md:inline-block">
-                Xem nhanh:
-              </span>
-              {SAMPLE_REPORTS.map((s) => {
-                const isActive = s.report.report_id === report.report_id;
-                return (
-                  <Link
-                    key={s.id}
-                    to={`/reports/${s.slug}`}
-                    className={`px-2.5 py-1 text-xs font-mono rounded transition-colors whitespace-nowrap ${
-                      isActive
-                        ? 'bg-amber text-ink font-bold border border-amber-border shadow-xs'
-                        : 'bg-surface-secondary text-ink-secondary hover:text-ink hover:bg-surface-hover border border-border font-medium'
-                    }`}
-                  >
-                    {s.shortName}
-                  </Link>
-                );
-              })}
-            </div>
+            {isDemo && (
+              <div className="flex items-center gap-1.5 overflow-x-auto" aria-label="Các mẫu minh họa">
+                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-ink-tertiary hidden md:inline-block">
+                  Mẫu minh họa:
+                </span>
+                {SAMPLE_REPORTS.map((s) => {
+                  const isActive = s.report.report_id === report.report_id;
+                  return (
+                    <Link
+                      key={s.id}
+                      to={`/reports/${s.slug}`}
+                      className={`px-2.5 py-1 text-xs font-mono rounded transition-colors whitespace-nowrap ${
+                        isActive
+                          ? 'bg-amber text-ink font-bold border border-amber-border shadow-xs'
+                          : 'bg-surface-secondary text-ink-secondary hover:text-ink hover:bg-surface-hover border border-border font-medium'
+                      }`}
+                    >
+                      {s.shortName}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Stage 1 acceptance: Kiểm tra số học: Đạt */}
-            <span className="inline-flex items-center gap-1.5 rounded border border-[#a3cfbb] bg-[#e8f5ee] px-2 py-0.5 text-xs font-medium text-[#1b4332]">
-              <ShieldCheck className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
-              <span>Kiểm tra số học: Đạt</span>
-            </span>
-
-            {/* Stage 2 acceptance: Phản biện logic: Đạt */}
-            <span
-              className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs font-medium ${
-                report.revision_summary?.status === 'revised_and_passed'
-                  ? 'border-amber-border/70 bg-amber-soft text-ink font-semibold'
-                  : 'border-slate-300 bg-slate-100 text-slate-800'
-              }`}
-            >
-              <CheckCircle2 className="size-3.5 text-slate-600" aria-hidden="true" />
-              <span>
-                {report.revision_summary?.status === 'revised_and_passed'
-                  ? 'Phản biện logic: Đã hiệu đính'
-                  : 'Phản biện logic: Đạt'}
-              </span>
-            </span>
-
-            {/* Friendly Data Snapshot Label */}
+            {!isDemo && (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-secondary px-2 py-0.5 text-xs text-ink-secondary">
+                  <Info className="size-3.5 text-ink-tertiary" aria-hidden="true" />
+                  <span>Trạng thái API: {report.status ? REPORT_STATUS_LABELS[report.status] : 'chưa công bố'}</span>
+                </span>
+                {report.atomic_claims !== undefined && (
+                  <span className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-secondary px-2 py-0.5 text-xs text-ink-secondary">
+                    <span>Stage 1: {report.atomic_claims.length === 0
+                      ? 'không có nhận định'
+                    : report.atomic_claims.some((claim) => claim.stage1_status === 'rejected')
+                      ? 'có nhận định bị từ chối'
+                      : report.atomic_claims.every((claim) => claim.stage1_status === 'accepted')
+                        ? 'mọi nhận định được chấp nhận'
+                        : 'chưa công bố trạng thái'}</span>
+                  </span>
+                )}
+                {report.revision_summary && (
+                  <span className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-secondary px-2 py-0.5 text-xs text-ink-secondary">
+                    <span>Phản biện: {report.revision_summary.status}</span>
+                  </span>
+                )}
+              </>
+            )}
             <span className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-secondary px-2 py-0.5 text-xs font-mono text-ink-secondary">
               <Database className="size-3 text-ink-tertiary" aria-hidden="true" />
-              <span>Dữ liệu Q4/2024</span>
+              <span>Snapshot: {report.analysis_plan?.dataset_snapshot_id || 'chưa được công bố'}</span>
             </span>
           </div>
         </div>
@@ -116,10 +136,10 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3">
           <div className="space-y-1 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-amber text-ink border-amber-border hover:bg-amber text-xs font-bold font-mono px-2 py-0.5">
+              {report.target_ticker && <Badge className="bg-amber text-ink border-amber-border hover:bg-amber text-xs font-bold font-mono px-2 py-0.5">
                 Mục tiêu: {report.target_ticker}
-              </Badge>
-              {report.peer_tickers.map((peer) => (
+              </Badge>}
+              {(report.peer_tickers || []).map((peer) => (
                 <Badge
                   key={peer}
                   variant="outline"
@@ -128,13 +148,11 @@ export function ReportHeaderBar({ report }: ReportHeaderBarProps) {
                   Đối chuẩn: {peer}
                 </Badge>
               ))}
-              <span className="text-[11px] font-mono text-ink-tertiary">
-                Niên độ {report.period}
-              </span>
+              {report.period && <span className="text-[11px] font-mono text-ink-tertiary">Niên độ {report.period}</span>}
             </div>
 
             <h1 className="text-base sm:text-lg font-bold tracking-tight text-ink leading-snug">
-              {report.query}
+              {report.query || 'API không công bố nội dung truy vấn'}
             </h1>
           </div>
 

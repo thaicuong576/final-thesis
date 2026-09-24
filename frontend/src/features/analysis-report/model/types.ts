@@ -64,8 +64,8 @@ export interface AtomicClaim {
   claim_type: ClaimType;
   evidence_refs: string[];
   confidence: number;
-  stage1_status: 'accepted' | 'rejected';
-  stage2_critique_status: 'sound' | 'revised' | 'limited';
+  stage1_status?: 'accepted' | 'rejected' | null;
+  stage2_critique_status?: 'sound' | 'revised' | 'limited' | null;
 }
 
 export interface EvidenceTrailItem {
@@ -74,9 +74,10 @@ export interface EvidenceTrailItem {
   ticker: string;
   period: string;
   value: number | string | null;
-  source_doc: string;
-  table_locator: string;
-  provenance_hash: string;
+  source_doc?: string | null;
+  source_url?: string | null;
+  table_locator?: string | null;
+  provenance_hash?: string | null;
 }
 
 export interface BoundedRevisionSummary {
@@ -90,18 +91,18 @@ export interface BoundedRevisionSummary {
 export interface AnalysisReport {
   session_id?: string;
   report_id: string;
-  status: 'completed' | 'partial' | 'accepted_with_limitations' | 'error';
-  query: string;
-  target_ticker: string;
-  peer_tickers: string[];
-  period: string;
-  analysis_plan: AnalysisPlan;
-  macro_context: MacroContext | null;
-  sector_benchmark: SectorBenchmark | null;
-  company_insights: CompanyInsight[];
-  cross_level_critique: CritiqueItem[];
-  atomic_claims: AtomicClaim[];
-  evidence_trail: EvidenceTrailItem[];
-  revision_summary: BoundedRevisionSummary;
-  limitations: string[];
+  status?: 'completed' | 'partial' | 'accepted_with_limitations' | 'error';
+  query?: string;
+  target_ticker?: string | null;
+  peer_tickers?: string[];
+  period?: string;
+  analysis_plan?: AnalysisPlan | null;
+  macro_context?: MacroContext | null;
+  sector_benchmark?: SectorBenchmark | null;
+  company_insights?: CompanyInsight[];
+  cross_level_critique?: CritiqueItem[];
+  atomic_claims?: AtomicClaim[];
+  evidence_trail?: EvidenceTrailItem[];
+  revision_summary?: BoundedRevisionSummary | null;
+  limitations?: string[];
 }

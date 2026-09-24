@@ -1,48 +1,83 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DataPage } from '../src/pages/data/DataPage';
+import { capabilityService } from '../src/entities/capability/api/capabilityService';
+import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
+import type { AnalysisCapabilities } from '../src/entities/capability/model/types';
 
 function renderDataPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<MemoryRouter initialEntries={['/data']}><QueryClientProvider client={client}><DataPage /></QueryClientProvider></MemoryRouter>);
+  return render(
+    <MemoryRouter initialEntries={['/data']}>
+      <QueryClientProvider client={client}><DataPage /></QueryClientProvider>
+    </MemoryRouter>
+  );
 }
 
-describe('DataPage', () => {
-  it('shows the active validated dataset and distinct source groups', async () => {
+function capabilities(overrides: Partial<AnalysisCapabilities> = {}): AnalysisCapabilities {
+  return {
+    ...mockCapabilities,
+    analysis_available: false,
+    dataset_snapshot_id: null,
+    implemented_capabilities: [],
+    database_status: 'disconnected',
+    ...overrides
+  };
+}
+
+describe('DataPage catalog and readiness', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities());
+  });
+
+  it('keeps provider catalog visible while clearly blocking an unavailable snapshot', async () => {
     renderDataPage();
 
     expect(await screen.findByRole('heading', { name: 'Dữ liệu phân tích' })).toBeInTheDocument();
-    expect(screen.getByText('Ngân hàng Việt Nam 2024')).toBeInTheDocument();
-    expect(screen.getByText('Sẵn sàng')).toBeInTheDocument();
-    expect(screen.getByText('Dữ liệu tài chính ngân hàng')).toBeInTheDocument();
-    expect(screen.getByText('Báo cáo & tài liệu nguồn')).toBeInTheDocument();
-    expect(document.body).toHaveTextContent('17 tài liệu');
+    expect(await screen.findByRole('heading', { name: 'Chưa thể chạy phân tích trên dữ liệu hiện tại' })).toBeInTheDocument();
+    expect(screen.getByText(/Mã catalog:/)).toBeInTheDocument();
+    expect(screen.getByText(/Snapshot đã kiểm định: chưa công bố/)).toBeInTheDocument();
+    expect(screen.getByText('Ngân hàng trong catalog')).toBeInTheDocument();
+    expect(screen.getByText(/ACB · TCB · VPB · MBB · VCB/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Trạng thái kho dữ liệu: disconnected/).length).toBeGreaterThan(0);
+    expect(screen.getByText('API chưa xác nhận phân tích nhóm tham chiếu có thể chạy.')).toBeInTheDocument();
+    expect(screen.getByText('API chưa xác nhận năng lực phân tích vĩ mô có thể chạy.')).toBeInTheDocument();
+    expect(screen.getByText(/Nguồn, phiên bản dữ liệu và thời điểm kiểm định chưa được xác nhận/)).toBeInTheDocument();
+    expect(screen.queryByText(mockCapabilities.source!)).not.toBeInTheDocument();
+    expect(screen.queryByText(mockCapabilities.macro.summary)).not.toBeInTheDocument();
+    expect(screen.queryByText(mockCapabilities.peerUniverse!.label)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Thêm nguồn dữ liệu|Kết nối nguồn mới/ })).not.toBeInTheDocument();
   });
 
-  it('opens and completes the four-step add-source prototype flow', async () => {
-    const user = userEvent.setup();
+  it('renders the API catalog counts without substituting the older frontend sample', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
+      entities: Array.from({ length: 27 }, (_, index) => ({ id: `bank-${index}`, ticker: `B${index}`, name: `Bank ${index}` })),
+      metrics: Array.from({ length: 7 }, (_, index) => ({ id: `metric-${index}`, acronym: `M${index}`, label: `Metric ${index}`, topicId: 'catalog' }))
+    }));
+
     renderDataPage();
 
-    await user.click(await screen.findByRole('button', { name: /Thêm nguồn dữ liệu/ }));
-    expect(screen.getByRole('dialog', { name: 'Thêm nguồn dữ liệu' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Chọn loại nguồn dữ liệu' })).toBeInTheDocument();
+    expect(await screen.findByText('27')).toBeInTheDocument();
+    expect(screen.getByText('7')).toBeInTheDocument();
+    expect(screen.getByText(/B0 · B1 · B2/)).toBeInTheDocument();
+    expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole('button', { name: /Tiếp tục/ }));
-    expect(screen.getByRole('heading', { name: 'Nhận diện dữ liệu' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Điều chỉnh mapping' }));
-    expect(screen.getByLabelText('Điều chỉnh mapping cho Unnamed_12')).toBeInTheDocument();
+  it('shows a provider-backed runnable company snapshot when the API confirms it', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
+      analysis_available: true,
+      dataset_snapshot_id: 'provider-snapshot-42',
+      implemented_capabilities: ['company'],
+      database_status: 'connected'
+    }));
 
-    await user.click(screen.getByRole('button', { name: /Tiếp tục/ }));
-    expect(screen.getByRole('heading', { name: 'Kiểm tra dữ liệu' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Tìm hiểu 4 cảnh báo' }));
-    expect(screen.getByText('4 giá trị thiếu chưa được điền tự động.')).toBeInTheDocument();
+    renderDataPage();
 
-    await user.click(screen.getByRole('button', { name: /Tiếp tục/ }));
-    expect(screen.getByRole('heading', { name: 'Xác nhận bộ dữ liệu' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Tạo bộ dữ liệu' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Đã tạo bộ dữ liệu');
+    expect(await screen.findByText('Snapshot đã kiểm định: provider-snapshot-42')).toBeInTheDocument();
+    expect(screen.getByText('Có')).toBeInTheDocument();
+    expect(screen.getByText('company')).toBeInTheDocument();
   });
 });

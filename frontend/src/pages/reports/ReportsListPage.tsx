@@ -2,13 +2,11 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
-  CheckCircle2,
   FileCheck2,
   Filter,
   Layers,
   Plus,
   Search,
-  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,11 +41,11 @@ export function ReportsListPage() {
       context={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="font-bold text-ink">THƯ VIỆN BÁO CÁO</span>
+            <span className="font-bold text-ink">MẪU BÁO CÁO MINH HỌA</span>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
-            <span>KHO LƯU TRỮ HOẠT ĐỘNG</span>
+          <div className="hidden sm:flex items-center gap-2 text-xs text-warning font-mono">
+            <span className="w-2 h-2 rounded-full bg-warning" aria-hidden="true" />
+            <span>DỮ LIỆU GIẢ LẬP</span>
           </div>
         </div>
       }
@@ -59,15 +57,15 @@ export function ReportsListPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-ink-secondary">
-                  Lưu trữ kết quả phân tích
+                  Các ví dụ giao diện
                 </span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-secondary text-ink-secondary border border-border">
-                  3 MẪU BÁO CÁO SẴN CÓ
+                  3 MẪU MINH HỌA · KHÔNG PHẢI KẾT QUẢ API
                 </span>
               </div>
               <h1 className="text-xl font-bold tracking-tight text-ink">Thư viện báo cáo</h1>
               <p className="text-xs text-ink-secondary leading-relaxed max-w-2xl">
-                Tập hợp các báo cáo phân tích tài chính có nguồn gốc bằng chứng, số liệu kiểm chứng và lập luận chuyên gia. Bấm vào bất kỳ mẫu báo cáo nào dưới đây để xem chi tiết.
+                Các báo cáo bên dưới dùng dữ liệu giả lập để minh họa cách trình bày. Chúng không đến từ API, không phải kết quả đã kiểm định và không được dùng làm kết luận thực tế.
               </p>
             </div>
 
@@ -91,9 +89,8 @@ export function ReportsListPage() {
                   <span className="font-mono text-xs font-bold text-amber-border bg-amber-soft/50 px-2 py-0.5 rounded border border-amber-border/50">
                     Mẫu 0{idx + 1}
                   </span>
-                  <div className="flex items-center gap-1 text-[11px] font-mono text-[#1b4332] bg-[#e8f5ee] px-1.5 py-0.5 rounded border border-[#a3cfbb]">
-                    <CheckCircle2 className="size-3 text-[#2d6a4f]" aria-hidden="true" />
-                    <span>{sample.hasRevision ? 'Đã hiệu đính' : 'Kiểm định: Đạt'}</span>
+                  <div className="text-[11px] font-mono text-ink-secondary bg-warning-soft px-1.5 py-0.5 rounded border border-warning/40">
+                    Mô phỏng
                   </div>
                 </div>
 
@@ -209,7 +206,6 @@ export function ReportsListPage() {
 
                         <td className="py-3 px-4 align-top whitespace-nowrap font-mono text-ink-secondary">
                           <span>Niên độ {sample.period}</span>
-                          <span className="block text-[10px] text-ink-tertiary mt-0.5">Dữ liệu Q4/2024</span>
                         </td>
 
                         <td className="py-3 px-4 align-top">
@@ -227,17 +223,9 @@ export function ReportsListPage() {
                         </td>
 
                         <td className="py-3 px-4 align-top text-center whitespace-nowrap">
-                          {sample.hasRevision ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-soft text-ink border border-amber-border/60">
-                              <Sparkles className="size-3 text-amber-border" />
-                              <span>Đã hiệu đính</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-[#e8f5ee] text-[#1b4332] border border-[#a3cfbb]">
-                              <CheckCircle2 className="size-3 text-[#2d6a4f]" />
-                              <span>Kiểm định: Đạt</span>
-                            </span>
-                          )}
+                          <span className="inline-flex items-center text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-warning-soft text-ink border border-warning/40">
+                            Mẫu minh họa
+                          </span>
                         </td>
 
                         <td className="py-3 px-4 align-top text-right whitespace-nowrap">

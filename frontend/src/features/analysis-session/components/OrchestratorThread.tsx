@@ -16,11 +16,12 @@ interface SafeReportButtonProps {
 
 
 function SafeReportButton({
-  targetPath = '/reports/mock-session-2024-acb-tcb',
+  targetPath,
   reportData,
   onViewReport
 }: SafeReportButtonProps) {
   const inRouter = useInRouterContext();
+  if (!targetPath && !onViewReport) return null;
   if (inRouter) {
     return (
       <RouterReportButton
@@ -44,7 +45,7 @@ function RouterReportButton({
   reportData,
   onViewReport
 }: {
-  targetPath: string;
+  targetPath?: string;
   reportData?: AnalysisReport | null;
   onViewReport?: () => void;
 }) {
@@ -65,7 +66,7 @@ function RouterReportButton({
             // ignore
           }
         }
-        navigate(targetPath, { state: { report: reportData } });
+        if (targetPath) navigate(targetPath, { state: { report: reportData } });
       }}
     >
       <FileText className="w-3.5 h-3.5" aria-hidden="true" />
@@ -79,7 +80,7 @@ function StaticReportButton({
   reportData,
   onViewReport
 }: {
-  targetPath: string;
+  targetPath?: string;
   reportData?: AnalysisReport | null;
   onViewReport?: () => void;
 }) {
@@ -99,7 +100,7 @@ function StaticReportButton({
             // ignore
           }
         }
-        if (typeof window !== 'undefined') {
+        if (targetPath && typeof window !== 'undefined') {
           window.location.href = targetPath;
         }
       }}
@@ -116,6 +117,7 @@ interface OrchestratorThreadProps {
   onSelectSpecialist: (session: SpecialistSessionState) => void;
   targetReportPath?: string;
   reportData?: AnalysisReport | null;
+  isDemo?: boolean;
   onViewReport?: () => void;
   isStreaming?: boolean;
 }
@@ -126,6 +128,7 @@ export function OrchestratorThread({
   onSelectSpecialist,
   targetReportPath,
   reportData,
+  isDemo = false,
   onViewReport,
   isStreaming = false
 }: OrchestratorThreadProps) {
@@ -173,30 +176,40 @@ export function OrchestratorThread({
             case 'REPORT_READY_ACTION':
               return (
                 <div key={item.id} className="ml-11 pt-2">
-                  <div className="border border-[#bce2d3] bg-[#edf7f3] rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-2xl">
+                  <div className={`border rounded-md p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-2xl ${isDemo ? 'border-warning/40 bg-warning-soft/40' : 'border-line bg-card'}`}>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#2f6f5e]" aria-hidden="true" />
+                        <CheckCircle2 className={`w-4 h-4 ${isDemo ? 'text-warning' : 'text-ink-secondary'}`} aria-hidden="true" />
                         <h3 className="text-xs font-semibold text-ink">
-                          Báo cáo phân tích đã sẵn sàng
+                          {isDemo
+                            ? 'Kịch bản mô phỏng đã kết thúc'
+                            : reportData
+                            ? 'API đã trả về artifact báo cáo'
+                            : 'API chưa trả về artifact báo cáo hợp lệ'}
                         </h3>
                         <Badge
                           variant="outline"
-                          className="bg-white text-[#2f6f5e] border-[#bce2d3] text-[10px] font-semibold"
+                          className="bg-surface-secondary text-ink-secondary border-border-subtle text-[10px] font-semibold"
                         >
-                          Đã hoàn tất
+                          {isDemo ? 'Minh họa' : reportData?.status || 'Chưa xác nhận'}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted">
-                        Điều phối viên đã tổng hợp toàn diện nhận định từ các chuyên môn kèm số liệu kiểm chứng.
+                        {isDemo
+                          ? 'Các sự kiện và nội dung trên màn hình là dữ liệu giả lập, không phản ánh kết quả từ API.'
+                          : reportData
+                          ? 'Artifact được mở đúng theo nội dung và trạng thái do API trả về.'
+                          : 'Luồng không cung cấp đủ dữ liệu để mở một báo cáo đã lưu.'}
                       </p>
                     </div>
 
-                    <SafeReportButton
-                      targetPath={targetReportPath || '/reports/mock-session-2024-acb-tcb'}
-                      reportData={reportData}
-                      onViewReport={onViewReport}
-                    />
+                    {!isDemo && reportData && targetReportPath && (
+                      <SafeReportButton
+                        targetPath={targetReportPath}
+                        reportData={reportData}
+                        onViewReport={onViewReport}
+                      />
+                    )}
                   </div>
                 </div>
               );

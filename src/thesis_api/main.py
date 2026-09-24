@@ -9,8 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from .database import (
-    check_database_connection,
-    ensure_analysis_runs_table,
     get_analysis_report,
     get_analysis_run,
     list_analysis_runs,
@@ -24,7 +22,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
     sqlite_path = current_settings.get_sqlite_path()
-    ensure_analysis_runs_table(sqlite_path)
     engine = AnalysisEngine(sqlite_path)
 
     app = FastAPI(
@@ -54,20 +51,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         }
 
     @app.get("/api/ready", summary="Readiness probe")
-    def ready(response: Response) -> dict[str, str]:
-        """Readiness endpoint verifying database infrastructure connectivity."""
-        is_connected, message = check_database_connection(current_settings.database_url)
-        if is_connected:
-            return {
-                "status": "ready",
-                "database": "connected",
-            }
-        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {
-            "status": "unavailable",
-            "database": "disconnected",
-            "detail": message,
+    def ready(response: Response) -> dict[str, Any]:
+        """Readiness requires a runnable accepted snapshot for company claims."""
+        capabilities = engine.get_capabilities()
+        is_ready = bool(capabilities.get("analysis_available"))
+        payload: dict[str, Any] = {
+            "status": "ready" if is_ready else "unavailable",
+            "database": capabilities.get("database_status", "disconnected"),
+            "dataset_snapshot_id": capabilities.get("datasetSnapshotId"),
         }
+        if not is_ready:
+            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+            payload["detail"] = capabilities.get("readiness", "Accepted snapshot unavailable.")
+        return payload
 
     @app.get("/api/version", summary="Safe deployment version metadata")
     def version() -> dict[str, str]:
@@ -76,15 +72,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get(
         "/api/capabilities",
-        summary="Retrieve analytical capabilities, 27 banks universe, and SQLite status",
+        summary="Retrieve capabilities declared by the configured accepted dataset snapshot",
     )
     def capabilities() -> dict[str, Any]:
-        """Return real catalog of 27 banks, periods (2021-2024), and SQLite database status."""
+        """Return scope and operations discovered through the dataset provider."""
         return engine.get_capabilities()
 
     @app.post(
         "/api/analyze",
         response_model=AnalysisResponse,
+        response_model_exclude_none=True,
         summary="Submit analysis query to hierarchical multi-agent system",
     )
     def analyze(request: AnalysisRequest) -> AnalysisResponse:

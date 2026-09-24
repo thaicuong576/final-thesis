@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import sqlite3
 from pathlib import Path
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from thesis_api.main import create_app
@@ -16,6 +18,7 @@ from thesis_api.database import (
     get_analysis_run,
     get_analysis_report,
 )
+from test_api_analyze import _fixture_provider_binding, _gold_fixture
 
 
 class AnalysisRunsApiTests(unittest.TestCase):
@@ -23,14 +26,7 @@ class AnalysisRunsApiTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.db_path = Path(self.temp_dir.name) / "test_finance.sqlite"
-
-        source_db = Path("data/processed/finance_master_v2.sqlite")
-        if source_db.exists():
-            import shutil
-            shutil.copyfile(source_db, self.db_path)
-        else:
-            ensure_analysis_runs_table(self.db_path)
+        self.db_path = _gold_fixture(Path(self.temp_dir.name) / "test_finance.sqlite")
 
         self.settings = Settings(
             app_name="final-thesis-api-test",
@@ -103,6 +99,29 @@ class AnalysisRunsApiTests(unittest.TestCase):
         self.assertIsInstance(items, list)
         self.assertTrue(any(r["run_id"] == "run-api-test-1" for r in items))
 
+    def test_history_reads_do_not_create_tables_in_the_snapshot(self) -> None:
+        before = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        try:
+            exists_before = before.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='analysis_runs'"
+            ).fetchone()
+        finally:
+            before.close()
+        self.assertIsNone(exists_before)
+
+        self.assertEqual(self.client.get("/api/runs").json(), [])
+        self.assertEqual(self.client.get("/api/runs/not-present").status_code, 404)
+        self.assertEqual(self.client.get("/api/reports/not-present").status_code, 404)
+
+        after = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        try:
+            exists_after = after.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='analysis_runs'"
+            ).fetchone()
+        finally:
+            after.close()
+        self.assertIsNone(exists_after)
+
     def test_get_run_by_id_endpoint_and_404(self) -> None:
         save_analysis_run(
             db_path=self.db_path,
@@ -153,11 +172,20 @@ class AnalysisRunsApiTests(unittest.TestCase):
         self.assertEqual(res_404.status_code, 404)
 
     def test_analyze_stream_persists_run(self) -> None:
-        stream_res = self.client.post(
-            "/api/analyze/stream",
-            json={"query": "Danh gia ACB va MBB 2024", "target_ticker": "ACB", "peer_tickers": ["MBB"]},
-        )
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            stream_res = self.client.post(
+                "/api/analyze/stream",
+                json={
+                    "query": "Analyze ROE of ACB in 2024 Q4",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            )
         self.assertEqual(stream_res.status_code, 200)
+        self.assertIn("REPORT_READY", stream_res.text)
 
         runs = self.client.get("/api/runs").json()
         self.assertGreaterEqual(len(runs), 1)

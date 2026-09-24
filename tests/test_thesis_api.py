@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -10,12 +12,16 @@ from fastapi.testclient import TestClient
 from thesis_api.database import check_database_connection
 from thesis_api.main import create_app
 from thesis_api.settings import Settings
+from test_api_analyze import _fixture_provider_binding, _gold_fixture
 
 
 class ThesisApiTests(unittest.TestCase):
     """Test suite verifying FastAPI endpoints, security, and connectivity probes."""
 
     def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        missing_database = Path(self.temp_dir.name) / "not-configured.sqlite"
         self.settings = Settings(
             app_name="final-thesis-api",
             app_env="staging",
@@ -24,6 +30,7 @@ class ThesisApiTests(unittest.TestCase):
             cors_origin_regex=r"https://.*final-thesis.*\.vercel\.app",
             app_revision="test-commit-sha-12345",
             openai_api_key="sk-mock-openai-secret-key",
+            sqlite_db_path=str(missing_database),
         )
         self.app = create_app(self.settings)
         self.client = TestClient(self.app)
@@ -52,31 +59,37 @@ class ThesisApiTests(unittest.TestCase):
         self.assertNotIn("database_url", data)
         self.assertNotIn("openai_api_key", data)
 
-    @patch("thesis_api.main.check_database_connection")
-    def test_readiness_returns_200_when_database_connected(
-        self,
-        mock_check_db: unittest.mock.MagicMock,
-    ) -> None:
-        mock_check_db.return_value = (True, "Database connection healthy")
-        response = self.client.get("/api/ready")
+    def test_readiness_returns_200_when_accepted_snapshot_is_available(self) -> None:
+        database = _gold_fixture(Path(self.temp_dir.name) / "accepted.sqlite")
+        app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            response = TestClient(app).get("/api/ready")
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data.get("status"), "ready")
         self.assertEqual(data.get("database"), "connected")
-        mock_check_db.assert_called_once_with(self.settings.database_url)
 
-    @patch("thesis_api.main.check_database_connection")
-    def test_readiness_returns_503_when_database_fails(
-        self,
-        mock_check_db: unittest.mock.MagicMock,
-    ) -> None:
-        mock_check_db.return_value = (False, "Database connectivity failed: ConnectionRefusedError")
+    def test_readiness_returns_503_when_accepted_snapshot_is_unavailable(self) -> None:
         response = self.client.get("/api/ready")
         self.assertEqual(response.status_code, 503)
         data = response.json()
         self.assertEqual(data.get("status"), "unavailable")
         self.assertEqual(data.get("database"), "disconnected")
-        self.assertIn("ConnectionRefusedError", data.get("detail", ""))
+        self.assertIn("accepted", data.get("detail", "").casefold())
+
+    def test_readiness_reports_connected_database_when_snapshot_is_not_runnable(self) -> None:
+        database = _gold_fixture(Path(self.temp_dir.name) / "missing-locator.sqlite")
+        app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
+        response = TestClient(app).get("/api/ready")
+        self.assertEqual(response.status_code, 503)
+        data = response.json()
+        self.assertEqual(data.get("status"), "unavailable")
+        self.assertEqual(data.get("database"), "connected")
+        self.assertEqual(data.get("dataset_snapshot_id"), "gold-snapshot-api-fixture")
+        self.assertIn("not runnable", data.get("detail", "").casefold())
 
     def test_readiness_returns_503_when_database_url_unconfigured(self) -> None:
         unconfigured_settings = Settings(database_url=None)
@@ -88,7 +101,7 @@ class ThesisApiTests(unittest.TestCase):
         data = response.json()
         self.assertEqual(data.get("status"), "unavailable")
         self.assertEqual(data.get("database"), "disconnected")
-        self.assertEqual(data.get("detail"), "DATABASE_URL is not configured")
+        self.assertIn("accepted", data.get("detail", "").casefold())
 
     def test_cors_headers_allowed_origin(self) -> None:
         headers = {"Origin": "http://localhost:5173"}

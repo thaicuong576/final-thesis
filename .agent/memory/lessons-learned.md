@@ -293,3 +293,31 @@ Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orch
    - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
 4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
    - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.
+
+---
+
+## [LESSON-013] API phải ràng buộc claim vào source locator của đúng metric
+
+- **Date:** 2026-09-24
+- **Scope:** `src/thesis_api/service.py`, `src/thesis_data/gold_dataset_provider.py`, deployment SQLite configuration
+- **Status:** `ACTIVE` -> API fail-closed khi provider chưa đưa locator của observation ra hợp đồng canonical.
+
+### Context & Root Cause
+
+Gold v5 `evidence_snippets` chỉ xác định source, ticker, period và trang; không có
+`metric_id`. Chúng không thể thay locator chính xác của observation cho một số
+liệu cụ thể. Ngoài ra, snapshot Gold hiện nằm trong `data/`, bị `.gitignore`
+loại khỏi Git; Render build từ Git nhưng chưa cấu hình `SQLITE_DB_PATH`, nên
+service có thể chạy mà không có accepted SQLite snapshot. `DATABASE_URL` không
+cấp file SQLite cho provider này.
+
+### Permanent Solution
+
+- Numeric claim phải đi qua observation hợp lệ, source hợp lệ, locator riêng
+  của observation đó và Stage-1. Nếu provider làm rơi locator, API phải block;
+  evidence source/period-level chỉ được xem là tham khảo bổ sung.
+- `/api/capabilities` và `/api/ready` chỉ báo runnable khi provider tìm được ít
+  nhất một claim đáp ứng các điều kiện này. Sync và SSE dùng chung kết quả.
+- Khi triển khai backend, phải cung cấp snapshot Gold đã kiểm định qua artifact
+  hoặc mount có kiểm soát và cấu hình `SQLITE_DB_PATH` rõ ràng. Không dựa vào
+  artifact ignored ở máy developer hoặc tự suy ra đường dẫn từ `DATABASE_URL`.

@@ -47,7 +47,7 @@ class AnalysisPlanDTO(BaseModel):
     peer_tickers: List[str] = Field(
         default_factory=list, description="Peer comparison bank tickers", examples=[["TCB", "MBB"]]
     )
-    period: str = Field(default="2024", description="Analysis period or fiscal year", examples=["2024"])
+    period: Optional[str] = Field(default=None, description="Analysis period declared by the selected snapshot", examples=["2024_Q4"])
     required_capabilities: List[str] = Field(
         ...,
         description="Required specialist capabilities (macro, sector, company)",
@@ -59,7 +59,7 @@ class AnalysisPlanDTO(BaseModel):
         examples=[["peer_comparison"]],
     )
     dataset_snapshot_id: str = Field(
-        default="snap-2024-q4-v1", description="Dataset snapshot identifier", examples=["snap-2024-q4-v1"]
+        ..., description="Dataset snapshot identifier bound to the plan", examples=["gold-snapshot-2024-q4"]
     )
     rationale: Optional[str] = Field(default=None, description="Execution plan rationale")
     known_limitations: List[str] = Field(
@@ -190,9 +190,9 @@ class AtomicClaimDTO(BaseModel):
     evidence_refs: List[str] = Field(
         default_factory=list, description="IDs of supporting evidence items"
     )
-    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Verification confidence score")
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Model confidence, when actually assessed")
     stage1_status: str = Field(
-        default="accepted",
+        ...,
         description="Stage 1 deterministic validation status (accepted, rejected)",
     )
     stage2_critique_status: Optional[str] = Field(
@@ -251,7 +251,7 @@ class AnalysisResponse(BaseModel):
 
     report_id: str = Field(..., description="Unique generated analysis report identifier")
     status: str = Field(
-        default="completed",
+        ...,
         description="Execution status of the analysis (completed, partial, accepted_with_limitations, error)",
     )
     analysis_plan: Optional[AnalysisPlanDTO] = Field(

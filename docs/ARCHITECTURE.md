@@ -12,6 +12,30 @@ the final adaptive critique/revision path.
 
 The system separates deterministic financial computation from qualitative retrieval and language-model reasoning. It runs locally from a frozen gold snapshot so that baseline and hierarchical systems receive identical facts and evidence.
 
+## Current public API slice (2026-09-24)
+
+`POST /api/analyze` and `/api/analyze/stream` share a provider-backed company
+path. The request must resolve to one company, an exact supported period, and
+supported company metrics. Each numeric claim is built from a valid observation
+and source, must carry that observation's metric-specific source locator, and
+passes the Stage-1 validator before the response labels it accepted. Otherwise
+the response is `error` with no claims. A successful response is `partial`:
+macro, sector/peer comparison, semantic critique, and bounded revision are not
+run by these endpoints. SSE ends with `REPORT_READY` for the same result or
+`RUN_BLOCKED` for an error; it does not invent critique or revision events.
+
+Readiness means the configured accepted provider can resolve at least one
+Stage-1-valid company claim. It does not mean the full hierarchical system is
+available. The Gold SQLite artifact is ignored local data, not a deployment
+asset: a backend deployment must explicitly supply the immutable snapshot and
+set `SQLITE_DB_PATH`. Vercel hosts the frontend and forwards API requests to the
+backend. The current Render blueprint does not configure the SQLite snapshot.
+Gold v5 evidence snippets are scoped to source, company, and period rather than
+metric; they are supplementary references. Numeric claim traceability depends
+on the corresponding metric observation's own source ID and locator. When the
+observation has no reporting-scope field, the API does not label it consolidated
+or parent-only.
+
 ## Logical flow
 
 ```text

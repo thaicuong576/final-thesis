@@ -101,6 +101,20 @@ any new Gold/SQLite/physical-schema coupling. Passing tests alone is not
 architectural acceptance; changes must also preserve the core/application
 boundary and the transferability rule.
 
+## Current public API analysis contract
+
+`POST /api/analyze` and `/api/analyze/stream` execute only provider-backed
+company claims that pass Stage-1. A numeric claim requires an accepted
+observation, accepted source, the observation's metric-specific source locator,
+and resolvable evidence. Missing locator/evidence or unsupported scope blocks
+the claim; success is `partial` while macro, sector, semantic critique, and
+revision are not implemented. SSE emits `REPORT_READY` only for the same
+successful result and `RUN_BLOCKED` for errors. Readiness requires a runnable
+accepted snapshot. `SQLITE_DB_PATH` must point to an explicitly supplied
+validated snapshot; the ignored local Gold artifact is not packaged by Git or
+implicitly available on Render/Vercel. Do not infer consolidated or parent-only
+reporting scope when the observation does not declare it.
+
 ## GitHub Flow and branch safety
 
 `main` is the only canonical integration branch. Never implement directly on

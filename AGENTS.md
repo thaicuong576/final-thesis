@@ -55,6 +55,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
       3. Write `TASK.md` manifest inside the child worktree referencing the Linear issue, role, contracts, scope, and verification criteria.
       4. Mandate worker to name PRs starting with `feat(<domain>): [THES-X] <title>` to enable automatic two-way GitHub-Linear synchronization and auto-closure on merge.
 16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
+    - **Codex-only model rule (user mandate, 2026-09-24):** Every newly spawned Codex subagent must explicitly set `model: gpt-6-luna` and `reasoning_effort: xhigh` (extra high). Do not inherit the root/current model. Because model overrides require a limited history fork, set `fork_turns` to `none` or a positive turn count and include all necessary task context in the spawn message. `followup_task` does not change an existing subagent's model; create a new subagent with these settings for subsequent work.
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
     - If active telemetry inspection is deemed necessary to monitor worker progress, the sampling interval MUST strictly be at least 3 minutes (>= 180 seconds) per check. Rapid polling is strictly prohibited.

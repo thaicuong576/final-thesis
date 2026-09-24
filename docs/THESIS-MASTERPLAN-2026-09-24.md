@@ -28,6 +28,9 @@ MVP chấp nhận một **gói dữ liệu chuẩn hóa** gồm định danh ng�
 - Bản `docs/THESIS-DRAFT-CHAPTERS-1-4-VI.md` hiện có **7 chương**, khác outline **6 chương** đã được GVHD duyệt. Chương 1–2 người viết gửi trong phiên làm việc là đầu vào biên tập; artifact thesis nguồn trong `docs/Khoá luận tốt nghiệp - Cường - GVHD_ Lê Văn.md` vẫn chỉ đọc.
 - Frontend và `/api/health`, `/api/capabilities` trả HTTP 200 ngày 24/09/2026; điều này chưa kiểm chứng hành trình end-to-end hoặc chất lượng báo cáo trên môi trường triển khai.
 - Luồng nhập ngân hàng mới và LlamaParse chưa được chứng minh. Không có `LLAMA_CLOUD_API_KEY` trong môi trường làm việc ngày 24/09/2026.
+- Audit ngày 24/09 xác nhận core đã có Stage-1, semantic critic và bounded revision kernel (126 unit tests Phase 3B đạt), nhưng `/api/analyze` và SSE chưa chạy qua core này. API hiện có capability 27 ngân hàng/Macro, số sector/macro mặc định, reference/hash và nhãn acceptance được dựng trong service; luồng SSE còn phát sự kiện revision theo kịch bản. Đây là **blocker công bố báo cáo**, không phải bằng chứng hệ thống đã được kiểm định.
+- UI public có hai mô tả dữ liệu mâu thuẫn: Data view mẫu 5 ngân hàng/4 metric và Composer từ API 27 ngân hàng/7 metric. Report có CAMEL prose/số mặc định và nhãn kiểm định vô điều kiện; request nhiều kỳ bị gửi thành kỳ đầu. Không dùng các màn này làm bằng chứng app đạt yêu cầu trước khi sửa và retest.
+- CSV onboarding hiện kiểm được cấu trúc/mapping nhưng có thể gọi snapshot là `accepted` khi observation vẫn là nguồn `user_supplied`; nó chưa đủ để Stage-1 chấp nhận claim. PR contract riêng khóa ba cổng: structural candidate → đối soát primary theo từng observation → validated operational snapshot. Gold benchmark promotion vẫn là cổng khác.
 
 Các tài liệu trạng thái cũ có thể mô tả những mốc lịch sử khác nhau. Với từng tuyên bố cuối khóa luận, dùng snapshot, manifest, run ID và kết quả kiểm tra tương ứng làm căn cứ.
 
@@ -43,6 +46,8 @@ Các tài liệu trạng thái cũ có thể mô tả những mốc lịch sử 
 | **29/09 — P5: khóa luận và handoff** | Rà Chương 1–2 với artifact cuối, hoàn thiện Chương 3–6, tài liệu tham khảo, phụ lục, hình/chú thích, giới hạn; kiểm tra lại URL, nguồn, số liệu, build và demo script. Dành ít nhất nửa ngày cho lỗi cuối và trình bày. | Bản khoảng 60 trang tính phụ lục, đúng outline 6 chương; link app, hướng dẫn nhập liệu và demo, repo/commit/snapshot/model/run IDs; không còn claim vượt quá dữ liệu. |
 
 **Nhịp song song:** viết Chương 3–4 sau mỗi cổng kỹ thuật tương ứng, không đợi đến 29/09. Chương 5 chỉ viết kết luận định lượng sau khi run và chấm điểm hoàn tất. Mỗi ngày lưu quyết định, kết quả kiểm tra và giới hạn trong PR/manifest.
+
+**Điều chỉnh sau audit P0:** sửa phát biểu và fallback giả ở API/UI là cổng an toàn chạy song song với P1; nếu chưa nối được provider và Stage-1 thì trả lỗi/giới hạn rõ, không phát hành report `completed`. Bắt đầu P3 bằng adapter production cho core revision hiện có. Không coi việc có 126 test core là bằng chứng API đã chạy critique/revision.
 
 ## 4. Thiết kế đánh giá tối thiểu
 

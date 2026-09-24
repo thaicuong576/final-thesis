@@ -52,10 +52,13 @@ Các tài liệu trạng thái cũ có thể mô tả những mốc lịch sử 
 
 **Điều chỉnh sau audit P0:** sửa phát biểu và fallback giả ở API/UI là cổng an toàn chạy song song với P1; nếu chưa nối được provider và Stage-1 thì trả lỗi/giới hạn rõ, không phát hành report `completed`. Bắt đầu P3 bằng adapter production cho core revision hiện có. Không coi việc có 126 test core là bằng chứng API đã chạy critique/revision.
 
+**Bổ sung cổng P1 theo D-071:** với chỉ số dẫn xuất của ngân hàng mới, kiểm tra quan hệ input ID là chưa đủ. Trước khi công nhận operational snapshot, code phải tính lại theo formula version từ các input primary đã được chấp nhận, so giá trị với tolerance đã khai báo và lưu calculation receipt. Stage-1 xác nhận claim khớp observation được chấp nhận và chuỗi nguồn, không thay cho phép kiểm toán học ở cổng dữ liệu.
+
 ## 4. Thiết kế đánh giá tối thiểu
 
 1. Đóng băng 8–12 analytical tasks trước khi chạy: company-only, peer, yêu cầu kết hợp nhiều cấp; macro + company chỉ là nhánh riêng nếu Gold macro đạt gate. Mỗi loại có câu dễ/khó, kỳ, metric và expected coverage.
    Với peer ROE, tuân thủ D-063: Gold v5 chưa đủ điều kiện so sánh cả năm ngân hàng do mẫu số VPB không đồng nhất. Chỉ đóng băng tập issuer/metric/kỳ có định nghĩa đã kiểm tra thống nhất; không đưa VPB ROE vào bảng so sánh cho tới khi được tính lại và rà soát độc lập. Case CTG ngoài Gold là bằng chứng chuyển giao vận hành, không tự động là nhãn Gold của thực nghiệm A/B/C.
+   Audit 25/09 còn thấy locator của bốn observation VPB ROE trong Gold v5 ghi `average_parent_attributable_equity`, mâu thuẫn với mô tả lỗi mẫu số ở D-063. Không chọn một cách diễn giải chỉ từ metadata; đối chiếu lại PDF gốc, input, công thức và review ledger. D-063 tiếp tục chặn so sánh năm issuer trong khi kiểm tra.
 2. A single-agent, B multi-agent thích ứng, C cùng planning/specialist set với B cộng critique/revision. Giữ cùng snapshot, model version, factual tools, evidence policy, đầu ra và giới hạn ngân sách tương ứng. Ghi thứ tự chạy và mọi retry.
 3. Mức khả thi ban đầu: ít nhất 8 tasks × 3 cấu hình × 2 lần lặp nếu ngân sách/provider cho phép; số mẫu cuối và mọi thiếu hụt được công bố. Không loại run lỗi khỏi mẫu số completion.
 4. Chấm số/reference/evidence bằng quy tắc; chấm coverage, logic, uncertainty và usefulness bằng rubric mù. Người viết khóa luận là người chấm; nêu thiên lệch và kiểm tra lại một phần phiếu sau một khoảng nghỉ.

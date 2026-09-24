@@ -159,6 +159,10 @@ class EvidenceTrailDTO(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     evidence_id: Optional[str] = Field(default=None, description="Evidence identifier")
+    claim_id: Optional[str] = Field(default=None, description="Claim supported by this source-locator or document-evidence row")
+    observation_id: Optional[str] = Field(default=None, description="Accepted observation represented by this provenance row")
+    source_id: Optional[str] = Field(default=None, description="Accepted primary source identifier")
+    source_url: Optional[str] = Field(default=None, description="URL of the accepted primary source")
     metric: str = Field(..., description="Financial metric or ratio name")
     ticker: str = Field(..., description="Target bank ticker")
     period: str = Field(..., description="Reporting period")
@@ -174,6 +178,9 @@ class AtomicClaimDTO(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     claim_id: str = Field(..., description="Unique claim identifier", examples=["claim-acb-roe-001"])
+    observation_id: Optional[str] = Field(default=None, description="Accepted observation supporting this numeric claim")
+    input_observation_ids: List[str] = Field(default_factory=list, description="Accepted input observations for a derived metric")
+    formula_version: Optional[str] = Field(default=None, description="Formula version used to derive this metric, when applicable")
     capability: str = Field(
         ...,
         description="Producing capability (macro, sector, company, synthesis)",

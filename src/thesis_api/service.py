@@ -61,7 +61,6 @@ _COMPANY_REQUIRED_OPERATIONS = frozenset(
         SupportedOperation.GET_METRIC,
         SupportedOperation.RESOLVE_OBSERVATION,
         SupportedOperation.GET_SOURCE,
-        SupportedOperation.GET_EVIDENCE,
     }
 )
 _COMPARISON_TERMS = (
@@ -253,10 +252,33 @@ def _metric_aliases(metric_id: str, display_name: str) -> set[str]:
     return pieces | words
 
 
-def _requested_metrics(request: AnalysisRequest, catalog: DatasetCapabilityCatalog) -> tuple[str, ...]:
-    company_metrics = tuple(
-        item for item in catalog.metrics if item.analytical_level is AnalyticalLevel.COMPANY
+def _is_lineage_only_metric(metric_id: str) -> bool:
+    return metric_id.casefold().startswith("bank.input.")
+
+
+def _runnable_company_metrics(
+    catalog: DatasetCapabilityCatalog,
+) -> tuple[Any, ...]:
+    return tuple(
+        item
+        for item in catalog.metrics
+        if item.analytical_level is AnalyticalLevel.COMPANY
+        and not _is_lineage_only_metric(item.metric_id)
     )
+
+
+def _metric_id_mentioned(metric_id: str, query: str) -> bool:
+    return bool(
+        re.search(
+            rf"(?<![A-Za-z0-9_.]){re.escape(metric_id)}(?![A-Za-z0-9_.])",
+            query,
+            re.I,
+        )
+    )
+
+
+def _requested_metrics(request: AnalysisRequest, catalog: DatasetCapabilityCatalog) -> tuple[str, ...]:
+    company_metrics = _runnable_company_metrics(catalog)
     if not company_metrics:
         raise AnalysisBlocked(
             "company_metrics_unavailable",
@@ -274,10 +296,19 @@ def _requested_metrics(request: AnalysisRequest, catalog: DatasetCapabilityCatal
     for code, phrases in _METRIC_PHRASES.items():
         if any(_normalized(phrase) in normalized_query for phrase in phrases):
             requested_codes.add(code)
+    explicitly_named = tuple(
+        item for item in catalog.metrics if _metric_id_mentioned(item.metric_id, query)
+    )
+    if any(_is_lineage_only_metric(item.metric_id) for item in explicitly_named):
+        raise AnalysisBlocked(
+            "lineage_only_metric",
+            "The requested metric is an input used to derive a published company metric and cannot be analyzed directly.",
+        )
+    exact_metric_ids = {item.metric_id for item in explicitly_named}
     matched = tuple(
         metric.metric_id
         for metric in company_metrics
-        if metric.metric_id.casefold() in query.casefold()
+        if metric.metric_id in exact_metric_ids
         or _normalized(metric.display_name) in normalized_query
         or bool(_metric_aliases(metric.metric_id, metric.display_name) & requested_codes)
     )
@@ -327,50 +358,50 @@ def _stage1_claim(
     period: str,
     metric_id: str,
     display_name: str,
-) -> tuple[AtomicClaim, Any, Any, Any]:
+    include_evidence: bool = True,
+) -> tuple[AtomicClaim, Any, tuple[Any, ...], tuple[Any, ...], tuple[Any, ...]]:
     observation = provider.get_metric(dataset_ref, ticker, period, metric_id)
     if observation is None:
         raise AnalysisBlocked(
             "observation_unavailable",
             f"No observation is present for {ticker}/{period}/{metric_id}.",
         )
-    if observation.validation_status is not QualityStatus.VALID or observation.value is None:
+    if (
+        observation.validation_status is not QualityStatus.VALID
+        or observation.value is None
+        or not observation.unit
+    ):
         raise AnalysisBlocked(
             "observation_unaccepted",
             f"The observation for {ticker}/{period}/{metric_id} is not accepted as valid.",
         )
-    if not _observation_source_locator(observation):
-        raise AnalysisBlocked(
-            "observation_locator_missing",
-            f"The accepted observation for {ticker}/{period}/{metric_id} has no metric-specific source locator.",
-        )
-    if not observation.source_ref:
-        raise AnalysisBlocked(
-            "observation_source_missing",
-            f"The observation for {ticker}/{period}/{metric_id} has no source reference.",
-        )
-    source = provider.get_source(dataset_ref, observation.source_ref)
-    if source is None or source.validation_status is not QualityStatus.VALID:
-        raise AnalysisBlocked(
-            "source_unaccepted",
-            f"The source for {ticker}/{period}/{metric_id} is missing or unaccepted.",
-        )
-    evidence = tuple(
-        item
-        for item in provider.get_evidence(
-            dataset_ref,
-            (observation.source_ref,),
-            entity_id=ticker,
-            period_id=period,
-            metric_id=metric_id,
-        )
-        if item.source_ref == observation.source_ref
+    primary_observations, sources = _resolve_primary_lineage(
+        provider=provider,
+        dataset_ref=dataset_ref,
+        observation=observation,
+        ticker=ticker,
+        period=period,
+        metric_id=metric_id,
     )
-    if not evidence:
-        raise AnalysisBlocked(
-            "evidence_unavailable",
-            f"No resolvable document evidence is available for {ticker}/{period}/{metric_id}.",
+    source_refs = tuple(source.source_ref for source in sources)
+    evidence = (
+        tuple(
+            item
+            for item in provider.get_evidence(
+                dataset_ref,
+                source_refs,
+                entity_id=ticker,
+                period_id=period,
+                metric_id=metric_id,
+            )
+            if item.source_ref in source_refs
+            and item.entity_id == ticker
+            and item.period_id == period
+            and item.metric_id == metric_id
         )
+        if include_evidence
+        else ()
+    )
 
     reference_type = "derived_metric" if observation.derivation_method else "observation"
     data_ref = ClaimDataRef(
@@ -406,12 +437,114 @@ def _stage1_claim(
             ),
         ),
         evidence_refs=tuple(item.evidence_id for item in evidence),
-        source_refs=(observation.source_ref,),
+        source_refs=source_refs,
         inference_type=InferenceType.FACT,
-        support="evidence_backed",
+        support="evidence_backed" if evidence else "source_locator_only",
         origin="deterministic_reference",
     )
-    return claim, observation, source, evidence
+    return claim, observation, primary_observations, sources, evidence
+
+
+def _resolve_primary_lineage(
+    *,
+    provider: FinancialDatasetProvider,
+    dataset_ref: DatasetRef,
+    observation: Any,
+    ticker: str,
+    period: str,
+    metric_id: str,
+) -> tuple[tuple[Any, ...], tuple[Any, ...]]:
+    """Resolve a direct observation or every primary leaf of its derived chain."""
+
+    sources: dict[str, Any] = {}
+    primary_observations: dict[str, Any] = {}
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(current: Any) -> None:
+        observation_id = str(getattr(current, "observation_id", "") or "")
+        if not observation_id:
+            raise AnalysisBlocked(
+                "observation_lineage_invalid",
+                f"The provenance chain for {ticker}/{period}/{metric_id} contains an observation without an ID.",
+            )
+        if observation_id in visiting:
+            raise AnalysisBlocked(
+                "observation_lineage_cycle",
+                f"The provenance chain for {ticker}/{period}/{metric_id} contains a cycle.",
+            )
+        if observation_id in visited:
+            return
+        if (
+            getattr(current, "dataset_id", None) != dataset_ref.dataset_id
+            or getattr(current, "dataset_snapshot_id", None) != dataset_ref.dataset_snapshot_id
+        ):
+            raise AnalysisBlocked(
+                "observation_snapshot_mismatch",
+                f"The provenance chain for {ticker}/{period}/{metric_id} crosses dataset snapshots.",
+            )
+        if current.validation_status is not QualityStatus.VALID or current.value is None or not current.unit:
+            raise AnalysisBlocked(
+                "derived_input_unaccepted",
+                f"The provenance chain for {ticker}/{period}/{metric_id} contains an unaccepted input observation.",
+            )
+
+        derivation_method = getattr(current, "derivation_method", None)
+        input_ids = tuple(getattr(current, "input_observation_ids", ()) or ())
+        if derivation_method:
+            if getattr(current, "source_ref", None) is not None or not input_ids:
+                raise AnalysisBlocked(
+                    "derived_provenance_invalid",
+                    f"Derived observation {observation_id} must use formula and input-observation provenance without a direct source reference.",
+                )
+            visiting.add(observation_id)
+            for input_id in input_ids:
+                input_observation = provider.resolve_observation(dataset_ref, input_id)
+                if input_observation is None or input_observation.observation_id != input_id:
+                    raise AnalysisBlocked(
+                        "derived_input_unavailable",
+                        f"Derived observation {observation_id} references an unavailable input observation.",
+                    )
+                if input_observation.entity_id != ticker:
+                    raise AnalysisBlocked(
+                        "derived_input_scope_mismatch",
+                        f"Derived observation {observation_id} references an input for a different company.",
+                    )
+                visit(input_observation)
+            visiting.remove(observation_id)
+        else:
+            if input_ids or not getattr(current, "source_ref", None):
+                raise AnalysisBlocked(
+                    "observation_source_missing",
+                    f"Primary observation {observation_id} has no source reference or valid derived lineage.",
+                )
+            if not _observation_source_locator(current):
+                raise AnalysisBlocked(
+                    "observation_locator_missing",
+                    f"Primary observation {observation_id} has no metric-specific source locator.",
+                )
+            source_ref = current.source_ref
+            source = provider.get_source(dataset_ref, source_ref)
+            if (
+                source is None
+                or source.source_ref != source_ref
+                or source.validation_status is not QualityStatus.VALID
+            ):
+                raise AnalysisBlocked(
+                    "source_unaccepted",
+                    f"The primary source for observation {observation_id} is missing or unaccepted.",
+                )
+            sources[source_ref] = source
+            primary_observations[observation_id] = current
+        visited.add(observation_id)
+
+    visit(observation)
+    if not primary_observations or not sources:
+        raise AnalysisBlocked(
+            "observation_lineage_missing",
+            f"No primary observations were resolved for {ticker}/{period}/{metric_id}.",
+        )
+    return tuple(primary_observations.values()), tuple(sources.values())
 
 
 def _observation_source_locator(observation: Any) -> str | None:
@@ -448,9 +581,7 @@ def _has_runnable_company_claim(binding: ProviderBinding) -> bool:
     company_entities = tuple(
         item.entity_id for item in catalog.entities if item.entity_type.value == "company"
     )
-    company_metrics = tuple(
-        item for item in catalog.metrics if item.analytical_level is AnalyticalLevel.COMPANY
-    )
+    company_metrics = _runnable_company_metrics(catalog)
     periods = tuple(item.period_id for item in catalog.periods)
     for ticker in company_entities:
         for period in periods:
@@ -458,25 +589,17 @@ def _has_runnable_company_claim(binding: ProviderBinding) -> bool:
                 continue
             for metric in company_metrics:
                 try:
-                    claim, _, _, _ = _stage1_claim(
+                    claim, _, _, _, _ = _stage1_claim(
                         provider=binding.provider,
                         dataset_ref=binding.dataset_ref,
                         ticker=ticker,
                         period=period,
                         metric_id=metric.metric_id,
                         display_name=metric.display_name,
+                        include_evidence=SupportedOperation.GET_EVIDENCE in operations,
                     )
-                except AnalysisBlocked as exc:
-                    if exc.code in {
-                        "observation_unavailable",
-                        "observation_unaccepted",
-                        "observation_locator_missing",
-                        "observation_source_missing",
-                        "source_unaccepted",
-                        "evidence_unavailable",
-                    }:
-                        continue
-                    raise
+                except AnalysisBlocked:
+                    continue
                 scope = ClaimScope(
                     entities=(ticker,),
                     periods=(period,),
@@ -521,6 +644,7 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
             "unit": item.default_unit,
         }
         for item in catalog.metrics
+        if not _is_lineage_only_metric(item.metric_id)
     ]
     peer_universes = [
         {
@@ -650,7 +774,7 @@ def _plan(
             "Macro and sector analysis are not executed by this API path.",
             "Semantic critique and bounded revision were not run.",
         ] + ([] if metric_specific_evidence else [
-            "Gold snippets are source/period-level; numeric claims rely on each accepted metric observation's own source locator, not on snippets from another metric."
+            "Claims without a reviewed metric-specific document snippet use the accepted observation's primary source locator and source hash."
         ]) + ([] if reporting_scope_known else [
             "The accepted observation does not declare reporting scope; the API does not infer consolidated or parent-only scope."
         ]),
@@ -831,27 +955,30 @@ class AnalysisEngine:
             operations = set(binding.catalog.supported_operations)
             if not _COMPANY_REQUIRED_OPERATIONS.issubset(operations):
                 raise AnalysisBlocked(
-                    "company_evidence_capability_unavailable",
-                    "The accepted provider cannot resolve observations, sources, and document evidence required for company claims.",
+                    "company_provenance_capability_unavailable",
+                    "The accepted provider cannot resolve observations and primary sources required for company claims.",
                 )
 
             metric_by_id = {item.metric_id: item for item in binding.catalog.metrics}
             claims: list[AtomicClaim] = []
             observations: list[Any] = []
+            primary_observations_by_claim: list[tuple[Any, ...]] = []
             sources: dict[str, Any] = {}
             evidence_by_id: dict[str, Any] = {}
             for metric_id in metric_ids:
-                claim, observation, source, evidence = _stage1_claim(
+                claim, observation, primary_observations, claim_sources, evidence = _stage1_claim(
                     provider=binding.provider,
                     dataset_ref=binding.dataset_ref,
                     ticker=target,
                     period=period,
                     metric_id=metric_id,
                     display_name=metric_by_id[metric_id].display_name,
+                    include_evidence=SupportedOperation.GET_EVIDENCE in operations,
                 )
                 claims.append(claim)
                 observations.append(observation)
-                sources[source.source_ref] = source
+                primary_observations_by_claim.append(primary_observations)
+                sources.update({source.source_ref: source for source in claim_sources})
                 evidence_by_id.update({item.evidence_id: item for item in evidence})
 
             workload_scope = ClaimScope(
@@ -877,9 +1004,14 @@ class AnalysisEngine:
                 raise AnalysisBlocked("stage1_rejected", detail)
 
             metric_specific_evidence = all(
-                evidence_by_id[evidence_id].metric_id == observation.metric_id
+                bool(claim.evidence_refs)
+                and all(
+                    evidence_by_id[evidence_id].metric_id == observation.metric_id
+                    and evidence_by_id[evidence_id].entity_id == target
+                    and evidence_by_id[evidence_id].period_id == period
+                    for evidence_id in claim.evidence_refs
+                )
                 for claim, observation in zip(claims, observations)
-                for evidence_id in claim.evidence_refs
             )
             reporting_scope_known = all(
                 bool(
@@ -899,12 +1031,16 @@ class AnalysisEngine:
             )
             evidence_trail: list[EvidenceTrailDTO] = []
             claim_dtos: list[AtomicClaimDTO] = []
-            for claim, observation in zip(claims, observations):
-                source = sources[observation.source_ref]
+            for claim, observation, primary_observations in zip(
+                claims, observations, primary_observations_by_claim
+            ):
                 claim_evidence = [evidence_by_id[item] for item in claim.evidence_refs]
                 claim_dtos.append(
                     AtomicClaimDTO(
                         claim_id=claim.claim_id,
+                        observation_id=observation.observation_id,
+                        input_observation_ids=list(observation.input_observation_ids),
+                        formula_version=observation.derivation_method,
                         capability="company",
                         ticker=target,
                         metric=metric_by_id[observation.metric_id].display_name,
@@ -917,16 +1053,43 @@ class AnalysisEngine:
                         stage2_critique_status=None,
                     )
                 )
+                for primary_observation in primary_observations:
+                    source = sources[primary_observation.source_ref]
+                    primary_metric = metric_by_id.get(primary_observation.metric_id)
+                    evidence_trail.append(
+                        EvidenceTrailDTO(
+                            claim_id=claim.claim_id,
+                            observation_id=primary_observation.observation_id,
+                            source_id=source.source_ref,
+                            source_url=source.source_url,
+                            metric=(
+                                primary_metric.display_name
+                                if primary_metric is not None
+                                else primary_observation.metric_id
+                            ),
+                            ticker=primary_observation.entity_id,
+                            period=primary_observation.period_id,
+                            value=primary_observation.value,
+                            source_doc=source.source_url,
+                            table_locator=_observation_source_locator(primary_observation),
+                            provenance_hash=source.content_hash,
+                        )
+                    )
                 for item in claim_evidence:
+                    source = sources[item.source_ref]
                     evidence_trail.append(
                         EvidenceTrailDTO(
                             evidence_id=item.evidence_id,
+                            claim_id=claim.claim_id,
+                            observation_id=observation.observation_id,
+                            source_id=source.source_ref,
+                            source_url=source.source_url,
                             metric=metric_by_id[observation.metric_id].display_name,
                             ticker=target,
                             period=period,
                             value=observation.value,
                             source_doc=source.source_url,
-                            table_locator=_observation_source_locator(observation),
+                            table_locator=item.locator,
                             provenance_hash=source.content_hash,
                         )
                     )

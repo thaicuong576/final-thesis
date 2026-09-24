@@ -84,6 +84,14 @@ class ApiStreamIntegrationTests(unittest.TestCase):
             {(item.metric, item.period, item.stage1_status) for item in sync.atomic_claims},
             {(item.metric, item.period, item.stage1_status) for item in report.atomic_claims},
         )
+        self.assertEqual(
+            {(item.metric, tuple(item.evidence_refs)) for item in sync.atomic_claims},
+            {(item.metric, tuple(item.evidence_refs)) for item in report.atomic_claims},
+        )
+        self.assertEqual(
+            [item.model_dump() for item in sync.evidence_trail],
+            [item.model_dump() for item in report.evidence_trail],
+        )
         self.assertEqual(sync_json["analysis_plan"]["dataset_snapshot_id"], streamed_report_json["analysis_plan"]["dataset_snapshot_id"])
         self.assertNotIn("confidence", sync_json["atomic_claims"][0])
         self.assertNotIn("stage2_critique_status", sync_json["atomic_claims"][0])

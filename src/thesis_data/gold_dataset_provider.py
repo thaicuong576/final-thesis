@@ -226,7 +226,8 @@ class GoldSqliteDatasetProvider:
         rows = connection.execute(
             """
             SELECT observation_id, ticker, metric, value, unit, period,
-                   source_id, quality_status, reason, as_of_date, period_basis
+                   source_id, source_locator, quality_status, reason,
+                   as_of_date, period_basis
             FROM metric_observations
             WHERE ticker = ? AND period = ? AND metric = ?
             ORDER BY observation_id
@@ -253,6 +254,7 @@ class GoldSqliteDatasetProvider:
             metadata={
                 "as_of_date": row["as_of_date"],
                 "period_basis": row["period_basis"],
+                "source_locator": row["source_locator"],
             },
         )
 

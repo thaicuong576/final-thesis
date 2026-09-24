@@ -264,6 +264,113 @@ def _resolved_reference(
     )
 
 
+def _source_locator(observation: CanonicalObservation) -> str | None:
+    locator = observation.metadata.get("source_locator")
+    if not isinstance(locator, str) or not locator.strip():
+        return None
+    return locator.strip()
+
+
+def _primary_source_locator_violations(
+    resolver: Stage1DatasetResolver,
+    *,
+    source_ref: str | None,
+    locator: str | None,
+    policy: AcceptancePolicy,
+    prefix: str,
+) -> tuple[DatasetSource | None, list[str]]:
+    source, violations = _source_reference_violations(
+        resolver, source_ref, policy, prefix
+    )
+    if source is not None and _status_value(source.source_tier) != "primary":
+        violations.append(f"{prefix}_tier_not_primary:{source.source_ref}")
+    if locator is None or not locator.strip():
+        violations.append(f"{prefix}_locator_missing:{source_ref or 'unknown'}")
+    return source, violations
+
+
+def _derived_lineage_violations(
+    resolver: Stage1DatasetResolver,
+    observation: CanonicalObservation,
+    policy: AcceptancePolicy,
+    *,
+    ref_id: str,
+    required_formula_version: str | None,
+) -> tuple[list[str], set[str]]:
+    """Validate provider-resolved derivation lineage and its primary-backed leaves."""
+
+    violations: list[str] = []
+    source_refs: set[str] = set()
+    if required_formula_version is not None:
+        if not required_formula_version.strip():
+            violations.append(f"derived_formula_version_missing:{ref_id}")
+        elif observation.derivation_method != required_formula_version:
+            violations.append(f"derived_formula_version_mismatch:{ref_id}")
+    elif observation.derivation_method is None or not observation.derivation_method.strip():
+        violations.append(f"derived_formula_version_missing:{ref_id}")
+    if observation.source_ref is not None:
+        violations.append(f"derived_source_ref_unexpected:{ref_id}")
+    if not observation.input_observation_ids:
+        violations.append(f"derived_inputs_missing:{ref_id}")
+
+    visited: set[str] = set()
+
+    def visit_input(observation_id: str, ancestors: frozenset[str]) -> None:
+        if observation_id in ancestors:
+            violations.append(f"derived_input_cycle:{ref_id}:{observation_id}")
+            return
+        if observation_id in visited:
+            return
+        visited.add(observation_id)
+        try:
+            item = resolver.resolve_observation_id(observation_id)
+        except (AttributeError, TypeError, ValueError):
+            item = None
+        if item is None:
+            violations.append(f"derived_input_missing_or_ambiguous:{ref_id}:{observation_id}")
+            return
+        if item.observation_id != observation_id:
+            violations.append(f"derived_input_id_mismatch:{ref_id}:{observation_id}")
+            return
+        if _status_value(item.validation_status) != "valid":
+            violations.append(f"derived_input_unaccepted:{ref_id}:{observation_id}")
+            return
+        if item.value is None or not math.isfinite(float(item.value)):
+            violations.append(f"derived_input_value_missing:{ref_id}:{observation_id}")
+        if item.unit is None or not item.unit.strip():
+            violations.append(f"derived_input_unit_missing:{ref_id}:{observation_id}")
+        if not item.entity_id.strip() or not item.period_id.strip():
+            violations.append(f"derived_input_scope_missing:{ref_id}:{observation_id}")
+
+        if item.source_ref:
+            if item.derivation_method is not None or item.input_observation_ids:
+                violations.append(f"derived_input_provenance_ambiguous:{ref_id}:{observation_id}")
+            source, source_violations = _primary_source_locator_violations(
+                resolver,
+                source_ref=item.source_ref,
+                locator=_source_locator(item),
+                policy=policy,
+                prefix="derived_input_source",
+            )
+            violations.extend(source_violations)
+            if source is not None:
+                source_refs.add(source.source_ref)
+            return
+
+        if item.derivation_method is None or not item.derivation_method.strip():
+            violations.append(f"derived_input_source_missing:{ref_id}:{observation_id}")
+            return
+        if not item.input_observation_ids:
+            violations.append(f"derived_input_lineage_missing:{ref_id}:{observation_id}")
+            return
+        for nested_id in item.input_observation_ids:
+            visit_input(nested_id, ancestors | {observation_id})
+
+    for input_id in observation.input_observation_ids:
+        visit_input(input_id, frozenset({observation.observation_id}))
+    return list(dict.fromkeys(violations)), source_refs
+
+
 def _benchmark_reference_violations(
     resolver: Stage1DatasetResolver,
     claim: AtomicClaim,
@@ -332,6 +439,8 @@ def _observation_reference(
     resolver: Stage1DatasetResolver,
     ref: ClaimDataRef,
     policy: AcceptancePolicy,
+    *,
+    require_primary_numeric_source: bool = False,
 ) -> tuple[_ResolvedReference | None, list[str]]:
     if ref.ref_type == "legacy":
         return None, [f"legacy_reference:{ref.ref_id}"]
@@ -345,6 +454,8 @@ def _observation_reference(
         return None, [f"{ref.ref_type}_reference_missing_or_ambiguous:{ref.ref_id}"]
 
     violations: list[str] = []
+    if observation.observation_id != ref.ref_id:
+        violations.append(f"reference_id_mismatch:{ref.ref_id}")
     if (
         observation.entity_id != ref.entity
         or observation.period_id != ref.period
@@ -372,12 +483,29 @@ def _observation_reference(
             if not observation.source_ref:
                 violations.append(f"{ref.ref_type}_source_missing:{ref.ref_id}")
             else:
-                source, source_violations = _source_reference_violations(
-                    resolver, observation.source_ref, policy, f"{ref.ref_type}_source"
-                )
+                if require_primary_numeric_source:
+                    source, source_violations = _primary_source_locator_violations(
+                        resolver,
+                        source_ref=observation.source_ref,
+                        locator=_source_locator(observation),
+                        policy=policy,
+                        prefix=f"{ref.ref_type}_source",
+                    )
+                else:
+                    source, source_violations = _source_reference_violations(
+                        resolver,
+                        observation.source_ref,
+                        policy,
+                        f"{ref.ref_type}_source",
+                    )
+                    if (
+                        ref.ref_type == "macro_observation"
+                        and not _source_locator(observation)
+                    ):
+                        source_violations.append(
+                            f"macro_observation_provenance_incomplete:{ref.ref_id}"
+                        )
                 violations.extend(source_violations)
-            if ref.ref_type == "macro_observation" and not observation.metadata.get("source_locator"):
-                violations.append(f"macro_observation_provenance_incomplete:{ref.ref_id}")
     elif ref.ref_type == "macro_observation":
         accepted_missing = (
             status == "missing"
@@ -446,6 +574,45 @@ def _evidence_violations(
 ) -> list[str]:
     if not claim.critical and claim.claim_type not in policy.critical_claim_types:
         return []
+
+    has_numeric_assertion = any(
+        assertion.assertion_type in _NUMERIC_ASSERTION_TYPES
+        for assertion in claim.assertions
+    )
+    if has_numeric_assertion:
+        numeric_only_claim = (
+            all(
+                assertion.assertion_type in _NUMERIC_ASSERTION_TYPES
+                for assertion in claim.assertions
+            )
+            and claim.inference_type in {
+                InferenceType.FACT,
+                InferenceType.COMPARISON,
+                InferenceType.TREND,
+            }
+        )
+        if numeric_only_claim and claim.evidence_refs:
+            # AtomicClaim currently has no reviewed observation-to-snippet link.
+            # A related document with the same source or period cannot stand in
+            # for that link, so numeric-only claims must use their typed data refs.
+            return list(dict.fromkeys(
+                [f"numeric_document_evidence_unlinked:{claim.claim_id}"]
+                + _document_evidence_violations(resolver, claim, policy)
+            ))
+        if numeric_only_claim:
+            return _structured_numeric_evidence_violations(resolver, claim, policy)
+        # A mixed or causal statement still needs genuine document evidence for
+        # its narrative inference. Numeric assertions are checked independently.
+        return _document_evidence_violations(resolver, claim, policy)
+
+    return _document_evidence_violations(resolver, claim, policy)
+
+
+def _document_evidence_violations(
+    resolver: Stage1DatasetResolver,
+    claim: AtomicClaim,
+    policy: AcceptancePolicy,
+) -> list[str]:
     violations: list[str] = []
     if not claim.evidence_refs:
         return [f"critical_claim_evidence_missing:{claim.claim_id}"]
@@ -477,6 +644,63 @@ def _evidence_violations(
     return violations
 
 
+def _structured_numeric_evidence_violations(
+    resolver: Stage1DatasetResolver,
+    claim: AtomicClaim,
+    policy: AcceptancePolicy,
+) -> list[str]:
+    """Require numeric evidence to resolve wholly through provider observations."""
+
+    violations: list[str] = []
+    resolved_source_refs: set[str] = set()
+    for assertion in claim.assertions:
+        violations.extend(
+            _numeric_assertion_violations(resolver, claim, policy, assertion)
+        )
+        refs = list(assertion.data_refs)
+        if assertion.reference_ref is not None:
+            refs.append(assertion.reference_ref)
+        for ref in refs:
+            if ref.ref_type == "benchmark":
+                continue
+            resolved, _ref_violations = _observation_reference(
+                resolver,
+                ref,
+                policy,
+                require_primary_numeric_source=True,
+            )
+            if resolved is not None and resolved.source_id:
+                resolved_source_refs.add(resolved.source_id)
+            if ref.ref_type != "derived_metric":
+                continue
+            try:
+                derived = resolver.resolve_observation_ref(ref)
+            except (TypeError, ValueError):
+                derived = None
+            if derived is None:
+                continue
+            asserted_value_ref = (
+                ref in assertion.data_refs
+                and ref.entity == assertion.entity
+                and ref.period == assertion.period
+                and ref.metric_id == assertion.metric_id
+            )
+            lineage_violations, lineage_source_refs = _derived_lineage_violations(
+                resolver,
+                derived,
+                policy,
+                ref_id=ref.ref_id,
+                required_formula_version=(
+                    assertion.formula_version or "" if asserted_value_ref else None
+                ),
+            )
+            violations.extend(lineage_violations)
+            resolved_source_refs.update(lineage_source_refs)
+    for source_ref in sorted(resolved_source_refs - set(claim.source_refs)):
+        violations.append(f"numeric_source_not_declared:{claim.claim_id}:{source_ref}")
+    return list(dict.fromkeys(violations))
+
+
 def _reference_evaluations(
     resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
@@ -506,7 +730,43 @@ def _reference_evaluations(
                         resolver, claim, assertion, ref
                     )
                 else:
-                    _resolved, ref_violations = _observation_reference(resolver, ref, policy)
+                    _resolved, ref_violations = _observation_reference(
+                        resolver,
+                        ref,
+                        policy,
+                        require_primary_numeric_source=(
+                            assertion.assertion_type in _NUMERIC_ASSERTION_TYPES
+                        ),
+                    )
+                    if ref.ref_type == "derived_metric":
+                        try:
+                            derived = resolver.resolve_observation_ref(ref)
+                        except (TypeError, ValueError):
+                            derived = None
+                        if derived is not None:
+                            is_asserted_value = (
+                                role.startswith("data:")
+                                and assertion.assertion_type in _NUMERIC_ASSERTION_TYPES
+                                and ref.entity == assertion.entity
+                                and ref.period == assertion.period
+                                and ref.metric_id == assertion.metric_id
+                            )
+                            lineage_violations, lineage_sources = _derived_lineage_violations(
+                                resolver,
+                                derived,
+                                policy,
+                                ref_id=ref.ref_id,
+                                required_formula_version=(
+                                    (assertion.formula_version or "")
+                                    if is_asserted_value
+                                    else None
+                                ),
+                            )
+                            ref_violations.extend(lineage_violations)
+                            for source_ref in sorted(lineage_sources - set(claim.source_refs)):
+                                ref_violations.append(
+                                    f"derived_input_source_not_declared:{ref.ref_id}:{source_ref}"
+                                )
                 evaluations.append(
                     _UnitEvaluation(
                         key=f"claim:{claim_index}:{claim.claim_id}:{assertion.assertion_id}:{role}:{ref.ref_id}",
@@ -541,7 +801,12 @@ def _resolve_data_refs(
     for ref in refs:
         if ref.ref_type == "benchmark":
             continue
-        item, item_violations = _observation_reference(resolver, ref, policy)
+        item, item_violations = _observation_reference(
+            resolver,
+            ref,
+            policy,
+            require_primary_numeric_source=True,
+        )
         violations.extend(item_violations)
         if item is not None:
             resolved.append(item)
@@ -598,6 +863,36 @@ def _numeric_assertion_violations(
             f"{claim.claim_id}:{assertion.assertion_id}:{item}" for item in ref_violations
         )
         return violations
+
+    for ref in assertion.data_refs:
+        if ref.ref_type != "derived_metric":
+            continue
+        asserted_value_ref = (
+            ref.entity == assertion.entity
+            and ref.period == assertion.period
+            and ref.metric_id == assertion.metric_id
+        )
+        try:
+            derived = resolver.resolve_observation_ref(ref)
+        except (TypeError, ValueError):
+            derived = None
+        if derived is None:
+            continue
+        lineage_violations, _lineage_sources = _derived_lineage_violations(
+            resolver,
+            derived,
+            policy,
+            ref_id=ref.ref_id,
+            required_formula_version=(
+                (assertion.formula_version or "") if asserted_value_ref else None
+            ),
+        )
+        violations.extend(
+            f"{claim.claim_id}:{assertion.assertion_id}:{item}"
+            for item in lineage_violations
+        )
+    if violations:
+        return list(dict.fromkeys(violations))
 
     if assertion.assertion_type is AssertionType.AGGREGATE:
         if assertion.benchmark_ref is None:

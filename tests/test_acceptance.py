@@ -253,7 +253,7 @@ class AcceptanceTests(unittest.TestCase):
         entity: str = "ACB",
         period: str = "2024_Q4",
         value: float = 22.0,
-        evidence: tuple[str, ...] = ("ev-acb-q4-roe",),
+        evidence: tuple[str, ...] = (),
         source: tuple[str, ...] = ("source-acb",),
         ref_id: str = "obs-acb-q4-roe",
         ref_type: str = "observation",
@@ -403,14 +403,14 @@ class AcceptanceTests(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertIn("legacy_reference", " ".join(result.gate_results["numeric_accuracy"].violations))
 
-    def test_missing_evidence_fails_only_presence_gate_but_not_numeric_gate(self):
+    def test_primary_observation_locator_satisfies_numeric_evidence_without_snippet(self):
         db, workload_scope = self.fixture()
         result = validate_stage1_claims(db, (self.claim(evidence=()),), workload_scope, self.policy())
-        self.assertFalse(result.passed)
-        self.assertFalse(result.gate_results["critical_evidence_coverage"].passed)
+        self.assertTrue(result.passed)
+        self.assertTrue(result.gate_results["critical_evidence_coverage"].passed)
         self.assertEqual(result.gate_results["critical_evidence_coverage"].evaluated_count, 1)
-        self.assertEqual(result.gate_results["critical_evidence_coverage"].passed_count, 0)
-        self.assertEqual(result.gate_results["critical_evidence_coverage"].rate, 0.0)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].passed_count, 1)
+        self.assertEqual(result.gate_results["critical_evidence_coverage"].rate, 1.0)
         self.assertTrue(result.gate_results["numeric_accuracy"].passed)
 
     def test_invalid_reference_fails_reference_and_unaccepted_gates(self):
@@ -452,7 +452,7 @@ class AcceptanceTests(unittest.TestCase):
                 self.claim(
                     entity="TCB",
                     value=15.0,
-                    evidence=("ev-tcb-q4-roe",),
+                    evidence=(),
                     source=("source-tcb",),
                     ref_id="obs-tcb-q4-roe",
                 ),
@@ -502,7 +502,7 @@ class AcceptanceTests(unittest.TestCase):
                 entity="ACB", period="2024_Q4", metric_id="bank.roe", asserted_value=22.0,
                 unit="%", operator="gt", data_refs=(acb_q4, tcb_q4), benchmark_ref=benchmark_ref,
             ),),
-            evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
+            evidence_refs=(),
             source_refs=("source-acb", "source-tcb"), inference_type=InferenceType.COMPARISON,
             support="evidence_backed",
         )
@@ -515,7 +515,7 @@ class AcceptanceTests(unittest.TestCase):
                 entity="TCB", period="2024_Q4", metric_id="bank.roe", operator="increase",
                 reference_ref=tcb_q1, data_refs=(tcb_q4,),
             ),),
-            evidence_refs=("ev-tcb-q1-roe", "ev-tcb-q4-roe"), source_refs=("source-tcb",),
+            evidence_refs=(), source_refs=("source-tcb",),
             inference_type=InferenceType.TREND, support="evidence_backed",
         )
         result = validate_stage1_claims(db, (comparison, trend), workload_scope, self.policy())
@@ -577,7 +577,7 @@ class AcceptanceTests(unittest.TestCase):
                     metric_id="bank.roe",
                 ),
             ),),
-            evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
+            evidence_refs=(),
             source_refs=("source-acb", "source-tcb"), inference_type=InferenceType.COMPARISON,
             support="evidence_backed",
         )
@@ -627,7 +627,7 @@ class AcceptanceTests(unittest.TestCase):
                     metric_id="bank.roe",
                 ),
             ),),
-            evidence_refs=("ev-acb-q4-roe", "ev-tcb-q4-roe"),
+            evidence_refs=(),
             source_refs=("source-acb", "source-tcb"),
             inference_type=InferenceType.COMPARISON,
             support="evidence_backed",
@@ -662,7 +662,7 @@ class AcceptanceTests(unittest.TestCase):
             limitation="Legacy limitation.",
             support="evidence_backed",
             data_refs=("ACB|2024_Q4|bank.roe",),
-            evidence_ids=("ev-acb-q4-roe",),
+            evidence_ids=(),
             source_ids=("source-acb",),
         )
         untyped = legacy_composite_claim_to_atomic(legacy)

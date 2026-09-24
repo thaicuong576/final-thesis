@@ -20,6 +20,8 @@ Khóa luận hoàn thành khi có **ứng dụng truy cập được bằng link
 
 MVP chấp nhận một **gói dữ liệu chuẩn hóa** gồm định danh ngân hàng, kỳ, metric, giá trị hoặc trạng thái thiếu, đơn vị, period basis, phạm vi hợp nhất/riêng lẻ, source ID, locator, tài liệu gốc/hash và quy tắc đối soát. Không coi `missing` là 0. File PDF scan có thể đi qua LlamaParse để tạo **candidate text/table/evidence theo trang**; số liệu OCR không tự động được nhận là Gold. Nếu chưa có API key hoặc thử nghiệm không đạt, gói CSV + bằng chứng kiểm tra thủ công vẫn là đường nhập liệu hợp lệ. Không hứa rằng bất kỳ PDF scan nào cũng lập tức tạo báo cáo đúng.
 
+**OCR feasibility check (25/09):** [trang giá chính thức](https://www.llamaindex.ai/pricing) xác nhận Free có 10.000 credits/tháng và tối đa 5 parse jobs đồng thời; [quickstart hiện hành](https://developers.llamaindex.ai/llamaparse/) dùng `llama-cloud`/`LlamaCloud` với API key. Có thể chia PDF thành năm job 20 trang và ghép theo số trang gốc, nhưng giới hạn 5 job **không chứng minh** tốc độ tăng 5 lần; cần đo trên cùng tài liệu và kiểm tra các bảng/biểu đồ đi qua ranh giới phần. Chỉ thử trên vài trang scan CTG có bảng/biểu đồ, so với PDF gốc và ghi lỗi/chi phí. Các con số 20 RPM, 512 MB/file và mức tăng tốc chưa được xác nhận cho tài khoản thực tế nên không dùng làm cam kết sản phẩm.
+
 ## 2. Mốc xuất phát đã kiểm chứng và khoảng trống
 
 - Gold v5 có 80 ô mục tiêu, 76 quan sát hợp lệ có evidence và 4 ô thiếu rõ ràng (`reports/analysis-report-v2-final-evaluation-gold-v5-20260909-v4/final-evaluation.md`).
@@ -53,6 +55,7 @@ Các tài liệu trạng thái cũ có thể mô tả những mốc lịch sử 
 ## 4. Thiết kế đánh giá tối thiểu
 
 1. Đóng băng 8–12 analytical tasks trước khi chạy: company-only, peer, yêu cầu kết hợp nhiều cấp; macro + company chỉ là nhánh riêng nếu Gold macro đạt gate. Mỗi loại có câu dễ/khó, kỳ, metric và expected coverage.
+   Với peer ROE, tuân thủ D-063: Gold v5 chưa đủ điều kiện so sánh cả năm ngân hàng do mẫu số VPB không đồng nhất. Chỉ đóng băng tập issuer/metric/kỳ có định nghĩa đã kiểm tra thống nhất; không đưa VPB ROE vào bảng so sánh cho tới khi được tính lại và rà soát độc lập. Case CTG ngoài Gold là bằng chứng chuyển giao vận hành, không tự động là nhãn Gold của thực nghiệm A/B/C.
 2. A single-agent, B multi-agent thích ứng, C cùng planning/specialist set với B cộng critique/revision. Giữ cùng snapshot, model version, factual tools, evidence policy, đầu ra và giới hạn ngân sách tương ứng. Ghi thứ tự chạy và mọi retry.
 3. Mức khả thi ban đầu: ít nhất 8 tasks × 3 cấu hình × 2 lần lặp nếu ngân sách/provider cho phép; số mẫu cuối và mọi thiếu hụt được công bố. Không loại run lỗi khỏi mẫu số completion.
 4. Chấm số/reference/evidence bằng quy tắc; chấm coverage, logic, uncertainty và usefulness bằng rubric mù. Người viết khóa luận là người chấm; nêu thiên lệch và kiểm tra lại một phần phiếu sau một khoảng nghỉ.
@@ -88,3 +91,11 @@ Mỗi cổng chỉ được đánh dấu đạt bằng bằng chứng chạy đ�
 | Có phần nào ngoài phạm vi thesis? | OCR không kiểm định tự động, chứng khoán, bao phủ toàn ngành và vector index tổng quát được hoãn. |
 
 Trước P2 và P4, Lead ghi lại câu trả lời tiền kiểm nếu phát sinh contract hoặc nguồn dữ liệu mới. Không dùng việc test qua để che giấu phụ thuộc vào bộ Gold hiện tại.
+
+## 8. Rà soát Chương 1–2 (25/09, bản người viết gửi)
+
+- **Sửa trước khi khóa thiết kế thực nghiệm:** RQ2 nêu rõ so sánh A (một tác tử) với B (đa tác tử thích ứng) trên cùng câu hỏi/snapshot/model/tools, gồm chất lượng và độ trễ, calls, token/chi phí, tỷ lệ hoàn thành. RQ3 so B với C (thêm phản biện và tối đa hai vòng sửa có mục tiêu, chạy lại Stage-1). Không dự đoán chiều kết quả.
+- **Sửa phạm vi:** thống kê peer chỉ tính từ các quan sát được chấp nhận trong tập issuer/metric/kỳ đã đóng băng, công bố mẫu số. Dữ liệu ngành/vĩ mô bên ngoài chỉ được dùng khi có trong snapshot được chấp nhận và AnalysisPlan yêu cầu, trình bày riêng. Với ROE, giữ cổng định nghĩa thống nhất D-063 nêu trên.
+- **Đối chiếu Chương 2:** các tiểu mục 2.1–2.3 rút ra sáu nguyên tắc, trong khi bảng 2.4 liệt kê tám. Đánh số, bổ sung lập luận còn thiếu cho kiểm tra số liệu so với đánh giá ngữ nghĩa, hoặc rút gọn bảng. Nguyên tắc chuyển giao ngân hàng mới cần cơ sở rõ hoặc chuyển thành quyết định kiến trúc ở Chương 4.
+- **Khóa trích dẫn:** rà `CFA Institute, 2026` so với `2026a/2026b` theo danh mục tài liệu cuối; kiểm tra thông tin xuất bản MetaGPT, ChatDev và Liang. Chương 2 đang phân biệt đúng bằng chứng nghiên cứu AI tổng quát với hiệu quả tài chính chưa được thử nghiệm.
+- **Ngân sách trang để kiểm sau khi dàn trang:** trang đầu 3; Chương 1–6 lần lượt 8, 8, 9, 11, 8, 3; tài liệu tham khảo 3; phụ lục 7 = **60 trang**. Đây là trần biên tập ban đầu, điều chỉnh theo template và bản render thực tế.

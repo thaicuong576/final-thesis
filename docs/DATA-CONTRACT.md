@@ -134,6 +134,18 @@ reason: string | null
 
 Derived metrics must be reproducible from the listed inputs. Formula code, unit conversion, YTD subtraction, and peer-statistics rules are versioned.
 
+For a **new operational snapshot**, promoting a derived candidate to `valid`
+requires a deterministic calculation against accepted input observations using
+a recognized formula version. The promotion gate checks entity, period basis,
+reporting scope and units, then compares the computed output with the submitted
+candidate under a declared metric-specific numeric tolerance. It records a
+calculation receipt with formula version, ordered input IDs/values, computed
+output, tolerance and review result. Unknown formulas, unavailable inputs or a
+failed comparison stay pending/conflicting. Stage-1 subsequently checks a
+claim against the accepted derived output and its lineage; Stage-1 does not
+itself re-execute financial formulas. Historical Gold artifacts retain their
+separate review/promotion gate and are not retroactively approved by this rule.
+
 ## Evidence for published numeric claims
 
 A critical numeric claim may be supported by **structured observation

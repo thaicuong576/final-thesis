@@ -35,6 +35,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    `docs/DATA-CONTRACT.md`. A reviewed operational snapshot is distinct from
    Gold benchmark promotion; do not silently grant either status.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
+   For new operational snapshots, derived values must be recomputed from
+   accepted source-backed inputs by a versioned deterministic formula at
+   promotion, with a recorded calculation receipt. Stage-1 checks the accepted
+   result and provenance; it does not substitute for this arithmetic gate.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
    For numeric claims, Stage-1 may accept exact structured observation/source
    locator provenance instead of a document snippet; derived claims must

@@ -1177,3 +1177,28 @@ each tied to a particular accepted input. The fields are additive in OpenAPI
 for old report compatibility, but new observation-backed numeric reports must
 populate them; interpreting array order or decoding a claim ID is not a valid
 provenance join.
+
+## D-071: Recompute derived bank metrics before operational snapshot acceptance
+
+Status: Accepted as the contract for the next onboarding implementation;
+the CTG materializer and Gold v5 do not gain arithmetic validation merely
+from this decision.
+
+The operational promotion gate must recompute each derived candidate from its
+accepted, source-backed input observations using a known versioned formula.
+It must check entity, period basis, reporting scope, units and a declared
+metric-specific tolerance, and retain the calculation receipt. A supplied
+derived number, even with plausible input IDs and a `valid` label, cannot pass
+without this check. Unknown formula versions, invalid inputs or mismatches
+remain pending/conflicting. The gate is metric-generic, not issuer-specific.
+
+The Stage-1 harness verifies that a published claim matches the accepted
+derived observation and its formula/input/source lineage. It does not need to
+duplicate the arithmetic engine. Historical Gold v5 is governed by its own
+independent review decisions; notably D-063 still blocks five-issuer ROE
+comparison until the VPB denominator is checked and independently reviewed.
+
+Reason: the current canonical snapshot validator checks that derived input IDs
+exist, but does not recalculate their value. Formula unit tests by themselves
+do not prove a submitted CTG candidate was computed by those formulas. The
+promotion gate must enforce the `code computes financial metrics` invariant.

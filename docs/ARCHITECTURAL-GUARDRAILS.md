@@ -114,6 +114,12 @@ Gold is a validated dataset instance and an adapter/provider fixture. Gold is
 not the architecture. The thesis MVP needs one practical adapter and
 documented extension points, not a complete ETL platform.
 
+For a new operational snapshot, an adapter may propose derived observations,
+but the validation/promotion boundary must recompute them from accepted inputs
+with a versioned deterministic formula and retain a calculation receipt.
+The analysis core consumes the accepted result through the provider; it must
+not depend on a bank-specific calculation or SQLite storage layout.
+
 ### Phase 1 — Structured analysis contracts
 
 Represent material output through machine-checkable AtomicClaim,

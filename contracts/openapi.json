@@ -399,6 +399,21 @@
             "type": "string",
             "example": "claim-acb-roe-001"
           },
+          "observation_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Canonical observation asserted by this numeric claim."
+          },
+          "input_observation_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Accepted input observations for a derived numeric claim."
+          },
+          "formula_version": {
+            "type": "string",
+            "nullable": true,
+            "description": "Versioned formula for a derived numeric claim."
+          },
           "capability": {
             "type": "string",
             "enum": [
@@ -471,6 +486,23 @@
           "source_doc"
         ],
         "properties": {
+          "claim_id": {
+            "type": "string",
+            "description": "Claim supported by this source record; derived claims may have one row per input observation."
+          },
+          "observation_id": {
+            "type": "string",
+            "description": "Exact canonical observation whose primary source and locator are shown."
+          },
+          "source_id": {
+            "type": "string",
+            "description": "Primary source record ID resolved from the observation."
+          },
+          "source_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Original document URL when the reviewed source supplies one."
+          },
           "evidence_id": {
             "type": "string",
             "example": "ev-acb-roe-2024"

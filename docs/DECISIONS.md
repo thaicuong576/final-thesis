@@ -1170,3 +1170,10 @@ evidence **or an explicit source-record locator**, and preserves the
 structured/document source-family separation in the architectural guardrails.
 It does not authorize accepting user-supplied CSV numerics, missing locators,
 invalid sources, wrong formulas, or cross-scope claims.
+
+The report API carries this relation with explicit claim, observation, input,
+formula, and source IDs. A derived claim may have multiple source-trail rows,
+each tied to a particular accepted input. The fields are additive in OpenAPI
+for old report compatibility, but new observation-backed numeric reports must
+populate them; interpreting array order or decoding a claim ID is not a valid
+provenance join.

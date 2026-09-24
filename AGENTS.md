@@ -39,7 +39,9 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    For numeric claims, Stage-1 may accept exact structured observation/source
    locator provenance instead of a document snippet; derived claims must
    reproduce from accepted primary-backed inputs. Unlinked same-document
-   snippets are not claim evidence.
+   snippets are not claim evidence. New report output must join numeric claims
+   to direct or input observations and primary-source trail rows by explicit
+   IDs per `contracts/openapi.json`, never by array order or encoded claim IDs.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.
 6. Every material decision, assumption, blocker, and verification result must be recorded in git commits and pull requests.
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.

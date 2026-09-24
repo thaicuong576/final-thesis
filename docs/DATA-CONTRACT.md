@@ -161,6 +161,17 @@ the same source, bank and period—or overlapping PDF pages—is insufficient.
 Unlinked snippets can be shown as related documents but cannot be copied into a
 claim's `evidence_refs` or relabeled with that claim's metric/value/locator.
 
+The published report carries the provenance graph explicitly. A numeric
+`AtomicClaim` names its exact `observation_id`; a derived claim also names
+`input_observation_ids` and `formula_version`. Every primary-source
+`EvidenceTrailItem` supporting that claim names `claim_id`, the specific input
+or direct `observation_id`, and `source_id`, with the reviewed locator and
+source URL when available. Several trail rows may share a derived `claim_id`.
+Report consumers must not infer these links from row order, ticker/metric
+similarity, or an encoded claim ID. These additive fields are optional in the
+public schema for older report compatibility but required for newly published
+numeric claims on the observation-provenance route.
+
 ## EvidenceSnippet
 
 ```text

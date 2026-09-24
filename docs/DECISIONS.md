@@ -1127,3 +1127,28 @@ Reason: semantic reconciliation must be completed before Phase 4, while Gold
 promotion still requires the existing independent review, source contract and
 fail-closed materialization gate. This decision changes no raw artifact,
 schema, runtime or historical Gold snapshot.
+
+## D-068: Evaluate the application without presupposing multi-agent superiority
+
+Status: Accepted for the applied-thesis completion plan on 2026-09-24.
+
+The advisor-approved report uses six chapters and focuses its empirical case
+study on listed banks. The application must be reachable for advisor testing;
+interface quality is part of acceptance. At least one new bank outside the
+current five-bank Gold sample must pass through a documented, validated input
+path and run through the same analytical core without bank-specific changes to
+that core. Raw/OCR-parsed data remains candidate material until validation and
+acceptance. The author may be the human evaluator but must use a frozen rubric
+and disclose the single-rater limitation.
+
+The research asks whether and under which request conditions A (single agent),
+B (query-adaptive hierarchical), and C (B plus genuine critique/revision) differ
+in quality, completion, latency, calls, and cost. It does not assume C or B is
+superior. Existing issuer-count experiments remain historical pilot evidence;
+their verification calls do not become genuine targeted revision by renaming.
+The phase gates and evidence requirements are in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`.
+
+Reason: the thesis is an evaluated application. A working web link, portable
+validated data input, fair comparison, and a report matching the approved
+outline are necessary to substantiate its claimed contribution.

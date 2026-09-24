@@ -92,9 +92,16 @@ Each phase must leave a durable handoff and a verified state update before the n
 
 ## Current priority
 
-The immediate priority is the research and data-foundation phase.
+The immediate priority is the six-day applied-thesis completion plan in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`: prove a validated new-bank onboarding
+path, complete the query-adaptive critique/revision loop, verify the deployed
+analyst workflow, rerun a fair A/B/C evaluation, and finish the approved
+six-chapter report. The previously scored issuer-count benchmark is historical
+evidence, not proof that the final revision loop is implemented.
 
-Do not build the full agent loop until source coverage, metric definitions, period alignment, and a manually checked gold dataset are documented.
+Do not admit new-bank or OCR-extracted observations into an analysis snapshot
+until source coverage, metric definitions, period alignment, provenance, and
+validation are documented. Preserve the existing Gold benchmark independently.
 
 Before each major phase, complete the guardrail pre-flight questions and record
 any new Gold/SQLite/physical-schema coupling. Passing tests alone is not

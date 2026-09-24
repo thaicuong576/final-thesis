@@ -12,7 +12,7 @@ Dự án này là một **kiến trúc phân tích tài chính đa-agent có kh�
 
 - **Không phải pipeline tuần tự cưỡng ép**: `Macro Policy Context`, `Sector/Peer Comparison` và `Company Financial Performance (CAMEL)` là các **analytical capabilities độc lập**, không phải ba stage bắt buộc phải chạy trong mọi truy vấn.
 - **Mục tiêu then chốt**: Tạo ra các phân tích có thể truy xuất ngược 100% đến dữ liệu và bằng chứng (`AtomicClaim` & `EvidenceTrail`), có kiểm soát chất lượng xác định bằng luật (**Stage 1 Deterministic Acceptance**), có phản biện ngữ nghĩa và hiệu đính có giới hạn (**Stage 2 Semantic Critique & Bounded Revision**), đồng thời giữ ranh giới sạch để frontend, database, orchestration framework hoặc data provider có thể được thay thế mà không phải viết lại analytical core.
-- **Vai trò của Web Application**: Chỉ là **Reference Implementation** để chứng minh tính khả thi end-to-end của kiến trúc, không phải bản thân kiến trúc.
+- **Vai trò của Web Application**: Là **Reference Implementation** bắt buộc phải truy cập và dùng thử được qua link trong khóa luận hướng ứng dụng. Giao diện và quy trình người dùng là đối tượng đánh giá, còn analytical core vẫn phải độc lập với frontend.
 
 > **Tuyên ngôn North Star (Formal Charter Mandate)**:  
 > *"A reusable, query-adaptive hierarchical multi-agent financial-analysis architecture in which an Orchestrator plans and composes only the analytical capabilities required by each request, with evidence-grounded outputs, bounded critique/revision, deterministic quality controls, and replaceable enterprise data interfaces, demonstrated through an end-to-end web application for financial analysts."*
@@ -24,7 +24,7 @@ Toàn bộ tính tái hiện (reproducibility) và giải trình (explainability
 3. **`AtomicClaim` (Ràng buộc Kết quả Đầu ra)**: Xác định hệ thống đang khẳng định điều gì và assertion đó dựa trên bằng chứng số liệu (`EvidenceSnippet` / `Observation`) cụ thể nào.
 
 ### 1.2. Mục tiêu Nghiên cứu Học thuật
-Chứng minh bằng thực nghiệm: Hệ thống phân tầng thích ứng truy vấn (Query-Adaptive Hierarchical Workflow with Bounded Critique/Revision) vượt trội so với mô hình **Single-Agent baseline** chạy trên cùng một `DatasetSnapshot` về:
+Đánh giá bằng thực nghiệm liệu hệ thống phân tầng thích ứng truy vấn (Query-Adaptive Hierarchical Workflow with Bounded Critique/Revision) có cải thiện so với mô hình **Single-Agent baseline** chạy trên cùng một `DatasetSnapshot` hay không, đồng thời đo chi phí, độ trễ và tỷ lệ hoàn thành. Không mặc định kết luận đa tác tử vượt trội. Các tiêu chí chất lượng gồm:
 - Độ chính xác thực tế (**factual correctness**).
 - Tính truy vết bằng chứng (**evidence traceability**).
 - Tính nhất quán xuyên tầng (**cross-level consistency**).

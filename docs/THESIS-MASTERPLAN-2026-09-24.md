@@ -54,6 +54,8 @@ Các tài liệu trạng thái cũ có thể mô tả những mốc lịch sử 
 
 **Bổ sung cổng P1 theo D-071:** với chỉ số dẫn xuất của ngân hàng mới, kiểm tra quan hệ input ID là chưa đủ. Trước khi công nhận operational snapshot, code phải tính lại theo formula version từ các input primary đã được chấp nhận, so giá trị với tolerance đã khai báo và lưu calculation receipt. Stage-1 xác nhận claim khớp observation được chấp nhận và chuỗi nguồn, không thay cho phép kiểm toán học ở cổng dữ liệu.
 
+**Tiền kiểm P4 ngày 25/09:** frontend và `/api/health` public trả 200 nhưng `/api/ready` trả 503 do database disconnected; `/api/capabilities` vẫn công bố snapshot legacy 27 ticker/Gold 2.0 và revision deploy là `3e50b95`, không phải Gold v5. P4 phải tách dataset SQLite chỉ đọc khỏi DB lưu `analysis_runs`, xác minh hash + integrity + snapshot ID lúc khởi động, fail closed nếu artifact sai/thiếu, và đổi health check sang `/api/ready`. Render free có filesystem tạm nên snapshot được rehydrate mỗi lần start; lịch sử preview có thể là DB tạm riêng và reset sau restart. Full Gold artifact chứa excerpt, local-path metadata và checker IDs; chỉ đưa vào secret file/private runtime sau khi ghi quyết định quyền tái sử dụng, không commit hoặc expose file tải xuống.
+
 ## 4. Thiết kế đánh giá tối thiểu
 
 1. Đóng băng 8–12 analytical tasks trước khi chạy: company-only, peer, yêu cầu kết hợp nhiều cấp; macro + company chỉ là nhánh riêng nếu Gold macro đạt gate. Mỗi loại có câu dễ/khó, kỳ, metric và expected coverage.

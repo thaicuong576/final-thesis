@@ -883,9 +883,10 @@
   },
   "evaluation_inputs": {
     "question_set_ref": "data/evaluation/p4-questions-v1.jsonl",
-    "question_set_sha256_raw_file_bytes": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+    "question_set_hash_mode": "canonical_lf_utf8_sha256",
+    "question_set_canonical_lf_utf8_sha256": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
     "task_specs_ref": "data/evaluation/p4-task-specs-v1.json",
-    "task_specs_canonical_lf_utf8_sha256": "8672e67e4c376a75a4a0eef94223e2a82a3ae975f49f3b6112ac60c35d91b1b6",
+    "task_specs_canonical_lf_utf8_sha256": "9744a06ceb2c703c2cfb1b15c45b0d7cee8fcf2fa9a1234c5b9c9fd9c8e4e50c",
     "task_count": 10,
     "expected_coverage_ref": "data/evaluation/p4-expected-coverage-v1.json",
     "completed_ab_c_results_created": false,
@@ -910,7 +911,7 @@
       "T09": "negative_scope_control_candidate",
       "T10": "negative_peer_universe_control_candidate"
     },
-    "expected_coverage_canonical_lf_utf8_sha256": "17791d14810f000aa8a701764a8903a659d1880bff99a0b6bec67fb773d29f81"
+    "expected_coverage_canonical_lf_utf8_sha256": "21e29be555a75e7d774deb3e0f2ed7f87666b5f32b8d7592670b2d703e192252"
   },
   "scope_gap_resolution": "Scope is populated only by the separately hash-verified explicit sidecar. Provider calls without it continue to return reporting_scope=null. The Gold SQLite bytes remain unchanged.",
   "root_finance_master_v2_sha256_before_after": "7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86",

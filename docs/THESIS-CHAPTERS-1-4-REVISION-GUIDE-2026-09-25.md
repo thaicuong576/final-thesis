@@ -49,9 +49,10 @@ Dùng phát biểu sau làm ranh giới:
 > AnalysisPlan yêu cầu; chúng được trình bày riêng, không gộp vào thống kê peer.
 
 Gold v5 hiện có 80 ô mục tiêu, gồm 76 quan sát hợp lệ và bốn giá trị thiếu được
-ghi rõ. Không gọi SQLite legacy 27 ngân hàng là Gold. D-063/D-072 tiếp tục chặn
-peer ROE năm issuer cho tới khi VPB definition gate được hòa giải; có thể loại
-VPB ROE khỏi task đó thay vì dừng toàn bộ thực nghiệm.
+ghi rõ. Không gọi SQLite legacy 27 ngân hàng là Gold. D-063/D-072 đã hòa giải
+VPB ROE bằng reviewer attestation và authority manifest khóa hash, nên có thể
+đánh giá peer ROE đủ năm ngân hàng trên đúng snapshot Gold v5. Bài vẫn phải nêu
+mẫu số hợp lệ theo kỳ, giữ missingness và không suy rộng case study thành ngành.
 
 ### 2.3. Giới hạn chuyển giao dữ liệu
 

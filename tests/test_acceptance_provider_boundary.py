@@ -58,13 +58,23 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
             CanonicalObservation(
                 observation_id="observation-a", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="entity-a", period_id="2024_Q4", metric_id="company.roa", value=1.0, unit="percent",
-                source_ref="source-company", validation_status=QualityStatus.VALID,
+                source_ref="source-company", period_basis="ttm", reporting_scope="consolidated",
+                metadata={"reporting_scope_authority": {
+                    "authority_ref": "fixture-scope-authority.json",
+                    "authority_canonical_lf_utf8_sha256": "a" * 64,
+                    "review_status": "accepted",
+                }}, validation_status=QualityStatus.VALID,
                 source_locator="page:1",
             ),
             CanonicalObservation(
                 observation_id="observation-b", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="entity-b", period_id="2024_Q4", metric_id="company.roa", value=3.0, unit="percent",
-                source_ref="source-company", validation_status=QualityStatus.VALID,
+                source_ref="source-company", period_basis="ttm", reporting_scope="consolidated",
+                metadata={"reporting_scope_authority": {
+                    "authority_ref": "fixture-scope-authority.json",
+                    "authority_canonical_lf_utf8_sha256": "a" * 64,
+                    "review_status": "accepted",
+                }}, validation_status=QualityStatus.VALID,
                 source_locator="page:2",
             ),
             CanonicalObservation(
@@ -217,6 +227,184 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
             inference_type=InferenceType.COMPARISON, support="evidence_backed",
         )
         self.assertTrue(validate_stage1_claims(self.resolver, (claim,), claim.scope, self.policy).passed)
+
+    def test_five_requested_peers_four_eligible_inputs_pass_stage1_with_verified_scope(self):
+        ref = DatasetRef(dataset_id="five-peer-dataset", dataset_snapshot_id="snapshot-v1")
+        requested = ("ACB", "MBB", "TCB", "VCB", "VPB")
+        eligible = ("MBB", "TCB", "VCB", "VPB")
+        authority_metadata = {
+            "reporting_scope_authority": {
+                "authority_ref": "fixture-scope-authority.json",
+                "authority_canonical_lf_utf8_sha256": "b" * 64,
+                "review_status": "accepted",
+            }
+        }
+        catalog = DatasetCapabilityCatalog(
+            dataset_ref=ref,
+            entities=tuple(
+                DatasetEntity(
+                    entity_id=entity_id,
+                    entity_type=DatasetEntityType.COMPANY,
+                    display_name=entity_id,
+                )
+                for entity_id in requested
+            ),
+            periods=(DatasetPeriod(period_id="2024_Q4", label="Q4 2024"),),
+            metrics=(
+                DatasetMetric(
+                    metric_id="company.roa",
+                    display_name="ROA",
+                    analytical_level=AnalyticalLevel.COMPANY,
+                    default_unit="percent",
+                ),
+            ),
+            peer_universes=(
+                PeerUniverse(
+                    peer_universe_id="sector:bank",
+                    display_name="Bank peers",
+                    entity_ids=requested,
+                ),
+            ),
+            supported_operations=(
+                "get_metric",
+                "get_entity_metrics",
+                "get_peer_benchmark",
+                "get_evidence",
+                "get_source",
+                "get_macro_observation",
+                "resolve_observation",
+            ),
+        )
+        observations = [
+            CanonicalObservation(
+                observation_id="obs-ACB-missing",
+                dataset_id=ref.dataset_id,
+                dataset_snapshot_id=ref.dataset_snapshot_id,
+                entity_id="ACB",
+                period_id="2024_Q4",
+                metric_id="company.roa",
+                validation_status=QualityStatus.MISSING,
+                missing_reason="DATA_UNAVAILABLE",
+            )
+        ]
+        observations.extend(
+            CanonicalObservation(
+                observation_id=f"obs-{entity_id}",
+                dataset_id=ref.dataset_id,
+                dataset_snapshot_id=ref.dataset_snapshot_id,
+                entity_id=entity_id,
+                period_id="2024_Q4",
+                metric_id="company.roa",
+                value=value,
+                unit="percent",
+                source_ref="source-company",
+                source_locator=f"page:{index}",
+                period_basis="ttm",
+                reporting_scope="consolidated",
+                metadata=authority_metadata,
+                validation_status=QualityStatus.VALID,
+            )
+            for index, (entity_id, value) in enumerate(
+                zip(eligible, (1.0, 2.0, 3.0, 4.0), strict=True), start=1
+            )
+        )
+        source = DatasetSource(
+            source_ref="source-company",
+            source_type="filing",
+            source_tier="primary",
+            source_url="https://example.test/bank-filings",
+            publisher="Issuer filings",
+            retrieved_at="2026-09-25",
+            content_hash="fixture-source-hash",
+            validation_status=QualityStatus.VALID,
+        )
+        provider = InMemoryFinancialDatasetProvider(
+            catalog,
+            observations=observations,
+            sources=(source,),
+        )
+        resolver = ProviderStage1DatasetResolver(provider, ref)
+        benchmark = resolver.resolve_benchmark(
+            peer_universe_id="sector:bank",
+            peer_entity_ids=requested,
+            period_id="2024_Q4",
+            metric_id="company.roa",
+        )
+        accepted_refs = tuple(
+            ClaimDataRef(
+                ref_id=f"obs-{entity_id}",
+                ref_type="observation",
+                entity=entity_id,
+                period="2024_Q4",
+                metric_id="company.roa",
+            )
+            for entity_id in eligible
+        )
+        assertion = StructuredAssertion(
+            assertion_id="peer-aggregate",
+            assertion_type=AssertionType.AGGREGATE,
+            entity="sector:bank",
+            period="2024_Q4",
+            metric_id="company.roa",
+            asserted_value=2.5,
+            unit="percent",
+            operator=AssertionOperator.EQ,
+            data_refs=accepted_refs,
+            benchmark_ref=ClaimDataRef(
+                ref_id=benchmark.observation_id,
+                ref_type="benchmark",
+                entity="sector:bank",
+                period="2024_Q4",
+                metric_id="company.roa",
+            ),
+        )
+        scope = ClaimScope(
+            entities=requested,
+            periods=("2024_Q4",),
+            metric_ids=("company.roa",),
+            comparison_universe="sector:bank",
+        )
+        claim = AtomicClaim(
+            claim_id="five-peer-aggregate",
+            claim_text="The four eligible banks have a median ROA of 2.5 percent.",
+            claim_type="comparison",
+            title="Five-member requested peer set",
+            interpretation="The denominator excludes the explicitly missing ACB cell.",
+            limitation="Bounded fixture.",
+            scope=scope,
+            assertions=(assertion,),
+            source_refs=("source-company",),
+            inference_type=InferenceType.COMPARISON,
+            support="source_locator_only",
+        )
+
+        result = validate_stage1_claims(resolver, (claim,), scope, self.policy)
+        four_member_benchmark = resolver.resolve_benchmark(
+            peer_universe_id="sector:bank",
+            peer_entity_ids=eligible,
+            period_id="2024_Q4",
+            metric_id="company.roa",
+        )
+
+        self.assertTrue(result.passed, result.model_dump_json())
+        self.assertTrue(result.gate_results["reference_validity"].passed)
+        self.assertEqual(
+            benchmark.metadata["requested_peer_entity_ids"], list(requested)
+        )
+        self.assertEqual(benchmark.metadata["eligible_peer_entity_ids"], list(eligible))
+        self.assertEqual(benchmark.metadata["eligible_denominator"], 4)
+        self.assertEqual(
+            benchmark.metadata["missing_members"],
+            [
+                {
+                    "entity_id": "ACB",
+                    "observation_id": "obs-ACB-missing",
+                    "validation_status": "missing",
+                    "reason": "DATA_UNAVAILABLE",
+                }
+            ],
+        )
+        self.assertNotEqual(benchmark.observation_id, four_member_benchmark.observation_id)
 
     def test_direct_observation_route_requires_exact_locator(self):
         provider = self.resolver._provider

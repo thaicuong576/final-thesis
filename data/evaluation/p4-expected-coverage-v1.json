@@ -1,0 +1,583 @@
+{
+  "manifest_id": "p4-expected-coverage-v1",
+  "status": "expected_coverage_for_immutable_candidate_questions_not_scored",
+  "dataset_id": "gold-bank-2025-expanded-v5-evidence",
+  "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+  "snapshot_sha256_raw_file_bytes": "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73",
+  "question_set_sha256_raw_file_bytes": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+  "task_specs_canonical_lf_utf8_sha256": "8672e67e4c376a75a4a0eef94223e2a82a3ae975f49f3b6112ac60c35d91b1b6",
+  "peer_scope_label": "bounded five-bank case study; do not generalize to the whole sector",
+  "coverage_source": "read-only provider observations and explicit missing rows in the hash-bound Gold v5 snapshot",
+  "tasks": [
+    {
+      "task_id": "T01",
+      "question_sha256_utf8": "b4fb764a401e7e73104ecfb14381e1457a7b92a019088f5628cd846cdcc76c35",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question.",
+        "required_observation_count": 4
+      }
+    },
+    {
+      "task_id": "T02",
+      "question_sha256_utf8": "6e13a6ff0c23bc9ea4b9aa784c9883e63b848c06dc38b5760df063d95e2d389c",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question.",
+        "required_observation_count": 4
+      }
+    },
+    {
+      "task_id": "T03",
+      "question_sha256_utf8": "908961ee21a1524effdf0c45b40f1d6de9f3daec88e51c230eef91311f16cddf",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 0,
+        "missing_count": 4,
+        "required_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe"
+        ],
+        "missing_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe"
+        ],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "candidate_pending_missingness_fail_closed_e2e",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Missing-data fail-closed E2E is not verified for this exact question.",
+        "required_observation_count": 4
+      }
+    },
+    {
+      "task_id": "T04",
+      "question_sha256_utf8": "4ed425cdc179b02be9dee236d0f41417650b26d290b2936e3982df2f84b42f66",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35"
+        ],
+        "missing_observation_ids": [],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+        "expected_current_runtime_behavior_or_blocker": "multi_period_unsupported",
+        "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed.",
+        "required_observation_count": 8
+      }
+    },
+    {
+      "task_id": "T05",
+      "question_sha256_utf8": "4063b68cef2b098eb3ad92038ed13e5aaf7d067558cadb79ee40db0aa00b31b1",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roa",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roa",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roa",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+        "expected_current_runtime_behavior_or_blocker": "multi_period_unsupported",
+        "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed.",
+        "required_observation_count": 8
+      }
+    },
+    {
+      "task_id": "T06",
+      "question_sha256_utf8": "067cfaf9817ca62f9392c93d20fe97829f7c22db7ef11d9e744abe0e9dc4cab5",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 10,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "missing_observation_ids": [],
+        "accepted_member_denominators": [
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          }
+        ],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Single-period query-adaptive peer runtime E2E is not verified for this exact question.",
+        "required_observation_count": 10
+      }
+    },
+    {
+      "task_id": "T07",
+      "question_sha256_utf8": "6c18f856ccb4543d3d96429843675a10430ee982a15f8b9f3fc2b9999d6d7d93",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 10,
+        "missing_count": 0,
+        "required_observation_ids": [
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "accepted_member_denominators": [
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          }
+        ],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Single-period query-adaptive peer runtime and D-072 E2E gates are not verified for this exact question.",
+        "required_observation_count": 10
+      }
+    },
+    {
+      "task_id": "T08",
+      "question_sha256_utf8": "3ef2341499343464707177f922ca7e4b79a7b5ce57da4ca4c06a0e054ef381a8",
+      "expected_coverage": {
+        "result": "expected_gold_coverage_not_runtime_result",
+        "valid_count": 76,
+        "missing_count": 4,
+        "required_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe",
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.npl_g35",
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roa:ttm_derived",
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roe:ttm_derived",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roa:ttm_derived",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roe:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roa",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.npl_g35",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roa",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roa",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.roe",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.roe",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.roe",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+          "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+          "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.roa",
+          "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+          "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.npl_g35",
+          "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.roa",
+          "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+          "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+          "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.roa",
+          "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity",
+          "official-VPB-2024-consolidated-lookup:2024_Q1:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q1:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q1:bank.roa",
+          "official-VPB-2024-consolidated-lookup:2024_Q1:bank.roe:parent_attributable_equity",
+          "official-VPB-2024-consolidated-lookup:2024_Q2:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q2:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q2:bank.roa",
+          "official-VPB-2024-consolidated-lookup:2024_Q2:bank.roe:parent_attributable_equity",
+          "official-VPB-2024-consolidated-lookup:2024_Q3:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q3:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q3:bank.roa",
+          "official-VPB-2024-consolidated-lookup:2024_Q3:bank.roe:parent_attributable_equity",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe"
+        ],
+        "accepted_member_denominators": [
+          {
+            "period_id": "2024_Q1",
+            "metric_id": "bank.npl_g35",
+            "requested_denominator": 5,
+            "eligible_denominator": 4,
+            "accepted_member_ids": [
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q1",
+            "metric_id": "bank.llr_coverage",
+            "requested_denominator": 5,
+            "eligible_denominator": 4,
+            "accepted_member_ids": [
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roa",
+            "requested_denominator": 5,
+            "eligible_denominator": 4,
+            "accepted_member_ids": [
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roe",
+            "requested_denominator": 5,
+            "eligible_denominator": 4,
+            "accepted_member_ids": [
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q2",
+            "metric_id": "bank.npl_g35",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q2",
+            "metric_id": "bank.llr_coverage",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roa",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roe",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q3",
+            "metric_id": "bank.npl_g35",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q3",
+            "metric_id": "bank.llr_coverage",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roa",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roe",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          },
+          {
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "requested_denominator": 5,
+            "eligible_denominator": 5,
+            "accepted_member_ids": [
+              "ACB",
+              "MBB",
+              "TCB",
+              "VCB",
+              "VPB"
+            ]
+          }
+        ],
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "ineligible_until_multi_period_peer_and_revision_e2e",
+        "expected_current_runtime_behavior_or_blocker": "multi_period_unsupported",
+        "eligibility_notes": "Current public analysis contract supports one period; peer synthesis and critique/revision E2E are also unverified.",
+        "required_observation_count": 80
+      }
+    },
+    {
+      "task_id": "T09",
+      "question_sha256_utf8": "3c8cbb818844700b764f18e2f5f30446304691ec5d2c626b40c68cab11e9c30e",
+      "expected_coverage": {
+        "result": "negative_scope_control_not_executed",
+        "expected_terminal_error_code": "unsupported_period",
+        "required_observations": 0,
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "negative_scope_control_candidate",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Unsupported-period fail-closed E2E control has not been run."
+      }
+    },
+    {
+      "task_id": "T10",
+      "question_sha256_utf8": "93dea827d00ffd53fb7a7800f05976003e7e6b5f4bea6ea4af4a288fc571fb5d",
+      "expected_coverage": {
+        "result": "negative_scope_control_not_executed",
+        "expected_terminal_error_code": "unsupported_peer_entity",
+        "required_observations": 0,
+        "scoring_eligible_now": false,
+        "current_eligibility_status": "negative_peer_universe_control_candidate",
+        "expected_current_runtime_behavior_or_blocker": "pending",
+        "eligibility_notes": "Unsupported-peer fail-closed E2E control has not been run."
+      }
+    }
+  ],
+  "ab_c_results_created": false,
+  "final_protocol_freeze_ready": false,
+  "freeze_blockers": [
+    "query_adaptive_peer_runtime_e2e",
+    "multi_period_request_contract",
+    "critique_revision_e2e"
+  ],
+  "scoring_eligible_now": false
+}

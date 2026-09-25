@@ -1,0 +1,1766 @@
+{
+  "schema_version": "gold-observation-scope-authority-v1",
+  "authority_id": "gold-v5-reviewed-consolidated-scope-20260925",
+  "authority_ref": "data/evaluation/gold-v5-reporting-scope-authority-v1.json",
+  "dataset_id": "gold-bank-2025-expanded-v5-evidence",
+  "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+  "gold_snapshot_sha256": "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73",
+  "source_review_ledger_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv",
+  "source_review_ledger_raw_file_bytes_sha256": "4a27d58cfd9ff476946a50bcbf26ca1e5f4e2fec596cf4ed5c32d39f6978263d",
+  "source_authority_manifest_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
+  "source_authority_manifest_canonical_lf_utf8_sha256": "9bc7bdd2eaaca8bff723b50c547a48b65a7f12b2f81b23303d2b285f1c19c33e",
+  "authority_refs": [
+    "docs/DECISIONS.md#D-063",
+    "docs/DECISIONS.md#D-072"
+  ],
+  "entries": [
+    {
+      "observation_id": "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant",
+      "review_target_id": "ACB:2024_Q2:bank.llr_coverage",
+      "entity_id": "ACB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.llr_coverage",
+      "value": 76.3505,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q2-consolidated-alternate",
+      "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;ocr_engine:rapidocr_onnxruntime",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.npl_g35",
+      "review_target_id": "ACB:2024_Q2:bank.npl_g35",
+      "entity_id": "ACB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.npl_g35",
+      "value": 1.4968,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q2-consolidated-alternate",
+      "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;ocr_engine:rapidocr_onnxruntime",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roa:ttm_derived",
+      "review_target_id": "ACB:2024_Q2:bank.roa",
+      "entity_id": "ACB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roa",
+      "value": 2.206,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roe:ttm_derived",
+      "review_target_id": "ACB:2024_Q2:bank.roe",
+      "entity_id": "ACB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roe",
+      "value": 22.529,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:ttm_consolidated_pat/average_total_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator-roe-addendum"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant",
+      "review_target_id": "ACB:2024_Q3:bank.llr_coverage",
+      "entity_id": "ACB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.llr_coverage",
+      "value": 79.0721,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q3-consolidated",
+      "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+      "review_target_id": "ACB:2024_Q3:bank.npl_g35",
+      "entity_id": "ACB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.npl_g35",
+      "value": 1.5121,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q3-consolidated",
+      "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roa:ttm_derived",
+      "review_target_id": "ACB:2024_Q3:bank.roa",
+      "entity_id": "ACB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roa",
+      "value": 2.1723,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roe:ttm_derived",
+      "review_target_id": "ACB:2024_Q3:bank.roe",
+      "entity_id": "ACB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roe",
+      "value": 21.695,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:ttm_consolidated_pat/average_total_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator-roe-addendum"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+      "review_target_id": "ACB:2024_Q4:bank.llr_coverage",
+      "entity_id": "ACB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.llr_coverage",
+      "value": 76.5591,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q4-consolidated",
+      "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+      "review_target_id": "ACB:2024_Q4:bank.npl_g35",
+      "entity_id": "ACB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.npl_g35",
+      "value": 1.5122,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-ACB-2024-Q4-consolidated",
+      "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+      "review_target_id": "ACB:2024_Q4:bank.roa",
+      "entity_id": "ACB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roa",
+      "value": 2.1215,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+      "review_target_id": "ACB:2024_Q4:bank.roe",
+      "entity_id": "ACB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roe",
+      "value": 21.7459,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-ACB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator-roe-addendum"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.llr_coverage",
+      "review_target_id": "MBB:2024_Q1:bank.llr_coverage",
+      "entity_id": "MBB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.llr_coverage",
+      "value": 80.0575,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:27,30;printed_pages:21,24;sections:note_5_customer_loans|note_6_credit_risk_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+      "review_target_id": "MBB:2024_Q1:bank.npl_g35",
+      "entity_id": "MBB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.npl_g35",
+      "value": 2.4856,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:27;printed_page:21;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roa",
+      "review_target_id": "MBB:2024_Q1:bank.roa",
+      "entity_id": "MBB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roa",
+      "value": 2.2185,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+      "review_target_id": "MBB:2024_Q1:bank.roe",
+      "entity_id": "MBB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roe",
+      "value": 21.2468,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.llr_coverage",
+      "review_target_id": "MBB:2024_Q2:bank.llr_coverage",
+      "entity_id": "MBB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.llr_coverage",
+      "value": 101.7372,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:29,32;printed_pages:21,24;sections:note_5_customer_loans|note_6_credit_risk_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.npl_g35",
+      "review_target_id": "MBB:2024_Q2:bank.npl_g35",
+      "entity_id": "MBB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.npl_g35",
+      "value": 1.636,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:29;printed_page:21;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roa",
+      "review_target_id": "MBB:2024_Q2:bank.roa",
+      "entity_id": "MBB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roa",
+      "value": 2.2334,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+      "review_target_id": "MBB:2024_Q2:bank.roe",
+      "entity_id": "MBB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roe",
+      "value": 22.1053,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage",
+      "review_target_id": "MBB:2024_Q3:bank.llr_coverage",
+      "entity_id": "MBB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.llr_coverage",
+      "value": 68.772,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:30,33;printed_pages:22,25;sections:note_5_customer_loans|note_6_credit_risk_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+      "review_target_id": "MBB:2024_Q3:bank.npl_g35",
+      "entity_id": "MBB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.npl_g35",
+      "value": 2.2342,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:30;printed_page:22;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roa",
+      "review_target_id": "MBB:2024_Q3:bank.roa",
+      "entity_id": "MBB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roa",
+      "value": 2.1902,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+      "review_target_id": "MBB:2024_Q3:bank.roe",
+      "entity_id": "MBB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roe",
+      "value": 21.4929,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+      "review_target_id": "MBB:2024_Q4:bank.llr_coverage",
+      "entity_id": "MBB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.llr_coverage",
+      "value": 92.2484,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:29,32;printed_pages:21,24;sections:note_5_customer_loans|note_6_credit_risk_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+      "review_target_id": "MBB:2024_Q4:bank.npl_g35",
+      "entity_id": "MBB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.npl_g35",
+      "value": 1.6205,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-MBB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:29;printed_page:21;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+      "review_target_id": "MBB:2024_Q4:bank.roa",
+      "entity_id": "MBB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roa",
+      "value": 2.2135,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity",
+      "review_target_id": "MBB:2024_Q4:bank.roe",
+      "entity_id": "MBB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roe",
+      "value": 22.0939,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-MBB-2024-Q4-consolidated",
+      "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q1:bank.llr_coverage",
+      "review_target_id": "TCB:2024_Q1:bank.llr_coverage",
+      "entity_id": "TCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.llr_coverage",
+      "value": 105.9,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35",
+      "review_target_id": "TCB:2024_Q1:bank.npl_g35",
+      "entity_id": "TCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.npl_g35",
+      "value": 1.17,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q1:bank.roa",
+      "review_target_id": "TCB:2024_Q1:bank.roa",
+      "entity_id": "TCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roa",
+      "value": 2.5,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q1:bank.roe",
+      "review_target_id": "TCB:2024_Q1:bank.roe",
+      "entity_id": "TCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roe",
+      "value": 15.6,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q2:bank.llr_coverage",
+      "review_target_id": "TCB:2024_Q2:bank.llr_coverage",
+      "entity_id": "TCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.llr_coverage",
+      "value": 101.0,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q2:bank.npl_g35",
+      "review_target_id": "TCB:2024_Q2:bank.npl_g35",
+      "entity_id": "TCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.npl_g35",
+      "value": 1.28,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q2:bank.roa",
+      "review_target_id": "TCB:2024_Q2:bank.roa",
+      "entity_id": "TCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roa",
+      "value": 2.6,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q2:bank.roe",
+      "review_target_id": "TCB:2024_Q2:bank.roe",
+      "entity_id": "TCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roe",
+      "value": 16.5,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q3:bank.llr_coverage",
+      "review_target_id": "TCB:2024_Q3:bank.llr_coverage",
+      "entity_id": "TCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.llr_coverage",
+      "value": 103.4,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q3:bank.npl_g35",
+      "review_target_id": "TCB:2024_Q3:bank.npl_g35",
+      "entity_id": "TCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.npl_g35",
+      "value": 1.35,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q3:bank.roa",
+      "review_target_id": "TCB:2024_Q3:bank.roa",
+      "entity_id": "TCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roa",
+      "value": 2.6,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q3:bank.roe",
+      "review_target_id": "TCB:2024_Q3:bank.roe",
+      "entity_id": "TCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roe",
+      "value": 16.8,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+      "review_target_id": "TCB:2024_Q4:bank.llr_coverage",
+      "entity_id": "TCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.llr_coverage",
+      "value": 113.8,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+      "review_target_id": "TCB:2024_Q4:bank.npl_g35",
+      "entity_id": "TCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.npl_g35",
+      "value": 1.17,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+      "review_target_id": "TCB:2024_Q4:bank.roa",
+      "entity_id": "TCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roa",
+      "value": 2.4,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+      "review_target_id": "TCB:2024_Q4:bank.roe",
+      "entity_id": "TCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roe",
+      "value": 15.5,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-TCB-2024-FY-results-presentation",
+      "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.llr_coverage:total_specific_plus_general_provision",
+      "review_target_id": "VCB:2024_Q1:bank.llr_coverage",
+      "entity_id": "VCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.llr_coverage",
+      "value": 199.8177,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:30,31;printed_pages:29,30;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+      "review_target_id": "VCB:2024_Q1:bank.npl_g35",
+      "entity_id": "VCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.npl_g35",
+      "value": 1.2207,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:30;printed_page:29;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.roa",
+      "review_target_id": "VCB:2024_Q1:bank.roa",
+      "entity_id": "VCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roa",
+      "value": 1.8108,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+      "review_target_id": "VCB:2024_Q1:bank.roe",
+      "entity_id": "VCB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roe",
+      "value": 19.3173,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q1-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.llr_coverage:total_specific_plus_general_provision",
+      "review_target_id": "VCB:2024_Q2:bank.llr_coverage",
+      "entity_id": "VCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.llr_coverage",
+      "value": 212.1089,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:30,31;printed_pages:29,30;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.npl_g35",
+      "review_target_id": "VCB:2024_Q2:bank.npl_g35",
+      "entity_id": "VCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.npl_g35",
+      "value": 1.2008,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:30;printed_page:29;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.roa",
+      "review_target_id": "VCB:2024_Q2:bank.roa",
+      "entity_id": "VCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roa",
+      "value": 1.7842,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+      "review_target_id": "VCB:2024_Q2:bank.roe",
+      "entity_id": "VCB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roe",
+      "value": 19.2688,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q2-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:total_specific_plus_general_provision",
+      "review_target_id": "VCB:2024_Q3:bank.llr_coverage",
+      "entity_id": "VCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.llr_coverage",
+      "value": 204.6495,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:28,29;printed_pages:27,28;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+      "review_target_id": "VCB:2024_Q3:bank.npl_g35",
+      "entity_id": "VCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.npl_g35",
+      "value": 1.2228,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:28;printed_page:27;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.roa",
+      "review_target_id": "VCB:2024_Q3:bank.roa",
+      "entity_id": "VCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roa",
+      "value": 1.8404,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+      "review_target_id": "VCB:2024_Q3:bank.roe",
+      "entity_id": "VCB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roe",
+      "value": 19.5335,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q3-consolidated",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+      "review_target_id": "VCB:2024_Q4:bank.llr_coverage",
+      "entity_id": "VCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.llr_coverage",
+      "value": 223.311,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "source_locator": "pdf_pages:31,32;printed_pages:30,31;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+      "review_target_id": "VCB:2024_Q4:bank.npl_g35",
+      "entity_id": "VCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.npl_g35",
+      "value": 0.9636,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "source_locator": "pdf_pages:31;printed_page:30;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+      "review_target_id": "VCB:2024_Q4:bank.roa",
+      "entity_id": "VCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roa",
+      "value": 1.7249,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity",
+      "review_target_id": "VCB:2024_Q4:bank.roe",
+      "entity_id": "VCB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roe",
+      "value": 18.5965,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q1:bank.llr_coverage",
+      "review_target_id": "VPB:2024_Q1:bank.llr_coverage",
+      "entity_id": "VPB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.llr_coverage",
+      "value": 53.4364,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q1-consolidated-lookup",
+      "source_locator": "pdf_page:49;printed_page:47;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q1:bank.npl_g35",
+      "review_target_id": "VPB:2024_Q1:bank.npl_g35",
+      "entity_id": "VPB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.npl_g35",
+      "value": 4.8351,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q1-consolidated-lookup",
+      "source_locator": "pdf_page:46;printed_page:44;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q1:bank.roa",
+      "review_target_id": "VPB:2024_Q1:bank.roa",
+      "entity_id": "VPB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roa",
+      "value": 1.2179,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q1-consolidated-lookup",
+      "source_locator": "pdf_pages:5,8;statement:consolidated balance sheet and income statement;formula:prior_fy2023_pat-prior_ytd_pat+current_ytd_pat over average_total_assets",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q1:bank.roe:parent_attributable_equity",
+      "review_target_id": "VPB:2024_Q1:bank.roe",
+      "entity_id": "VPB",
+      "period_id": "2024_Q1",
+      "metric_id": "bank.roe",
+      "value": 8.0671,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q1-consolidated-lookup",
+      "source_locator": "pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:prior_fy_parent_profit-prior_ytd_parent_profit+current_ytd_parent_profit_over_average_parent_attributable_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q2:bank.llr_coverage",
+      "review_target_id": "VPB:2024_Q2:bank.llr_coverage",
+      "entity_id": "VPB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.llr_coverage",
+      "value": 48.079,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q2-consolidated-lookup",
+      "source_locator": "pdf_page:47;printed_page:45;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q2:bank.npl_g35",
+      "review_target_id": "VPB:2024_Q2:bank.npl_g35",
+      "entity_id": "VPB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.npl_g35",
+      "value": 5.0797,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q2-consolidated-lookup",
+      "source_locator": "pdf_page:44;printed_page:42;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q2:bank.roa",
+      "review_target_id": "VPB:2024_Q2:bank.roa",
+      "entity_id": "VPB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roa",
+      "value": 1.3278,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q2-consolidated-lookup",
+      "source_locator": "pdf_pages:5,8;statement:consolidated balance sheet and income statement;formula:prior_fy2023_pat-prior_ytd_pat+current_ytd_pat over average_total_assets",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q2:bank.roe:parent_attributable_equity",
+      "review_target_id": "VPB:2024_Q2:bank.roe",
+      "entity_id": "VPB",
+      "period_id": "2024_Q2",
+      "metric_id": "bank.roe",
+      "value": 8.5867,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q2-consolidated-lookup",
+      "source_locator": "pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:prior_fy_parent_profit-prior_ytd_parent_profit+current_ytd_parent_profit_over_average_parent_attributable_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q3:bank.llr_coverage",
+      "review_target_id": "VPB:2024_Q3:bank.llr_coverage",
+      "entity_id": "VPB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.llr_coverage",
+      "value": 50.6973,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q3-consolidated-lookup",
+      "source_locator": "pdf_page:46;printed_page:44;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q3:bank.npl_g35",
+      "review_target_id": "VPB:2024_Q3:bank.npl_g35",
+      "entity_id": "VPB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.npl_g35",
+      "value": 4.8055,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q3-consolidated-lookup",
+      "source_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q3:bank.roa",
+      "review_target_id": "VPB:2024_Q3:bank.roa",
+      "entity_id": "VPB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roa",
+      "value": 1.5404,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q3-consolidated-lookup",
+      "source_locator": "pdf_pages:5,8;statement:consolidated balance sheet and income statement;formula:prior_fy2023_pat-prior_ytd_pat+current_ytd_pat over average_total_assets",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q3:bank.roe:parent_attributable_equity",
+      "review_target_id": "VPB:2024_Q3:bank.roe",
+      "entity_id": "VPB",
+      "period_id": "2024_Q3",
+      "metric_id": "bank.roe",
+      "value": 9.6445,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q3-consolidated-lookup",
+      "source_locator": "pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:prior_fy_parent_profit-prior_ytd_parent_profit+current_ytd_parent_profit_over_average_parent_attributable_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+      "review_target_id": "VPB:2024_Q4:bank.llr_coverage",
+      "entity_id": "VPB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.llr_coverage",
+      "value": 56.1749,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q4-consolidated-lookup",
+      "source_locator": "pdf_page:46;printed_page:44;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+      "review_target_id": "VPB:2024_Q4:bank.npl_g35",
+      "entity_id": "VPB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.npl_g35",
+      "value": 4.1956,
+      "unit": "%",
+      "period_basis": "point_in_time",
+      "source_ref": "official-VPB-2024-Q4-consolidated-lookup",
+      "source_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa",
+      "review_target_id": "VPB:2024_Q4:bank.roa",
+      "entity_id": "VPB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roa",
+      "value": 1.8361,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q4-consolidated-lookup",
+      "source_locator": "pdf_pages:5,8;statement:consolidated balance sheet and annual income statement;formula:fy2024_pat over average_total_assets",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-ai",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "adjudicator-orchestrator"
+    },
+    {
+      "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity",
+      "review_target_id": "VPB:2024_Q4:bank.roe",
+      "entity_id": "VPB",
+      "period_id": "2024_Q4",
+      "metric_id": "bank.roe",
+      "value": 11.4117,
+      "unit": "%",
+      "period_basis": "ttm",
+      "source_ref": "official-VPB-2024-Q4-consolidated-lookup",
+      "source_locator": "pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:fy2024_parent_profit_over_average_parent_attributable_equity",
+      "reporting_scope": "consolidated",
+      "review_status": "accepted",
+      "checker_ids": [
+        "checker-A-human",
+        "checker-B-human"
+      ],
+      "checker_scope_confirmations": [
+        "consolidated",
+        "consolidated"
+      ],
+      "adjudicator_id": "orchestrator-adjudicator-2026-09-07"
+    }
+  ]
+}

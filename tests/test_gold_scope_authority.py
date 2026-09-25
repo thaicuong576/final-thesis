@@ -144,6 +144,13 @@ class GoldScopeAuthorityTests(unittest.TestCase):
         self.assertIsNone(missing.reporting_scope)
         self.assertEqual(missing.missing_reason, "SOURCE_UNAVAILABLE")
         self.assertEqual(benchmark.reporting_scope, "consolidated")
+        self.assertEqual(
+            benchmark.metadata["requested_peer_entity_ids"],
+            ["entity-a", "entity-b", "entity-c"],
+        )
+        self.assertEqual(
+            benchmark.metadata["eligible_peer_entity_ids"], ["entity-a", "entity-b"]
+        )
         self.assertEqual(benchmark.metadata["requested_denominator"], 3)
         self.assertEqual(benchmark.metadata["eligible_denominator"], 2)
         self.assertEqual(set(benchmark.input_observation_ids), {"obs-a", "obs-b"})
@@ -200,6 +207,10 @@ class GoldScopeAuthorityTests(unittest.TestCase):
         self.assertEqual(benchmark.metadata["requested_denominator"], 2)
         self.assertEqual(benchmark.metadata["eligible_denominator"], 1)
         self.assertEqual(
+            benchmark.metadata["requested_peer_entity_ids"], ["entity-a", "entity-b"]
+        )
+        self.assertEqual(benchmark.metadata["eligible_peer_entity_ids"], ["entity-a"])
+        self.assertEqual(
             benchmark.metadata["missing_members"][0]["reason"],
             "NO_OBSERVATION_FOUND",
         )
@@ -207,7 +218,7 @@ class GoldScopeAuthorityTests(unittest.TestCase):
         incompatible_inputs = (
             ("units", {"unit": "ratio"}, "incompatible units"),
             ("period bases", {"period_basis": "point_in_time"}, "incompatible period bases"),
-            ("reporting scopes", {"reporting_scope": None}, "incompatible reporting scopes"),
+            ("reporting scopes", {"reporting_scope": "parent_only"}, "incompatible reporting scopes"),
         )
         for name, updates, message in incompatible_inputs:
             with self.subTest(name=name):
@@ -224,6 +235,74 @@ class GoldScopeAuthorityTests(unittest.TestCase):
                         peer_entity_ids=("entity-a", "entity-b"),
                         member_observations=members,
                     )
+
+        for missing_field, updates, message in (
+            ("unit", {"unit": None}, "require non-null units"),
+            ("period_basis", {"period_basis": None}, "require non-null period bases"),
+            (
+                "reporting_scope",
+                {"reporting_scope": None},
+                "require verified reporting scopes",
+            ),
+        ):
+            with self.subTest(missing_field=missing_field):
+                members = (
+                    observation("entity-a").model_copy(update=updates),
+                    observation("entity-b").model_copy(update=updates),
+                )
+                with self.assertRaisesRegex(DatasetProviderError, message):
+                    aggregate_peer_median(
+                        dataset_ref=ref,
+                        peer_universe_id="bank-peers",
+                        period_id="FY-2024-Q4",
+                        metric_id="company.roa",
+                        peer_entity_ids=("entity-a", "entity-b"),
+                        member_observations=members,
+                    )
+
+    def test_all_missing_peer_median_uses_foundation_reason(self):
+        ref = DatasetRef(dataset_id="peer-test", dataset_snapshot_id="snapshot-1")
+        missing = CanonicalObservation(
+            observation_id="obs-a-missing",
+            dataset_id=ref.dataset_id,
+            dataset_snapshot_id=ref.dataset_snapshot_id,
+            entity_id="entity-a",
+            period_id="FY-2024-Q4",
+            metric_id="company.roa",
+            validation_status=QualityStatus.MISSING,
+            missing_reason="SOURCE_UNAVAILABLE",
+        )
+
+        benchmark = aggregate_peer_median(
+            dataset_ref=ref,
+            peer_universe_id="bank-peers",
+            period_id="FY-2024-Q4",
+            metric_id="company.roa",
+            peer_entity_ids=("entity-a", "entity-b"),
+            member_observations=(missing,),
+        )
+
+        self.assertIsNone(benchmark.value)
+        self.assertEqual(benchmark.validation_status, QualityStatus.MISSING)
+        self.assertEqual(benchmark.missing_reason, "all_values_missing")
+        self.assertEqual(benchmark.metadata["eligible_peer_entity_ids"], [])
+        self.assertEqual(
+            benchmark.metadata["missing_members"],
+            [
+                {
+                    "entity_id": "entity-a",
+                    "observation_id": "obs-a-missing",
+                    "validation_status": "missing",
+                    "reason": "SOURCE_UNAVAILABLE",
+                },
+                {
+                    "entity_id": "entity-b",
+                    "observation_id": None,
+                    "validation_status": None,
+                    "reason": "NO_OBSERVATION_FOUND",
+                },
+            ],
+        )
 
     def test_scope_authority_requires_expected_hash(self):
         with tempfile.TemporaryDirectory() as directory:

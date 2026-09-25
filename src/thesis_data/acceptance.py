@@ -377,7 +377,13 @@ def _benchmark_reference_violations(
     assertion: StructuredAssertion,
     ref: ClaimDataRef,
 ) -> list[str]:
-    """Validate a benchmark through the provider's derived observation."""
+    """Validate a benchmark against requested scope and accepted peer inputs.
+
+    Claim scope and the benchmark identity bind the requested peer universe.
+    ``data_refs`` and ``input_observation_ids`` bind only the eligible members
+    that actually contribute numeric values. Missing requested members remain
+    explicit through per-member records and reasons.
+    """
 
     violations: list[str] = []
     if assertion.assertion_type not in {
@@ -396,10 +402,6 @@ def _benchmark_reference_violations(
     else:
         if any(item.ref_type != "observation" for item in input_refs):
             violations.append(f"benchmark_inputs_not_observations:{ref.ref_id}")
-        if {item.entity for item in input_refs} != set(claim.scope.entities):
-            violations.append(f"benchmark_peer_set_mismatch:{ref.ref_id}")
-        if len(input_refs) != len(claim.scope.entities):
-            violations.append(f"benchmark_inputs_not_one_per_peer:{ref.ref_id}")
         if any(item.period != ref.period or item.metric_id != ref.metric_id for item in input_refs):
             violations.append(f"benchmark_input_scope_mismatch:{ref.ref_id}")
     if claim.scope.comparison_universe is None:
@@ -422,16 +424,129 @@ def _benchmark_reference_violations(
             or benchmark.metric_id != ref.metric_id
         ):
             violations.append(f"benchmark_scope_mismatch:{ref.ref_id}")
+        metadata = benchmark.metadata
+        if metadata.get("aggregation_version") != "peer_median_v1":
+            violations.append(f"benchmark_aggregation_version_unsupported:{ref.ref_id}")
+        if metadata.get("peer_universe_id") != claim.scope.comparison_universe:
+            violations.append(f"benchmark_peer_universe_mismatch:{ref.ref_id}")
+
+        requested_ids = metadata.get("requested_peer_entity_ids")
+        eligible_ids = metadata.get("eligible_peer_entity_ids")
+        if not isinstance(requested_ids, (list, tuple)) or any(
+            not isinstance(item, str) or not item.strip() for item in requested_ids
+        ):
+            requested_ids = ()
+            violations.append(f"benchmark_requested_peer_set_missing:{ref.ref_id}")
+        if len(set(requested_ids)) != len(requested_ids):
+            violations.append(f"benchmark_requested_peer_set_ambiguous:{ref.ref_id}")
+        if set(requested_ids) != set(claim.scope.entities) or len(requested_ids) != len(
+            claim.scope.entities
+        ):
+            violations.append(f"benchmark_requested_peer_set_mismatch:{ref.ref_id}")
+
+        if not isinstance(eligible_ids, (list, tuple)) or any(
+            not isinstance(item, str) or not item.strip() for item in eligible_ids
+        ):
+            eligible_ids = ()
+            violations.append(f"benchmark_eligible_peer_set_missing:{ref.ref_id}")
+        if len(set(eligible_ids)) != len(eligible_ids):
+            violations.append(f"benchmark_eligible_peer_set_ambiguous:{ref.ref_id}")
+
+        observation_refs = [item for item in input_refs if item.ref_type == "observation"]
+        input_ids = [item.ref_id for item in observation_refs]
+        input_entities = [item.entity for item in observation_refs]
+        if len(set(input_ids)) != len(input_ids) or len(set(input_entities)) != len(
+            input_entities
+        ):
+            violations.append(f"benchmark_inputs_ambiguous:{ref.ref_id}")
+        if set(eligible_ids) != set(input_entities) or len(eligible_ids) != len(
+            input_entities
+        ):
+            violations.append(f"benchmark_eligible_peer_set_mismatch:{ref.ref_id}")
+        if set(input_ids) != set(benchmark.input_observation_ids) or len(input_ids) != len(
+            benchmark.input_observation_ids
+        ):
+            violations.append(f"benchmark_input_provenance_mismatch:{ref.ref_id}")
+
+        missing_members = metadata.get("missing_members")
+        if not isinstance(missing_members, (list, tuple)) or any(
+            not isinstance(item, Mapping) for item in missing_members
+        ):
+            missing_members = ()
+            violations.append(f"benchmark_missing_member_records_missing:{ref.ref_id}")
+        missing_entities = [item.get("entity_id") for item in missing_members]
+        valid_missing_entities = [
+            item for item in missing_entities if isinstance(item, str) and item.strip()
+        ]
+        expected_missing_entities = set(requested_ids) - set(eligible_ids)
+        if (
+            len(valid_missing_entities) != len(missing_entities)
+            or len(set(valid_missing_entities)) != len(valid_missing_entities)
+            or set(valid_missing_entities) != expected_missing_entities
+            or any(
+                not isinstance(item.get("reason"), str) or not item["reason"].strip()
+                for item in missing_members
+            )
+        ):
+            violations.append(f"benchmark_missing_member_coverage_mismatch:{ref.ref_id}")
+
+        requested_denominator = metadata.get("requested_denominator")
+        eligible_denominator = metadata.get("eligible_denominator")
+        if (
+            isinstance(requested_denominator, bool)
+            or not isinstance(requested_denominator, int)
+            or requested_denominator != len(requested_ids)
+        ):
+            violations.append(f"benchmark_requested_denominator_mismatch:{ref.ref_id}")
+        if (
+            isinstance(eligible_denominator, bool)
+            or not isinstance(eligible_denominator, int)
+            or eligible_denominator != len(eligible_ids)
+        ):
+            violations.append(f"benchmark_eligible_denominator_mismatch:{ref.ref_id}")
+
+        member_records = metadata.get("peer_member_observations")
+        if not isinstance(member_records, (list, tuple)) or any(
+            not isinstance(item, Mapping) for item in member_records
+        ):
+            member_records = ()
+            violations.append(f"benchmark_member_records_missing:{ref.ref_id}")
+        member_entities = [item.get("entity_id") for item in member_records]
+        valid_member_entities = [
+            item for item in member_entities if isinstance(item, str) and item.strip()
+        ]
+        if (
+            len(valid_member_entities) != len(member_entities)
+            or len(set(valid_member_entities)) != len(valid_member_entities)
+            or set(valid_member_entities) != set(requested_ids)
+            or len(valid_member_entities) != len(requested_ids)
+        ):
+            violations.append(f"benchmark_member_records_mismatch:{ref.ref_id}")
+        eligible_entity_set = set(eligible_ids)
+        for item in member_records:
+            member_id = item.get("entity_id")
+            is_eligible = isinstance(member_id, str) and member_id in eligible_entity_set
+            if item.get("accepted") is not is_eligible:
+                violations.append(f"benchmark_member_acceptance_mismatch:{ref.ref_id}")
+            if is_eligible and item.get("reporting_scope") != benchmark.reporting_scope:
+                violations.append(f"benchmark_member_scope_mismatch:{ref.ref_id}")
+            if not is_eligible and (
+                not isinstance(item.get("reason"), str) or not item["reason"].strip()
+            ):
+                violations.append(f"benchmark_member_missing_reason:{ref.ref_id}")
+
         if _status_value(benchmark.validation_status) != "valid":
             violations.append(f"benchmark_unaccepted:{ref.ref_id}")
         if benchmark.value is None or benchmark.unit is None:
             violations.append(f"benchmark_value_unavailable:{ref.ref_id}")
+        if not isinstance(benchmark.period_basis, str) or not benchmark.period_basis.strip():
+            violations.append(f"benchmark_period_basis_unavailable:{ref.ref_id}")
+        if not isinstance(benchmark.reporting_scope, str) or not benchmark.reporting_scope.strip():
+            violations.append(f"benchmark_reporting_scope_unavailable:{ref.ref_id}")
         if not benchmark.derivation_method or not benchmark.input_observation_ids:
             violations.append(f"benchmark_derivation_provenance_missing:{ref.ref_id}")
         if benchmark.source_ref is not None:
             violations.append(f"benchmark_source_must_be_derived:{ref.ref_id}")
-        if set(item.ref_id for item in input_refs) != set(benchmark.input_observation_ids):
-            violations.append(f"benchmark_input_provenance_mismatch:{ref.ref_id}")
     return violations
 
 

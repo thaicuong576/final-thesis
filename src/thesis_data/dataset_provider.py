@@ -54,10 +54,11 @@ def aggregate_peer_median(
 ) -> CanonicalObservation:
     """Build a provider-neutral peer median with explicit coverage lineage.
 
-    ``input_observation_ids`` contains exactly the accepted observations used
-    by the median. Metadata retains the requested universe, accepted-member
-    denominator, and each member's observed or missing status so callers can
-    explain the denominator without treating the peer sample as a sector total.
+    ``input_observation_ids`` and ``eligible_peer_entity_ids`` contain exactly
+    the accepted observations used by the median. Metadata retains the
+    requested peer set separately from the eligible numeric denominator, plus
+    each member's observed or missing status so callers can explain the
+    denominator without treating the peer sample as a sector total.
     """
 
     effective_peer_entity_ids = tuple(peer_entity_ids)
@@ -140,14 +141,16 @@ def aggregate_peer_median(
         metric_id,
         effective_peer_entity_ids,
     )
+    eligible_peer_entity_ids = [item.entity_id for item in accepted]
     metadata = {
         "benchmark_method": "peer_median_v1",
         "aggregation_method": "peer_median_v1",
         "aggregation_version": "peer_median_v1",
         "peer_universe_id": peer_universe_id,
-        "peer_entity_ids": list(effective_peer_entity_ids),
+        "requested_peer_entity_ids": list(effective_peer_entity_ids),
+        "eligible_peer_entity_ids": eligible_peer_entity_ids,
         "requested_denominator": len(effective_peer_entity_ids),
-        "eligible_denominator": len(accepted),
+        "eligible_denominator": len(eligible_peer_entity_ids),
         "member_observation_ids": [
             record["observation_id"]
             for record in member_records
@@ -165,17 +168,31 @@ def aggregate_peer_median(
             period_id=period_id,
             metric_id=metric_id,
             validation_status=QualityStatus.MISSING,
-            missing_reason="DATA_UNAVAILABLE",
+            missing_reason="all_values_missing",
             metadata=metadata,
         )
 
     units = {item.unit for item in accepted}
+    if any(not isinstance(item.unit, str) or not item.unit.strip() for item in accepted):
+        raise DatasetProviderError("peer benchmark inputs require non-null units")
     if len(units) != 1:
         raise DatasetProviderError("peer benchmark inputs have incompatible units")
     period_bases = {item.period_basis for item in accepted}
+    if any(
+        not isinstance(item.period_basis, str) or not item.period_basis.strip()
+        for item in accepted
+    ):
+        raise DatasetProviderError("peer benchmark inputs require non-null period bases")
     if len(period_bases) != 1:
         raise DatasetProviderError("peer benchmark inputs have incompatible period bases")
     reporting_scopes = {item.reporting_scope for item in accepted}
+    if any(
+        not isinstance(item.reporting_scope, str) or not item.reporting_scope.strip()
+        for item in accepted
+    ):
+        raise DatasetProviderError(
+            "peer benchmark inputs require verified reporting scopes"
+        )
     if len(reporting_scopes) != 1:
         raise DatasetProviderError("peer benchmark inputs have incompatible reporting scopes")
 

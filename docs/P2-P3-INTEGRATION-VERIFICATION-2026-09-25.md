@@ -53,6 +53,8 @@ The reviewed follow-ups replace those behaviors:
   readiness checks and isolated run-history persistence through the API.
 - `7de4f4b` closes written-quantity bypasses for fractions and multipliers such
   as `half`, `twice` and `double` in specialist prose.
+- `2db043d` makes readiness fixtures portable on Linux and supplies the explicit
+  test model/run-store configuration required by the production contract.
 
 Unchanged numeric assertions, identities and provenance stay immutable through
 revision. An Orchestrator-only correction records `synthesis_revised` without
@@ -83,11 +85,20 @@ live-model analytical quality. Macro execution remains conditional on an
 accepted provider-declared capability, which Gold v5 does not provide. No
 result in this PR is a final A/B/C thesis score.
 
+The production API owns an explicit claim-to-specialist map and checks it in
+targeted reruns. The framework-neutral core cannot independently prove that an
+arbitrary injected executor placed a changed claim under the correct specialist:
+`AtomicClaim` has no immutable producer/owner field, and plan requirements can
+legitimately name several agents. Adding that field would require a coordinated
+core, API and public-contract migration. This does not bypass the reference API
+gate, but remains a portability limitation for future alternative executors.
+
 ## Local verification before final push
 
-With application head `7de4f4b` and the current root-owned contract edits, the
-full Python suite passed 635 tests with four skipped. The focused API suite
-passed 41 tests. OpenAPI reference validation, architectural guardrails,
+With application head `7de4f4b`, contract commit `067c22b` and Linux-fixture
+follow-up `2db043d`, the full Python suite passed 635 tests with four skipped.
+The focused API suite passed 41 tests; the combined API/thesis API fixture suite
+passed 53. OpenAPI reference validation, architectural guardrails,
 `compileall` and `git diff --check` passed. Storage regressions preserved the
 accepted SQLite bytes and schema across two synchronous analyses and one SSE
 run while three histories persisted and round-tripped in the separate run

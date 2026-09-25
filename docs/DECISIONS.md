@@ -1364,3 +1364,11 @@ prose guards cover digits, English/Vietnamese number words, fractions and
 multipliers, while semantic critique remains required. These controls establish
 the executable evaluation boundary; they do not establish live-model quality or
 complete the final A/B/C experiment.
+
+The reference API additionally owns and validates its claim-to-specialist map.
+The reusable core cannot derive a unique specialist owner from the current
+`AtomicClaim` because requirements may legitimately include multiple agents.
+Alternative executors therefore require a later contract migration adding an
+immutable producer/owner field and binding it to candidate hashes; inferring
+ownership from `required_agents` is rejected as ambiguous. This is a recorded
+portability limitation, not permission to omit the API role-mapping gate.

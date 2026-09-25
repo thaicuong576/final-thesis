@@ -563,3 +563,17 @@ synthesis must share a maintained numeric-or-period token detector, and tests
 must include missingness claims where unsupported comparative wording would
 otherwise look harmless. The guard is only a deterministic boundary; semantic
 review must still evaluate grounding, logic and usefulness.
+
+## [LESSON-024] Requirement scope is not claim ownership
+
+- Date: 2026-09-26
+- Scope: framework-neutral targeted revision validation
+
+A requirement can legitimately list several agents, so its
+`required_agents` cannot prove which specialist produced a particular claim.
+Entity, period and metric matching has the same ambiguity for shared synthesis
+requirements. The reference API can enforce its private claim-to-role map, but
+an alternative executor needs an immutable canonical producer/owner field on
+`AtomicClaim`. Add that field contract-first, preserve it through revision and
+bind it into candidate hashes; do not infer ownership from overlapping plan
+requirements or import an application DTO into the reusable core.

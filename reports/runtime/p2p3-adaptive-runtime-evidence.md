@@ -65,3 +65,14 @@ completion.
 - `python scripts/check_architecture_guardrails.py`: passed.
 - Full local Python suite with application head `7de4f4b` and the current root-owned contract edits: 635 passed, four skipped. Exact final-head CI is recorded on PR #53.
 - Root `data/processed/finance_master_v2.sqlite` SHA-256 after verification: `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86` (unchanged).
+
+## Known portability limitation
+
+The reference API maintains an explicit claim-to-specialist map and enforces it
+during targeted reruns. The generic core controller has no immutable producer
+field on `AtomicClaim`; one requirement may also name several valid agents.
+Consequently, a future custom executor that bypasses the API adapter could
+mislabel a changed claim under another active specialist without the core alone
+proving ownership. A cross-layer contract migration should add immutable
+`macro|sector|company` ownership and bind it into candidate hashes. The current
+reference endpoint does not bypass its role-mapping gate.

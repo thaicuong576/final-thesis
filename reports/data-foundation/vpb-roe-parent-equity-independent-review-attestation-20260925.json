@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "attestation_id": "vpb-roe-parent-equity-independent-review-20260925",
+  "recorded_on": "2026-09-25",
+  "recorded_by_task": "/root/vpb_d072_records_luna",
+  "reviewer_task_path": "/root/vpb_d072_reviewer_luna",
+  "reviewer_distinct_from_prior_audit_and_record_update": true,
+  "reviewed_head_sha": "2b292ddf21bd6be8a550f81fb518fca5dc419efb",
+  "verdict": "ACCEPT",
+  "accepted_scope": {
+    "entity_id": "VPB",
+    "metric_id": "bank.roe",
+    "periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
+    "reporting_scope": "consolidated",
+    "equity_convention": "parent_attributable_equity",
+    "comparison_scope": "five_issuer_roe_comparison_on_gold_v5"
+  },
+  "reviewed_control_hashes_canonical_lf_utf8_sha256": {
+    ".agent/memory/lessons-learned.md": "DD6F6549C8E7B40CB1B4EF1824F24C60D5CB8396B98377287AB032DE40A33848",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md": "996DBC7D896F55948CBE69A48291548B36DCB6BA72E6DC201D20E8F93421838E",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json": "95CCB82222DEC1A295ABA2B959B4D98EC09A7367A81D6032C8990C35BFF8A81B",
+    "docs/DECISIONS.md": "DC68A73F5B3FA49A9C5FE475A73D17DFF8564CBA9356142AFC932F0F508465F7",
+    "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json": "898A3D7700DCB257115B8815EA983FCF23424B95F4103A74FE35C11742814132",
+    "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json": "C328FB2B178A94EDA92EC9FA4CDE400E075D07C64D18780E9897D703F46C7D73"
+  },
+  "legacy_windows_checkout_raw_sha256_audit_only": {
+    ".agent/memory/lessons-learned.md": "888B84B76E887641ADB55AB5A08EC7B88E5ABFCC0D2CDBD90D8D99A3F4449988",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md": "9E1D5A8E1FCB0B0678E2399449171453539E9D410F503FBBF9D9DE19A9708283",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json": "1078E659064825A564F50226DF52BC3844F7713B02310FB79953BD2C736B8B26",
+    "docs/DECISIONS.md": "3A703F6F0BD1663186549BA4E478FB95AE5D99C91A61EE455DFAEA9761DC03EA",
+    "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json": "213253286A3AC824DECC598A922A859D6A8DEAEA5E192AC2CC9631145CA02009",
+    "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json": "FE9AA784CA79C3D1A9F9C9E46C4891B708916C718EDDF6EC32C8C5A859F2A2EC"
+  },
+  "source_artifact_hashes_raw_sha256": {
+    "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json": "4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410",
+    "data/processed/gold-bank-2025-expanded-v5-evidence.sqlite": "1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73",
+    "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q1_consolidated_lookup.pdf": "D95829491FB2A5B692E4963318626F659C6E046930113774D9C53EBDBA111B2E",
+    "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q2_consolidated_lookup.pdf": "ED7C2D77F61C4FFE2C7BF017535A5E6DF63D3FC4FA84E423B56EC3B85EAC03A8",
+    "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q3_consolidated_lookup.pdf": "13DAB519C2E0BEE18E799E70A6160E9F8DCCF671C3A055962E3BF37C88411AC4",
+    "data/raw/official/gold-bank-2025-pilot-v1/lookup-pdfs/VPB_2024_Q4_consolidated_lookup.pdf": "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-candidates-v1.jsonl": "B8A48A271CD0DCECD1EF0900B50EEEEE95C05DFFFDBA436788316D3A1A1FAEEE",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_review-ledger-adjudicated-v1.csv": "05005D49BB917802A06E992DCCE9E34C7809CEB26F9E63147A1EFBC9EEB5A8FA",
+    "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_gold-labels-v5.jsonl": "C264CB6680C67B3FEBD33AF41ED8FCFB29A9FD5A771E2F3F954E816E690D7846",
+    "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv": "4A27D58CFD9FF476946A50BCBF26CA1E5F4E2FEC596CF4ED5C32D39F6978263D"
+  },
+  "accepted_gold_v5_roe_percent_4dp": {
+    "2024_Q1": 8.0671,
+    "2024_Q2": 8.5867,
+    "2024_Q3": 9.6445,
+    "2024_Q4": 11.4117
+  },
+  "reviewer_recalculation_confirmation": {
+    "unit": "million_vnd",
+    "source_locator": "official VPB 2024 Q4 consolidated filing, PDF pages 6 and 8",
+    "profit_attributable_to_bank_shareholders_2024": 15778795,
+    "total_equity_2023": 139795527,
+    "non_controlling_interest_2023": 5164494,
+    "total_equity_2024": 147275262,
+    "non_controlling_interest_2024": 5370287,
+    "parent_attributable_equity_2023": 134631033,
+    "parent_attributable_equity_2024": 141904975,
+    "average_parent_attributable_equity": 138268004,
+    "average_total_equity": "143535394.5",
+    "formula": "FY2024 profit attributable to bank shareholders / average equity * 100",
+    "roe_parent_equity_percent_16dp": "11.4117471457821869",
+    "roe_total_equity_percent_16dp": "10.9929645262513979",
+    "reviewer_recomputed_independently": true,
+    "adopted_denominator": "average parent-attributable equity"
+  },
+  "comparative_gate_confirmation": {
+    "gate_manifest_ref": "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json",
+    "gate_manifest_hash_mode": "raw_file_bytes_sha256",
+    "gate_manifest_sha256": "4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410",
+    "eligible": true,
+    "blockers": [],
+    "cells_checked": 80,
+    "valid_cells": 76,
+    "missing_cells": 4,
+    "execution": "thesis_data.comparative_gate.audit_comparative_definition_gate; SQLite mode=ro"
+  },
+  "record_update_control_hashes_canonical_lf_utf8_sha256": {
+    ".agent/memory/lessons-learned.md": "107B2CE1D6BFA87E6325FB8216DD0CF12774A4EF0780AB35DAA02E28EECB12B4",
+    "AGENTS.md": "928B680873B240AD5BEE155BCB9CCB2BED05924287E39A5AB88CEA66B7D937E7",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md": "4E6054A42B914B61B0C7481F7E44F039F01E573A8B4259085551454196CD4718",
+    "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json": "4810AA16F0B03B9EBDD1045D4E92FCA978C9CDD66B8F23F8F85A04CA912CC5AE",
+    "docs/DATA-CONTRACT.md": "20E064C09C979F00F96B415E32169359263934292710FB177317BE209459E279",
+    "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json": "7A0650C077FB42820644C3D4E32C5E49AD671C85F2597266DD5B980459F7CEBF",
+    "scripts/verify_vpb_roe_authority_records.py": "58D13CA1EE0033F563848F02A50EA6E095A5BA4F0A33B4BB946C00369FBF7608"
+  },
+  "authority_manifest_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
+  "authority_manifest_id": "vpb-roe-parent-equity-authority-20260925",
+  "statement": "The distinct reviewer ACCEPTed the exact reviewed head after confirming source/control lineage, Q4 parent-equity calculation and total-equity alternative, and eligible Gold v5 gate output. This attestation binds that verdict; later records apply portable acyclic hash binding."
+}

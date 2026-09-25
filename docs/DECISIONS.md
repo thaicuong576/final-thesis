@@ -994,24 +994,32 @@ database from bypassing the human-review and metric-coverage gates.
 
 ## D-063: Require cross-issuer ROE definition consistency before comparative runs
 
-Status: Accepted as a fail-closed experiment gate; the working convention is
-`parent_attributable_equity`.
+Status: Accepted. The working convention is parent_attributable_equity, and
+the scoped five-issuer ROE comparison gate is open under D-072 after a distinct
+independent reviewer ACCEPTed the repository-bound evidence.
 
 The fresh MBB and VCB reviews accepted parent-attributable profit divided by
 average parent-attributable equity. The existing ACB observations are
 substantively compatible because the reviewed consolidated statements show no
 separate non-controlling-interest line, and the TCB source definition uses
-post-NCI profit and average equity excluding NCI. The hash-bound VPB Q1-Q4
-source, adjudicated review, and Gold v5 records support parent-attributable
-profit divided by average parent-attributable equity, as documented in D-072
-and `reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json`.
-The comparative gate remains closed until a distinct independent reviewer
-confirms that authority manifest and its hash-matched gate rerun.
+post-NCI profit and average equity excluding NCI. VPB Q1-Q4 source filings,
+adjudicated reviews and Gold v5 values also use parent-attributable profit over
+average parent-attributable equity. For Q4, the accepted filing calculation is
+11.4117471457821869%; the total-equity alternative is 10.9929645262513979% and
+is retained only as a diagnostic comparison.
+
+The gate is open only because attestation
+reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
+(canonical SHA-256: 092B5F092F3F6283BAC48F9E1716F36BE84D5ABDC518FFF9E9DFA9DA851E9508)
+records reviewer task /root/vpb_d072_reviewer_luna, verdict ACCEPT, and exact
+reviewed head 2b292ddf21bd6be8a550f81fb518fca5dc419efb. The current authority
+manifest is reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
+(canonical SHA-256: D494E136FCDF35E69BAE591265FB50E4FED6A044DFD524518A6A862AEAEADE25).
 
 Reason: a high numeric coverage percentage cannot compensate for a
-cross-issuer semantic mismatch. Treating the two VPB denominator choices as
-equivalent would contaminate peer comparisons and could create a false
-multi-agent quality or scaling result.
+cross-issuer semantic mismatch. Parent-attributable profit and equity provide
+the common definition used by accepted reviews; the distinct review
+attestation closes the last D-072 gate for the scoped Gold v5 comparison.
 
 ## D-064: Lock the application-first architectural constitution
 
@@ -1203,58 +1211,49 @@ exist, but does not recalculate their value. Formula unit tests by themselves
 do not prove a submitted CTG candidate was computed by those formulas. The
 promotion gate must enforce the `code computes financial metrics` invariant.
 
-## D-072: Keep the VPB ROE comparison gate closed pending distinct confirmation
+## D-072: Open the VPB ROE comparison gate after distinct confirmation
 
-Status: The stale status records are reconciled and the source/review/Gold v5
-hash lineage is repository-bound. The comparative gate remains blocked until
-a reviewer distinct from the prior audit confirms the updated authority
-manifest and its hash-matched comparative gate result.
+Status: Accepted. VPB ROE is eligible for the scoped five-issuer Gold v5
+comparison under the parent-attributable-equity convention. The gate became
+open only after the distinct reviewer ACCEPT attestation was recorded and
+bound by the authority manifest; the eligible comparative gate result alone
+did not open the gate.
 
-A read-only audit recorded on 25 September 2026 checked the hashed official
-VPB Q1-Q4 2024 consolidated filings, the two-checker adjudicated ledger, the
-promotion ledger, and Gold v5. For Q4, filing pages 6 and 8 report FY2024
-parent-attributable profit of 15,778,795 million VND; total equity/NCI of
-139,795,527/5,164,494 million VND for 2023 and
-147,275,262/5,370,287 million VND for 2024. Parent-attributable average equity
-is 138,268,004 million VND and gives ROE 11.411747%; using total consolidated
-average equity of 143,535,394.5 million VND gives 10.992965%. The adjudicated
-reviewers and Gold v5 record 11.4117% for Q4. Q1-Q4 Gold values and source
-locators use the parent-attributable convention.
+The independent reviewer task /root/vpb_d072_reviewer_luna reviewed exact PR
+head 2b292ddf21bd6be8a550f81fb518fca5dc419efb and returned ACCEPT. Durable
+attestation: reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
+(canonical SHA-256: 092B5F092F3F6283BAC48F9E1716F36BE84D5ABDC518FFF9E9DFA9DA851E9508).
+It records exact reviewed control hashes, raw hashes of the Q1-Q4
+official source PDFs, candidate and adjudicated/promotion ledgers, Gold v5
+SQLite and labels, and the comparative gate manifest. It also records the
+reviewer's independent Q4 recalculation from official consolidated filing
+pages 6 and 8: profit attributable to bank shareholders of 15,778,795 million
+VND; 2023 total equity/NCI of 139,795,527/5,164,494; 2024 total equity/NCI of
+147,275,262/5,370,287; average parent-attributable equity of 138,268,004;
+parent-equity ROE 11.4117471457821869%; total-equity alternative
+10.9929645262513979%. Gold v5 contains Q1-Q4 values 8.0671%, 8.5867%,
+9.6445%, and 11.4117%.
 
-The earlier VPB review README and v1 packet manifest were stale: their exact
-local artifact hashes were `5D85C74ABA6B41A97A2F2D1A2AFFE1E251D1B8E1E46B7D62AB842FAE02BF2496` and
-`24BF42B3D19B2EEE264BCBB03827585755096AA278795B95EB00EC825267A0B2`, and both
-reported `candidate_pending_fresh_review`. The adjudicated ledger instead
-records two accepted checker decisions and an adjudication for all four
-quarters. The packet README and v2 status manifest now state that adjudication
-status and link the exact Gold v5 snapshot, labels, and comparative gate. The
-promotion ledger's `register_review_status` is blank for these four target
-rows; that blank is preserved and is not treated as an acceptance. A
-non-mutating sidecar records the observed blank and links accepted status only
-from the adjudicated review ledger. The original checker, adjudication, and
-promotion ledgers remain unchanged.
+The read-only comparative-definition gate used
+data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json
+(raw SHA-256: 4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410) and returned eligible with no blockers across 80 cells
+(76 valid, four missing). The authority manifest
+reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
+(canonical SHA-256: D494E136FCDF35E69BAE591265FB50E4FED6A044DFD524518A6A862AEAEADE25)
+binds the attestation, current control records and raw immutable evidence
+hashes. Tracked-text hashes use canonical LF UTF-8 SHA-256; immutable evidence
+uses raw-byte SHA-256. The review verifier reads tracked controls from its
+checkout and ignored artifacts only from an explicit evidence root.
 
-The repository-bound authority manifest is
-`reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json`
-(SHA-256: `213253286A3AC824DECC598A922A859D6A8DEAEA5E192AC2CC9631145CA02009`). It binds the four official filing hashes, the
-candidate/review/promotion-ledger hashes, the Gold v5 SQLite and labels hashes,
-and the current comparative gate manifest. The read-only gate rerun used
-`data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json`
-(SHA-256: `4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410`) and
-returned eligible with no blockers across 80 cells (76 valid, four missing).
-This gate output does not itself lift D-072's independent-confirmation block.
+D-063's earlier VPB factual statement that total consolidated equity was used
+is superseded: Q1-Q4 evidence and accepted review use parent-attributable
+equity. The five-issuer comparison gate is open for the scope recorded in the
+authority manifest. The original promotion ledger remains unchanged, including
+blank register_review_status cells for the four VPB targets; the accepted
+adjudication and independent authority confirmation are linked through the
+separate status sidecar and attestation.
 
-The source PDFs, candidate and review ledgers, and Gold v5 SQLite remain local
-ignored artifacts; their exact hashes and source locators are bound by the
-committed authority manifest. The updated review README, v2 packet manifest,
-and promotion-status reconciliation sidecar are committed control records.
-Their SHA-256 values are `9E1D5A8E1FCB0B0678E2399449171453539E9D410F503FBBF9D9DE19A9708283`, `1078E659064825A564F50226DF52BC3844F7713B02310FB79953BD2C736B8B26`, and `FE9AA784CA79C3D1A9F9C9E46C4891B708916C718EDDF6EC32C8C5A859F2A2EC` respectively. The sidecar
-is `reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json`.
-A distinct reviewer must confirm this linked record set and the gate result
-before D-063's comparison exclusion can be removed.
-Until that review is recorded, exclude VPB ROE from five-issuer peer tasks.
-
-Reason: the corrected local evidence identifies D-063's old VPB factual clause
-as stale, while the fail-closed comparison gate preserves reproducibility
-until a reviewer outside the original audit confirms the repository-bound
-lineage.
+Reason: the corrected evidence identifies parent-attributable equity as the
+consistent issuer-comparable convention. The distinct ACCEPT record ties the
+exact reviewed head, source hashes, control hashes, recomputation and gate
+output to the open scoped decision.

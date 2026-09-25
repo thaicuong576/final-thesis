@@ -28,6 +28,9 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   Evidence manifests use `canonical_lf_utf8_sha256` for Git-tracked UTF-8 text
+   controls and `raw_file_bytes_sha256` for immutable evidence. Ignored evidence
+   verification requires an explicit `--evidence-root`.
    For a new bank, a structurally valid CSV or OCR result is a candidate only.
    Published numeric claims require observation-level reconciliation to a
    primary source with exact locator, period basis, reporting scope, and a

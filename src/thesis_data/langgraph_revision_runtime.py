@@ -36,6 +36,8 @@ class LangGraphRevisionState(TypedDict, total=False):
     plan: AnalysisPlan
     plan_payload_hash: str
     current_claims: tuple[AtomicClaim, ...]
+    current_synthesis_summary: str | None
+    current_synthesis_supporting_claim_ids: tuple[str, ...]
     current_candidate_hash: str
     current_payload_version: str
     current_round_number: int
@@ -44,6 +46,9 @@ class LangGraphRevisionState(TypedDict, total=False):
     previous_open_issue_ids: tuple[str, ...]
     previous_open_issues: tuple[CritiqueIssue, ...]
     revised_agents_for_round: tuple[str, ...]
+    revised_claim_ids_for_round: dict[str, tuple[str, ...]]
+    was_revised: bool
+    synthesis_was_revised: bool
     worker_payload_versions_for_round: dict[str, str]
     orchestrator_payload_version_for_round: str | None
     current_disposition: AcceptanceDecision | None

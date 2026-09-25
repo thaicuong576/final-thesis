@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import math
+import re
+import unicodedata
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -44,6 +46,50 @@ _REQUIRED_STAGE1_GATE_IDS = frozenset(
     }
 )
 
+# Synthesis summaries are qualitative in the current contract. Detect number
+# words as whole Unicode tokens so phrases such as "seventeen percent" and
+# "mười bảy phần trăm" are rejected without matching substrings like "one" in
+# "someone". Keep this provider-neutral for API adapters to reuse.
+_NUMERIC_WORDS = frozenset(
+    {
+        "zero", "one", "two", "three", "four", "five", "six", "seven",
+        "eight", "nine", "ten", "eleven", "twelve", "thirteen",
+        "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+        "nineteen", "twenty", "thirty", "forty", "fifty", "sixty",
+        "seventy", "eighty", "ninety", "hundred", "thousand", "million",
+        "billion", "trillion", "quadrillion", "quintillion", "first",
+        "second", "third", "fourth", "fifth", "sixth", "seventh",
+        "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth",
+        "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth",
+        "nineteenth", "twentieth", "thirtieth", "fortieth", "fiftieth",
+        "sixtieth", "seventieth", "eightieth", "ninetieth", "half",
+        "halves", "quarter", "quarters", "dozen", "score",
+        # Vietnamese cardinal, scale, and common fractional number words.
+        "không", "một", "mốt", "hai", "ba", "tư", "bốn", "năm", "lăm",
+        "sáu", "bảy", "tám", "chín", "mười", "mươi", "chục", "trăm",
+        "nghìn", "ngàn", "triệu", "tỷ", "tỉ", "linh", "lẻ", "nửa",
+        "rưỡi",
+    }
+)
+_NUMERIC_TOKEN_PATTERN = re.compile(r"[+-]?\d+(?:[.,]\d+)*(?:%|bps|x)?|[^\W\d_]+", re.IGNORECASE)
+
+
+def numeric_or_period_tokens(value: object) -> tuple[str, ...]:
+    """Return ordered numeric and period-bearing tokens from prose.
+
+    Digit literals and English/Vietnamese number words are matched as complete
+    tokens. The same helper is used for synthesis rejection and to ensure a
+    claim revision does not alter the numeric content of presentation prose.
+    """
+
+    normalized = unicodedata.normalize("NFC", str(value))
+    tokens: list[str] = []
+    for token in _NUMERIC_TOKEN_PATTERN.findall(normalized):
+        folded = token.casefold()
+        if any(character.isdigit() for character in folded) or folded in _NUMERIC_WORDS:
+            tokens.append(folded)
+    return tuple(tokens)
+
 
 def validate_synthesis_summary(summary: str | None) -> str | None:
     """Validate the report-level prose that is reviewed as a separate artifact.
@@ -58,7 +104,7 @@ def validate_synthesis_summary(summary: str | None) -> str | None:
         return None
     if not isinstance(summary, str) or not summary.strip():
         raise ValueError("synthesis_summary_must_be_non_empty_text")
-    if any(character.isdigit() for character in summary):
+    if numeric_or_period_tokens(summary):
         raise ValueError("synthesis_summary_numeric_or_period_literal_forbidden")
     return summary
 
@@ -73,6 +119,8 @@ def validate_synthesis_supporting_claim_ids(
     normalized_ids = tuple(supporting_claim_ids)
     if summary is None and normalized_ids:
         raise ValueError("synthesis_supporting_claim_ids_require_summary")
+    if summary is not None and not normalized_ids:
+        raise ValueError("synthesis_summary_requires_supporting_claim_ids")
     if any(not isinstance(claim_id, str) or not claim_id.strip() for claim_id in normalized_ids):
         raise ValueError("synthesis_supporting_claim_ids_must_be_non_empty_strings")
     if len(normalized_ids) != len(set(normalized_ids)):
@@ -119,6 +167,8 @@ class SemanticRoundContext(BaseModel):
             raise ValueError("synthesis_supporting_claim_ids_must_be_unique")
         if self.synthesis_summary is None and self.synthesis_supporting_claim_ids:
             raise ValueError("synthesis_supporting_claim_ids_require_summary")
+        if self.synthesis_summary is not None and not self.synthesis_supporting_claim_ids:
+            raise ValueError("synthesis_summary_requires_supporting_claim_ids")
         if len(self.prior_issue_ids) != len(set(self.prior_issue_ids)):
             raise ValueError("prior_issue_ids must be unique")
         if any(not issue_id.strip() for issue_id in self.prior_issue_ids):

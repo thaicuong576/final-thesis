@@ -317,9 +317,28 @@ class _RevisionExecutor:
         self.claim = claim
 
     def execute(self, *, request):
+        source_claim = next(
+            (
+                claim
+                for claim in request.current_claims
+                if claim.claim_id == self.claim.claim_id
+            ),
+            self.claim,
+        )
+        revised_claim = source_claim.model_copy(
+            update={
+                "interpretation": (
+                    source_claim.interpretation + " Clarified during revision."
+                )
+            }
+        )
         return RevisionResult(
-            revised_claims=(self.claim,),
+            revised_claims=(revised_claim,),
             revised_agents=request.target_specialists,
+            revised_claim_ids={
+                agent: (revised_claim.claim_id,)
+                for agent in request.target_specialists
+            },
             payload_version="payload-revised",
         )
 

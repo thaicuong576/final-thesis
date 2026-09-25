@@ -254,13 +254,40 @@ class _RevisionSequence:
         self.calls.append(request.model_copy(deep=True))
         if not self.results:
             raise AssertionError("unexpected revision call")
-        return self.results.pop(0).model_copy(deep=True)
+        result = self.results.pop(0).model_copy(deep=True)
+        current_by_id = {claim.claim_id: claim for claim in request.current_claims}
+        if result.revised_claims and all(
+            claim.claim_id in current_by_id
+            and claim.model_dump(mode="json")
+            == current_by_id[claim.claim_id].model_dump(mode="json")
+            for claim in result.revised_claims
+        ):
+            result = result.model_copy(
+                update={
+                    "revised_claims": tuple(
+                        current_by_id[claim.claim_id].model_copy(
+                            update={
+                                "interpretation": (
+                                    current_by_id[claim.claim_id].interpretation
+                                    + " Further clarified."
+                                )
+                            }
+                        )
+                        for claim in result.revised_claims
+                    )
+                }
+            )
+        return result
 
 
 def _revision() -> RevisionResult:
+    claim = _claim().model_copy(
+        update={"interpretation": _claim().interpretation + " Clarified during revision."}
+    )
     return RevisionResult(
-        revised_claims=(_claim(),),
+        revised_claims=(claim,),
         revised_agents=("company",),
+        revised_claim_ids={"company": (claim.claim_id,)},
         payload_version="payload-revised",
     )
 

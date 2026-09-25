@@ -37,6 +37,7 @@ from .semantic_critic import (
     SemanticRoundContext,
     SemanticCritic,
     evaluate_semantic_round,
+    numeric_or_period_tokens,
     validate_synthesis_summary,
     validate_synthesis_supporting_claim_ids,
 )
@@ -111,6 +112,7 @@ class RevisionResult(BaseModel):
     revised_synthesis_summary: str | None = Field(default=None, min_length=1)
     revised_synthesis_supporting_claim_ids: tuple[str, ...] | None = None
     revised_agents: tuple[str, ...] = Field(default_factory=tuple)
+    revised_claim_ids: dict[str, tuple[str, ...]] = Field(default_factory=dict)
     payload_version: str = Field(min_length=1)
     worker_payload_versions: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version: str | None = Field(default=None, min_length=1)
@@ -140,6 +142,17 @@ class RevisionResult(BaseModel):
             raise ValueError("revised_agents must be unique")
         if any(not agent.strip() for agent in self.revised_agents):
             raise ValueError("revised_agents must contain non-empty strings")
+        if any(not agent.strip() for agent in self.revised_claim_ids):
+            raise ValueError("revised_claim_ids keys must contain non-empty specialist IDs")
+        assigned_claim_ids: list[str] = []
+        for agent, claim_ids in self.revised_claim_ids.items():
+            if any(not claim_id.strip() for claim_id in claim_ids):
+                raise ValueError("revised_claim_ids must contain non-empty claim IDs")
+            if len(claim_ids) != len(set(claim_ids)):
+                raise ValueError(f"revised_claim_ids for {agent} must be unique")
+            assigned_claim_ids.extend(claim_ids)
+        if len(assigned_claim_ids) != len(set(assigned_claim_ids)):
+            raise ValueError("a claim ID cannot be assigned to multiple specialists")
         return self
 
 
@@ -152,6 +165,81 @@ class RevisionExecutor(Protocol):
 
 class RevisionControllerError(ValueError):
     """Fail-closed controller or injected-adapter contract error."""
+
+
+_REVISION_PRESENTATION_FIELDS = frozenset(
+    {"claim_text", "title", "interpretation", "limitation"}
+)
+
+
+def _validate_revision_claim_delta(
+    *,
+    current_claims: Sequence[AtomicClaim],
+    revised_claims: Sequence[AtomicClaim],
+    target_specialists: Sequence[str],
+    revised_claim_ids: dict[str, tuple[str, ...]],
+) -> tuple[str, ...]:
+    """Require every declared specialist target to change exact claim artifacts.
+
+    Claim identities stay stable. Only presentation and interpretation prose may
+    change, and all numeric/period tokens in those fields must remain identical.
+    """
+
+    current_by_id = {claim.claim_id: claim for claim in current_claims}
+    revised_by_id = {claim.claim_id: claim for claim in revised_claims}
+    if len(current_by_id) != len(current_claims) or len(revised_by_id) != len(
+        revised_claims
+    ):
+        raise RevisionControllerError("revision_claim_ids_must_be_unique")
+    if set(current_by_id) != set(revised_by_id):
+        raise RevisionControllerError("revision_claim_identity_set_changed")
+
+    changed_claim_ids: list[str] = []
+    for claim_id in current_by_id:
+        before = current_by_id[claim_id].model_dump(mode="json")
+        after = revised_by_id[claim_id].model_dump(mode="json")
+        if before == after:
+            continue
+        changed_fields = {
+            field_name
+            for field_name in before
+            if before[field_name] != after[field_name]
+        }
+        protected_changes = changed_fields - _REVISION_PRESENTATION_FIELDS
+        if protected_changes:
+            raise RevisionControllerError(
+                f"revision_changed_protected_claim_fields:{claim_id}:"
+                f"{','.join(sorted(protected_changes))}"
+            )
+        for field_name in _REVISION_PRESENTATION_FIELDS & changed_fields:
+            if numeric_or_period_tokens(before[field_name]) != numeric_or_period_tokens(
+                after[field_name]
+            ):
+                raise RevisionControllerError(
+                    f"revision_changed_numeric_or_period_claim_text:{claim_id}"
+                )
+        changed_claim_ids.append(claim_id)
+
+    targets = tuple(target_specialists)
+    if set(revised_claim_ids) != set(targets):
+        raise RevisionControllerError("revision_result_claim_targets_mismatch")
+    for target in targets:
+        if not revised_claim_ids[target]:
+            raise RevisionControllerError(
+                f"revision_target_claim_not_revised:{target}"
+            )
+    flattened_ids = [
+        claim_id
+        for target in targets
+        for claim_id in revised_claim_ids[target]
+    ]
+    if len(flattened_ids) != len(set(flattened_ids)):
+        raise RevisionControllerError("revision_result_claim_ids_overlap")
+    if any(claim_id not in current_by_id for claim_id in flattened_ids):
+        raise RevisionControllerError("revision_result_claim_id_unknown")
+    if set(flattened_ids) != set(changed_claim_ids):
+        raise RevisionControllerError("revision_result_changed_claim_ids_mismatch")
+    return tuple(changed_claim_ids)
 
 
 class BoundedRevisionResult(BaseModel):
@@ -421,6 +509,7 @@ class RevisionWorkflowState(BaseModel):
     previous_open_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
     previous_open_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
     revised_agents_for_round: tuple[str, ...] = Field(default_factory=tuple)
+    revised_claim_ids_for_round: dict[str, tuple[str, ...]] = Field(default_factory=dict)
     was_revised: bool = False
     synthesis_was_revised: bool = False
     worker_payload_versions_for_round: dict[str, str] = Field(default_factory=dict)
@@ -728,6 +817,7 @@ class RevisionWorkflowKernel:
                     issue.model_copy(deep=True) for issue in previous_open_issues
                 ),
                 "revised_agents_for_round": tuple(revision.revised_agents),
+                "revised_claim_ids_for_round": dict(revision.revised_claim_ids),
                 "was_revised": state.was_revised or candidate_changed,
                 "synthesis_was_revised": (
                     state.synthesis_was_revised or synthesis_changed
@@ -865,6 +955,12 @@ class RevisionWorkflowKernel:
         revised_agents = set(revision.revised_agents)
         if revised_agents != set(targets):
             raise RevisionControllerError("revision_result_agents_mismatch")
+        _validate_revision_claim_delta(
+            current_claims=claims,
+            revised_claims=revision.revised_claims,
+            target_specialists=targets,
+            revised_claim_ids=revision.revised_claim_ids,
+        )
         if any(
             issue.affected_agent == AnalysisAgent.ORCHESTRATOR.value
             for issue in open_issues
@@ -975,6 +1071,7 @@ class RevisionWorkflowKernel:
             provisional_threshold=self._policy.provisional_threshold,
             affected_agents=tuple(sorted({issue.affected_agent for issue in issues})),
             revised_agents=tuple(state.revised_agents_for_round),
+            revised_claim_ids=dict(state.revised_claim_ids_for_round),
             final_payload_version=(
                 state.current_payload_version
                 if decision

@@ -76,6 +76,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
       3. Write `TASK.md` manifest inside the child worktree referencing the Linear issue, role, contracts, scope, and verification criteria.
       4. Mandate worker to name PRs starting with `feat(<domain>): [THES-X] <title>` to enable automatic two-way GitHub-Linear synchronization and auto-closure on merge.
 16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
+    - **Codex-only model rule (user mandate, 2026-09-24):** Every newly spawned Codex subagent must explicitly set `model: gpt-6-luna` and `reasoning_effort: xhigh` (extra high). Do not inherit the root/current model. Because model overrides require a limited history fork, set `fork_turns` to `none` or a positive turn count and include all necessary task context in the spawn message. `followup_task` does not change an existing subagent's model; create a new subagent with these settings for subsequent work.
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
     - If active telemetry inspection is deemed necessary to monitor worker progress, the sampling interval MUST strictly be at least 3 minutes (>= 180 seconds) per check. Rapid polling is strictly prohibited.
@@ -113,9 +114,16 @@ Each phase must leave a durable handoff and a verified state update before the n
 
 ## Current priority
 
-The immediate priority is the research and data-foundation phase.
+The immediate priority is the six-day applied-thesis completion plan in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`: prove a validated new-bank onboarding
+path, complete the query-adaptive critique/revision loop, verify the deployed
+analyst workflow, rerun a fair A/B/C evaluation, and finish the approved
+six-chapter report. The previously scored issuer-count benchmark is historical
+evidence, not proof that the final revision loop is implemented.
 
-Do not build the full agent loop until source coverage, metric definitions, period alignment, and a manually checked gold dataset are documented.
+Do not admit new-bank or OCR-extracted observations into an analysis snapshot
+until source coverage, metric definitions, period alignment, provenance, and
+validation are documented. Preserve the existing Gold benchmark independently.
 
 Before each major phase, complete the guardrail pre-flight questions and record
 any new Gold/SQLite/physical-schema coupling. Passing tests alone is not

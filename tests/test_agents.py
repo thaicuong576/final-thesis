@@ -20,19 +20,22 @@ from thesis_api.agents import (
 )
 from thesis_api.schemas import AnalysisRequest
 from thesis_api.service import stream_analysis_query
-from thesis_api.settings import get_settings
+from tests.agent_sqlite_fixtures import create_synthetic_agent_database
 
 
 class AgentsTests(unittest.TestCase):
     """Test suite covering multi-agent prompt construction, tool calling, and bounded revision."""
 
     def setUp(self) -> None:
-        self.db_path = get_settings().get_sqlite_path()
-        self.conn = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        self._temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._temp_dir.cleanup)
+        self.db_path = create_synthetic_agent_database(
+            Path(self._temp_dir.name) / "synthetic-agent-fixture.sqlite"
+        )
+        self.conn = sqlite3.connect(self.db_path)
+        self.conn.execute("PRAGMA query_only = ON")
+        self.addCleanup(self.conn.close)
         self.conn.row_factory = sqlite3.Row
-
-    def tearDown(self) -> None:
-        self.conn.close()
 
     def test_orchestrator_agent_plan_mocked(self) -> None:
         """Test OrchestratorAgent properly parses LLM plan JSON."""

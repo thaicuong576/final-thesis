@@ -33,7 +33,8 @@ if (Test-Path "$DbDir\finance_master_v2.sqlite") {
     New-Item -ItemType Directory -Force -Path $DestDir | Out-Null
     $SourceDb = Join-Path $DbDir "finance_master_v2.sqlite"
     $DestinationDb = Join-Path $DestDir "finance_master_v2.sqlite"
-    & python "$RepoRoot\scripts\copy_sqlite_snapshot.py" --source "$SourceDb" --destination "$DestinationDb"
+    $SnapshotHelper = Join-Path $PSScriptRoot "copy_sqlite_snapshot.py"
+    & python $SnapshotHelper --source "$SourceDb" --destination "$DestinationDb"
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $DestinationDb)) {
         throw "Failed to create an isolated SQLite snapshot for the worktree."
     }

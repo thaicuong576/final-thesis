@@ -10,6 +10,7 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 
 REPO_ROOT=$(pwd)
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 DIR_SAFE_NAME="${BRANCH_NAME//\//-}"
 WORKTREE_PATH=".worktrees/$DIR_SAFE_NAME"
 
@@ -36,7 +37,7 @@ WORKTREE_DB_DIR="$WORKTREE_PATH/data/processed"
 if [ -f "$DB_DIR/finance_master_v2.sqlite" ]; then
   mkdir -p "$WORKTREE_DB_DIR"
   PYTHON_BIN="${PYTHON:-python}"
-  "$PYTHON_BIN" "$REPO_ROOT/scripts/copy_sqlite_snapshot.py" \
+  "$PYTHON_BIN" "$SCRIPT_DIR/copy_sqlite_snapshot.py" \
     --source "$DB_DIR/finance_master_v2.sqlite" \
     --destination "$WORKTREE_DB_DIR/finance_master_v2.sqlite"
 fi

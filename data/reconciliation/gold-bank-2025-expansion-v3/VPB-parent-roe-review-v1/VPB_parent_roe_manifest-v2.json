@@ -1,0 +1,235 @@
+{
+  "schema_version": 2,
+  "packet_id": "VPB-parent-roe-review-v1",
+  "record_version": "VPB_parent_roe_manifest-v2",
+  "supersedes": {
+    "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v1.json",
+    "sha256": "24BF42B3D19B2EEE264BCBB03827585755096AA278795B95EB00EC825267A0B2",
+    "status": "candidate_pending_fresh_review",
+    "hash_mode": "legacy_windows_checkout_raw_sha256_audit_only"
+  },
+  "status": "two_checkers_and_adjudication_accepted; distinct_independent_confirmation_accepted",
+  "scope": {
+    "entity_id": "VPB",
+    "metric_id": "bank.roe",
+    "periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
+    "reporting_scope": "consolidated",
+    "period_basis": "ttm",
+    "equity_convention": "parent_attributable_equity",
+    "unit": "%"
+  },
+  "review_summary": {
+    "target_cell_count": 4,
+    "checker_ids": [
+      "checker-A-human",
+      "checker-B-human"
+    ],
+    "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
+    "review_ledger_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_review-ledger-adjudicated-v1.csv",
+    "review_ledger_sha256": "05005D49BB917802A06E992DCCE9E34C7809CEB26F9E63147A1EFBC9EEB5A8FA",
+    "promotion_ledger_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv",
+    "promotion_ledger_sha256": "4A27D58CFD9FF476946A50BCBF26CA1E5F4E2FEC596CF4ED5C32D39F6978263D",
+    "all_four_cells_adjudicated_accepted": true,
+    "review_ledger_hash_mode": "raw_file_bytes_sha256",
+    "promotion_ledger_hash_mode": "raw_file_bytes_sha256"
+  },
+  "period_reviews": [
+    {
+      "period": "2024_Q1",
+      "gold_v5_value_percent": 8.0671,
+      "period_basis": "ttm",
+      "unit": "%",
+      "source_ids": [
+        "official-VPB-2024-Q1-consolidated-lookup",
+        "official-VPB-2024-Q4-consolidated-lookup"
+      ],
+      "source_locator": "VPB_2024_Q1_consolidated_lookup.pdf p.6 B02a/TCTD-HN: Tổng vốn chủ sở hữu, Lợi ích của cổ đông không kiểm soát; p.8 B04a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng Q1 2024 và Q1 2023 lũy kế; VPB_2024_Q4_consolidated_lookup.pdf p.8 B03a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng FY2023 comparative",
+      "source_hashes": [
+        "D95829491FB2A5B692E4963318626F659C6E046930113774D9C53EBDBA111B2E",
+        "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F"
+      ],
+      "checker_a": {
+        "id": "checker-A-human",
+        "decision": "accepted",
+        "value_percent": 8.0671
+      },
+      "checker_b": {
+        "id": "checker-B-human",
+        "decision": "accepted",
+        "value_percent": 8.067098
+      },
+      "adjudication": {
+        "decision": "accepted",
+        "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
+        "checked_at": "2026-09-07T20:30:00+07:00"
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
+    },
+    {
+      "period": "2024_Q2",
+      "gold_v5_value_percent": 8.5867,
+      "period_basis": "ttm",
+      "unit": "%",
+      "source_ids": [
+        "official-VPB-2024-Q2-consolidated-lookup",
+        "official-VPB-2024-Q4-consolidated-lookup"
+      ],
+      "source_locator": "VPB_2024_Q2_consolidated_lookup.pdf p.6 B02a/TCTD-HN: Tổng vốn chủ sở hữu, Lợi ích của cổ đông không kiểm soát; p.8 B04a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng Q2 2024 và Q2 2023 lũy kế; VPB_2024_Q4_consolidated_lookup.pdf p.8 B03a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng FY2023 comparative",
+      "source_hashes": [
+        "ED7C2D77F61C4FFE2C7BF017535A5E6DF63D3FC4FA84E423B56EC3B85EAC03A8",
+        "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F"
+      ],
+      "checker_a": {
+        "id": "checker-A-human",
+        "decision": "accepted",
+        "value_percent": 8.5867
+      },
+      "checker_b": {
+        "id": "checker-B-human",
+        "decision": "accepted",
+        "value_percent": 8.58668
+      },
+      "adjudication": {
+        "decision": "accepted",
+        "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
+        "checked_at": "2026-09-07T20:30:00+07:00"
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
+    },
+    {
+      "period": "2024_Q3",
+      "gold_v5_value_percent": 9.6445,
+      "period_basis": "ttm",
+      "unit": "%",
+      "source_ids": [
+        "official-VPB-2024-Q3-consolidated-lookup",
+        "official-VPB-2024-Q4-consolidated-lookup"
+      ],
+      "source_locator": "VPB_2024_Q3_consolidated_lookup.pdf p.6 B02a/TCTD-HN: Tổng vốn chủ sở hữu, Lợi ích của cổ đông không kiểm soát; p.8 B03a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng Q3 2024 và Q3 2023 lũy kế; VPB_2024_Q4_consolidated_lookup.pdf p.8 B03a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng FY2023 comparative",
+      "source_hashes": [
+        "13DAB519C2E0BEE18E799E70A6160E9F8DCCF671C3A055962E3BF37C88411AC4",
+        "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F"
+      ],
+      "checker_a": {
+        "id": "checker-A-human",
+        "decision": "accepted",
+        "value_percent": 9.6445
+      },
+      "checker_b": {
+        "id": "checker-B-human",
+        "decision": "accepted",
+        "value_percent": 9.64452
+      },
+      "adjudication": {
+        "decision": "accepted",
+        "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
+        "checked_at": "2026-09-07T20:30:00+07:00"
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
+    },
+    {
+      "period": "2024_Q4",
+      "gold_v5_value_percent": 11.4117,
+      "period_basis": "ttm",
+      "unit": "%",
+      "source_ids": [
+        "official-VPB-2024-Q4-consolidated-lookup"
+      ],
+      "source_locator": "VPB_2024_Q4_consolidated_lookup.pdf p.6 B02a/TCTD-HN: Tổng vốn chủ sở hữu, Lợi ích của cổ đông không kiểm soát; p.8 B03a/TCTD-HN: Lợi nhuận thuần cổ đông ngân hàng FY2024",
+      "source_hashes": [
+        "96BD1FAB33006CAB427C99247981467B40ADAC664576C61EF2E6E6ACF7B3CA9F"
+      ],
+      "checker_a": {
+        "id": "checker-A-human",
+        "decision": "accepted",
+        "value_percent": 11.4117
+      },
+      "checker_b": {
+        "id": "checker-B-human",
+        "decision": "accepted",
+        "value_percent": 11.411747
+      },
+      "adjudication": {
+        "decision": "accepted",
+        "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
+        "checked_at": "2026-09-07T20:30:00+07:00"
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
+    }
+  ],
+  "gold_v5": {
+    "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "sqlite_ref": "data/processed/gold-bank-2025-expanded-v5-evidence.sqlite",
+    "sqlite_sha256": "1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73",
+    "gold_labels_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_gold-labels-v5.jsonl",
+    "gold_labels_sha256": "C264CB6680C67B3FEBD33AF41ED8FCFB29A9FD5A771E2F3F954E816E690D7846",
+    "vpb_roe_values_percent_4dp": {
+      "2024_Q1": 8.0671,
+      "2024_Q2": 8.5867,
+      "2024_Q3": 9.6445,
+      "2024_Q4": 11.4117
+    },
+    "sqlite_hash_mode": "raw_file_bytes_sha256",
+    "gold_labels_hash_mode": "raw_file_bytes_sha256"
+  },
+  "comparative_definition_gate": {
+    "manifest_ref": "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json",
+    "manifest_sha256": "4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410",
+    "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "eligible": true,
+    "blockers": [],
+    "cells_checked": 80,
+    "valid_cells": 76,
+    "missing_cells": 4,
+    "manifest_hash_mode": "raw_file_bytes_sha256"
+  },
+  "authority_manifest": {
+    "artifact_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
+    "manifest_id": "vpb-roe-parent-equity-authority-20260925"
+  },
+  "q4_recalculation_from_source_locators": {
+    "unit": "million_vnd",
+    "source_locator": "pdf_page=6;form=B02a/TCTD-HN and pdf_page=8;form=B03a/TCTD-HN",
+    "profit_attributable_to_bank_shareholders_2024": 15778795,
+    "total_equity_2023": 139795527,
+    "non_controlling_interest_2023": 5164494,
+    "total_equity_2024": 147275262,
+    "non_controlling_interest_2024": 5370287,
+    "parent_attributable_equity_2023": 134631033,
+    "parent_attributable_equity_2024": 141904975,
+    "average_parent_attributable_equity": 138268004,
+    "roe_parent_equity_percent": 11.4117471458,
+    "average_total_equity": 143535394.5,
+    "roe_total_equity_percent": 10.9929645263
+  },
+  "authority_confirmation": {
+    "status": "accepted",
+    "reviewer_task_path": "/root/vpb_d072_reviewer_luna",
+    "reviewed_head_sha": "2b292ddf21bd6be8a550f81fb518fca5dc419efb",
+    "verdict": "ACCEPT",
+    "attestation_ref": "reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json",
+    "attestation_id": "vpb-roe-parent-equity-independent-review-20260925",
+    "comparative_eligibility": "open_for_five_issuer_roe_comparison_on_gold_v5",
+    "gate_result": {
+      "eligible": true,
+      "blockers": [],
+      "cells_checked": 80,
+      "valid_cells": 76,
+      "missing_cells": 4
+    },
+    "authority_manifest_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
+    "authority_manifest_id": "vpb-roe-parent-equity-authority-20260925",
+    "basis": "The distinct ACCEPT attestation is required to open the scope; the eligible gate rerun alone is insufficient."
+  },
+  "promotion_register_status_reconciliation_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json",
+  "hash_convention": {
+    "tracked_text_control_records": "canonical_lf_utf8_sha256",
+    "immutable_evidence_artifacts": "raw_file_bytes_sha256",
+    "canonicalization": "strict UTF-8; CRLF and lone CR normalized to LF; preserve BOM, Unicode code points, whitespace and final newline; no Unicode normalization"
+  }
+}

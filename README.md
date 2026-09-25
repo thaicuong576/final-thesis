@@ -2,7 +2,7 @@
 
 ## Project goal
 
-Build and evaluate a hierarchical multi-agent prototype for top-down analysis of Vietnamese listed banking and securities companies.
+Build and evaluate a hierarchical multi-agent application for fundamental analysis of Vietnamese listed banks. Securities companies remain extension material.
 
 The system should connect macro context, sector benchmarks, company metrics, and document evidence through a supervised critique loop.
 
@@ -10,12 +10,13 @@ The primary academic comparison is against a fair single-agent baseline using th
 
 ## Current phase
 
-The project is in research/data foundation with a guarded build transition:
-deterministic scaffolding and Chapters 1–4 may proceed in parallel. The 48-cell
-pilot Gold review gate is green, but provider-backed baseline execution and
-comparative claims remain blocked until formal `READY_FOR_BASELINE`, advisor
-scope/cutoff confirmation, and provider/model transport configuration are
-recorded.
+The project is executing the six-day applied-thesis master plan in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`. A five-bank Gold v5 artifact and a scored
+issuer-count pilot exist, but the final query-adaptive critique/revision loop,
+new-bank onboarding demonstration, deployed end-to-end workflow, and approved
+six-chapter report still require verification. Historical benchmark results
+must retain their recorded limitations and cannot be relabeled as results of
+the final loop.
 
 
 ## Canonical files
@@ -30,6 +31,7 @@ recorded.
 - `docs/RESEARCH.md` — verified sources, findings, and open questions.
 - `docs/CONSTRAINTS.md` — quality, security, reproducibility, and performance standards.
 - `docs/ARCHITECTURAL-GUARDRAILS.md` — binding application-first constitution and transferability rules.
+- `docs/THESIS-MASTERPLAN-2026-09-24.md` — six-day phase plan and advisor acceptance evidence.
 - `docs/PHASE-0A-ONBOARDING-CONTRACTS.md` — Phase 0A contract slice and deferred boundaries.
 - `docs/PRIORITIES-AND-TRADEOFFS.md` — ordered scope decisions and what is deferred.
 - `docs/SCOPE-STRESS-TEST.md` — feasibility assumptions and 48/80/200-cell scope options.
@@ -84,8 +86,9 @@ parallel as specified in `docs/DECISIONS.md`.
 
 When implementation starts, every change must have a test or a documented reason why an executable test is not applicable.
 
-The pilot Gold snapshot is promoted and the provider-backed execution pilot has
-completed with exact `gpt-5.6-luna`: 39/39 jobs across three arms, zero
-remaining failures, and secret-free manifests. Comparative agent-performance
-claims still wait for blind rubric scoring; the result report is
-`reports/provider-gpt-5.6-luna-20260906T085022Z.md`.
+The later Gold v5 issuer-count pilot planned 75 jobs, completed 61, recorded 14
+failures, and received 244 blind human-review dimension scores. Its frozen
+result is
+`reports/analysis-report-v2-final-evaluation-gold-v5-20260909-v4/final-evaluation.md`.
+These results are historical pilot evidence, not evaluation of the final
+query-adaptive targeted-revision workflow.

@@ -1,0 +1,613 @@
+{
+  "schema_version": "1.0",
+  "packet_id": "vietinbank-ctg-fy2024-audited-v1",
+  "dataset_id": "bank-onboarding-ctg-2024q4",
+  "entity_id": "CTG",
+  "sources": [
+    {
+      "source_id": "vietinbank-2024-audited-consolidated-report",
+      "kind": "primary_filing",
+      "source_tier": "primary",
+      "artifact_ref": "../raw/bank-onboarding-v1/ctg-2024-consolidated-audited.pdf",
+      "source_url": "https://investor.vietinbank.vn/documents/20126/214683/BCTC%2Bhop%2Bnhat%2Bkiem%2Btoan%2Bnam%2B2024.pdf/a3536120-403d-0b92-4090-4e909fda27c2",
+      "content_sha256": "36513DD8B060712B188F9EAB03B1A7F9479AB21E63866DD95E45759D03EC5369",
+      "publisher": "VietinBank",
+      "retrieved_at": "2026-09-24T16:07:29Z",
+      "document_type": "audited_consolidated_financial_statements"
+    }
+  ],
+  "observations": [
+    {
+      "observation_id": "ctg-input-group-3-2024q4",
+      "metric_id": "bank.input.npl_group_3_balance",
+      "period_id": "2024_Q4",
+      "value": 2817.03,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+          }
+        ],
+        "resolution_note": "Manually reconciled from the Vietnamese row “Nợ dưới tiêu chuẩn (Nhóm 3)”: 2.817.030 triệu VND. Normalized by 1,000 to 2,817.030 billion VND."
+      }
+    },
+    {
+      "observation_id": "ctg-input-group-4-2024q4",
+      "metric_id": "bank.input.npl_group_4_balance",
+      "period_id": "2024_Q4",
+      "value": 4824.119,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 4; column=closing balance"
+          }
+        ],
+        "resolution_note": "Manually reconciled from the Vietnamese row “Nợ nghi ngờ (Nhóm 4)”: 4.824.119 triệu VND. Normalized by 1,000 to 4,824.119 billion VND."
+      }
+    },
+    {
+      "observation_id": "ctg-input-group-5-2024q4",
+      "metric_id": "bank.input.npl_group_5_balance",
+      "period_id": "2024_Q4",
+      "value": 13348.618,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 5; column=closing balance"
+          }
+        ],
+        "resolution_note": "Manually reconciled from the Vietnamese row “Nợ có khả năng mất vốn (Nhóm 5)”: 13.348.618 triệu VND. Normalized by 1,000 to 13,348.618 billion VND."
+      }
+    },
+    {
+      "observation_id": "ctg-input-gross-loans-2024q4",
+      "metric_id": "bank.input.gross_customer_loans",
+      "period_id": "2024_Q4",
+      "value": 1721954.714,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=total gross customer loans; column=closing balance"
+          }
+        ],
+        "resolution_note": "Manually reconciled from Note 10 total customer loans: 1.721.954.714 triệu VND. Normalized by 1,000 to 1,721,954.714 billion VND."
+      }
+    },
+    {
+      "observation_id": "ctg-input-provisions-2024q4",
+      "metric_id": "bank.input.loan_loss_provisions",
+      "period_id": "2024_Q4",
+      "value": 36664.125,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
+          }
+        ],
+        "resolution_note": "Manually reconciled from Note 11 total closing loan loss provisions: 36.664.125 triệu VND. Normalized by 1,000 to 36,664.125 billion VND."
+      }
+    },
+    {
+      "observation_id": "ctg-input-npl-balance-2024q4",
+      "metric_id": "bank.input.npl_g35_balance",
+      "period_id": "2024_Q4",
+      "value": 20989.767,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+          }
+        ],
+        "resolution_note": "Reproduced as the sum of accepted Note 10 group 3, 4, and 5 closing balances: 2,817.030 + 4,824.119 + 13,348.618 = 20,989.767 billion VND."
+      },
+      "formula": {
+        "formula_version": "npl-g35-balance-v1",
+        "input_observation_ids": [
+          "ctg-input-group-3-2024q4",
+          "ctg-input-group-4-2024q4",
+          "ctg-input-group-5-2024q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-input-pat-2024q4",
+      "metric_id": "bank.input.profit_after_tax",
+      "period_id": "2024_Q4",
+      "value": 25482.567,
+      "unit": "billion_vnd",
+      "period_basis": "annual",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2024 audited year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2024 audited year"
+          }
+        ],
+        "resolution_note": "Manually reconciled from consolidated profit after tax for the 2024 audited year: 25.482.567 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-pat-2023q4",
+      "metric_id": "bank.input.profit_after_tax",
+      "period_id": "2023_Q4",
+      "value": 20044.622,
+      "unit": "billion_vnd",
+      "period_basis": "annual",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2023 comparative year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2023 comparative year"
+          }
+        ],
+        "resolution_note": "Manually reconciled from the 2023 comparative consolidated profit after tax: 20.044.622 triệu VND. This is both the prior FY and prior-year Q4 YTD input."
+      }
+    },
+    {
+      "observation_id": "ctg-input-assets-2024q4",
+      "metric_id": "bank.input.total_assets",
+      "period_id": "2024_Q4",
+      "value": 2385387.732,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=7; printed_page=5; section=Consolidated balance sheet; row=total assets; column=2024 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=7; printed_page=5; section=Consolidated balance sheet; row=total assets; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from consolidated total assets at 31 December 2024: 2.385.387.732 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-assets-2023q4",
+      "metric_id": "bank.input.total_assets",
+      "period_id": "2023_Q4",
+      "value": 2032613.606,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=7; printed_page=5; section=Consolidated balance sheet; row=total assets; column=2023 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=7; printed_page=5; section=Consolidated balance sheet; row=total assets; column=2023 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from comparative consolidated total assets at 31 December 2023: 2.032.613.606 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-parent-profit-2024q4",
+      "metric_id": "bank.input.parent_attributable_profit",
+      "period_id": "2024_Q4",
+      "value": 25348.215,
+      "unit": "billion_vnd",
+      "period_basis": "annual",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2024 audited year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2024 audited year"
+          }
+        ],
+        "resolution_note": "Manually reconciled from profit attributable to owners of the parent for FY2024: 25.348.215 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-parent-profit-2023q4",
+      "metric_id": "bank.input.parent_attributable_profit",
+      "period_id": "2023_Q4",
+      "value": 19903.55,
+      "unit": "billion_vnd",
+      "period_basis": "annual",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2023 comparative year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2023 comparative year"
+          }
+        ],
+        "resolution_note": "Manually reconciled from comparative profit attributable to owners of the parent for FY2023: 19.903.550 triệu VND. This supplies prior FY and prior-year Q4 YTD."
+      }
+    },
+    {
+      "observation_id": "ctg-input-total-equity-2024q4",
+      "metric_id": "bank.input.total_equity",
+      "period_id": "2024_Q4",
+      "value": 148504.708,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2024 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from consolidated total equity at 31 December 2024: 148.504.708 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-total-equity-2023q4",
+      "metric_id": "bank.input.total_equity",
+      "period_id": "2023_Q4",
+      "value": 125871.82,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2023 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2023 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from comparative consolidated total equity at 31 December 2023: 125.871.820 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-nci-2024q4",
+      "metric_id": "bank.input.non_controlling_interests",
+      "period_id": "2024_Q4",
+      "value": 970.729,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=non-controlling interests; column=2024 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=non-controlling interests; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from non-controlling interests at 31 December 2024: 970.729 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-nci-2023q4",
+      "metric_id": "bank.input.non_controlling_interests",
+      "period_id": "2023_Q4",
+      "value": 861.22,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=non-controlling interests; column=2023 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "matched_reported_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=non-controlling interests; column=2023 closing"
+          }
+        ],
+        "resolution_note": "Manually reconciled from comparative non-controlling interests at 31 December 2023: 861.220 triệu VND. Normalized by 1,000."
+      }
+    },
+    {
+      "observation_id": "ctg-input-parent-equity-2024q4",
+      "metric_id": "bank.input.parent_attributable_equity",
+      "period_id": "2024_Q4",
+      "value": 147533.979,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2024 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Reproduced using the Metric Dictionary parent-attributable convention: total consolidated equity 148,504.708 less NCI 970.729 = 147,533.979 billion VND."
+      },
+      "formula": {
+        "formula_version": "parent-attributable-equity-v1",
+        "input_observation_ids": [
+          "ctg-input-total-equity-2024q4",
+          "ctg-input-nci-2024q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-input-parent-equity-2023q4",
+      "metric_id": "bank.input.parent_attributable_equity",
+      "period_id": "2023_Q4",
+      "value": 125010.6,
+      "unit": "billion_vnd",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2023 closing",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2023 closing"
+          }
+        ],
+        "resolution_note": "Reproduced using the Metric Dictionary parent-attributable convention: total consolidated equity 125,871.820 less NCI 861.220 = 125,010.600 billion VND."
+      },
+      "formula": {
+        "formula_version": "parent-attributable-equity-v1",
+        "input_observation_ids": [
+          "ctg-input-total-equity-2023q4",
+          "ctg-input-nci-2023q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-bank-npl-g35-2024q4",
+      "metric_id": "bank.npl_g35",
+      "period_id": "2024_Q4",
+      "value": 1.219,
+      "unit": "percent",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=38; printed_page=36; section=Note 10: customer loan quality analysis; row=customer loans, group 3; column=closing balance"
+          }
+        ],
+        "resolution_note": "Reproduced with npl-g35-v1 from manually reconciled group 3–5 balances and gross customer loans in Note 10. Result is rounded to four percentage points for display."
+      },
+      "formula": {
+        "formula_version": "npl-g35-v1",
+        "input_observation_ids": [
+          "ctg-input-group-3-2024q4",
+          "ctg-input-group-4-2024q4",
+          "ctg-input-group-5-2024q4",
+          "ctg-input-gross-loans-2024q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-bank-llr-coverage-2024q4",
+      "metric_id": "bank.llr_coverage",
+      "period_id": "2024_Q4",
+      "value": 174.6762,
+      "unit": "percent",
+      "period_basis": "point_in_time",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=39; printed_page=37; section=Note 11: loan loss provisions; row=total closing allowance; column=closing balance"
+          }
+        ],
+        "resolution_note": "Reproduced with llr-coverage-v1 using Note 11 closing provisions 36,664.125 and Note 10 group 3–5 loan balance 20,989.767 billion VND. Result is rounded to four percentage points for display."
+      },
+      "formula": {
+        "formula_version": "llr-coverage-v1",
+        "input_observation_ids": [
+          "ctg-input-provisions-2024q4",
+          "ctg-input-npl-balance-2024q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-bank-roa-2024q4",
+      "metric_id": "bank.roa",
+      "period_id": "2024_Q4",
+      "value": 1.1536,
+      "unit": "percent",
+      "period_basis": "ttm",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2024 audited year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit after tax; column=2024 audited year"
+          },
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=7; printed_page=5; section=Consolidated balance sheet; row=total assets; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Reproduced with roa-ttm-v1: FY2023 profit less FY2023 Q4 YTD profit plus FY2024 YTD profit, divided by average 31 December 2023/2024 total assets. At Q4, FY2023 and Q4 YTD are the same audited comparative period."
+      },
+      "formula": {
+        "formula_version": "roa-ttm-v1",
+        "input_observation_ids": [
+          "ctg-input-pat-2024q4",
+          "ctg-input-pat-2023q4",
+          "ctg-input-assets-2024q4",
+          "ctg-input-assets-2023q4"
+        ]
+      }
+    },
+    {
+      "observation_id": "ctg-bank-roe-2024q4",
+      "metric_id": "bank.roe",
+      "period_id": "2024_Q4",
+      "value": 18.6012,
+      "unit": "percent",
+      "period_basis": "ttm",
+      "reporting_scope": "consolidated",
+      "quality_status": "valid",
+      "candidate_source_id": "vietinbank-2024-audited-consolidated-report",
+      "candidate_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2024 audited year",
+      "review": {
+        "reviewer_id": "codex-worker-data",
+        "reviewed_at": "2026-09-24T16:40:16Z",
+        "decision": "reproduced_derived_value",
+        "primary_evidence": [
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=10; printed_page=8; section=Consolidated income statement; row=profit attributable to owners of the parent; column=2024 audited year"
+          },
+          {
+            "source_id": "vietinbank-2024-audited-consolidated-report",
+            "source_locator": "pdf_page=8; printed_page=6; section=Consolidated balance sheet; row=total consolidated equity; column=2024 closing"
+          }
+        ],
+        "resolution_note": "Reproduced with roe-ttm-v1 using parent-attributable profit and average parent-attributable equity (consolidated equity less NCI) at 31 December 2023/2024, per the Metric Dictionary."
+      },
+      "formula": {
+        "formula_version": "roe-ttm-v1",
+        "input_observation_ids": [
+          "ctg-input-parent-profit-2024q4",
+          "ctg-input-parent-profit-2023q4",
+          "ctg-input-parent-equity-2024q4",
+          "ctg-input-parent-equity-2023q4"
+        ]
+      }
+    }
+  ]
+}

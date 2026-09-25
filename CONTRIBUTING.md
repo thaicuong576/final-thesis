@@ -72,6 +72,11 @@ changes, run the commands in the frontend validation workflow (`npm ci`,
 `npm run lint`, `npm test -- --run`, and `npm run build`). Never report local
 test output as GitHub CI output.
 
+Worktree setup must copy SQLite through `scripts/copy_sqlite_snapshot.py`.
+Never hardlink or symlink the database or its WAL/SHM files across worktrees.
+Database tests and local API runs must use the isolated worktree snapshot or a
+temporary copy, with the source artifact hash checked when relevant.
+
 ## Data and architecture changes
 
 Data changes must preserve immutable raw inputs and include source identity,

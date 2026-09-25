@@ -12,6 +12,30 @@ the final adaptive critique/revision path.
 
 The system separates deterministic financial computation from qualitative retrieval and language-model reasoning. It runs locally from a frozen gold snapshot so that baseline and hierarchical systems receive identical facts and evidence.
 
+## Current public API slice (2026-09-24)
+
+`POST /api/analyze` and `/api/analyze/stream` share a provider-backed company
+path. The request must resolve to one company, an exact supported period, and
+supported company metrics. Each numeric claim is built from a valid observation
+and source, must carry that observation's metric-specific source locator, and
+passes the Stage-1 validator before the response labels it accepted. Otherwise
+the response is `error` with no claims. A successful response is `partial`:
+macro, sector/peer comparison, semantic critique, and bounded revision are not
+run by these endpoints. SSE ends with `REPORT_READY` for the same result or
+`RUN_BLOCKED` for an error; it does not invent critique or revision events.
+
+Readiness means the configured accepted provider can resolve at least one
+Stage-1-valid company claim. It does not mean the full hierarchical system is
+available. The Gold SQLite artifact is ignored local data, not a deployment
+asset: a backend deployment must explicitly supply the immutable snapshot and
+set `SQLITE_DB_PATH`. Vercel hosts the frontend and forwards API requests to the
+backend. The current Render blueprint does not configure the SQLite snapshot.
+Gold v5 evidence snippets are scoped to source, company, and period rather than
+metric; they are supplementary references. Numeric claim traceability depends
+on the corresponding metric observation's own source ID and locator. When the
+observation has no reporting-scope field, the API does not label it consolidated
+or parent-only.
+
 ## Logical flow
 
 ```text
@@ -45,7 +69,7 @@ Downloaded files and API responses are immutable and hash-recorded. The existing
 
 ### Normalized and gold plane
 
-Normalized observations use canonical ticker, sector, metric, period, unit, source ID, locator, and quality status fields. Derived values retain input observation IDs and formula versions. A new versioned gold snapshot is created after readiness gates pass; it never overwrites a staging database.
+Normalized observations use canonical ticker, sector, metric, period, unit, locator, and quality status fields. Direct values carry a reviewed source ID; derived values keep a null direct source ID and retain formula versions and input observation IDs so their source trail resolves through those inputs. A new versioned gold snapshot is created after readiness gates pass; it never overwrites a staging database.
 Gold promotion also materializes per-ticker/per-metric coverage summaries so the
 90% coverage gate is auditable rather than inferred from total row counts.
 The comparative experiment entrypoint must pass `src/thesis_data/baseline_gate.py`:
@@ -82,6 +106,35 @@ quality status.
 Sector benchmarks are filtered to the explicit peer set from the selected
 question when present, or the frozen Gold ticker scope otherwise; unrelated
 sector rows cannot silently change a peer median.
+
+Outside-Gold bank onboarding follows the same provider boundary through a
+separate immutable source packet. Parsing and mapping create a candidate;
+structural success leaves uploaded numeric values pending. A reviewer must
+match each accepted value to a valid primary source and exact locator, declare
+period basis and reporting scope, and preserve formula/input lineage for
+derived values. The generic canonical SQLite v3 provider stores and returns
+these fields without changing the frozen Gold v5 artifact. Bank-specific IDs
+come from the metric dictionary; packet conversion and provider access do not
+branch on an issuer ID or the current five-bank sample.
+
+Before operational snapshot acceptance, every valid derived observation is
+recomputed by its recognized, versioned deterministic formula from the exact
+accepted input observation IDs. Promotion checks input order, entity, period,
+basis, scope, units, and metric-specific tolerance; an unknown formula or a
+mismatch fails closed. The typed calculation receipt records the formula,
+ordered input identities and values, candidate and calculated outputs,
+tolerance, and passed result. Canonical SQLite persists the receipt alongside
+the observation through its metadata JSON, while the receipt remains part of
+the provider-neutral observation contract. Content-manifest hashing includes
+the ordered receipt facts and strips snapshot-derived observation IDs to avoid
+an identity cycle; the corresponding ordered input content remains bound into
+the manifest. A snapshot cannot be published without receipts for all accepted
+derived values.
+
+Scanned PDF evidence is manually reconciled against rendered statement pages.
+OCR or parser output can assist search but cannot promote a candidate; page
+numbering, reporting scope, and source hash remain attached to the reviewed
+observation.
 The run's explicit source policy resolves to an allowlist of source tiers; the
 current `*-primary-only-v1` policies allow only `primary`, and unknown policy
 IDs fail before adapter dispatch. Company, sector, macro, and evidence queries

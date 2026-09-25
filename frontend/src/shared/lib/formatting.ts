@@ -30,7 +30,8 @@ export function formatPeriodCollection(periods: Period[]) {
     .join(' · ');
 }
 
-export function formatCapabilityTimestamp(timestamp: string) {
+export function formatCapabilityTimestamp(timestamp?: string | null) {
+  if (!timestamp) return 'Chưa công bố';
   return new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -38,8 +39,8 @@ export function formatCapabilityTimestamp(timestamp: string) {
   }).format(new Date(timestamp));
 }
 
-export function formatGoldVersion(version: string) {
-  return `Gold v${version}`;
+export function formatGoldVersion(version?: string | null) {
+  return version ? `Gold v${version}` : 'Chưa công bố';
 }
 
 /**

@@ -7,13 +7,15 @@ generic application boundary.
 
 from __future__ import annotations
 
+from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 from hashlib import sha256
 import json
 import math
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .schema import QualityStatus, SourceTier
 
@@ -116,6 +118,90 @@ class DatasetEvidence(BaseModel):
     quote: str = Field(min_length=1)
 
 
+class ObservationEvidenceRef(BaseModel):
+    """One exact source location used to reconcile an observation."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_ref: str = Field(min_length=1)
+    locator: str = Field(min_length=1)
+
+
+class ObservationReview(BaseModel):
+    """Human decision that ties one value to primary evidence or its inputs."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    reviewer_id: str = Field(min_length=1)
+    reviewed_at: str = Field(min_length=1)
+    decision: Literal["matched_reported_value", "reproduced_derived_value"]
+    primary_evidence: tuple[ObservationEvidenceRef, ...] = Field(min_length=1)
+    resolution_note: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_evidence_refs(self) -> "ObservationReview":
+        identities = [(item.source_ref, item.locator) for item in self.primary_evidence]
+        if len(identities) != len(set(identities)):
+            raise ValueError("review primary evidence references must be unique")
+        try:
+            datetime.fromisoformat(self.reviewed_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("reviewed_at must be an ISO date-time") from exc
+        return self
+
+
+class CalculationInputReceipt(BaseModel):
+    """One ordered, accepted input captured by a derived calculation receipt."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    observation_id: str = Field(min_length=1)
+    metric_id: str = Field(min_length=1)
+    period_id: str = Field(min_length=1)
+    value: Decimal
+    unit: str = Field(min_length=1)
+    period_basis: str = Field(min_length=1)
+    reporting_scope: str = Field(min_length=1)
+
+    @field_validator("value")
+    @classmethod
+    def value_must_be_finite(cls, value: Decimal) -> Decimal:
+        if not value.is_finite():
+            raise ValueError("calculation input value must be finite")
+        return value
+
+
+class DerivedCalculationReceipt(BaseModel):
+    """Auditable result of deterministic arithmetic at snapshot promotion."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    formula_version: str = Field(min_length=1)
+    ordered_inputs: tuple[CalculationInputReceipt, ...] = Field(min_length=1)
+    calculated_output: Decimal
+    candidate_output: Decimal
+    unit: str = Field(min_length=1)
+    tolerance: Decimal = Field(ge=Decimal("0"))
+    absolute_difference: Decimal = Field(ge=Decimal("0"))
+    result: Literal["passed"]
+
+    @field_validator("calculated_output", "candidate_output", "tolerance", "absolute_difference")
+    @classmethod
+    def values_must_be_finite(cls, value: Decimal) -> Decimal:
+        if not value.is_finite():
+            raise ValueError("calculation receipt values must be finite")
+        return value
+
+    @model_validator(mode="after")
+    def difference_must_match_and_pass(self) -> "DerivedCalculationReceipt":
+        expected_difference = abs(self.candidate_output - self.calculated_output)
+        if self.absolute_difference != expected_difference:
+            raise ValueError("calculation receipt difference does not match its outputs")
+        if self.absolute_difference > self.tolerance:
+            raise ValueError("calculation receipt exceeds its tolerance")
+        return self
+
+
 class CanonicalObservation(BaseModel):
     """One value or explicit missing state in an application dataset."""
 
@@ -130,10 +216,15 @@ class CanonicalObservation(BaseModel):
     value: float | None = None
     unit: str | None = Field(default=None, min_length=1)
     source_ref: str | None = Field(default=None, min_length=1)
+    source_locator: str | None = Field(default=None, min_length=1)
+    period_basis: str | None = Field(default=None, min_length=1)
+    reporting_scope: str | None = Field(default=None, min_length=1)
+    review: ObservationReview | None = None
     validation_status: QualityStatus
     missing_reason: str | None = None
     derivation_method: str | None = Field(default=None, min_length=1)
     input_observation_ids: tuple[str, ...] = Field(default_factory=tuple)
+    calculation_receipt: DerivedCalculationReceipt | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -144,17 +235,22 @@ class CanonicalObservation(BaseModel):
             raise ValueError("input observation IDs must be unique")
         if any(not item.strip() for item in self.input_observation_ids):
             raise ValueError("input observation IDs must be non-empty")
+        if self.calculation_receipt is not None:
+            if self.derivation_method is None:
+                raise ValueError("direct observation cannot carry a derived calculation receipt")
+            if self.calculation_receipt.formula_version != self.derivation_method:
+                raise ValueError("calculation receipt formula version does not match observation")
+            if tuple(item.observation_id for item in self.calculation_receipt.ordered_inputs) != self.input_observation_ids:
+                raise ValueError("calculation receipt inputs do not match observation lineage")
+            if self.value is None or self.calculation_receipt.candidate_output != Decimal(str(self.value)):
+                raise ValueError("calculation receipt output does not match observation value")
+            if self.unit != self.calculation_receipt.unit:
+                raise ValueError("calculation receipt unit does not match observation")
         if self.validation_status is QualityStatus.VALID:
             has_source_provenance = self.source_ref not in (None, "")
             has_derivation_provenance = bool(
                 self.derivation_method and self.input_observation_ids
             )
-            if has_source_provenance and (
-                self.derivation_method is not None or self.input_observation_ids
-            ):
-                raise ValueError(
-                    "valid canonical observation must use source or derivation provenance"
-                )
             if not has_source_provenance and not has_derivation_provenance:
                 raise ValueError(
                     "valid canonical observation requires source or derivation provenance"

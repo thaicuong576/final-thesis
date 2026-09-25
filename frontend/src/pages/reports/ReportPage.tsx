@@ -6,6 +6,7 @@ import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import {
   AnalysisReportWorkspace,
   getReportById,
+  SAMPLE_REPORTS,
   type AnalysisReport
 } from '@/features/analysis-report';
 import { getApiBaseUrl, normalizeAnalysisResponseToReport } from '@/features/analysis-session/useAnalysisSessionStream';
@@ -61,10 +62,10 @@ function ReportPageContent({
   // 1. Explicit prop override (used by tests)
   // 2. Navigation location state from live analysis session
   // 3. Cached live analysis report in sessionStorage
-  // 4. Sample benchmark templates (acb-solo, acb-tcb-peer, macro-acb-cross)
+  // 4. Explicitly routed demo samples
   const initialSyncReport = useMemo<AnalysisReport | null>(() => {
     if (propReport) return propReport;
-    if (stateReport && stateReport.target_ticker) return stateReport;
+    if (stateReport?.report_id) return stateReport;
 
     if (typeof window !== 'undefined' && window.sessionStorage) {
       const stored = window.sessionStorage.getItem('current_analysis_report');
@@ -72,8 +73,7 @@ function ReportPageContent({
         try {
           const parsed = JSON.parse(stored) as AnalysisReport;
           if (
-            parsed &&
-            parsed.target_ticker &&
+            parsed?.report_id &&
             (id === 'live-session' || parsed.report_id === id || !id)
           ) {
             return parsed;
@@ -84,7 +84,7 @@ function ReportPageContent({
       }
     }
 
-    if (id === 'acb-solo' || id === 'acb-tcb-peer' || id === 'macro-acb-cross') {
+    if (SAMPLE_REPORTS.some((sample) => sample.slug === id || sample.id === id)) {
       return getReportById(id);
     }
 
@@ -246,7 +246,12 @@ function ReportPageContent({
     activeReport.peer_tickers && activeReport.peer_tickers.length > 0
       ? ` & ${activeReport.peer_tickers.join(', ')}`
       : '';
-  const scopeLabel = `${activeReport.target_ticker || 'ACB'}${peerText} ${activeReport.period || '2024'}`;
+  const scopeLabel = [activeReport.target_ticker, peerText ? peerText.trim() : '', activeReport.period]
+    .filter(Boolean)
+    .join(' · ') || 'Phạm vi chưa được API công bố';
+  const isDemo = SAMPLE_REPORTS.some(
+    (sample) => (sample.slug === id || sample.id === id) && sample.report.report_id === activeReport.report_id
+  );
 
   return (
     <WorkspaceShell
@@ -259,13 +264,13 @@ function ReportPageContent({
             <span className="font-semibold text-ink">{scopeLabel}</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            <span className="w-2 h-2 rounded-full bg-[#2f9e62]" aria-hidden="true" />
-            <span>KIỂM ĐỊNH THÀNH CÔNG</span>
+            <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
+            <span>{isDemo ? 'Mẫu minh họa' : activeReport.status ? `API: ${activeReport.status}` : 'API chưa công bố trạng thái'}</span>
           </div>
         </div>
       }
     >
-      <AnalysisReportWorkspace report={activeReport} />
+      <AnalysisReportWorkspace report={activeReport} isDemo={isDemo} />
     </WorkspaceShell>
   );
 }

@@ -16,6 +16,8 @@ from thesis_data.csv_onboarding import stage_csv_bytes
 from thesis_data.dataset_contract import (
     DatasetEvidence,
     DatasetSource,
+    ObservationEvidenceRef,
+    ObservationReview,
     canonical_observation_id,
 )
 from thesis_data.dataset_provider import DatasetProviderError
@@ -23,7 +25,7 @@ from thesis_data.dataset_tool_runtime import DatasetToolRuntime
 from thesis_data.evidence_contract import DatasetDocument
 from thesis_data.gold_dataset_provider import GoldSqliteDatasetProvider
 from thesis_data.onboarding_contract import FieldMappingSpec, FieldMetricMapping, demo_metric_registry
-from thesis_data.onboarding_validation import normalize_csv_dataset
+from thesis_data.onboarding_validation import normalize_csv_dataset, reconcile_candidate_observations
 from thesis_data.storage import create_gold_snapshot_schema
 from thesis_data.schema import QualityStatus
 from thesis_data.transferability import run_metric_probe
@@ -37,7 +39,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="percent",
                     analytical_level="company",
                 ),
@@ -57,11 +59,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             registry=demo_metric_registry(),
             created_at=datetime(2026, 9, 11, tzinfo=timezone.utc),
         )
-        return staged, result
-
-    def with_evidence(self):
-        staged, result = self.normalized()
-        document_source = DatasetSource(
+        primary_source = DatasetSource(
             source_ref="document-source:filing-1",
             source_type="pdf",
             source_tier="primary",
@@ -71,6 +69,33 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             content_hash="document-source-hash",
             validation_status=QualityStatus.VALID,
         )
+        numeric = result.candidate.observations[0]
+        reviewed = reconcile_candidate_observations(
+            result.candidate,
+            primary_sources=(primary_source,),
+            reviews={
+                numeric.observation_id: ObservationReview(
+                    reviewer_id="test-reviewer",
+                    reviewed_at="2026-09-11T00:00:00+00:00",
+                    decision="matched_reported_value",
+                    primary_evidence=(
+                        ObservationEvidenceRef(
+                            source_ref=primary_source.source_ref,
+                            locator="page:1/section:profitability",
+                        ),
+                    ),
+                    resolution_note="Synthetic test value matched to source evidence.",
+                )
+            },
+            period_bases={numeric.observation_id: "ttm"},
+            reporting_scopes={numeric.observation_id: "consolidated"},
+        )
+        result = replace(result, candidate=reviewed)
+        return staged, result
+
+    def with_evidence(self):
+        staged, result = self.normalized()
+        document_source = result.candidate.additional_sources[0]
         document = DatasetDocument(
             document_id="document-filing-1",
             dataset_id=result.candidate.metadata.dataset_id,
@@ -107,7 +132,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         dataset_id=None,
         snapshot_id=None,
         entity="BANK-X",
-        metric="company.roa",
+        metric="bank.roa",
         period="2024_Q4",
     ):
         return AnalysisRequest(
@@ -188,7 +213,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             runtime = DatasetToolRuntime(ApplicationRuntimeContext.from_request(
                 self._request(ref), provider
             ))
-            runtime.get_metric("BANK-X", "2024_Q4", "company.roa")
+            runtime.get_metric("BANK-X", "2024_Q4", "bank.roa")
             runtime_evidence = runtime.get_evidence(
                 (document_source_ref,),
                 entity_id="BANK-X",
@@ -230,7 +255,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         self.assertEqual(runtime_evidence, filtered)
         self.assertNotEqual(result.candidate.source.source_ref, document_source_ref)
         self.assertEqual(persisted_sources, {result.candidate.source.source_ref, document_source_ref})
-        self.assertEqual(persisted_observation_source, result.candidate.source.source_ref)
+        self.assertEqual(persisted_observation_source, document_source_ref)
         self.assertEqual(persisted_document_source, document_source_ref)
         self.assertEqual(persisted_evidence_source, document_source_ref)
         self.assertTrue(accepted_snapshot_id.startswith("snapshot-"))
@@ -481,7 +506,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
                 canonical_request,
                 entity_id="BANK-X",
                 period_id="2024_Q4",
-                metric_id="company.roa",
+                metric_id="bank.roa",
             )
 
             gold_path = root / "validated.sqlite"
@@ -502,7 +527,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             connection.execute(
                 "INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
-                    "gold-observation-1", "BANK-GOLD", "banking", "company.roa", 9.9,
+                    "gold-observation-1", "BANK-GOLD", "banking", "bank.roa", 9.9,
                     "percent", "FY-2024-Q4", "2024-12-31", "point_in_time", "gold-source",
                     "fixture:page:1", "valid", None,
                 ),
@@ -514,7 +539,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             gold_request = self._request(
                 gold_ref,
                 entity="BANK-GOLD",
-                metric="company.roa",
+                metric="bank.roa",
                 period="FY-2024-Q4",
             )
             gold_observation = run_metric_probe(
@@ -523,7 +548,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
                 gold_request,
                 entity_id="BANK-GOLD",
                 period_id="FY-2024-Q4",
-                metric_id="company.roa",
+                metric_id="bank.roa",
             )
 
         self.assertEqual(canonical_observation.value, 1.2)

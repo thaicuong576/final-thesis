@@ -2,14 +2,14 @@ import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { formatPeriodsSignature } from '../model/intentParser';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export interface ActiveDatasetCardProps {
   capabilities: AnalysisCapabilities;
-  onOpenSelector: () => void;
 }
 
-export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatasetCardProps) {
+export function ActiveDatasetCard({ capabilities }: ActiveDatasetCardProps) {
   const entityCount = capabilities.entities.length;
   const entityTickers =
     entityCount > 10
@@ -18,54 +18,37 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
   const periodSig = formatPeriodsSignature(capabilities.periods);
   const metricCount = capabilities.metrics.length;
   const metricAcronyms = capabilities.metrics.map((m) => m.acronym).join(' · ');
-  const title = entityCount > 10 ? 'Toàn bộ 27 NHTM Việt Nam (2021–2024)' : 'Ngân hàng Việt Nam 2024';
-  const isWalMode = Boolean(
-    (capabilities as unknown as Record<string, unknown>)?.journal_mode === 'wal' ||
-      capabilities.source?.includes('WAL') ||
-      capabilities.readiness?.includes('WAL') ||
-      entityCount > 10
-  );
 
   return (
     <div className="border border-line bg-card rounded-md px-4 py-2.5 min-h-[72px] flex flex-col justify-center gap-1.5 transition-colors">
       {/* Top line: Status, Title, and Switch Button */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex items-center justify-center w-4 h-4 rounded-full bg-ready text-white shrink-0">
-            <Check className="w-2.5 h-2.5 stroke-[3]" />
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 items-center gap-2">
+          <div className={`flex items-center justify-center w-4 h-4 rounded-full shrink-0 ${capabilities.analysis_available === true ? 'bg-ready text-white' : 'bg-warning-soft text-warning'}`}>
+            <Database className="w-2.5 h-2.5 stroke-[2]" aria-hidden="true" />
           </div>
-          <h2 className="text-sm font-bold text-ink tracking-tight truncate">
-            {title}
+          <h2 className="text-sm font-bold text-ink tracking-tight">
+            Phạm vi dữ liệu API công bố
           </h2>
+          </div>
           <Badge
             variant="outline"
-            className="bg-[#e4f4ea] text-[#2f9e62] border-[#2f9e62]/30 px-1.5 py-0 text-[10px] font-semibold shrink-0"
+            title={capabilities.analysis_available === true ? capabilities.dataset_snapshot_id || capabilities.snapshotId || undefined : capabilities.snapshotId || undefined}
+            className="max-w-full whitespace-normal break-all bg-surface-secondary text-ink-secondary border-border-subtle px-1.5 py-0 text-[10px] font-semibold shrink-0 sm:max-w-[240px] sm:truncate"
           >
-            Sẵn sàng
+            {capabilities.analysis_available === true && capabilities.dataset_snapshot_id
+              ? `Snapshot: ${capabilities.dataset_snapshot_id}`
+              : `Snapshot đã kiểm định: chưa có · Catalog: ${capabilities.snapshotId || 'chưa công bố'}`}
           </Badge>
-          {isWalMode && (
-            <Badge
-              variant="outline"
-              className="bg-surface-secondary text-ink-secondary border-border-subtle font-mono px-1.5 py-0 text-[10px] font-medium shrink-0"
-            >
-              SQLite WAL
-            </Badge>
-          )}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onOpenSelector}
-          aria-label="Đổi nguồn dữ liệu"
-          className="shrink-0 h-7 px-2.5 text-xs font-semibold text-ink hover:text-ink hover:bg-surface-hover border-border-subtle"
-        >
-          Đổi dữ liệu
+        <Button asChild variant="outline" size="sm" className="shrink-0 self-start h-7 px-2.5 text-xs font-semibold text-ink hover:bg-surface-hover border-border-subtle">
+          <Link to="/data">Xem phạm vi</Link>
         </Button>
       </div>
 
-      {/* Bottom line: Scannable grouped metadata: 27 ngân hàng · 2021–2024 · 7 chỉ tiêu */}
+      {/* Catalog scope, as reported by the API. */}
       <div className="flex flex-wrap items-center gap-x-2 text-xs text-ink-secondary">
         <div className="inline-flex items-center gap-1">
           <span className="font-semibold text-ink">{entityCount} ngân hàng</span>
@@ -73,7 +56,7 @@ export function ActiveDatasetCard({ capabilities, onOpenSelector }: ActiveDatase
         </div>
         <span aria-hidden="true" className="text-border-strong">•</span>
         <div className="inline-flex items-center gap-1 font-mono text-[11px] text-ink font-medium">
-          <span>{periodSig || 'Q1–Q4/2024'}</span>
+          <span>{periodSig || 'Kỳ chưa công bố'}</span>
         </div>
         <span aria-hidden="true" className="text-border-strong">•</span>
         <div className="inline-flex items-center gap-1">

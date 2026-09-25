@@ -13,6 +13,7 @@ from thesis_data.canonical_snapshot import materialize_canonical_snapshot
 from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
 from thesis_data.csv_onboarding import stage_csv_bytes
 from thesis_data.dataset_tool_runtime import DatasetToolRuntime
+from thesis_data.dataset_contract import DatasetSource, ObservationEvidenceRef, ObservationReview
 from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.onboarding_contract import (
     FieldMappingSpec,
@@ -20,12 +21,16 @@ from thesis_data.onboarding_contract import (
     OnboardingIssueCode,
     demo_metric_registry,
 )
-from thesis_data.onboarding_validation import normalize_csv_dataset, normalize_period
+from thesis_data.onboarding_validation import (
+    normalize_csv_dataset,
+    normalize_period,
+    reconcile_candidate_observations,
+)
 from thesis_data.schema import QualityStatus
 
 
 class Phase0BCsvOnboardingTests(unittest.TestCase):
-    def mapping(self, *, include_roe: bool = True, metric_id: str = "company.roa") -> FieldMappingSpec:
+    def mapping(self, *, include_roe: bool = True, metric_id: str = "bank.roa") -> FieldMappingSpec:
         metrics = [
             FieldMetricMapping(
                 raw_field="ROA (%)",
@@ -38,7 +43,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             metrics.append(
                 FieldMetricMapping(
                     raw_field="ROE (%)",
-                    metric_id="company.roe",
+                    metric_id="bank.roe",
                     unit="percent",
                     analytical_level="company",
                 )
@@ -63,6 +68,47 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             dataset_id="csv-dataset",
             mapping=mapping or self.mapping(),
             registry=demo_metric_registry(),
+        )
+
+    def reviewed_candidate(self, result):
+        """Explicit synthetic filing review used only by materialization tests."""
+        primary = DatasetSource(
+            source_ref="filing:reviewed-csv-fixture",
+            source_type="filing",
+            source_tier="primary",
+            source_url="https://example.test/filing.pdf",
+            publisher="Fixture issuer",
+            retrieved_at="2026-09-24T00:00:00+00:00",
+            content_hash="fixture-primary-source-hash",
+            validation_status=QualityStatus.VALID,
+        )
+        numeric = [item for item in result.candidate.observations if item.value is not None]
+        reviews = {
+            item.observation_id: ObservationReview(
+                reviewer_id="fixture-reviewer",
+                reviewed_at="2026-09-24T00:00:00+00:00",
+                decision="matched_reported_value",
+                primary_evidence=(
+                    ObservationEvidenceRef(
+                        source_ref=primary.source_ref,
+                        locator=f"PDF page 1 / row {item.entity_id} / {item.metric_id}",
+                    ),
+                ),
+                resolution_note="Fixture observation manually matched to the filing row.",
+            )
+            for item in numeric
+        }
+        return reconcile_candidate_observations(
+            result.candidate,
+            primary_sources=(primary,),
+            reviews=reviews,
+            period_bases={
+                item.observation_id: (
+                    "ttm" if item.metric_id in {"bank.roa", "bank.roe"} else "point_in_time"
+                )
+                for item in numeric
+            },
+            reporting_scopes={item.observation_id: "consolidated" for item in numeric},
         )
 
     def valid_text(self) -> str:
@@ -128,7 +174,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         self.assertEqual(result.validation_report.status.value, "INVALID")
         self.assertIn(OnboardingIssueCode.MAPPING_INVALID, {item.code for item in result.validation_report.issues})
 
-        unsupported = self.mapping(metric_id="company.not_registered")
+        unsupported = self.mapping(metric_id="bank.not_registered")
         unsupported_result = self.normalize(self.valid_text(), mapping=unsupported)
         self.assertIn(
             OnboardingIssueCode.METRIC_UNSUPPORTED,
@@ -140,7 +186,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="percent",
                     analytical_level="sector",
                 ),
@@ -157,7 +203,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="ratio",
                     analytical_level="company",
                 ),
@@ -192,8 +238,11 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(include_roe=False),
         )
         self.assertEqual(result.validation_report.status.value, "VALID")
-        self.assertEqual(result.validation_report.accepted_observation_count, 1)
+        self.assertEqual(result.validation_report.candidate_observation_count, 1)
         self.assertEqual(result.validation_report.missing_observation_count, 1)
+        numeric = next(item for item in result.candidate.observations if item.value is not None)
+        self.assertEqual(numeric.validation_status, QualityStatus.PENDING_VALIDATION)
+        self.assertEqual(result.candidate.source.validation_status, QualityStatus.PENDING_VALIDATION)
         missing = next(item for item in result.candidate.observations if item.value is None)
         self.assertEqual(missing.validation_status, QualityStatus.MISSING)
         self.assertEqual(missing.missing_reason, "DATA_UNAVAILABLE")
@@ -239,9 +288,10 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         self.assertEqual(result.validation_report.status.value, "VALID")
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
+            candidate = self.reviewed_candidate(result)
             accepted = materialize_canonical_snapshot(
                 db_path,
-                result.candidate,
+                candidate,
                 staged.raw_descriptor,
                 result.validation_report,
             )
@@ -255,17 +305,17 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                 dataset_snapshot_id=ref.dataset_snapshot_id,
                 target_entity_ids=("BANK-X",),
                 period_ids=("2024_Q4",),
-                metric_ids=("company.roa", "company.roe"),
+                metric_ids=("bank.roa", "bank.roe"),
                 objective="Read CSV-backed company metrics.",
             )
             runtime = DatasetToolRuntime(ApplicationRuntimeContext.from_request(request, provider))
-            observation = runtime.get_metric("BANK-X", "2024_Q4", "company.roa")
+            observation = runtime.get_metric("BANK-X", "2024_Q4", "bank.roa")
 
         self.assertEqual(observation.value, 1.2)
         self.assertEqual(catalog.entity_ids, frozenset({"BANK-X", "BANK-Y"}))
         self.assertEqual(catalog.period_ids, frozenset({"2024_Q4"}))
-        self.assertEqual(catalog.metric_ids, frozenset({"company.roa", "company.roe"}))
-        self.assertNotIn("company.npl", catalog.metric_ids)
+        self.assertEqual(catalog.metric_ids, frozenset({"bank.roa", "bank.roe"}))
+        self.assertNotIn("bank.npl_g35", catalog.metric_ids)
         self.assertNotIn("macro.policy_rate", catalog.metric_ids)
 
     def test_wrong_dataset_or_snapshot_ref_is_rejected(self):
@@ -276,10 +326,11 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(),
             registry=demo_metric_registry(),
         )
+        candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
             materialize_canonical_snapshot(
-                db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
             ref = provider.current_dataset_ref()
@@ -314,7 +365,8 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(),
             registry=demo_metric_registry(),
         )
-        duplicate_entity = replace(result.candidate, entities=result.candidate.entities + (result.candidate.entities[0],))
+        candidate = self.reviewed_candidate(result)
+        duplicate_entity = replace(candidate, entities=candidate.entities + (candidate.entities[0],))
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "rollback.sqlite"
             with self.assertRaisesRegex(sqlite3.IntegrityError, "UNIQUE"):
@@ -345,10 +397,11 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(),
             registry=demo_metric_registry(),
         )
+        candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
             materialize_canonical_snapshot(
-                db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             provider = CanonicalSqliteDatasetProvider(db_path)
             ref = provider.current_dataset_ref()
@@ -376,9 +429,10 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                     mapping=self.mapping(),
                     registry=demo_metric_registry(),
                 )
+                candidate = self.reviewed_candidate(result)
                 db_path = Path(directory) / "corrupt.sqlite"
                 materialize_canonical_snapshot(
-                    db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                    db_path, candidate, staged.raw_descriptor, result.validation_report
                 )
                 connection = sqlite3.connect(db_path)
                 try:
@@ -389,12 +443,37 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                 provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
                 ref = provider.current_dataset_ref()
                 with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
-                    provider.get_metric(ref, "BANK-X", "2024_Q4", "company.roa")
+                    provider.get_metric(ref, "BANK-X", "2024_Q4", "bank.roa")
                 with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
-                    provider.get_entity_metrics(ref, "BANK-X", ("2024_Q4",), ("company.roa",))
-                observation_id = result.candidate.observations[0].observation_id
+                    provider.get_entity_metrics(ref, "BANK-X", ("2024_Q4",), ("bank.roa",))
+                connection = sqlite3.connect(db_path)
+                try:
+                    observation_id = connection.execute(
+                        "SELECT observation_id FROM observations WHERE entity_id = 'BANK-X'"
+                    ).fetchone()[0]
+                finally:
+                    connection.close()
                 with self.assertRaisesRegex(DatasetProviderError, "persisted observation"):
                     provider.resolve_observation(ref, observation_id)
+
+    def test_structural_csv_validation_never_accepts_numeric_values_by_itself(self):
+        staged = self.stage("Company,Quarter,ROA (%)\nBANK-X,Q4-2024,1.2\n")
+        result = normalize_csv_dataset(
+            staged,
+            dataset_id="csv-dataset",
+            mapping=self.mapping(include_roe=False),
+            registry=demo_metric_registry(),
+        )
+        self.assertEqual(result.validation_report.status.value, "VALID")
+        self.assertEqual(result.candidate.observations[0].validation_status, QualityStatus.PENDING_VALIDATION)
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "pending observations"):
+                materialize_canonical_snapshot(
+                    Path(directory) / "unreviewed.sqlite",
+                    result.candidate,
+                    staged.raw_descriptor,
+                    result.validation_report,
+                )
 
     def test_provider_rejects_wrong_canonical_json_types(self):
         for table, column, operation in (
@@ -409,9 +488,10 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                     mapping=self.mapping(),
                     registry=demo_metric_registry(),
                 )
+                candidate = self.reviewed_candidate(result)
                 db_path = Path(directory) / "malformed-json.sqlite"
                 materialize_canonical_snapshot(
-                    db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                    db_path, candidate, staged.raw_descriptor, result.validation_report
                 )
                 connection = sqlite3.connect(db_path)
                 try:
@@ -425,7 +505,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                     if operation == "capabilities":
                         provider.get_capabilities(ref)
                     else:
-                        provider.get_metric(ref, "BANK-X", "2024_Q4", "company.roa")
+                        provider.get_metric(ref, "BANK-X", "2024_Q4", "bank.roa")
 
     def test_provider_rejects_invalid_canonical_json(self):
         staged = self.stage(self.valid_text())
@@ -435,10 +515,11 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(),
             registry=demo_metric_registry(),
         )
+        candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "invalid-json.sqlite"
             materialize_canonical_snapshot(
-                db_path, result.candidate, staged.raw_descriptor, result.validation_report
+                db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             connection = sqlite3.connect(db_path)
             try:
@@ -471,9 +552,10 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             mapping=self.mapping(),
             registry=demo_metric_registry(),
         )
+        candidate = self.reviewed_candidate(result)
         duplicate_entity = replace(
-            result.candidate,
-            entities=result.candidate.entities + (result.candidate.entities[0],),
+            candidate,
+            entities=candidate.entities + (candidate.entities[0],),
         )
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "retry.sqlite"
@@ -487,7 +569,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             self.assertFalse(db_path.exists())
             accepted = materialize_canonical_snapshot(
                 db_path,
-                result.candidate,
+                candidate,
                 staged.raw_descriptor,
                 result.validation_report,
             )

@@ -28,8 +28,36 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   Evidence manifests use `canonical_lf_utf8_sha256` for Git-tracked UTF-8 text
+   controls and `raw_file_bytes_sha256` for immutable evidence. Ignored evidence
+   verification requires an explicit `--evidence-root`.
+   Authority manifests byte-pin only scope-specific evidence and control
+   records. Living repository policy files such as `AGENTS.md`, contracts,
+   decisions, and lessons are referenced by stable section markers and tested
+   semantically; they must not be frozen into a domain evidence hash graph.
+   CSV structural validation creates only a candidate; accepted numeric values
+   require observation-level source reconciliation to a primary filing with an
+   exact locator, period basis, reporting scope, and a review record under
+   `contracts/bank-onboarding-packet-v1.schema.json` and `docs/DATA-CONTRACT.md`.
+   Derived observations also retain formula/input lineage. Operational promotion
+   recomputes derived observations from accepted source-backed inputs with a
+   recognized versioned formula and persists a calculation receipt containing
+   the ordered accepted inputs, outputs, tolerance, and result. The generic
+   onboarding SQLite provider stores these fields separately from the immutable
+   Gold v5 database. A reviewed operational snapshot is distinct from Gold
+   benchmark promotion; do not silently grant either status.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
+   For new operational snapshots, derived values must be recomputed from
+   accepted source-backed inputs by a versioned deterministic formula at
+   promotion, with a recorded calculation receipt. Stage-1 checks the accepted
+   result and provenance; it does not substitute for this arithmetic gate.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
+   For numeric claims, Stage-1 may accept exact structured observation/source
+   locator provenance instead of a document snippet; derived claims must
+   reproduce from accepted primary-backed inputs. Unlinked same-document
+   snippets are not claim evidence. New report output must join numeric claims
+   to direct or input observations and primary-source trail rows by explicit
+   IDs per `contracts/openapi.json`, never by array order or encoded claim IDs.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.
 6. Every material decision, assumption, blocker, and verification result must be recorded in git commits and pull requests.
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.
@@ -37,7 +65,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 9. Production deployment and access to real financial services require explicit approval.
 10. `docs/ARCHITECTURAL-GUARDRAILS.md` is binding. If a task conflicts with it, stop and report the conflict before implementation.
 11. The modular design system in `.agent/rules/design/` (indexed at `.agent/rules/design/README.md`) is the binding brand guideline and source of truth for all product UI, screens, components, states, layout, and styling. All frontend work must strictly obey `.agent/rules/design/`.
-12. **Multi-Agent SDLC & Worktree Isolation**: All feature development must operate within isolated Git Worktrees (`.worktrees/<branch-name>/`) created via `scripts/worker-start.*` and cleaned via `scripts/sync-and-cleanup.*`. The SQLite database `data/processed/finance_master_v2.sqlite` runs strictly in WAL mode. Database schema migrations follow Contract-First in `contracts/schema.sql`. Configuration `.env` is synchronized across worktrees via NTFS Hardlinks (`mklink /H`).
+12. **Multi-Agent SDLC & Worktree Isolation**: All feature development must operate within isolated Git Worktrees (`.worktrees/<branch-name>/`) created via `scripts/worker-start.*` and cleaned via `scripts/sync-and-cleanup.*`. The SQLite database `data/processed/finance_master_v2.sqlite` runs strictly in WAL mode. Database schema migrations follow Contract-First in `contracts/schema.sql`. Configuration `.env` is synchronized across worktrees via NTFS Hardlinks (`mklink /H`). SQLite databases and their WAL/SHM sidecars must never be hardlinked across root/worktrees. `worker-start` creates an independent, integrity-checked SQLite backup snapshot; tests and local APIs may write only to an isolated worktree/temp copy.
 13. **Living Architecture & Instruction Synchronization (Mandatory Self-Update)**:
     - Whenever any change, refactoring, or upgrade is made to repository architecture, infrastructure, schemas, rules, or workflows, the agent MUST immediately update `AGENTS.md` and related context files.
     - Future agent sessions rely on `AGENTS.md` as their primary ground truth. If a structural or architectural change is not documented in `AGENTS.md`, future sessions will lose context.
@@ -55,6 +83,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
       3. Write `TASK.md` manifest inside the child worktree referencing the Linear issue, role, contracts, scope, and verification criteria.
       4. Mandate worker to name PRs starting with `feat(<domain>): [THES-X] <title>` to enable automatic two-way GitHub-Linear synchronization and auto-closure on merge.
 16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
+    - **Codex-only model rule (user mandate, 2026-09-24):** Every newly spawned Codex subagent must explicitly set `model: gpt-6-luna` and `reasoning_effort: xhigh` (extra high). Do not inherit the root/current model. Because model overrides require a limited history fork, set `fork_turns` to `none` or a positive turn count and include all necessary task context in the spawn message. `followup_task` does not change an existing subagent's model; create a new subagent with these settings for subsequent work.
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
     - If active telemetry inspection is deemed necessary to monitor worker progress, the sampling interval MUST strictly be at least 3 minutes (>= 180 seconds) per check. Rapid polling is strictly prohibited.
@@ -92,14 +121,35 @@ Each phase must leave a durable handoff and a verified state update before the n
 
 ## Current priority
 
-The immediate priority is the research and data-foundation phase.
+The immediate priority is the six-day applied-thesis completion plan in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`: prove a validated new-bank onboarding
+path, complete the query-adaptive critique/revision loop, verify the deployed
+analyst workflow, rerun a fair A/B/C evaluation, and finish the approved
+six-chapter report. The previously scored issuer-count benchmark is historical
+evidence, not proof that the final revision loop is implemented.
 
-Do not build the full agent loop until source coverage, metric definitions, period alignment, and a manually checked gold dataset are documented.
+Do not admit new-bank or OCR-extracted observations into an analysis snapshot
+until source coverage, metric definitions, period alignment, provenance, and
+validation are documented. Preserve the existing Gold benchmark independently.
 
 Before each major phase, complete the guardrail pre-flight questions and record
 any new Gold/SQLite/physical-schema coupling. Passing tests alone is not
 architectural acceptance; changes must also preserve the core/application
 boundary and the transferability rule.
+
+## Current public API analysis contract
+
+`POST /api/analyze` and `/api/analyze/stream` execute only provider-backed
+company claims that pass Stage-1. A numeric claim requires an accepted
+observation, accepted source, the observation's metric-specific source locator,
+and resolvable evidence. Missing locator/evidence or unsupported scope blocks
+the claim; success is `partial` while macro, sector, semantic critique, and
+revision are not implemented. SSE emits `REPORT_READY` only for the same
+successful result and `RUN_BLOCKED` for errors. Readiness requires a runnable
+accepted snapshot. `SQLITE_DB_PATH` must point to an explicitly supplied
+validated snapshot; the ignored local Gold artifact is not packaged by Git or
+implicitly available on Render/Vercel. Do not infer consolidated or parent-only
+reporting scope when the observation does not declare it.
 
 ## GitHub Flow and branch safety
 

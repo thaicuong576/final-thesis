@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState, type KeyboardEvent } from 're
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Building2 } from 'lucide-react';
 import type { ParsedScope } from '../model/types';
+import type { Entity, Metric, Period } from '@/entities/capability/model/types';
 import { formatPeriodsSignature } from '../model/intentParser';
 
 export interface HeroComposerProps {
@@ -10,6 +11,9 @@ export interface HeroComposerProps {
   onQuestionChange?: (question: string) => void;
   onSubmit: (question: string) => void;
   parsedScope?: ParsedScope | null;
+  availableEntities?: Entity[];
+  availablePeriods?: Period[];
+  availableMetrics?: Metric[];
   onOpenScopeAdjustment?: () => void;
   isSubmitting?: boolean;
 }
@@ -20,6 +24,9 @@ export function HeroComposer({
   onQuestionChange,
   onSubmit,
   parsedScope,
+  availableEntities = [],
+  availablePeriods = [],
+  availableMetrics = [],
   onOpenScopeAdjustment,
   isSubmitting = false
 }: HeroComposerProps) {
@@ -27,6 +34,18 @@ export function HeroComposer({
   const [internalQuestion, setInternalQuestion] = useState(initialQuestion);
   const question = isControlled ? controlledQuestion : internalQuestion;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const availableYears = [...new Set(availablePeriods.map((period) => period.year))].sort((a, b) => b - a);
+  const latestFullYear = availableYears.find((year) => {
+    const quarters = new Set(availablePeriods.filter((period) => period.year === year).map((period) => period.quarter));
+    return [1, 2, 3, 4].every((quarter) => quarters.has(quarter));
+  });
+  const latestPeriod = [...availablePeriods].sort((left, right) => right.year - left.year || right.quarter - left.quarter)[0];
+  const examplePeriod = latestFullYear
+    ? `trong năm ${latestFullYear}`
+    : latestPeriod
+    ? `tại Q${latestPeriod.quarter}/${latestPeriod.year}`
+    : '';
+  const firstMetric = availableMetrics[0]?.acronym;
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current;
@@ -64,7 +83,7 @@ export function HeroComposer({
   function handleQuickBankClick(ticker: string) {
     let next: string;
     if (!question.trim()) {
-      next = `Đánh giá toàn diện các chỉ số tài chính CAMEL của ${ticker} trong năm 2024.`;
+      next = `Phân tích ${ticker}`;
     } else if (question.includes(ticker)) {
       return;
     } else {
@@ -118,12 +137,13 @@ export function HeroComposer({
       </div>
 
       {/* Quick Bank Interactive Selector Chips */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+      {availableEntities.length > 0 && <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
         <span className="text-[11px] font-mono text-ink-secondary flex items-center gap-1 mr-0.5">
-          <Building2 className="w-3 h-3 text-ink-secondary" />
-          <span>Chọn nhanh ngân hàng:</span>
+          <Building2 className="w-3 h-3 text-ink-secondary" aria-hidden="true" />
+          <span>Gợi ý ngân hàng trong catalog:</span>
         </span>
-        {['ACB', 'VCB', 'MBB', 'TCB', 'CTG'].map((ticker) => {
+        {availableEntities.slice(0, 5).map((entity) => {
+          const ticker = entity.ticker;
           const isSelected = parsedScope?.entities.some((e) => e.ticker === ticker) || question.includes(ticker);
           return (
             <button
@@ -140,7 +160,7 @@ export function HeroComposer({
             </button>
           );
         })}
-      </div>
+      </div>}
 
       {/* Hero Composer Box */}
       <div className="border border-line bg-card rounded-md p-4 space-y-3 transition-colors focus-within:border-amber-border focus-within:ring-1 focus-within:ring-amber-border shadow-none">
@@ -154,7 +174,11 @@ export function HeroComposer({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           maxLength={500}
-          placeholder="Nhập câu hỏi phân tích tài chính về ACB, VCB, MBB, TCB, CTG... (ví dụ: So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất.)"
+          placeholder={availableEntities.length > 0
+            ? firstMetric && examplePeriod
+              ? `Nêu rõ ngân hàng, một chỉ tiêu và kỳ dữ liệu; ví dụ: Phân tích ${firstMetric} của ${availableEntities[0].ticker} ${examplePeriod}.`
+              : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và năm hoặc quý cần phân tích.'
+            : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và năm hoặc quý cần phân tích.'}
           className="w-full min-h-[120px] border-0 p-0 text-sm text-ink placeholder:text-ink-tertiary focus:outline-none focus:ring-0 resize-none leading-relaxed bg-transparent"
         />
 

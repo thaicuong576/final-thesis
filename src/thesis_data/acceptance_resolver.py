@@ -32,6 +32,13 @@ class Stage1DatasetResolver(Protocol):
     ) -> CanonicalObservation | None:
         ...
 
+    def resolve_observation_id(
+        self,
+        observation_id: str,
+    ) -> CanonicalObservation | None:
+        """Resolve one exact observation ID inside this resolver's snapshot."""
+        ...
+
     def resolve_benchmark(
         self,
         *,
@@ -98,6 +105,18 @@ class ProviderStage1DatasetResolver:
             self._provider.resolve_observation(self._dataset_ref, ref.ref_id)
         )
         return observation
+
+    def resolve_observation_id(
+        self,
+        observation_id: str,
+    ) -> CanonicalObservation | None:
+        """Resolve a lineage input by its exact provider identity."""
+
+        observation = self._provider.resolve_observation(
+            self._dataset_ref,
+            observation_id,
+        )
+        return self._bound_observation(observation)
 
     def resolve_benchmark(
         self,

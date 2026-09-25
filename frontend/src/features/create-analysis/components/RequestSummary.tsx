@@ -36,7 +36,7 @@ export function RequestSummary({ capabilities, values, isValid, isSubmitting, su
         <SummaryRow label="Đối tượng phân tích" value={targetLabels.length ? targetLabels.join(' · ') : 'Chưa chọn'} />
         <SummaryRow label="Kỳ tài chính" value={periodLabels.length ? periodLabels.join(' · ') : 'Chưa chọn'} />
         <SummaryRow label="Chỉ tiêu" value={metricLabels.length ? metricLabels.join(' · ') : 'Chưa chọn'} />
-        <SummaryRow label="Nhóm tham chiếu" value={`${capabilities.peerUniverse.entityIds.length} ngân hàng · Chỉ đọc`} helper="Các ngân hàng không được chọn vẫn có thể xuất hiện trong báo cáo." />
+        <SummaryRow label="Nhóm tham chiếu" value={capabilities.peerUniverse ? `${capabilities.peerUniverse.entityIds.length} ngân hàng · Catalog` : 'API chưa công bố'} helper="Phạm vi này chỉ hiển thị catalog; khả năng chạy do API xác nhận." />
         <SummaryRow label="Macro" value={macroLabel[capabilities.macro.status]} valueTone={statusTone} helper={capabilities.macro.status === 'LIMITED' ? 'Giới hạn sẽ được công bố trong báo cáo.' : undefined} />
       </div>
 

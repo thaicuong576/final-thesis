@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AnalysisSessionEvent, AnalysisSessionViewModel } from './model/types';
 import { projectAnalysisSession } from './model/projector';
 import type { AnalysisReport } from '../analysis-report';
-import { mockCompanyPeerEvents } from './mock/companyPeerEvents';
-import { mockCompanyOnlyEvents } from './mock/companyOnlyEvents';
-import { mockPeerComparisonReport, mockCompanyOnlyReport } from '../analysis-report/mock/mockReports';
+import { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '@/shared/lib/apiUrl';
+
+export { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface AnalysisStreamRequest {
   query: string;
@@ -12,8 +12,6 @@ export interface AnalysisStreamRequest {
   peer_tickers?: string[];
   period?: string;
 }
-
-export type StreamConnectionMode = 'LIVE' | 'MOCK';
 
 export interface RawAnalysisResponseArtifact {
   report_id?: string;
@@ -36,8 +34,6 @@ export interface RawAnalysisResponseArtifact {
 export interface UseAnalysisSessionStreamOptions {
   request?: AnalysisStreamRequest | null;
   autoStart?: boolean;
-  fallbackToMockOnError?: boolean;
-  mockEvents?: AnalysisSessionEvent[];
   apiEndpoint?: string;
   onEvent?: (event: AnalysisSessionEvent) => void;
   onComplete?: (report: AnalysisReport) => void;
@@ -51,15 +47,11 @@ export interface UseAnalysisSessionStreamReturn {
   isComplete: boolean;
   isError: boolean;
   error: Error | null;
-  connectionMode: StreamConnectionMode;
-  isMockFallback: boolean;
   backendTarget: string;
   report: AnalysisReport | null;
   startStream: (req?: AnalysisStreamRequest) => Promise<void>;
   cancelStream: () => void;
   retry: () => void;
-  switchToMock: () => void;
-  switchToLive: () => void;
 }
 
 /**
@@ -110,69 +102,32 @@ export function parseSseBlock(block: string): AnalysisSessionEvent | null {
   }
 }
 
-/**
- * Normalizes an AnalysisResponse artifact into an AnalysisReport.
- */
+/** Copies only fields returned by the API or the request that was actually submitted. */
 export function normalizeAnalysisResponseToReport(
   res?: RawAnalysisResponseArtifact | null,
   req?: AnalysisStreamRequest | null
 ): AnalysisReport {
+  if (!res || typeof res.report_id !== 'string' || !res.report_id.trim()) {
+    throw new Error('API không trả mã báo cáo hợp lệ.');
+  }
   const plan = res?.analysis_plan;
   return {
-    session_id: res?.report_id || `session-${Date.now()}`,
-    report_id: res?.report_id || `rep-${Date.now()}`,
-    status: res?.status || 'completed',
-    query: res?.query || plan?.query || req?.query || '',
-    target_ticker: res?.target_ticker || plan?.target_ticker || req?.target_ticker || 'ACB',
-    peer_tickers: res?.peer_tickers || plan?.peer_tickers || req?.peer_tickers || [],
-    period: res?.period || plan?.period || req?.period || '2024',
-    analysis_plan: {
-      plan_id: plan?.plan_id || `plan-${Date.now()}`,
-      query: plan?.query || req?.query || '',
-      target_ticker: plan?.target_ticker || req?.target_ticker || 'ACB',
-      peer_tickers: plan?.peer_tickers || req?.peer_tickers || [],
-      period: plan?.period || req?.period || '2024',
-      required_capabilities: plan?.required_capabilities || ['company'],
-      applicable_links: plan?.applicable_links || [],
-      dataset_snapshot_id: plan?.dataset_snapshot_id || 'snap-2024-q4-v1',
-      rationale: plan?.rationale || '',
-      known_limitations: plan?.known_limitations || []
-    },
-    macro_context: res?.macro_context ?? null,
-    sector_benchmark: res?.sector_benchmark ?? null,
-    company_insights: res?.company_insights ?? [],
-    cross_level_critique: res?.cross_level_critique ?? [],
-    atomic_claims: res?.atomic_claims ?? [],
-    evidence_trail: res?.evidence_trail ?? [],
-    revision_summary: res?.revision_summary ?? {
-      rounds_executed: 0,
-      max_rounds: 2,
-      status: 'passed',
-      reason: '',
-      revised_capabilities: []
-    },
-    limitations: res?.limitations ?? []
+    report_id: res.report_id,
+    status: res.status,
+    query: res.query ?? plan?.query ?? req?.query,
+    target_ticker: res.target_ticker ?? plan?.target_ticker ?? req?.target_ticker,
+    peer_tickers: res.peer_tickers ?? plan?.peer_tickers ?? req?.peer_tickers,
+    period: res.period ?? plan?.period ?? req?.period,
+    analysis_plan: plan ?? null,
+    macro_context: res.macro_context,
+    sector_benchmark: res.sector_benchmark,
+    company_insights: res.company_insights,
+    cross_level_critique: res.cross_level_critique,
+    atomic_claims: res.atomic_claims,
+    evidence_trail: res.evidence_trail,
+    revision_summary: res.revision_summary,
+    limitations: res.limitations
   };
-}
-
-export const DEFAULT_RENDER_BACKEND = 'https://final-thesis-zgwt.onrender.com';
-
-export function getApiBaseUrl(): string {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
-  }
-  if (typeof window !== 'undefined' && window.location) {
-    const host = window.location.hostname.toLowerCase();
-    if (
-      host.includes('eddiephung.me') ||
-      host.includes('vercel.app') ||
-      host.includes('onrender.com') ||
-      (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.endsWith('.local'))
-    ) {
-      return DEFAULT_RENDER_BACKEND;
-    }
-  }
-  return '';
 }
 
 export function getResolvedApiEndpoint(customEndpoint?: string): string {
@@ -200,13 +155,11 @@ export function getBackendTargetDisplay(customEndpoint?: string): string {
 /**
  * React hook connecting to POST /api/analyze/stream SSE endpoint.
  * Supports progressive event reduction into AnalysisSessionViewModel via projectAnalysisSession.
- * Features automatic and manual fallback to offline mock when backend is unreachable.
+ * Live runs remain live; connection failures never produce mock events or reports.
  */
 export function useAnalysisSessionStream({
   request,
   autoStart = true,
-  fallbackToMockOnError = true,
-  mockEvents,
   apiEndpoint,
   onEvent,
   onComplete,
@@ -220,8 +173,6 @@ export function useAnalysisSessionStream({
     () => getBackendTargetDisplay(apiEndpoint),
     [apiEndpoint]
   );
-  const [connectionMode, setConnectionMode] = useState<StreamConnectionMode>('LIVE');
-  const [isMockFallback, setIsMockFallback] = useState(false);
   const [events, setEvents] = useState<AnalysisSessionEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -232,87 +183,17 @@ export function useAnalysisSessionStream({
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const switchToMockInternal = useCallback(
-    (req?: AnalysisStreamRequest | null) => {
-      setConnectionMode('MOCK');
-      setIsMockFallback(true);
-      setIsError(false);
-      setIsStreaming(false);
-
-      const isSolo =
-        (req?.peer_tickers && req.peer_tickers.length === 0) ||
-        (req?.target_ticker && !req?.peer_tickers);
-
-      let fallbackEvents: AnalysisSessionEvent[] =
-        mockEvents ?? (isSolo ? mockCompanyOnlyEvents : mockCompanyPeerEvents);
-
-      if (!mockEvents && req && (req.target_ticker || req.query)) {
-        const tTicker = req.target_ticker || 'ACB';
-        const pTickers = req.peer_tickers || [];
-        const period = req.period || '2024';
-        const query = req.query || '';
-        const isNpl = query.toLowerCase().includes('nợ xấu') || query.toLowerCase().includes('npl');
-        const metricLabel = isNpl ? 'NPL' : 'ROE';
-        const scopeDesc = pTickers.length > 0
-          ? `${tTicker} · ${pTickers.join(', ')} · ${period}`
-          : `${tTicker} · Q1–Q4/${period} · ${metricLabel}`;
-
-        fallbackEvents = fallbackEvents.map((e) => {
-          let payload = { ...(e.payload as Record<string, unknown>) };
-          if (e.type === 'USER_REQUEST_CONFIRMED') {
-            payload = {
-              ...payload,
-              rawQuestion: query || (payload.rawQuestion as string),
-              scopeSignature: scopeDesc
-            };
-          } else if (e.type === 'PLAN_CREATED' && typeof payload.message === 'string') {
-            payload = {
-              ...payload,
-              message: payload.message
-                .replace(/TCB · Q1–Q4\/2024 · ROE/g, `${tTicker} (${metricLabel})`)
-                .replace(/TCB/g, tTicker)
-                .replace(/ROE/g, metricLabel)
-            };
-          } else if (e.type === 'SPECIALIST_INVOKED' && typeof payload.assignment === 'string') {
-            payload = {
-              ...payload,
-              assignment: payload.assignment.replace(/TCB/g, tTicker).replace(/ROE/g, metricLabel)
-            };
-          }
-          return {
-            ...e,
-            payload
-          } as AnalysisSessionEvent;
-        });
-      }
-
-      const baseReport = isSolo ? mockCompanyOnlyReport : mockPeerComparisonReport;
-      const fallbackReport = req
-        ? {
-            ...baseReport,
-            target_ticker: req.target_ticker || baseReport.target_ticker,
-            peer_tickers: req.peer_tickers ?? baseReport.peer_tickers,
-            period: req.period || baseReport.period,
-            query: req.query || baseReport.query
-          }
-        : baseReport;
-
-      setEvents(fallbackEvents);
-      setReport(fallbackReport);
-      setIsComplete(true);
-      onComplete?.(fallbackReport);
-    },
-    [mockEvents, onComplete]
-  );
-
   const startStream = useCallback(
     async (requestOverride?: AnalysisStreamRequest) => {
-      const targetReq = requestOverride || activeRequest || {
-        query: 'So sánh chất lượng tài sản của ACB, TCB và MBB trong năm 2024 và xác định ngân hàng cải thiện rõ nhất.',
-        target_ticker: 'ACB',
-        peer_tickers: ['TCB', 'MBB'],
-        period: '2024'
-      };
+      const targetReq = requestOverride ?? activeRequest;
+
+      if (!targetReq?.query.trim()) {
+        const requestError = new Error('Chưa có câu hỏi được xác nhận để gửi tới API.');
+        setError(requestError);
+        setIsError(true);
+        setIsStreaming(false);
+        return;
+      }
 
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -321,8 +202,6 @@ export function useAnalysisSessionStream({
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
-      setConnectionMode('LIVE');
-      setIsMockFallback(false);
       setIsStreaming(true);
       setIsComplete(false);
       setIsError(false);
@@ -334,8 +213,8 @@ export function useAnalysisSessionStream({
         const payload = {
           query: targetReq.query,
           target_ticker: targetReq.target_ticker,
-          peer_tickers: targetReq.peer_tickers ?? [],
-          period: targetReq.period ?? '2024'
+          peer_tickers: targetReq.peer_tickers,
+          period: targetReq.period
         };
 
         const response = await fetch(resolvedEndpoint, {
@@ -408,6 +287,9 @@ export function useAnalysisSessionStream({
           }
         }
 
+        if (!accumulatedEvents.some((event) => event.type === 'REPORT_READY')) {
+          throw new Error('Luồng đã kết thúc nhưng API không gửi báo cáo. Phiên chưa được đánh dấu hoàn tất.');
+        }
         setIsComplete(true);
         setIsStreaming(false);
       } catch (err: unknown) {
@@ -419,13 +301,9 @@ export function useAnalysisSessionStream({
         setIsError(true);
         setIsStreaming(false);
         onError?.(errorObj);
-
-        if (fallbackToMockOnError) {
-          switchToMockInternal(targetReq);
-        }
       }
     },
-    [activeRequest, resolvedEndpoint, fallbackToMockOnError, onEvent, onComplete, onError, switchToMockInternal]
+    [activeRequest, resolvedEndpoint, onEvent, onComplete, onError]
   );
 
   const cancelStream = useCallback(() => {
@@ -437,15 +315,6 @@ export function useAnalysisSessionStream({
   }, []);
 
   const retry = useCallback(() => {
-    startStream();
-  }, [startStream]);
-
-  const switchToMock = useCallback(() => {
-    cancelStream();
-    switchToMockInternal(activeRequest);
-  }, [cancelStream, switchToMockInternal, activeRequest]);
-
-  const switchToLive = useCallback(() => {
     startStream();
   }, [startStream]);
 
@@ -468,13 +337,13 @@ export function useAnalysisSessionStream({
       return {
         sessionId: 'session-init',
         rawQuestion: activeRequest?.query || '',
-        datasetName: 'Ngân hàng Việt Nam 2024',
+        datasetName: 'Snapshot do API xác nhận',
         scopeSignature: activeRequest?.target_ticker
           ? `${activeRequest.target_ticker} | ${
               activeRequest.peer_tickers && activeRequest.peer_tickers.length > 0
                 ? 'So sánh'
                 : 'Độc lập'
-            } | ${activeRequest.period || '2024'}`
+            } | ${activeRequest.period || 'Kỳ chưa công bố'}`
           : '',
         currentPhase: 'INITIALIZING' as const,
         phaseLabel: 'Đang kết nối luồng phân tích',
@@ -494,14 +363,10 @@ export function useAnalysisSessionStream({
     isComplete,
     isError,
     error,
-    connectionMode,
-    isMockFallback,
     backendTarget,
     report,
     startStream,
     cancelStream,
-    retry,
-    switchToMock,
-    switchToLive
+    retry
   };
 }

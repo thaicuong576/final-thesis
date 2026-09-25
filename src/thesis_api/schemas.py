@@ -47,7 +47,7 @@ class AnalysisPlanDTO(BaseModel):
     peer_tickers: List[str] = Field(
         default_factory=list, description="Peer comparison bank tickers", examples=[["TCB", "MBB"]]
     )
-    period: str = Field(default="2024", description="Analysis period or fiscal year", examples=["2024"])
+    period: Optional[str] = Field(default=None, description="Analysis period declared by the selected snapshot", examples=["2024_Q4"])
     required_capabilities: List[str] = Field(
         ...,
         description="Required specialist capabilities (macro, sector, company)",
@@ -59,7 +59,7 @@ class AnalysisPlanDTO(BaseModel):
         examples=[["peer_comparison"]],
     )
     dataset_snapshot_id: str = Field(
-        default="snap-2024-q4-v1", description="Dataset snapshot identifier", examples=["snap-2024-q4-v1"]
+        ..., description="Dataset snapshot identifier bound to the plan", examples=["gold-snapshot-2024-q4"]
     )
     rationale: Optional[str] = Field(default=None, description="Execution plan rationale")
     known_limitations: List[str] = Field(
@@ -159,6 +159,10 @@ class EvidenceTrailDTO(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     evidence_id: Optional[str] = Field(default=None, description="Evidence identifier")
+    claim_id: Optional[str] = Field(default=None, description="Claim supported by this source-locator or document-evidence row")
+    observation_id: Optional[str] = Field(default=None, description="Accepted observation represented by this provenance row")
+    source_id: Optional[str] = Field(default=None, description="Accepted primary source identifier")
+    source_url: Optional[str] = Field(default=None, description="URL of the accepted primary source")
     metric: str = Field(..., description="Financial metric or ratio name")
     ticker: str = Field(..., description="Target bank ticker")
     period: str = Field(..., description="Reporting period")
@@ -174,6 +178,9 @@ class AtomicClaimDTO(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     claim_id: str = Field(..., description="Unique claim identifier", examples=["claim-acb-roe-001"])
+    observation_id: Optional[str] = Field(default=None, description="Accepted observation supporting this numeric claim")
+    input_observation_ids: List[str] = Field(default_factory=list, description="Accepted input observations for a derived metric")
+    formula_version: Optional[str] = Field(default=None, description="Formula version used to derive this metric, when applicable")
     capability: str = Field(
         ...,
         description="Producing capability (macro, sector, company, synthesis)",
@@ -190,9 +197,9 @@ class AtomicClaimDTO(BaseModel):
     evidence_refs: List[str] = Field(
         default_factory=list, description="IDs of supporting evidence items"
     )
-    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Verification confidence score")
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Model confidence, when actually assessed")
     stage1_status: str = Field(
-        default="accepted",
+        ...,
         description="Stage 1 deterministic validation status (accepted, rejected)",
     )
     stage2_critique_status: Optional[str] = Field(
@@ -251,7 +258,7 @@ class AnalysisResponse(BaseModel):
 
     report_id: str = Field(..., description="Unique generated analysis report identifier")
     status: str = Field(
-        default="completed",
+        ...,
         description="Execution status of the analysis (completed, partial, accepted_with_limitations, error)",
     )
     analysis_plan: Optional[AnalysisPlanDTO] = Field(

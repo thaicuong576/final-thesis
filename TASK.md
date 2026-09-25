@@ -1,91 +1,52 @@
-﻿# Task Manifest: [THES-14] Persist Analysis Runs in SQLite, Fix Live SSE Streaming, Eliminate Mock Data, and Polish Friendly UI
+# Task Manifest: P1 truth and provenance composite v2
 
-## 1. Linear Context
-- **Issue**: [THES-14](https://linear.app/eddiephung/issue/THES-14/featapiui-thes-14-persist-analysis-runs-in-sqlite-fix-live-sse)
-- **Title**: eat(api,ui): [THES-14] persist analysis runs in sqlite, fix live sse streaming, eliminate mock data, and polish friendly ui
-- **User Mandate**:
-  1. Frontend không stream được event từ backend/llm hoạt động
-  2. Chưa có database lưu trữ run / history
-  3. Vẫn còn mock data
-  4. UI nhìn vẫn không friendly
+## Context
 
----
+- Role: auditor integration proof, promoted by the Lead after all acceptance
+  gates passed.
+- Branch: `codex/integration-p1-truth-v2-20260925`.
+- Base: latest `origin/main` at worktree creation.
+- Linear: waived by the repository owner for the active thesis completion run.
+- This branch is the verified integration candidate. It may be pushed and
+  opened as one review PR; it must not be merged or deployed without the
+  repository owner's explicit approval.
 
-## 2. Detailed Technical Requirements
+## Inputs
 
-### A. SQLite Run Persistence & API (src/thesis_api/, contracts/schema.sql)
-1. **Schema Migration**:
-   - Add table nalysis_runs to contracts/schema.sql and run CREATE TABLE IF NOT EXISTS analysis_runs (...) in src/thesis_api/database.py or startup:
-     `sql
-     CREATE TABLE IF NOT EXISTS analysis_runs (
-         run_id TEXT PRIMARY KEY,
-         created_at TEXT NOT NULL,
-         query TEXT NOT NULL,
-         target_ticker TEXT NOT NULL,
-         peer_tickers TEXT,
-         period TEXT NOT NULL,
-         status TEXT NOT NULL,
-         report_json TEXT,
-         events_json TEXT,
-         model_used TEXT,
-         latency_ms INTEGER
-     );
-     CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);
-     CREATE INDEX IF NOT EXISTS idx_analysis_runs_target ON analysis_runs(target_ticker, period);
-     `
-2. **Backend Endpoints (src/thesis_api/main.py & service.py)**:
-   - GET /api/runs: Returns list of past analysis runs sorted by created_at DESC (limit 20).
-   - GET /api/runs/{run_id}: Returns run details, events, and report artifact.
-   - GET /api/reports/{report_id}: Returns report artifact directly from nalysis_runs.
-3. **Save Run on Completion**:
-   - When stream_analysis_query emits REPORT_READY, insert the completed run into nalysis_runs in SQLite.
+Merge the exact latest remote heads for PRs in this dependency order:
 
-### B. Fix Live SSE Streaming (src/thesis_api/service.py & rontend/)
-1. **Instant First Event Flush**:
-   - In _stream_analysis_query_dynamic, yield USER_REQUEST_CONFIRMED and PLANNING_STARTED at tick 0ms **BEFORE** awaiting orchestrator.plan(). This establishes the HTTP 200 SSE connection and flushes the first event to the client immediately (<100ms), eliminating the 8-second browser freeze.
-2. **Direct Backend SSE Endpoint in Frontend (useAnalysisSessionStream.ts)**:
-   - When running on in-ai.eddiephung.me (or production hostname), connect directly to https://final-thesis-zgwt.onrender.com/api/analyze/stream instead of the relative path /api/analyze/stream (which passes through Vercel's buffering rewrite proxy that adds Connection: close).
+1. #50 `35c3be588c501528b07a884018ee18db2c99ea91`
+2. #45 `5376c724633523297053dbf60157545948907e85` final scoped-authority head
+3. #47 `86d484b15f002b8cefdc954a9dc3c988bb7950a5`
+4. #49 `b4b40fe58471fb107683d2a94ce756b1be035b51`
+5. #48 `98868461740282a1f079bd55ab78da560cf7c9b6`
+6. #46 `d00a92109b6c5bedf5a06422bbceb9f36b2bc69e`
+7. #44 `f9fc3fed86dfdbc44b20c840115d98ee4bccadf6` final five-bank thesis-plan head
 
-### C. Eliminate All Remaining Mock Data
-1. **ReportPage (rontend/src/pages/reports/ReportPage.tsx)**:
-   - Fetch real report from GET /api/reports/{id} or GET /api/runs/{id} via React Query / fetch.
-   - If not found or loading, show a clean, friendly loading skeleton or 404 Not Found state, NOT a hardcoded mock report from mockReports.ts.
-2. **RecentReportsSummary (RecentReportsSummary.tsx)**:
-   - Fetch and display real recent analysis runs from GET /api/runs instead of static mock cards.
+Resolve conflicts by preserving every compatible contract, architecture,
+incident-memory, data, API, UI, and thesis-plan change. In particular, dedupe
+the first-class `CanonicalObservation.source_locator` field shared by #47/#49,
+preserve #47 `calculation_receipt`, preserve #49 fail-closed Stage-1 locator
+logic, preserve #48 exact observation-to-evidence filtering, preserve #44 Luna
+xhigh subagent instruction, and preserve #50 SQLite isolation rule.
 
-### D. UI/UX Friendliness Polish (Warm Retro Workbench Style)
-1. **Screen 1 (Composer)**:
-   - Conversational, warm placeholder (Hỏi bất kỳ điều gì về sức khỏe tài chính ACB, VCB, MBB...).
-   - Quick-select interactive chips for popular Vietnamese banks: ACB, VCB, MBB, TCB, CTG.
-   - Clear and friendly empty/helper states.
-2. **Screen 2 (Live Multi-Agent Session)**:
-   - Friendly visual agent status:
-     - Orchestrator: Lập kế hoạch & Phân rã câu hỏi
-     - Company Specialist: Bóc tách BCTC & CAMEL
-     - Sector Specialist: Đối chuẩn Trung vị Ngành
-     - Semantic Critic: Phản biện & Kiểm định Chéo
-   - Animated pulse/typing indicators while agents are thinking.
-   - Clear progress timeline with friendly completion state.
-   - Explicit connection error banner with 1-click retry.
-3. **Screen 3 (Report)**:
-   - Friendly executive summary card with key CAMEL findings.
-   - Visual badges for healthy/warning metrics.
-   - Clean, readable typography with font mono for financial metrics.
+## Acceptance
 
----
+1. Record exact merged SHAs and all conflict resolutions.
+2. Verify Gold v5 SHA-256 remains
+   `1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73`.
+3. Run focused D-070/D-071/Stage-1/API truth tests first.
+4. Run frontend lint, tests, type/build checks.
+5. Run architecture guardrails and diff checks.
+6. Run the full Python suite only against the isolated worktree or an explicit
+   temporary database. Never use the root database path.
+7. Exercise at least one Gold ACB company analysis and one CTG portability
+   analysis, reporting terminal status and exact provenance failures/successes.
+8. Record root database SHA before/after; expected unchanged:
+   `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86`.
 
-## 3. Verification & Quality Gates
-1. **Backend Tests**:
-   - $env:PYTHONPATH=src; python -m unittest discover -s tests -q
-2. **Frontend Tests & Build**:
-   - 
-pm test -- --run
-   - 
-px tsc -b
-   - 
-pm run build
-3. **GitHub PR & Rule 19 (Zero-Failure Handoff)**:
-   - Commit: eat(api,ui): [THES-14] persist analysis runs in sqlite, fix live sse streaming, eliminate mock data, and polish friendly ui
-   - Push branch eat/THES-14-persist-runs-fix-streaming-polish-ui to origin.
-   - Open PR to main with gh pr create.
-   - Ensure 100% CI/CD checks PASS before reporting back.
+## Handoff
+
+Open one integration PR containing the exact verified composite and link the
+source PRs as audit trails. Do not merge or deploy any PR without explicit
+repository-owner approval.

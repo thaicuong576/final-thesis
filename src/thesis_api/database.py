@@ -146,7 +146,6 @@ def save_analysis_run(
 
 def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
     """List recent analysis runs sorted by created_at DESC."""
-    ensure_analysis_runs_table(db_path)
     runs: list[dict[str, Any]] = []
     if not db_path.exists():
         return runs
@@ -155,6 +154,11 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         conn.row_factory = sqlite3.Row
         try:
+            table = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'analysis_runs'"
+            ).fetchone()
+            if table is None:
+                return runs
             cur = conn.cursor()
             cur.execute(
                 """
@@ -197,7 +201,6 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
 
 def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
     """Retrieve full analysis run with report and events by run_id."""
-    ensure_analysis_runs_table(db_path)
     if not db_path.exists():
         return None
 
@@ -205,6 +208,11 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         conn.row_factory = sqlite3.Row
         try:
+            table = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'analysis_runs'"
+            ).fetchone()
+            if table is None:
+                return None
             cur = conn.cursor()
             cur.execute("SELECT * FROM analysis_runs WHERE run_id = ? LIMIT 1", (run_id,))
             row = cur.fetchone()
@@ -255,13 +263,17 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
 
 def get_analysis_report(db_path: Path, report_id_or_run_id: str) -> dict[str, Any] | None:
     """Retrieve report JSON directly from analysis_runs table."""
-    ensure_analysis_runs_table(db_path)
     if not db_path.exists():
         return None
 
     try:
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         try:
+            table = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'analysis_runs'"
+            ).fetchone()
+            if table is None:
+                return None
             cur = conn.cursor()
             # 1. Match by run_id
             cur.execute("SELECT report_json FROM analysis_runs WHERE run_id = ? LIMIT 1", (report_id_or_run_id,))

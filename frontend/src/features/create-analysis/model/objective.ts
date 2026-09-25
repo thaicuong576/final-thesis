@@ -25,7 +25,7 @@ export function generateSuggestedObjective(values: AnalysisFormValues, capabilit
     .map((metric) => metric.acronym);
   const periods = capabilities.periods.filter((period) => values.periodIds.includes(period.id));
 
-  return `Phân tích ${joinVietnamese(metrics)} của ${joinVietnamese(targets)} trong ${formatPeriodCollection(periods)}, đồng thời đối chiếu với ${capabilities.peerUniverse.label.toLowerCase()} đã được xác thực.`;
+  return `Phân tích ${joinVietnamese(metrics)} của ${joinVietnamese(targets)} trong ${formatPeriodCollection(periods)}${capabilities.peerUniverse?.label ? `; nhóm tham chiếu trong catalog: ${capabilities.peerUniverse.label.toLowerCase()}` : ''}.`;
 }
 
 function normalize(text: string) {

@@ -135,7 +135,6 @@ def execute_agent_tool(
         ValueError: If tool_name is unrecognized or required arguments are missing.
     """
     from thesis_api.service import (
-        BENCHMARK_UNIVERSE,
         calculate_sector_benchmark,
         fetch_company_ratios,
         fetch_macro_context,
@@ -145,7 +144,9 @@ def execute_agent_tool(
         ticker = str(args.get("ticker", "")).strip().upper()
         if not ticker:
             raise ValueError("Argument 'ticker' is required for get_company_metrics")
-        period = str(args.get("period", "2024")).strip()
+        period = str(args.get("period", "")).strip()
+        if not period:
+            raise ValueError("Argument 'period' is required for get_company_metrics")
         requested_kpis = args.get("kpis")
 
         ratios = fetch_company_ratios(conn, ticker, period)
@@ -166,12 +167,14 @@ def execute_agent_tool(
 
     elif tool_name == "get_sector_benchmarks":
         sector = str(args.get("sector", "Banking")).strip()
-        period = str(args.get("period", "2024")).strip()
+        period = str(args.get("period", "")).strip()
+        if not period:
+            raise ValueError("Argument 'period' is required for get_sector_benchmarks")
         raw_tickers = args.get("tickers")
         if raw_tickers and isinstance(raw_tickers, list):
             sample_tickers = [t.strip().upper() for t in raw_tickers if t.strip()]
         else:
-            sample_tickers = list(BENCHMARK_UNIVERSE)
+            sample_tickers = []
 
         benchmark_dto = calculate_sector_benchmark(conn, period, sample_tickers)
         requested_kpis = args.get("kpis")
@@ -203,7 +206,9 @@ def execute_agent_tool(
         }
 
     elif tool_name == "get_macro_context":
-        period = str(args.get("period", "2024")).strip()
+        period = str(args.get("period", "")).strip()
+        if not period:
+            raise ValueError("Argument 'period' is required for get_macro_context")
         macro_dto = fetch_macro_context(conn, period)
 
         return {

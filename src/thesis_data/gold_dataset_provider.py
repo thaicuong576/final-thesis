@@ -226,7 +226,8 @@ class GoldSqliteDatasetProvider:
         rows = connection.execute(
             """
             SELECT observation_id, ticker, metric, value, unit, period,
-                   source_id, quality_status, reason, as_of_date, period_basis
+                   source_id, source_locator, quality_status, reason,
+                   as_of_date, period_basis
             FROM metric_observations
             WHERE ticker = ? AND period = ? AND metric = ?
             ORDER BY observation_id
@@ -248,6 +249,8 @@ class GoldSqliteDatasetProvider:
             value=float(row["value"]) if row["value"] is not None else None,
             unit=row["unit"],
             source_ref=row["source_id"],
+            source_locator=row["source_locator"],
+            period_basis=row["period_basis"],
             validation_status=self._quality_status(row["quality_status"]),
             missing_reason=row["reason"],
             metadata={
@@ -295,6 +298,8 @@ class GoldSqliteDatasetProvider:
             value=float(row["value"]) if row["value"] is not None else None,
             unit=row["unit"],
             source_ref=row["source_id"],
+            source_locator=row["source_locator"],
+            period_basis=row["period_basis"],
             validation_status=self._quality_status(row["quality_status"]),
             missing_reason=row["reason"],
             metadata={
@@ -306,7 +311,6 @@ class GoldSqliteDatasetProvider:
                 "as_of_date": row["as_of_date"],
                 "period_basis": row["period_basis"],
                 "alignment_method": row["alignment_method"],
-                "source_locator": row["source_locator"],
                 "transformation_version": row["transformation_version"],
                 "adjudication_ref": row["adjudication_ref"],
                 "review_check_ids_json": row["review_check_ids_json"],
@@ -348,6 +352,7 @@ class GoldSqliteDatasetProvider:
                 value=float(row["value"]) if row["value"] is not None else None,
                 unit=row["unit"],
                 source_ref=None,
+                period_basis=row["period_basis"],
                 validation_status=self._quality_status(row["quality_status"]),
                 missing_reason=row["reason"],
                 derivation_method=str(row["formula_version"]),

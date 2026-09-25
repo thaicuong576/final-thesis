@@ -100,8 +100,8 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
           </DetailGroup>
 
           <DetailGroup title="Nhóm tham chiếu">
-            <p className="font-semibold text-ink">{capabilities.peerUniverse.label} · Chỉ đọc</p>
-            <p className="mt-1 text-muted">{capabilities.peerUniverse.description}</p>
+            <p className="font-semibold text-ink">{capabilities.peerUniverse?.label || 'API chưa công bố nhóm tham chiếu'}</p>
+            {capabilities.peerUniverse?.description && <p className="mt-1 text-muted">{capabilities.peerUniverse.description}</p>}
           </DetailGroup>
 
           <DetailGroup title="Macro Gold">
@@ -118,7 +118,7 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
           <DetailGroup title="Phiên bản và thời gian">
             <dl className="space-y-3">
               <DetailRow icon={<Database size={15} />} label="Phiên bản dữ liệu" value={formatGoldVersion(capabilities.goldVersion)} />
-              <DetailRow icon={<Database size={15} />} label="Mã snapshot năng lực" value={capabilities.snapshotId} />
+              <DetailRow icon={<Database size={15} />} label="Mã catalog" value={capabilities.snapshotId || 'Chưa công bố'} />
               <DetailRow icon={<Clock3 size={15} />} label="Kỳ tài chính" value={formatPeriodCollection(capabilities.periods)} />
               <DetailRow icon={<Clock3 size={15} />} label="Nạp/cập nhật dữ liệu" value={formatCapabilityTimestamp(capabilities.ingestionTimestamp)} />
               <DetailRow icon={<CheckCircle2 size={15} />} label="Xác thực dữ liệu" value={formatCapabilityTimestamp(capabilities.validationTimestamp)} />
@@ -126,8 +126,8 @@ export function CapabilityDetailsDrawer({ capabilities, open, onClose }: Capabil
           </DetailGroup>
 
           <DetailGroup title="Nguồn và mức sẵn sàng dữ liệu">
-            <p className="text-muted">Nguồn: <span className="text-ink">{capabilities.source}</span></p>
-            <p className="mt-2 text-muted">Trạng thái: <span className="text-ink">{capabilities.readiness}</span></p>
+            <p className="text-muted">Nguồn: <span className="text-ink">{capabilities.source || 'Chưa công bố'}</span></p>
+            <p className="mt-2 text-muted">Trạng thái: <span className="text-ink">{capabilities.readiness || 'Chưa công bố'}</span></p>
           </DetailGroup>
         </div>
       </aside>

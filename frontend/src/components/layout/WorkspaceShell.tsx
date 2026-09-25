@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, FileText, UserRound } from 'lucide-react';
+import { BarChart3, Database, FileText, UserRound } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
@@ -18,7 +18,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 
-type WorkspaceSection = 'analysis' | 'reports';
+type WorkspaceSection = 'analysis' | 'data' | 'reports';
 
 interface WorkspaceShellProps {
   activeSection: WorkspaceSection;
@@ -45,6 +45,7 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
         <SidebarContent className="bg-surface-secondary">
           <SidebarGroup className="p-3 pt-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-3">
             <SidebarMenu className="gap-1.5">
+              <WorkspaceNavItem to="/data" label="Dữ liệu" icon={Database} active={activeSection === 'data'} />
               <WorkspaceNavItem to="/analysis" label="Bàn làm việc phân tích" icon={BarChart3} active={activeSection === 'analysis'} />
               <WorkspaceNavItem to="/reports" label="Thư viện báo cáo" icon={FileText} active={activeSection === 'reports'} />
             </SidebarMenu>

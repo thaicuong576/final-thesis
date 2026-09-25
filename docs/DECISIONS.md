@@ -994,24 +994,32 @@ database from bypassing the human-review and metric-coverage gates.
 
 ## D-063: Require cross-issuer ROE definition consistency before comparative runs
 
-Status: Accepted as a fail-closed experiment gate; the working convention is
-`parent_attributable_equity`.
+Status: Accepted. The working convention is parent_attributable_equity, and
+the scoped five-issuer ROE comparison gate is open under D-072 after a distinct
+independent reviewer ACCEPTed the repository-bound evidence.
 
 The fresh MBB and VCB reviews accepted parent-attributable profit divided by
 average parent-attributable equity. The existing ACB observations are
 substantively compatible because the reviewed consolidated statements show no
 separate non-controlling-interest line, and the TCB source definition uses
-post-NCI profit and average equity excluding NCI. The existing VPB
-observations, however, use total consolidated equity while VPB reports a
-non-zero non-controlling interest. Therefore the mechanically promoted
-80-cell snapshot may be retained as a historical Gold artifact, but it is not
-eligible for the five-issuer comparative experiment until VPB is re-derived
-with parent-attributable equity and independently reviewed.
+post-NCI profit and average equity excluding NCI. VPB Q1-Q4 source filings,
+adjudicated reviews and Gold v5 values also use parent-attributable profit over
+average parent-attributable equity. For Q4, the accepted filing calculation is
+11.4117471457821869%; the total-equity alternative is 10.9929645262513979% and
+is retained only as a diagnostic comparison.
+
+The gate is open only because attestation
+reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
+(canonical SHA-256: FC1D17BDBBAE9877F482875E730766D049CA5151D32173857D9EDEF2F31E7BAB)
+records reviewer task /root/vpb_d072_reviewer_luna, verdict ACCEPT, and exact
+reviewed head 2b292ddf21bd6be8a550f81fb518fca5dc419efb. The current authority
+manifest is reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
+(canonical SHA-256: 9BC7BDD2EAACA8BFF723B50C547A48B65A7F12B2F81B23303D2B285F1C19C33E).
 
 Reason: a high numeric coverage percentage cannot compensate for a
-cross-issuer semantic mismatch. Treating the two VPB denominator choices as
-equivalent would contaminate peer comparisons and could create a false
-multi-agent quality or scaling result.
+cross-issuer semantic mismatch. Parent-attributable profit and equity provide
+the common definition used by accepted reviews; the distinct review
+attestation closes the last D-072 gate for the scoped Gold v5 comparison.
 
 ## D-064: Lock the application-first architectural constitution
 
@@ -1127,3 +1135,152 @@ Reason: semantic reconciliation must be completed before Phase 4, while Gold
 promotion still requires the existing independent review, source contract and
 fail-closed materialization gate. This decision changes no raw artifact,
 schema, runtime or historical Gold snapshot.
+
+## D-068: Evaluate the application without presupposing multi-agent superiority
+
+Status: Accepted for the applied-thesis completion plan on 2026-09-24.
+
+The advisor-approved report uses six chapters and focuses its empirical case
+study on listed banks. The application must be reachable for advisor testing;
+interface quality is part of acceptance. At least one new bank outside the
+current five-bank Gold sample must pass through a documented, validated input
+path and run through the same analytical core without bank-specific changes to
+that core. Raw/OCR-parsed data remains candidate material until validation and
+acceptance. The author may be the human evaluator but must use a frozen rubric
+and disclose the single-rater limitation.
+
+The research asks whether and under which request conditions A (single agent),
+B (query-adaptive hierarchical), and C (B plus genuine critique/revision) differ
+in quality, completion, latency, calls, and cost. It does not assume C or B is
+superior. Existing issuer-count experiments remain historical pilot evidence;
+their verification calls do not become genuine targeted revision by renaming.
+The phase gates and evidence requirements are in
+`docs/THESIS-MASTERPLAN-2026-09-24.md`.
+
+Reason: the thesis is an evaluated application. A working web link, portable
+validated data input, fair comparison, and a report matching the approved
+outline are necessary to substantiate its claimed contribution.
+
+## D-069: Separate bank-input syntax checks from source-backed acceptance
+
+Status: Accepted as the contract for the next data-onboarding implementation;
+no bank outside Gold v5 has been promoted by this decision.
+
+CSV and parser outputs are candidate transport artifacts. A successful schema
+check or mapping does not establish that a numeric value matches a primary
+filing. The bank onboarding packet v1 therefore records immutable source
+hashes, bank/period/metric semantics, locator, period basis, reporting scope,
+missingness, and a per-observation reconciliation decision. A derived value
+also names its inputs and formula version. Only reviewed primary-backed values
+may enter an operational validated snapshot used by a published report; the
+existing Gold benchmark requirements remain separate and unchanged.
+
+This is necessary because the current CSV onboarding path can mark structurally
+valid user-supplied values `VALID` and name its resulting snapshot `accepted`,
+while the Stage-1 policy properly rejects user-supplied sources as primary
+claim support. Future implementation must align these statuses and preserve
+the source linkage through the canonical provider. No issuer PDF, including
+scan/OCR output, is automatically accepted by this contract alone.
+
+## D-070: Accept exact observation provenance for numeric claims
+
+Status: Accepted as a provider-neutral Stage-1 contract correction; API/core
+implementation and combined E2E verification are pending.
+
+The Gold v5 evidence-snippet table lacks a metric or observation foreign key.
+A source/ticker/period query therefore returns snippets from several metrics;
+attaching all of them to each numeric claim creates a false claim-to-evidence
+graph even when the numeric observation itself is correct. Numeric claims may
+instead pass the critical evidence gate through an accepted direct observation
+with primary source and exact locator, or through a reproducible derived metric
+whose accepted inputs each have primary source and exact locator. Stage-1 must
+validate those links and values through provider interfaces. Narrative/policy
+claims still require document evidence. An unlinked snippet cannot be relabeled
+as if it specifically supports a numeric claim.
+
+This follows the existing data-contract rule that a published metric has
+evidence **or an explicit source-record locator**, and preserves the
+structured/document source-family separation in the architectural guardrails.
+It does not authorize accepting user-supplied CSV numerics, missing locators,
+invalid sources, wrong formulas, or cross-scope claims.
+
+The report API carries this relation with explicit claim, observation, input,
+formula, and source IDs. A derived claim may have multiple source-trail rows,
+each tied to a particular accepted input. The fields are additive in OpenAPI
+for old report compatibility, but new observation-backed numeric reports must
+populate them; interpreting array order or decoding a claim ID is not a valid
+provenance join.
+
+## D-071: Recompute derived bank metrics before operational snapshot acceptance
+
+Status: Accepted as the contract for the next onboarding implementation;
+the CTG materializer and Gold v5 do not gain arithmetic validation merely
+from this decision.
+
+The operational promotion gate must recompute each derived candidate from its
+accepted, source-backed input observations using a known versioned formula.
+It must check entity, period basis, reporting scope, units and a declared
+metric-specific tolerance, and retain the calculation receipt. A supplied
+derived number, even with plausible input IDs and a `valid` label, cannot pass
+without this check. Unknown formula versions, invalid inputs or mismatches
+remain pending/conflicting. The gate is metric-generic, not issuer-specific.
+
+The Stage-1 harness verifies that a published claim matches the accepted
+derived observation and its formula/input/source lineage. It does not need to
+duplicate the arithmetic engine. Historical Gold v5 is governed by its own
+independent review decisions; notably D-063 still blocks five-issuer ROE
+comparison until the VPB denominator is checked and independently reviewed.
+
+Reason: the current canonical snapshot validator checks that derived input IDs
+exist, but does not recalculate their value. Formula unit tests by themselves
+do not prove a submitted CTG candidate was computed by those formulas. The
+promotion gate must enforce the `code computes financial metrics` invariant.
+
+## D-072: Open the VPB ROE comparison gate after distinct confirmation
+
+Status: Accepted. VPB ROE is eligible for the scoped five-issuer Gold v5
+comparison under the parent-attributable-equity convention. The gate became
+open only after the distinct reviewer ACCEPT attestation was recorded and
+bound by the authority manifest; the eligible comparative gate result alone
+did not open the gate.
+
+The independent reviewer task /root/vpb_d072_reviewer_luna reviewed exact PR
+head 2b292ddf21bd6be8a550f81fb518fca5dc419efb and returned ACCEPT. Durable
+attestation: reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
+(canonical SHA-256: FC1D17BDBBAE9877F482875E730766D049CA5151D32173857D9EDEF2F31E7BAB).
+It records exact reviewed control hashes, raw hashes of the Q1-Q4
+official source PDFs, candidate and adjudicated/promotion ledgers, Gold v5
+SQLite and labels, and the comparative gate manifest. It also records the
+reviewer's independent Q4 recalculation from official consolidated filing
+pages 6 and 8: profit attributable to bank shareholders of 15,778,795 million
+VND; 2023 total equity/NCI of 139,795,527/5,164,494; 2024 total equity/NCI of
+147,275,262/5,370,287; average parent-attributable equity of 138,268,004;
+parent-equity ROE 11.4117471457821869%; total-equity alternative
+10.9929645262513979%. Gold v5 contains Q1-Q4 values 8.0671%, 8.5867%,
+9.6445%, and 11.4117%.
+
+The read-only comparative-definition gate used
+data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json
+(raw SHA-256: 4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410) and returned eligible with no blockers across 80 cells
+(76 valid, four missing). The authority manifest
+reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
+(canonical SHA-256: 9BC7BDD2EAACA8BFF723B50C547A48B65A7F12B2F81B23303D2B285F1C19C33E)
+binds the attestation, VPB-scoped control records and raw immutable evidence
+hashes. Tracked-text hashes use canonical LF UTF-8 SHA-256; immutable evidence
+uses raw-byte SHA-256. Living repository policy files are checked by stable
+semantic markers rather than byte-pinned by this authority. The review verifier
+reads scoped tracked controls from its checkout and ignored artifacts only from
+an explicit evidence root.
+
+D-063's earlier VPB factual statement that total consolidated equity was used
+is superseded: Q1-Q4 evidence and accepted review use parent-attributable
+equity. The five-issuer comparison gate is open for the scope recorded in the
+authority manifest. The original promotion ledger remains unchanged, including
+blank register_review_status cells for the four VPB targets; the accepted
+adjudication and independent authority confirmation are linked through the
+separate status sidecar and attestation.
+
+Reason: the corrected evidence identifies parent-attributable equity as the
+consistent issuer-comparable convention. The distinct ACCEPT record ties the
+exact reviewed head, source hashes, control hashes, recomputation and gate
+output to the open scoped decision.

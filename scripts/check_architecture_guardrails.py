@@ -43,6 +43,10 @@ FORBIDDEN_CORE_TEXT = (
 )
 FIXED_ISSUER_LITERAL = re.compile(r"\b(?:ACB|TCB|VPB|MBB|VCB)\b")
 FORBIDDEN_CORE_IMPORT_ROOTS = frozenset({"langgraph", "langchain", "openai"})
+WORKTREE_BOOTSTRAP_FILES = (
+    ROOT / "scripts" / "worker-start.ps1",
+    ROOT / "scripts" / "worker-start.sh",
+)
 
 
 def _import_roots(tree: ast.AST) -> frozenset[str]:
@@ -109,6 +113,26 @@ def _check() -> list[str]:
             failures.append(
                 f"fixed thesis issuer literal in application core: {path.relative_to(ROOT)}"
             )
+
+    for path in WORKTREE_BOOTSTRAP_FILES:
+        if not path.is_file():
+            failures.append(f"missing worktree bootstrap script: {path.relative_to(ROOT)}")
+            continue
+        source = path.read_text(encoding="utf-8")
+        if "copy_sqlite_snapshot.py" not in source:
+            failures.append(
+                f"worktree bootstrap does not create an isolated SQLite snapshot: "
+                f"{path.relative_to(ROOT)}"
+            )
+        for forbidden_sidecar in (
+            "finance_master_v2.sqlite-wal",
+            "finance_master_v2.sqlite-shm",
+        ):
+            if forbidden_sidecar in source:
+                failures.append(
+                    f"worktree bootstrap references shared SQLite sidecar "
+                    f"{forbidden_sidecar}: {path.relative_to(ROOT)}"
+                )
 
     return failures
 

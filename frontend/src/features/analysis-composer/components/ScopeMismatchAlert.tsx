@@ -1,19 +1,18 @@
 import type { ScopeMismatch } from '../model/types';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ScopeMismatchAlertProps {
   mismatch: ScopeMismatch;
   rawQuestion: string;
   onEditQuestion: () => void;
-  onOpenDatasetSelector: () => void;
 }
 
 export function ScopeMismatchAlert({
   mismatch,
   rawQuestion,
-  onEditQuestion,
-  onOpenDatasetSelector
+  onEditQuestion
 }: ScopeMismatchAlertProps) {
   return (
     <div className="border border-warning/40 bg-card rounded-md p-5 space-y-4">
@@ -37,7 +36,7 @@ export function ScopeMismatchAlert({
         </p>
 
         <div className="text-[11px] font-mono space-y-1 text-ink-secondary border-t border-warning/20 pt-2">
-          <p className="font-bold text-ink uppercase tracking-wider text-[10px]">Phạm vi sẵn sàng trong bộ dữ liệu hiện hành:</p>
+          <p className="font-bold text-ink uppercase tracking-wider text-[10px]">Phạm vi catalog (khả năng chạy do API xác nhận):</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-1">
             <div>• Chu kỳ hỗ trợ: <strong className="text-ink">{mismatch.availableCapabilitiesSummary.periods}</strong></div>
             <div>• Ngân hàng hỗ trợ: <strong className="text-ink">{mismatch.availableCapabilitiesSummary.entities}</strong></div>
@@ -57,13 +56,8 @@ export function ScopeMismatchAlert({
           <span>Chỉnh câu hỏi</span>
         </Button>
 
-        <Button
-          type="button"
-          onClick={onOpenDatasetSelector}
-          className="h-9 px-4 text-xs font-semibold gap-1.5 self-end sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Đổi nguồn dữ liệu</span>
+        <Button asChild className="h-9 px-4 text-xs font-semibold gap-1.5 self-end sm:self-auto">
+          <Link to="/data"><RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /><span>Xem phạm vi dữ liệu</span></Link>
         </Button>
       </div>
     </div>

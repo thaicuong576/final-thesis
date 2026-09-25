@@ -145,12 +145,12 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
 
         result = execute_agent_tool(
             "get_company_metrics",
-            {"ticker": "ACB", "period": "2024"},
+            {"ticker": "ACB", "period": "2024_Q4"},
             self.conn,
         )
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["ticker"], "ACB")
-        self.assertEqual(result["period"], "2024")
+        self.assertEqual(result["period"], "2024_Q4")
         metrics = result["metrics"]
         self.assertIn("roe", metrics)
         self.assertIn("nim", metrics)
@@ -166,7 +166,7 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
 
         result = execute_agent_tool(
             "get_company_metrics",
-            {"ticker": "ACB", "period": "2024", "kpis": ["roe", "npl"]},
+            {"ticker": "ACB", "period": "2024_Q4", "kpis": ["roe", "npl"]},
             self.conn,
         )
         self.assertEqual(result["status"], "success")
@@ -182,12 +182,12 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
 
         result = execute_agent_tool(
             "get_sector_benchmarks",
-            {"sector": "Banking", "period": "2024", "tickers": ["ACB", "TCB", "MBB"]},
+            {"sector": "Banking", "period": "2024_Q4", "tickers": ["ACB", "TCB", "MBB"]},
             self.conn,
         )
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["sector"], "Banking")
-        self.assertEqual(result["period"], "2024")
+        self.assertEqual(result["period"], "2024_Q4")
         benchmarks = result["benchmarks"]
         self.assertIn("peer_median_roe", benchmarks)
         self.assertIn("peer_median_nim", benchmarks)
@@ -202,7 +202,7 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
 
         result = execute_agent_tool(
             "get_sector_benchmarks",
-            {"sector": "Banking", "period": "2024", "kpis": ["roe", "npl"]},
+            {"sector": "Banking", "period": "2024_Q4", "kpis": ["roe", "npl"]},
             self.conn,
         )
         self.assertEqual(result["status"], "success")
@@ -211,8 +211,8 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
         self.assertIn("peer_median_npl", benchmarks)
         self.assertNotIn("peer_median_cir", benchmarks)
 
-    def test_get_macro_context_execution(self) -> None:
-        """Test retrieving macroeconomic context and policy indicators."""
+    def test_get_macro_context_does_not_fabricate_policy_indicators(self) -> None:
+        """Missing accepted macro data remains explicitly unavailable."""
         from thesis_api.agent_tools import execute_agent_tool
 
         result = execute_agent_tool(
@@ -222,9 +222,10 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["period"], "2024")
-        self.assertEqual(result["sbv_policy_rate"], 4.5)
-        self.assertEqual(result["system_credit_growth"], 15.08)
-        self.assertIn("Accommodative", result["interest_rate_trend"])
+        self.assertIsNone(result["sbv_policy_rate"])
+        self.assertIsNone(result["system_credit_growth"])
+        self.assertIsNone(result["interest_rate_trend"])
+        self.assertIsNone(result["source"])
 
     def test_unknown_tool_raises_error(self) -> None:
         """Test unknown tool name raises ValueError."""

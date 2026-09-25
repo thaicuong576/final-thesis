@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import MagicMock
 
 import openai
 
@@ -87,7 +89,7 @@ class AgentsTests(unittest.TestCase):
         mock_tool_call = MagicMock()
         mock_tool_call.id = "call_comp_001"
         mock_tool_call.function.name = "get_company_metrics"
-        mock_tool_call.function.arguments = json.dumps({"ticker": "ACB", "period": "2024"})
+        mock_tool_call.function.arguments = json.dumps({"ticker": "ACB", "period": "2024_Q4"})
 
         choice_turn1 = MagicMock()
         choice_turn1.message.content = None
@@ -110,14 +112,14 @@ class AgentsTests(unittest.TestCase):
         result = agent.execute(
             self.conn,
             ticker="ACB",
-            period="2024",
+            period="2024_Q4",
             client=mock_client,
             model="deepseek-v4-pro-0813",
         )
 
         self.assertEqual(result["specialist_id"], "company")
         self.assertEqual(result["ticker"], "ACB")
-        self.assertEqual(result["period"], "2024")
+        self.assertEqual(result["period"], "2024_Q4")
         self.assertEqual(len(result["tool_calls"]), 1)
         self.assertEqual(result["tool_calls"][0]["name"], "get_company_metrics")
         self.assertIn("roe", result["metrics"])
@@ -133,7 +135,7 @@ class AgentsTests(unittest.TestCase):
         mock_tool_call.id = "call_sec_001"
         mock_tool_call.function.name = "get_sector_benchmarks"
         mock_tool_call.function.arguments = json.dumps(
-            {"sector": "Banking", "period": "2024", "tickers": ["ACB", "TCB", "MBB"]}
+            {"sector": "Banking", "period": "2024_Q4", "tickers": ["ACB", "TCB", "MBB"]}
         )
 
         choice_turn1 = MagicMock()
@@ -157,7 +159,7 @@ class AgentsTests(unittest.TestCase):
             self.conn,
             target_ticker="ACB",
             peer_tickers=["TCB", "MBB"],
-            period="2024",
+            period="2024_Q4",
             target_metrics={"roe": 21.75, "npl": 1.49},
             client=mock_client,
             model="deepseek-v4-pro-0813",
@@ -183,11 +185,10 @@ class AgentsTests(unittest.TestCase):
         choice_turn1.message.tool_calls = [mock_tool_call]
         resp_turn1 = MagicMock(choices=[choice_turn1])
 
-        # Turn 2: Synthesized macro findings
+        # Turn 2: The empty provider result must not be converted into numeric claims.
         choice_turn2 = MagicMock()
         choice_turn2.message.content = (
-            "- NHNN duy trì lãi suất tái cấp vốn 4.5% hỗ trợ thanh khoản hệ thống.\n"
-            "- Mục tiêu tăng trưởng tín dụng 15.08% tạo đà cho mở rộng danh mục cho vay."
+            "No accepted macro observations are available for this request."
         )
         choice_turn2.message.tool_calls = None
         resp_turn2 = MagicMock(choices=[choice_turn2])
@@ -204,8 +205,9 @@ class AgentsTests(unittest.TestCase):
 
         self.assertEqual(result["specialist_id"], "macro")
         self.assertEqual(len(result["tool_calls"]), 1)
-        self.assertEqual(result["macro_context"]["sbv_policy_rate"], 4.5)
-        self.assertEqual(len(result["findings"]), 2)
+        self.assertIsNone(result["macro_context"]["sbv_policy_rate"])
+        self.assertIsNone(result["macro_context"]["system_credit_growth"])
+        self.assertIn("No accepted macro observations", result["findings"][0])
 
     def test_semantic_critic_round1_revision(self) -> None:
         """Test SemanticCriticAgent triggers revision in round 1 when paradox is detected."""
@@ -265,82 +267,19 @@ class AgentsTests(unittest.TestCase):
         self.assertIn("giới hạn tối đa 2 vòng", res["reason"])
 
     def test_stream_analysis_query_with_mocked_llm(self) -> None:
-        """Test stream_analysis_query end-to-end event sequence with mocked LLM client."""
-        mock_client = MagicMock(spec=openai.OpenAI)
+        """API streaming does not call the legacy LLM planner or fake specialists."""
+        with tempfile.TemporaryDirectory() as directory:
+            missing_db = Path(directory) / "missing.sqlite"
+            req = AnalysisRequest(query="Analyze ROE of ACB in 2024 Q4", target_ticker="ACB", period="2024_Q4")
+            events = list(stream_analysis_query(req, db_path=missing_db, step_delay=0))
 
-        # Plan response
-        plan_resp = MagicMock()
-        plan_resp.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content=json.dumps(
-                        {
-                            "target_ticker": "ACB",
-                            "peer_tickers": ["TCB"],
-                            "period": "2024",
-                            "required_capabilities": ["company"],
-                            "rationale": "Phân tích CAMEL nội tại ACB.",
-                        }
-                    ),
-                    tool_calls=None,
-                )
-            )
-        ]
-
-        # Specialist responses
-        comp_tool_call = MagicMock()
-        comp_tool_call.id = "call_comp_999"
-        comp_tool_call.function.name = "get_company_metrics"
-        comp_tool_call.function.arguments = json.dumps({"ticker": "ACB", "period": "2024"})
-
-        comp_turn1 = MagicMock(choices=[MagicMock(message=MagicMock(content=None, tool_calls=[comp_tool_call]))])
-        comp_turn2 = MagicMock(choices=[MagicMock(message=MagicMock(content="- ROE đạt 21.75%.\n- NPL đạt 1.49%.", tool_calls=None))])
-
-        # Critic response
-        critic_resp = MagicMock()
-        critic_resp.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content=json.dumps(
-                        {
-                            "decision": "ACCEPT",
-                            "dimension": "Soundness",
-                            "finding": "Chỉ số tài chính nhất quán.",
-                            "confidence": 0.96,
-                        }
-                    ),
-                    tool_calls=None,
-                )
-            )
-        ]
-
-        mock_client.chat.completions.create.side_effect = [
-            plan_resp,
-            comp_turn1,
-            comp_turn2,
-            critic_resp,
-        ]
-
-        with patch("thesis_api.service.get_llm_config", return_value={"is_configured": True, "model": "deepseek-v4-pro-0813"}), \
-             patch("thesis_api.service.get_llm_client", return_value=mock_client):
-
-            req = AnalysisRequest(query="Phân tích ACB 2024")
-            events = list(stream_analysis_query(req, step_delay=0))
-
-            event_types = [
-                json.loads(e.split("data: ")[1])["type"]
-                for e in events if "data: " in e
-            ]
-
-            self.assertIn("USER_REQUEST_CONFIRMED", event_types)
-            self.assertIn("PLAN_CREATED", event_types)
-            self.assertIn("SPECIALIST_INVOKED", event_types)
-            self.assertIn("SPECIALIST_ACTIVITY", event_types)
-            self.assertIn("SPECIALIST_OUTPUT_CREATED", event_types)
-            self.assertIn("SPECIALIST_COMPLETED", event_types)
-            self.assertIn("REVIEW_STARTED", event_types)
-            self.assertIn("SYNTHESIS_STARTED", event_types)
-            self.assertIn("REPORT_READY", event_types)
+        event_types = [json.loads(event.split("data: ")[1])["type"] for event in events]
+        self.assertEqual(event_types[:2], ["USER_REQUEST_CONFIRMED", "PLANNING_STARTED"])
+        self.assertEqual(event_types[-1], "RUN_BLOCKED")
+        self.assertNotIn("SPECIALIST_INVOKED", event_types)
+        self.assertNotIn("REVIEW_FEEDBACK_CREATED", event_types)
+        self.assertNotIn("REVISION_REQUESTED", event_types)
+        self.assertNotIn("REPORT_READY", event_types)
 
     def test_company_specialist_execute_with_data_single_turn(self) -> None:
         """Test CompanySpecialistAgent execute_with_data runs single-turn prompt without tool calls."""

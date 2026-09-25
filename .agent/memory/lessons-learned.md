@@ -293,3 +293,197 @@ Khi triển khai multi-agent cognitive loop đầy đủ với 4 tác tử (Orch
    - Yield `SPECIALIST_INVOKED`, `SPECIALIST_STARTED`, và `SPECIALIST_ACTIVITY` ("Đang đọc BCTC từ SQLite...") ngay trước khi gọi LLM để giao diện hiển thị tiến trình mượt mà.
 4. **Đồng bộ URL Search Params (`CreateAnalysisPage.tsx`)**:
    - Lưu `mode=session&ticker=...&period=...&q=...` vào URL. Khi F5 tải lại trang, hệ thống tự động khôi phục phiên phân tích hiện tại mà không mất dữ liệu.
+
+---
+
+## [LESSON-013] Never hardlink a mutable SQLite database into worktrees
+
+- **Date:** 2026-09-25
+- **Scope:** `scripts/worker-start.ps1`, test/database isolation
+- **Status:** fixed by independent SQLite backup snapshots.
+
+During composite verification, a full test process inserted test analysis runs
+through a worktree path that was an NTFS hardlink to the root
+`finance_master_v2.sqlite`. The root file grew and its SHA-256 changed even
+though the intended runner used temporary copies. WAL mode cannot isolate
+different paths that reference the same underlying file, and hardlinking the
+WAL/SHM sidecars widens the risk.
+
+Only `.env` may be hardlinked. Worktree databases are created with SQLite's
+online backup API, checked before and after the copy, configured independently
+for WAL, and verified not to share file identity. Test configuration remains
+responsible for using temp databases, but an accidental default path can now
+damage only the disposable worktree snapshot rather than the root artifact.
+
+## [LESSON-014] Keep Artifact Byte Identity Beside the Strict Onboarding Packet
+
+- **Date:** 2026-09-24
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `data/onboarding/`
+- **Status:** `ACTIVE` -> Included in the provider-neutral packet loader.
+
+### 1. Context & Symptom
+The bank onboarding packet contract records the source URL, exact SHA-256, and
+relative artifact reference, but does not include a byte-length field. The
+official annual report is a scanned PDF without a selectable text layer, so
+page-aware source review also needs a verified immutable artifact and explicit
+page metadata.
+
+### 2. Root Cause
+The exchange packet schema is intentionally strict and rejects undeclared
+source fields. Adding `byte_length` directly to a packet would violate its
+contract even though byte count is part of the data readiness audit.
+
+### 3. Workaround & Permanent Solution
+1. Keep byte length, URL, SHA-256, page count, and scan status in a strict
+   sidecar source manifest; verify all of them against the packet and bytes
+   before constructing a canonical candidate.
+2. Manually reconcile scanned statement values from rendered pages and retain
+   both physical and printed page numbers. OCR/parser output remains a search
+   aid and cannot mark a value valid.
+
+## [LESSON-015] Keep Derived Source Lineage on Accepted Inputs
+
+- **Date:** 2026-09-25
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `src/thesis_data/canonical_snapshot.py`
+- **Status:** `ACTIVE`
+
+### 1. Context & Symptom
+Stage1 correctly requires a derived observation to have a null direct
+`source_ref` and to retain its formula and input observation IDs. Bank packet
+conversion was copying the reviewed filing source onto every row, and canonical
+snapshot validation required that direct source even for derived values.
+
+### 2. Root Cause
+The generic packet mapper and materializer applied direct-observation source
+rules before distinguishing reported values from reproducible derived values.
+
+### 3. Permanent Solution
+1. Map direct source and locator from the accepted review evidence.
+2. Map valid derived observations with a null `source_ref`, their reviewed
+   locator, formula version, and input IDs.
+3. Materialization validates primary review evidence and valid numeric inputs
+   for derived observations while keeping direct-source requirements for
+   reported observations.
+
+---
+
+## [LESSON-016] Recompute Derived Values Before Operational Acceptance
+
+- **Date:** 2026-09-25
+- **Scope:** `src/thesis_data/metrics.py`, `src/thesis_data/canonical_snapshot.py`,
+  `src/thesis_data/canonical_sqlite_provider.py`
+- **Status:** contract accepted in D-071; implementation included in the CTG onboarding change; integrated verification pending.
+
+### 1. Context & Symptom
+An accepted observation label plus input IDs does not prove that a supplied
+derived value was actually calculated from those inputs. An onboarding
+candidate could have a structurally valid CSV, reviewed primary-source
+locators, formula names, and input IDs while still containing a derived number
+that the operational promotion path had never recomputed. Source review alone
+did not prove the submitted arithmetic, and a formula unit test does not prove
+the onboarding path called that formula.
+
+### 2. Root Cause
+Candidate validation checked that the formula and input references existed, but
+did not run the deterministic formula code or preserve a receipt of that run.
+The canonical snapshot validator checks input existence and Stage-1 checks the
+claim/value, formula version, and source lineage, but neither substitutes for
+recalculation at promotion.
+
+### 3. Permanent Solution
+1. Before promoting a new-bank derived candidate, register explicit
+   metric/formula versions with ordered input metric, unit,
+   period-basis, output, period-rule, and tolerance contracts. Promotion must
+   resolve each accepted input ID and recompute through the registered metric
+   function; unsupported formulas or mismatches fail closed.
+2. Verify unit, period, scope, and numeric tolerance, then persist a
+   machine-readable calculation receipt on each accepted derived
+   observation. Include input identities and values, formula version, both
+   outputs, tolerance, and result so providers can expose the same provenance.
+3. The CTG Q4 packet's rounded ratios are accepted only within explicit
+   tolerance: NPL candidate 1.219 vs 1.218950000795433229958915168 (difference
+   0.000049999204566770041084832, tolerance 0.00005), and LLR candidate 174.6762
+   vs 174.6761886399215389098888044 (difference
+   0.0000113600784610901111956, tolerance 0.00005). Exact amount formulas and
+   the four-decimal ROA/ROE formulas reproduce exactly.
+
+Keep this gate in the data-promotion boundary; Stage-1 checks the published
+claim against the accepted result. A reviewed CTG packet before this path passes
+is not proof of a generic derived-metric ingestion guarantee.
+
+---
+
+## [LESSON-017] A correct ignored artifact still needs repository-bound authority
+
+- Date: 2026-09-25
+- Scope: VPB ROE comparative eligibility, Gold v5 provenance and portable control hashes
+- Status: accepted under D-072 after distinct reviewer ACCEPT at head 2b292ddf21bd6be8a550f81fb518fca5dc419efb.
+
+The official VPB filings, two-checker adjudicated ledger and Gold v5 values
+support parent-attributable ROE. The earlier D-063 factual clause and local
+packet status were stale; durable records now describe parent-attributable
+profit over average parent-attributable equity. Q4 source locators are filing
+pages 6 and 8. The alternative total-equity calculation is retained as a
+diagnostic comparison, not the adopted convention.
+
+The distinct reviewer task /root/vpb_d072_reviewer_luna accepted exact PR head
+2b292ddf21bd6be8a550f81fb518fca5dc419efb. Its attestation records full raw
+source hashes, canonical Git-blob control hashes at that reviewed head, the
+independent Q4 recomputation, the eligible 80-cell gate result (76 valid, four
+missing), and the ACCEPT verdict. D-072 opens the five-issuer VPB ROE comparison
+scope only because that attestation exists; an eligible database gate alone
+does not replace distinct review.
+
+Tracked UTF-8 text control hashes use SHA-256 after strict UTF-8 decoding and
+CRLF/lone-CR to LF normalization. This preserves content while making hashes
+identical across Windows and Unix checkouts. Immutable PDFs, SQLite snapshots,
+CSV/JSON/JSONL ledgers and gate manifests use exact raw-byte SHA-256. Legacy
+Windows checkout-byte hashes may appear only as audit metadata. The verifier
+checks synthetic LF and CRLF forms plus the Git blob. It reads ignored
+artifacts only from an explicit evidence root; CI can validate tracked
+controls without that root but cannot validate ignored local evidence.
+
+Hash references form a one-way chain: an attestation binds the exact reviewed
+head and current VPB-scoped controls but does not hash itself or the authority;
+the authority binds the attestation but does not hash itself; D-063/D-072 cite
+the resulting hashes and are not included in that authority control set. Living
+repository files (`AGENTS.md`, contracts, decisions, lessons, verifier code)
+must remain semantic policy references rather than byte-pinned domain evidence.
+Otherwise any unrelated repository update invalidates an accepted data gate.
+Do not introduce reverse hash references that create a cycle.
+
+The original checker, adjudication and promotion ledgers remain unchanged. The
+promotion ledger's register_review_status stays blank for the four VPB targets;
+the separate sidecar links the accepted adjudication and records the independent
+review status without rewriting the source ledger.
+
+## [LESSON-018] API phải ràng buộc claim vào source locator của đúng metric
+
+- **Date:** 2026-09-24
+- **Scope:** `src/thesis_api/service.py`, `src/thesis_data/gold_dataset_provider.py`, deployment SQLite configuration
+- **Status:** `ACTIVE` -> API fail-closed khi provider chưa đưa locator của observation ra hợp đồng canonical.
+
+### Context & Root Cause
+
+Gold v5 `evidence_snippets` chỉ xác định source, ticker, period và trang; không có
+`metric_id`. Chúng không thể thay locator chính xác của observation cho một số
+liệu cụ thể. Ngoài ra, snapshot Gold hiện nằm trong `data/`, bị `.gitignore`
+loại khỏi Git; Render build từ Git nhưng chưa cấu hình `SQLITE_DB_PATH`, nên
+service có thể chạy mà không có accepted SQLite snapshot. `DATABASE_URL` không
+cấp file SQLite cho provider này.
+
+### Permanent Solution
+
+- Numeric claim phải đi qua observation hợp lệ, source hợp lệ, locator riêng
+  của observation đó và Stage-1. Nếu provider làm rơi locator, API phải block;
+  evidence source/period-level chỉ được xem là tham khảo bổ sung.
+- Khớp cùng source, ticker, period, metric hoặc trang vẫn chưa chứng minh một
+  snippet hỗ trợ đúng numeric observation. Chỉ observation ID link rõ ràng từ
+  mapping đã được review mới đủ để thêm snippet vào `evidence_refs`;
+  `DatasetEvidence` hiện chưa có trường link nên API để các numeric `evidence_refs`
+  rỗng và giữ provenance trong observation/source locator trail.
+- `/api/capabilities` và `/api/ready` chỉ báo runnable khi provider tìm được ít
+  nhất một claim đáp ứng các điều kiện này. Sync và SSE dùng chung kết quả.
+- Khi triển khai backend, phải cung cấp snapshot Gold đã kiểm định qua artifact
+  hoặc mount có kiểm soát và cấu hình `SQLITE_DB_PATH` rõ ràng. Không dựa vào
+  artifact ignored ở máy developer hoặc tự suy ra đường dẫn từ `DATABASE_URL`.

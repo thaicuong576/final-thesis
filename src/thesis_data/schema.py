@@ -826,6 +826,8 @@ class AcceptanceRound(BaseModel):
     round_number: int = Field(ge=0)
     candidate_hash: str | None = Field(default=None, min_length=1)
     candidate_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    candidate_synthesis_summary: str | None = Field(default=None, min_length=1)
+    candidate_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
     candidate_payload_version: str | None = Field(default=None, min_length=1)
     worker_payload_versions: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version: str | None = None
@@ -860,6 +862,45 @@ class AcceptanceRound(BaseModel):
             raise ValueError("quality_total requires quality_scores")
         if len(self.candidate_claim_ids) != len(set(self.candidate_claim_ids)):
             raise ValueError("candidate_claim_ids must be unique")
+        if self.candidate_synthesis_summary is not None and any(
+            character.isdigit() for character in self.candidate_synthesis_summary
+        ):
+            raise ValueError("candidate_synthesis_summary_numeric_or_period_literal_forbidden")
+        if (
+            self.candidate_synthesis_summary is None
+            and self.candidate_synthesis_supporting_claim_ids
+        ):
+            raise ValueError("candidate_synthesis_supporting_claim_ids_require_summary")
+        if any(
+            not claim_id.strip()
+            for claim_id in self.candidate_synthesis_supporting_claim_ids
+        ):
+            raise ValueError(
+                "candidate_synthesis_supporting_claim_ids_must_be_non_empty_strings"
+            )
+        if len(self.candidate_synthesis_supporting_claim_ids) != len(
+            set(self.candidate_synthesis_supporting_claim_ids)
+        ):
+            raise ValueError("candidate_synthesis_supporting_claim_ids_must_be_unique")
+        claim_positions = {
+            claim_id: index for index, claim_id in enumerate(self.candidate_claim_ids)
+        }
+        if any(
+            claim_id not in claim_positions
+            for claim_id in self.candidate_synthesis_supporting_claim_ids
+        ):
+            raise ValueError(
+                "candidate_synthesis_supporting_claim_ids_must_reference_candidate_claims"
+            )
+        if tuple(
+            sorted(
+                self.candidate_synthesis_supporting_claim_ids,
+                key=claim_positions.__getitem__,
+            )
+        ) != self.candidate_synthesis_supporting_claim_ids:
+            raise ValueError(
+                "candidate_synthesis_supporting_claim_ids_must_follow_candidate_order"
+            )
         issue_ids = {issue.issue_id for issue in self.critique_issues}
         if not set(self.resolved_issue_ids).issubset(issue_ids):
             raise ValueError("resolved_issue_ids must reference round critique issues")

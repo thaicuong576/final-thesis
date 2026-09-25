@@ -401,6 +401,79 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
             "NOT_APPLICABLE",
         )
 
+    def test_report_level_synthesis_and_support_ids_are_rendered_separately(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        critic, client = self._critic_with(_result(plan, "placeholder"))
+        client.responses.responses[0] = FakeResponse(
+            _encoded(_result(plan, critic.evaluator_version))
+        )
+        context = SemanticRoundContext(
+            round_number=0,
+            synthesis_summary="The reviewed observation frames the company report.",
+            synthesis_supporting_claim_ids=(claim.claim_id,),
+        )
+
+        critic.evaluate(
+            plan=plan,
+            claims=(claim,),
+            stage1_report=_stage1(),
+            round_context=context,
+        )
+
+        payload = json.loads(client.responses.calls[0]["input"])
+        self.assertEqual(
+            payload["report_level_synthesis"],
+            {
+                "target_id": "synthesis",
+                "summary": "The reviewed observation frames the company report.",
+                "supporting_claim_ids": [claim.claim_id],
+            },
+        )
+        self.assertEqual(payload["claims"][0]["claim_id"], claim.claim_id)
+        self.assertNotIn("report_level_synthesis", payload["claims"][0])
+
+    def test_invalid_constructed_synthesis_context_fails_before_provider_call(self):
+        plan = _company_plan()
+        critic, client = self._critic_with(_result(plan, "placeholder"))
+        malformed_context = SemanticRoundContext.model_construct(
+            round_number=0,
+            synthesis_target_id="not-synthesis",
+            synthesis_summary="The report is qualitative.",
+            synthesis_supporting_claim_ids=(),
+        )
+        with self.assertRaisesRegex(
+            OpenAISemanticCriticError,
+            "openai_semantic_critic_context_invalid",
+        ):
+            critic.evaluate(
+                plan=plan,
+                claims=(),
+                stage1_report=_stage1(),
+                round_context=malformed_context,
+            )
+        self.assertEqual(client.responses.calls, [])
+
+    def test_synthesis_support_ids_are_checked_before_provider_call(self):
+        plan = _company_plan()
+        critic, client = self._critic_with(_result(plan, "placeholder"))
+        context = SemanticRoundContext(
+            round_number=0,
+            synthesis_summary="The report is qualitative.",
+            synthesis_supporting_claim_ids=("unknown-claim",),
+        )
+        with self.assertRaisesRegex(
+            OpenAISemanticCriticError,
+            "openai_semantic_critic_synthesis_support_invalid",
+        ):
+            critic.evaluate(
+                plan=plan,
+                claims=(),
+                stage1_report=_stage1(),
+                round_context=context,
+            )
+        self.assertEqual(client.responses.calls, [])
+
     def test_linked_payload_marks_applicable_and_lists_only_declared_links(self):
         plan = build_tcb_macro_analysis_plan(
             DatasetRef(dataset_id="dataset", dataset_snapshot_id="snapshot")
@@ -968,6 +1041,8 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
             plan=plan,
             claims=(claim,),
             initial_payload_version="payload-initial",
+            synthesis_summary="The reviewed observation frames the report.",
+            synthesis_supporting_claim_ids=(claim.claim_id,),
         )
 
         self.assertEqual(

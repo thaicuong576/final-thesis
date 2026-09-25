@@ -1289,7 +1289,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertFalse(capabilities["specialist_writer_configured"])
         self.assertEqual(capabilities["limitation_code"], "semantic_provider_unconfigured")
 
-        alias_paths = [self.db_path, Path(f"{self.db_path}\\child\\runs.sqlite")]
+        alias_paths = [self.db_path, self.db_path / "child" / "runs.sqlite"]
         hard_link = Path(self.directory.name) / "accepted-hard-link.sqlite"
         try:
             hard_link.hardlink_to(self.db_path)

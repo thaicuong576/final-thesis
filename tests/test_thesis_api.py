@@ -61,12 +61,21 @@ class ThesisApiTests(unittest.TestCase):
 
     def test_readiness_returns_200_when_accepted_snapshot_is_available(self) -> None:
         database = _gold_fixture(Path(self.temp_dir.name) / "accepted.sqlite")
-        app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(database),
+            analysis_runs_db_path=str(Path(self.temp_dir.name) / "analysis-runs.sqlite"),
+            openai_api_key="test-key",
+            openai_base_url="https://example.test/v1",
+            openai_model="test-model",
+        )
+        app = create_app(settings)
         with patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
         ):
-            response = TestClient(app).get("/api/ready")
+            with TestClient(app) as client:
+                response = client.get("/api/ready")
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data.get("status"), "ready")

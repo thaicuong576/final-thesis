@@ -172,3 +172,12 @@ def _ratio(numerator: Number, denominator: Number, *, formula_version: str, peri
   - Tự động lọc bỏ các giá trị `None` / `MISSING`.
   - Nếu toàn bộ danh sách trong nhóm đối thủ đều là `None` $\rightarrow$ Trả về `value: None`, `quality_status: MISSING`, `reason: "all_values_missing"`.
   - Không thay thế giá trị thiếu bằng số 0 vì số 0 sẽ làm lệch nghiêm trọng phân vị trung vị ngành.
+
+### 2.5. Phạm vi nhóm so sánh và mẫu số thực tế
+
+- `requested_peer_entity_ids` ràng buộc định danh benchmark và phạm vi claim.
+- `eligible_peer_entity_ids` và `input_observation_ids` ràng buộc các giá trị
+  thực sự tham gia phép tính; mỗi thành viên bị loại phải có lý do cụ thể.
+- Chỉ công bố median khi unit, period basis và reporting scope đã xác minh
+  cùng tương thích và khác null. Không suy diễn scope từ tên tài liệu.
+- Nhóm năm ngân hàng là case study; không mặc định đại diện toàn ngành.

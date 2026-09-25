@@ -12,9 +12,11 @@ The primary academic comparison is against a fair single-agent baseline using th
 
 The project is executing the six-day applied-thesis master plan in
 `docs/THESIS-MASTERPLAN-2026-09-24.md`. A five-bank Gold v5 artifact and a scored
-issuer-count pilot exist, but the final query-adaptive critique/revision loop,
-new-bank onboarding demonstration, deployed end-to-end workflow, and approved
-six-chapter report still require verification. Historical benchmark results
+issuer-count pilot exist. The reference API now has a tested single-period
+company/peer path with bounded semantic review. Multi-period support,
+live-provider quality, new-bank demonstration on the final runtime, deployed
+end-to-end workflow, final A/B/C comparison and the six-chapter report still
+require verification. Historical benchmark results
 must retain their recorded limitations and cannot be relabeled as results of
 the final loop.
 

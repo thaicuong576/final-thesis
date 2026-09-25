@@ -13,7 +13,7 @@
 
 ## Peer response extension
 
-The runtime places these fields on `sector_benchmark` (the Pydantic response allows extension fields): `peer_universe_id`, ordered `requested_peer_entity_ids`, ordered `eligible_peer_entity_ids`, `aggregation_method`, `requested_denominator`, `eligible_denominator`, and `missing_members` with `entity_id`, `observation_id`, `validation_status`, and `reason`. Numeric peer claims carry exact eligible observation IDs in `input_observation_ids` and `peer_median_v1` in `formula_version`. `contracts/openapi.json` has not yet declared these peer metadata fields; contract synchronization is assigned to root integration.
+The runtime places these fields on `sector_benchmark` (the Pydantic response allows extension fields): `peer_universe_id`, ordered `requested_peer_entity_ids`, ordered `eligible_peer_entity_ids`, `aggregation_method`, `requested_denominator`, `eligible_denominator`, and `missing_members` with `entity_id`, `observation_id`, `validation_status`, and `reason`. Numeric peer claims carry exact eligible observation IDs in `input_observation_ids` and `peer_median_v1` in `formula_version`. `contracts/openapi.json` declares these additive metadata fields and restores the pre-existing malformed reference keys. Older saved reports may omit the new metadata; new provider-backed peer reports must populate it.
 
 ## Multi-period boundary
 

@@ -506,3 +506,46 @@ failure with a cleanup `PermissionError`.
 Use `try/finally: connection.close()` (or `contextlib.closing`) for temporary
 SQLite fixtures and read-only audit connections. Keep transaction management
 separate from connection lifetime.
+
+## [LESSON-020] Validate executable references, not only JSON syntax
+
+- Date: 2026-09-25
+- Scope: `contracts/openapi.json`, Python CI
+
+Eleven schema references were stored under an empty key instead of `$ref` in
+the pre-existing OpenAPI contract. JSON parsing alone accepted them, so clients
+could silently lose request/response schema links. Restore the literal keys
+using a structured writer and validate the OpenAPI document in Python CI.
+PowerShell expansion of dollar-prefixed strings can cause this class of
+corruption; use literal-safe patches or structured file writes.
+
+Tracked evaluation JSONL also needs canonical LF UTF-8 hashing. Raw checkout
+bytes vary under `core.autocrlf`; the regression gate must compare LF and CRLF
+copies while preserving BOM, code points, whitespace and terminal newline.
+
+## [LESSON-021] A revision trace must show a feedback-responsive change
+
+- Date: 2026-09-25
+- Scope: adaptive runtime, report peer metadata
+
+Independent review caught passing tests that changed only the critic verdict
+after re-querying unchanged facts. Revision tests must assert that selected
+issue content reaches a writer, the targeted candidate changes appropriately,
+unaffected output is retained and Stage-1 rechecks the result. A transition log
+alone cannot establish analytical revision.
+
+Peer denominator/missing-member metadata belongs to each metric and period.
+One shared report dictionary silently takes the last metric's denominator;
+test two metrics with different accepted members and expose per-metric records.
+
+## [LESSON-022] Accepted snapshot hashes and runtime persistence must be isolated
+
+- Date: 2026-09-25
+- Scope: API run-history persistence and readiness
+
+Reusing the analytical SQLite path for analysis_runs can modify schema, WAL
+state and bytes after a successful report. A hash-bound authority may then fail
+on the next request. Separate mutable history into its own configured store,
+reject path aliases and verify the source hash after repeated sync/SSE runs.
+Readiness must also include required model configuration; accepted facts alone
+cannot make an analysis endpoint runnable when its mandatory critic is absent.

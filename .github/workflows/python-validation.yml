@@ -1,0 +1,62 @@
+name: Python validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'contracts/**'
+      - 'data/evaluation/**'
+      - 'reports/data-foundation/**'
+      - 'docs/**'
+      - '.agent/**'
+      - 'AGENTS.md'
+      - 'requirements*.txt'
+      - '.github/workflows/python-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'contracts/**'
+      - 'data/evaluation/**'
+      - 'reports/data-foundation/**'
+      - 'docs/**'
+      - '.agent/**'
+      - 'AGENTS.md'
+      - 'requirements*.txt'
+      - '.github/workflows/python-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Python contracts and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+      PYTHONUTF8: '1'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: 'requirements*.txt'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: Validate OpenAPI contract
+        run: python scripts/check_openapi_contract.py
+      - name: Validate architecture boundaries
+        run: python scripts/check_architecture_guardrails.py
+      - name: Run Python suite
+        run: python -m unittest discover -s tests -q
+      - name: Compile Python modules
+        run: python -m compileall -q src scripts tests

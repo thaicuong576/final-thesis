@@ -44,9 +44,18 @@ an operational portability case, not a Gold benchmark label. Macro tasks are a
 separate optional stratum and are not added until period-aligned macro
 observations pass the Gold gate.
 
-Before freeze, convert each intent into exact immutable question bytes, expected
-entities/periods/metrics, applicable specialists and allowed cross-level links.
-Hash that file and bind it in every run manifest.
+Ten candidate tasks are now recorded in `data/evaluation/p4-questions-v1.jsonl`
+and `p4-task-specs-v1.json`: the eight analytical tasks above plus T09
+(unsupported 2025_Q1) and T10 (CTG outside the frozen peer set) as rejection
+controls. Expected cells and denominators are in `p4-expected-coverage-v1.json`.
+These controls use canonical LF UTF-8 hashes; the question-set digest is
+`c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09`.
+They remain candidates and contain no scored outcomes. T04/T05/T08 are explicitly
+ineligible while the public API rejects multi-period scope. The other exact
+questions still need same-snapshot end-to-end and fair A/B/C verification.
+The eight-task count below describes the proposed analytical experiment;
+T09/T10 are reported separately as robustness controls. Freeze the final
+eligible task list, repetition count and rubric before scoring any run.
 
 ## 3. Repetitions and execution order
 

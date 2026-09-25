@@ -443,9 +443,10 @@ availability from evidence availability (for example `MISSING_DATA` and
 unsupported inference, hard-gate failures, unresolved contradictions, or
 provider/system failures.
 
-The reusable core now has a semantic evaluator and bounded revision controller,
-with focused Phase 3B tests. The deployed API does not yet route its reports
-through that core, so these clauses do not claim end-to-end runtime support.
+The reference API now routes single-period company and peer requests through
+the semantic evaluator and bounded revision controller. Offline end-to-end
+tests verify the route; live provider execution and deployed accepted-snapshot
+readiness remain separate gates. Multi-period requests remain unsupported.
 
 ## Run configuration and prompt version
 
@@ -505,3 +506,72 @@ all_claims_have_evidence: boolean
 - Agents must preserve uncertainty and quality flags.
 - Invalid payloads are rejected before synthesis.
 - Contract changes require an entry in `docs/DECISIONS.md` and a regression fixture.
+
+## Explicit Gold reporting-scope authority (D-073)
+
+Gold v5 remains byte-identical. Accepted reporting scope may be supplied only
+by an explicit immutable authority sidecar bound to dataset ID, snapshot ID,
+raw SQLite SHA-256 and the exact accepted observation IDs, values and source
+locators. The provider receives a validated authority object with an expected
+canonical LF UTF-8 hash; it must not discover or trust a sidecar implicitly.
+Hash/identity mismatch, unknown or missing accepted IDs, and mismatched values
+or source locators fail closed. Only an exact accepted entry may populate
+reporting scope and its authority reference/hash. Without authority, scope
+remains null. Missing observations keep their original reason and receive no
+authority entry.
+
+## Peer aggregate identity and denominator (D-073)
+
+`requested_peer_entity_ids` defines benchmark identity and claim scope.
+`eligible_peer_entity_ids` and exact `input_observation_ids` define the numeric
+denominator. Every requested member must have an accepted input or an explicit
+missing-member record with a reason. Stage-1 resolves the benchmark using the
+requested set and requires claim data references to equal its accepted inputs.
+A publishable median requires shared, non-null unit, period basis and verified
+reporting scope. An all-missing peer set returns `value=null`,
+`quality_status=MISSING`, `reason=all_values_missing`.
+
+The public peer response exposes universe, requested/eligible member sets,
+versioned aggregation method, both denominators and missing-member reasons.
+The AtomicClaim carries formula version and exact eligible input IDs. These
+fields describe a bounded peer sample and never establish whole-sector
+representativeness. Git-tracked candidate questions, task specifications,
+coverage controls and authority sidecars use `canonical_lf_utf8_sha256`.
+
+## Feedback-responsive revision and per-metric peer records
+
+A targeted revision must deliver the selected structured issues and required
+actions to a replaceable specialist/writer adapter. Re-fetching the same facts,
+changing claim IDs or asking the critic again is not a content revision. The
+adapter may revise supported reasoning, coverage or limitations within the
+frozen plan; it may not invent numeric facts, broaden scope, change accepted
+values or alter provenance. Unaffected specialist output is retained. The
+re-synthesized candidate must pass Stage-1 before another semantic review.
+Tests must show a requested content correction and rejection of fabricated
+facts, rather than accepting a critic that simply changes its verdict.
+
+`SectorBenchmark.benchmarks` is an array of `PeerBenchmarkRecord` objects. Each
+record has metric ID, benchmark observation ID, value/unit/period/basis/scope,
+peer universe, requested/eligible member lists and counts, exact input IDs,
+aggregation version and missing-member reasons. These fields bind one metric
+and period. Missingness may differ between metrics. Legacy scalar medians may
+remain; shared top-level metadata is allowed only when identical for every
+record and must otherwise be omitted. Per-metric records are authoritative.
+
+The same replaceable writer protocol supports role-specific Company/Sector
+analysis and a separate Orchestrator synthesis. Only active specialist writers
+run; selected issue content reaches the affected writer during revision. Writer
+output may alter supported qualitative narrative but cannot edit accepted
+numeric assertions, identities or provenance. `AnalysisResponse.synthesis_summary`
+is the additive public location for grounded synthesis. Semantic validity of
+prose still requires critique; a numeric-literal guard alone does not prove it.
+
+## Immutable dataset and operational run storage
+
+`SQLITE_DB_PATH` selects accepted analytical data. `ANALYSIS_RUNS_DB_PATH`
+selects a separate writable runtime store for analysis history. Paths resolving
+to the same underlying file must fail closed. Persisting successful synchronous
+or streamed analysis must not change the dataset schema, bytes or sidecars.
+Readiness must account for required writer/critic configuration as well as
+accepted-data availability; a missing model configuration cannot advertise a
+runnable analysis service. Secret contents never appear in readiness output.

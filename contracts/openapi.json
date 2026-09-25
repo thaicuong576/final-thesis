@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Hierarchical Financial Multi-Agent Analysis API",
-    "version": "1.1.0",
-    "description": "API contract for the Query-Adaptive Hierarchical Multi-Agent Financial Analysis System (Vietnamese Listed Banks & Securities). Supports synchronous execution and real-time Server-Sent Events (SSE) streaming for clean conversational Chat UI."
+    "version": "1.2.0",
+    "description": "Reference API for analysis of Vietnamese listed banks. The current runtime supports single-period company and peer requests with provider-backed claims, deterministic acceptance and bounded semantic review. Macro and multi-period requests remain unsupported."
   },
   "paths": {
     "/api/health": {
@@ -73,13 +73,13 @@
     "/api/analyze": {
       "post": {
         "summary": "Submit analysis query (synchronous)",
-        "description": "Executes query-adaptive planning, specialist execution, Stage 1 deterministic validation, Stage 2 semantic critique/revision, and synthesis, returning the full verified report.",
+        "description": "Freezes a query-derived plan before retrieval, invokes only required Company/Sector capabilities, synthesizes canonical claims, runs Stage-1, then configured semantic critique and at most two targeted revision rounds. Unsupported scope or unavailable configuration fails closed. Offline tests do not establish live provider readiness.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "": "#/components/schemas/AnalysisRequest"
+                "$ref": "#/components/schemas/AnalysisRequest"
               }
             }
           }
@@ -90,7 +90,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "": "#/components/schemas/AnalysisResponse"
+                  "$ref": "#/components/schemas/AnalysisResponse"
                 }
               }
             }
@@ -107,13 +107,13 @@
     "/api/analyze/stream": {
       "post": {
         "summary": "Stream analysis session events (SSE)",
-        "description": "Submits an analysis query and streams real-time execution lifecycle events as Server-Sent Events (text/event-stream) for Chat UI and progressive activity visualization. Concludes with the final report artifact.",
+        "description": "Streams observable transitions from the same runtime as synchronous analysis, including actual review/revision transitions. Ends with REPORT_READY for an accepted report or RUN_BLOCKED for an error. Events omit private reasoning.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "": "#/components/schemas/AnalysisRequest"
+                "$ref": "#/components/schemas/AnalysisRequest"
               }
             }
           }
@@ -168,7 +168,7 @@
           },
           "period": {
             "type": "string",
-            "description": "Analysis period or fiscal year (e.g. 2024, 2024_Q4)",
+            "description": "One supported snapshot period (for example 2024_Q4). Compact or expanded multi-period ranges fail with multi_period_unsupported; historical trend runners do not imply support in this API.",
             "example": "2024"
           }
         }
@@ -310,8 +310,90 @@
           "peer_median_ldr": {
             "type": "number",
             "example": 78.4
+          },
+          "peer_median_roa": {
+            "type": "number",
+            "description": "Accepted peer median in percentage units, only when requested and supported."
+          },
+          "peer_median_llr": {
+            "type": "number",
+            "description": "Accepted peer median in percentage units, only when requested and supported."
+          },
+          "peer_universe_id": {
+            "type": "string",
+            "description": "Provider-declared peer universe identity."
+          },
+          "aggregation_method": {
+            "type": "string",
+            "description": "Versioned provider aggregation method; currently peer_median_v1."
+          },
+          "requested_peer_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "Ordered requested member set defining benchmark identity and claim scope."
+          },
+          "eligible_peer_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "Ordered members supplying accepted numeric input observations."
+          },
+          "requested_denominator": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of requested members."
+          },
+          "eligible_denominator": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of accepted numeric member inputs used by the aggregate."
+          },
+          "missing_members": {
+            "type": "array",
+            "description": "Requested members excluded from the numeric denominator, each with an explicit reason.",
+            "items": {
+              "type": "object",
+              "required": [
+                "entity_id",
+                "reason"
+              ],
+              "properties": {
+                "entity_id": {
+                  "type": "string"
+                },
+                "observation_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "validation_status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "benchmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PeerBenchmarkRecord"
+            },
+            "description": "Authoritative per-metric benchmark records for new peer reports. Shared legacy metadata is emitted only when identical across all records."
           }
-        }
+        },
+        "description": "Peer medians for the explicitly requested case-study set. New provider-backed reports populate benchmarks with metadata per metric. Legacy scalar medians remain for compatibility; shared top-level metadata must be omitted when membership or denominator differs across records. Older saved reports may omit these additive fields."
       },
       "CompanyInsight": {
         "type": "object",
@@ -406,7 +488,9 @@
           },
           "input_observation_ids": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Accepted input observations for a derived numeric claim."
           },
           "formula_version": {
@@ -602,12 +686,12 @@
             "example": "completed"
           },
           "analysis_plan": {
-            "": "#/components/schemas/AnalysisPlan"
+            "$ref": "#/components/schemas/AnalysisPlan"
           },
           "macro_context": {
             "anyOf": [
               {
-                "": "#/components/schemas/MacroContext"
+                "$ref": "#/components/schemas/MacroContext"
               },
               {
                 "type": "null"
@@ -617,7 +701,7 @@
           "sector_benchmark": {
             "anyOf": [
               {
-                "": "#/components/schemas/SectorBenchmark"
+                "$ref": "#/components/schemas/SectorBenchmark"
               },
               {
                 "type": "null"
@@ -627,35 +711,39 @@
           "company_insights": {
             "type": "array",
             "items": {
-              "": "#/components/schemas/CompanyInsight"
+              "$ref": "#/components/schemas/CompanyInsight"
             }
           },
           "cross_level_critique": {
             "type": "array",
             "items": {
-              "": "#/components/schemas/CritiqueItem"
+              "$ref": "#/components/schemas/CritiqueItem"
             }
           },
           "atomic_claims": {
             "type": "array",
             "items": {
-              "": "#/components/schemas/AtomicClaim"
+              "$ref": "#/components/schemas/AtomicClaim"
             }
           },
           "evidence_trail": {
             "type": "array",
             "items": {
-              "": "#/components/schemas/EvidenceTrailItem"
+              "$ref": "#/components/schemas/EvidenceTrailItem"
             }
           },
           "revision_summary": {
-            "": "#/components/schemas/BoundedRevisionSummary"
+            "$ref": "#/components/schemas/BoundedRevisionSummary"
           },
           "limitations": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "synthesis_summary": {
+            "type": "string",
+            "description": "Grounded qualitative synthesis of the active specialist artifacts. New runtime responses populate this field; numeric facts remain in canonical claims and benchmark records."
           }
         }
       },
@@ -734,6 +822,130 @@
           "payload": {
             "type": "object",
             "description": "Event-specific typed data dictionary"
+          }
+        }
+      },
+      "PeerBenchmarkRecord": {
+        "type": "object",
+        "description": "One accepted provider benchmark for one metric and period. Its requested/eligible sets and missing-member reasons apply only to this record, never to other metrics in the report.",
+        "required": [
+          "peer_universe_id",
+          "requested_peer_entity_ids",
+          "eligible_peer_entity_ids",
+          "aggregation_method",
+          "requested_denominator",
+          "eligible_denominator",
+          "missing_members",
+          "metric_id",
+          "benchmark_observation_id",
+          "unit",
+          "period",
+          "period_basis",
+          "reporting_scope",
+          "value",
+          "input_observation_ids"
+        ],
+        "properties": {
+          "peer_universe_id": {
+            "type": "string",
+            "description": "Provider-declared peer universe identity."
+          },
+          "requested_peer_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "Ordered requested member set defining benchmark identity and claim scope."
+          },
+          "eligible_peer_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "description": "Ordered members supplying accepted numeric input observations."
+          },
+          "aggregation_method": {
+            "type": "string",
+            "description": "Versioned provider aggregation method; currently peer_median_v1."
+          },
+          "requested_denominator": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of requested members."
+          },
+          "eligible_denominator": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of accepted numeric member inputs used by the aggregate."
+          },
+          "missing_members": {
+            "type": "array",
+            "description": "Requested members excluded from the numeric denominator, each with an explicit reason.",
+            "items": {
+              "type": "object",
+              "required": [
+                "entity_id",
+                "reason"
+              ],
+              "properties": {
+                "entity_id": {
+                  "type": "string"
+                },
+                "observation_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "validation_status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "metric_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "benchmark_observation_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "period_basis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reporting_scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "number"
+          },
+          "input_observation_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true,
+            "minItems": 1
           }
         }
       }

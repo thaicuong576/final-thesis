@@ -4,37 +4,44 @@
 > This document describes the current implementation; the guardrail defines
 > the non-negotiable boundary for future work.
 
-Status: Working architecture with a query-adaptive final target. The current
-runtime remains a transitional benchmark/scaffold and does not yet implement
-the final adaptive critique/revision path.
+Status: The reference API supports a single-period query-adaptive company/peer
+slice with bounded semantic review. Multi-period support, live-provider quality,
+deployment readiness and the final comparative experiment remain open gates.
+Historical benchmark runners retain their original limitations.
 
 ## Design principle
 
 The system separates deterministic financial computation from qualitative retrieval and language-model reasoning. It runs locally from a frozen gold snapshot so that baseline and hierarchical systems receive identical facts and evidence.
 
-## Current public API slice (2026-09-24)
+## Current public API slice (2026-09-25)
 
-`POST /api/analyze` and `/api/analyze/stream` share a provider-backed company
-path. The request must resolve to one company, an exact supported period, and
-supported company metrics. Each numeric claim is built from a valid observation
-and source, must carry that observation's metric-specific source locator, and
-passes the Stage-1 validator before the response labels it accepted. Otherwise
-the response is `error` with no claims. A successful response is `partial`:
-macro, sector/peer comparison, semantic critique, and bounded revision are not
-run by these endpoints. SSE ends with `REPORT_READY` for the same result or
-`RUN_BLOCKED` for an error; it does not invent critique or revision events.
+`POST /api/analyze` and `/api/analyze/stream` share an adaptive runtime. The
+request resolves against the accepted capability catalog and freezes a typed
+plan before specialist retrieval. Company-only requests invoke Company; peer
+requests invoke Company and Sector. Unsupported macro or multi-period scope
+fails before specialist work. Missing semantic-provider configuration also
+blocks before retrieval.
 
-Readiness means the configured accepted provider can resolve at least one
-Stage-1-valid company claim. It does not mean the full hierarchical system is
-available. The Gold SQLite artifact is ignored local data, not a deployment
-asset: a backend deployment must explicitly supply the immutable snapshot and
-set `SQLITE_DB_PATH`. Vercel hosts the frontend and forwards API requests to the
-backend. The current Render blueprint does not configure the SQLite snapshot.
-Gold v5 evidence snippets are scoped to source, company, and period rather than
-metric; they are supplementary references. Numeric claim traceability depends
-on the corresponding metric observation's own source ID and locator. When the
-observation has no reporting-scope field, the API does not label it consolidated
-or parent-only.
+Company claims preserve accepted observation, source and metric-specific
+locator IDs. Sector receives the provider's peer benchmark, including requested
+and eligible inputs and missing-member reasons; the API never calculates its
+own median. Synthesis produces canonical claims, Stage-1 checks them, and the
+semantic critic may request at most two targeted rounds. Each round reruns only
+the selected active specialist work, re-synthesizes and passes Stage-1 again.
+SSE records real workflow transitions without private reasoning and ends with
+`REPORT_READY` or `RUN_BLOCKED` according to the same result as synchronous use.
+
+Gold reporting scope is supplied only by the explicit hash-verified sidecar in
+D-073. A missing sidecar leaves scope null; a configured invalid sidecar fails
+closed. The immutable Gold database is unchanged. Peer identity uses requested
+members, while numeric claims reference only eligible accepted observations.
+
+Offline tests demonstrate these control paths, including targeted revision.
+They do not establish live semantic quality or deployed readiness. The current
+Render deployment still needs an explicitly provisioned accepted snapshot;
+ignored local SQLite files are not packaged by Git. Dataset storage and mutable
+run history also need deployment isolation before release. Multi-period tasks
+T04/T05/T08 remain ineligible. A health response alone proves only liveness.
 
 ## Logical flow
 
@@ -233,7 +240,7 @@ links, performs synthesis, and submits canonical claims to acceptance. Semantic
 critique and bounded revision follow the Phase 3B contract below. Unresolved
 limitations are shown in the final quality section.
 
-## Current transitional verification scaffold
+## Historical benchmark verification scaffold
 
 The current `run_agent_arm()` and `run_composite_arm()` implementations can
 dispatch bounded `verification` calls after orchestration. They record calls
@@ -241,9 +248,9 @@ and payloads, but they do not create `StructuredCriticResult` or
 `CritiqueIssue`, rerun affected specialists, re-synthesize, or re-evaluate the
 final candidate. Existing benchmark artifacts must retain this limitation.
 
-## Query-adaptive critique and revision target
+## Query-adaptive critique and revision
 
-The target Phase 3B order is:
+The single-period reference API implements the Phase 3B order:
 
 ```text
 active specialist outputs
@@ -288,4 +295,9 @@ recorded.
 
 ## Deployment direction
 
-The MVP runs locally and offline from cached fixtures and a validated snapshot. Preview deployment is optional after the experiment runner and data contracts are stable. Production deployment and real financial actions are outside the thesis MVP.
+The thesis requires a reachable reference application for advisor testing.
+Deployment must explicitly provision and verify its accepted dataset, isolate
+immutable analytical storage from mutable run history, and pass readiness and
+workflow smoke tests. Deployment approval and live verification remain separate
+gates; local fixture tests cannot close them. Real financial actions remain
+outside scope.

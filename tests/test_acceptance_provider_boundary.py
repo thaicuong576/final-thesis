@@ -59,13 +59,13 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
                 observation_id="observation-a", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="entity-a", period_id="2024_Q4", metric_id="company.roa", value=1.0, unit="percent",
                 source_ref="source-company", validation_status=QualityStatus.VALID,
-                metadata={"source_locator": "page:1"},
+                source_locator="page:1",
             ),
             CanonicalObservation(
                 observation_id="observation-b", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="entity-b", period_id="2024_Q4", metric_id="company.roa", value=3.0, unit="percent",
                 source_ref="source-company", validation_status=QualityStatus.VALID,
-                metadata={"source_locator": "page:2"},
+                source_locator="page:2",
             ),
             CanonicalObservation(
                 observation_id="derived-a", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
@@ -82,7 +82,7 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
                 observation_id="macro-policy", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="macro-vn", period_id="2024_Q4", metric_id="macro.policy", value=4.5,
                 unit="percent_per_annum", source_ref="source-macro", validation_status=QualityStatus.VALID,
-                metadata={"source_locator": "decision:1"},
+                source_locator="decision:1",
             ),
             CanonicalObservation(
                 observation_id="macro-missing", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
@@ -221,7 +221,7 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
     def test_direct_observation_route_requires_exact_locator(self):
         provider = self.resolver._provider
         observations = list(provider._observations)
-        observations[0] = observations[0].model_copy(update={"metadata": {}})
+        observations[0] = observations[0].model_copy(update={"source_locator": None})
         broken_provider = InMemoryFinancialDatasetProvider(
             provider._catalog,
             observations=observations,
@@ -236,6 +236,38 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertIn("observation_source_locator_missing", " ".join(result.gate_results["reference_validity"].violations))
         self.assertFalse(result.gate_results["critical_evidence_coverage"].passed)
+
+    def test_direct_observation_route_accepts_first_class_locator_without_metadata(self):
+        claim = self._claim()
+
+        result = validate_stage1_claims(self.resolver, (claim,), claim.scope, self.policy)
+
+        self.assertTrue(result.passed, result.model_dump_json())
+        observation = self.resolver.resolve_observation_id("observation-a")
+        self.assertEqual(observation.source_locator, "page:1")
+        self.assertNotIn("source_locator", observation.metadata)
+
+    def test_direct_observation_route_rejects_metadata_only_legacy_locator(self):
+        provider = self.resolver._provider
+        observations = [
+            item.model_copy(update={"source_locator": None, "metadata": {"source_locator": "page:1"}})
+            if item.observation_id == "observation-a"
+            else item
+            for item in provider._observations
+        ]
+        legacy_provider = InMemoryFinancialDatasetProvider(
+            provider._catalog,
+            observations=observations,
+            sources=provider._sources.values(),
+            evidence=provider._evidence,
+        )
+        resolver = ProviderStage1DatasetResolver(legacy_provider, self.resolver.dataset_ref)
+        claim = self._claim()
+
+        result = validate_stage1_claims(resolver, (claim,), claim.scope, self.policy)
+
+        self.assertFalse(result.passed)
+        self.assertIn("observation_source_locator_missing", " ".join(result.gate_results["reference_validity"].violations))
 
     def test_direct_observation_route_requires_valid_primary_source(self):
         provider = self.resolver._provider
@@ -367,7 +399,7 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
     def test_derived_metric_route_rejects_missing_primary_input_locator(self):
         provider = self.resolver._provider
         observations = [
-            item.model_copy(update={"metadata": {}})
+            item.model_copy(update={"source_locator": None})
             if item.observation_id == "observation-a"
             else item
             for item in provider._observations
@@ -379,6 +411,73 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
             evidence=provider._evidence,
         )
         resolver = ProviderStage1DatasetResolver(broken_provider, self.resolver.dataset_ref)
+        claim = self._claim(
+            metric_id="company.derived", value=2.0, ref_id="derived-a",
+            ref_type="derived_metric", formula_version="formula-v1",
+        )
+
+        result = validate_stage1_claims(resolver, (claim,), claim.scope, self.policy)
+
+        self.assertFalse(result.passed)
+        self.assertIn("derived_input_source_locator_missing", " ".join(result.gate_results["reference_validity"].violations))
+
+    def test_derived_metric_route_accepts_first_class_locator_through_nested_inputs(self):
+        provider = self.resolver._provider
+        observations = [
+            item.model_copy(update={"input_observation_ids": ("nested-derived", "observation-b")})
+            if item.observation_id == "derived-a"
+            else item
+            for item in provider._observations
+        ]
+        observations.append(
+            CanonicalObservation(
+                observation_id="nested-derived",
+                dataset_id=self.resolver.dataset_ref.dataset_id,
+                dataset_snapshot_id=self.resolver.dataset_ref.dataset_snapshot_id,
+                entity_id="entity-a",
+                period_id="2024_Q4",
+                metric_id="company.derived",
+                value=0.5,
+                unit="percent",
+                validation_status=QualityStatus.VALID,
+                derivation_method="intermediate-formula-v1",
+                input_observation_ids=("observation-a",),
+            )
+        )
+        nested_provider = InMemoryFinancialDatasetProvider(
+            provider._catalog,
+            observations=observations,
+            sources=provider._sources.values(),
+            evidence=provider._evidence,
+        )
+        resolver = ProviderStage1DatasetResolver(nested_provider, self.resolver.dataset_ref)
+        claim = self._claim(
+            metric_id="company.derived", value=2.0, ref_id="derived-a",
+            ref_type="derived_metric", formula_version="formula-v1",
+        )
+
+        result = validate_stage1_claims(resolver, (claim,), claim.scope, self.policy)
+
+        self.assertTrue(result.passed, result.model_dump_json())
+        leaf = resolver.resolve_observation_id("observation-a")
+        self.assertEqual(leaf.source_locator, "page:1")
+        self.assertNotIn("source_locator", leaf.metadata)
+
+    def test_derived_metric_route_rejects_metadata_only_legacy_locator(self):
+        provider = self.resolver._provider
+        observations = [
+            item.model_copy(update={"source_locator": None, "metadata": {"source_locator": "page:1"}})
+            if item.observation_id == "observation-a"
+            else item
+            for item in provider._observations
+        ]
+        legacy_provider = InMemoryFinancialDatasetProvider(
+            provider._catalog,
+            observations=observations,
+            sources=provider._sources.values(),
+            evidence=provider._evidence,
+        )
+        resolver = ProviderStage1DatasetResolver(legacy_provider, self.resolver.dataset_ref)
         claim = self._claim(
             metric_id="company.derived", value=2.0, ref_id="derived-a",
             ref_type="derived_metric", formula_version="formula-v1",

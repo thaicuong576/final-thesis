@@ -265,7 +265,7 @@ def _resolved_reference(
 
 
 def _source_locator(observation: CanonicalObservation) -> str | None:
-    locator = observation.metadata.get("source_locator")
+    locator = observation.source_locator
     if not isinstance(locator, str) or not locator.strip():
         return None
     return locator.strip()

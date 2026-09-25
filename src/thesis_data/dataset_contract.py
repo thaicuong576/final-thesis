@@ -130,6 +130,7 @@ class CanonicalObservation(BaseModel):
     value: float | None = None
     unit: str | None = Field(default=None, min_length=1)
     source_ref: str | None = Field(default=None, min_length=1)
+    source_locator: str | None = Field(default=None, min_length=1)
     validation_status: QualityStatus
     missing_reason: str | None = None
     derivation_method: str | None = Field(default=None, min_length=1)

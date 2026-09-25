@@ -122,6 +122,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 value=1.0,
                 unit="percent",
                 source_ref="source-company",
+                source_locator="page:1",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -134,6 +135,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 value=3.0,
                 unit="percent",
                 source_ref="source-company",
+                source_locator="page:2",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -146,6 +148,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 value=100.0,
                 unit="percent",
                 source_ref="source-company",
+                source_locator="page:3",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -158,6 +161,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 value=4.5,
                 unit="percent_per_annum",
                 source_ref="source-macro",
+                source_locator="decision:1123",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -530,7 +534,9 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             )
 
         self.assertEqual(company.value, 1.0)
+        self.assertEqual(company.source_locator, "page:1")
         self.assertEqual(macro.value, 4.5)
+        self.assertEqual(macro.source_locator, "decision:1123")
         self.assertEqual(missing.validation_status, QualityStatus.MISSING)
         self.assertEqual(derived.derivation_method, "formula-v1")
         self.assertEqual(derived.input_observation_ids, ("obs-gold-a", "obs-gold-b"))

@@ -63,7 +63,7 @@ completion.
 - P4 verifier: passed against the explicit root evidence directory. Gold integrity was `ok`; 80 cells checked (76 valid, 4 missing), 16 peer probes reproduced, all 17 source artifacts matched. Frozen control hashes: questions `c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09`, task specs `9744a06ceb2c703c2cfb1b15c45b0d7cee8fcf2fa9a1234c5b9c9fd9c8e4e50c`, expected coverage `21e29be555a75e7d774deb3e0f2ed7f87666b5f32b8d7592670b2d703e192252`, and reporting-scope authority `fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f`. The verifier reports `scoring_eligible_now=false` and `final_protocol_freeze_ready=false`.
 - `test_p4_evaluation_verifier.py`: 5 passed, including LF/CRLF checkout equivalence.
 - `python scripts/check_architecture_guardrails.py`: passed.
-- Full local Python suite with application head `7de4f4b` and the current root-owned contract edits: 635 passed, four skipped. Exact final-head CI is recorded on PR #53.
+- Full local Python suite with application head `7de4f4b`, contract integration `067c22b` and Linux fixture correction `2db043d`: 635 passed, four skipped. Python CI run `36169971894` passed and independent audit returned GREEN at exact reviewed head `36693b0` on PR #53.
 - Root `data/processed/finance_master_v2.sqlite` SHA-256 after verification: `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86` (unchanged).
 
 ## Known portability limitation

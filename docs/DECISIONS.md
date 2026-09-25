@@ -1348,8 +1348,9 @@ The unchanged analysis_runs table definition is separated into contracts/run-sto
 
 ### D-073 implementation review resolution
 
-The implementation correction is accepted in design at `aa6c33e`, `0d82021`,
-`553f810` and `7de4f4b`, subject to exact-head CI and independent re-review.
+The implementation correction is accepted at `aa6c33e`, `0d82021`, `553f810`
+and `7de4f4b`; Linux fixture portability was corrected at `2db043d`. Independent
+review returned GREEN at exact head `36693b0`, where Python CI passed.
 Active specialists now use role-specific configured writers; Orchestrator
 synthesis is a separate typed artifact with exact supporting claim IDs. Both
 specialist and synthesis revisions consume selected issue/action content and

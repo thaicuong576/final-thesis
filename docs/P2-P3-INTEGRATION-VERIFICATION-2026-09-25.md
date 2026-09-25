@@ -1,7 +1,7 @@
 # P2/P3 integration verification — 2026-09-25
 
-Status: implementation complete; exact-head CI and independent re-review are the
-remaining PR gates. Final experiment and deployment gates remain open.
+Status: implementation verified for PR review. Final experiment and deployment
+gates remain open, and merge still requires explicit user approval.
 
 ## Scope and lineage
 
@@ -104,3 +104,14 @@ accepted SQLite bytes and schema across two synchronous analyses and one SSE
 run while three histories persisted and round-tripped in the separate run
 store. The root Gold SQLite SHA-256 remained
 `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86`.
+
+## Remote CI and independent verdict
+
+Independent audit returned **GREEN** on exact reviewed head
+`36693b0ace158a815eb2b793247f993bf572acf0`. GitHub Python contracts/tests run
+`36169971894` passed on that head, and the PR was open and mergeable. Vercel
+status contexts passed, while both deployment builds were intentionally
+canceled by their configured ignored-build step; those contexts are not live
+deployment evidence. The auditor accepted the documented generic-core ownership
+limitation as non-blocking for the reference API path. No merge or deployment
+was performed by this verification.

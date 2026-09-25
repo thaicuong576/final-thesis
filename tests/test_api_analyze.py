@@ -354,6 +354,37 @@ class _FiveMemberPeerProvider:
             valid = [item for item in members if item is not None and item.validation_status is QualityStatus.VALID]
             missing = [item for item in members if item is not None and item.validation_status is QualityStatus.MISSING]
             benchmark_id = peer_benchmark_observation_id(dataset_ref, peer_universe_id, period_id, metric_id, effective)
+            eligible_ids = [item.entity_id for item in valid]
+            member_records = [
+                {
+                    "entity_id": entity,
+                    "observation_id": item.observation_id if item is not None else None,
+                    "validation_status": item.validation_status.value if item is not None else None,
+                    "accepted": item is not None and item.validation_status is QualityStatus.VALID and item.value is not None,
+                    "reason": None if item is not None and item.validation_status is QualityStatus.VALID and item.value is not None else (
+                        item.missing_reason if item is not None else "NO_OBSERVATION_FOUND"
+                    ),
+                    "reporting_scope": item.reporting_scope if item is not None else None,
+                    "scope_authority": None,
+                }
+                for entity, item in zip(effective, members, strict=True)
+            ]
+            missing_members = [
+                {"entity_id": item.entity_id, "observation_id": item.observation_id,
+                 "validation_status": item.validation_status.value, "reason": item.missing_reason}
+                for item in missing
+            ]
+            metadata = {
+                "aggregation_method": "peer_median_v1",
+                "aggregation_version": "peer_median_v1",
+                "peer_universe_id": peer_universe_id,
+                "requested_peer_entity_ids": list(effective),
+                "eligible_peer_entity_ids": eligible_ids,
+                "requested_denominator": len(effective),
+                "eligible_denominator": len(valid),
+                "missing_members": missing_members,
+                "peer_member_observations": member_records,
+            }
             if not valid:
                 result.append(CanonicalObservation(
                     observation_id=benchmark_id, dataset_id=dataset_ref.dataset_id,
@@ -361,9 +392,7 @@ class _FiveMemberPeerProvider:
                     entity_id=peer_universe_id, period_id=period_id, metric_id=metric_id,
                     period_basis="point_in_time", reporting_scope="consolidated",
                     validation_status=QualityStatus.MISSING, missing_reason="DATA_UNAVAILABLE",
-                    metadata={"aggregation_method": "median", "peer_universe_id": peer_universe_id,
-                              "peer_entity_ids": list(effective), "requested_denominator": len(effective),
-                              "eligible_denominator": 0, "missing_members": []},
+                    metadata=metadata,
                 ))
             else:
                 result.append(CanonicalObservation(
@@ -375,12 +404,7 @@ class _FiveMemberPeerProvider:
                     validation_status=QualityStatus.VALID,
                     derivation_method="peer_median_v1",
                     input_observation_ids=tuple(item.observation_id for item in valid),
-                    metadata={"aggregation_method": "median", "peer_universe_id": peer_universe_id,
-                              "peer_entity_ids": list(effective), "requested_denominator": len(effective),
-                              "eligible_denominator": len(valid),
-                              "missing_members": [{"entity_id": item.entity_id, "observation_id": item.observation_id,
-                                                   "validation_status": item.validation_status.value,
-                                                   "reason": item.missing_reason} for item in missing]},
+                    metadata=metadata,
                 ))
         return tuple(result)
 
@@ -574,7 +598,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(benchmark.peer_universe_id, "vn-banks-v1")
         self.assertEqual(benchmark.requested_denominator, 5)
         self.assertEqual(benchmark.eligible_denominator, 4)
-        self.assertEqual(benchmark.effective_peer_entity_ids, ["ACB", "BID", "CTG", "MBB", "VCB"])
+        self.assertEqual(benchmark.requested_peer_entity_ids, ["ACB", "BID", "CTG", "MBB", "VCB"])
         self.assertEqual(benchmark.eligible_peer_entity_ids, ["BID", "CTG", "MBB", "VCB"])
         self.assertEqual(benchmark.missing_members[0]["entity_id"], "ACB")
         self.assertEqual(benchmark.missing_members[0]["observation_id"], "obs-ACB-roe-q1")
@@ -614,6 +638,39 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 self.assertEqual(report.status, "error")
                 self.assertIn(code, report.limitations[0])
                 get_benchmark.assert_not_called()
+
+    def test_peer_run_rejects_legacy_aggregate_metadata_without_requested_eligible_sets(self) -> None:
+        provider = _FiveMemberPeerProvider()
+        original_get_peer_benchmark = provider.get_peer_benchmark
+
+        def legacy_benchmark(*args, **kwargs):
+            rows = original_get_peer_benchmark(*args, **kwargs)
+            result = []
+            for row in rows:
+                metadata = dict(row.metadata)
+                metadata.pop("requested_peer_entity_ids", None)
+                metadata.pop("eligible_peer_entity_ids", None)
+                metadata["peer_entity_ids"] = ["ACB", "BID", "CTG", "MBB", "VCB"]
+                result.append(row.model_copy(update={"metadata": metadata}))
+            return tuple(result)
+
+        binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
+            provider, "get_peer_benchmark", side_effect=legacy_benchmark
+        ):
+            report = AnalysisResponse.model_validate(self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Compare ROE of TCB with the five bank peer universe in 2024 Q1",
+                    "target_ticker": "TCB",
+                    "period": "2024_Q1",
+                    "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                },
+            ).json())
+
+        self.assertEqual(report.status, "error")
+        self.assertIn("peer_benchmark_scope_invalid", report.limitations[0])
+        self.assertEqual(report.atomic_claims, [])
 
     def test_injected_claim_issue_triggers_targeted_revision_and_acceptance(self) -> None:
         critic = _RevisionScenarioCritic(resolve_after_revision=True)

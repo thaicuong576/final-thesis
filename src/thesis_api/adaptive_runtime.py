@@ -627,6 +627,7 @@ class _AdaptiveRun:
         self.metric_by_id = {item.metric_id: item for item in catalog.metrics}
         self.artifacts: dict[str, ClaimArtifact] = {}
         self.benchmark_request_metadata: dict[str, dict[str, Any]] = {}
+        self.direct_observations: dict[tuple[str, str, str], CanonicalObservation] = {}
 
     def execute(self) -> AnalysisResponse:
         from .service import AnalysisBlocked, _requested_metrics
@@ -750,6 +751,7 @@ class _AdaptiveRun:
                 observation = self.provider.get_metric(self.dataset_ref, entity, period, metric_id)
                 if observation is None:
                     continue
+                self.direct_observations[(entity, period, metric_id)] = observation
                 if observation.validation_status is QualityStatus.MISSING:
                     claim = _explicit_missing_claim(observation, display_name=metric.display_name, capability=role)
                     artifact = ClaimArtifact(claim, observation, (), {}, (), role, metric.display_name)
@@ -817,6 +819,7 @@ class _AdaptiveRun:
             if (
                 not target_observation
                 or not getattr(target_observation, "reporting_scope", None)
+                or any(not isinstance(scope, str) or not scope.strip() for scope in observed_scopes)
                 or None in observed_scopes
                 or len(observed_scopes) != 1
             ):
@@ -825,13 +828,21 @@ class _AdaptiveRun:
                     "peer_reporting_scope_unavailable",
                     f"Peer comparison for {metric_id} requires provider-declared, consistent reporting scope; no scope is inferred.",
                 )
-            if None in observed_units or len(observed_units) != 1:
+            if (
+                any(not isinstance(unit, str) or not unit.strip() for unit in observed_units)
+                or None in observed_units
+                or len(observed_units) != 1
+            ):
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked(
                     "peer_unit_incompatible",
                     f"Peer comparison for {metric_id} requires one provider-declared unit across the target and accepted peers.",
                 )
-            if None in observed_bases or len(observed_bases) != 1:
+            if (
+                any(not isinstance(basis, str) or not basis.strip() for basis in observed_bases)
+                or None in observed_bases
+                or len(observed_bases) != 1
+            ):
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked(
                     "peer_period_basis_unavailable",
@@ -851,7 +862,8 @@ class _AdaptiveRun:
             input_ids = tuple(item.observation_id for item in peer_observations.values())
             metadata_ids = tuple(benchmark.input_observation_ids)
             if benchmark.validation_status is not QualityStatus.VALID or benchmark.value is None or not benchmark.unit:
-                continue
+                from .service import AnalysisBlocked
+                raise AnalysisBlocked("peer_benchmark_unavailable", f"The provider has no accepted peer median for {metric_id} at {period}.")
             if (
                 benchmark.unit not in observed_units
                 or benchmark.period_basis not in observed_bases
@@ -866,32 +878,26 @@ class _AdaptiveRun:
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked("peer_benchmark_provenance_invalid", f"The provider benchmark for {metric_id} did not preserve exact accepted peer input IDs.")
             provider_metadata = dict(benchmark.metadata or {})
-            requested_peer_ids = provider_metadata.get(
-                "requested_peer_entity_ids",
-                provider_metadata.get(
-                    "peer_entity_ids",
-                    provider_metadata.get("effective_peer_entity_ids", list(peers)),
-                ),
-            )
+            if (
+                provider_metadata.get("aggregation_method") != "peer_median_v1"
+                or provider_metadata.get("aggregation_version") != "peer_median_v1"
+            ):
+                from .service import AnalysisBlocked
+                raise AnalysisBlocked("peer_benchmark_method_invalid", f"The provider benchmark for {metric_id} does not declare the versioned peer median method.")
+            requested_peer_ids = provider_metadata.get("requested_peer_entity_ids")
             if not isinstance(requested_peer_ids, (tuple, list)) or tuple(requested_peer_ids) != tuple(peers):
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked("peer_benchmark_scope_invalid", f"The provider benchmark for {metric_id} does not preserve the frozen ordered peer set.")
-            eligible_peer_ids = provider_metadata.get(
-                "eligible_peer_entity_ids",
-                list(valid_peers),
-            )
+            eligible_peer_ids = provider_metadata.get("eligible_peer_entity_ids")
             if not isinstance(eligible_peer_ids, (tuple, list)) or tuple(eligible_peer_ids) != tuple(valid_peers):
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked("peer_benchmark_eligible_scope_invalid", f"The provider benchmark for {metric_id} does not preserve the ordered accepted input members.")
-            if provider_metadata.get("peer_universe_id", universe_id) != universe_id:
+            if provider_metadata.get("peer_universe_id") != universe_id:
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked("peer_benchmark_scope_invalid", f"The provider benchmark for {metric_id} names a different peer universe.")
-            aggregation_method = provider_metadata.get("aggregation_method", "median")
-            if aggregation_method != "median":
-                from .service import AnalysisBlocked
-                raise AnalysisBlocked("peer_benchmark_method_invalid", f"The provider benchmark for {metric_id} did not declare median aggregation.")
-            requested_denominator = provider_metadata.get("requested_denominator", len(requested_peer_ids))
-            eligible_denominator = provider_metadata.get("eligible_denominator", len(metadata_ids))
+            aggregation_method = provider_metadata["aggregation_method"]
+            requested_denominator = provider_metadata.get("requested_denominator")
+            eligible_denominator = provider_metadata.get("eligible_denominator")
             if (
                 isinstance(requested_denominator, bool)
                 or not isinstance(requested_denominator, int)
@@ -904,37 +910,37 @@ class _AdaptiveRun:
                 raise AnalysisBlocked("peer_benchmark_denominator_invalid", f"The provider benchmark for {metric_id} reported inconsistent requested or eligible denominators.")
             missing_details = provider_metadata.get("missing_members")
             expected_missing_entities = tuple(entity for entity in peers if entity not in valid_peers)
-            if missing_details is None:
-                # Compatibility for older provider revisions: derive only the
-                # missing-member disclosure from direct accepted observations;
-                # never compute or alter the provider's benchmark value.
-                missing_details = []
-                for entity in expected_missing_entities:
-                    missing_observation = next((
-                        artifact.observation for artifact in self.artifacts.values()
-                        if artifact.capability == "sector"
-                        and artifact.observation.entity_id == entity
-                        and artifact.observation.metric_id == metric_id
-                    ), None)
-                    missing_details.append({
-                        "entity_id": entity,
-                        "observation_id": getattr(missing_observation, "observation_id", None),
-                        "validation_status": (
-                            str(missing_observation.validation_status.value)
-                            if missing_observation is not None else "unavailable"
-                        ),
-                        "reason": (
-                            missing_observation.missing_reason
-                            if missing_observation is not None else "No accepted observation was returned by the provider."
-                        ),
-                    })
             if (
-                not isinstance(missing_details, list)
+                not isinstance(missing_details, (list, tuple))
                 or tuple(item.get("entity_id") for item in missing_details if isinstance(item, dict)) != expected_missing_entities
                 or len(missing_details) != len(expected_missing_entities)
+                or any(
+                    not isinstance(item, dict)
+                    or not isinstance(item.get("reason"), str)
+                    or not item["reason"].strip()
+                    for item in missing_details
+                )
             ):
                 from .service import AnalysisBlocked
                 raise AnalysisBlocked("peer_benchmark_missingness_invalid", f"The provider benchmark for {metric_id} does not preserve ordered missing-member disclosures.")
+            for detail in missing_details:
+                missing_observation = self.direct_observations.get(
+                    (detail["entity_id"], period, metric_id)
+                )
+                if missing_observation is None:
+                    if detail.get("observation_id") is not None or detail.get("validation_status") is not None:
+                        from .service import AnalysisBlocked
+                        raise AnalysisBlocked("peer_benchmark_missingness_invalid", f"The provider benchmark for {metric_id} reported an observation for a member with no direct provider observation.")
+                elif (
+                    detail.get("observation_id") != missing_observation.observation_id
+                    or detail.get("validation_status") != missing_observation.validation_status.value
+                    or detail.get("reason") != (
+                        missing_observation.missing_reason
+                        or f"STATUS_{missing_observation.validation_status.value.upper()}"
+                    )
+                ):
+                    from .service import AnalysisBlocked
+                    raise AnalysisBlocked("peer_benchmark_missingness_invalid", f"The provider benchmark for {metric_id} does not match the direct missing-member observation.")
             if benchmark.observation_id != peer_benchmark_observation_id(
                 self.dataset_ref, universe_id, period, metric_id, tuple(peers)
             ):
@@ -996,9 +1002,9 @@ class _AdaptiveRun:
                 "peer_universe_id": universe_id,
                 "requested_denominator": requested_denominator,
                 "eligible_denominator": eligible_denominator,
-                "effective_peer_entity_ids": list(requested_peer_ids),
+                "requested_peer_entity_ids": list(requested_peer_ids),
                 "eligible_peer_entity_ids": list(eligible_peer_ids),
-                "missing_members": missing_details,
+                "missing_members": list(missing_details),
                 "aggregation_method": aggregation_method,
             }
             result.append(claim)
@@ -1089,7 +1095,6 @@ class _AdaptiveRun:
         target_values: dict[str, float | None] = {}
         sector_values: dict[str, Any] = {}
         macro_values: dict[str, Any] = {}
-        missing_metadata: list[dict[str, Any]] = []
         for claim in final_claims:
             artifact = self.artifacts.get(claim.claim_id)
             if artifact is None:
@@ -1107,36 +1112,18 @@ class _AdaptiveRun:
             if role == "sector" and observation.derivation_method == "peer_median_v1":
                 key = f"peer_median_{observation.metric_id.rsplit('.', 1)[-1].casefold()}"
                 sector_values[key] = observation.value
-                metadata = dict(observation.metadata or {})
-                request_metadata = self.benchmark_request_metadata.get(observation.observation_id, {})
-                requested_denominator = int(request_metadata.get("requested_denominator", len(peers)))
-                eligible_denominator = int(request_metadata.get("eligible_denominator", len(input_ids)))
-                missing = request_metadata.get("missing_members")
-                if not isinstance(missing, list):
-                    missing = metadata.get("missing_members")
-                if not isinstance(missing, list):
-                    missing = []
-                    accepted_entities = {
-                        item.entity_id for item in self.catalog.entities if item.entity_type.value == "company"
-                    }
-                    used = {
-                        item.observation_id: item.entity_id
-                        for item in self.artifacts.values()
-                        if item.capability == "sector" and item.observation.metric_id == observation.metric_id
-                    }
-                    used_peer_entities = {used[item] for item in input_ids if item in used}
-                    missing = [
-                        {"entity_id": entity, "observation_id": None, "validation_status": "missing_or_unavailable", "reason": "Not present in accepted benchmark inputs."}
-                        for entity in peers if entity in accepted_entities and entity not in used_peer_entities
-                    ]
+                request_metadata = self.benchmark_request_metadata[observation.observation_id]
+                requested_denominator = request_metadata["requested_denominator"]
+                eligible_denominator = request_metadata["eligible_denominator"]
+                missing = request_metadata["missing_members"]
                 metadata = {
-                    "peer_universe_id": plan.scope.comparison_universe[0],
-                    "effective_peer_entity_ids": list(request_metadata.get("effective_peer_entity_ids", metadata.get("peer_entity_ids", input_ids))),
-                    "eligible_peer_entity_ids": list(request_metadata.get("eligible_peer_entity_ids", input_ids)),
+                    "peer_universe_id": request_metadata["peer_universe_id"],
+                    "requested_peer_entity_ids": list(request_metadata["requested_peer_entity_ids"]),
+                    "eligible_peer_entity_ids": list(request_metadata["eligible_peer_entity_ids"]),
                     "requested_denominator": requested_denominator,
                     "eligible_denominator": eligible_denominator,
-                    "missing_members": missing,
-                    "aggregation_method": metadata.get("aggregation_method", "median"),
+                    "missing_members": list(request_metadata["missing_members"]),
+                    "aggregation_method": request_metadata["aggregation_method"],
                 }
                 sector_values.update(metadata)
                 if missing:
@@ -1144,12 +1131,6 @@ class _AdaptiveRun:
                         f"Peer median for {observation.metric_id} uses {eligible_denominator}/{requested_denominator} eligible observations; missingness is disclosed by entity."
                     )
             if is_missing:
-                missing_metadata.append({
-                    "entity_id": observation.entity_id,
-                    "observation_id": observation.observation_id,
-                    "validation_status": str(observation.validation_status.value),
-                    "reason": observation.missing_reason,
-                })
                 known_limitations.append(claim.limitation)
             elif not claim.evidence_refs:
                 known_limitations.append(

@@ -1,75 +1,32 @@
 # P2/P3 adaptive runtime evidence
 
-**Status:** implementation in progress; peer Stage-1 integration awaits the
-contract-first requested-versus-eligible peer-scope correction.
+**Status:** single-period provider-backed peer and company analysis now runs through the frozen-plan and bounded-revision path. Multi-period evaluation tasks remain ineligible.
 
-## Implemented runtime behavior
+## Runtime behavior
 
-- `/api/analyze` freezes a typed `AnalysisPlan` after request/catalog validation,
-  then dispatches only the capabilities required by that plan.
-- Company facts come from accepted provider observations and exact primary
-  lineage. Peer benchmarks are obtained only through the provider's
-  `get_peer_benchmark` operation; the API does not calculate a median.
-- Peer execution requests the complete ordered peer set so provider metadata
-  can disclose the requested denominator and excluded members. The runtime
-  requires consistent, non-null provider-declared reporting scope, unit, and
-  period basis for the target and accepted members, and verifies those fields
-  on the provider aggregate before publishing a claim.
-- A configured `GOLD_SCOPE_AUTHORITY_PATH` opts into the separately pinned
-  reporting-scope sidecar. Loading uses the expected canonical SHA-256
-  `fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f`; there is
-  no sidecar auto-discovery. A configured but unverifiable authority blocks
-  analysis. Without it, unavailable scope remains unavailable.
-- Production semantic review uses the configured OpenAI-compatible provider.
-  The tests inject explicit offline critics. Stage-1 must pass before the
-  critic runs; open issues trigger at most two targeted specialist re-queries,
-  re-synthesis, and another Stage-1 pass. An unresolved critical issue ends in
-  `FAIL_ACCEPTANCE`.
-- SSE events are emitted by actual runtime transitions. Detailed model
-  reasoning is not included in events.
+- The API resolves the request against the accepted snapshot catalog, validates required capabilities, and freezes a typed `AnalysisPlan` before provider retrieval. Company-only plans invoke only Company; peer plans invoke Company and Sector. Unsupported macro requests fail before specialists run.
+- Numeric claims retain explicit observation IDs and source-locator lineage. Stage-1 runs before semantic critique and checks plan coverage, provenance, numeric values, peer identity, missingness, and scope.
+- Peer medians are obtained only from `get_peer_benchmark`; the API does not calculate or repair aggregates. It requires exact provider metadata for ordered requested and eligible peer IDs, versioned aggregation, both denominators, and every missing-member reason. The five-requested/four-eligible case passes Stage-1 only with the corrected core distinction.
+- Peer claims require non-empty, provider-declared, consistent reporting scope, unit, and period basis across the target, accepted peer inputs, and benchmark. The API never infers scope. Gold scope authority is consumed only when an explicit `GOLD_SCOPE_AUTHORITY_PATH` is configured; the sidecar load pins canonical SHA-256 `fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f`.
+- Production semantic review uses the configured OpenAI-compatible provider. If it is not configured, the request blocks before specialist retrieval. Tests inject explicit offline critics; they do not claim live provider validation.
+- Open issues can trigger at most two targeted re-queries of only the selected specialist work, followed by re-synthesis and Stage-1 again. Unresolved critical issues fail acceptance. Run and SSE events report workflow transitions without detailed private reasoning.
 
-## Current peer acceptance blocker
+## Peer response extension
 
-The runtime requests the five frozen peers and receives a provider benchmark
-whose accepted `input_observation_ids` contain the four valid members. The
-current Stage-1 benchmark gate cannot express that distinction: it requires
-`claim.scope.entities` to equal the entities on benchmark `data_refs`, then
-asks the resolver for a benchmark using that same member set. A scope of four
-therefore recomputes a different benchmark identity from the provider's
-five-requested-member result; a scope of five fails the one-input-per-peer and
-exact input-lineage checks when one member is missing. The route consequently
-fails closed at `benchmark_reference_unresolved` on the current base even
-though the provider supplies its median and missing-member records. The
-contract-first core change must separately represent requested peers and
-eligible input peers before the peer acceptance test can pass. This report
-does not claim peer acceptance or P2 evaluation completion until that change
-is integrated and verified.
+The runtime places these fields on `sector_benchmark` (the Pydantic response allows extension fields): `peer_universe_id`, ordered `requested_peer_entity_ids`, ordered `eligible_peer_entity_ids`, `aggregation_method`, `requested_denominator`, `eligible_denominator`, and `missing_members` with `entity_id`, `observation_id`, `validation_status`, and `reason`. Numeric peer claims carry exact eligible observation IDs in `input_observation_ids` and `peer_median_v1` in `formula_version`. `contracts/openapi.json` has not yet declared these peer metadata fields; contract synchronization is assigned to root integration.
 
 ## Multi-period boundary
 
-The runtime rejects both expanded quarter ranges and compact forms such as
-`2024_Q1–Q4` before specialist retrieval, with `multi_period_unsupported`.
-`contracts/openapi.json` defines request `period` as one string (for example,
-`2024` or `2024_Q4`) and has no multi-period request/plan shape. It also does
-not yet declare typed sector metadata for peer universe, ordered requested
-members, aggregation method, denominators, and missing-member records; the API
-currently emits these through the response model's extension fields. The
-contract owner should add those fields before clients rely on them. The pre-freeze
-evaluation protocol requires exact per-quarter context for T04 and T05 and
-per-period peer denominators for T08. Those tasks remain ineligible until the
-public contract and runtime gain a contract-first multi-period representation.
-No OpenAPI contract edits are included in this worker change.
+The API rejects expanded quarter ranges and compact forms such as `2024_Q1–Q4` before provider retrieval with `multi_period_unsupported`. The public request currently represents `period` as one string, with no multi-period request or plan shape. Evaluation tasks T04/T05 require per-quarter context, and T08 requires per-period peer denominators; all three remain ineligible until a contract-first multi-period path is implemented. This vertical slice does not claim P2/P4 evaluation completion.
 
-## Verification recorded so far
+## Verification
 
-- `python -m compileall -q src/thesis_api tests/test_api_analyze.py tests/test_api_stream.py` — passed.
-- `python scripts/check_architecture_guardrails.py` — passed.
-- `python -m unittest discover -s tests -p 'test_api_stream.py' -v` — 5 tests passed, including targeted revision event order and omission of injected review content.
-- API analyze tests cover company-only execution, no-unused-specialist planning,
-  compact and expanded multi-period rejection before retrieval, one injected
-  issue followed by successful targeted revision, unrepairable critical issue
-  failure after two revisions, fail-closed behavior without a semantic
-  provider, explicit reporting-scope/period-basis failure, provenance joins,
-  and peer denominator/missingness metadata. On the current base, 17 of 18
-  analyze tests pass; the peer acceptance case reaches the documented Stage-1
-  blocker above and awaits the core contract correction.
+- `test_api_analyze.py`: 19 passed, including provider-backed peer median with five requested/four eligible, explicit metadata fail-closed behavior, scope/basis gates, targeted revision, bounded failure, and multi-period rejection.
+- `test_api_stream.py`: 5 passed, including real revision event order and no detailed review text in events.
+- `test_analysis_runs_api.py`: 6 passed.
+- Stage-1/core focused suites: `test_acceptance.py` 25 passed; `test_acceptance_provider_boundary.py` 31 passed; `test_acceptance_resolver_boundary.py` 6 passed; `test_gold_scope_authority.py` 5 passed.
+- P4 verifier: passed against the explicit root evidence directory. Gold integrity was `ok`; 80 cells checked (76 valid, 4 missing), 16 peer probes reproduced, all 17 source artifacts matched. Frozen control hashes: questions `c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09`, task specs `9744a06ceb2c703c2cfb1b15c45b0d7cee8fcf2fa9a1234c5b9c9fd9c8e4e50c`, expected coverage `21e29be555a75e7d774deb3e0f2ed7f87666b5f32b8d7592670b2d703e192252`, and reporting-scope authority `fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f`. The verifier reports `scoring_eligible_now=false` and `final_protocol_freeze_ready=false`.
+- `test_p4_evaluation_verifier.py`: 5 passed, including LF/CRLF checkout equivalence.
+- `python scripts/check_architecture_guardrails.py`: passed.
+- Full Python suite after integrating the cross-platform hash correction: 608 tests passed, 4 skipped.
+- Root `data/processed/finance_master_v2.sqlite` SHA-256 after verification: `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86` (unchanged).

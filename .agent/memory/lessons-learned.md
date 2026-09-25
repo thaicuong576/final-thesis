@@ -417,19 +417,25 @@ is not proof of a generic derived-metric ingestion guarantee.
 
 - **Date:** 2026-09-25
 - **Scope:** VPB ROE comparative eligibility and Gold v5 provenance
-- **Status:** active until D-072 reconciliation is complete.
+- **Status:** active pending distinct reviewer confirmation under D-072.
 
-The local Gold v5 value, official filing calculation and two independent
-reviewers all support parent-attributable VPB ROE, while a later committed
-decision says total equity was used. The local evidence is persuasive but its
-raw PDFs, ledgers and SQLite snapshot are ignored by Git, so another session
-cannot reproduce the conclusion from repository state alone.
+The official VPB filings, two-checker adjudicated ledger and Gold v5 values
+support parent-attributable ROE, while D-063's former factual clause said total
+equity was used. The raw PDFs, candidate/review ledgers and SQLite snapshot are
+local ignored artifacts, so the committed authority record binds their exact
+hashes and locators without claiming that the files themselves are committed.
 
-When an ignored artifact disproves a committed decision, keep the downstream
-gate closed, record exact source and artifact hashes, reconcile stale manifests
-and commit a non-sensitive evidence manifest before changing eligibility. A
-`valid` row, a recent timestamp or correct local arithmetic does not replace
-durable provenance.
+The stale packet README and v1 status manifest were found to contradict the
+adjudicated ledger. Their status records are now superseded by Git-bound
+records linked to the authority manifest. The original promotion ledger also
+has blank `register_review_status` values for the four VPB ROE targets. That
+blank is preserved; a status sidecar points to the separate adjudicated ledger
+for the accepted checker/adjudication state and makes no new review claim. The
+v5 comparative-definition gate returns eligible for its 80-cell scope, but
+D-072 keeps VPB excluded until a distinct reviewer confirms the linked records
+and gate result. A `valid` row, a recent timestamp or correct local arithmetic
+does not replace durable provenance or that independent confirmation.
+
 ## [LESSON-018] API phải ràng buộc claim vào source locator của đúng metric
 
 - **Date:** 2026-09-24

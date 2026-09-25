@@ -39,6 +39,37 @@ Rules:
   to the filing's exact page, table, or note.
 - Failed retrievals remain in manifests but cannot produce valid observations.
 
+## Hash modes for repository evidence manifests
+
+Any manifest field named sha256 must identify its hash mode:
+
+- canonical_lf_utf8_sha256 applies to Git-tracked UTF-8 text control records.
+  Decode as strict UTF-8, normalize CRLF and lone CR to LF, then encode as
+  UTF-8. Preserve the BOM, Unicode code points, whitespace, and final newline;
+  do not apply Unicode normalization. The digest must match whether a checkout
+  uses LF or CRLF.
+- raw_file_bytes_sha256 applies to immutable acquired evidence and local
+  evidence inputs, including PDFs, SQLite files, CSV/JSON/JSONL ledgers, and
+  gate manifests. Hash the exact stored bytes.
+
+A legacy worktree-byte hash may be retained only as audit metadata. It is not
+an authoritative hash for tracked text. A manifest that binds control artifacts
+must record each artifact's hash_mode beside its sha256.
+
+An authority manifest may byte-pin only immutable evidence and control records
+owned by that authority scope. Repository-wide living files such as
+`AGENTS.md`, this contract, decision logs, lessons, and verifier code are policy
+references, not domain evidence artifacts. Refer to their stable sections and
+verify required markers semantically so unrelated architecture or workflow
+updates do not invalidate an accepted data decision.
+
+Verification scripts resolve tracked controls from their current checkout.
+Ignored evidence must come only from an explicit `--evidence-root` argument;
+default behavior is the current repository and fails closed when evidence is
+absent. CI can validate canonical tracked-text hashes from its checkout, but
+cannot validate ignored PDFs, ledgers, SQLite snapshots or gate manifests
+unless the required evidence root is provisioned.
+
 ## Outside-Gold onboarding packet and acceptance boundary
 
 `contracts/bank-onboarding-packet-v1.schema.json` describes the exchange packet

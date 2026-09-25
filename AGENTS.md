@@ -28,6 +28,13 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   Evidence manifests use `canonical_lf_utf8_sha256` for Git-tracked UTF-8 text
+   controls and `raw_file_bytes_sha256` for immutable evidence. Ignored evidence
+   verification requires an explicit `--evidence-root`.
+   Authority manifests byte-pin only scope-specific evidence and control
+   records. Living repository policy files such as `AGENTS.md`, contracts,
+   decisions, and lessons are referenced by stable section markers and tested
+   semantically; they must not be frozen into a domain evidence hash graph.
    CSV structural validation creates only a candidate; accepted numeric values
    require observation-level source reconciliation to a primary filing with an
    exact locator, period basis, reporting scope, and a review record under

@@ -5,9 +5,10 @@
   "supersedes": {
     "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v1.json",
     "sha256": "24BF42B3D19B2EEE264BCBB03827585755096AA278795B95EB00EC825267A0B2",
-    "status": "candidate_pending_fresh_review"
+    "status": "candidate_pending_fresh_review",
+    "hash_mode": "legacy_windows_checkout_raw_sha256_audit_only"
   },
-  "status": "two_checkers_and_adjudication_accepted; distinct_authority_confirmation_pending",
+  "status": "two_checkers_and_adjudication_accepted; distinct_independent_confirmation_accepted",
   "scope": {
     "entity_id": "VPB",
     "metric_id": "bank.roe",
@@ -33,7 +34,9 @@
     "review_ledger_sha256": "05005D49BB917802A06E992DCCE9E34C7809CEB26F9E63147A1EFBC9EEB5A8FA",
     "promotion_ledger_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv",
     "promotion_ledger_sha256": "4A27D58CFD9FF476946A50BCBF26CA1E5F4E2FEC596CF4ED5C32D39F6978263D",
-    "all_four_cells_adjudicated_accepted": true
+    "all_four_cells_adjudicated_accepted": true,
+    "review_ledger_hash_mode": "raw_file_bytes_sha256",
+    "promotion_ledger_hash_mode": "raw_file_bytes_sha256"
   },
   "period_reviews": [
     {
@@ -64,7 +67,8 @@
         "decision": "accepted",
         "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
         "checked_at": "2026-09-07T20:30:00+07:00"
-      }
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
     },
     {
       "period": "2024_Q2",
@@ -94,7 +98,8 @@
         "decision": "accepted",
         "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
         "checked_at": "2026-09-07T20:30:00+07:00"
-      }
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
     },
     {
       "period": "2024_Q3",
@@ -124,7 +129,8 @@
         "decision": "accepted",
         "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
         "checked_at": "2026-09-07T20:30:00+07:00"
-      }
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
     },
     {
       "period": "2024_Q4",
@@ -152,7 +158,8 @@
         "decision": "accepted",
         "adjudicator_id": "orchestrator-adjudicator-2026-09-07",
         "checked_at": "2026-09-07T20:30:00+07:00"
-      }
+      },
+      "source_hash_mode": "raw_file_bytes_sha256"
     }
   ],
   "gold_v5": {
@@ -166,7 +173,9 @@
       "2024_Q2": 8.5867,
       "2024_Q3": 9.6445,
       "2024_Q4": 11.4117
-    }
+    },
+    "sqlite_hash_mode": "raw_file_bytes_sha256",
+    "gold_labels_hash_mode": "raw_file_bytes_sha256"
   },
   "comparative_definition_gate": {
     "manifest_ref": "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json",
@@ -176,7 +185,8 @@
     "blockers": [],
     "cells_checked": 80,
     "valid_cells": 76,
-    "missing_cells": 4
+    "missing_cells": 4,
+    "manifest_hash_mode": "raw_file_bytes_sha256"
   },
   "authority_manifest": {
     "artifact_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
@@ -198,10 +208,28 @@
     "roe_total_equity_percent": 10.9929645263
   },
   "authority_confirmation": {
-    "status": "pending_distinct_final_confirmation",
-    "required_reviewer": "a distinct independent reviewer not involved in the prior audit or these record updates",
-    "required_confirmation": "confirm the repository-bound authority manifest and hash-matched Gold v5 comparative gate result",
-    "comparative_eligibility": "blocked_until_confirmation"
+    "status": "accepted",
+    "reviewer_task_path": "/root/vpb_d072_reviewer_luna",
+    "reviewed_head_sha": "2b292ddf21bd6be8a550f81fb518fca5dc419efb",
+    "verdict": "ACCEPT",
+    "attestation_ref": "reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json",
+    "attestation_id": "vpb-roe-parent-equity-independent-review-20260925",
+    "comparative_eligibility": "open_for_five_issuer_roe_comparison_on_gold_v5",
+    "gate_result": {
+      "eligible": true,
+      "blockers": [],
+      "cells_checked": 80,
+      "valid_cells": 76,
+      "missing_cells": 4
+    },
+    "authority_manifest_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
+    "authority_manifest_id": "vpb-roe-parent-equity-authority-20260925",
+    "basis": "The distinct ACCEPT attestation is required to open the scope; the eligible gate rerun alone is insufficient."
   },
-  "promotion_register_status_reconciliation_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json"
+  "promotion_register_status_reconciliation_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json",
+  "hash_convention": {
+    "tracked_text_control_records": "canonical_lf_utf8_sha256",
+    "immutable_evidence_artifacts": "raw_file_bytes_sha256",
+    "canonicalization": "strict UTF-8; CRLF and lone CR normalized to LF; preserve BOM, Unicode code points, whitespace and final newline; no Unicode normalization"
+  }
 }

@@ -413,28 +413,49 @@ is not proof of a generic derived-metric ingestion guarantee.
 
 ---
 
-## [LESSON-017] A correct ignored artifact can still conflict with project truth
+## [LESSON-017] A correct ignored artifact still needs repository-bound authority
 
-- **Date:** 2026-09-25
-- **Scope:** VPB ROE comparative eligibility and Gold v5 provenance
-- **Status:** active pending distinct reviewer confirmation under D-072.
+- Date: 2026-09-25
+- Scope: VPB ROE comparative eligibility, Gold v5 provenance and portable control hashes
+- Status: accepted under D-072 after distinct reviewer ACCEPT at head 2b292ddf21bd6be8a550f81fb518fca5dc419efb.
 
 The official VPB filings, two-checker adjudicated ledger and Gold v5 values
-support parent-attributable ROE, while D-063's former factual clause said total
-equity was used. The raw PDFs, candidate/review ledgers and SQLite snapshot are
-local ignored artifacts, so the committed authority record binds their exact
-hashes and locators without claiming that the files themselves are committed.
+support parent-attributable ROE. The earlier D-063 factual clause and local
+packet status were stale; durable records now describe parent-attributable
+profit over average parent-attributable equity. Q4 source locators are filing
+pages 6 and 8. The alternative total-equity calculation is retained as a
+diagnostic comparison, not the adopted convention.
 
-The stale packet README and v1 status manifest were found to contradict the
-adjudicated ledger. Their status records are now superseded by Git-bound
-records linked to the authority manifest. The original promotion ledger also
-has blank `register_review_status` values for the four VPB ROE targets. That
-blank is preserved; a status sidecar points to the separate adjudicated ledger
-for the accepted checker/adjudication state and makes no new review claim. The
-v5 comparative-definition gate returns eligible for its 80-cell scope, but
-D-072 keeps VPB excluded until a distinct reviewer confirms the linked records
-and gate result. A `valid` row, a recent timestamp or correct local arithmetic
-does not replace durable provenance or that independent confirmation.
+The distinct reviewer task /root/vpb_d072_reviewer_luna accepted exact PR head
+2b292ddf21bd6be8a550f81fb518fca5dc419efb. Its attestation records full raw
+source hashes, canonical Git-blob control hashes at that reviewed head, the
+independent Q4 recomputation, the eligible 80-cell gate result (76 valid, four
+missing), and the ACCEPT verdict. D-072 opens the five-issuer VPB ROE comparison
+scope only because that attestation exists; an eligible database gate alone
+does not replace distinct review.
+
+Tracked UTF-8 text control hashes use SHA-256 after strict UTF-8 decoding and
+CRLF/lone-CR to LF normalization. This preserves content while making hashes
+identical across Windows and Unix checkouts. Immutable PDFs, SQLite snapshots,
+CSV/JSON/JSONL ledgers and gate manifests use exact raw-byte SHA-256. Legacy
+Windows checkout-byte hashes may appear only as audit metadata. The verifier
+checks synthetic LF and CRLF forms plus the Git blob. It reads ignored
+artifacts only from an explicit evidence root; CI can validate tracked
+controls without that root but cannot validate ignored local evidence.
+
+Hash references form a one-way chain: an attestation binds the exact reviewed
+head and current VPB-scoped controls but does not hash itself or the authority;
+the authority binds the attestation but does not hash itself; D-063/D-072 cite
+the resulting hashes and are not included in that authority control set. Living
+repository files (`AGENTS.md`, contracts, decisions, lessons, verifier code)
+must remain semantic policy references rather than byte-pinned domain evidence.
+Otherwise any unrelated repository update invalidates an accepted data gate.
+Do not introduce reverse hash references that create a cycle.
+
+The original checker, adjudication and promotion ledgers remain unchanged. The
+promotion ledger's register_review_status stays blank for the four VPB targets;
+the separate sidecar links the accepted adjudication and records the independent
+review status without rewriting the source ledger.
 
 ## [LESSON-018] API phải ràng buộc claim vào source locator của đúng metric
 

@@ -181,3 +181,16 @@ def _ratio(numerator: Number, denominator: Number, *, formula_version: str, peri
 - Chỉ công bố median khi unit, period basis và reporting scope đã xác minh
   cùng tương thích và khác null. Không suy diễn scope từ tên tài liệu.
 - Nhóm năm ngân hàng là case study; không mặc định đại diện toàn ngành.
+
+### 2.6. Phạm vi thời gian của phân tích xu hướng
+
+- Một trend nhiều kỳ là một logical analysis scope với danh sách kỳ có thứ tự;
+  không ghép các report một kỳ đã được nghiệm thu độc lập để giả lập trend.
+- Mỗi giá trị vẫn thuộc đúng một `(entity, metric, period)` và giữ unit, period
+  basis, reporting scope, observation/source/locator provenance riêng.
+- Metric lặp qua nhiều kỳ phải được biểu diễn bằng metric-period records; cấm
+  dùng map chỉ theo metric vì sẽ làm mất kỳ.
+- Thiếu một kỳ hoặc một metric trong ma trận scope phải được ghi `missing` kèm
+  lý do hoặc làm request fail closed; không được tự rút ngắn khoảng thời gian.
+- Nhận xét hướng tăng/giảm không cấp quyền cho LLM tạo numeric delta hay nguyên
+  nhân mới. Delta chỉ được công bố khi code tính theo formula version có lineage.

@@ -32,6 +32,9 @@
 
 ## 5. SQLite Concurrency & Schema Migration Invariants
 - **WAL Mode Mandate:** File database `finance_master_v2.sqlite` bắt buộc chạy ở chế độ WAL. Worker Data khi ghi dữ liệu không được phép ngắt WAL mode.
+- **No Shared Mutable SQLite Files:** Không hardlink database, WAL hoặc SHM giữa
+  root và worktree. Worktree dùng SQLite backup snapshot độc lập; test chỉ ghi
+  vào worktree/temp copy và phải xác nhận hash artifact nguồn không đổi.
 - **Contract-First Schema Evolution:**
   - Nếu chỉ thêm/sửa dữ liệu (DML: INSERT, UPDATE): Worker Data tự do thực thi trong worktree.
   - Nếu thay đổi cấu trúc bảng/cột/index (DDL: CREATE TABLE, ALTER TABLE): BẮT BUỘC cập nhật `contracts/schema.sql` trước và được review duyệt. Không bao giờ chạy migration ngầm trên SQLite mà chưa có diff trên `contracts/schema.sql`.

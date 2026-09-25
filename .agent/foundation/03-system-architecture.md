@@ -138,5 +138,9 @@ Ba tệp mỏ neo trong `contracts/` là Single Source of Truth giữa các tầ
 
 ### Rào chắn Kiến trúc Bắt buộc (Architectural Guardrails):
 1. **SQLite WAL Mode**: `data/processed/finance_master_v2.sqlite` bắt buộc chạy `PRAGMA journal_mode = WAL;` và `PRAGMA busy_timeout = 30000;`.
-2. **NTFS Hardlinks**: Đồng bộ `.env` giữa root và các `.worktrees/` qua hardlink (`mklink /H`).
-3. **Kiểm tra Guardrail Tự động**: Lệnh `python scripts/check_architecture_guardrails.py` bắt buộc phải trả về PASS trước mọi đợt merge.
+2. **Worktree Database Isolation**: Không hardlink SQLite database hoặc file
+   `-wal`/`-shm` giữa root và worktree. `worker-start` dùng SQLite backup API để
+   tạo snapshot độc lập, kiểm tra integrity và bật WAL cho bản copy. Test và API
+   local chỉ được ghi vào bản worktree/temp; artifact nguồn ở root là read-only.
+3. **NTFS Hardlinks**: Chỉ đồng bộ `.env` giữa root và các `.worktrees/` qua hardlink (`mklink /H`).
+4. **Kiểm tra Guardrail Tự động**: Lệnh `python scripts/check_architecture_guardrails.py` bắt buộc phải trả về PASS trước mọi đợt merge.

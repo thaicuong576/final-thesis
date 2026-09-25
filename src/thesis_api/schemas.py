@@ -90,6 +90,28 @@ class MacroContextDTO(BaseModel):
     )
 
 
+class PeerBenchmarkRecordDTO(BaseModel):
+    """Provider-bound audit metadata for one peer metric benchmark."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metric_id: str
+    benchmark_observation_id: str
+    value: float
+    unit: str
+    period: str
+    period_basis: str
+    reporting_scope: str
+    peer_universe_id: str
+    requested_peer_entity_ids: List[str]
+    eligible_peer_entity_ids: List[str]
+    aggregation_method: str
+    requested_denominator: int
+    eligible_denominator: int
+    input_observation_ids: List[str]
+    missing_members: List[dict[str, Any]] = Field(default_factory=list)
+
+
 class SectorBenchmarkDTO(BaseModel):
     """Sector benchmark medians across banking peers."""
 
@@ -123,6 +145,10 @@ class SectorBenchmarkDTO(BaseModel):
     peer_median_ldr: Optional[float] = Field(
         default=None,
         description="Peer median loan-to-deposit ratio (LDR) percentage",
+    )
+    benchmarks: List[PeerBenchmarkRecordDTO] = Field(
+        default_factory=list,
+        description="Authoritative per-metric benchmark provenance and denominator records",
     )
 
 
@@ -223,6 +249,10 @@ class BoundedRevisionSummaryDTO(BaseModel):
     revised_capabilities: List[str] = Field(
         default_factory=list, description="Specialist capabilities that underwent revision"
     )
+    synthesis_revised: bool = Field(
+        default=False,
+        description="Whether the report-level synthesis artifact changed during bounded revision",
+    )
 
 
 class ObservableActivityDTO(BaseModel):
@@ -296,4 +326,12 @@ class AnalysisResponse(BaseModel):
     limitations: List[str] = Field(
         default_factory=list,
         description="Analytical limitations and caveats",
+    )
+    synthesis_summary: Optional[str] = Field(
+        default=None,
+        description="Constrained orchestrator prose grounded in accepted specialist outputs",
+    )
+    synthesis_supporting_claim_ids: List[str] = Field(
+        default_factory=list,
+        description="Ordered claim IDs explicitly used to produce the report-level synthesis",
     )

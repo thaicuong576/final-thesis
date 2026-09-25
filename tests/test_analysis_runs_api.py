@@ -5,6 +5,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 import sqlite3
+import hashlib
 from pathlib import Path
 from unittest.mock import patch
 from fastapi.testclient import TestClient
@@ -18,7 +19,7 @@ from thesis_api.database import (
     get_analysis_run,
     get_analysis_report,
 )
-from test_api_analyze import _ExplicitOfflineAcceptingCritic, _fixture_provider_binding, _gold_fixture
+from test_api_analyze import _ExplicitOfflineAcceptingCritic, _ExplicitOfflineAnalysisWriter, _fixture_provider_binding, _gold_fixture
 
 
 class AnalysisRunsApiTests(unittest.TestCase):
@@ -27,25 +28,29 @@ class AnalysisRunsApiTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = _gold_fixture(Path(self.temp_dir.name) / "test_finance.sqlite")
+        self.runs_path = Path(self.temp_dir.name) / "analysis-runs.sqlite"
 
         self.settings = Settings(
             app_name="final-thesis-api-test",
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            analysis_runs_db_path=str(self.runs_path),
+            openai_api_key="test-key",
         )
-        self.app = create_app(self.settings)
+        self.app = create_app(self.settings, analysis_writer=_ExplicitOfflineAnalysisWriter())
         self.client = TestClient(self.app)
 
     def tearDown(self) -> None:
+        self.client.close()
         self.temp_dir.cleanup()
 
     def test_database_functions_crud(self) -> None:
-        ensure_analysis_runs_table(self.db_path)
-        runs_empty = list_analysis_runs(self.db_path)
+        ensure_analysis_runs_table(self.runs_path)
+        runs_empty = list_analysis_runs(self.runs_path)
         initial_count = len(runs_empty)
 
         save_analysis_run(
-            db_path=self.db_path,
+            db_path=self.runs_path,
             run_id="run-test-123",
             created_at="2026-09-23T12:00:00Z",
             query="Phan tich ACB 2024",
@@ -59,27 +64,27 @@ class AnalysisRunsApiTests(unittest.TestCase):
             latency_ms=120,
         )
 
-        runs = list_analysis_runs(self.db_path)
+        runs = list_analysis_runs(self.runs_path)
         self.assertEqual(len(runs), initial_count + 1)
         self.assertEqual(runs[0]["run_id"], "run-test-123")
         self.assertEqual(runs[0]["target_ticker"], "ACB")
 
-        run_detail = get_analysis_run(self.db_path, "run-test-123")
+        run_detail = get_analysis_run(self.runs_path, "run-test-123")
         self.assertIsNotNone(run_detail)
         self.assertEqual(run_detail["query"], "Phan tich ACB 2024")
         self.assertEqual(run_detail["report"]["report_id"], "rep-test-123")
         self.assertEqual(len(run_detail["events"]), 1)
 
-        report = get_analysis_report(self.db_path, "run-test-123")
+        report = get_analysis_report(self.runs_path, "run-test-123")
         self.assertIsNotNone(report)
         self.assertEqual(report["report_id"], "rep-test-123")
 
-        report_by_rep_id = get_analysis_report(self.db_path, "rep-test-123")
+        report_by_rep_id = get_analysis_report(self.runs_path, "rep-test-123")
         self.assertIsNotNone(report_by_rep_id)
 
     def test_get_runs_endpoint(self) -> None:
         save_analysis_run(
-            db_path=self.db_path,
+            db_path=self.runs_path,
             run_id="run-api-test-1",
             created_at="2026-09-23T12:00:00Z",
             query="Danh gia ACB va VCB",
@@ -124,7 +129,7 @@ class AnalysisRunsApiTests(unittest.TestCase):
 
     def test_get_run_by_id_endpoint_and_404(self) -> None:
         save_analysis_run(
-            db_path=self.db_path,
+            db_path=self.runs_path,
             run_id="run-api-test-2",
             created_at="2026-09-23T12:01:00Z",
             query="So sanh MBB va TCB",
@@ -150,7 +155,7 @@ class AnalysisRunsApiTests(unittest.TestCase):
 
     def test_get_report_by_id_endpoint_and_404(self) -> None:
         save_analysis_run(
-            db_path=self.db_path,
+            db_path=self.runs_path,
             run_id="rep-api-test-3",
             created_at="2026-09-23T12:02:00Z",
             query="Danh gia ROE VCB",
@@ -194,6 +199,74 @@ class AnalysisRunsApiTests(unittest.TestCase):
         self.assertGreaterEqual(len(runs), 1)
         acb_runs = [r for r in runs if r["target_ticker"] == "ACB"]
         self.assertGreaterEqual(len(acb_runs), 1)
+
+    def test_sync_and_sse_persist_history_without_changing_accepted_snapshot(self) -> None:
+        def digest(path: Path) -> str:
+            return hashlib.sha256(path.read_bytes()).hexdigest()
+
+        def schema(path: Path) -> list[tuple[str, str, str]]:
+            connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+            try:
+                return connection.execute(
+                    "SELECT type, name, sql FROM sqlite_master ORDER BY type, name"
+                ).fetchall()
+            finally:
+                connection.close()
+
+        accepted_hash = digest(self.db_path)
+        accepted_schema = schema(self.db_path)
+        payload = {
+            "query": "Analyze ROE of ACB in 2024 Q4",
+            "target_ticker": "ACB",
+            "period": "2024_Q4",
+        }
+        with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=_ExplicitOfflineAcceptingCritic(),
+        ), patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            first = self.client.post("/api/analyze", json=payload)
+            second = self.client.post("/api/analyze", json=payload)
+            streamed = self.client.post("/api/analyze/stream", json=payload)
+
+        self.assertEqual(first.json()["status"], "completed", first.text)
+        self.assertEqual(second.json()["status"], "completed", second.text)
+        self.assertIn("REPORT_READY", streamed.text)
+        self.assertNotIn("RUN_BLOCKED", streamed.text)
+        self.assertEqual(digest(self.db_path), accepted_hash)
+        self.assertEqual(schema(self.db_path), accepted_schema)
+        runs = self.client.get("/api/runs").json()
+        self.assertEqual(len(runs), 3)
+        for run in runs:
+            detail = self.client.get(f"/api/runs/{run['run_id']}")
+            self.assertEqual(detail.status_code, 200)
+            self.assertEqual(detail.json()["report"]["status"], "completed")
+
+    def test_persistence_failures_never_return_report_ready(self) -> None:
+        payload = {
+            "query": "Analyze ROE of ACB in 2024 Q4",
+            "target_ticker": "ACB",
+            "period": "2024_Q4",
+        }
+        with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=_ExplicitOfflineAcceptingCritic(),
+        ), patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ), patch(
+            "thesis_api.service.save_analysis_run",
+            side_effect=OSError("disk full"),
+        ):
+            sync = self.client.post("/api/analyze", json=payload)
+            streamed = self.client.post("/api/analyze/stream", json=payload)
+        self.assertEqual(sync.json()["status"], "error")
+        self.assertIn("analysis_run_persistence_failed", sync.json()["limitations"][0])
+        self.assertNotIn("REPORT_READY", streamed.text)
+        self.assertIn("RUN_BLOCKED", streamed.text)
+        self.assertIn("analysis_run_persistence_failed", streamed.text)
 
 
 if __name__ == "__main__":

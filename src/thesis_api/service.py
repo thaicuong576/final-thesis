@@ -64,7 +64,7 @@ from thesis_data.schema import (
 )
 from thesis_data.dataset_provider import peer_benchmark_observation_id
 
-from .database import save_analysis_run
+from .database import ensure_analysis_runs_table, save_analysis_run
 from .llm import LLMConfigurationError
 from .settings import get_settings
 from .schemas import (
@@ -1039,10 +1039,22 @@ class AnalysisEngine:
         settings=None,
         *,
         semantic_critic=None,
+        analysis_writer=None,
     ) -> None:
         self.db_path = Path(db_path)
         self.settings = settings or get_settings()
         self._semantic_critic = semantic_critic
+        self._analysis_writer = analysis_writer
+
+    def _runs_store_path(self) -> Path:
+        return self.settings.get_analysis_runs_path(dataset_path=self.db_path)
+
+    def _model_runtime_configured(self) -> bool:
+        return bool(
+            self.settings.openai_api_key and self.settings.openai_api_key.strip()
+            and self.settings.openai_base_url and self.settings.openai_base_url.strip()
+            and self.settings.openai_model and self.settings.openai_model.strip()
+        )
 
     def _binding(self) -> ProviderBinding:
         authority_path = getattr(self.settings, "gold_scope_authority_path", None)
@@ -1057,8 +1069,23 @@ class AnalysisEngine:
         event_sink=None,
     ) -> AnalysisResponse:
         try:
+            try:
+                self._runs_store_path()
+            except (OSError, ValueError):
+                return _error_report(
+                    "analysis_runs_store_invalid",
+                    "The operational analysis history store must resolve to a writable path separate from the accepted dataset.",
+                    request,
+                )
+            if not self._model_runtime_configured() and not (self._semantic_critic is not None and self._analysis_writer is not None):
+                return _error_report(
+                    "semantic_provider_unconfigured",
+                    "A configured OpenAI-compatible specialist writer and semantic reviewer are required before retrieval.",
+                    request,
+                )
             binding = self._binding()
             semantic_critic = self._semantic_critic
+            analysis_writer = self._analysis_writer
             if semantic_critic is None:
                 from .adaptive_runtime import build_openai_semantic_critic
 
@@ -1070,6 +1097,17 @@ class AnalysisEngine:
                         "A configured OpenAI-compatible semantic reviewer is required before specialist execution.",
                         request,
                     )
+            if analysis_writer is None:
+                from .adaptive_runtime import build_openai_analysis_writer
+
+                try:
+                    analysis_writer = build_openai_analysis_writer(self.settings)
+                except (ValueError, LLMConfigurationError) as exc:
+                    return _error_report(
+                        "analysis_writer_unconfigured",
+                        "A configured OpenAI-compatible specialist writer is required before specialist execution.",
+                        request,
+                    )
             from .adaptive_runtime import run_adaptive_analysis
 
             return run_adaptive_analysis(
@@ -1079,6 +1117,7 @@ class AnalysisEngine:
                 request=request,
                 settings=self.settings,
                 semantic_critic=semantic_critic,
+                analysis_writer=analysis_writer,
                 emit=event_sink,
             )
         except AnalysisBlocked as exc:
@@ -1090,7 +1129,15 @@ class AnalysisEngine:
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         report = self._analyze(request)
         if report.status != "error":
-            self.persist_run(request, report, events=[])
+            try:
+                self.persist_run(request, report, events=[])
+            except Exception as exc:
+                logger.error("Validated analysis report could not be persisted: %s", type(exc).__name__)
+                return _error_report(
+                    "analysis_run_persistence_failed",
+                    "The operational run store could not persist the accepted report.",
+                    request,
+                )
         return report
 
     def persist_run(
@@ -1102,26 +1149,49 @@ class AnalysisEngine:
         plan = report.analysis_plan
         if plan is None or report.status == "error":
             return
-        try:
-            save_analysis_run(
-                db_path=self.db_path,
-                run_id=report.report_id,
-                created_at=datetime.now(timezone.utc).isoformat(),
-                query=request.query,
-                target_ticker=plan.target_ticker or "",
-                peer_tickers=plan.peer_tickers,
-                period=plan.period or "",
-                status=report.status,
-                report_json=report.model_dump(mode="json", exclude_none=True),
-                events_json=events,
-                model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
-                latency_ms=None,
-            )
-        except Exception as exc:
-            logger.warning("Failed to persist validated analysis run: %s", type(exc).__name__)
+        save_analysis_run(
+            db_path=self._runs_store_path(),
+            run_id=report.report_id,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            query=request.query,
+            target_ticker=plan.target_ticker or "",
+            peer_tickers=plan.peer_tickers,
+            period=plan.period or "",
+            status=report.status,
+            report_json=report.model_dump(mode="json", exclude_none=True),
+            events_json=events,
+            model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
+            latency_ms=None,
+        )
 
     def get_capabilities(self) -> dict[str, Any]:
-        return get_dataset_capabilities(self.db_path, settings=self.settings)
+        capabilities = get_dataset_capabilities(self.db_path, settings=self.settings)
+        model_configured = self._model_runtime_configured()
+        try:
+            runs_path = self._runs_store_path()
+            ensure_analysis_runs_table(runs_path)
+            connection = sqlite3.connect(runs_path, timeout=2.0)
+            try:
+                connection.execute("SELECT COUNT(*) FROM analysis_runs").fetchone()
+            finally:
+                connection.close()
+            store_configured = True
+        except (OSError, ValueError, sqlite3.Error):
+            store_configured = False
+        capabilities["semantic_reviewer_configured"] = model_configured
+        capabilities["specialist_writer_configured"] = model_configured
+        capabilities["analysis_runs_store_configured"] = store_configured
+        data_available = bool(capabilities.get("analysis_available"))
+        capabilities["analysis_available"] = data_available and model_configured and store_configured
+        if not data_available:
+            pass
+        elif not store_configured:
+            capabilities["readiness"] = "ANALYSIS_RUNS_DB_PATH must resolve to a separate operational store, not the accepted dataset file."
+            capabilities["limitation_code"] = "analysis_runs_store_invalid"
+        elif not model_configured:
+            capabilities["readiness"] = "OPENAI_API_KEY, OPENAI_BASE_URL, and OPENAI_MODEL are required for specialist writing and semantic review."
+            capabilities["limitation_code"] = "semantic_provider_unconfigured"
+        return capabilities
 
     def is_ready(self) -> tuple[bool, str, str | None]:
         capabilities = self.get_capabilities()
@@ -1135,6 +1205,7 @@ class AnalysisEngine:
         yield from stream_analysis_query(
             request, db_path=self.db_path, step_delay=step_delay,
             settings=self.settings, semantic_critic=self._semantic_critic,
+            analysis_writer=self._analysis_writer,
         )
 
 
@@ -1145,6 +1216,7 @@ def stream_analysis_query(
     *,
     settings=None,
     semantic_critic=None,
+    analysis_writer=None,
 ) -> Iterator[str]:
     """Stream actual plan, specialist, review, revision, synthesis, and terminal events."""
 
@@ -1154,6 +1226,7 @@ def stream_analysis_query(
         db_path or current_settings.get_sqlite_path(),
         current_settings,
         semantic_critic=semantic_critic,
+        analysis_writer=analysis_writer,
     )
     started_at = time.monotonic()
     sequence = 1
@@ -1193,13 +1266,18 @@ def stream_analysis_query(
                     reason = report.limitations[0] if report.limitations else "analysis_blocked"
                     emit("RUN_BLOCKED", {"reason": reason, "reportId": report.report_id, "status": report.status})
             else:
+                try:
+                    engine.persist_run(req, report, events)
+                except Exception as exc:
+                    logger.error("Accepted SSE report could not be persisted: %s", type(exc).__name__)
+                    emit("RUN_BLOCKED", {"reason": "analysis_run_persistence_failed", "status": "error"})
+                    return
                 emit("REPORT_READY", {
                     "reportId": report.report_id,
                     "status": report.status,
                     "message": "The terminal accepted report is ready with its limitations and provenance joins.",
                     "report": report.model_dump(mode="json", exclude_none=True),
                 })
-                engine.persist_run(req, report, events)
         except Exception as exc:
             logger.warning("SSE analysis failed: %s", type(exc).__name__)
             emit("RUN_BLOCKED", {"reason": "adaptive_runtime_failure", "status": "error"})

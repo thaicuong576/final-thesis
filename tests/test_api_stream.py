@@ -15,6 +15,7 @@ from thesis_api.schemas import AnalysisResponse, AnalysisSessionEventDTO
 from thesis_api.settings import Settings
 from test_api_analyze import (
     _ExplicitOfflineAcceptingCritic,
+    _ExplicitOfflineAnalysisWriter,
     _RevisionScenarioCritic,
     _fixture_provider_binding,
     _gold_fixture,
@@ -33,9 +34,14 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         )
         self.critic_factory_patch.start()
         self.addCleanup(self.critic_factory_patch.stop)
-        self.client = TestClient(
-            create_app(Settings(app_env="test", sqlite_db_path=str(self.db_path)))
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(self.db_path),
+            analysis_runs_db_path=str(Path(self.directory.name) / "analysis-runs.sqlite"),
+            openai_api_key="test-key",
         )
+        self.client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
+        self.addCleanup(self.client.close)
 
     def _parse(self, response_text: str) -> list[tuple[str, dict]]:
         result = []
@@ -77,9 +83,9 @@ class ApiStreamIntegrationTests(unittest.TestCase):
                 "SPECIALIST_ACTIVITY",
                 "SPECIALIST_OUTPUT_CREATED",
                 "SPECIALIST_COMPLETED",
+                "SYNTHESIS_STARTED",
                 "REVIEW_STARTED",
                 "REVIEW_FEEDBACK_CREATED",
-                "SYNTHESIS_STARTED",
                 "SYNTHESIS_COMPLETED",
                 "REPORT_READY",
             ],
@@ -164,7 +170,12 @@ class ApiStreamIntegrationTests(unittest.TestCase):
 
     def test_missing_snapshot_terminates_with_run_blocked(self) -> None:
         missing = Path(self.directory.name) / "missing.sqlite"
-        client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(missing))))
+        settings = Settings(
+            app_env="test", sqlite_db_path=str(missing),
+            analysis_runs_db_path=str(Path(self.directory.name) / "missing-runs.sqlite"),
+            openai_api_key="test-key",
+        )
+        client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         response = client.post(
             "/api/analyze/stream",
             json={"query": "Analyze ROE of ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},

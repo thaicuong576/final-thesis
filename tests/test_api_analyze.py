@@ -44,6 +44,7 @@ from thesis_data.semantic_evaluation import (
 from thesis_data.storage import create_gold_snapshot_schema
 
 from thesis_api.main import create_app
+from thesis_api.adaptive_runtime import _RuntimeStage1Evaluator
 from thesis_api.schemas import AnalysisRequest, AnalysisResponse
 from thesis_api.service import (
     AnalysisBlocked,
@@ -93,6 +94,62 @@ class _ExplicitOfflineAcceptingCritic:
         )
 
 
+class _ExplicitOfflineAnalysisWriter:
+    """Test adapter for grounded prose; it never queries data or sources."""
+
+    def __init__(self, *, respond_to_feedback: bool = True, injected_text: str | None = None, initial_text: str | None = None, missing_text: str | None = None, injected_summary: str | None = None) -> None:
+        self.respond_to_feedback = respond_to_feedback
+        self.injected_text = injected_text
+        self.initial_text = initial_text
+        self.missing_text = missing_text
+        self.injected_summary = injected_summary
+        self.specialist_calls: list[dict] = []
+        self.synthesis_calls: list[dict] = []
+
+    def write_specialist(self, *, plan, role, claims, issues):
+        self.specialist_calls.append({
+            "plan": plan,
+            "role": role,
+            "claim_ids": [item["claim_id"] for item in claims],
+            "issues": issues,
+        })
+        result = {}
+        for item in claims:
+            claim_id = item["claim_id"]
+            display_name = item["display_name"]
+            prose = f"The {display_name} statement stays anchored to its accepted provider observation and declared scope."
+            if issues and self.respond_to_feedback:
+                issue = issues[0]
+                prose += f" The specialist addressed the review request: {issue['description']} Action: {issue['required_action']}."
+            elif not issues and self.initial_text is not None:
+                prose += f" {self.initial_text}"
+            if self.injected_text is not None:
+                prose += f" {self.injected_text}"
+            if self.missing_text is not None and item["accepted_observation"]["validation_status"] == "missing":
+                prose += f" {self.missing_text}"
+            result[claim_id] = {
+                "prose": prose,
+                "supporting_claim_ids": [claim_id],
+            }
+        return result
+
+    def synthesize(self, *, plan, specialist_outputs, issues):
+        self.synthesis_calls.append({"plan": plan, "specialist_outputs": specialist_outputs, "issues": issues})
+        summary = "Specialist outputs stay within the frozen request scope and accepted provider evidence."
+        if issues and self.respond_to_feedback:
+            summary += " The synthesis addresses the selected review request: " + " ".join(item["description"] for item in issues)
+        if self.injected_summary is not None:
+            summary += f" {self.injected_summary}"
+        return {
+            "summary": summary,
+            "supporting_claim_ids": [
+                item["claim_id"]
+                for role_outputs in specialist_outputs.values()
+                for item in role_outputs
+            ],
+        }
+
+
 class _RevisionScenarioCritic:
     """Explicit test critic for a repaired or unrepairable company issue."""
 
@@ -105,7 +162,11 @@ class _RevisionScenarioCritic:
         self.calls += 1
         claim_ids = tuple(claim.claim_id for claim in claims)
         req_id = plan.requirements[0].requirement_id
-        resolved = self.resolve_after_revision and round_context.round_number > 0
+        resolved = (
+            self.resolve_after_revision
+            and round_context.round_number > 0
+            and "Action: REVISE_CLAIM." in claims[0].claim_text
+        )
         issue = CritiqueIssue(
             issue_id="test-injected-claim-review",
             issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
@@ -129,6 +190,52 @@ class _RevisionScenarioCritic:
             ))
         return StructuredCriticResult(
             evaluator_version="test-only-revision-scenario-v1",
+            dimension_scores=tuple(dimensions),
+            critique_issues=(issue,),
+            fulfilled_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
+        )
+
+
+class _SynthesisOnlyCritic:
+    """Targets the typed report summary without attaching it to a claim."""
+
+    def __init__(self) -> None:
+        self.contexts: list[dict] = []
+
+    def evaluate(self, *, plan, claims, stage1_report, round_context):
+        del stage1_report
+        claim_ids = tuple(claim.claim_id for claim in claims)
+        self.contexts.append({
+            "summary": round_context.synthesis_summary,
+            "supporting_claim_ids": tuple(round_context.synthesis_supporting_claim_ids),
+            "first_claim_text": claims[0].claim_text,
+        })
+        issue_id = "synthesis-review"
+        description = "Clarify how the specialist outputs fit together."
+        resolved = round_context.round_number > 0 and description in (round_context.synthesis_summary or "")
+        issue = CritiqueIssue(
+            issue_id=issue_id,
+            issue_type=CritiqueIssueType.INCOMPLETE_SYNTHESIS,
+            severity=CritiqueSeverity.MAJOR,
+            affected_agent="orchestrator",
+            affected_claim_ids=(),
+            affected_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
+            description=description,
+            required_action=CritiqueAction.REVISE_CLAIM,
+            resolution_status=CritiqueIssueStatus.RESOLVED if resolved else CritiqueIssueStatus.OPEN,
+        )
+        dimensions = []
+        for dimension, applicability in expected_dimension_applicability(plan).items():
+            dimensions.append(SemanticDimensionResult(
+                dimension=dimension,
+                applicability=applicability,
+                score=0.9 if applicability is SemanticDimensionApplicability.APPLICABLE else None,
+                rationale="Explicit synthesis test critic reviewed the typed summary separately from claim text.",
+                supporting_claim_ids=claim_ids if applicability is SemanticDimensionApplicability.APPLICABLE else (),
+                issue_ids=(issue_id,) if dimension is SemanticDimension.ANSWER_COVERAGE else (),
+            ))
+        return StructuredCriticResult(
+            evaluator_version="test-only-synthesis-critic-v1",
             dimension_scores=tuple(dimensions),
             critique_issues=(issue,),
             fulfilled_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
@@ -420,8 +527,115 @@ class _FiveMemberPeerProvider:
     def resolve_observation(self, dataset_ref, observation_id):
         return next((item for item in self.observations.values() if item.observation_id == observation_id), None)
 
-    def get_macro_observation(self, *args, **kwargs):
-        return None
+
+class _DifferentMetricEligibilityPeerProvider(_FiveMemberPeerProvider):
+    """Two metrics with different accepted peer sets and denominators."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        npl_metric = DatasetMetric(
+            metric_id="bank.npl_g35",
+            display_name="NPL",
+            analytical_level=AnalyticalLevel.COMPANY,
+            default_unit="percent",
+        )
+        self.catalog = self.catalog.model_copy(update={"metrics": (*self.catalog.metrics, npl_metric)})
+        values = {"TCB": 2.0, "BID": 2.5, "CTG": 2.3, "VCB": 1.7}
+        for ticker in ("TCB", "ACB", "BID", "CTG", "MBB", "VCB"):
+            if ticker in {"ACB", "MBB"}:
+                observation = CanonicalObservation(
+                    observation_id=f"obs-{ticker}-npl-q1",
+                    dataset_id=self.dataset_ref.dataset_id,
+                    dataset_snapshot_id=self.dataset_ref.dataset_snapshot_id,
+                    entity_id=ticker,
+                    period_id="2024_Q1",
+                    metric_id="bank.npl_g35",
+                    validation_status=QualityStatus.MISSING,
+                    missing_reason="DATA_UNAVAILABLE",
+                    period_basis="point_in_time",
+                    reporting_scope=None,
+                )
+            else:
+                observation = CanonicalObservation(
+                    observation_id=f"obs-{ticker}-npl-q1",
+                    dataset_id=self.dataset_ref.dataset_id,
+                    dataset_snapshot_id=self.dataset_ref.dataset_snapshot_id,
+                    entity_id=ticker,
+                    period_id="2024_Q1",
+                    metric_id="bank.npl_g35",
+                    value=values[ticker],
+                    unit="percent",
+                    period_basis="point_in_time",
+                    source_ref=f"source-{ticker}",
+                    source_locator=f"table:npl;row:{ticker}",
+                    reporting_scope="consolidated",
+                    validation_status=QualityStatus.VALID,
+                )
+            self.observations[(ticker, "2024_Q1", "bank.npl_g35")] = observation
+
+
+class _DeclaredMacroProvider:
+    """Injected provider proving Macro runs only when its catalog declares it."""
+
+    def __init__(self) -> None:
+        self.dataset_ref = DatasetRef(dataset_id="macro-fixture", dataset_snapshot_id="macro-fixture-v1")
+        self.observation = CanonicalObservation(
+            observation_id="macro-policy-rate-q4",
+            dataset_id=self.dataset_ref.dataset_id,
+            dataset_snapshot_id=self.dataset_ref.dataset_snapshot_id,
+            entity_id="VN",
+            period_id="2024_Q4",
+            metric_id="macro.policy_rate",
+            value=4.5,
+            unit="percent",
+            period_basis="period_average",
+            reporting_scope="national",
+            source_ref="source-macro",
+            source_locator="table:policy-rate;row:2024-Q4",
+            validation_status=QualityStatus.VALID,
+        )
+        self.source = DatasetSource(
+            source_ref="source-macro",
+            source_type="central_bank_filing",
+            source_tier=SourceTier.PRIMARY,
+            source_url="https://example.test/sbv/policy-rate",
+            publisher="Accepted macro test source",
+            retrieved_at="2026-09-25T00:00:00Z",
+            content_hash="sha256-macro",
+            validation_status=QualityStatus.VALID,
+        )
+        self.catalog = DatasetCapabilityCatalog(
+            dataset_ref=self.dataset_ref,
+            entities=(DatasetEntity(entity_id="VN", entity_type=DatasetEntityType.MACRO, display_name="Vietnam"),),
+            periods=(DatasetPeriod(period_id="2024_Q4", label="2024 Q4"),),
+            metrics=(DatasetMetric(
+                metric_id="macro.policy_rate",
+                display_name="policy rate",
+                analytical_level=AnalyticalLevel.MACRO,
+                default_unit="percent",
+            ),),
+            source_refs=("source-macro",),
+            supported_operations=(
+                SupportedOperation.GET_MACRO_OBSERVATION,
+                SupportedOperation.RESOLVE_OBSERVATION,
+                SupportedOperation.GET_SOURCE,
+            ),
+        )
+
+    def get_capabilities(self, _dataset_ref):
+        return self.catalog
+
+    def get_macro_observation(self, *_args, **_kwargs):
+        return self.observation
+
+    def resolve_observation(self, _dataset_ref, observation_id):
+        return self.observation if observation_id == self.observation.observation_id else None
+
+    def get_source(self, _dataset_ref, source_ref):
+        return self.source if source_ref == self.source.source_ref else None
+
+    def get_evidence(self, *_args, **_kwargs):
+        return ()
 
 
 class ApiAnalyzeIntegrationTests(unittest.TestCase):
@@ -441,7 +655,20 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         self.critic_factory_patch.start()
         self.addCleanup(self.critic_factory_patch.stop)
-        self.client = TestClient(create_app(self.settings))
+        self.settings.openai_api_key = "test-key"
+        self.settings.analysis_runs_db_path = str(Path(self.directory.name) / "analysis-runs.sqlite")
+        self.writer = _ExplicitOfflineAnalysisWriter()
+        self.client = TestClient(create_app(self.settings, analysis_writer=self.writer))
+        self.addCleanup(self.client.close)
+
+    def _runtime_app(self, database: Path, *, api_key: str | None = "test-key", writer=None):
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(database),
+            analysis_runs_db_path=str(database.with_name(database.stem + "-runs.sqlite")),
+            openai_api_key=api_key,
+        )
+        return create_app(settings, analysis_writer=writer or _ExplicitOfflineAnalysisWriter())
 
     def test_company_claims_are_provider_backed_and_both_stages_accepted(self) -> None:
         with patch(
@@ -497,12 +724,128 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual({item.source_id for item in report.evidence_trail}, {"source-roe", "source-npl"})
         self.assertTrue(all(item.source_url == "https://example.test/acb/report" for item in report.evidence_trail))
 
+    def test_writer_rejects_unsupported_prose_and_accepts_grounded_limitation(self) -> None:
+        attacks = (
+            ("The ratio improved over an earlier quarter.", "analysis_writer_unsupported_trend"),
+            ("The ratio is elevated because of market conditions.", "analysis_writer_unsupported_causality"),
+            ("VCB reports the ratio at the same level.", "analysis_writer_entity_scope_invalid"),
+            ("NPL should be compared with the accepted ratio.", "analysis_writer_metric_scope_invalid"),
+            ("The ratio equals 999 percent.", "analysis_writer_unsupported_number"),
+            ("The ratio is documented at page:42 in the filing.", "analysis_writer_provenance_reference_rejected"),
+        )
+        request = AnalysisRequest(
+            query="What is the return on equity for ACB in 2024 Q4?",
+            target_ticker="ACB",
+            period="2024_Q4",
+        )
+        for text, expected_code in attacks:
+            with self.subTest(text=text):
+                critic = _ExplicitOfflineAcceptingCritic()
+                writer = _ExplicitOfflineAnalysisWriter(injected_text=text)
+                with patch(
+                    "thesis_api.service._load_provider",
+                    side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+                ):
+                    report = AnalysisEngine(
+                        self.db_path,
+                        self.settings,
+                        semantic_critic=critic,
+                        analysis_writer=writer,
+                    )._analyze(request)
+                self.assertEqual(report.status, "error")
+                self.assertIn(expected_code, report.limitations[0])
+                self.assertEqual(critic.calls, 0)
+
+        writer = _ExplicitOfflineAnalysisWriter(
+            injected_text="This observation remains within the accepted scope and its stated limitation."
+        )
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=_ExplicitOfflineAcceptingCritic(),
+                analysis_writer=writer,
+            )._analyze(request)
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertIn("stated limitation", report.atomic_claims[0].statement)
+
+    def test_writer_cannot_swap_a_number_between_claims(self) -> None:
+        writer = _ExplicitOfflineAnalysisWriter(injected_text="The ratio is 1.03 percent.")
+        critic = _ExplicitOfflineAcceptingCritic()
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=critic,
+                analysis_writer=writer,
+            )._analyze(AnalysisRequest(
+                query="Analyze ROE and NPL of ACB in 2024 Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "error")
+        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
+        self.assertEqual(critic.calls, 0)
+
+    def test_writer_rejects_number_words_in_missing_claims_and_synthesis(self) -> None:
+        for phrase in ("seventeen percent", "mười bảy phần trăm"):
+            with self.subTest(phrase=phrase):
+                provider = _FiveMemberPeerProvider()
+                binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+                writer = _ExplicitOfflineAnalysisWriter(missing_text=phrase)
+                critic = _ExplicitOfflineAcceptingCritic()
+                with patch("thesis_api.service._load_provider", return_value=binding):
+                    report = AnalysisEngine(
+                        self.db_path,
+                        self.settings,
+                        semantic_critic=critic,
+                        analysis_writer=writer,
+                    )._analyze(AnalysisRequest(
+                        query="Compare ROE of TCB with the five bank peer universe in 2024 Q1",
+                        target_ticker="TCB",
+                        period="2024_Q1",
+                        peer_tickers=["ACB", "BID", "CTG", "MBB", "VCB"],
+                    ))
+                self.assertEqual(report.status, "error")
+                self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
+                self.assertEqual(critic.calls, 0)
+
+        writer = _ExplicitOfflineAnalysisWriter(
+            injected_summary="The report mentions seventeen percent as context."
+        )
+        critic = _ExplicitOfflineAcceptingCritic()
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=critic,
+                analysis_writer=writer,
+            )._analyze(AnalysisRequest(
+                query="What is the return on equity for ACB in 2024 Q4?",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "error")
+        self.assertIn("analysis_synthesis_fact_reference_rejected", report.limitations[0])
+        self.assertEqual(critic.calls, 0)
+
     def test_missing_semantic_provider_blocks_before_specialist_retrieval(self) -> None:
         client = TestClient(create_app(Settings(
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            analysis_runs_db_path=str(Path(self.directory.name) / "no-model-runs.sqlite"),
             openai_api_key=None,
         )))
+        self.addCleanup(client.close)
         binding = _fixture_provider_binding(self.db_path, expose_locator=True)
         with patch("thesis_api.service._load_provider", return_value=binding), patch(
             "thesis_api.adaptive_runtime.build_openai_semantic_critic",
@@ -548,6 +891,26 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 self.assertEqual(report.atomic_claims, [])
                 self.assertEqual(report.evidence_trail, [])
 
+    def test_macro_writer_runs_only_for_a_provider_declared_macro_metric(self) -> None:
+        provider = _DeclaredMacroProvider()
+        binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "macro-fixture")
+        writer = _ExplicitOfflineAnalysisWriter()
+        with patch("thesis_api.service._load_provider", return_value=binding):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=_ExplicitOfflineAcceptingCritic(),
+                analysis_writer=writer,
+            )._analyze(AnalysisRequest(
+                query="What is the SBV policy rate for Vietnam in 2024 Q4?",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertEqual(report.analysis_plan.required_capabilities, ["macro"])
+        self.assertEqual(len(report.atomic_claims), 1)
+        self.assertEqual(writer.specialist_calls[0]["role"], "macro")
+        self.assertEqual(report.atomic_claims[0].capability, "macro")
+
     def test_multiperiod_comparison_is_explicitly_rejected_before_retrieval(self) -> None:
         provider = _FiveMemberPeerProvider()
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
@@ -555,6 +918,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             for query in (
                 "Compare ROE of TCB from 2024_Q1 to 2024_Q4",
                 "Across 2024_Q1–Q4, compare TCB ROE with the peer set",
+                "Across 2024_Q1 to Q4, compare TCB ROE with the peer set",
+                "Compare TCB ROE for 2024 Q1 through Q4",
+                "Compare TCB ROE in 2024 Q1 to Q4",
             ):
                 with self.subTest(query=query):
                     report = AnalysisResponse.model_validate(self.client.post(
@@ -608,6 +974,38 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(len(aggregate.input_observation_ids), 4)
         self.assertEqual(aggregate.formula_version, "peer_median_v1")
         self.assertEqual({item.ticker for item in report.evidence_trail if item.claim_id == aggregate.claim_id}, {"BID", "CTG", "MBB", "VCB"})
+
+    def test_peer_metrics_keep_distinct_membership_records(self) -> None:
+        provider = _DifferentMetricEligibilityPeerProvider()
+        binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        with patch("thesis_api.service._load_provider", return_value=binding):
+            report = AnalysisResponse.model_validate(self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Compare ROE and NPL of TCB with the peer universe in 2024 Q1",
+                    "target_ticker": "TCB",
+                    "period": "2024_Q1",
+                    "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                },
+            ).json())
+
+        self.assertEqual(report.status, "completed", report.limitations)
+        benchmark = report.sector_benchmark
+        self.assertEqual(len(benchmark.benchmarks), 2)
+        by_metric = {item.metric_id: item for item in benchmark.benchmarks}
+        roe = by_metric["bank.roe"]
+        npl = by_metric["bank.npl_g35"]
+        self.assertEqual((roe.requested_denominator, roe.eligible_denominator), (5, 4))
+        self.assertEqual((npl.requested_denominator, npl.eligible_denominator), (5, 3))
+        self.assertEqual(roe.missing_members[0]["entity_id"], "ACB")
+        self.assertEqual({item["entity_id"] for item in npl.missing_members}, {"ACB", "MBB"})
+        self.assertEqual(len(roe.input_observation_ids), 4)
+        self.assertEqual(len(npl.input_observation_ids), 3)
+        self.assertFalse(hasattr(benchmark, "requested_peer_entity_ids"))
+        self.assertFalse(hasattr(benchmark, "eligible_peer_entity_ids"))
+        self.assertFalse(hasattr(benchmark, "requested_denominator"))
+        self.assertFalse(hasattr(benchmark, "eligible_denominator"))
+        self.assertFalse(hasattr(benchmark, "missing_members"))
 
     def test_peer_run_fails_closed_without_scope_or_period_basis(self) -> None:
         for field, code in (
@@ -674,30 +1072,29 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
 
     def test_injected_claim_issue_triggers_targeted_revision_and_acceptance(self) -> None:
         critic = _RevisionScenarioCritic(resolve_after_revision=True)
-        original_stage1_claim = _stage1_claim
-        stage1_calls = 0
+        self.writer.initial_text = "Test-injected wording defect requiring a company recheck."
+        stage1_candidates: list[tuple[str, ...]] = []
+        original_evaluate = _RuntimeStage1Evaluator.evaluate
 
-        def inject_one_narrative_defect(**kwargs):
-            nonlocal stage1_calls
-            stage1_calls += 1
-            claim, *rest = original_stage1_claim(**kwargs)
-            if stage1_calls == 1:
-                claim = claim.model_copy(update={
-                    "claim_text": "Test-injected wording defect requiring a company recheck."
-                })
-            return (claim, *rest)
+        def capture_stage1(evaluator, *, plan, claims, policy):
+            stage1_candidates.append(tuple(claim.claim_text for claim in claims))
+            return original_evaluate(evaluator, plan=plan, claims=claims, policy=policy)
 
         with patch(
             "thesis_api.adaptive_runtime.build_openai_semantic_critic",
             return_value=critic,
         ), patch(
-            "thesis_api.service._stage1_claim",
-            side_effect=inject_one_narrative_defect,
-        ) as stage1_claim:
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ), patch("thesis_api.service._stage1_claim", wraps=_stage1_claim) as stage1_claim, patch(
+            "thesis_api.adaptive_runtime._RuntimeStage1Evaluator.evaluate",
+            autospec=True,
+            side_effect=capture_stage1,
+        ):
             report = AnalysisResponse.model_validate(self.client.post(
                 "/api/analyze",
                 json={
-                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "query": "Analyze ROE and NPL of ACB in 2024 Q4",
                     "target_ticker": "ACB",
                     "period": "2024_Q4",
                 },
@@ -707,13 +1104,28 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(report.revision_summary.status, "revised_and_passed")
         self.assertEqual(report.revision_summary.rounds_executed, 2)
         self.assertEqual(report.revision_summary.revised_capabilities, ["company"])
+        self.assertTrue(report.revision_summary.synthesis_revised)
         self.assertIn("test-injected-claim-review [unsupported_claim/MAJOR/RESOLVED/REVISE_CLAIM]", report.revision_summary.reason)
+        revised_claim = next(item for item in report.atomic_claims if "Action: REVISE_CLAIM." in item.statement)
+        untouched_claim = next(item for item in report.atomic_claims if item.claim_id != revised_claim.claim_id)
+        self.assertEqual(revised_claim.stage2_critique_status, "revised")
+        self.assertEqual(untouched_claim.stage2_critique_status, "sound")
+        self.assertIn("Test-injected wording defect", untouched_claim.statement)
+        self.assertTrue(any(call["issues"] for call in self.writer.specialist_calls))
+        revision_call = next(call for call in self.writer.specialist_calls if call["issues"])
+        self.assertEqual(revision_call["role"], "company")
+        self.assertEqual(revision_call["claim_ids"], [revised_claim.claim_id])
+        self.assertEqual(revision_call["issues"][0]["issue_id"], "test-injected-claim-review")
+        self.assertEqual(revision_call["issues"][0]["description"], "Test fixture requires the company specialist to recheck its claim.")
+        self.assertEqual(revision_call["issues"][0]["required_action"], "REVISE_CLAIM")
         self.assertEqual(critic.calls, 2)
-        self.assertEqual(stage1_claim.call_count, 2)
-        self.assertEqual(
-            report.atomic_claims[0].statement,
-            "ACB has provider-backed bank.roe=17.25 percent for 2024_Q4.",
-        )
+        self.assertEqual(stage1_claim.call_count, 3)
+        self.assertIn("Test fixture requires the company specialist", revised_claim.statement)
+        self.assertNotIn("Test-injected wording defect", revised_claim.statement)
+        self.assertEqual(len(stage1_candidates), 2)
+        self.assertTrue(any("Test-injected wording defect" in item for item in stage1_candidates[0]))
+        self.assertTrue(any("Action: REVISE_CLAIM." in item for item in stage1_candidates[1]))
+        self.assertTrue(any("Test-injected wording defect" in item for item in stage1_candidates[1]))
 
     def test_unrepairable_critical_issue_fails_after_bounded_revisions(self) -> None:
         critic = _RevisionScenarioCritic(resolve_after_revision=False)
@@ -739,8 +1151,41 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(report.status, "error")
         self.assertIn("fail_acceptance", report.limitations[0])
         self.assertEqual(report.atomic_claims, [])
-        self.assertEqual(critic.calls, 3)
+        self.assertEqual(critic.calls, 2)
         self.assertEqual(stage1_claim.call_count, 3)
+
+    def test_synthesis_only_issue_revises_typed_summary_without_claim_contamination(self) -> None:
+        critic = _SynthesisOnlyCritic()
+        request = AnalysisRequest(
+            query="Analyze ROE and NPL of ACB in 2024 Q4",
+            target_ticker="ACB",
+            period="2024_Q4",
+        )
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=critic,
+                analysis_writer=self.writer,
+            )._analyze(request)
+
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertEqual(report.revision_summary.status, "revised_and_passed")
+        self.assertTrue(report.revision_summary.synthesis_revised)
+        self.assertEqual(report.revision_summary.revised_capabilities, [])
+        self.assertEqual({item.stage2_critique_status for item in report.atomic_claims}, {"sound"})
+        self.assertIn("Clarify how the specialist outputs fit together.", report.synthesis_summary)
+        self.assertEqual(report.synthesis_supporting_claim_ids, [item.claim_id for item in report.atomic_claims])
+        self.assertEqual(len(critic.contexts), 2)
+        for context in critic.contexts:
+            self.assertEqual(context["supporting_claim_ids"], tuple(item.claim_id for item in report.atomic_claims))
+            self.assertNotIn(context["summary"], context["first_claim_text"])
+        synthesis_calls = [item for item in self.writer.synthesis_calls if item["issues"]]
+        self.assertEqual(len(synthesis_calls), 1)
+        self.assertEqual(synthesis_calls[0]["issues"][0]["affected_agent"], "orchestrator")
 
     def test_full_metric_names_are_resolved_without_falling_back_to_all_metrics(self) -> None:
         with patch(
@@ -776,7 +1221,8 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
 
     def test_missing_document_evidence_uses_accepted_observation_locator(self) -> None:
         db_path = _gold_fixture(Path(self.directory.name) / "no-evidence.sqlite", include_evidence=False)
-        client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(db_path))))
+        client = TestClient(self._runtime_app(db_path))
+        self.addCleanup(client.close)
         with patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
@@ -819,6 +1265,54 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertTrue(all("sector" not in item["label"].casefold() for item in capabilities["peerUniverses"]))
         self.assertTrue(all(item["executable"] is False for item in capabilities["peerUniverses"]))
         self.assertEqual(ready_response.json()["status"], "ready")
+
+    def test_readiness_requires_model_configuration_and_writable_distinct_run_store(self) -> None:
+        missing_model = Settings(
+            app_env="test",
+            sqlite_db_path=str(self.db_path),
+            analysis_runs_db_path=str(Path(self.directory.name) / "model-missing-runs.sqlite"),
+            openai_api_key=None,
+        )
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            capabilities = AnalysisEngine(self.db_path, missing_model).get_capabilities()
+        self.assertFalse(capabilities["analysis_available"])
+        self.assertTrue(capabilities["analysis_runs_store_configured"])
+        self.assertFalse(capabilities["specialist_writer_configured"])
+        self.assertEqual(capabilities["limitation_code"], "semantic_provider_unconfigured")
+
+        alias_paths = [self.db_path, Path(f"{self.db_path}\\child\\runs.sqlite")]
+        hard_link = Path(self.directory.name) / "accepted-hard-link.sqlite"
+        try:
+            hard_link.hardlink_to(self.db_path)
+            alias_paths.append(hard_link)
+        except OSError:
+            pass
+        symbolic_link = Path(self.directory.name) / "accepted-symbolic-link.sqlite"
+        try:
+            symbolic_link.symlink_to(self.db_path)
+            alias_paths.append(symbolic_link)
+        except OSError:
+            pass
+
+        for runs_path in alias_paths:
+            with self.subTest(runs_path=runs_path):
+                settings = Settings(
+                    app_env="test",
+                    sqlite_db_path=str(self.db_path),
+                    analysis_runs_db_path=str(runs_path),
+                    openai_api_key="test-key",
+                )
+                with patch(
+                    "thesis_api.service._load_provider",
+                    side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+                ):
+                    capabilities = AnalysisEngine(self.db_path, settings).get_capabilities()
+                self.assertFalse(capabilities["analysis_available"])
+                self.assertFalse(capabilities["analysis_runs_store_configured"])
+                self.assertEqual(capabilities["limitation_code"], "analysis_runs_store_invalid")
 
     def test_exact_metric_selection_keeps_lineage_inputs_non_runnable(self) -> None:
         binding = _fixture_provider_binding(self.db_path, expose_locator=True)
@@ -901,7 +1395,8 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
 
     def test_acb_generic_gold_snippets_are_not_fanned_out_across_metrics(self) -> None:
         db_path = _gold_fanout_fixture(Path(self.directory.name) / "gold-fanout.sqlite")
-        client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(db_path))))
+        client = TestClient(self._runtime_app(db_path))
+        self.addCleanup(client.close)
         with patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
@@ -1114,7 +1609,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             "thesis_api.service._load_provider",
             return_value=ProviderBinding(SameScopeProvider(), dataset_ref, catalog, "fixture"),
         ):
-            report = AnalysisEngine(self.db_path)._analyze(
+            report = AnalysisEngine(
+                self.db_path, self.settings,
+                semantic_critic=self.test_critic,
+                analysis_writer=self.writer,
+            )._analyze(
                 AnalysisRequest(
                     query="Analyze NPL of CTG in 2024 Q4",
                     target_ticker="CTG",
@@ -1165,7 +1664,13 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
 
     def test_missing_database_is_not_created_or_reported_ready(self) -> None:
         missing = Path(self.directory.name) / "does-not-exist.sqlite"
-        client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(missing))))
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(missing),
+            analysis_runs_db_path=str(Path(self.directory.name) / "missing-database-runs.sqlite"),
+            openai_api_key="test-key",
+        )
+        client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         result = client.post(
             "/api/analyze",
             json={"query": "ROE of ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
@@ -1174,6 +1679,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertFalse(missing.exists())
         self.assertEqual(client.get("/api/capabilities").json()["analysis_available"], False)
         self.assertEqual(client.get("/api/ready").status_code, 503)
+        client.close()
 
 
 if __name__ == "__main__":

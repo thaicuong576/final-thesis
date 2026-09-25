@@ -78,6 +78,7 @@ def ensure_analysis_runs_table(db_path: Path) -> None:
             conn.close()
     except Exception as exc:
         logger.warning("Could not ensure analysis_runs table: %s", exc)
+        raise
 
 
 def save_analysis_run(
@@ -142,6 +143,7 @@ def save_analysis_run(
             conn.close()
     except Exception as exc:
         logger.error("Failed to save analysis run %s: %s", run_id, exc)
+        raise
 
 
 def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:

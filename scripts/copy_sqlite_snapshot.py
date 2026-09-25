@@ -67,6 +67,8 @@ def copy_snapshot(source: Path, destination: Path) -> None:
             )
 
         os.replace(temp_path, destination)
+        for suffix in ("-wal", "-shm"):
+            destination.with_name(f"{destination.name}{suffix}").unlink(missing_ok=True)
         if os.path.samefile(source, destination):
             raise RuntimeError("destination unexpectedly shares source file identity")
 

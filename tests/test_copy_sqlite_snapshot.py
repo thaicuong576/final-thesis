@@ -60,6 +60,37 @@ class CopySqliteSnapshotTests(unittest.TestCase):
                         2, connection.execute("SELECT COUNT(*) FROM facts").fetchone()[0]
                     )
 
+    def test_snapshot_replaces_existing_hardlink_and_unlinks_sidecars(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="sqlite-hardlink-test-") as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source.sqlite"
+            destination = root / "worktree" / "snapshot.sqlite"
+            destination.parent.mkdir(parents=True)
+
+            with closing(sqlite3.connect(source)) as connection:
+                connection.execute("CREATE TABLE facts (value TEXT NOT NULL)")
+                connection.execute("INSERT INTO facts(value) VALUES ('source')")
+                connection.commit()
+
+            os.link(source, destination)
+            for suffix in ("-wal", "-shm"):
+                source_sidecar = source.with_name(f"{source.name}{suffix}")
+                destination_sidecar = destination.with_name(f"{destination.name}{suffix}")
+                source_sidecar.write_bytes(f"source{suffix}".encode())
+                os.link(source_sidecar, destination_sidecar)
+
+            self.assertTrue(os.path.samefile(source, destination))
+            source_hash = _sha256(source)
+            copy_snapshot(source, destination)
+
+            self.assertFalse(os.path.samefile(source, destination))
+            self.assertEqual(source_hash, _sha256(source))
+            for suffix in ("-wal", "-shm"):
+                source_sidecar = source.with_name(f"{source.name}{suffix}")
+                destination_sidecar = destination.with_name(f"{destination.name}{suffix}")
+                self.assertTrue(source_sidecar.is_file())
+                self.assertFalse(destination_sidecar.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

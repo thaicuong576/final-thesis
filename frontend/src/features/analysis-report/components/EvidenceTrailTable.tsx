@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Database, Filter, Hash, Search, ShieldCheck, X } from 'lucide-react';
+import { Database, Filter, Hash, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { EvidenceTrailItem } from '../model/types';
 
@@ -7,6 +7,15 @@ interface EvidenceTrailTableProps {
   evidenceTrail: EvidenceTrailItem[];
   selectedEvidenceId?: string | null;
   onClearSelection?: () => void;
+}
+
+function isHttpUrl(value?: string | null): value is string {
+  if (!value) return false;
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
 }
 
 export function EvidenceTrailTable({
@@ -27,9 +36,10 @@ export function EvidenceTrailTable({
         searchTerm === '' ||
         item.evidence_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.metric.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.source_doc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.table_locator.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.provenance_hash.toLowerCase().includes(searchTerm.toLowerCase());
+        (item.source_doc || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.source_url || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.table_locator || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.provenance_hash || '').toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchTicker =
         filterTicker === 'all' || item.ticker === filterTicker;
@@ -51,14 +61,13 @@ export function EvidenceTrailTable({
           </h2>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-[#1b4332] font-mono bg-[#e8f5ee] px-2 py-0.5 rounded border border-[#a3cfbb]">
-          <ShieldCheck className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
-          <span>Kiểm định đối soát BCTC độc lập</span>
+        <div className="flex items-center gap-1.5 text-xs text-ink-secondary font-mono bg-surface-secondary px-2 py-0.5 rounded border border-border">
+          <span>{evidenceTrail.length} bản ghi API</span>
         </div>
       </div>
 
       <p className="text-xs text-ink-secondary leading-relaxed">
-        Mọi chỉ số tài chính và kết luận phân tích đều được neo vào tài liệu công bố chính thức, có vị trí trang/bảng và mã hash đối soát toàn vẹn.
+        Nguồn, vị trí trích xuất và mã đối soát chỉ được hiển thị nếu có trong phản hồi API.
       </p>
 
       {/* Selected Evidence Highlight Banner */}
@@ -179,16 +188,18 @@ export function EvidenceTrailTable({
                         : String(item.value)}
                     </td>
                     <td className="py-2.5 px-3 text-ink max-w-xs truncate">
-                      {item.source_doc}
+                      {isHttpUrl(item.source_url || item.source_doc) && Boolean(item.table_locator?.trim())
+                        ? <a href={item.source_url || item.source_doc || undefined} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-amber-border">{item.source_doc || item.source_url}</a>
+                        : item.source_doc || item.source_url || '—'}
                     </td>
                     <td className="py-2.5 px-3 text-ink-secondary max-w-xs truncate">
-                      {item.table_locator}
+                      {item.table_locator || '—'}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-[11px] text-ink-tertiary whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 bg-surface-secondary px-1.5 py-0.5 rounded border border-border">
+                      {item.provenance_hash ? <span className="inline-flex items-center gap-1 bg-surface-secondary px-1.5 py-0.5 rounded border border-border">
                         <Hash className="size-2.5" aria-hidden="true" />
                         <span>{item.provenance_hash}</span>
-                      </span>
+                      </span> : '—'}
                     </td>
                   </tr>
                 );

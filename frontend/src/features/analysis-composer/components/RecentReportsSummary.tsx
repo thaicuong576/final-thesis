@@ -19,6 +19,7 @@ export interface AnalysisRunItem {
 export function RecentReportsSummary() {
   const [runs, setRuns] = useState<AnalysisRunItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -37,14 +38,14 @@ export function RecentReportsSummary() {
         const response = await fetch(endpoint, {
           headers: { Accept: 'application/json' }
         });
-        if (response.ok) {
-          const data = (await response.json()) as AnalysisRunItem[];
-          if (isMounted && Array.isArray(data)) {
-            setRuns(data);
-          }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = (await response.json()) as AnalysisRunItem[];
+        if (!Array.isArray(data)) throw new Error('Invalid run list');
+        if (isMounted) {
+          setRuns(data);
         }
       } catch {
-        // Silently ignore network or environment failures for recent runs widget
+        if (isMounted) setLoadError(true);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -61,13 +62,13 @@ export function RecentReportsSummary() {
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-ink-secondary flex items-center gap-1.5">
           <History className="w-3.5 h-3.5 text-ink-secondary" />
-          <span>Gần đây (SQLite)</span>
+          <span>Phiên gần đây · API</span>
         </h3>
         <Link
           to="/reports"
           className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-border hover:text-amber-active underline underline-offset-2"
         >
-          <span>Xem tất cả</span>
+          <span>Mẫu minh họa</span>
           <ArrowUpRight className="w-3 h-3" />
         </Link>
       </div>
@@ -84,11 +85,16 @@ export function RecentReportsSummary() {
               <div className="h-2.5 bg-surface-tertiary rounded w-1/4" />
             </div>
           </div>
+        ) : loadError ? (
+          <div className="p-4 text-center text-xs text-ink-secondary bg-warning-soft/40" role="alert">
+            <p className="font-semibold text-ink">Không thể tải lịch sử phân tích từ API</p>
+            <p className="mt-0.5 text-[11px]">Không thể xác nhận có phiên đã lưu hay chưa.</p>
+          </div>
         ) : runs.length === 0 ? (
           <div className="p-4 text-center text-xs text-ink-secondary bg-surface-secondary/40">
-            <p className="font-semibold text-ink">Chưa có phiên phân tích nào được lưu trữ</p>
+            <p className="font-semibold text-ink">API không trả phiên phân tích đã lưu</p>
             <p className="text-[11px] text-ink-tertiary mt-0.5">
-              Nhập câu hỏi ở khung phía trên để bắt đầu phân tích và lưu kết quả vào cơ sở dữ liệu.
+              Trạng thái này không xác nhận rằng chưa từng có phiên nào.
             </p>
           </div>
         ) : (
@@ -127,11 +133,8 @@ export function RecentReportsSummary() {
                   <span className="text-[11px] font-mono text-ink-tertiary">
                     {dateStr}
                   </span>
-                  <Badge
-                    variant="outline"
-                    className="bg-[#e4f4ea] text-[#2f9e62] border-[#2f9e62]/30 text-[10px] font-semibold px-2 py-0"
-                  >
-                    {run.status === 'completed' ? 'Hoàn tất' : run.status}
+                  <Badge variant="outline" className="bg-surface-secondary text-ink-secondary border-border-subtle text-[10px] font-semibold px-2 py-0">
+                    {run.status === 'completed' ? 'API: hoàn tất' : run.status === 'accepted_with_limitations' ? 'API: có giới hạn' : `API: ${run.status}`}
                   </Badge>
                   <Link
                     to={`/reports/${run.run_id}`}

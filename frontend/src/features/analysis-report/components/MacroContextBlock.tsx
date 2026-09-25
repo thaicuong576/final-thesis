@@ -41,11 +41,8 @@ export function MacroContextBlock({ macroContext }: MacroContextBlockProps) {
             <span className="font-mono text-2xl font-bold tracking-tight text-ink">
               {formatMetric(macroContext.sbv_policy_rate, 1)}
             </span>
-            <span className="text-[11px] text-ink-tertiary font-mono">Tái cấp vốn</span>
           </div>
-          <p className="text-[11px] text-ink-secondary">
-            Mặt bằng lãi suất duy trì ổn định hỗ trợ giảm chi phí vốn cho hệ thống NHTM.
-          </p>
+          <p className="text-[11px] text-ink-tertiary">Giá trị do API trả về; xem nguồn ở đầu mục.</p>
         </div>
 
         {/* System Credit Growth */}
@@ -57,14 +54,11 @@ export function MacroContextBlock({ macroContext }: MacroContextBlockProps) {
             <TrendingUp className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-2xl font-bold tracking-tight text-[#1b4332]">
+            <span className="font-mono text-2xl font-bold tracking-tight text-ink">
               {formatMetric(macroContext.system_credit_growth, 2)}
             </span>
-            <span className="text-[11px] text-ink-tertiary font-mono">Cả năm 2024</span>
           </div>
-          <p className="text-[11px] text-ink-secondary">
-            Đạt và vượt mục tiêu định hướng 15% của NHNN trong điều kiện thanh khoản dồi dào.
-          </p>
+          <p className="text-[11px] text-ink-tertiary">Giá trị do API trả về; kỳ được nêu nếu có trong báo cáo.</p>
         </div>
 
         {/* Policy Transmission Narrative */}

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import {
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
   FileCheck,
   GitBranch,
-  ShieldCheck,
   Sparkles
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +13,7 @@ import type { AtomicClaim, ClaimType, CritiqueItem } from '../model/types';
 interface CrossLevelCritiqueGraphProps {
   crossLevelCritique: CritiqueItem[];
   atomicClaims: AtomicClaim[];
+  linkableEvidenceIds?: Set<string>;
   onSelectEvidence?: (evidenceId: string) => void;
   selectedEvidenceId?: string | null;
 }
@@ -29,6 +28,7 @@ const CLAIM_TYPE_LABELS: Record<ClaimType, { label: string; variant: string }> =
 export function CrossLevelCritiqueGraph({
   crossLevelCritique,
   atomicClaims,
+  linkableEvidenceIds = new Set(),
   onSelectEvidence,
   selectedEvidenceId
 }: CrossLevelCritiqueGraphProps) {
@@ -60,7 +60,7 @@ export function CrossLevelCritiqueGraph({
         </div>
 
         <div className="text-xs text-ink-secondary font-mono">
-          <span>{atomicClaims.length} khẳng định đã thẩm định</span>
+          <span>{atomicClaims.length} khẳng định do API trả về</span>
         </div>
       </div>
 
@@ -110,10 +110,10 @@ export function CrossLevelCritiqueGraph({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-secondary">
             <FileCheck className="size-3.5 text-[#2d6a4f]" aria-hidden="true" />
-            <span>Đồ thị khẳng định có thể kiểm chứng</span>
+            <span>Các luận điểm trong phản hồi API</span>
           </div>
           <span className="text-[11px] font-mono text-ink-tertiary">
-            Mọi luận điểm đều liên kết với bằng chứng BCTC
+            Trạng thái và bằng chứng hiển thị theo phản hồi API
           </span>
         </div>
 
@@ -144,12 +144,12 @@ export function CrossLevelCritiqueGraph({
                       {typeInfo.label}
                     </Badge>
 
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] font-mono bg-[#e8f5ee] text-[#1b4332] border-[#a3cfbb] gap-1"
-                    >
-                      <ShieldCheck className="size-3" aria-hidden="true" />
-                      <span>Kiểm tra số học: Đạt</span>
+                    <Badge variant="outline" className="text-[10px] font-mono border-border bg-surface-secondary text-ink-secondary">
+                      Stage 1: {claim.stage1_status === 'accepted'
+                        ? 'accepted'
+                        : claim.stage1_status === 'rejected'
+                        ? 'rejected'
+                        : 'chưa công bố'}
                     </Badge>
 
                     <Badge
@@ -157,15 +157,10 @@ export function CrossLevelCritiqueGraph({
                       className={`text-[10px] font-mono gap-1 ${
                         claim.stage2_critique_status === 'revised'
                           ? 'bg-amber-soft text-ink border-amber-border/70 font-semibold'
-                          : 'bg-slate-100 text-slate-800 border-slate-300'
+                          : 'bg-surface-secondary text-ink-secondary border-border'
                       }`}
                     >
-                      <CheckCircle2 className="size-3 text-slate-600" aria-hidden="true" />
-                      <span>
-                        {claim.stage2_critique_status === 'revised'
-                          ? 'Phản biện logic: Đã hiệu đính'
-                          : 'Phản biện logic: Đạt'}
-                      </span>
+                      Phản biện: {claim.stage2_critique_status || 'chưa công bố'}
                     </Badge>
                   </div>
 
@@ -205,7 +200,7 @@ export function CrossLevelCritiqueGraph({
                     </span>
                     {claim.evidence_refs.map((refId) => {
                       const isSelected = selectedEvidenceId === refId;
-                      return (
+                      return linkableEvidenceIds.has(refId) ? (
                         <button
                           key={refId}
                           type="button"
@@ -218,6 +213,10 @@ export function CrossLevelCritiqueGraph({
                         >
                           #{refId}
                         </button>
+                      ) : (
+                        <span key={refId} className="font-mono text-[11px] px-2 py-0.5 rounded border border-border bg-surface-secondary text-ink-secondary">
+                          #{refId}
+                        </span>
                       );
                     })}
                   </div>

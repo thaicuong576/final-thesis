@@ -499,27 +499,7 @@ export const SAMPLE_REPORTS: SampleReportItem[] = [
   }
 ];
 
-export function getReportById(id?: string | null): AnalysisReport {
-  if (!id) return mockPeerComparisonReport;
-  const lower = id.toLowerCase();
-  if (
-    lower.includes('solo') ||
-    lower.includes('company') ||
-    lower === 'acb-solo' ||
-    lower === 'rep-2024-acb-solo' ||
-    lower === 'mock-session-company-acb'
-  ) {
-    return mockCompanyOnlyReport;
-  }
-  if (
-    lower.includes('hierarchical') ||
-    lower.includes('full') ||
-    lower.includes('macro') ||
-    lower === 'full-hierarchical' ||
-    lower === 'rep-2024-full-macro-sector-camel' ||
-    lower === 'mock-session-full-hierarchical'
-  ) {
-    return mockFullHierarchicalReport;
-  }
-  return mockPeerComparisonReport;
+export function getReportById(id?: string | null): AnalysisReport | null {
+  if (!id) return null;
+  return SAMPLE_REPORTS.find((sample) => sample.slug === id || sample.id === id)?.report ?? null;
 }

@@ -172,6 +172,14 @@ export function parseAnalysisQuestion(
     const ticker = entity.ticker.toLowerCase();
     const name = entity.name.toLowerCase();
     return normalized.includes(ticker) || normalized.includes(name);
+  }).sort((left, right) => {
+    const mentionPosition = (entity: Entity) => {
+      const positions = [entity.ticker, entity.name]
+        .map((value) => normalized.indexOf(value.toLowerCase()))
+        .filter((position) => position >= 0);
+      return positions.length > 0 ? Math.min(...positions) : Number.MAX_SAFE_INTEGER;
+    };
+    return mentionPosition(left) - mentionPosition(right);
   });
 
   // Determine if question is Peer-only or Macro-only (no specific entity named)

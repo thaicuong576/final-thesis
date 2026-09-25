@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Button } from '../../components/ui/button';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
-import { analysisService } from '../../entities/analysis/api/analysisService';
-import type { AnalysisRequest } from '../../entities/analysis/model/types';
+import { buildSupportedStreamRequest } from '../../features/create-analysis/model/streamRequest';
 import {
   ActiveDatasetCard,
   HeroComposer,
@@ -11,7 +11,6 @@ import {
   RecentReportsSummary,
   RequestInterpretationCard,
   ScopeMismatchAlert,
-  DatasetSelectorSheet,
   ScopeAdjustmentDrawer,
   parseAnalysisQuestion,
   type ParseResult,
@@ -25,9 +24,6 @@ import {
   type AnalysisSessionEvent,
   type DriverMode
 } from '../../features/analysis-session';
-import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
-import { CheckCircle2 } from 'lucide-react';
-
 import type { AnalysisStreamRequest } from '../../features/analysis-session/useAnalysisSessionStream';
 
 type PageMode = Screen1Mode | 'SESSION';
@@ -48,10 +44,8 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
   const [activeEvents, setActiveEvents] = useState<AnalysisSessionEvent[]>([]);
   const [driverMode, setDriverMode] = useState<DriverMode>('FROZEN');
   const [driverStep, setDriverStep] = useState<number | undefined>(undefined);
-  const [datasetSelectorOpen, setDatasetSelectorOpen] = useState(false);
   const [scopeDrawerOpen, setScopeDrawerOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionSuccessMessage, setSubmissionSuccessMessage] = useState<string | null>(null);
+  const [scopeExecutionError, setScopeExecutionError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
 
@@ -75,7 +69,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
       const trimmed = question.trim();
       if (!trimmed) return;
       setCurrentQuestion(trimmed);
-      setSubmissionSuccessMessage(null);
+      setScopeExecutionError(null);
 
       const result = parseAnalysisQuestion(trimmed, capabilities);
       setParseResult(result);
@@ -122,31 +116,6 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
       return () => clearTimeout(timer);
     }
 
-    // Persistent live session route support: ?mode=session&ticker=...&period=...
-    const modeParam = searchParams.get('mode');
-    if (modeParam === 'session' && mode !== 'SESSION') {
-      const ticker = searchParams.get('ticker') || 'TCB';
-      const period = searchParams.get('period') || '2024';
-      const peersParam = searchParams.get('peers');
-      const peers = peersParam ? peersParam.split(',').map((s) => s.trim()).filter(Boolean) : [];
-      const q = searchParams.get('q') || `Phân tích toàn diện ngân hàng ${ticker} năm ${period}`;
-
-      const timer = setTimeout(() => {
-        setStreamRequest({
-          query: q,
-          target_ticker: ticker,
-          peer_tickers: peers,
-          period: period
-        });
-        setIsLiveStream(true);
-        setActiveEvents([]);
-        setDriverMode('AUTOPLAY');
-        setDriverStep(undefined);
-        setMode('SESSION');
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-
     const q = searchParams.get('q');
     if (q && mode === 'DEFAULT') {
       const timer = setTimeout(() => {
@@ -167,72 +136,35 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
   if (capabilitiesQuery.isError || !capabilities) {
     return (
       <WorkspaceShell activeSection="analysis">
-        <ErrorState />
+        <ErrorState onRetry={() => void capabilitiesQuery.refetch()} />
       </WorkspaceShell>
     );
   }
 
   function handleScopeOverride(updatedScope: ParsedScope) {
     if (!parseResult) return;
+    setScopeExecutionError(null);
     setParseResult({
       ...parseResult,
       scope: updatedScope
     });
   }
 
-  async function handleConfirmAndAnalyze() {
+  function handleConfirmAndAnalyze() {
     if (!capabilities || !parseResult) return;
-    const isMacroSelected = parseResult.scope.analysisPlan.selectedCapabilities.some((c) => c.id === 'macro');
-    if (isMacroSelected && capabilities.macro.status === 'UNAVAILABLE') return;
-
-    setIsSubmitting(true);
-    try {
-      const request: AnalysisRequest = {
-        objective: parseResult.rawQuestion,
-        analysisTargetIds: parseResult.scope.entities.map((e) => e.id),
-        periodIds: parseResult.scope.periods.map((p) => p.id),
-        metricIds: parseResult.scope.metrics.map((m) => m.id),
-        capabilitySnapshotId: capabilities.snapshotId,
-        peerUniverseId: capabilities.peerUniverse.id
-      };
-
-      const receipt = await analysisService.submit(request);
-      setSubmissionSuccessMessage(
-        receipt.message ||
-          'Yêu cầu đã được xác nhận. Hệ thống phân tích đa tác tử đang khởi tạo quy trình làm việc.'
-      );
-
-      const targetTicker = parseResult.scope.entities[0]?.ticker || 'ACB';
-      const peerTickers = parseResult.scope.entities.slice(1).map((e) => e.ticker);
-      const period = parseResult.scope.periods[0]
-        ? String(parseResult.scope.periods[0].year)
-        : '2024';
-
-      setStreamRequest({
-        query: parseResult.rawQuestion,
-        target_ticker: targetTicker,
-        peer_tickers: peerTickers,
-        period: period
-      });
-
-      // Update URL search parameters so F5 / reload preserves the live session
-      setSearchParams({
-        mode: 'session',
-        ticker: targetTicker,
-        period: period,
-        ...(peerTickers.length > 0 ? { peers: peerTickers.join(',') } : {}),
-        q: parseResult.rawQuestion
-      });
-
-      // Transition to Screen 2 in Live Streaming mode
-      setIsLiveStream(true);
-      setActiveEvents([]);
-      setDriverMode('AUTOPLAY');
-      setDriverStep(undefined);
-      setMode('SESSION');
-    } finally {
-      setIsSubmitting(false);
+    const supported = buildSupportedStreamRequest(parseResult.rawQuestion, parseResult.scope, capabilities);
+    if (!supported.request) {
+      setScopeExecutionError(supported.reason);
+      return;
     }
+    setScopeExecutionError(null);
+    setStreamRequest(supported.request);
+    setSearchParams({ q: parseResult.rawQuestion });
+    setIsLiveStream(true);
+    setActiveEvents([]);
+    setDriverMode('AUTOPLAY');
+    setDriverStep(undefined);
+    setMode('SESSION');
   }
 
   return (
@@ -244,8 +176,8 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
             <span className="font-bold text-ink">BÀN LÀM VIỆC PHÂN TÍCH</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary">
-            <span className="w-2 h-2 rounded-full bg-ready" aria-hidden="true" />
-            <span className="font-mono text-[11px]">Hệ thống phân tích sẵn sàng</span>
+            <span className={`w-2 h-2 rounded-full ${capabilities.analysis_available === true ? 'bg-ready' : 'bg-warning'}`} aria-hidden="true" />
+            <span className="font-mono text-[11px]">{capabilities.analysis_available === true ? 'API xác nhận dữ liệu sẵn sàng' : 'API chưa xác nhận dữ liệu khả dụng'}</span>
           </div>
         </div>
       }
@@ -256,19 +188,7 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
           {mode !== 'SESSION' && (
             <ActiveDatasetCard
               capabilities={capabilities}
-              onOpenSelector={() => setDatasetSelectorOpen(true)}
             />
-          )}
-
-          {/* Submission Success Banner */}
-          {submissionSuccessMessage && (
-            <Alert className="border-[#2f9e62]/30 bg-[#e4f4ea] text-[#2f9e62]">
-              <CheckCircle2 className="h-4 w-4 text-[#2f9e62]" />
-              <AlertTitle className="text-xs font-bold">Khởi tạo quy trình thành công</AlertTitle>
-              <AlertDescription className="text-xs text-ink mt-1">
-                {submissionSuccessMessage}
-              </AlertDescription>
-            </Alert>
           )}
 
           {/* SCREEN 1: DEFAULT HERO WORKSPACE */}
@@ -279,11 +199,14 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
                 onQuestionChange={handleQuestionChange}
                 onSubmit={handleQuestionSubmit}
                 parsedScope={parseResult?.scope || null}
+                availableEntities={capabilities.entities}
+                availablePeriods={capabilities.periods}
+                availableMetrics={capabilities.metrics}
                 onOpenScopeAdjustment={() => setScopeDrawerOpen(true)}
-                isSubmitting={isSubmitting}
+                isSubmitting={false}
               />
 
-              <SuggestedQuestions onSelectPrompt={handleSelectSuggestion} />
+              <SuggestedQuestions capabilities={capabilities} onSelectPrompt={handleSelectSuggestion} />
 
               <RecentReportsSummary />
             </div>
@@ -297,7 +220,10 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
                 onConfirm={handleConfirmAndAnalyze}
                 onOpenScopeAdjustment={() => setScopeDrawerOpen(true)}
                 onEditQuestion={() => setMode('DEFAULT')}
-                isConfirming={isSubmitting}
+                isConfirming={false}
+                executionBlockReason={
+                  buildSupportedStreamRequest(parseResult.rawQuestion, parseResult.scope, capabilities).reason || scopeExecutionError
+                }
               />
             </div>
           )}
@@ -309,7 +235,6 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
                 mismatch={parseResult.mismatch}
                 rawQuestion={parseResult.rawQuestion}
                 onEditQuestion={() => setMode('DEFAULT')}
-                onOpenDatasetSelector={() => setDatasetSelectorOpen(true)}
               />
             </div>
           )}
@@ -333,11 +258,6 @@ export function CreateAnalysisPage({ initialMode }: CreateAnalysisPageProps = {}
       </div>
 
       {/* CONTEXTUAL MODALS / DRAWERS */}
-      <DatasetSelectorSheet
-        open={datasetSelectorOpen}
-        onOpenChange={setDatasetSelectorOpen}
-      />
-
       {scopeDrawerOpen && parseResult && (
         <ScopeAdjustmentDrawer
           open={scopeDrawerOpen}
@@ -362,14 +282,15 @@ function LoadingState() {
   );
 }
 
-function ErrorState() {
+function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="grid min-h-[60vh] place-items-center bg-workspace p-6">
       <div className="border border-[#c84b3f]/30 bg-card p-6 text-center max-w-md rounded-md">
         <p className="font-bold text-sm text-blocked">Không thể kết nối bộ dữ liệu.</p>
         <p className="mt-2 text-xs text-ink-secondary leading-relaxed">
-          Vui lòng kiểm tra lại dịch vụ cung cấp dữ liệu hoặc chọn nguồn dữ liệu khác để tiếp tục.
+          Không thể xác nhận phạm vi từ API. Hãy thử lại khi dịch vụ dữ liệu sẵn sàng.
         </p>
+        <Button type="button" variant="outline" onClick={onRetry} className="mt-4 border-line text-xs">Thử tải lại</Button>
       </div>
     </div>
   );

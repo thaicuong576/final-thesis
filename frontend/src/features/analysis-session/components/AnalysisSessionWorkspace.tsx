@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation, useSearchParams, useInRouterContext } from 'react-router-dom';
-import { Radio, RotateCw, RefreshCw } from 'lucide-react';
+import { Radio, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type {
@@ -31,7 +31,6 @@ export interface AnalysisSessionWorkspaceProps {
   streamRequest?: AnalysisStreamRequest | null;
   request?: AnalysisStreamRequest | null;
   isLiveStream?: boolean;
-  fallbackToMockOnError?: boolean;
   onViewReport?: (report: AnalysisReport) => void;
 }
 
@@ -70,7 +69,6 @@ function AnalysisSessionWorkspaceContent({
   streamRequest: propStreamRequest,
   request: legacyStreamRequest,
   isLiveStream: propIsLiveStream,
-  fallbackToMockOnError: propFallbackToMockOnError,
   onViewReport,
   locationState,
   searchParams = new URLSearchParams()
@@ -85,38 +83,33 @@ function AnalysisSessionWorkspaceContent({
   const targetTickerParam =
     searchParams.get('ticker') ||
     searchParams.get('target') ||
-    (locationState?.target_ticker as string | undefined) ||
-    'ACB';
+    (locationState?.target_ticker as string | undefined);
   const peersParam =
     searchParams.get('peers') ||
     (locationState?.peer_tickers as string[] | string | undefined);
   const periodParam =
     searchParams.get('period') ||
-    (locationState?.period as string | undefined) ||
-    '2024';
+    (locationState?.period as string | undefined);
   const queryParam =
     searchParams.get('q') ||
     searchParams.get('query') ||
     (locationState?.query as string | undefined);
 
 
-  const dynamicRequest: AnalysisStreamRequest = useMemo(() => {
+  const dynamicRequest = useMemo<AnalysisStreamRequest | null>(() => {
     if (propStreamRequest) return propStreamRequest;
     if (legacyStreamRequest) return legacyStreamRequest;
     if (stateRequest) return stateRequest;
+    if (!queryParam?.trim()) return null;
 
     const peerTickers = Array.isArray(peersParam)
       ? peersParam
       : peersParam
       ? peersParam.split(',').map((s: string) => s.trim())
-      : ['TCB', 'MBB'];
-
-    const question =
-      queryParam ||
-      `So sánh chất lượng tài sản của ${targetTickerParam}, ${peerTickers.join(' và ')} trong năm ${periodParam} và xác định ngân hàng cải thiện rõ nhất.`;
+      : undefined;
 
     return {
-      query: question,
+      query: queryParam,
       target_ticker: targetTickerParam,
       peer_tickers: peerTickers,
       period: periodParam
@@ -131,35 +124,21 @@ function AnalysisSessionWorkspaceContent({
     periodParam
   ]);
 
-  // Determine whether to use Live SSE Stream:
-  // - If explicit viewModel / legacySession is passed: pure static mock view
-  // - If events are passed and propIsLiveStream is not explicitly true: pure driver mock
-  // - If hasMockScenarioParam: pure driver mock
-  // - Otherwise (no events prop, or propIsLiveStream=true): connect Live SSE Stream
+  // Demo fixtures are activated only through explicit scenario/event inputs.
   const hasExternalViewModel = Boolean(externalViewModel || legacySession);
   const hasEventsProp = events.length > 0;
   const wantsLiveStream =
     propIsLiveStream === true ||
     (!hasExternalViewModel && !hasEventsProp && !hasMockScenarioParam);
-
-  const [activeMode, setActiveMode] = useState<'LIVE' | 'MOCK'>(
-    wantsLiveStream ? 'LIVE' : 'MOCK'
-  );
+  const activeMode = wantsLiveStream ? 'LIVE' : 'MOCK';
 
   // 1. Live SSE Stream Hook
   const liveStream = useAnalysisSessionStream({
     request: dynamicRequest,
-    autoStart: wantsLiveStream && activeMode === 'LIVE',
-    fallbackToMockOnError: propFallbackToMockOnError ?? true
+    autoStart: wantsLiveStream && activeMode === 'LIVE' && Boolean(dynamicRequest)
   });
 
-  const mockDriverEvents = useMemo(() => {
-    if (hasEventsProp) return events;
-    if (liveStream.connectionMode === 'MOCK' && liveStream.events.length > 0) {
-      return liveStream.events;
-    }
-    return [];
-  }, [hasEventsProp, events, liveStream.connectionMode, liveStream.events]);
+  const mockDriverEvents = useMemo(() => (hasEventsProp ? events : []), [hasEventsProp, events]);
 
   // 2. Mock Analysis Session Driver
   const mockDriver = useAnalysisSessionDriver({
@@ -174,25 +153,22 @@ function AnalysisSessionWorkspaceContent({
     if (legacySession) return legacySession;
 
     if (activeMode === 'LIVE') {
-      if (liveStream.connectionMode === 'MOCK' && driverMode === 'AUTOPLAY') {
-        return mockDriver.viewModel;
-      }
       return liveStream.viewModel;
     }
 
-    if (hasEventsProp || (liveStream.connectionMode === 'MOCK' && mockDriverEvents.length > 0)) {
+    if (hasEventsProp || hasMockScenarioParam) {
       return mockDriver.viewModel;
     }
 
     return {
       sessionId: 'empty',
-      rawQuestion: dynamicRequest.query,
-      datasetName: 'Ngân hàng Việt Nam 2024',
-      scopeSignature: `${dynamicRequest.target_ticker} | ${
+      rawQuestion: dynamicRequest?.query || '',
+      datasetName: 'Snapshot chưa được xác nhận',
+      scopeSignature: dynamicRequest?.target_ticker ? `${dynamicRequest.target_ticker} | ${
         dynamicRequest.peer_tickers && dynamicRequest.peer_tickers.length > 0
           ? 'So sánh'
           : 'Độc lập'
-      } | ${dynamicRequest.period}`,
+      } | ${dynamicRequest.period || 'Kỳ chưa công bố'}` : '',
       currentPhase: 'INITIALIZING',
       phaseLabel: 'Đang chuẩn bị',
       threadItems: [],
@@ -205,11 +181,9 @@ function AnalysisSessionWorkspaceContent({
     legacySession,
     activeMode,
     liveStream.viewModel,
-    liveStream.connectionMode,
-    driverMode,
+    hasMockScenarioParam,
     hasEventsProp,
     mockDriver.viewModel,
-    mockDriverEvents.length,
     dynamicRequest
   ]);
 
@@ -222,79 +196,44 @@ function AnalysisSessionWorkspaceContent({
     setSheetOpen(true);
   };
 
-  const isActuallyLive =
-    activeMode === 'LIVE' &&
-    liveStream.connectionMode === 'LIVE' &&
-    !liveStream.isMockFallback;
-
-  const handleToggleMode = () => {
-    if (isActuallyLive) {
-      setActiveMode('MOCK');
-      liveStream.switchToMock();
-    } else {
-      setActiveMode('LIVE');
-      liveStream.switchToLive();
-    }
-  };
+  const isActuallyLive = activeMode === 'LIVE' && Boolean(dynamicRequest);
 
   // Status Badge Component
   const connectionBadge = (
     <div className="flex items-center gap-2">
-      {isActuallyLive ? (
+      {wantsLiveStream ? (
         <Badge
           variant="outline"
-          className="gap-1.5 px-2 py-0.5 text-[11px] font-semibold bg-[#e4f4ea] text-[#2f9e62] border-[#2f9e62]/30"
+          className="gap-1.5 px-2 py-0.5 text-[11px] font-semibold bg-surface-secondary text-ink-secondary border-border-subtle"
         >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2f9e62] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2f9e62]" />
-          </span>
-          <span>Live SSE Stream</span>
+          <Radio className="size-3.5" aria-hidden="true" />
+          <span>{liveStream.isError ? 'API lỗi' : liveStream.isComplete ? 'API đã trả về phản hồi' : liveStream.isStreaming ? 'Đang gọi API' : 'Chưa có phản hồi API'}</span>
         </Badge>
       ) : (
         <Badge
           variant="outline"
-          className="gap-1.5 px-2 py-0.5 text-[11px] font-semibold bg-[#fbefcf] text-[#cf8500] border-[#d88b00]/30"
+          className="gap-1.5 px-2 py-0.5 text-[11px] font-semibold bg-warning-soft text-ink border-warning/40"
         >
-          <span className="h-2 w-2 rounded-full bg-[#cf8500]" />
-          <span>Demo Mock Mode</span>
+          <Info className="size-3.5 text-warning" aria-hidden="true" />
+          <span>Mô phỏng · dữ liệu minh họa</span>
         </Badge>
-      )}
-
-      {/* Mode toggle button (only when not rigidly controlled by external viewModel prop) */}
-      {!hasExternalViewModel && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleToggleMode}
-          className="h-6 px-2 text-[10px] font-mono text-ink-secondary hover:text-ink hover:bg-surface-secondary border border-border-subtle"
-        >
-          {isActuallyLive ? (
-            <>
-              <RotateCw className="w-2.5 h-2.5 mr-1" aria-hidden="true" />
-              Chuyển Mock
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-2.5 h-2.5 mr-1" aria-hidden="true" />
-              Kết nối Live
-            </>
-          )}
-        </Button>
       )}
     </div>
   );
 
   const reportArtifact = liveStream.report;
-  const targetReportPath = reportArtifact?.report_id
-    ? `/reports/${reportArtifact.report_id}`
-    : '/reports/mock-session-2024-acb-tcb';
+  const targetReportPath = reportArtifact?.report_id ? `/reports/${reportArtifact.report_id}` : undefined;
 
   return (
     <div className="space-y-4">
       {/* Backend Live Connection Error Banner */}
-      {liveStream.isError && !liveStream.isMockFallback && (
+      {wantsLiveStream && !dynamicRequest && (
+        <div className="rounded-md border border-warning/40 bg-warning-soft/50 p-3 text-xs text-ink" role="alert">
+          Chưa có câu hỏi được xác nhận. Quay lại màn hình tạo phân tích để kiểm tra phạm vi trước khi gửi API.
+        </div>
+      )}
+
+      {liveStream.isError && (
         <div className="border border-[#c84b3f]/30 bg-[#fdf2f2] text-[#c84b3f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-[#c84b3f] shrink-0" aria-hidden="true" />
@@ -308,50 +247,13 @@ function AnalysisSessionWorkspaceContent({
               variant="outline"
               size="sm"
               onClick={() => {
-                setActiveMode('LIVE');
                 liveStream.retry();
               }}
               className="h-6 text-[11px] px-2.5 border-[#c84b3f]/40 text-[#c84b3f] hover:bg-[#c84b3f]/10"
             >
               Thử lại Live
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setActiveMode('MOCK');
-                liveStream.switchToMock();
-              }}
-              className="h-6 text-[11px] px-2.5 border-border-subtle text-ink-secondary hover:text-ink"
-            >
-              Chuyển Mock
-            </Button>
           </div>
-        </div>
-      )}
-
-      {/* Backend Fallback Notification Banner */}
-      {liveStream.isMockFallback && (
-        <div className="border border-[#d88b00]/30 bg-[#fbefcf] text-[#78350f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Radio className="w-3.5 h-3.5 text-[#cf8500] shrink-0" aria-hidden="true" />
-            <span>
-              Không thể kết nối Live SSE tới backend ({liveStream.backendTarget || 'https://final-thesis-zgwt.onrender.com'}). Hệ thống đã tự động chuyển sang chế độ Demo Mock để không làm gián đoạn phân tích.
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setActiveMode('LIVE');
-              liveStream.retry();
-            }}
-            className="h-6 text-[11px] px-2.5 border-[#d88b00]/40 text-[#78350f] hover:bg-[#d88b00]/10 shrink-0 self-start sm:self-auto"
-          >
-            Thử lại Live
-          </Button>
         </div>
       )}
 
@@ -372,9 +274,10 @@ function AnalysisSessionWorkspaceContent({
         onSelectSpecialist={handleOpenSpecialist}
         targetReportPath={targetReportPath}
         reportData={reportArtifact}
+        isDemo={!wantsLiveStream}
         isStreaming={liveStream.isStreaming}
         onViewReport={
-          onViewReport && reportArtifact
+          isActuallyLive && onViewReport && reportArtifact
             ? () => onViewReport(reportArtifact)
             : undefined
         }

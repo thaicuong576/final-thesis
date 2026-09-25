@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from decimal import Decimal
 import json
 from pathlib import Path
 import sqlite3
 
 from .dataset_contract import (
+    CalculationInputReceipt,
     CanonicalObservation,
     DatasetEvidence,
+    DerivedCalculationReceipt,
     canonical_observation_id,
 )
 from .evidence_contract import DatasetDocument
@@ -24,6 +27,7 @@ from .onboarding_contract import (
     validate_snapshot_metadata,
 )
 from .onboarding_validation import CanonicalDatasetCandidate
+from .metrics import operational_derived_formula
 from .schema import QualityStatus
 
 
@@ -36,6 +40,125 @@ def _enum_value(value: object) -> object:
 
 def _json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+CANONICAL_CALCULATION_RECEIPT_METADATA_KEY = "__derived_calculation_receipt_v1"
+
+
+def _unit_matches(actual: str | None, expected: str) -> bool:
+    if expected == "percent":
+        return actual in {"%", "percent", "percentage_points"}
+    return actual == expected
+
+
+def _expected_input_periods(
+    output_period_id: str,
+    period_rule: str,
+    input_count: int,
+) -> tuple[str, ...]:
+    if period_rule == "same_period":
+        return (output_period_id,) * input_count
+    if period_rule != "q4_ttm":
+        raise ValueError(f"unsupported derived period rule: {period_rule}")
+    try:
+        year_text, quarter_text = output_period_id.split("_Q", 1)
+        year = int(year_text)
+        quarter = int(quarter_text)
+    except (ValueError, TypeError) as exc:
+        raise ValueError("TTM derived output period must use YYYY_Qn") from exc
+    if quarter != 4 or input_count != 4:
+        raise ValueError("current TTM formula requires a Q4 output and four ordered inputs")
+    prior_period = f"{year - 1}_Q4"
+    return (output_period_id, prior_period, output_period_id, prior_period)
+
+
+def _calculate_derived_receipt(
+    observation: CanonicalObservation,
+    observation_by_id: dict[str, CanonicalObservation],
+) -> DerivedCalculationReceipt:
+    formula = operational_derived_formula(
+        observation.metric_id,
+        observation.derivation_method or "",
+    )
+    if formula is None:
+        raise ValueError(
+            f"derived formula is unsupported for operational promotion: "
+            f"{observation.metric_id}/{observation.derivation_method}"
+        )
+    if observation.validation_status is not QualityStatus.VALID or observation.value is None:
+        raise ValueError("derived calculation requires a valid numeric candidate")
+    if observation.period_basis != formula.output_period_basis:
+        raise ValueError("derived output period basis does not match its formula")
+    if not _unit_matches(observation.unit, formula.output_unit):
+        raise ValueError("derived output unit does not match its formula")
+    if len(observation.input_observation_ids) != len(formula.input_metric_ids):
+        raise ValueError("derived input count does not match its formula")
+    expected_periods = _expected_input_periods(
+        observation.period_id,
+        formula.period_rule,
+        len(formula.input_metric_ids),
+    )
+    inputs: list[CanonicalObservation] = []
+    for index, input_id in enumerate(observation.input_observation_ids):
+        source_input = observation_by_id.get(input_id)
+        if source_input is None:
+            raise ValueError(f"derived input observation does not resolve: {input_id}")
+        if source_input.validation_status is not QualityStatus.VALID or source_input.value is None:
+            raise ValueError(f"derived input observation is not accepted numeric data: {input_id}")
+        if source_input.entity_id != observation.entity_id:
+            raise ValueError(f"derived input entity does not match output: {input_id}")
+        if source_input.metric_id != formula.input_metric_ids[index]:
+            raise ValueError(f"derived input metric/order does not match formula: {input_id}")
+        if source_input.period_id != expected_periods[index]:
+            raise ValueError(f"derived input period does not match formula: {input_id}")
+        if source_input.period_basis != formula.input_period_bases[index]:
+            raise ValueError(f"derived input period basis does not match formula: {input_id}")
+        if source_input.reporting_scope != observation.reporting_scope:
+            raise ValueError(f"derived input reporting scope does not match output: {input_id}")
+        if source_input.unit != formula.input_units[index]:
+            raise ValueError(f"derived input unit does not match formula: {input_id}")
+        inputs.append(source_input)
+
+    input_values = tuple(Decimal(str(item.value)) for item in inputs)
+    result = formula.calculate(input_values)
+    if result.quality_status is not QualityStatus.VALID or result.value is None:
+        raise ValueError(f"derived formula could not calculate a valid value: {formula.formula_version}")
+    if result.formula_version != formula.formula_version:
+        raise ValueError("deterministic calculation returned an unexpected formula version")
+    if result.period_basis != formula.output_period_basis:
+        raise ValueError("deterministic calculation returned an unexpected period basis")
+    if not _unit_matches(result.unit, formula.output_unit):
+        raise ValueError("deterministic calculation returned an unexpected unit")
+
+    calculated_output = result.value
+    candidate_output = Decimal(str(observation.value))
+    difference = abs(candidate_output - calculated_output)
+    if difference > formula.tolerance:
+        raise ValueError(
+            f"derived candidate value differs from deterministic calculation: "
+            f"{observation.metric_id} difference={difference} tolerance={formula.tolerance}"
+        )
+    return DerivedCalculationReceipt(
+        formula_version=formula.formula_version,
+        ordered_inputs=tuple(
+            CalculationInputReceipt(
+                observation_id=item.observation_id,
+                metric_id=item.metric_id,
+                period_id=item.period_id,
+                value=Decimal(str(item.value)),
+                unit=item.unit,
+                period_basis=item.period_basis,
+                reporting_scope=item.reporting_scope,
+            )
+            for item in inputs
+        ),
+        calculated_output=calculated_output,
+        candidate_output=candidate_output,
+        unit=observation.unit,
+        tolerance=formula.tolerance,
+        absolute_difference=difference,
+        result="passed",
+    )
 
 
 def _create_schema(connection: sqlite3.Connection) -> None:
@@ -163,7 +286,7 @@ def _validate_candidate(
     candidate: CanonicalDatasetCandidate,
     accepted_metadata: DatasetSnapshotMetadata,
     raw_descriptor: RawDatasetDescriptor,
-) -> None:
+) -> CanonicalDatasetCandidate:
     if accepted_metadata.status is not DatasetSnapshotStatus.ACCEPTED:
         raise ValueError("materialization requires accepted metadata")
     if candidate.source.content_hash != raw_descriptor.content_hash:
@@ -313,6 +436,21 @@ def _validate_candidate(
         if not set(universe.entity_ids).issubset(entity_ids):
             raise ValueError("peer universe contains an unknown entity")
 
+    validated_observations: list[CanonicalObservation] = []
+    for item in candidate.observations:
+        if item.validation_status is QualityStatus.VALID and item.derivation_method is not None:
+            receipt = _calculate_derived_receipt(item, observation_by_id)
+            if item.calculation_receipt is not None and item.calculation_receipt != receipt:
+                raise ValueError("provided derived calculation receipt does not match recomputation")
+            validated_observations.append(
+                item.model_copy(update={"calculation_receipt": receipt})
+            )
+        else:
+            if item.calculation_receipt is not None:
+                raise ValueError("calculation receipt is only allowed on valid derived observations")
+            validated_observations.append(item)
+    return replace(candidate, observations=tuple(validated_observations))
+
 
 def _bind_candidate_to_final_snapshot(
     candidate: CanonicalDatasetCandidate,
@@ -395,6 +533,24 @@ def _bind_candidate_to_final_snapshot(
                         observation_id_map[ref]
                         for ref in item.input_observation_ids
                     ),
+                    "calculation_receipt": (
+                        item.calculation_receipt.model_copy(
+                            update={
+                                "ordered_inputs": tuple(
+                                    input_receipt.model_copy(
+                                        update={
+                                            "observation_id": observation_id_map[
+                                                input_receipt.observation_id
+                                            ]
+                                        }
+                                    )
+                                    for input_receipt in item.calculation_receipt.ordered_inputs
+                                )
+                            }
+                        )
+                        if item.calculation_receipt is not None
+                        else None
+                    ),
                 }
             )
             for item in candidate.observations
@@ -413,6 +569,11 @@ def _bind_candidate_to_final_snapshot(
 
 
 def _insert_observation(connection: sqlite3.Connection, item: CanonicalObservation) -> None:
+    metadata = dict(item.metadata)
+    if CANONICAL_CALCULATION_RECEIPT_METADATA_KEY in metadata:
+        raise ValueError("observation metadata uses a reserved calculation receipt key")
+    if item.calculation_receipt is not None:
+        metadata[CANONICAL_CALCULATION_RECEIPT_METADATA_KEY] = item.calculation_receipt.model_dump(mode="json")
     connection.execute(
         """
         INSERT INTO observations (
@@ -441,7 +602,7 @@ def _insert_observation(connection: sqlite3.Connection, item: CanonicalObservati
             item.derivation_method,
             _json(list(item.input_observation_ids)),
             _json(item.review.model_dump(mode="json") if item.review is not None else {}),
-            _json(item.metadata),
+            _json(metadata),
         ),
     )
 
@@ -466,7 +627,7 @@ def materialize_canonical_snapshot(
     reconciliation_metadata = candidate.metadata.model_copy(
         update={"status": DatasetSnapshotStatus.ACCEPTED}
     )
-    _validate_candidate(candidate, reconciliation_metadata, raw_descriptor)
+    candidate = _validate_candidate(candidate, reconciliation_metadata, raw_descriptor)
     accepted_metadata = promote_snapshot_metadata(
         raw_descriptor,
         candidate.metadata,
@@ -478,7 +639,7 @@ def materialize_canonical_snapshot(
         accepted_metadata,
         raw_descriptor,
     )
-    _validate_candidate(candidate, accepted_metadata, raw_descriptor)
+    candidate = _validate_candidate(candidate, accepted_metadata, raw_descriptor)
     target = Path(db_path)
     target_existed_before = target.exists()
     if target_existed_before and target.stat().st_size > 0:

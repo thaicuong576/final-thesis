@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
-from typing import Sequence
+from typing import Callable, Literal, Sequence
 
 from .schema import QualityStatus
 
@@ -18,6 +18,22 @@ class MetricResult:
     reason: str | None
     formula_version: str
     period_basis: str
+
+
+@dataclass(frozen=True)
+class OperationalDerivedFormulaSpec:
+    """Versioned formula contract used before operational snapshot acceptance."""
+
+    metric_id: str
+    formula_version: str
+    input_metric_ids: tuple[str, ...]
+    input_units: tuple[str, ...]
+    input_period_bases: tuple[str, ...]
+    output_unit: str
+    output_period_basis: str
+    tolerance: Decimal
+    period_rule: Literal["same_period", "q4_ttm"]
+    calculate: Callable[[tuple[Number, ...]], MetricResult]
 
 
 def _decimal(value: Number) -> Decimal | None:
@@ -270,3 +286,197 @@ def calculate_peer_median(values: Sequence[Number]) -> MetricResult:
         formula_version="peer-median-v1",
         period_basis="same_period",
     )
+
+
+def calculate_npl_g35_balance(
+    group_3_balance: Number,
+    group_4_balance: Number,
+    group_5_balance: Number,
+) -> MetricResult:
+    """Sum accepted group 3–5 balances in normalized VND billion."""
+
+    values = tuple(_decimal(value) for value in (
+        group_3_balance,
+        group_4_balance,
+        group_5_balance,
+    ))
+    if any(value is None for value in values):
+        return MetricResult(
+            value=None,
+            unit="billion_vnd",
+            quality_status=QualityStatus.MISSING,
+            reason="missing_input",
+            formula_version="npl-g35-balance-v1",
+            period_basis="point_in_time",
+        )
+    return MetricResult(
+        value=sum(values, Decimal("0")),
+        unit="billion_vnd",
+        quality_status=QualityStatus.VALID,
+        reason=None,
+        formula_version="npl-g35-balance-v1",
+        period_basis="point_in_time",
+    )
+
+
+def calculate_parent_attributable_equity(
+    total_equity: Number,
+    non_controlling_interests: Number,
+) -> MetricResult:
+    """Derive parent-attributable equity from total equity less NCI."""
+
+    total_decimal = _decimal(total_equity)
+    nci_decimal = _decimal(non_controlling_interests)
+    if total_decimal is None or nci_decimal is None:
+        return MetricResult(
+            value=None,
+            unit="billion_vnd",
+            quality_status=QualityStatus.MISSING,
+            reason="missing_input",
+            formula_version="parent-attributable-equity-v1",
+            period_basis="point_in_time",
+        )
+    return MetricResult(
+        value=total_decimal - nci_decimal,
+        unit="billion_vnd",
+        quality_status=QualityStatus.VALID,
+        reason=None,
+        formula_version="parent-attributable-equity-v1",
+        period_basis="point_in_time",
+    )
+
+
+def _q4_ttm_average(left: Number, right: Number) -> Decimal | None:
+    left_decimal = _decimal(left)
+    right_decimal = _decimal(right)
+    if left_decimal is None or right_decimal is None:
+        return None
+    return (left_decimal + right_decimal) / Decimal("2")
+
+
+def _calculate_q4_roa_ttm(inputs: tuple[Number, ...]) -> MetricResult:
+    average_assets = _q4_ttm_average(inputs[2], inputs[3])
+    return calculate_roa_ttm(inputs[0], inputs[1], inputs[1], average_assets)
+
+
+def _calculate_q4_roe_ttm(inputs: tuple[Number, ...]) -> MetricResult:
+    average_equity = _q4_ttm_average(inputs[2], inputs[3])
+    return calculate_roe_ttm(inputs[0], inputs[1], inputs[1], average_equity)
+
+
+_AMOUNT = "billion_vnd"
+_POINT_IN_TIME = "point_in_time"
+_AMOUNT_INPUTS_3 = (_AMOUNT, _AMOUNT, _AMOUNT)
+_AMOUNT_INPUTS_2 = (_AMOUNT, _AMOUNT)
+_AMOUNT_INPUTS_4 = (_AMOUNT, _AMOUNT, _AMOUNT, _AMOUNT)
+_POINT_INPUTS_3 = (_POINT_IN_TIME, _POINT_IN_TIME, _POINT_IN_TIME)
+_POINT_INPUTS_2 = (_POINT_IN_TIME, _POINT_IN_TIME)
+_Q4_TTM_INPUT_BASES = ("annual", "annual", _POINT_IN_TIME, _POINT_IN_TIME)
+_OPERATIONAL_DERIVED_FORMULAS = {
+    ("bank.input.npl_g35_balance", "npl-g35-balance-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.input.npl_g35_balance",
+        formula_version="npl-g35-balance-v1",
+        input_metric_ids=(
+            "bank.input.npl_group_3_balance",
+            "bank.input.npl_group_4_balance",
+            "bank.input.npl_group_5_balance",
+        ),
+        input_units=_AMOUNT_INPUTS_3,
+        input_period_bases=_POINT_INPUTS_3,
+        output_unit=_AMOUNT,
+        output_period_basis=_POINT_IN_TIME,
+        tolerance=Decimal("0.0000001"),
+        period_rule="same_period",
+        calculate=lambda inputs: calculate_npl_g35_balance(*inputs),
+    ),
+    ("bank.input.parent_attributable_equity", "parent-attributable-equity-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.input.parent_attributable_equity",
+        formula_version="parent-attributable-equity-v1",
+        input_metric_ids=(
+            "bank.input.total_equity",
+            "bank.input.non_controlling_interests",
+        ),
+        input_units=_AMOUNT_INPUTS_2,
+        input_period_bases=_POINT_INPUTS_2,
+        output_unit=_AMOUNT,
+        output_period_basis=_POINT_IN_TIME,
+        tolerance=Decimal("0.0000001"),
+        period_rule="same_period",
+        calculate=lambda inputs: calculate_parent_attributable_equity(*inputs),
+    ),
+    ("bank.npl_g35", "npl-g35-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.npl_g35",
+        formula_version="npl-g35-v1",
+        input_metric_ids=(
+            "bank.input.npl_group_3_balance",
+            "bank.input.npl_group_4_balance",
+            "bank.input.npl_group_5_balance",
+            "bank.input.gross_customer_loans",
+        ),
+        input_units=_AMOUNT_INPUTS_4,
+        input_period_bases=(_POINT_IN_TIME,) * 4,
+        output_unit="percent",
+        output_period_basis=_POINT_IN_TIME,
+        tolerance=Decimal("0.00005"),
+        period_rule="same_period",
+        calculate=lambda inputs: calculate_npl(*inputs),
+    ),
+    ("bank.llr_coverage", "llr-coverage-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.llr_coverage",
+        formula_version="llr-coverage-v1",
+        input_metric_ids=(
+            "bank.input.loan_loss_provisions",
+            "bank.input.npl_g35_balance",
+        ),
+        input_units=_AMOUNT_INPUTS_2,
+        input_period_bases=_POINT_INPUTS_2,
+        output_unit="percent",
+        output_period_basis=_POINT_IN_TIME,
+        tolerance=Decimal("0.00005"),
+        period_rule="same_period",
+        calculate=lambda inputs: calculate_llr(*inputs),
+    ),
+    ("bank.roa", "roa-ttm-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roa",
+        formula_version="roa-ttm-v1",
+        input_metric_ids=(
+            "bank.input.profit_after_tax",
+            "bank.input.profit_after_tax",
+            "bank.input.total_assets",
+            "bank.input.total_assets",
+        ),
+        input_units=_AMOUNT_INPUTS_4,
+        input_period_bases=_Q4_TTM_INPUT_BASES,
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="q4_ttm",
+        calculate=_calculate_q4_roa_ttm,
+    ),
+    ("bank.roe", "roe-ttm-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roe",
+        formula_version="roe-ttm-v1",
+        input_metric_ids=(
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_equity",
+            "bank.input.parent_attributable_equity",
+        ),
+        input_units=_AMOUNT_INPUTS_4,
+        input_period_bases=_Q4_TTM_INPUT_BASES,
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="q4_ttm",
+        calculate=_calculate_q4_roe_ttm,
+    ),
+}
+
+
+def operational_derived_formula(
+    metric_id: str,
+    formula_version: str,
+) -> OperationalDerivedFormulaSpec | None:
+    """Return one explicit formula contract for operational snapshot promotion."""
+
+    return _OPERATIONAL_DERIVED_FORMULAS.get((metric_id, formula_version))

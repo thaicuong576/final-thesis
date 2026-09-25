@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import csv
+from dataclasses import replace
+from decimal import Decimal
 import json
 from pathlib import Path
 import sqlite3
@@ -115,6 +117,7 @@ class BankOnboardingPacketTests(unittest.TestCase):
                 self.assertTrue(observation.source_locator.startswith("pdf_page="))
                 self.assertEqual(observation.review.decision, "reproduced_derived_value")
                 self.assertIsNone(observation.source_ref)
+                self.assertIsNotNone(observation.calculation_receipt)
                 reviewed_source_refs = tuple(sorted({
                     item.source_ref for item in observation.review.primary_evidence
                 }))
@@ -154,6 +157,103 @@ class BankOnboardingPacketTests(unittest.TestCase):
         self.assertAlmostEqual(resolved["bank.llr_coverage"].value, 174.6762, places=4)
         self.assertEqual(resolved["bank.roa"].value, 1.1536)
         self.assertEqual(resolved["bank.roe"].value, 18.6012)
+
+    def test_materialized_ctg_derived_observations_have_recomputed_persisted_receipts(self):
+        packet, candidate, raw_descriptor, report = self.load_packet()
+        expected_outputs = {
+            ("bank.input.npl_g35_balance", "2024_Q4"): ("20989.767", "20989.767", "0.0000001"),
+            ("bank.input.parent_attributable_equity", "2024_Q4"): ("147533.979", "147533.979", "0.0000001"),
+            ("bank.input.parent_attributable_equity", "2023_Q4"): ("125010.60", "125010.60", "0.0000001"),
+            ("bank.npl_g35", "2024_Q4"): ("1.219", "1.218950000795433229958915168", "0.00005"),
+            ("bank.llr_coverage", "2024_Q4"): ("174.6762", "174.6761886399215389098888044", "0.00005"),
+            ("bank.roa", "2024_Q4"): ("1.1536", "1.1536", "0.00005"),
+            ("bank.roe", "2024_Q4"): ("18.6012", "18.6012", "0.00005"),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "ctg-receipts.sqlite"
+            accepted = materialize_canonical_snapshot(db_path, candidate, raw_descriptor, report)
+            provider = CanonicalSqliteDatasetProvider(db_path, dataset_id=packet.dataset_id)
+            ref = provider.current_dataset_ref()
+            self.assertEqual(ref.dataset_snapshot_id, accepted.dataset_snapshot_id)
+
+            receipt_count = 0
+            for (metric_id, period_id), (candidate_output, calculated_output, tolerance) in expected_outputs.items():
+                observation = provider.get_metric(ref, "CTG", period_id, metric_id)
+                self.assertIsNotNone(observation, (metric_id, period_id))
+                receipt = observation.calculation_receipt
+                self.assertIsNotNone(receipt, (metric_id, period_id))
+                receipt_count += 1
+                self.assertEqual(receipt.formula_version, observation.derivation_method)
+                self.assertEqual(receipt.candidate_output, Decimal(candidate_output))
+                self.assertEqual(receipt.calculated_output, Decimal(calculated_output))
+                self.assertEqual(receipt.tolerance, Decimal(tolerance))
+                self.assertEqual(tuple(item.observation_id for item in receipt.ordered_inputs), observation.input_observation_ids)
+                self.assertEqual(receipt.result, "passed")
+                self.assertLessEqual(receipt.absolute_difference, receipt.tolerance)
+                for input_receipt in receipt.ordered_inputs:
+                    accepted_input = provider.resolve_observation(ref, input_receipt.observation_id)
+                    self.assertIsNotNone(accepted_input)
+                    self.assertEqual(accepted_input.validation_status, QualityStatus.VALID)
+                    self.assertEqual(Decimal(str(accepted_input.value)), input_receipt.value)
+                    self.assertEqual(accepted_input.metric_id, input_receipt.metric_id)
+                    self.assertEqual(accepted_input.period_id, input_receipt.period_id)
+                    self.assertEqual(accepted_input.unit, input_receipt.unit)
+                    self.assertEqual(accepted_input.period_basis, input_receipt.period_basis)
+                    self.assertEqual(accepted_input.reporting_scope, input_receipt.reporting_scope)
+
+            self.assertEqual(receipt_count, 7)
+            connection = sqlite3.connect(db_path)
+            try:
+                rows = connection.execute(
+                    "SELECT derivation_method, validation_status, metadata_json FROM observations"
+                ).fetchall()
+            finally:
+                connection.close()
+            persisted_derived = [
+                json.loads(metadata_json)
+                for derivation_method, status, metadata_json in rows
+                if derivation_method is not None and status == QualityStatus.VALID.value
+            ]
+            self.assertEqual(len(persisted_derived), receipt_count)
+            self.assertTrue(all("__derived_calculation_receipt_v1" in item for item in persisted_derived))
+
+    def test_materialization_rejects_derived_value_formula_unit_scope_and_input_mismatches(self):
+        _, candidate, raw_descriptor, report = self.load_packet()
+        target_metric = "bank.npl_g35"
+        target_period = "2024_Q4"
+
+        def altered_candidate(**updates):
+            observations = list(candidate.observations)
+            target_index = next(
+                index for index, item in enumerate(observations)
+                if item.metric_id == target_metric and item.period_id == target_period
+            )
+            observations[target_index] = observations[target_index].model_copy(update=updates)
+            return replace(candidate, observations=tuple(observations))
+
+        target = next(
+            item for item in candidate.observations
+            if item.metric_id == target_metric and item.period_id == target_period
+        )
+        altered_inputs = list(target.input_observation_ids)
+        altered_inputs[0], altered_inputs[1] = altered_inputs[1], altered_inputs[0]
+        invalid_candidates = (
+            ("derived candidate value differs", altered_candidate(value=float(target.value) + 0.1)),
+            ("formula is unsupported", altered_candidate(derivation_method="unrecognized-formula-v999")),
+            ("output unit", altered_candidate(unit="ratio")),
+            ("reporting scope", altered_candidate(reporting_scope="separate")),
+            ("input metric/order", altered_candidate(input_observation_ids=tuple(altered_inputs))),
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            for index, (message, invalid_candidate) in enumerate(invalid_candidates):
+                with self.subTest(message=message):
+                    db_path = Path(directory) / f"rejected-{index}.sqlite"
+                    with self.assertRaisesRegex(ValueError, message):
+                        materialize_canonical_snapshot(
+                            db_path, invalid_candidate, raw_descriptor, report
+                        )
+                    self.assertFalse(db_path.exists(), "failed promotion must not create an accepted snapshot")
 
     def test_stage1_accepts_ctg_derived_metrics_and_rejects_unreviewed_csv(self):
         packet, candidate, raw_descriptor, report = self.load_packet()

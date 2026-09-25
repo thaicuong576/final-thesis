@@ -1,9 +1,15 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 import unittest
 
 from pydantic import ValidationError
 
-from thesis_data.dataset_contract import AnalyticalLevel
+from thesis_data.dataset_contract import (
+    AnalyticalLevel,
+    CalculationInputReceipt,
+    CanonicalObservation,
+    DerivedCalculationReceipt,
+)
 from thesis_data.onboarding_contract import (
     DatasetSnapshotMetadata,
     DatasetSnapshotStatus,
@@ -20,6 +26,7 @@ from thesis_data.onboarding_contract import (
     StagedField,
     build_snapshot_metadata,
     compute_dataset_snapshot_id,
+    compute_content_manifest_hash,
     compute_field_mapping_version,
     compute_onboarding_issue_id,
     demo_metric_registry,
@@ -433,6 +440,87 @@ class Phase0AOnboardingContractTests(unittest.TestCase):
             promote_snapshot_metadata(
                 self.raw(), metadata, mismatch_snapshot_report, source_reconciled=True
             )
+
+    def test_calculation_receipt_manifest_is_stable_across_snapshot_id_binding(self):
+        source = CanonicalObservation(
+            observation_id="candidate-input-id",
+            dataset_id="dataset-a",
+            dataset_snapshot_id="candidate-snapshot",
+            entity_id="CTG",
+            period_id="2024_Q4",
+            metric_id="bank.input.source_amount",
+            value=Decimal("2.5"),
+            unit="billion_vnd",
+            source_ref="source-annual-report",
+            source_locator="pdf_page=5",
+            period_basis="point_in_time",
+            reporting_scope="consolidated",
+            validation_status="valid",
+        )
+        receipt = DerivedCalculationReceipt(
+            formula_version="sum-v1",
+            ordered_inputs=(CalculationInputReceipt(
+                observation_id=source.observation_id,
+                metric_id=source.metric_id,
+                period_id=source.period_id,
+                value=Decimal("2.5"),
+                unit=source.unit,
+                period_basis=source.period_basis,
+                reporting_scope=source.reporting_scope,
+            ),),
+            calculated_output=Decimal("2.5"),
+            candidate_output=Decimal("2.5"),
+            unit="billion_vnd",
+            tolerance=Decimal("0"),
+            absolute_difference=Decimal("0"),
+            result="passed",
+        )
+        derived = CanonicalObservation(
+            observation_id="candidate-derived-id",
+            dataset_id="dataset-a",
+            dataset_snapshot_id="candidate-snapshot",
+            entity_id="CTG",
+            period_id="2024_Q4",
+            metric_id="bank.input.derived_amount",
+            value=Decimal("2.5"),
+            unit="billion_vnd",
+            source_locator="pdf_page=5",
+            period_basis="point_in_time",
+            reporting_scope="consolidated",
+            validation_status="valid",
+            derivation_method="sum-v1",
+            input_observation_ids=(source.observation_id,),
+            calculation_receipt=receipt,
+        )
+
+        def manifest(observations):
+            return compute_content_manifest_hash(
+                sources=(),
+                observations=observations,
+                mapping_version="mapping-v1",
+                validation_version="validation-v1",
+            )
+
+        bound_source_id = "snapshot-bound-input-id"
+        bound_derived = derived.model_copy(
+            update={
+                "observation_id": "snapshot-bound-derived-id",
+                "input_observation_ids": (bound_source_id,),
+                "calculation_receipt": receipt.model_copy(
+                    update={
+                        "ordered_inputs": (
+                            receipt.ordered_inputs[0].model_copy(
+                                update={"observation_id": bound_source_id}
+                            ),
+                        )
+                    }
+                ),
+            }
+        )
+        self.assertEqual(
+            manifest((source, derived)),
+            manifest((source.model_copy(update={"observation_id": bound_source_id}), bound_derived)),
+        )
 
     def test_snapshot_metadata_schema_is_explicit_and_strict(self):
         with self.assertRaises(ValidationError):

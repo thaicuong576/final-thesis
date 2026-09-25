@@ -345,3 +345,37 @@ rules before distinguishing reported values from reproducible derived values.
 3. Materialization validates primary review evidence and valid numeric inputs
    for derived observations while keeping direct-source requirements for
    reported observations.
+
+---
+
+## [LESSON-015] Recompute Derived Values Before Operational Acceptance
+
+- **Date:** 2026-09-25
+- **Scope:** `src/thesis_data/metrics.py`, `src/thesis_data/canonical_snapshot.py`,
+  `src/thesis_data/canonical_sqlite_provider.py`
+- **Status:** `ACTIVE`
+
+### 1. Context & Symptom
+An onboarding candidate could have a structurally valid CSV, reviewed primary
+source locators, formula names, and input IDs while still containing a derived
+number that had never been recomputed by the operational promotion path.
+Source review alone did not prove the submitted arithmetic.
+
+### 2. Root Cause
+Candidate validation checked that the formula and input references existed, but
+did not run the deterministic formula code or preserve a receipt of that run.
+
+### 3. Permanent Solution
+1. Register explicit metric/formula versions with ordered input metric, unit,
+   period-basis, output, period-rule, and tolerance contracts. Promotion must
+   resolve each accepted input ID and recompute through the registered metric
+   function; unsupported formulas or mismatches fail closed.
+2. Persist a machine-readable calculation receipt on each accepted derived
+   observation. Include input identities and values, formula version, both
+   outputs, tolerance, and result so providers can expose the same provenance.
+3. The CTG Q4 packet's rounded ratios are accepted only within explicit
+   tolerance: NPL candidate 1.219 vs 1.218950000795433229958915168 (difference
+   0.000049999204566770041084832, tolerance 0.00005), and LLR candidate 174.6762
+   vs 174.6761886399215389098888044 (difference
+   0.0000113600784610901111956, tolerance 0.00005). Exact amount formulas and
+   the four-decimal ROA/ROE formulas reproduce exactly.

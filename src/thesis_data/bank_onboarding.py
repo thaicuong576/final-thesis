@@ -35,6 +35,8 @@ from .evidence_contract import DatasetDocument
 from .metrics import (
     calculate_llr,
     calculate_npl,
+    calculate_npl_g35_balance,
+    calculate_parent_attributable_equity,
     calculate_roa_ttm,
     calculate_roe_ttm,
 )
@@ -380,18 +382,14 @@ def _validate_packet_calculations(observations: dict[str, BankPacketObservation]
                 )
             }
             _validate_formula_inputs(observation, expected_input_ids)
-            if observation.formula.formula_version != "npl-g35-balance-v1":
-                raise ValueError("NPL balance formula version is unsupported")
-            result = calculate_npl(
+            result = calculate_npl_g35_balance(
                 values.get("bank.input.npl_group_3_balance"),
                 values.get("bank.input.npl_group_4_balance"),
                 values.get("bank.input.npl_group_5_balance"),
-                Decimal("100"),
             )
-            # With a synthetic denominator of 100, the percentage output is
-            # numerically equal to the sum of the normalized group balances.
-            result_value = Decimal(str(result.value))
-            if observation.value is None or abs(Decimal(str(observation.value)) - result_value) > Decimal("0.0000001"):
+            if result.value is None or result.formula_version != observation.formula.formula_version:
+                raise ValueError("NPL balance formula version or inputs are unsupported")
+            if observation.value is None or abs(Decimal(str(observation.value)) - result.value) > Decimal("0.0000001"):
                 raise ValueError("NPL balance does not reproduce from accepted group balances")
             continue
         elif observation.metric_id == "bank.input.parent_attributable_equity":
@@ -403,14 +401,13 @@ def _validate_packet_calculations(observations: dict[str, BankPacketObservation]
                 )
             }
             _validate_formula_inputs(observation, expected_input_ids)
-            if observation.formula.formula_version != "parent-attributable-equity-v1":
-                raise ValueError("parent-equity formula version is unsupported")
-            total_equity = values.get("bank.input.total_equity")
-            nci = values.get("bank.input.non_controlling_interests")
-            if total_equity is None or nci is None:
-                raise ValueError("parent-attributable equity inputs are incomplete")
-            expected = Decimal(str(total_equity)) - Decimal(str(nci))
-            if observation.value is None or abs(Decimal(str(observation.value)) - expected) > Decimal("0.0000001"):
+            result = calculate_parent_attributable_equity(
+                values.get("bank.input.total_equity"),
+                values.get("bank.input.non_controlling_interests"),
+            )
+            if result.value is None or result.formula_version != observation.formula.formula_version:
+                raise ValueError("parent-equity formula version or inputs are unsupported")
+            if observation.value is None or abs(Decimal(str(observation.value)) - result.value) > Decimal("0.0000001"):
                 raise ValueError("parent-attributable equity does not reproduce from accepted inputs")
             continue
         else:

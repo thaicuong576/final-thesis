@@ -13,7 +13,10 @@ from statistics import median
 from typing import Any, Sequence
 import sqlite3
 
-from .canonical_snapshot import CANONICAL_SNAPSHOT_SCHEMA_VERSION
+from .canonical_snapshot import (
+    CANONICAL_CALCULATION_RECEIPT_METADATA_KEY,
+    CANONICAL_SNAPSHOT_SCHEMA_VERSION,
+)
 from .dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
@@ -25,6 +28,7 @@ from .dataset_contract import (
     DatasetPeriod,
     DatasetRef,
     DatasetSource,
+    DerivedCalculationReceipt,
     ObservationReview,
     PeerUniverse,
     SupportedOperation,
@@ -240,6 +244,16 @@ class CanonicalSqliteDatasetProvider:
             review = ObservationReview.model_validate(review_payload) if review_payload else None
         except (TypeError, ValueError) as exc:
             raise DatasetProviderError("canonical observation review is invalid") from exc
+        metadata = self._json_object(row["metadata_json"])
+        receipt_payload = metadata.pop(CANONICAL_CALCULATION_RECEIPT_METADATA_KEY, None)
+        try:
+            calculation_receipt = (
+                DerivedCalculationReceipt.model_validate(receipt_payload)
+                if receipt_payload is not None
+                else None
+            )
+        except (TypeError, ValueError) as exc:
+            raise DatasetProviderError("canonical observation calculation receipt is invalid") from exc
         return CanonicalObservation(
             observation_id=str(row["observation_id"]),
             dataset_id=persisted_dataset_id,
@@ -258,7 +272,8 @@ class CanonicalSqliteDatasetProvider:
             missing_reason=row["missing_reason"],
             derivation_method=row["derivation_method"],
             input_observation_ids=self._json_list(row["input_observation_ids_json"]),
-            metadata=self._json_object(row["metadata_json"]),
+            calculation_receipt=calculation_receipt,
+            metadata=metadata,
         )
 
     def get_metric(

@@ -31,8 +31,11 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    CSV structural validation creates only a candidate; accepted numeric values
    require observation-level source reconciliation to a primary filing with an
    exact locator, period basis, reporting scope, reviewer, and formula/input
-   lineage where derived. The generic onboarding SQLite provider stores these
-   fields separately from the immutable Gold v5 database.
+   lineage where derived. Operational promotion recomputes derived observations
+   with a recognized versioned formula and persists a calculation receipt with
+   the ordered accepted inputs, outputs, tolerance, and result. The generic
+   onboarding SQLite provider stores these fields separately from the immutable
+   Gold v5 database.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.

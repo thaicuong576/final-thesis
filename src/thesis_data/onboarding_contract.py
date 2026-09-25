@@ -422,6 +422,7 @@ def _manifest_observation_items(values: Sequence[Any]) -> list[dict[str, Any]]:
                 "dataset_snapshot_id",
                 "observation_id",
                 "input_observation_ids",
+                "calculation_receipt",
             },
         )
         if isinstance(value, BaseModel):
@@ -440,6 +441,20 @@ def _manifest_observation_items(values: Sequence[Any]) -> list[dict[str, Any]]:
         lineage_refs = tuple(
             str(ref).strip() for ref in raw.get("input_observation_ids", ())
         )
+        receipt = raw.get("calculation_receipt")
+        if receipt is not None:
+            normalized_receipt = dict(receipt)
+            normalized_inputs = []
+            for input_receipt in receipt.get("ordered_inputs", ()):
+                stable_input = dict(input_receipt)
+                # Observation IDs contain the final snapshot ID. The same
+                # receipt is hashed before and after final binding, so the
+                # formula-ordered input facts are stable while the separate
+                # input_observation_content field binds them to this manifest.
+                stable_input.pop("observation_id", None)
+                normalized_inputs.append(stable_input)
+            normalized_receipt["ordered_inputs"] = normalized_inputs
+            item["calculation_receipt"] = normalized_receipt
         base_items.append((item, lineage_refs))
 
     items: list[dict[str, Any]] = []

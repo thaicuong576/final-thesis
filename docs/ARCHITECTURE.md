@@ -93,6 +93,20 @@ these fields without changing the frozen Gold v5 artifact. Bank-specific IDs
 come from the metric dictionary; packet conversion and provider access do not
 branch on an issuer ID or the current five-bank sample.
 
+Before operational snapshot acceptance, every valid derived observation is
+recomputed by its recognized, versioned deterministic formula from the exact
+accepted input observation IDs. Promotion checks input order, entity, period,
+basis, scope, units, and metric-specific tolerance; an unknown formula or a
+mismatch fails closed. The typed calculation receipt records the formula,
+ordered input identities and values, candidate and calculated outputs,
+tolerance, and passed result. Canonical SQLite persists the receipt alongside
+the observation through its metadata JSON, while the receipt remains part of
+the provider-neutral observation contract. Content-manifest hashing includes
+the ordered receipt facts and strips snapshot-derived observation IDs to avoid
+an identity cycle; the corresponding ordered input content remains bound into
+the manifest. A snapshot cannot be published without receipts for all accepted
+derived values.
+
 Scanned PDF evidence is manually reconciled against rendered statement pages.
 OCR or parser output can assist search but cannot promote a candidate; page
 numbering, reporting scope, and source hash remain attached to the reviewed

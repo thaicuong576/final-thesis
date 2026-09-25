@@ -311,7 +311,6 @@ class GoldSqliteDatasetProvider:
                 "as_of_date": row["as_of_date"],
                 "period_basis": row["period_basis"],
                 "alignment_method": row["alignment_method"],
-                "source_locator": row["source_locator"],
                 "transformation_version": row["transformation_version"],
                 "adjudication_ref": row["adjudication_ref"],
                 "review_check_ids_json": row["review_check_ids_json"],

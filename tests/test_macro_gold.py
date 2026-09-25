@@ -275,7 +275,7 @@ class MacroGoldIntegrationTests(unittest.TestCase):
                 metric_ids=(MACRO_POLICY_RATE,),
             ),
             assertions=(assertion,),
-            evidence_refs=("macro-evidence:policy",),
+            evidence_refs=(),
             source_refs=source_refs,
             inference_type=InferenceType.FACT,
             support="evidence_backed",

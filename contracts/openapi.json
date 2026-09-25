@@ -327,9 +327,13 @@
             "type": "number",
             "description": "Accepted peer median in percentage units, only when requested and supported."
           },
-          "peer_median_llr": {
+          "peer_median_npl_g35": {
             "type": "number",
-            "description": "Accepted peer median in percentage units, only when requested and supported."
+            "description": "Accepted peer median for bank.npl_g35; exact current metric suffix. peer_median_npl is retained as a legacy alias."
+          },
+          "peer_median_llr_coverage": {
+            "type": "number",
+            "description": "Accepted peer median for bank.llr_coverage."
           },
           "peer_universe_id": {
             "type": "string",
@@ -344,6 +348,7 @@
             "items": {
               "type": "string"
             },
+            "minItems": 1,
             "uniqueItems": true,
             "description": "Ordered requested member set defining benchmark identity and claim scope."
           },
@@ -352,17 +357,18 @@
             "items": {
               "type": "string"
             },
+            "minItems": 1,
             "uniqueItems": true,
             "description": "Ordered members supplying accepted numeric input observations."
           },
           "requested_denominator": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "description": "Number of requested members."
           },
           "eligible_denominator": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "description": "Number of accepted numeric member inputs used by the aggregate."
           },
           "missing_members": {
@@ -671,6 +677,11 @@
             "example": [
               "company"
             ]
+          },
+          "synthesis_revised": {
+            "type": "boolean",
+            "description": "True only when a bounded revision changed the typed report-level synthesis artifact. It does not mark unchanged claims as revised.",
+            "example": false
           }
         }
       },
@@ -756,6 +767,14 @@
           "synthesis_summary": {
             "type": "string",
             "description": "Grounded qualitative synthesis of the active specialist artifacts. New runtime responses populate this field; numeric facts remain in canonical claims and benchmark records."
+          },
+          "synthesis_supporting_claim_ids": {
+            "type": "array",
+            "description": "Unique final claim IDs, in candidate order, that support the exact synthesis artifact reviewed by the critic.",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
           }
         }
       },
@@ -867,6 +886,7 @@
             "items": {
               "type": "string"
             },
+            "minItems": 1,
             "uniqueItems": true,
             "description": "Ordered requested member set defining benchmark identity and claim scope."
           },
@@ -875,6 +895,7 @@
             "items": {
               "type": "string"
             },
+            "minItems": 1,
             "uniqueItems": true,
             "description": "Ordered members supplying accepted numeric input observations."
           },
@@ -884,12 +905,12 @@
           },
           "requested_denominator": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "description": "Number of requested members."
           },
           "eligible_denominator": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "description": "Number of accepted numeric member inputs used by the aggregate."
           },
           "missing_members": {

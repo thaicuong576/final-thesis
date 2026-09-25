@@ -1345,3 +1345,22 @@ model analysis is role-specific, followed by a separate constrained synthesis;
 the new writer must not become one global call mislabeled as several agents.
 
 The unchanged analysis_runs table definition is separated into contracts/run-store-schema.sql. New runtime history initialization applies it only to ANALYSIS_RUNS_DB_PATH; canonical analytical schema initialization excludes it. Existing dataset artifacts are not migrated.
+
+### D-073 implementation review resolution
+
+The implementation correction is accepted in design at `aa6c33e`, `0d82021`,
+`553f810` and `7de4f4b`, subject to exact-head CI and independent re-review.
+Active specialists now use role-specific configured writers; Orchestrator
+synthesis is a separate typed artifact with exact supporting claim IDs. Both
+specialist and synthesis revisions consume selected issue/action content and
+must change the targeted artifact while retaining stable claim identity,
+immutable numeric/provenance fields and unaffected output.
+
+Peer evidence is stored per metric in `SectorBenchmark.benchmarks`. Mutable run
+history uses `ANALYSIS_RUNS_DB_PATH`, distinct from `SQLITE_DB_PATH`; filesystem
+aliases are rejected and readiness proves required model and run-store
+configuration. Period-range variants fail before retrieval. Deterministic
+prose guards cover digits, English/Vietnamese number words, fractions and
+multipliers, while semantic critique remains required. These controls establish
+the executable evaluation boundary; they do not establish live-model quality or
+complete the final A/B/C experiment.

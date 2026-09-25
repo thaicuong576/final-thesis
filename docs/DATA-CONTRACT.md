@@ -563,8 +563,12 @@ analysis and a separate Orchestrator synthesis. Only active specialist writers
 run; selected issue content reaches the affected writer during revision. Writer
 output may alter supported qualitative narrative but cannot edit accepted
 numeric assertions, identities or provenance. `AnalysisResponse.synthesis_summary`
-is the additive public location for grounded synthesis. Semantic validity of
-prose still requires critique; a numeric-literal guard alone does not prove it.
+and its ordered, unique `synthesis_supporting_claim_ids` form one typed artifact.
+The candidate hash, semantic context, revision state, persisted report and public
+response bind that exact pair. `revision_summary.synthesis_revised` records a
+changed report-level artifact without relabeling untouched claims. Semantic
+validity of prose still requires critique; a numeric-literal guard alone does
+not prove it.
 
 ## Immutable dataset and operational run storage
 

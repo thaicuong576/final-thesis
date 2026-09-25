@@ -549,3 +549,17 @@ on the next request. Separate mutable history into its own configured store,
 reject path aliases and verify the source hash after repeated sync/SSE runs.
 Readiness must also include required model configuration; accepted facts alone
 cannot make an analysis endpoint runnable when its mandatory critic is absent.
+
+## [LESSON-023] Written quantities are numeric assertions too
+
+- Date: 2026-09-26
+- Scope: grounded specialist prose and Orchestrator synthesis guards
+
+Rejecting digits alone does not prevent a writer from introducing a new value.
+Fractions and multipliers such as `half`, `quarter`, `twice`, `double` and
+`dozen`, along with Vietnamese number words, can change the factual meaning of
+a missing or accepted claim without containing a digit. Specialist prose and
+synthesis must share a maintained numeric-or-period token detector, and tests
+must include missingness claims where unsupported comparative wording would
+otherwise look harmless. The guard is only a deterministic boundary; semantic
+review must still evaluate grounding, logic and usefulness.

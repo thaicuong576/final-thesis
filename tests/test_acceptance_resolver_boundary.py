@@ -125,6 +125,8 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 unit="percent",
                 source_ref="source-company",
                 source_locator="page:1",
+                period_basis="ttm",
+                reporting_scope="consolidated",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -138,6 +140,8 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 unit="percent",
                 source_ref="source-company",
                 source_locator="page:2",
+                period_basis="ttm",
+                reporting_scope="consolidated",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -151,6 +155,8 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
                 unit="percent",
                 source_ref="source-company",
                 source_locator="page:3",
+                period_basis="ttm",
+                reporting_scope="consolidated",
                 validation_status=QualityStatus.VALID,
             ),
             CanonicalObservation(
@@ -508,7 +514,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             dataset_snapshot_id="gold-snapshot",
         )
 
-    def test_gold_resolver_supports_typed_observations_derived_evidence_and_peer_subset(self):
+    def test_gold_resolver_keeps_typed_resources_and_blocks_peer_without_scope_authority(self):
         with tempfile.TemporaryDirectory() as directory:
             db_path, ref = self._gold_fixture(Path(directory))
             provider = GoldSqliteDatasetProvider(db_path, dataset_id=ref.dataset_id)
@@ -528,12 +534,13 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             )
             company_evidence = resolver.resolve_evidence("evidence-gold-company")
             macro_evidence = resolver.resolve_evidence("evidence-gold-macro")
-            benchmark = resolver.resolve_benchmark(
-                peer_universe_id="sector:bank",
-                peer_entity_ids=("entity-a", "entity-b"),
-                period_id="2024_Q4",
-                metric_id="company.roa",
-            )
+            with self.assertRaisesRegex(DatasetProviderError, "verified reporting scopes"):
+                resolver.resolve_benchmark(
+                    peer_universe_id="sector:bank",
+                    peer_entity_ids=("entity-a", "entity-b"),
+                    period_id="2024_Q4",
+                    metric_id="company.roa",
+                )
 
         self.assertEqual(company.value, 1.0)
         self.assertEqual(company.source_locator, "page:1")
@@ -545,9 +552,6 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
         self.assertIsNone(derived.source_ref)
         self.assertEqual(company_evidence.metric_id, None)
         self.assertEqual(macro_evidence.metric_id, "macro.policy")
-        self.assertEqual(benchmark.value, 2.0)
-        self.assertEqual(set(benchmark.input_observation_ids), {"obs-gold-a", "obs-gold-b"})
-        self.assertNotIn("obs-gold-c", benchmark.input_observation_ids)
 
     def test_gold_exact_evidence_unknown_and_cross_domain_ambiguity_fail_closed(self):
         with tempfile.TemporaryDirectory() as directory:

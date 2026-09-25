@@ -35,8 +35,8 @@ Mọi thay đổi code không được phép gây ra hồi quy (regression). Tr�
 | Lớp kiểm thử | Lệnh thực thi | Tiêu chuẩn PASS bắt buộc |
 |---|---|---|
 | **Architecture Guardrails** | `python scripts/check_architecture_guardrails.py` | `ARCHITECTURE_GUARDRAILS: PASS` |
-| **Backend Unit Tests** | `$env:PYTHONPATH="src"; python -m unittest discover -s tests -q` | `Ran 503 tests... OK` (0 failures, 0 errors) |
-| **Frontend Unit Tests** | `cd frontend; npm test -- --run` | `46 passed (46)` |
+| **Backend Unit Tests** | `$env:PYTHONPATH="src"; python -m unittest discover -s tests -q` | Full discovered suite: 0 failures, 0 errors; report actual count and skips |
+| **Frontend Unit Tests** | `cd frontend; npm test -- --run` | 0 failures; report actual count |
 | **Frontend Build Integrity** | `cd frontend; npm run build` | Build thành công (`tsc -b && vite build`), zero lỗi TypeScript |
 
 > **Lưu ý trên Windows PowerShell**: Khi chạy unit test backend, thiết lập biến môi trường `$env:PYTHONPATH="src"` trước khi gọi `python -m unittest` để đảm bảo nhận diện đầy đủ các package `thesis_data` và `thesis_api`.
@@ -79,8 +79,8 @@ Khi worker hoàn tất task và yêu cầu kiểm định, Auditor sẽ rà soá
 [ ] 2. BOUNDARY CHECK   : Diff có vi phạm ranh giới thư mục không?
 [ ] 3. CONTRACT CHECK   : Có tự ý sửa contracts/ không?
 [ ] 4. GUARDRAILS CHECK : check_architecture_guardrails.py -> PASS?
-[ ] 5. BACKEND TESTS    : 499/499 tests -> PASS?
-[ ] 6. FRONTEND TESTS   : 46/46 tests -> PASS?
+[ ] 5. BACKEND TESTS    : Full discovered suite -> PASS, skips explained?
+[ ] 6. FRONTEND TESTS   : Relevant frontend suite -> PASS?
 [ ] 7. FRONTEND BUILD   : npm run build -> PASS?
 [ ] 8. PROVENANCE CHECK : Dữ liệu có nguồn gốc rõ ràng, không số liệu bịa?
 ```

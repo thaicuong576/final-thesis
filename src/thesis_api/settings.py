@@ -41,6 +41,10 @@ class Settings(BaseSettings):
         default="data/processed/finance_master_v2.sqlite",
         alias="SQLITE_DB_PATH",
     )
+    analysis_runs_db_path: str = Field(
+        default="data/runtime/analysis_runs.sqlite",
+        alias="ANALYSIS_RUNS_DB_PATH",
+    )
     openai_base_url: str = Field(
         default="https://superup.codelypixverse.com/v1",
         alias="OPENAI_BASE_URL",
@@ -50,6 +54,9 @@ class Settings(BaseSettings):
         alias="OPENAI_MODEL",
     )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    # Explicit opt-in only.  The Gold reporting-scope authority is an
+    # independently pinned sidecar and is never discovered from the data tree.
+    gold_scope_authority_path: Path | None = Field(default=None, alias="GOLD_SCOPE_AUTHORITY_PATH")
 
     def get_sqlite_path(self) -> Path:
         """Resolve canonical SQLite database path."""
@@ -63,6 +70,24 @@ class Settings(BaseSettings):
         if repo_path.exists():
             return repo_path.resolve()
         return p.resolve()
+
+    def get_analysis_runs_path(self, *, dataset_path: Path | None = None) -> Path:
+        """Resolve the writable operational store and reject aliases to accepted data."""
+        raw_path = Path(self.analysis_runs_db_path).expanduser()
+        if raw_path.is_absolute():
+            runs_path = raw_path.resolve(strict=False)
+        else:
+            runs_path = (Path(__file__).resolve().parents[2] / raw_path).resolve(strict=False)
+        accepted_path = (dataset_path or self.get_sqlite_path()).expanduser().resolve(strict=False)
+        aliases = runs_path == accepted_path
+        if not aliases and runs_path.exists() and accepted_path.exists():
+            try:
+                aliases = os.path.samefile(runs_path, accepted_path)
+            except OSError:
+                aliases = False
+        if aliases:
+            raise ValueError("analysis_runs_store_aliases_dataset")
+        return runs_path
 
     @field_validator("cors_origins", mode="plain")
     @classmethod

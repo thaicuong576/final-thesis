@@ -22,6 +22,7 @@ from .semantic_critic import (
     SemanticCritic,
     SemanticEvaluationError,
     SemanticRoundContext,
+    validate_synthesis_supporting_claim_ids,
 )
 from .semantic_evaluation import (
     SEMANTIC_EVALUATION_VERSION,
@@ -66,6 +67,15 @@ exactly one result.
 For every prior OPEN issue in prior_open_issues, return the same issue_id
 exactly once with status OPEN, RESOLVED, EXPLAINED, or UNRESOLVED.  Do not
 silently rename it.  New issues must use unique concise IDs.
+
+Review report_level_synthesis separately from the specialist claims. Its stable
+target ID is `synthesis`. If that prose needs revision, create an issue with
+affected_agent `orchestrator`, empty affected_claim_ids, and the exact
+affected_requirement_ids. Never attach report-wide synthesis findings to an
+unrelated specialist claim.
+The supplied synthesis support IDs must match the summary's final claim
+support set. Do not put numeric values or period labels in the summary; report
+numeric facts only through the structured claims.
 
 Return concise observable rationales, such as the claim IDs or requirement
 that support a score.  Do not provide private chain-of-thought, hidden
@@ -182,6 +192,13 @@ def _render_critic_payload(
         "dataset_snapshot_id": plan.dataset_snapshot_id,
         "query_id": plan.query_id,
         "analysis_scope": plan.scope.model_dump(mode="json"),
+        "report_level_synthesis": {
+            "target_id": round_context.synthesis_target_id,
+            "summary": round_context.synthesis_summary,
+            "supporting_claim_ids": list(
+                round_context.synthesis_supporting_claim_ids
+            ),
+        },
         "causal_claim_policy": plan.causal_claim_policy.value,
         "normalized_analytical_question": plan.normalized_question,
         "frozen_requirements": [
@@ -335,9 +352,27 @@ class OpenAISemanticCritic:
                 raise OpenAISemanticCriticError(
                     "openai_semantic_critic_prior_issue_details_missing"
                 )
+        try:
+            round_context = SemanticRoundContext.model_validate(
+                round_context.model_dump(mode="python")
+            )
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise OpenAISemanticCriticError(
+                "openai_semantic_critic_context_invalid"
+            ) from exc
         normalized_claims = tuple(claims)
         if any(not isinstance(claim, AtomicClaim) for claim in normalized_claims):
             raise OpenAISemanticCriticError("openai_semantic_critic_claims_invalid")
+        try:
+            validate_synthesis_supporting_claim_ids(
+                round_context.synthesis_summary,
+                round_context.synthesis_supporting_claim_ids,
+                normalized_claims,
+            )
+        except (TypeError, ValueError) as exc:
+            raise OpenAISemanticCriticError(
+                "openai_semantic_critic_synthesis_support_invalid"
+            ) from exc
 
         payload = _render_critic_payload(
             plan=plan,

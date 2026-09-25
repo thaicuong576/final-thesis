@@ -37,6 +37,9 @@ from .semantic_critic import (
     SemanticRoundContext,
     SemanticCritic,
     evaluate_semantic_round,
+    numeric_or_period_tokens,
+    validate_synthesis_summary,
+    validate_synthesis_supporting_claim_ids,
 )
 from .semantic_evaluation import StructuredCriticResult
 
@@ -65,14 +68,29 @@ class RevisionRequest(BaseModel):
     plan: AnalysisPlan
     current_candidate_hash: str = Field(min_length=1)
     current_claims: tuple[AtomicClaim, ...]
+    current_synthesis_summary: str | None = Field(default=None, min_length=1)
+    current_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
     selected_issues: tuple[CritiqueIssue, ...] = Field(min_length=1)
     target_specialists: tuple[str, ...] = Field(default_factory=tuple)
     next_round_number: int = Field(ge=1)
 
     @model_validator(mode="after")
     def validate_revision_scope(self) -> "RevisionRequest":
-        if self.current_candidate_hash != candidate_hash(self.plan, self.current_claims):
-            raise ValueError("current_candidate_hash does not match current_claims")
+        validate_synthesis_summary(self.current_synthesis_summary)
+        validate_synthesis_supporting_claim_ids(
+            self.current_synthesis_summary,
+            self.current_synthesis_supporting_claim_ids,
+            self.current_claims,
+        )
+        if self.current_candidate_hash != candidate_hash(
+            self.plan,
+            self.current_claims,
+            self.current_synthesis_summary,
+            self.current_synthesis_supporting_claim_ids,
+        ):
+            raise ValueError(
+                "current_candidate_hash does not match current_claims and synthesis_summary"
+            )
         issue_ids = [issue.issue_id for issue in self.selected_issues]
         if len(issue_ids) != len(set(issue_ids)):
             raise ValueError("selected revision issue IDs must be unique")
@@ -91,17 +109,50 @@ class RevisionResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     revised_claims: tuple[AtomicClaim, ...]
+    revised_synthesis_summary: str | None = Field(default=None, min_length=1)
+    revised_synthesis_supporting_claim_ids: tuple[str, ...] | None = None
     revised_agents: tuple[str, ...] = Field(default_factory=tuple)
+    revised_claim_ids: dict[str, tuple[str, ...]] = Field(default_factory=dict)
     payload_version: str = Field(min_length=1)
     worker_payload_versions: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version: str | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def validate_agents(self) -> "RevisionResult":
+        validate_synthesis_summary(self.revised_synthesis_summary)
+        if self.revised_synthesis_summary is None and (
+            self.revised_synthesis_supporting_claim_ids is not None
+        ):
+            raise ValueError(
+                "revised_synthesis_supporting_claim_ids_require_revised_summary"
+            )
+        if self.revised_synthesis_summary is not None and (
+            self.revised_synthesis_supporting_claim_ids is None
+        ):
+            raise ValueError(
+                "revised_synthesis_summary_requires_supporting_claim_ids"
+            )
+        if self.revised_synthesis_supporting_claim_ids is not None:
+            validate_synthesis_supporting_claim_ids(
+                self.revised_synthesis_summary,
+                self.revised_synthesis_supporting_claim_ids,
+                self.revised_claims,
+            )
         if len(self.revised_agents) != len(set(self.revised_agents)):
             raise ValueError("revised_agents must be unique")
         if any(not agent.strip() for agent in self.revised_agents):
             raise ValueError("revised_agents must contain non-empty strings")
+        if any(not agent.strip() for agent in self.revised_claim_ids):
+            raise ValueError("revised_claim_ids keys must contain non-empty specialist IDs")
+        assigned_claim_ids: list[str] = []
+        for agent, claim_ids in self.revised_claim_ids.items():
+            if any(not claim_id.strip() for claim_id in claim_ids):
+                raise ValueError("revised_claim_ids must contain non-empty claim IDs")
+            if len(claim_ids) != len(set(claim_ids)):
+                raise ValueError(f"revised_claim_ids for {agent} must be unique")
+            assigned_claim_ids.extend(claim_ids)
+        if len(assigned_claim_ids) != len(set(assigned_claim_ids)):
+            raise ValueError("a claim ID cannot be assigned to multiple specialists")
         return self
 
 
@@ -116,6 +167,81 @@ class RevisionControllerError(ValueError):
     """Fail-closed controller or injected-adapter contract error."""
 
 
+_REVISION_PRESENTATION_FIELDS = frozenset(
+    {"claim_text", "title", "interpretation", "limitation"}
+)
+
+
+def _validate_revision_claim_delta(
+    *,
+    current_claims: Sequence[AtomicClaim],
+    revised_claims: Sequence[AtomicClaim],
+    target_specialists: Sequence[str],
+    revised_claim_ids: dict[str, tuple[str, ...]],
+) -> tuple[str, ...]:
+    """Require every declared specialist target to change exact claim artifacts.
+
+    Claim identities stay stable. Only presentation and interpretation prose may
+    change, and all numeric/period tokens in those fields must remain identical.
+    """
+
+    current_by_id = {claim.claim_id: claim for claim in current_claims}
+    revised_by_id = {claim.claim_id: claim for claim in revised_claims}
+    if len(current_by_id) != len(current_claims) or len(revised_by_id) != len(
+        revised_claims
+    ):
+        raise RevisionControllerError("revision_claim_ids_must_be_unique")
+    if set(current_by_id) != set(revised_by_id):
+        raise RevisionControllerError("revision_claim_identity_set_changed")
+
+    changed_claim_ids: list[str] = []
+    for claim_id in current_by_id:
+        before = current_by_id[claim_id].model_dump(mode="json")
+        after = revised_by_id[claim_id].model_dump(mode="json")
+        if before == after:
+            continue
+        changed_fields = {
+            field_name
+            for field_name in before
+            if before[field_name] != after[field_name]
+        }
+        protected_changes = changed_fields - _REVISION_PRESENTATION_FIELDS
+        if protected_changes:
+            raise RevisionControllerError(
+                f"revision_changed_protected_claim_fields:{claim_id}:"
+                f"{','.join(sorted(protected_changes))}"
+            )
+        for field_name in _REVISION_PRESENTATION_FIELDS & changed_fields:
+            if numeric_or_period_tokens(before[field_name]) != numeric_or_period_tokens(
+                after[field_name]
+            ):
+                raise RevisionControllerError(
+                    f"revision_changed_numeric_or_period_claim_text:{claim_id}"
+                )
+        changed_claim_ids.append(claim_id)
+
+    targets = tuple(target_specialists)
+    if set(revised_claim_ids) != set(targets):
+        raise RevisionControllerError("revision_result_claim_targets_mismatch")
+    for target in targets:
+        if not revised_claim_ids[target]:
+            raise RevisionControllerError(
+                f"revision_target_claim_not_revised:{target}"
+            )
+    flattened_ids = [
+        claim_id
+        for target in targets
+        for claim_id in revised_claim_ids[target]
+    ]
+    if len(flattened_ids) != len(set(flattened_ids)):
+        raise RevisionControllerError("revision_result_claim_ids_overlap")
+    if any(claim_id not in current_by_id for claim_id in flattened_ids):
+        raise RevisionControllerError("revision_result_claim_id_unknown")
+    if set(flattened_ids) != set(changed_claim_ids):
+        raise RevisionControllerError("revision_result_changed_claim_ids_mismatch")
+    return tuple(changed_claim_ids)
+
+
 class BoundedRevisionResult(BaseModel):
     """Final terminal state and candidate produced by the controller."""
 
@@ -123,11 +249,30 @@ class BoundedRevisionResult(BaseModel):
 
     acceptance_state: ReportAcceptanceState
     final_claims: tuple[AtomicClaim, ...]
+    final_synthesis_summary: str | None = Field(default=None, min_length=1)
+    final_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
     final_candidate_hash: str = Field(min_length=1)
+    was_revised: bool = False
+    synthesis_was_revised: bool = False
     terminal_reason: str | None = Field(default=None, min_length=1)
 
+    @model_validator(mode="after")
+    def validate_final_synthesis(self) -> "BoundedRevisionResult":
+        validate_synthesis_summary(self.final_synthesis_summary)
+        validate_synthesis_supporting_claim_ids(
+            self.final_synthesis_summary,
+            self.final_synthesis_supporting_claim_ids,
+            self.final_claims,
+        )
+        return self
 
-def candidate_hash(plan: AnalysisPlan, claims: Sequence[AtomicClaim]) -> str:
+
+def candidate_hash(
+    plan: AnalysisPlan,
+    claims: Sequence[AtomicClaim],
+    synthesis_summary: str | None = None,
+    synthesis_supporting_claim_ids: Sequence[str] = (),
+) -> str:
     """Return a stable SHA-256 fingerprint for one canonical candidate."""
 
     if not isinstance(plan, AnalysisPlan):
@@ -135,6 +280,10 @@ def candidate_hash(plan: AnalysisPlan, claims: Sequence[AtomicClaim]) -> str:
     normalized_claims = tuple(claims)
     if any(not isinstance(claim, AtomicClaim) for claim in normalized_claims):
         raise TypeError("candidate hash requires AtomicClaim objects")
+    validate_synthesis_summary(synthesis_summary)
+    normalized_supporting_ids = validate_synthesis_supporting_claim_ids(
+        synthesis_summary, synthesis_supporting_claim_ids, normalized_claims
+    )
     claim_ids = [claim.claim_id for claim in normalized_claims]
     if len(claim_ids) != len(set(claim_ids)):
         raise ValueError("candidate claim IDs must be unique")
@@ -148,6 +297,9 @@ def candidate_hash(plan: AnalysisPlan, claims: Sequence[AtomicClaim]) -> str:
             for claim in sorted(normalized_claims, key=lambda item: item.claim_id)
         ],
     }
+    if synthesis_summary is not None:
+        payload["synthesis_summary"] = synthesis_summary
+        payload["synthesis_supporting_claim_ids"] = list(normalized_supporting_ids)
     serialized = json.dumps(
         payload,
         ensure_ascii=False,
@@ -347,6 +499,8 @@ class RevisionWorkflowState(BaseModel):
     plan: AnalysisPlan
     plan_payload_hash: str = Field(min_length=1)
     current_claims: tuple[AtomicClaim, ...]
+    current_synthesis_summary: str | None = Field(default=None, min_length=1)
+    current_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
     current_candidate_hash: str = Field(min_length=1)
     current_payload_version: str = Field(min_length=1)
     current_round_number: int = Field(ge=0)
@@ -355,6 +509,9 @@ class RevisionWorkflowState(BaseModel):
     previous_open_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
     previous_open_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
     revised_agents_for_round: tuple[str, ...] = Field(default_factory=tuple)
+    revised_claim_ids_for_round: dict[str, tuple[str, ...]] = Field(default_factory=dict)
+    was_revised: bool = False
+    synthesis_was_revised: bool = False
     worker_payload_versions_for_round: dict[str, str] = Field(default_factory=dict)
     orchestrator_payload_version_for_round: str | None = None
     current_disposition: AcceptanceDecision | None = None
@@ -364,6 +521,21 @@ class RevisionWorkflowState(BaseModel):
 
     @model_validator(mode="after")
     def validate_previous_open_issue_context(self) -> "RevisionWorkflowState":
+        validate_synthesis_summary(self.current_synthesis_summary)
+        validate_synthesis_supporting_claim_ids(
+            self.current_synthesis_summary,
+            self.current_synthesis_supporting_claim_ids,
+            self.current_claims,
+        )
+        if self.current_candidate_hash != candidate_hash(
+            self.plan,
+            self.current_claims,
+            self.current_synthesis_summary,
+            self.current_synthesis_supporting_claim_ids,
+        ):
+            raise ValueError(
+                "current_candidate_hash does not match current candidate artifact"
+            )
         if len(self.previous_open_issue_ids) != len(set(self.previous_open_issue_ids)):
             raise ValueError("previous_open_issue_ids must be unique")
         if any(not issue_id.strip() for issue_id in self.previous_open_issue_ids):
@@ -406,6 +578,8 @@ class RevisionWorkflowKernel:
         plan: AnalysisPlan,
         claims: Sequence[AtomicClaim],
         initial_payload_version: str,
+        synthesis_summary: str | None = None,
+        synthesis_supporting_claim_ids: Sequence[str] = (),
     ) -> RevisionWorkflowState:
         if not run_id.strip():
             raise ValueError("run_id must be non-empty")
@@ -416,7 +590,19 @@ class RevisionWorkflowKernel:
         current_claims = tuple(claims)
         if any(not isinstance(claim, AtomicClaim) for claim in current_claims):
             raise RevisionControllerError("claims_type_invalid")
-        current_hash = candidate_hash(plan, current_claims)
+        try:
+            validate_synthesis_summary(synthesis_summary)
+            normalized_supporting_ids = validate_synthesis_supporting_claim_ids(
+                synthesis_summary, synthesis_supporting_claim_ids, current_claims
+            )
+        except (TypeError, ValueError) as exc:
+            raise RevisionControllerError("synthesis_summary_invalid") from exc
+        current_hash = candidate_hash(
+            plan,
+            current_claims,
+            synthesis_summary,
+            normalized_supporting_ids,
+        )
         return RevisionWorkflowState(
             run_id=run_id,
             plan=plan.model_copy(deep=True),
@@ -424,6 +610,8 @@ class RevisionWorkflowKernel:
             current_claims=tuple(
                 claim.model_copy(deep=True) for claim in current_claims
             ),
+            current_synthesis_summary=synthesis_summary,
+            current_synthesis_supporting_claim_ids=normalized_supporting_ids,
             current_candidate_hash=current_hash,
             current_payload_version=initial_payload_version,
             current_round_number=0,
@@ -439,7 +627,12 @@ class RevisionWorkflowKernel:
         if state.current_disposition is not None:
             raise RevisionControllerError("round_already_evaluated")
 
-        current_hash = candidate_hash(state.plan, state.current_claims)
+        current_hash = candidate_hash(
+            state.plan,
+            state.current_claims,
+            state.current_synthesis_summary,
+            state.current_synthesis_supporting_claim_ids,
+        )
         stage1_report = self._evaluate_stage1(state.plan, state.current_claims)
         if not stage1_report.passed:
             round_state = self._build_round(
@@ -470,6 +663,8 @@ class RevisionWorkflowKernel:
                 issue.model_copy(deep=True)
                 for issue in state.previous_open_issues
             ),
+            synthesis_summary=state.current_synthesis_summary,
+            synthesis_supporting_claim_ids=state.current_synthesis_supporting_claim_ids,
         )
         try:
             artifact = evaluate_semantic_round(
@@ -552,6 +747,10 @@ class RevisionWorkflowKernel:
             revision = self._execute_revision(
                 plan=state.plan,
                 claims=state.current_claims,
+                synthesis_summary=state.current_synthesis_summary,
+                synthesis_supporting_claim_ids=(
+                    state.current_synthesis_supporting_claim_ids
+                ),
                 candidate_hash_value=state.current_candidate_hash,
                 result=state.current_critic_result,
                 next_round_number=state.current_round_number + 1,
@@ -573,7 +772,29 @@ class RevisionWorkflowKernel:
         revised_claims = tuple(
             claim.model_copy(deep=True) for claim in revision.revised_claims
         )
-        next_hash = candidate_hash(state.plan, revised_claims)
+        revised_synthesis_summary = (
+            revision.revised_synthesis_summary
+            if revision.revised_synthesis_summary is not None
+            else state.current_synthesis_summary
+        )
+        revised_synthesis_supporting_claim_ids = (
+            revision.revised_synthesis_supporting_claim_ids
+            if revision.revised_synthesis_summary is not None
+            else state.current_synthesis_supporting_claim_ids
+        )
+        assert revised_synthesis_supporting_claim_ids is not None
+        next_hash = candidate_hash(
+            state.plan,
+            revised_claims,
+            revised_synthesis_summary,
+            revised_synthesis_supporting_claim_ids,
+        )
+        synthesis_changed = (
+            revised_synthesis_summary != state.current_synthesis_summary
+            or revised_synthesis_supporting_claim_ids
+            != state.current_synthesis_supporting_claim_ids
+        )
+        candidate_changed = next_hash != state.current_candidate_hash
         previous_open_issues = tuple(
             sorted(
                 _open_issues(state.current_critic_result),
@@ -584,6 +805,10 @@ class RevisionWorkflowKernel:
         return state.model_copy(
             update={
                 "current_claims": revised_claims,
+                "current_synthesis_summary": revised_synthesis_summary,
+                "current_synthesis_supporting_claim_ids": (
+                    revised_synthesis_supporting_claim_ids
+                ),
                 "current_candidate_hash": next_hash,
                 "current_payload_version": revision.payload_version,
                 "current_round_number": state.current_round_number + 1,
@@ -592,6 +817,11 @@ class RevisionWorkflowKernel:
                     issue.model_copy(deep=True) for issue in previous_open_issues
                 ),
                 "revised_agents_for_round": tuple(revision.revised_agents),
+                "revised_claim_ids_for_round": dict(revision.revised_claim_ids),
+                "was_revised": state.was_revised or candidate_changed,
+                "synthesis_was_revised": (
+                    state.synthesis_was_revised or synthesis_changed
+                ),
                 "worker_payload_versions_for_round": dict(
                     revision.worker_payload_versions
                 ),
@@ -634,7 +864,18 @@ class RevisionWorkflowKernel:
             final_claims=tuple(
                 claim.model_copy(deep=True) for claim in state.current_claims
             ),
-            final_candidate_hash=candidate_hash(state.plan, state.current_claims),
+            final_synthesis_summary=state.current_synthesis_summary,
+            final_synthesis_supporting_claim_ids=(
+                state.current_synthesis_supporting_claim_ids
+            ),
+            final_candidate_hash=candidate_hash(
+                state.plan,
+                state.current_claims,
+                state.current_synthesis_summary,
+                state.current_synthesis_supporting_claim_ids,
+            ),
+            was_revised=state.was_revised,
+            synthesis_was_revised=state.synthesis_was_revised,
             terminal_reason=state.terminal_reason,
         )
 
@@ -666,6 +907,8 @@ class RevisionWorkflowKernel:
         *,
         plan: AnalysisPlan,
         claims: Sequence[AtomicClaim],
+        synthesis_summary: str | None,
+        synthesis_supporting_claim_ids: Sequence[str],
         candidate_hash_value: str,
         result: StructuredCriticResult,
         next_round_number: int,
@@ -690,6 +933,10 @@ class RevisionWorkflowKernel:
             plan=plan.model_copy(deep=True),
             current_candidate_hash=candidate_hash_value,
             current_claims=tuple(claim.model_copy(deep=True) for claim in claims),
+            current_synthesis_summary=synthesis_summary,
+            current_synthesis_supporting_claim_ids=tuple(
+                synthesis_supporting_claim_ids
+            ),
             selected_issues=tuple(issue.model_copy(deep=True) for issue in open_issues),
             target_specialists=targets,
             next_round_number=next_round_number,
@@ -708,7 +955,44 @@ class RevisionWorkflowKernel:
         revised_agents = set(revision.revised_agents)
         if revised_agents != set(targets):
             raise RevisionControllerError("revision_result_agents_mismatch")
-        candidate_hash(plan, revision.revised_claims)
+        _validate_revision_claim_delta(
+            current_claims=claims,
+            revised_claims=revision.revised_claims,
+            target_specialists=targets,
+            revised_claim_ids=revision.revised_claim_ids,
+        )
+        if any(
+            issue.affected_agent == AnalysisAgent.ORCHESTRATOR.value
+            for issue in open_issues
+        ):
+            resulting_summary = (
+                revision.revised_synthesis_summary
+                if revision.revised_synthesis_summary is not None
+                else synthesis_summary
+            )
+            resulting_support_ids = (
+                revision.revised_synthesis_supporting_claim_ids
+                if revision.revised_synthesis_summary is not None
+                else tuple(synthesis_supporting_claim_ids)
+            )
+            if resulting_summary == synthesis_summary and resulting_support_ids == tuple(
+                synthesis_supporting_claim_ids
+            ):
+                raise RevisionControllerError("orchestrator_synthesis_not_revised")
+        candidate_hash(
+            plan,
+            revision.revised_claims,
+            (
+                revision.revised_synthesis_summary
+                if revision.revised_synthesis_summary is not None
+                else synthesis_summary
+            ),
+            (
+                revision.revised_synthesis_supporting_claim_ids
+                if revision.revised_synthesis_summary is not None
+                else synthesis_supporting_claim_ids
+            ),
+        )
         return revision
 
     def _decide(
@@ -768,6 +1052,10 @@ class RevisionWorkflowKernel:
             round_number=state.current_round_number,
             candidate_hash=candidate_hash_value,
             candidate_claim_ids=tuple(claim.claim_id for claim in state.current_claims),
+            candidate_synthesis_summary=state.current_synthesis_summary,
+            candidate_synthesis_supporting_claim_ids=(
+                state.current_synthesis_supporting_claim_ids
+            ),
             candidate_payload_version=state.current_payload_version,
             worker_payload_versions=dict(state.worker_payload_versions_for_round),
             orchestrator_payload_version=(
@@ -783,6 +1071,7 @@ class RevisionWorkflowKernel:
             provisional_threshold=self._policy.provisional_threshold,
             affected_agents=tuple(sorted({issue.affected_agent for issue in issues})),
             revised_agents=tuple(state.revised_agents_for_round),
+            revised_claim_ids=dict(state.revised_claim_ids_for_round),
             final_payload_version=(
                 state.current_payload_version
                 if decision
@@ -848,12 +1137,16 @@ class BoundedRevisionController:
         claims: Sequence[AtomicClaim],
         initial_payload_version: str,
         dataset_resolver: Stage1DatasetResolver | None = None,
+        synthesis_summary: str | None = None,
+        synthesis_supporting_claim_ids: Sequence[str] = (),
     ) -> BoundedRevisionResult:
         state = self._kernel.initial_state(
             run_id=run_id,
             plan=plan,
             claims=claims,
             initial_payload_version=initial_payload_version,
+            synthesis_summary=synthesis_summary,
+            synthesis_supporting_claim_ids=synthesis_supporting_claim_ids,
         )
         while True:
             state = self._kernel.evaluate_current_round(

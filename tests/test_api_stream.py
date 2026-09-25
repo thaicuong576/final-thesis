@@ -13,7 +13,14 @@ from fastapi.testclient import TestClient
 from thesis_api.main import create_app
 from thesis_api.schemas import AnalysisResponse, AnalysisSessionEventDTO
 from thesis_api.settings import Settings
-from test_api_analyze import _fixture_provider_binding, _gold_fixture
+from test_api_analyze import (
+    _ExplicitOfflineAcceptingCritic,
+    _ExplicitOfflineAnalysisWriter,
+    _RevisionScenarioCritic,
+    _fixture_provider_binding,
+    _gold_fixture,
+    _stage1_claim,
+)
 
 
 class ApiStreamIntegrationTests(unittest.TestCase):
@@ -21,9 +28,20 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.db_path = _gold_fixture(Path(self.directory.name) / "accepted-gold.sqlite")
-        self.client = TestClient(
-            create_app(Settings(app_env="test", sqlite_db_path=str(self.db_path)))
+        self.critic_factory_patch = patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=_ExplicitOfflineAcceptingCritic(),
         )
+        self.critic_factory_patch.start()
+        self.addCleanup(self.critic_factory_patch.stop)
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(self.db_path),
+            analysis_runs_db_path=str(Path(self.directory.name) / "analysis-runs.sqlite"),
+            openai_api_key="test-key",
+        )
+        self.client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
+        self.addCleanup(self.client.close)
 
     def _parse(self, response_text: str) -> list[tuple[str, dict]]:
         result = []
@@ -60,21 +78,27 @@ class ApiStreamIntegrationTests(unittest.TestCase):
                 "USER_REQUEST_CONFIRMED",
                 "PLANNING_STARTED",
                 "PLAN_CREATED",
-                "REVIEW_STARTED",
+                "SPECIALIST_INVOKED",
+                "SPECIALIST_STARTED",
+                "SPECIALIST_ACTIVITY",
+                "SPECIALIST_OUTPUT_CREATED",
+                "SPECIALIST_COMPLETED",
                 "SYNTHESIS_STARTED",
+                "REVIEW_STARTED",
+                "REVIEW_FEEDBACK_CREATED",
                 "SYNTHESIS_COMPLETED",
                 "REPORT_READY",
             ],
         )
         self.assertFalse(any("REVISION" in event for event in event_types))
         report = AnalysisResponse.model_validate(events[-1][1]["payload"]["report"])
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         self.assertEqual(report.analysis_plan.required_capabilities, ["company"])
-        self.assertIsNone(report.revision_summary)
+        self.assertEqual(report.revision_summary.status, "passed")
         self.assertTrue(all(item.stage1_status == "accepted" for item in report.atomic_claims))
         streamed_report_json = events[-1][1]["payload"]["report"]
         self.assertNotIn("confidence", streamed_report_json["atomic_claims"][0])
-        self.assertNotIn("stage2_critique_status", streamed_report_json["atomic_claims"][0])
+        self.assertEqual(streamed_report_json["atomic_claims"][0]["stage2_critique_status"], "sound")
 
         sync_json = sync_response.json()
         sync = AnalysisResponse.model_validate(sync_json)
@@ -94,11 +118,64 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(sync_json["analysis_plan"]["dataset_snapshot_id"], streamed_report_json["analysis_plan"]["dataset_snapshot_id"])
         self.assertNotIn("confidence", sync_json["atomic_claims"][0])
-        self.assertNotIn("stage2_critique_status", sync_json["atomic_claims"][0])
+        self.assertEqual(sync_json["atomic_claims"][0]["stage2_critique_status"], "sound")
+
+    def test_stream_emits_real_targeted_revision_transitions(self) -> None:
+        critic = _RevisionScenarioCritic(resolve_after_revision=True)
+        original_stage1_claim = _stage1_claim
+        calls = 0
+
+        def inject_one_narrative_defect(**kwargs):
+            nonlocal calls
+            calls += 1
+            claim, *rest = original_stage1_claim(**kwargs)
+            if calls == 1:
+                claim = claim.model_copy(update={
+                    "claim_text": "Test-injected wording defect requiring a company recheck."
+                })
+            return (claim, *rest)
+
+        with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=critic,
+        ), patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ), patch(
+            "thesis_api.service._stage1_claim",
+            side_effect=inject_one_narrative_defect,
+        ):
+            response = self.client.post(
+                "/api/analyze/stream",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            )
+
+        events = self._parse(response.text)
+        event_types = [kind for kind, _ in events]
+        self.assertIn("REVISION_REQUESTED", event_types)
+        self.assertIn("REVISION_ACTIVITY", event_types)
+        self.assertIn("REVISION_COMPLETED", event_types)
+        self.assertLess(event_types.index("REVISION_REQUESTED"), event_types.index("REVISION_COMPLETED"))
+        self.assertLess(event_types.index("REVISION_COMPLETED"), event_types.index("REPORT_READY"))
+        revision_payload = next(payload["payload"] for kind, payload in events if kind == "REVISION_REQUESTED")
+        self.assertEqual(revision_payload["targetSpecialists"], ["company"])
+        self.assertNotIn("Test-injected wording defect", response.text)
+        self.assertNotIn("test-only-revision-scenario", response.text)
+        report = AnalysisResponse.model_validate(events[-1][1]["payload"]["report"])
+        self.assertEqual(report.revision_summary.status, "revised_and_passed")
 
     def test_missing_snapshot_terminates_with_run_blocked(self) -> None:
         missing = Path(self.directory.name) / "missing.sqlite"
-        client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(missing))))
+        settings = Settings(
+            app_env="test", sqlite_db_path=str(missing),
+            analysis_runs_db_path=str(Path(self.directory.name) / "missing-runs.sqlite"),
+            openai_api_key="test-key",
+        )
+        client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         response = client.post(
             "/api/analyze/stream",
             json={"query": "Analyze ROE of ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},

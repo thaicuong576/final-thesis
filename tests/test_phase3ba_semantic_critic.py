@@ -33,6 +33,8 @@ from thesis_data.semantic_critic import (
     SemanticEvaluationError,
     SemanticRoundContext,
     evaluate_semantic_round,
+    numeric_or_period_tokens,
+    validate_synthesis_summary,
 )
 from thesis_data.semantic_evaluation import (
     ApplicableLinkResult,
@@ -230,6 +232,97 @@ class _MutatingCritic:
 
 
 class Phase3BASemanticCriticTests(unittest.TestCase):
+    def test_synthesis_context_fixes_target_and_rejects_numeric_or_period_literals(self):
+        with self.assertRaises(ValueError):
+            SemanticRoundContext(round_number=0, synthesis_target_id="report-summary")
+        with self.assertRaisesRegex(ValueError, "requires_supporting_claim_ids"):
+            SemanticRoundContext(
+                round_number=0,
+                synthesis_summary="The report is qualitative.",
+            )
+        with self.assertRaisesRegex(ValueError, "numeric_or_period_literal"):
+            SemanticRoundContext(
+                round_number=0,
+                synthesis_summary="The result improved in 2024.",
+            )
+
+    def test_summary_rejects_english_and_vietnamese_number_words_as_whole_tokens(self):
+        for summary in (
+            "The result improved by seventeen percent.",
+            "Kết quả tăng mười bảy phần trăm.",
+        ):
+            with self.subTest(summary=summary):
+                with self.assertRaisesRegex(ValueError, "numeric_or_period_literal"):
+                    validate_synthesis_summary(summary)
+
+        self.assertEqual(numeric_or_period_tokens("Someone summarized the result."), ())
+        self.assertEqual(
+            validate_synthesis_summary("Someone summarized the qualitative result."),
+            "Someone summarized the qualitative result.",
+        )
+
+    def test_orchestrator_issue_requires_a_report_synthesis_target(self):
+        plan = _company_plan()
+        issue = _issue(affected_agent="orchestrator")
+        critic = FixtureSemanticCritic({"case": _result(plan, issues=(issue,))})
+        with self.assertRaisesRegex(
+            SemanticEvaluationError,
+            "orchestrator_synthesis_target_unavailable",
+        ):
+            evaluate_semantic_round(
+                critic,
+                plan=plan,
+                claims=(),
+                stage1_report=_stage1(),
+                round_context=SemanticRoundContext(case_id="case", round_number=0),
+            )
+
+    def test_orchestrator_issue_cannot_be_attached_to_a_specialist_claim(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        issue = _issue(
+            affected_agent="orchestrator",
+            affected_claim_ids=(claim.claim_id,),
+        )
+        critic = FixtureSemanticCritic({"case": _result(plan, issues=(issue,))})
+        with self.assertRaisesRegex(
+            SemanticEvaluationError,
+            "orchestrator_issue_must_target_synthesis",
+        ):
+            evaluate_semantic_round(
+                critic,
+                plan=plan,
+                claims=(claim,),
+                stage1_report=_stage1(),
+                round_context=SemanticRoundContext(
+                    case_id="case",
+                    round_number=0,
+                    synthesis_summary="The report needs a review.",
+                    synthesis_supporting_claim_ids=(claim.claim_id,),
+                ),
+            )
+
+    def test_synthesis_support_ids_must_be_known_and_follow_candidate_order(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        critic = FixtureSemanticCritic({"case": _result(plan)})
+        with self.assertRaisesRegex(
+            SemanticEvaluationError,
+            "must_reference_candidate_claims",
+        ):
+            evaluate_semantic_round(
+                critic,
+                plan=plan,
+                claims=(claim,),
+                stage1_report=_stage1(),
+                round_context=SemanticRoundContext(
+                    case_id="case",
+                    round_number=0,
+                    synthesis_summary="The report follows the observation.",
+                    synthesis_supporting_claim_ids=("unknown-claim",),
+                ),
+            )
+
     def test_fixture_evaluation_returns_derived_quality_scores_for_company_only_plan(self):
         plan = _company_plan()
         claim = _company_claim()
@@ -320,6 +413,7 @@ class Phase3BASemanticCriticTests(unittest.TestCase):
             required_action=CritiqueAction.RECONCILE_CROSS_LEVEL,
         )
         critic = FixtureSemanticCritic({"case": _result(plan, issues=(issue,))})
+        claim = _company_claim()
 
         with self.assertRaisesRegex(
             SemanticEvaluationError,
@@ -328,9 +422,14 @@ class Phase3BASemanticCriticTests(unittest.TestCase):
             evaluate_semantic_round(
                 critic,
                 plan=plan,
-                claims=(),
+                claims=(claim,),
                 stage1_report=_stage1(),
-                round_context=SemanticRoundContext(case_id="case", round_number=0),
+                round_context=SemanticRoundContext(
+                    case_id="case",
+                    round_number=0,
+                    synthesis_summary="The report-level reconciliation needs review.",
+                    synthesis_supporting_claim_ids=(claim.claim_id,),
+                ),
             )
 
     def test_declared_non_reconcile_link_issue_is_accepted(self):
@@ -352,9 +451,14 @@ class Phase3BASemanticCriticTests(unittest.TestCase):
         artifact = evaluate_semantic_round(
             FixtureSemanticCritic({"case": result}),
             plan=plan,
-            claims=(),
+            claims=(_company_claim(),),
             stage1_report=_stage1(),
-            round_context=SemanticRoundContext(case_id="case", round_number=0),
+            round_context=SemanticRoundContext(
+                case_id="case",
+                round_number=0,
+                synthesis_summary="The declared link needs review.",
+                synthesis_supporting_claim_ids=("company-claim",),
+            ),
         )
 
         self.assertEqual(artifact.critic_result.applicable_link_results[0].link_id, "L1")

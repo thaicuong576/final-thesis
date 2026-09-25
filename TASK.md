@@ -1,52 +1,37 @@
-# Task Manifest: P1 truth and provenance composite v2
+# TASK — P2/P3 real adaptive runtime and bounded revision
 
-## Context
+## Dispatch
+- Role: `worker-api`
+- Base: `origin/main@9e0298a3de01c31b01a412ec574f265eeb79d2ea`
+- Branch: `codex/p2p3-runtime-20260925`
+- Tracking: Linear intentionally omitted because the user explicitly asked to skip Linear.
+- Binding sources: `.agent/foundation/*`, `docs/ARCHITECTURAL-GUARDRAILS.md`, `docs/DATA-CONTRACT.md`, `contracts/openapi.json`, `docs/EVALUATION-PROTOCOL-V1-DRAFT.md`, decisions D-069 through D-072.
 
-- Role: auditor integration proof, promoted by the Lead after all acceptance
-  gates passed.
-- Branch: `codex/integration-p1-truth-v2-20260925`.
-- Base: latest `origin/main` at worktree creation.
-- Linear: waived by the repository owner for the active thesis completion run.
-- This branch is the verified integration candidate. It may be pushed and
-  opened as one review PR; it must not be merged or deployed without the
-  repository owner's explicit approval.
+## Objective
+Make the production analysis path execute the real query-adaptive plan, selected specialists, deterministic Stage-1 checks, bounded semantic critique/revision, re-synthesis, and final acceptance. Remove scripted or unconditional success behavior from `/api/analyze` and SSE.
 
-## Inputs
+## Required behavior
+1. Freeze one AnalysisPlan per accepted request after capability validation.
+2. Company-only requests call only Company. Peer requests call only the relevant Company/Sector capabilities. Macro remains absent unless the validated snapshot supports the requested macro data.
+3. Specialists return structured claims with observation/evidence/reference/limitation fields.
+4. Stage-1 fails closed for numeric, scope, reference, provenance, contradiction, and missingness errors.
+5. Configuration C produces structured critique issues, reruns only affected work, re-synthesizes, reruns Stage-1, and stops within the configured maximum revision count.
+6. Expose terminal states equivalent to ACCEPT, ACCEPT_WITH_LIMITATIONS, and FAIL_ACCEPTANCE. Limitations are allowed only for genuine data/evidence insufficiency.
+7. SSE events reflect actual runtime transitions and never expose chain-of-thought.
+8. Do not alter `contracts/openapi.json` without stopping and reporting the required contract change.
 
-Merge the exact latest remote heads for PRs in this dependency order:
+## Acceptance cases
+- Accepted company-only run with no unused specialist.
+- Accepted peer run using the explicit five-bank peer universe and preserving missingness.
+- One injected defect causes a targeted revision and subsequent acceptance.
+- One unrepairable critical defect ends in FAIL_ACCEPTANCE.
+- Out-of-scope request fails closed before specialist execution.
+- Existing API, data boundary, and provenance tests remain green.
 
-1. #50 `35c3be588c501528b07a884018ee18db2c99ea91`
-2. #45 `5376c724633523297053dbf60157545948907e85` final scoped-authority head
-3. #47 `86d484b15f002b8cefdc954a9dc3c988bb7950a5`
-4. #49 `b4b40fe58471fb107683d2a94ce756b1be035b51`
-5. #48 `98868461740282a1f079bd55ab78da560cf7c9b6`
-6. #46 `d00a92109b6c5bedf5a06422bbceb9f36b2bc69e`
-7. #44 `f9fc3fed86dfdbc44b20c840115d98ee4bccadf6` final five-bank thesis-plan head
+## Scope
+- Allowed: `src/thesis_api/`, `src/thesis_agents/`, directly relevant API/agent tests, and a short evidence report under `reports/runtime/`.
+- Forbidden: `frontend/`, raw/processed data mutation, hard-coded five-bank logic inside reusable core, fabricated model results.
+- Record unforeseen issues in `.agent/memory/lessons-learned.md`.
 
-Resolve conflicts by preserving every compatible contract, architecture,
-incident-memory, data, API, UI, and thesis-plan change. In particular, dedupe
-the first-class `CanonicalObservation.source_locator` field shared by #47/#49,
-preserve #47 `calculation_receipt`, preserve #49 fail-closed Stage-1 locator
-logic, preserve #48 exact observation-to-evidence filtering, preserve #44 Luna
-xhigh subagent instruction, and preserve #50 SQLite isolation rule.
-
-## Acceptance
-
-1. Record exact merged SHAs and all conflict resolutions.
-2. Verify Gold v5 SHA-256 remains
-   `1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73`.
-3. Run focused D-070/D-071/Stage-1/API truth tests first.
-4. Run frontend lint, tests, type/build checks.
-5. Run architecture guardrails and diff checks.
-6. Run the full Python suite only against the isolated worktree or an explicit
-   temporary database. Never use the root database path.
-7. Exercise at least one Gold ACB company analysis and one CTG portability
-   analysis, reporting terminal status and exact provenance failures/successes.
-8. Record root database SHA before/after; expected unchanged:
-   `7993005474B8E0C3F91261B0E39AC140B43AC98BD0A167E0C8EBC274E4834A86`.
-
-## Handoff
-
-Open one integration PR containing the exact verified composite and link the
-source PRs as audit trails. Do not merge or deploy any PR without explicit
-repository-owner approval.
+## Verification and handoff
+Run focused tests, the full Python suite, and `python scripts/check_architecture_guardrails.py`. Commit, push, open a PR titled `feat(api): real adaptive critique and revision runtime`, wait for all CI checks, and report base SHA, branch, commit, PR, changed files, tests, known failures, and working-tree status. Do not merge.

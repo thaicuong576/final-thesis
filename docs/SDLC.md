@@ -98,12 +98,15 @@ Python changes should normally include focused unit tests, relevant
 regressions, the architecture guard, compileall, and `git diff --check`.
 Frontend changes should pass `npm ci`, lint, tests, and production build.
 
-The tracked GitHub Actions inventory currently contains only
-`.github/workflows/frontend.yml` (`Frontend validation`) for frontend paths.
-There is no Python workflow or package-management specification yet. The
-known Python baseline fixture/dependency failures must be repaired before a
-full Python check is made required. Local results must be labeled as local;
-CI status must be read from GitHub.
+GitHub Actions includes `.github/workflows/frontend.yml` for frontend changes
+and `.github/workflows/python-validation.yml` for backend, contracts, scripts
+and evidence-control changes. The Python job installs `requirements-test.txt`,
+validates OpenAPI and architecture boundaries, runs unittest discovery and
+compileall on Python 3.11. It uses no local `.env` or ignored evidence artifacts.
+Evidence-dependent skips must remain explicit; a green checkout suite does not
+mean ignored source files or live model calls were verified. Full source
+verification still requires a declared evidence root. Local results are labeled
+local; CI status must be read from GitHub.
 
 ### SQLite isolation in worktrees
 

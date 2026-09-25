@@ -1284,3 +1284,92 @@ Reason: the corrected evidence identifies parent-attributable equity as the
 consistent issuer-comparable convention. The distinct ACCEPT record ties the
 exact reviewed head, source hashes, control hashes, recomputation and gate
 output to the open scoped decision.
+
+## D-073: Bind peer scope to explicit authority and distinguish requested inputs
+
+Status: Accepted for the single-period provider-backed runtime and candidate
+evaluation inputs on 2026-09-25. Final A/B/C evaluation remains pre-freeze.
+
+Gold v5 has no native verified reporting-scope field. Keep the SQLite artifact
+unchanged and supply scope only through an explicit immutable sidecar:
+`data/evaluation/gold-v5-reporting-scope-authority-v1.json`, canonical LF UTF-8
+SHA-256 `fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f`.
+It binds the exact Gold SQLite hash, dataset/snapshot identity and 76 accepted
+observations to reviewed values/source locators and upstream authority. The
+four missing cells receive no authority entries. Provider validation fails
+closed on any mismatch; absence of authority leaves reporting scope unknown.
+This is a Gold adapter responsibility, not a core dependency on that dataset.
+
+Peer benchmark identity and claim scope bind all requested members. The
+numeric denominator binds eligible accepted members and exact observation
+inputs. Every excluded requested member has an explicit reason. The
+five-requested/four-eligible case must retain both counts and pass Stage-1
+against the requested identity. Shared non-null units, period basis and
+verified scope are required; all-missing remains `all_values_missing`.
+
+The reference API freezes the plan before retrieval and supports one-period
+Company/Sector execution through synthesis, Stage-1, semantic critique and at
+most two targeted revisions. Every revision is re-synthesized and rechecked.
+Missing semantic configuration and unsupported scope block before specialist
+retrieval. Macro is conditional on accepted provider-declared capability and
+observations; the current Gold sample has no accepted macro data. Multi-period
+requests remain unsupported. Offline critic tests do not count as live model
+validation. T04/T05/T08 remain ineligible and no final A/B/C result is created.
+
+Candidate evaluation text controls use canonical LF UTF-8 hashing, preserving
+BOM, Unicode code points, whitespace and final newline. A Windows checkout may
+change line endings without changing analytical identity. Immutable source
+files and SQLite continue to use raw-byte hashing.
+
+The API contract also repairs eleven pre-existing empty reference keys to
+`$ref` and documents additive peer metadata. Python CI validates the OpenAPI
+document, architecture guardrails and the checkout-available suite. It cannot
+verify ignored local evidence without an explicitly provisioned evidence root.
+
+### D-073 implementation review correction
+
+Independent review of implementation head `3774046` identified two blockers:
+targeted reruns only re-read identical provider data, and report assembly
+overwrote peer metadata across metrics. Acceptance requires an actual writer
+step consuming issue/action content, observable targeted content correction,
+preservation of unaffected output and another Stage-1 gate. Re-evaluation alone
+must never be labeled a successful revision. Peer metadata must be emitted per
+metric in `SectorBenchmark.benchmarks`; shared legacy metadata is omitted when
+records differ. These are completion gates for this PR, not new research scope.
+
+The review also identified accepted-snapshot mutation: run history shared
+`SQLITE_DB_PATH`. This must be separated via `ANALYSIS_RUNS_DB_PATH` before
+this slice is accepted, including alias rejection and repeated-run source-hash
+tests. Readiness must incorporate required writer/critic configuration. Initial
+model analysis is role-specific, followed by a separate constrained synthesis;
+the new writer must not become one global call mislabeled as several agents.
+
+The unchanged analysis_runs table definition is separated into contracts/run-store-schema.sql. New runtime history initialization applies it only to ANALYSIS_RUNS_DB_PATH; canonical analytical schema initialization excludes it. Existing dataset artifacts are not migrated.
+
+### D-073 implementation review resolution
+
+The implementation correction is accepted at `aa6c33e`, `0d82021`, `553f810`
+and `7de4f4b`; Linux fixture portability was corrected at `2db043d`. Independent
+review returned GREEN at exact head `36693b0`, where Python CI passed.
+Active specialists now use role-specific configured writers; Orchestrator
+synthesis is a separate typed artifact with exact supporting claim IDs. Both
+specialist and synthesis revisions consume selected issue/action content and
+must change the targeted artifact while retaining stable claim identity,
+immutable numeric/provenance fields and unaffected output.
+
+Peer evidence is stored per metric in `SectorBenchmark.benchmarks`. Mutable run
+history uses `ANALYSIS_RUNS_DB_PATH`, distinct from `SQLITE_DB_PATH`; filesystem
+aliases are rejected and readiness proves required model and run-store
+configuration. Period-range variants fail before retrieval. Deterministic
+prose guards cover digits, English/Vietnamese number words, fractions and
+multipliers, while semantic critique remains required. These controls establish
+the executable evaluation boundary; they do not establish live-model quality or
+complete the final A/B/C experiment.
+
+The reference API additionally owns and validates its claim-to-specialist map.
+The reusable core cannot derive a unique specialist owner from the current
+`AtomicClaim` because requirements may legitimately include multiple agents.
+Alternative executors therefore require a later contract migration adding an
+immutable producer/owner field and binding it to candidate hashes; inferring
+ownership from `required_agents` is rejected as ambiguous. This is a recorded
+portability limitation, not permission to omit the API role-mapping gate.

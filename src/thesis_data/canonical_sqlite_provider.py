@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from statistics import median
 from typing import Any, Sequence
 import sqlite3
 
@@ -33,7 +32,7 @@ from .dataset_contract import (
     PeerUniverse,
     SupportedOperation,
 )
-from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
+from .dataset_provider import DatasetProviderError, aggregate_peer_median
 from .evidence_contract import DOCUMENT_CONTRACT_VERSION
 from .onboarding_contract import ONBOARDING_CONTRACT_VERSION
 from .schema import QualityStatus
@@ -347,56 +346,14 @@ class CanonicalSqliteDatasetProvider:
                     dataset_ref, entity_id, (period_id,), (metric_id,)
                 )
             )
-            valid = [
-                item
-                for item in observations
-                if item.validation_status is QualityStatus.VALID and item.value is not None
-            ]
-            benchmark_id = peer_benchmark_observation_id(
-                dataset_ref,
-                peer_universe_id,
-                period_id,
-                metric_id,
-                effective_ids,
-            )
-            if not valid:
-                result.append(
-                    CanonicalObservation(
-                        observation_id=benchmark_id,
-                        dataset_id=dataset_ref.dataset_id,
-                        dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                        entity_id=peer_universe_id,
-                        period_id=period_id,
-                        metric_id=metric_id,
-                        validation_status=QualityStatus.MISSING,
-                        missing_reason="DATA_UNAVAILABLE",
-                        metadata={
-                            "benchmark_method": "peer_median_v1",
-                            "peer_entity_ids": list(effective_ids),
-                        },
-                    )
-                )
-                continue
-            units = {item.unit for item in valid}
-            if len(units) != 1:
-                raise DatasetProviderError("peer benchmark inputs have incompatible units")
             result.append(
-                CanonicalObservation(
-                    observation_id=benchmark_id,
-                    dataset_id=dataset_ref.dataset_id,
-                    dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                    entity_id=peer_universe_id,
+                aggregate_peer_median(
+                    dataset_ref=dataset_ref,
+                    peer_universe_id=peer_universe_id,
                     period_id=period_id,
                     metric_id=metric_id,
-                    value=float(median(item.value for item in valid)),
-                    unit=valid[0].unit,
-                    validation_status=QualityStatus.VALID,
-                    derivation_method="peer_median_v1",
-                    input_observation_ids=tuple(item.observation_id for item in valid),
-                    metadata={
-                        "benchmark_method": "peer_median_v1",
-                        "peer_entity_ids": list(effective_ids),
-                    },
+                    peer_entity_ids=effective_ids,
+                    member_observations=observations,
                 )
             )
         return tuple(result)

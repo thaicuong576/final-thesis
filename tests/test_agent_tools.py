@@ -6,6 +6,7 @@ from pathlib import Path
 
 from thesis_data.agent_tools import GoldToolRuntime, ToolExecutionError
 from thesis_data.storage import create_gold_snapshot_schema
+from tests.agent_sqlite_fixtures import create_synthetic_agent_database
 
 
 class AgentToolsTests(unittest.TestCase):
@@ -103,14 +104,15 @@ class ThesisApiAgentToolsTests(unittest.TestCase):
     """Test suite for thesis_api OpenAI tool definitions and SQLite execution dispatcher."""
 
     def setUp(self) -> None:
-        from thesis_api.settings import get_settings
-
-        self.db_path = get_settings().get_sqlite_path()
-        self.conn = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        self._temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._temp_dir.cleanup)
+        self.db_path = create_synthetic_agent_database(
+            Path(self._temp_dir.name) / "synthetic-agent-fixture.sqlite"
+        )
+        self.conn = sqlite3.connect(self.db_path)
+        self.conn.execute("PRAGMA query_only = ON")
+        self.addCleanup(self.conn.close)
         self.conn.row_factory = sqlite3.Row
-
-    def tearDown(self) -> None:
-        self.conn.close()
 
     def test_tool_definitions_schema(self) -> None:
         """Verify tool schemas strictly adhere to OpenAI function calling specifications."""

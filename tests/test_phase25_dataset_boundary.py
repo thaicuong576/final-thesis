@@ -156,6 +156,15 @@ def _three_peer_provider() -> tuple[InMemoryFinancialDatasetProvider, DatasetRef
             value=value,
             unit="percent",
             source_ref=f"source-{entity_id}",
+            period_basis="ttm",
+            reporting_scope="consolidated",
+            metadata={
+                "reporting_scope_authority": {
+                    "authority_ref": "fixture-scope-authority.json",
+                    "authority_canonical_lf_utf8_sha256": "a" * 64,
+                    "review_status": "accepted",
+                }
+            },
             validation_status=QualityStatus.VALID,
         )
         for entity_id, value in (
@@ -438,7 +447,8 @@ class GoldProviderTests(unittest.TestCase):
             company = provider.get_metric(ref, "entity-a", "FY-2024-Q4", "company.roa")
             macro = provider.get_macro_observation(ref, "VN", "FY-2024-Q4", "macro.policy")
             missing = provider.get_macro_observation(ref, "VN", "FY-2024-Q4", "macro.credit")
-            benchmark = provider.get_peer_benchmark(ref, "sector:bank", "FY-2024-Q4", ("company.roa",))
+            with self.assertRaisesRegex(DatasetProviderError, "verified reporting scopes"):
+                provider.get_peer_benchmark(ref, "sector:bank", "FY-2024-Q4", ("company.roa",))
             evidence = provider.get_evidence(ref, ("source-policy",), period_id="FY-2024-Q4", metric_id="macro.policy")
             company_evidence = provider.get_evidence(
                 ref,
@@ -451,16 +461,11 @@ class GoldProviderTests(unittest.TestCase):
 
         self.assertEqual(company.entity_id, "entity-a")
         self.assertEqual(company.value, 1.2)
+        self.assertIsNone(company.reporting_scope)
         self.assertEqual(macro.value, 4.5)
         self.assertEqual(missing.validation_status, QualityStatus.MISSING)
         self.assertIsNone(missing.value)
         self.assertEqual(missing.missing_reason, "DATA_UNAVAILABLE")
-        self.assertEqual(benchmark[0].value, 1.5)
-        self.assertIsNone(benchmark[0].source_ref)
-        self.assertEqual(benchmark[0].derivation_method, "peer_median_v1")
-        self.assertEqual(
-            set(benchmark[0].input_observation_ids), {"obs-a-roa", "obs-b-roa"}
-        )
         self.assertIsNone(evidence[0].entity_id)
         self.assertEqual(evidence[0].metric_id, "macro.policy")
         self.assertEqual(len(company_evidence), 1)
@@ -573,10 +578,15 @@ class ApplicationRuntimeTests(unittest.TestCase):
             set(benchmark.input_observation_ids),
             {"obs-company-a", "obs-company-b"},
         )
+        self.assertEqual(benchmark.metadata["requested_denominator"], 2)
+        self.assertEqual(benchmark.metadata["eligible_denominator"], 2)
         self.assertNotIn("obs-company-c", benchmark.input_observation_ids)
         self.assertIsNone(benchmark.source_ref)
         self.assertEqual(
-            benchmark.metadata["peer_entity_ids"], ["company-a", "company-b"]
+            benchmark.metadata["requested_peer_entity_ids"], ["company-a", "company-b"]
+        )
+        self.assertEqual(
+            benchmark.metadata["eligible_peer_entity_ids"], ["company-a", "company-b"]
         )
 
     def test_batch_and_peer_tools_enforce_analytical_levels(self):

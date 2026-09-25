@@ -518,16 +518,29 @@ class AcceptanceTests(unittest.TestCase):
             evidence_refs=(), source_refs=("source-tcb",),
             inference_type=InferenceType.TREND, support="evidence_backed",
         )
-        result = validate_stage1_claims(db, (comparison, trend), workload_scope, self.policy())
-        self.assertTrue(result.passed)
-        self.assertTrue(result.gate_results["numeric_accuracy"].passed)
-
-        wrong_direction_assertion = comparison.assertions[0].model_copy(
-            update={"operator": AssertionOperator.LT}
+        # The compatibility Gold provider has no accepted scope authority, so
+        # its peer benchmark must fail closed. A direct trend assertion remains
+        # independently verifiable through its two source-backed observations.
+        comparison_result = validate_stage1_claims(
+            db, (comparison,), workload_scope, self.policy()
         )
-        wrong_direction_claim = comparison.model_copy(
+        self.assertFalse(comparison_result.passed)
+        self.assertFalse(comparison_result.gate_results["numeric_accuracy"].passed)
+        self.assertIn(
+            "benchmark_reference_unresolved",
+            " ".join(comparison_result.gate_results["reference_validity"].violations),
+        )
+
+        trend_result = validate_stage1_claims(db, (trend,), workload_scope, self.policy())
+        self.assertTrue(trend_result.passed)
+        self.assertTrue(trend_result.gate_results["numeric_accuracy"].passed)
+
+        wrong_direction_assertion = trend.assertions[0].model_copy(
+            update={"operator": AssertionOperator.DECREASE}
+        )
+        wrong_direction_claim = trend.model_copy(
             update={
-                "claim_id": "comparison-wrong-direction",
+                "claim_id": "trend-wrong-direction",
                 "assertions": (wrong_direction_assertion,),
             }
         )
@@ -582,7 +595,12 @@ class AcceptanceTests(unittest.TestCase):
             support="evidence_backed",
         )
         result = validate_stage1_claims(db, (claim,), workload_scope, self.policy())
-        self.assertTrue(result.gate_results["numeric_accuracy"].passed)
+        self.assertFalse(result.passed)
+        self.assertFalse(result.gate_results["numeric_accuracy"].passed)
+        self.assertIn(
+            "benchmark_reference_unresolved",
+            " ".join(result.gate_results["reference_validity"].violations),
+        )
 
     def test_fabricated_comparison_benchmark_reference_fails_reference_validity(self):
         db, workload_scope = self.fixture()

@@ -400,6 +400,13 @@ def deterministic_coverage_violations(
             violations.append(
                 f"issue_agent_not_active:{issue.issue_id}:{issue.affected_agent}"
             )
+        if (
+            issue.affected_agent == AnalysisAgent.ORCHESTRATOR.value
+            and issue.affected_claim_ids
+        ):
+            violations.append(
+                f"orchestrator_issue_must_target_synthesis:{issue.issue_id}"
+            )
         if issue.required_action is CritiqueAction.RECONCILE_CROSS_LEVEL:
             if not plan_link_ids:
                 violations.append(

@@ -7,10 +7,10 @@ methods.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
-from statistics import median
 from typing import Any, Sequence
 
 from .dataset_contract import (
@@ -27,7 +27,11 @@ from .dataset_contract import (
     PeerUniverse,
     SupportedOperation,
 )
-from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
+from .dataset_provider import (
+    DatasetProviderError,
+    aggregate_peer_median,
+)
+from .gold_scope_authority import VerifiedGoldObservationScopeAuthority
 from .schema import QualityStatus
 
 
@@ -37,9 +41,17 @@ MACRO_ENTITY_ID = "VN"
 class GoldSqliteDatasetProvider:
     """Expose one validated Gold SQLite snapshot through generic contracts."""
 
-    def __init__(self, db_path: Path, dataset_id: str) -> None:
+    def __init__(
+        self,
+        db_path: Path,
+        dataset_id: str,
+        *,
+        scope_authority: VerifiedGoldObservationScopeAuthority | None = None,
+    ) -> None:
         self._db_path = Path(db_path).resolve()
         self._dataset_id = dataset_id.strip()
+        self._scope_authority = scope_authority
+        self._scope_authority_validated_sqlite_sha256: str | None = None
         if not self._dataset_id:
             raise ValueError("dataset_id must be non-empty")
 
@@ -91,6 +103,111 @@ class GoldSqliteDatasetProvider:
         actual_snapshot_id = self._physical_snapshot_id()
         if dataset_ref.dataset_snapshot_id != actual_snapshot_id:
             raise DatasetProviderError("dataset_snapshot_id does not match physical Gold snapshot")
+        if self._scope_authority is not None:
+            self._validate_scope_authority(actual_snapshot_id)
+
+    def _validate_scope_authority(self, actual_snapshot_id: str) -> None:
+        """Bind every scoped lookup to the exact immutable Gold bytes and rows."""
+
+        assert self._scope_authority is not None
+        authority = self._scope_authority.authority
+        if authority.dataset_id != self._dataset_id:
+            raise DatasetProviderError("reporting-scope authority dataset_id mismatch")
+        if authority.snapshot_id != actual_snapshot_id:
+            raise DatasetProviderError("reporting-scope authority snapshot_id mismatch")
+        if not self._db_path.exists():
+            raise DatasetProviderError("Gold dataset database does not exist")
+        actual_sqlite_sha256 = hashlib.sha256(self._db_path.read_bytes()).hexdigest()
+        if actual_sqlite_sha256 != authority.gold_snapshot_sha256:
+            raise DatasetProviderError("reporting-scope authority Gold SQLite SHA-256 mismatch")
+        if self._scope_authority_validated_sqlite_sha256 == actual_sqlite_sha256:
+            return
+
+        entries = self._scope_authority.entries_by_observation_id
+        connection = self._connection()
+        try:
+            rows = connection.execute(
+                """
+                SELECT observation_id, ticker, period, metric, value, unit,
+                       source_id, source_locator, quality_status, period_basis
+                FROM metric_observations
+                WHERE quality_status = ?
+                ORDER BY observation_id
+                """,
+                (QualityStatus.VALID.value,),
+            ).fetchall()
+            database_ids = {str(row["observation_id"]) for row in rows}
+            authority_ids = set(entries)
+            if authority_ids != database_ids:
+                unknown_ids = sorted(authority_ids - database_ids)
+                unscoped_ids = sorted(database_ids - authority_ids)
+                raise DatasetProviderError(
+                    "reporting-scope authority observation IDs do not exactly match Gold "
+                    f"(unknown={unknown_ids[:3]}, unscoped={unscoped_ids[:3]})"
+                )
+
+            for row in rows:
+                observation_id = str(row["observation_id"])
+                entry = entries[observation_id]
+                expected_target_id = f"{row['ticker']}:{row['period']}:{row['metric']}"
+                if (
+                    entry.review_target_id != expected_target_id
+                    or entry.entity_id != str(row["ticker"])
+                    or entry.period_id != str(row["period"])
+                    or entry.metric_id != str(row["metric"])
+                    or entry.value != float(row["value"])
+                    or entry.unit != row["unit"]
+                    or entry.period_basis != row["period_basis"]
+                    or entry.source_ref != row["source_id"]
+                    or entry.source_locator != row["source_locator"]
+                    or entry.review_status != "accepted"
+                    or entry.reporting_scope != "consolidated"
+                ):
+                    raise DatasetProviderError(
+                        "reporting-scope authority conflicts with a Gold observation"
+                    )
+                source = connection.execute(
+                    "SELECT source_tier, quality_status FROM source_records WHERE source_id = ?",
+                    (row["source_id"],),
+                ).fetchone()
+                if (
+                    source is None
+                    or source["source_tier"] != "primary"
+                    or source["quality_status"] != QualityStatus.VALID.value
+                ):
+                    raise DatasetProviderError(
+                        "reporting-scope authority observation source is not accepted primary"
+                    )
+        finally:
+            connection.close()
+        self._scope_authority_validated_sqlite_sha256 = actual_sqlite_sha256
+
+    def _scope_authority_metadata(self, observation_id: str) -> dict[str, Any] | None:
+        if self._scope_authority is None:
+            return None
+        entry = self._scope_authority.entries_by_observation_id.get(observation_id)
+        if entry is None:
+            return None
+        authority = self._scope_authority.authority
+        return {
+            "authority_id": authority.authority_id,
+            "authority_ref": self._scope_authority.authority_ref,
+            "authority_canonical_lf_utf8_sha256": self._scope_authority.canonical_sha256,
+            "source_review_ledger_ref": authority.source_review_ledger_ref,
+            "source_review_ledger_raw_file_bytes_sha256": (
+                authority.source_review_ledger_raw_file_bytes_sha256
+            ),
+            "source_authority_manifest_ref": authority.source_authority_manifest_ref,
+            "source_authority_manifest_canonical_lf_utf8_sha256": (
+                authority.source_authority_manifest_canonical_lf_utf8_sha256
+            ),
+            "review_target_id": entry.review_target_id,
+            "review_status": entry.review_status,
+            "reporting_scope": entry.reporting_scope,
+            "checker_ids": list(entry.checker_ids),
+            "checker_scope_confirmations": list(entry.checker_scope_confirmations),
+            "adjudicator_id": entry.adjudicator_id,
+        }
 
     def get_capabilities(self, dataset_ref: DatasetRef) -> DatasetCapabilityCatalog:
         self._validate_ref(dataset_ref)
@@ -239,6 +356,15 @@ class GoldSqliteDatasetProvider:
         if len(rows) != 1:
             raise DatasetProviderError("ambiguous canonical company observation")
         row = rows[0]
+        scope_authority_metadata = self._scope_authority_metadata(
+            str(row["observation_id"])
+        ) if row["quality_status"] == QualityStatus.VALID.value else None
+        metadata = {
+            "as_of_date": row["as_of_date"],
+            "period_basis": row["period_basis"],
+        }
+        if scope_authority_metadata is not None:
+            metadata["reporting_scope_authority"] = scope_authority_metadata
         return CanonicalObservation(
             observation_id=str(row["observation_id"]),
             dataset_id=dataset_ref.dataset_id,
@@ -251,12 +377,12 @@ class GoldSqliteDatasetProvider:
             source_ref=row["source_id"],
             source_locator=row["source_locator"],
             period_basis=row["period_basis"],
+            reporting_scope=(
+                "consolidated" if scope_authority_metadata is not None else None
+            ),
             validation_status=self._quality_status(row["quality_status"]),
             missing_reason=row["reason"],
-            metadata={
-                "as_of_date": row["as_of_date"],
-                "period_basis": row["period_basis"],
-            },
+            metadata=metadata,
         )
 
     def _macro_observation(
@@ -432,63 +558,27 @@ class GoldSqliteDatasetProvider:
             effective_peer_entity_ids = universe.effective_entity_ids(peer_entity_ids)
         except ValueError as exc:
             raise DatasetProviderError(str(exc)) from exc
+        for metric_id in metric_ids:
+            metric = next((item for item in catalog.metrics if item.metric_id == metric_id), None)
+            if metric is None or metric.analytical_level is not AnalyticalLevel.COMPANY:
+                raise DatasetProviderError("peer benchmark requires company-level metrics")
         result: list[CanonicalObservation] = []
         for metric_id in metric_ids:
-            observations = self.get_entity_metrics(
-                dataset_ref,
-                effective_peer_entity_ids[0],
-                (period_id,),
-                (metric_id,),
-            ) if len(effective_peer_entity_ids) == 1 else tuple(
+            observations = tuple(
                 item
                 for entity_id in effective_peer_entity_ids
                 for item in self.get_entity_metrics(
                     dataset_ref, entity_id, (period_id,), (metric_id,)
                 )
             )
-            valid = [
-                item for item in observations
-                if item.validation_status is QualityStatus.VALID and item.value is not None
-            ]
-            benchmark_id = peer_benchmark_observation_id(
-                dataset_ref,
-                peer_universe_id,
-                period_id,
-                metric_id,
-                effective_peer_entity_ids,
-            )
-            if not valid:
-                result.append(
-                    CanonicalObservation(
-                        observation_id=benchmark_id,
-                        dataset_id=dataset_ref.dataset_id,
-                        dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                        entity_id=peer_universe_id,
-                        period_id=period_id,
-                        metric_id=metric_id,
-                        validation_status=QualityStatus.MISSING,
-                        missing_reason="DATA_UNAVAILABLE",
-                        metadata={"benchmark_method": "peer_median_v1"},
-                    )
-                )
-                continue
             result.append(
-                CanonicalObservation(
-                    observation_id=benchmark_id,
-                    dataset_id=dataset_ref.dataset_id,
-                    dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                    entity_id=peer_universe_id,
+                aggregate_peer_median(
+                    dataset_ref=dataset_ref,
+                    peer_universe_id=peer_universe_id,
                     period_id=period_id,
                     metric_id=metric_id,
-                    value=float(median(item.value for item in valid)),
-                    unit=valid[0].unit,
-                    validation_status=QualityStatus.VALID,
-                    derivation_method="peer_median_v1",
-                    input_observation_ids=tuple(item.observation_id for item in valid),
-                    metadata={
-                        "benchmark_method": "peer_median_v1",
-                        "peer_entity_ids": list(effective_peer_entity_ids),
-                    },
+                    peer_entity_ids=effective_peer_entity_ids,
+                    member_observations=observations,
                 )
             )
         return tuple(result)

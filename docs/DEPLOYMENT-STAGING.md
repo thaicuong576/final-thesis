@@ -2,6 +2,28 @@
 
 This document establishes the staging deployment architecture, operational runbooks, and platform contracts for the **Sprint 0: Deployment Walking Skeleton**.
 
+## Current analysis configuration (2026-09-25)
+
+The sections below retain the initial hosting setup. The analysis runtime also
+requires an accepted snapshot, separate history storage and model configuration:
+
+| Setting | Purpose |
+|---|---|
+| `SQLITE_DB_PATH` | Explicit accepted analytical snapshot, opened read-only. The ignored local Gold file is not supplied by a Git deployment. |
+| `ANALYSIS_RUNS_DB_PATH` | Separate writable history file; same-file aliases with the dataset are rejected. Schema: `contracts/run-store-schema.sql`. |
+| `GOLD_SCOPE_AUTHORITY_PATH` | Explicit hash-verified authority sidecar for Gold peer reporting scope; see D-073. |
+| `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | Server-side configuration for active specialist writers, synthesis and critic. No key is exposed to the browser. |
+
+Analysis readiness requires accepted data and required model configuration.
+Configuration presence does not prove provider reachability or model quality.
+Final staging acceptance requires a real same-snapshot report, history roundtrip
+and source-hash verification. Artifact provisioning/startup hash checks and the
+Render readiness health-check change remain pending deployment work.
+
+On ephemeral hosting, provision the accepted artifact on each start and use a
+separate runtime history path. A restart may reset temporary history; disclose
+that behavior in the preview. Deployment changes require explicit approval.
+
 ---
 
 ## 1. Architectural Distinction: Deployment Infrastructure vs. Thesis Architecture

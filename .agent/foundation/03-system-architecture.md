@@ -80,10 +80,12 @@ Toàn bộ tính tái hiện (reproducibility) và giải trình (explainability
 Hệ thống phân định rạch ròi giữa 2 lớp kiểm soát chất lượng:
 
 ```text
-Specialist Outputs ──► Stage-1 Deterministic Acceptance ──► Stage-2 Semantic Critique ──► Final Synthesis
-                             │                                     │
-                             ▼ (Reject if invalid)                 ▼ (Bounded Revision <= 2 rounds)
-                       [FAIL CLOSED]                        [TARGETED RE-RUN]
+Specialist Outputs → Synthesis → AtomicClaim[] → Stage-1 → Semantic Critic
+                                                   │            │
+                                             FAIL CLOSED   Decision
+                                                                │
+                                    Targeted revision (<= 2 rounds)
+                                      → Re-synthesis → Stage-1 again
 ```
 
 ### 5.1. Stage 1: Deterministic Acceptance (Kiểm tra Toàn vẹn Xác định luận)
@@ -124,7 +126,7 @@ Specialist Outputs ──► Stage-1 Deterministic Acceptance ──► Stage-2 
 - Frontend chỉ truyền request intent và hiển thị run state, evidence, claims và reports. Toàn bộ logic về applicability, planning, claim generation, acceptance và revision nằm ở backend/core.
 
 ### 7.2. Ranh giới Lưu trữ (Persistence Boundary)
-- Tách biệt hoàn toàn giữa **Application Persistence** (lưu phân tích, sự kiện, report metadata, trạng thái phiên làm việc trong Supabase/PostgreSQL) và **Canonical Analytical Data** (dữ liệu tài chính chuẩn tắc).
+- Tách biệt hoàn toàn giữa **Application Persistence** (lưu phân tích, sự kiện, report metadata, trạng thái phiên làm việc; SQLite là adapter tham chiếu hiện tại, Supabase/PostgreSQL là adapter triển khai có thể thay thế) và **Canonical Analytical Data** (dữ liệu tài chính chuẩn tắc).
 - Core không gọi SDK Supabase trực tiếp khắp nơi mà đi qua Repository / Provider Interfaces rõ ràng.
 
 ---
@@ -144,3 +146,19 @@ Ba tệp mỏ neo trong `contracts/` là Single Source of Truth giữa các tầ
    local chỉ được ghi vào bản worktree/temp; artifact nguồn ở root là read-only.
 3. **NTFS Hardlinks**: Chỉ đồng bộ `.env` giữa root và các `.worktrees/` qua hardlink (`mklink /H`).
 4. **Kiểm tra Guardrail Tự động**: Lệnh `python scripts/check_architecture_guardrails.py` bắt buộc phải trả về PASS trước mọi đợt merge.
+
+## 9. Trạng thái triển khai tham chiếu ngày 2026-09-25
+
+API đã kết nối Company và Sector/Peer một kỳ vào plan đóng băng trước truy vấn,
+synthesis, Stage-1, semantic critique và tối đa hai vòng targeted revision.
+Scope của Gold chỉ được bổ sung qua authority sidecar khai báo rõ và kiểm hash
+theo D-073; core vẫn chỉ nhận dữ liệu qua provider. Metadata nhóm yêu cầu và
+nhóm có dữ liệu hợp lệ được giữ riêng để giải thích mẫu số.
+
+Các test offline xác minh luồng điều phối; chưa chứng minh chất lượng phân tích
+của model thật hoặc khả năng dùng ứng dụng đã triển khai. Multi-period chưa
+được hỗ trợ. Macro chỉ chạy khi provider khai báo capability và dữ liệu được
+chấp nhận tương ứng; mẫu Gold hiện tại chưa có dữ liệu macro đạt cổng. Bộ câu hỏi cuối vẫn pre-freeze. Quy trình CI
+Python kiểm contract và suite trong checkout; bằng chứng ignored có gate riêng.
+
+Application run history uses contracts/run-store-schema.sql on its separate ANALYSIS_RUNS_DB_PATH. contracts/schema.sql remains the analytical schema contract; accepted snapshots are never initialized or migrated for run history.

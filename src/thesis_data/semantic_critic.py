@@ -10,7 +10,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import math
-from typing import Protocol
+import re
+import unicodedata
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -44,6 +46,97 @@ _REQUIRED_STAGE1_GATE_IDS = frozenset(
     }
 )
 
+# Synthesis summaries are qualitative in the current contract. Detect number
+# words as whole Unicode tokens so phrases such as "seventeen percent" and
+# "mười bảy phần trăm" are rejected without matching substrings like "one" in
+# "someone". Keep this provider-neutral for API adapters to reuse.
+_NUMERIC_WORDS = frozenset(
+    {
+        "zero", "one", "two", "three", "four", "five", "six", "seven",
+        "eight", "nine", "ten", "eleven", "twelve", "thirteen",
+        "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+        "nineteen", "twenty", "thirty", "forty", "fifty", "sixty",
+        "seventy", "eighty", "ninety", "hundred", "thousand", "million",
+        "billion", "trillion", "quadrillion", "quintillion", "first",
+        "second", "third", "fourth", "fifth", "sixth", "seventh",
+        "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth",
+        "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth",
+        "nineteenth", "twentieth", "thirtieth", "fortieth", "fiftieth",
+        "sixtieth", "seventieth", "eightieth", "ninetieth", "half",
+        "halves", "quarter", "quarters", "dozen", "score",
+        # Vietnamese cardinal, scale, and common fractional number words.
+        "không", "một", "mốt", "hai", "ba", "tư", "bốn", "năm", "lăm",
+        "sáu", "bảy", "tám", "chín", "mười", "mươi", "chục", "trăm",
+        "nghìn", "ngàn", "triệu", "tỷ", "tỉ", "linh", "lẻ", "nửa",
+        "rưỡi",
+    }
+)
+_NUMERIC_TOKEN_PATTERN = re.compile(r"[+-]?\d+(?:[.,]\d+)*(?:%|bps|x)?|[^\W\d_]+", re.IGNORECASE)
+
+
+def numeric_or_period_tokens(value: object) -> tuple[str, ...]:
+    """Return ordered numeric and period-bearing tokens from prose.
+
+    Digit literals and English/Vietnamese number words are matched as complete
+    tokens. The same helper is used for synthesis rejection and to ensure a
+    claim revision does not alter the numeric content of presentation prose.
+    """
+
+    normalized = unicodedata.normalize("NFC", str(value))
+    tokens: list[str] = []
+    for token in _NUMERIC_TOKEN_PATTERN.findall(normalized):
+        folded = token.casefold()
+        if any(character.isdigit() for character in folded) or folded in _NUMERIC_WORDS:
+            tokens.append(folded)
+    return tuple(tokens)
+
+
+def validate_synthesis_summary(summary: str | None) -> str | None:
+    """Validate the report-level prose that is reviewed as a separate artifact.
+
+    Synthesis prose has no direct numeric evidence contract in this layer, so
+    numeric literals (including year/period digits) are rejected. API adapters
+    remain responsible for grounding qualitative statements in their explicit
+    support set.
+    """
+
+    if summary is None:
+        return None
+    if not isinstance(summary, str) or not summary.strip():
+        raise ValueError("synthesis_summary_must_be_non_empty_text")
+    if numeric_or_period_tokens(summary):
+        raise ValueError("synthesis_summary_numeric_or_period_literal_forbidden")
+    return summary
+
+
+def validate_synthesis_supporting_claim_ids(
+    summary: str | None,
+    supporting_claim_ids: Sequence[str],
+    claims: Sequence[AtomicClaim],
+) -> tuple[str, ...]:
+    """Validate that report synthesis cites only ordered candidate claims."""
+
+    normalized_ids = tuple(supporting_claim_ids)
+    if summary is None and normalized_ids:
+        raise ValueError("synthesis_supporting_claim_ids_require_summary")
+    if summary is not None and not normalized_ids:
+        raise ValueError("synthesis_summary_requires_supporting_claim_ids")
+    if any(not isinstance(claim_id, str) or not claim_id.strip() for claim_id in normalized_ids):
+        raise ValueError("synthesis_supporting_claim_ids_must_be_non_empty_strings")
+    if len(normalized_ids) != len(set(normalized_ids)):
+        raise ValueError("synthesis_supporting_claim_ids_must_be_unique")
+
+    ordered_claim_ids = tuple(claim.claim_id for claim in claims)
+    if len(ordered_claim_ids) != len(set(ordered_claim_ids)):
+        raise ValueError("candidate_claim_ids_must_be_unique")
+    positions = {claim_id: index for index, claim_id in enumerate(ordered_claim_ids)}
+    unknown_ids = tuple(claim_id for claim_id in normalized_ids if claim_id not in positions)
+    if unknown_ids:
+        raise ValueError("synthesis_supporting_claim_ids_must_reference_candidate_claims")
+    if tuple(sorted(normalized_ids, key=positions.__getitem__)) != normalized_ids:
+        raise ValueError("synthesis_supporting_claim_ids_must_follow_candidate_order")
+    return normalized_ids
+
 
 class SemanticRoundContext(BaseModel):
     """Small auditable context passed to one semantic evaluation round."""
@@ -54,9 +147,28 @@ class SemanticRoundContext(BaseModel):
     round_number: int = Field(ge=0)
     prior_issue_ids: tuple[str, ...] = Field(default_factory=tuple)
     prior_issues: tuple[CritiqueIssue, ...] = Field(default_factory=tuple)
+    synthesis_target_id: Literal["synthesis"] = "synthesis"
+    synthesis_summary: str | None = Field(default=None, min_length=1)
+    synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
     def validate_issue_context(self) -> "SemanticRoundContext":
+        validate_synthesis_summary(self.synthesis_summary)
+        if any(
+            not isinstance(claim_id, str) or not claim_id.strip()
+            for claim_id in self.synthesis_supporting_claim_ids
+        ):
+            raise ValueError(
+                "synthesis_supporting_claim_ids_must_be_non_empty_strings"
+            )
+        if len(self.synthesis_supporting_claim_ids) != len(
+            set(self.synthesis_supporting_claim_ids)
+        ):
+            raise ValueError("synthesis_supporting_claim_ids_must_be_unique")
+        if self.synthesis_summary is None and self.synthesis_supporting_claim_ids:
+            raise ValueError("synthesis_supporting_claim_ids_require_summary")
+        if self.synthesis_summary is not None and not self.synthesis_supporting_claim_ids:
+            raise ValueError("synthesis_summary_requires_supporting_claim_ids")
         if len(self.prior_issue_ids) != len(set(self.prior_issue_ids)):
             raise ValueError("prior_issue_ids must be unique")
         if any(not issue_id.strip() for issue_id in self.prior_issue_ids):
@@ -229,6 +341,13 @@ def evaluate_semantic_round(
     if not isinstance(round_context, SemanticRoundContext):
         raise SemanticEvaluationError("round_context_type_invalid")
 
+    try:
+        checked_round_context = SemanticRoundContext.model_validate(
+            round_context.model_dump(mode="python")
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SemanticEvaluationError("round_context_invalid") from exc
+
     _validate_stage1_report(stage1_report)
 
     evaluate = getattr(critic, "evaluate", None)
@@ -239,7 +358,7 @@ def evaluate_semantic_round(
         plan=plan.model_copy(deep=True),
         claims=tuple(claim.model_copy(deep=True) for claim in normalized_claims),
         stage1_report=stage1_report.model_copy(deep=True),
-        round_context=round_context.model_copy(deep=True),
+        round_context=checked_round_context.model_copy(deep=True),
     )
     if not isinstance(raw_result, StructuredCriticResult):
         raise SemanticEvaluationError("semantic_critic_result_type_invalid")
@@ -255,6 +374,16 @@ def evaluate_semantic_round(
             stage1_report=stage1_report,
             dataset_resolver=dataset_resolver,
         )
+        validate_synthesis_supporting_claim_ids(
+            checked_round_context.synthesis_summary,
+            checked_round_context.synthesis_supporting_claim_ids,
+            normalized_claims,
+        )
+        if checked_round_context.synthesis_summary is None and any(
+            issue.affected_agent == "orchestrator"
+            for issue in result.critique_issues
+        ):
+            raise SemanticEvaluationError("orchestrator_synthesis_target_unavailable")
     except Exception as exc:
         if isinstance(exc, SemanticEvaluationError):
             raise
@@ -262,7 +391,7 @@ def evaluate_semantic_round(
 
     quality_scores = _quality_scores_from_result(result)
     return SemanticEvaluationArtifact(
-        round_context=round_context.model_copy(deep=True),
+        round_context=checked_round_context.model_copy(deep=True),
         critic_result=result,
         quality_scores=quality_scores,
     )

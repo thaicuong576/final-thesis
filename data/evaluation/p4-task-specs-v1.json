@@ -1,0 +1,430 @@
+{
+  "manifest_id": "p4-gold-evaluation-task-specs-v1",
+  "status": "immutable_candidate_question_set_not_final_experiment_freeze",
+  "protocol_ref": "docs/EVALUATION-PROTOCOL-V1-DRAFT.md",
+  "protocol_status": "pre-freeze; final experiment freeze requires same-snapshot peer and critique/revision E2E gates",
+  "dataset": {
+    "dataset_id": "gold-bank-2025-expanded-v5-evidence",
+    "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "sqlite_sha256_raw_file_bytes": "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73",
+    "authority_sidecar_ref": "data/evaluation/gold-v5-reporting-scope-authority-v1.json",
+    "authority_sidecar_sha256_canonical_lf_utf8": "fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f"
+  },
+  "question_set": {
+    "path": "data/evaluation/p4-questions-v1.jsonl",
+    "encoding": "UTF-8",
+    "newline": "LF",
+    "hash_mode": "canonical_lf_utf8_sha256",
+    "canonical_lf_utf8_sha256": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+    "question_sha256": "SHA-256 of each exact question_text encoded as UTF-8",
+    "status": "immutable_candidate_questions"
+  },
+  "peer_universe": {
+    "peer_universe_id": "sector:bank",
+    "peer_entity_ids": [
+      "ACB",
+      "MBB",
+      "TCB",
+      "VCB",
+      "VPB"
+    ],
+    "peer_scope_label": "bounded_five_bank_case_study",
+    "whole_sector_claim_allowed": false,
+    "entity_ids_are_sorted": true
+  },
+  "macro_tasks_included": false,
+  "ctg_policy": "CTG remains an outside-Gold transferability case and is not a benchmark member.",
+  "tasks": [
+    {
+      "task_id": "T01",
+      "task_type": "company_snapshot",
+      "question_sha256_utf8": "b4fb764a401e7e73104ecfb14381e1457a7b92a019088f5628cd846cdcc76c35",
+      "target_entity_ids": [
+        "MBB"
+      ],
+      "period_ids": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Gold provider + Stage-1 E2E",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question."
+    },
+    {
+      "task_id": "T02",
+      "task_type": "company_snapshot",
+      "question_sha256_utf8": "6e13a6ff0c23bc9ea4b9aa784c9883e63b848c06dc38b5760df063d95e2d389c",
+      "target_entity_ids": [
+        "VCB"
+      ],
+      "period_ids": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Gold provider + Stage-1 E2E",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question."
+    },
+    {
+      "task_id": "T03",
+      "task_type": "missingness",
+      "question_sha256_utf8": "908961ee21a1524effdf0c45b40f1d6de9f3daec88e51c230eef91311f16cddf",
+      "target_entity_ids": [
+        "ACB"
+      ],
+      "period_ids": [
+        "2024_Q1"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Missing-data fail-closed E2E",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_missingness_fail_closed_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Missing-data fail-closed E2E is not verified for this exact question."
+    },
+    {
+      "task_id": "T04",
+      "task_type": "company_trend",
+      "question_sha256_utf8": "4ed425cdc179b02be9dee236d0f41417650b26d290b2936e3982df2f84b42f66",
+      "target_entity_ids": [
+        "TCB"
+      ],
+      "period_ids": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Multi-period request + exact period scope",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed."
+    },
+    {
+      "task_id": "T05",
+      "task_type": "company_trend",
+      "question_sha256_utf8": "4063b68cef2b098eb3ad92038ed13e5aaf7d067558cadb79ee40db0aa00b31b1",
+      "target_entity_ids": [
+        "MBB"
+      ],
+      "period_ids": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Multi-period request + exact period scope",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed."
+    },
+    {
+      "task_id": "T06",
+      "task_type": "peer_snapshot",
+      "question_sha256_utf8": "067cfaf9817ca62f9392c93d20fe97829f7c22db7ef11d9e744abe0e9dc4cab5",
+      "target_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "period_ids": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Query-adaptive peer runtime E2E",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "peer_universe_id": "sector:bank",
+      "peer_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Single-period query-adaptive peer runtime E2E is not verified for this exact question."
+    },
+    {
+      "task_id": "T07",
+      "task_type": "peer_snapshot",
+      "question_sha256_utf8": "6c18f856ccb4543d3d96429843675a10430ee982a15f8b9f3fc2b9999d6d7d93",
+      "target_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "period_ids": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Query-adaptive peer runtime E2E + D-072 authority gate",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "peer_universe_id": "sector:bank",
+      "peer_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Single-period query-adaptive peer runtime and D-072 E2E gates are not verified for this exact question."
+    },
+    {
+      "task_id": "T08",
+      "task_type": "multi_period_peer_synthesis",
+      "question_sha256_utf8": "3ef2341499343464707177f922ca7e4b79a7b5ce57da4ca4c06a0e054ef381a8",
+      "target_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "period_ids": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer",
+        "Synthesis"
+      ],
+      "applicable_links": [
+        "company_to_peer"
+      ],
+      "eligibility_gate": "Multi-period peer runtime + context budget + critique/revision E2E",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "peer_universe_id": "sector:bank",
+      "peer_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_peer_and_revision_e2e",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; peer synthesis and critique/revision E2E are also unverified."
+    },
+    {
+      "task_id": "T09",
+      "task_type": "invalid_period_scope",
+      "question_sha256_utf8": "3c8cbb818844700b764f18e2f5f30446304691ec5d2c626b40c68cab11e9c30e",
+      "target_entity_ids": [
+        "ACB"
+      ],
+      "period_ids": [
+        "2025_Q1"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "required_capabilities": [],
+      "applicable_links": [],
+      "eligibility_gate": "Reject unsupported period before provider dispatch",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": false,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "negative_scope_control_candidate",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Unsupported-period fail-closed E2E control has not been run."
+    },
+    {
+      "task_id": "T10",
+      "task_type": "invalid_peer_universe",
+      "question_sha256_utf8": "93dea827d00ffd53fb7a7800f05976003e7e6b5f4bea6ea4af4a288fc571fb5d",
+      "target_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB",
+        "CTG"
+      ],
+      "period_ids": [
+        "2024_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "applicable_links": [],
+      "eligibility_gate": "Reject CTG outside the frozen Gold peer universe",
+      "arms": [
+        "A",
+        "B",
+        "C"
+      ],
+      "prompt_version": "prompt-contract-v1",
+      "peer_universe_id": "sector:bank",
+      "peer_entity_ids": [
+        "ACB",
+        "MBB",
+        "TCB",
+        "VCB",
+        "VPB",
+        "CTG"
+      ],
+      "underlying_gold_data_cells_available": false,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "negative_peer_universe_control_candidate",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Unsupported-peer fail-closed E2E control has not been run."
+    }
+  ],
+  "scoring_runs_created": false,
+  "ab_c_results_created": false,
+  "freeze_condition": {
+    "protocol_final_freeze_ready": false,
+    "blockers": [
+      "query_adaptive_peer_runtime_e2e",
+      "multi_period_request_contract",
+      "critique_revision_e2e"
+    ]
+  }
+}

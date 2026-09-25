@@ -350,11 +350,79 @@ class _MalformedRevisionExecutor:
         return object()
 
 
-def _revision(claims, *, agents=("company",), version="payload-revised"):
+def _revision(
+    claims,
+    *,
+    agents=("company",),
+    version="payload-revised",
+    synthesis_summary=None,
+    synthesis_supporting_claim_ids=None,
+    revised_claim_ids=None,
+    material_change=True,
+    revision_note="Clarified during revision.",
+):
+    revised_claims = tuple(claims)
+    if material_change and agents:
+        revised_claims = tuple(
+            claim.model_copy(
+                update={
+                    "interpretation": (
+                        claim.interpretation + " " + revision_note
+                    )
+                }
+            )
+            for claim in revised_claims
+        )
+    if revised_claim_ids is None:
+        revised_claim_ids = (
+            {
+                agent: tuple(claim.claim_id for claim in revised_claims)
+                if index == 0
+                else ()
+                for index, agent in enumerate(agents)
+            }
+            if agents
+            else {}
+        )
     return RevisionResult(
-        revised_claims=tuple(claims),
+        revised_claims=revised_claims,
+        revised_synthesis_summary=synthesis_summary,
+        revised_synthesis_supporting_claim_ids=synthesis_supporting_claim_ids,
         revised_agents=tuple(agents),
+        revised_claim_ids=revised_claim_ids,
         payload_version=version,
+    )
+
+
+def _macro_policy_claim() -> AtomicClaim:
+    claim = _company_claim()
+    ref = ClaimDataRef(
+        ref_id="macro-policy-rate",
+        ref_type="macro_observation",
+        entity="VN",
+        period="2024_Q4",
+        metric_id="macro.policy_rate",
+    )
+    assertion = claim.assertions[0].model_copy(
+        update={
+            "assertion_id": "macro-policy-rate-assertion",
+            "entity": "VN",
+            "metric_id": "macro.policy_rate",
+            "data_refs": (ref,),
+        }
+    )
+    return claim.model_copy(
+        update={
+            "claim_id": "macro-policy-rate-claim",
+            "claim_text": "The policy-rate observation is recorded for the requested period.",
+            "title": "Policy rate",
+            "scope": ClaimScope(
+                entities=("VN",),
+                periods=("2024_Q4",),
+                metric_ids=("macro.policy_rate",),
+            ),
+            "assertions": (assertion,),
+        }
     )
 
 
@@ -443,6 +511,40 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         changed = original.model_copy(update={"claim_text": "TCB ROA was 1.3%."})
         self.assertNotEqual(candidate_hash(plan, (original,)), candidate_hash(plan, (changed,)))
 
+    def test_synthesis_text_and_support_ids_are_part_of_candidate_hash(self):
+        plan = _company_plan()
+        claims = (_company_claim(), _company_roe_claim())
+        summary = "The reviewed company result supports the report conclusion."
+        with_support = candidate_hash(plan, claims, summary, ("company-claim",))
+        self.assertNotEqual(
+            with_support,
+            candidate_hash(
+                plan,
+                claims,
+                "The reviewed company result informs the report conclusion.",
+                ("company-claim",),
+            ),
+        )
+        self.assertNotEqual(
+            with_support,
+            candidate_hash(
+                plan,
+                claims,
+                summary,
+                ("company-claim", "company-roe-claim"),
+            ),
+        )
+
+    def test_candidate_hash_rejects_numeric_or_unknown_synthesis_support(self):
+        plan = _company_plan()
+        claims = (_company_claim(),)
+        with self.assertRaisesRegex(ValueError, "numeric_or_period_literal"):
+            candidate_hash(plan, claims, "The report period is 2024_Q4.")
+        with self.assertRaisesRegex(ValueError, "requires_supporting_claim_ids"):
+            candidate_hash(plan, claims, "The report is qualitative.")
+        with self.assertRaisesRegex(ValueError, "must_reference_candidate_claims"):
+            candidate_hash(plan, claims, "The report is concise.", ("missing-claim",))
+
     def test_company_only_plan_routes_no_macro_or_sector_revision(self):
         plan = _company_plan()
         claim = _company_claim()
@@ -487,26 +589,251 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         )
         self.assertEqual(executor.calls[0].target_specialists, ("company",))
 
+    def test_version_only_revision_cannot_resolve_a_specialist_issue(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        issue = _issue(issue_id="version-only")
+        controller, _, critic, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(plan, issues=(issue,)),
+                _result(
+                    plan,
+                    fulfilled=("R1",),
+                    issues=(_issue(issue_id="version-only", status=CritiqueIssueStatus.RESOLVED),),
+                ),
+            ],
+            revision_results=[
+                _revision(
+                    (claim,),
+                    material_change=False,
+                    revised_claim_ids={"company": (claim.claim_id,)},
+                )
+            ],
+        )
+
+        result = controller.run(
+            run_id="version-only-revision",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+        self.assertEqual(
+            result.terminal_reason,
+            "revision_result_changed_claim_ids_mismatch",
+        )
+        self.assertEqual(len(critic.calls), 1)
+
+    def test_target_mapping_rejects_two_specialists_when_only_one_claim_changes(self):
+        plan = build_tcb_macro_analysis_plan(
+            DatasetRef(dataset_id="dataset", dataset_snapshot_id="snapshot")
+        )
+        company_claim = _company_claim()
+        macro_claim = _macro_policy_claim()
+        issues = (_issue(issue_id="company", agent="company"), _issue(issue_id="macro", agent="macro"))
+        link_result = ApplicableLinkResult(
+            link_id="L1",
+            score=0.8,
+            rationale="linked fixture",
+        )
+        changed_company_claim = company_claim.model_copy(
+            update={"interpretation": company_claim.interpretation + " Clarified."}
+        )
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[_result(plan, issues=issues, link_results=(link_result,))],
+            revision_results=[
+                _revision(
+                    (changed_company_claim, macro_claim),
+                    agents=("company", "macro"),
+                    material_change=False,
+                    revised_claim_ids={
+                        "company": (company_claim.claim_id,),
+                        "macro": (),
+                    },
+                )
+            ],
+        )
+
+        result = controller.run(
+            run_id="partial-target-change",
+            plan=plan,
+            claims=(company_claim, macro_claim),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+        self.assertEqual(result.terminal_reason, "revision_target_claim_not_revised:macro")
+
+    def test_revised_claim_ids_cannot_be_assigned_to_multiple_specialists(self):
+        claim = _company_claim()
+        with self.assertRaisesRegex(ValueError, "multiple specialists"):
+            RevisionResult(
+                revised_claims=(claim,),
+                revised_agents=("company", "macro"),
+                revised_claim_ids={
+                    "company": (claim.claim_id,),
+                    "macro": (claim.claim_id,),
+                },
+                payload_version="payload-revised",
+            )
+
+    def test_claim_revision_cannot_introduce_a_written_numeral(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        revised_claim = claim.model_copy(
+            update={
+                "interpretation": "The result covers seventeen observations."
+            }
+        )
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[_result(plan, issues=(_issue(),))],
+            revision_results=[
+                RevisionResult(
+                    revised_claims=(revised_claim,),
+                    revised_agents=("company",),
+                    revised_claim_ids={"company": (claim.claim_id,)},
+                    payload_version="payload-revised",
+                )
+            ],
+        )
+
+        result = controller.run(
+            run_id="written-numeral-revision",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+        )
+
+        self.assertEqual(
+            result.terminal_reason,
+            "revision_changed_numeric_or_period_claim_text:company-claim",
+        )
+
     def test_orchestrator_only_issue_requests_resynthesis_without_specialist(self):
         plan = _company_plan()
         claim = _company_claim()
         issue = _issue(issue_id="synthesis", agent="orchestrator")
+        initial_summary = "The company observation supports a concise report."
+        revised_summary = "The company observation supports a narrower report."
         controller, _, _, executor, _, _ = _controller(
             plan=plan,
             critic_results=[
                 _result(plan, issues=(issue,)),
                 _result(plan, fulfilled=("R1",), issues=(_issue(issue_id="synthesis", agent="orchestrator", status=CritiqueIssueStatus.RESOLVED),)),
             ],
-            revision_results=[_revision((claim,), agents=())],
+            revision_results=[
+                _revision(
+                    (claim,),
+                    agents=(),
+                    synthesis_summary=revised_summary,
+                    synthesis_supporting_claim_ids=(claim.claim_id,),
+                )
+            ],
         )
-        controller.run(
+        result = controller.run(
             run_id="orchestrator-target",
             plan=plan,
             claims=(claim,),
             initial_payload_version="payload-initial",
+            synthesis_summary=initial_summary,
+            synthesis_supporting_claim_ids=(claim.claim_id,),
         )
         self.assertEqual(executor.calls[0].target_specialists, ())
         self.assertEqual(executor.calls[0].selected_issues[0].affected_agent, "orchestrator")
+        self.assertEqual(
+            executor.calls[0].current_synthesis_summary,
+            initial_summary,
+        )
+        self.assertEqual(
+            executor.calls[0].current_synthesis_supporting_claim_ids,
+            (claim.claim_id,),
+        )
+        self.assertEqual(result.final_claims, (claim,))
+        self.assertEqual(result.final_synthesis_summary, revised_summary)
+        self.assertEqual(result.final_synthesis_supporting_claim_ids, (claim.claim_id,))
+        self.assertTrue(result.was_revised)
+        self.assertTrue(result.synthesis_was_revised)
+        self.assertEqual(
+            result.acceptance_state.rounds[0].candidate_synthesis_summary,
+            initial_summary,
+        )
+        self.assertEqual(
+            result.acceptance_state.rounds[1].candidate_synthesis_summary,
+            revised_summary,
+        )
+        self.assertEqual(
+            result.final_candidate_hash,
+            candidate_hash(plan, (claim,), revised_summary, (claim.claim_id,)),
+        )
+
+    def test_orchestrator_issue_rejects_unchanged_summary_and_supports(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        summary = "The company observation supports a concise report."
+        issue = _issue(issue_id="synthesis-noop", agent="orchestrator")
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[_result(plan, issues=(issue,), score=0.4)],
+            revision_results=[
+                _revision(
+                    (claim,),
+                    agents=(),
+                    synthesis_summary=summary,
+                    synthesis_supporting_claim_ids=(claim.claim_id,),
+                )
+            ],
+        )
+        result = controller.run(
+            run_id="orchestrator-noop",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-initial",
+            synthesis_summary=summary,
+            synthesis_supporting_claim_ids=(claim.claim_id,),
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.FAIL_ACCEPTANCE)
+        self.assertEqual(result.terminal_reason, "orchestrator_synthesis_not_revised")
+        self.assertFalse(result.was_revised)
+        self.assertFalse(result.synthesis_was_revised)
+
+    def test_claim_revision_is_reported_without_claiming_synthesis_revision(self):
+        plan = _company_plan()
+        original_claim = _company_claim()
+        revised_claim = original_claim.model_copy(
+            update={
+                "claim_text": (
+                    "TCB ROA was 1.2% in 2024_Q4 based on the accepted observation."
+                )
+            }
+        )
+        summary = "The company observation supports a concise report."
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(plan, issues=(_issue(issue_id="company-revision"),), score=0.4),
+                _result(
+                    plan,
+                    fulfilled=("R1",),
+                    issues=(_issue(issue_id="company-revision", status=CritiqueIssueStatus.RESOLVED),),
+                ),
+            ],
+            revision_results=[_revision((revised_claim,))],
+        )
+        result = controller.run(
+            run_id="claim-revision-flags",
+            plan=plan,
+            claims=(original_claim,),
+            initial_payload_version="payload-initial",
+            synthesis_summary=summary,
+            synthesis_supporting_claim_ids=(original_claim.claim_id,),
+        )
+        self.assertTrue(result.was_revised)
+        self.assertFalse(result.synthesis_was_revised)
+        self.assertEqual(result.final_synthesis_summary, summary)
 
     def test_revision_result_with_inactive_specialist_fails_closed(self):
         plan = _company_plan()
@@ -831,7 +1158,13 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
                 _result(plan, issues=(issue,)),
                 _result(plan, issues=(issue,)),
             ],
-            revision_results=[_revision((_company_claim(),)), _revision((_company_claim(),))],
+            revision_results=[
+                _revision((_company_claim(),)),
+                _revision(
+                    (_company_claim(),),
+                    revision_note="Clarified in a follow-up revision.",
+                ),
+            ],
             max_revision_rounds=2,
         )
         result = controller.run(
@@ -885,6 +1218,10 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
             initial_payload_version="payload-initial",
         )
         self.assertEqual(result.acceptance_state.rounds[1].revised_agents, ("company",))
+        self.assertEqual(
+            result.acceptance_state.rounds[1].revised_claim_ids,
+            {"company": ("company-claim",)},
+        )
         self.assertEqual(result.acceptance_state.rounds[1].candidate_payload_version, "payload-revised")
 
     def test_stage1_failure_after_revision_blocks_second_critic(self):
@@ -996,7 +1333,13 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
                 _result(plan, issues=(resolved, next_issue)),
                 _result(plan, issues=(reopened, next_issue)),
             ],
-            revision_results=[_revision((_company_claim(),)), _revision((_company_claim(),))],
+            revision_results=[
+                _revision((_company_claim(),)),
+                _revision(
+                    (_company_claim(),),
+                    revision_note="Clarified in a follow-up revision.",
+                ),
+            ],
         )
         result = controller.run(
             run_id="issue-reopened",
@@ -1036,7 +1379,10 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
             ],
             revision_results=[
                 _revision((_company_claim(),)),
-                _revision((_company_claim(),)),
+                _revision(
+                    (_company_claim(),),
+                    revision_note="Clarified in a follow-up revision.",
+                ),
             ],
         )
         result = controller.run(
@@ -1162,6 +1508,8 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
     def test_revision_request_contains_current_candidate_and_target_scope(self):
         plan = _company_plan()
         issue = _issue(issue_id="request-scope")
+        summary = "The company observation frames the report."
+        claim = _company_claim()
         controller, _, _, executor, _, _ = _controller(
             plan=plan,
             critic_results=[
@@ -1173,14 +1521,21 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         controller.run(
             run_id="request-scope",
             plan=plan,
-            claims=(_company_claim(),),
+            claims=(claim,),
             initial_payload_version="payload-v1",
+            synthesis_summary=summary,
+            synthesis_supporting_claim_ids=(claim.claim_id,),
         )
         request = executor.calls[0]
         self.assertEqual(request.next_round_number, 1)
         self.assertEqual(request.target_specialists, ("company",))
         self.assertEqual(request.selected_issues[0].issue_id, "request-scope")
-        self.assertEqual(request.current_candidate_hash, candidate_hash(plan, (_company_claim(),)))
+        self.assertEqual(request.current_synthesis_summary, summary)
+        self.assertEqual(request.current_synthesis_supporting_claim_ids, (claim.claim_id,))
+        self.assertEqual(
+            request.current_candidate_hash,
+            candidate_hash(plan, (claim,), summary, (claim.claim_id,)),
+        )
 
     def test_malformed_revision_result_fails_acceptance(self):
         plan = _company_plan()
@@ -1219,7 +1574,9 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
     def test_later_round_candidate_hash_changes_when_revision_changes_claim(self):
         plan = _company_plan()
         first_claim = _company_claim()
-        second_claim = first_claim.model_copy(update={"claim_text": "TCB ROA was 1.3%."})
+        second_claim = first_claim.model_copy(
+            update={"claim_text": "TCB ROA of 1.2% was reported in 2024_Q4."}
+        )
         controller, _, _, _, _, _ = _controller(
             plan=plan,
             critic_results=[

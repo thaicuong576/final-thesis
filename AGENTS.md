@@ -139,13 +139,33 @@ boundary and the transferability rule.
 
 ## Current public API analysis contract
 
-`POST /api/analyze` and `/api/analyze/stream` execute only provider-backed
-company claims that pass Stage-1. A numeric claim requires an accepted
+`POST /api/analyze` and `/api/analyze/stream` freeze a request-derived plan
+before retrieval and support single-period Company and Sector/Peer execution.
+They synthesize provider-backed claims, run Stage-1, then the configured
+semantic critic with at most two targeted revision rounds. Every revised
+candidate passes Stage-1 again. Tests use explicit offline critics; they do not
+establish live provider readiness. Missing semantic configuration blocks before
+specialist retrieval. Multi-period requests remain unsupported. Macro runs only
+when the accepted provider declares the requested capability/observations;
+the current Gold case study has no accepted macro data.
+T04/T05/T08 remain ineligible for final evaluation.
+
+Peer identity and claim scope use the requested member set; the numeric
+denominator and data references use only eligible accepted inputs. Every
+excluded member needs an explicit reason. Gold reporting scope comes only from
+the explicitly configured, hash-verified authority sidecar under D-073;
+unknown scope is never inferred. Candidate evaluation controls use canonical
+LF UTF-8 hashes and remain pre-freeze.
+
+The Python workflow validates OpenAPI, architecture boundaries and the full
+checkout-available suite. Ignored evidence still requires explicit local
+verification with an evidence root; CI cannot claim those files were verified.
+
+A numeric claim must pass Stage-1. A numeric claim requires an accepted
 observation, accepted source, the observation's metric-specific source locator,
 and resolvable evidence. Missing locator/evidence or unsupported scope blocks
-the claim; success is `partial` while macro, sector, semantic critique, and
-revision are not implemented. SSE emits `REPORT_READY` only for the same
-successful result and `RUN_BLOCKED` for errors. Readiness requires a runnable
+the claim. SSE emits `REPORT_READY` only for the accepted runtime result and
+`RUN_BLOCKED` for errors; review/revision events reflect actual transitions. Readiness requires a runnable
 accepted snapshot. `SQLITE_DB_PATH` must point to an explicitly supplied
 validated snapshot; the ignored local Gold artifact is not packaged by Git or
 implicitly available on Render/Vercel. Do not infer consolidated or parent-only
@@ -190,3 +210,20 @@ Working-tree status:
 
 See `CONTRIBUTING.md` and `docs/SDLC.md` for the repository workflow and
 change-type gates.
+
+## Runtime revision and peer audit gates
+
+Targeted revision must pass structured issue content and required action into
+a replaceable writer and revalidate the changed candidate. Re-fetching facts
+or changing critic verdicts alone must not be called revision. Peer reports
+use `sector_benchmark.benchmarks` for per-metric lineage and denominators;
+shared metadata is omitted if any record differs. See D-073 review correction.
+
+Accepted dataset and run history must use separate files:
+`SQLITE_DB_PATH` for analytical data, `ANALYSIS_RUNS_DB_PATH` for mutable
+history. Reject same-file aliases. A successful API request must not mutate
+the accepted snapshot. Required writer/critic configuration is part of runnable
+readiness. Company/Sector writer calls and Orchestrator synthesis are explicit
+roles; deterministic retrieval alone is not a model specialist.
+
+The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.

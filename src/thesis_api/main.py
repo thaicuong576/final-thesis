@@ -18,11 +18,15 @@ from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, semantic_critic=None, analysis_writer=None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
     sqlite_path = current_settings.get_sqlite_path()
-    engine = AnalysisEngine(sqlite_path)
+    engine = AnalysisEngine(
+        sqlite_path, current_settings,
+        semantic_critic=semantic_critic,
+        analysis_writer=analysis_writer,
+    )
 
     app = FastAPI(
         title="Final Thesis API",
@@ -41,6 +45,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         cors_kwargs["allow_origin_regex"] = current_settings.cors_origin_regex
 
     app.add_middleware(CORSMiddleware, **cors_kwargs)
+
+    def analysis_runs_path():
+        try:
+            return current_settings.get_analysis_runs_path(dataset_path=sqlite_path)
+        except (OSError, ValueError) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="The operational analysis history store is not configured separately from the accepted dataset.",
+            ) from exc
 
     @app.get("/api/health", summary="Liveness probe")
     def health() -> dict[str, str]:
@@ -99,8 +112,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return StreamingResponse(
             stream_analysis_query(
                 request,
-                db_path=current_settings.get_sqlite_path(),
+                db_path=sqlite_path,
                 step_delay=step_delay,
+                settings=current_settings,
+                semantic_critic=semantic_critic,
+                analysis_writer=analysis_writer,
             ),
             media_type="text/event-stream",
             headers={
@@ -116,7 +132,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def get_runs(limit: int = 20) -> list[dict[str, Any]]:
         """Retrieve recent analysis runs ordered by created_at DESC."""
-        return list_analysis_runs(current_settings.get_sqlite_path(), limit=limit)
+        return list_analysis_runs(analysis_runs_path(), limit=limit)
 
     @app.get(
         "/api/runs/{run_id}",
@@ -124,7 +140,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def get_run(run_id: str) -> dict[str, Any]:
         """Retrieve specific analysis run by run_id."""
-        run_record = get_analysis_run(current_settings.get_sqlite_path(), run_id)
+        run_record = get_analysis_run(analysis_runs_path(), run_id)
         if not run_record:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -138,7 +154,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def get_report(report_id: str) -> dict[str, Any]:
         """Retrieve report artifact directly from analysis_runs in SQLite."""
-        report = get_analysis_report(current_settings.get_sqlite_path(), report_id)
+        report = get_analysis_report(analysis_runs_path(), report_id)
         if not report:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

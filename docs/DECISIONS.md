@@ -1127,3 +1127,118 @@ Reason: semantic reconciliation must be completed before Phase 4, while Gold
 promotion still requires the existing independent review, source contract and
 fail-closed materialization gate. This decision changes no raw artifact,
 schema, runtime or historical Gold snapshot.
+
+## D-069: Separate bank-input syntax checks from source-backed acceptance
+
+Status: Accepted as the contract for the next data-onboarding implementation;
+no bank outside Gold v5 has been promoted by this decision.
+
+CSV and parser outputs are candidate transport artifacts. A successful schema
+check or mapping does not establish that a numeric value matches a primary
+filing. The bank onboarding packet v1 therefore records immutable source
+hashes, bank/period/metric semantics, locator, period basis, reporting scope,
+missingness, and a per-observation reconciliation decision. A derived value
+also names its inputs and formula version. Only reviewed primary-backed values
+may enter an operational validated snapshot used by a published report; the
+existing Gold benchmark requirements remain separate and unchanged.
+
+This is necessary because the current CSV onboarding path can mark structurally
+valid user-supplied values `VALID` and name its resulting snapshot `accepted`,
+while the Stage-1 policy properly rejects user-supplied sources as primary
+claim support. Future implementation must align these statuses and preserve
+the source linkage through the canonical provider. No issuer PDF, including
+scan/OCR output, is automatically accepted by this contract alone.
+
+## D-070: Accept exact observation provenance for numeric claims
+
+Status: Accepted as a provider-neutral Stage-1 contract correction; API/core
+implementation and combined E2E verification are pending.
+
+The Gold v5 evidence-snippet table lacks a metric or observation foreign key.
+A source/ticker/period query therefore returns snippets from several metrics;
+attaching all of them to each numeric claim creates a false claim-to-evidence
+graph even when the numeric observation itself is correct. Numeric claims may
+instead pass the critical evidence gate through an accepted direct observation
+with primary source and exact locator, or through a reproducible derived metric
+whose accepted inputs each have primary source and exact locator. Stage-1 must
+validate those links and values through provider interfaces. Narrative/policy
+claims still require document evidence. An unlinked snippet cannot be relabeled
+as if it specifically supports a numeric claim.
+
+This follows the existing data-contract rule that a published metric has
+evidence **or an explicit source-record locator**, and preserves the
+structured/document source-family separation in the architectural guardrails.
+It does not authorize accepting user-supplied CSV numerics, missing locators,
+invalid sources, wrong formulas, or cross-scope claims.
+
+The report API carries this relation with explicit claim, observation, input,
+formula, and source IDs. A derived claim may have multiple source-trail rows,
+each tied to a particular accepted input. The fields are additive in OpenAPI
+for old report compatibility, but new observation-backed numeric reports must
+populate them; interpreting array order or decoding a claim ID is not a valid
+provenance join.
+
+## D-071: Recompute derived bank metrics before operational snapshot acceptance
+
+Status: Accepted as the contract for the next onboarding implementation;
+the CTG materializer and Gold v5 do not gain arithmetic validation merely
+from this decision.
+
+The operational promotion gate must recompute each derived candidate from its
+accepted, source-backed input observations using a known versioned formula.
+It must check entity, period basis, reporting scope, units and a declared
+metric-specific tolerance, and retain the calculation receipt. A supplied
+derived number, even with plausible input IDs and a `valid` label, cannot pass
+without this check. Unknown formula versions, invalid inputs or mismatches
+remain pending/conflicting. The gate is metric-generic, not issuer-specific.
+
+The Stage-1 harness verifies that a published claim matches the accepted
+derived observation and its formula/input/source lineage. It does not need to
+duplicate the arithmetic engine. Historical Gold v5 is governed by its own
+independent review decisions; notably D-063 still blocks five-issuer ROE
+comparison until the VPB denominator is checked and independently reviewed.
+
+Reason: the current canonical snapshot validator checks that derived input IDs
+exist, but does not recalculate their value. Formula unit tests by themselves
+do not prove a submitted CTG candidate was computed by those formulas. The
+promotion gate must enforce the `code computes financial metrics` invariant.
+
+## D-072: Keep the VPB ROE comparison gate closed while reconciling stale authority records
+
+Status: Investigation confirms strong local source evidence that D-063's VPB
+factual clause is stale, but the comparative gate remains closed until the
+evidence lineage is made authoritative and reviewable from the repository.
+
+A read-only audit on 25 September 2026 checked the hashed official VPB Q1-Q4
+2024 consolidated filings, the two-checker adjudicated ledger, the promotion
+ledger, and local Gold v5. For Q4, filing pages 6 and 8 report FY2024
+parent-attributable profit of 15,778,795 million VND; total equity/NCI of
+139,795,527/5,164,494 million VND for 2023 and
+147,275,262/5,370,287 million VND for 2024. Parent-attributable average equity
+therefore gives ROE 11.411747%, which matches both reviewers and Gold v5.
+Using total consolidated average equity would give 10.992965%. Q1-Q4 Gold
+values and locators likewise state the parent-attributable convention.
+
+However, the raw PDFs, candidate and review ledgers, and Gold v5 SQLite file
+used in this audit are ignored local artifacts rather than Git-bound evidence.
+D-063 and the VPB review README/manifest also contradict the accepted
+adjudicated ledger. Therefore no comparison eligibility statement changes yet.
+Before revising D-063, commit or otherwise bind a non-sensitive evidence
+manifest containing the source/review/Gold hashes, reconcile the stale review
+status records, rerun the comparative definition gate, and receive an
+independent confirmation. Until then, exclude VPB ROE from five-issuer peer
+tasks even though the inspected local artifact supports the corrected value.
+
+The first durable hash and calculation binding is
+`reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json`.
+The 25 September read-only rerun of the hash-matched v5 comparative definition
+gate returned eligible with no blockers across 80 cells (76 valid, four
+missing); its gate-manifest hash and result are now bound there. D-072 remains
+`reconciliation_pending` because stale review status/evidence links still need
+correction and a reviewer distinct from the first auditor must confirm the
+updated manifest and rerun.
+
+Reason: the numeric evidence is strong enough to identify a stale decision,
+but a thesis claim must remain reproducible after the working machine and its
+ignored artifacts are unavailable. Source truth and durable provenance must
+agree before the fail-closed gate is lifted.

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thaicuong576/final-thesis/contracts/bank-onboarding-packet-v1.schema.json",
+  "title": "Bank onboarding packet v1",
+  "description": "Candidate bank data and explicit source-reconciliation decisions. Cross-record source and metric checks are enforced by application validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "packet_id", "dataset_id", "entity_id", "sources", "observations"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "packet_id": { "type": "string", "minLength": 1 },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "entity_id": { "type": "string", "minLength": 1 },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/observation" }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "kind", "source_tier", "artifact_ref", "content_sha256", "publisher", "retrieved_at"],
+      "properties": {
+        "source_id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["primary_filing", "uploaded_csv", "supplementary_document"] },
+        "source_tier": { "enum": ["primary", "user_supplied", "cross_check", "context", "fallback"] },
+        "artifact_ref": { "type": "string", "minLength": 1 },
+        "source_url": { "type": ["string", "null"], "format": "uri" },
+        "content_sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+        "publisher": { "type": "string", "minLength": 1 },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "document_type": { "type": ["string", "null"] }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_locator"],
+      "properties": {
+        "source_id": { "type": "string", "minLength": 1 },
+        "source_locator": { "type": "string", "minLength": 1 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_id", "reviewed_at", "decision", "primary_evidence", "resolution_note"],
+      "properties": {
+        "reviewer_id": { "type": "string", "minLength": 1 },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "decision": { "enum": ["matched_reported_value", "reproduced_derived_value"] },
+        "primary_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "resolution_note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "formula": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formula_version", "input_observation_ids"],
+      "properties": {
+        "formula_version": { "type": "string", "minLength": 1 },
+        "input_observation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "metric_id", "period_id", "value", "unit", "period_basis", "reporting_scope", "quality_status"],
+      "properties": {
+        "observation_id": { "type": "string", "minLength": 1 },
+        "metric_id": { "type": "string", "minLength": 1 },
+        "period_id": { "type": "string", "minLength": 1 },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "period_basis": { "enum": ["point_in_time", "quarter_only", "ytd", "annual", "ttm", null] },
+        "reporting_scope": { "enum": ["consolidated", "separate", "system", "unknown"] },
+        "quality_status": { "enum": ["pending_validation", "valid", "missing", "conflicting", "invalid"] },
+        "candidate_source_id": { "type": ["string", "null"] },
+        "candidate_locator": { "type": ["string", "null"] },
+        "review": { "$ref": "#/$defs/review" },
+        "formula": { "$ref": "#/$defs/formula" },
+        "reason": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "quality_status": { "const": "valid" } } },
+          "then": {
+            "required": ["review"],
+            "properties": {
+              "value": { "type": "number" },
+              "unit": { "type": "string", "minLength": 1 },
+              "period_basis": { "enum": ["point_in_time", "quarter_only", "ytd", "annual", "ttm"] },
+              "reporting_scope": { "enum": ["consolidated", "separate", "system"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "quality_status": { "const": "missing" } } },
+          "then": {
+            "required": ["reason"],
+            "properties": {
+              "value": { "type": "null" },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["review"],
+            "properties": { "review": { "properties": { "decision": { "const": "reproduced_derived_value" } } } }
+          },
+          "then": { "required": ["formula"] }
+        }
+      ]
+    }
+  }
+}

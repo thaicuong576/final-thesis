@@ -6,7 +6,7 @@ All contracts are versioned and validated at boundaries. A payload from staging 
 
 ```text
 source_type: api | filing | issuer_ir | policy | market_data | research_report
-source_tier: primary | accelerator | cross_check | context | fallback
+source_tier: primary | accelerator | cross_check | context | fallback | user_supplied
 quality_status: valid | missing | estimated | conflicting | invalid | pending_validation
 agent_status: success | partial | failed
 critique_resolution: resolved | explained | unresolved
@@ -33,7 +33,51 @@ Rules:
 - `source_id` is stable within a snapshot.
 - `content_hash` identifies the retrieved artifact; restatements receive a new record.
 - A fallback or context source cannot silently become primary evidence.
+- A user-supplied CSV is a candidate transport source, not primary evidence for
+  its financial values. Attaching an issuer filing does not automatically
+  upgrade those values; each promoted observation needs a recorded comparison
+  to the filing's exact page, table, or note.
 - Failed retrievals remain in manifests but cannot produce valid observations.
+
+## Onboarding packet and acceptance boundary
+
+`contracts/bank-onboarding-packet-v1.schema.json` describes the exchange packet
+for a bank outside the current Gold sample. It is an input contract, not a new
+physical database schema. A packet identifies its bank and carries immutable
+source descriptors and candidate observations. Each observation identifies its
+metric, period, unit, period basis, reporting scope, and source locator. A
+derived value also lists its input observation IDs and formula version. A
+missing cell has `value: null` and a reason. Source hashes identify the exact
+artifacts reviewed.
+
+There are three distinct gates:
+
+1. **Structural validation:** parse types, explicit mapping, units, periods,
+   supported metric IDs, source references, and `missing ≠ 0`. Passing this gate
+   creates a candidate snapshot; its numeric observations are not yet accepted
+   for a published analysis.
+2. **Source reconciliation:** a reviewer checks each numeric candidate against
+   a primary issuer filing and records its source ID, exact locator, reporting
+   scope, period basis, result, reviewer, time, and notes. A derived metric also
+   records accepted inputs and formula version. Failed or unresolved checks
+   remain pending/conflicting and cannot be represented as valid facts.
+3. **Analysis acceptance:** only a reconciled observation in an immutable
+   validated snapshot may support a published numeric claim. The Stage-1
+   acceptance harness resolves its primary source and locator through the
+   provider; it must reject an unreviewed `user_supplied` CSV value, even when
+   the CSV packet or its technical validation report is called `accepted`.
+
+This case-study acceptance does not imply **Gold benchmark promotion**. The
+existing Gold coverage and independent-checker requirements below continue to
+govern evaluation datasets. A bank may demonstrate transferability through a
+reviewed operational snapshot without joining the frozen five-bank Gold v5
+benchmark. The app must label each snapshot's validation level and supported
+entities, periods, and metrics accurately.
+
+An OCR/parser output follows the same candidate route. Text, tables, or chart
+descriptions from a scanned PDF cannot bypass source reconciliation, and page
+order/locator must survive parsing. Unsupported charts or ambiguous numbers
+remain pending or missing with a reason.
 
 ## MetricObservation
 
@@ -89,6 +133,56 @@ reason: string | null
 ```
 
 Derived metrics must be reproducible from the listed inputs. Formula code, unit conversion, YTD subtraction, and peer-statistics rules are versioned.
+
+For a **new operational snapshot**, promoting a derived candidate to `valid`
+requires a deterministic calculation against accepted input observations using
+a recognized formula version. The promotion gate checks entity, period basis,
+reporting scope and units, then compares the computed output with the submitted
+candidate under a declared metric-specific numeric tolerance. It records a
+calculation receipt with formula version, ordered input IDs/values, computed
+output, tolerance and review result. Unknown formulas, unavailable inputs or a
+failed comparison stay pending/conflicting. Stage-1 subsequently checks a
+claim against the accepted derived output and its lineage; Stage-1 does not
+itself re-execute financial formulas. Historical Gold artifacts retain their
+separate review/promotion gate and are not retroactively approved by this rule.
+
+## Evidence for published numeric claims
+
+A critical numeric claim may be supported by **structured observation
+provenance** without a document snippet when the frozen snapshot resolves all
+of the following through the provider:
+
+- a direct claim has the accepted observation ID, matching metric/entity/period,
+  value and unit, an approved primary source record, and that observation's
+  exact source locator;
+- a derived claim has the formula version and accepted input observation IDs,
+  reproduces the stated value under the recorded unit/period basis, and every
+  required input resolves to an approved primary source and exact locator;
+- the claim preserves these observation/source references in its report
+  provenance, including the snapshot ID. A derived result must not pretend its
+  user-supplied CSV is a direct primary source.
+
+Stage-1 rejects missing or invalid source records, locator, inputs, formula,
+scope, or value. This observation route does **not** remove the evidence gate;
+it is a verifiable numeric evidence route. Narrative, policy, and unsupported
+causal claims still require appropriate document snippets with page locators.
+
+Document snippets may be attached as evidence for a particular numeric claim
+only through an explicit reviewed observation-to-snippet association. Matching
+the same source, bank and period—or overlapping PDF pages—is insufficient.
+Unlinked snippets can be shown as related documents but cannot be copied into a
+claim's `evidence_refs` or relabeled with that claim's metric/value/locator.
+
+The published report carries the provenance graph explicitly. A numeric
+`AtomicClaim` names its exact `observation_id`; a derived claim also names
+`input_observation_ids` and `formula_version`. Every primary-source
+`EvidenceTrailItem` supporting that claim names `claim_id`, the specific input
+or direct `observation_id`, and `source_id`, with the reviewed locator and
+source URL when available. Several trail rows may share a derived `claim_id`.
+Report consumers must not infer these links from row order, ticker/metric
+similarity, or an encoded claim ID. These additive fields are optional in the
+public schema for older report compatibility but required for newly published
+numeric claims on the observation-provenance route.
 
 ## EvidenceSnippet
 
@@ -288,9 +382,9 @@ availability from evidence availability (for example `MISSING_DATA` and
 unsupported inference, hard-gate failures, unresolved contradictions, or
 provider/system failures.
 
-The current implementation has the Phase 3A result and acceptance-state
-contracts but no semantic evaluator or revision controller yet. The clauses
-above define the next compatibility slice; they do not claim runtime support.
+The reusable core now has a semantic evaluator and bounded revision controller,
+with focused Phase 3B tests. The deployed API does not yet route its reports
+through that core, so these clauses do not claim end-to-end runtime support.
 
 ## Run configuration and prompt version
 

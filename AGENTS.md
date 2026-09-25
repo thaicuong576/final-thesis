@@ -28,8 +28,24 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 
 1. Research and data readiness come before multi-agent implementation.
 2. Raw data is immutable and every derived value must have provenance.
+   For a new bank, a structurally valid CSV or OCR result is a candidate only.
+   Published numeric claims require observation-level reconciliation to a
+   primary source with exact locator, period basis, reporting scope, and a
+   review record under `contracts/bank-onboarding-packet-v1.schema.json` and
+   `docs/DATA-CONTRACT.md`. A reviewed operational snapshot is distinct from
+   Gold benchmark promotion; do not silently grant either status.
 3. Code computes financial metrics; language models retrieve, explain, critique, and synthesize.
+   For new operational snapshots, derived values must be recomputed from
+   accepted source-backed inputs by a versioned deterministic formula at
+   promotion, with a recorded calculation receipt. Stage-1 checks the accepted
+   result and provenance; it does not substitute for this arithmetic gate.
 4. Every agent output must conform to `docs/DATA-CONTRACT.md`.
+   For numeric claims, Stage-1 may accept exact structured observation/source
+   locator provenance instead of a document snippet; derived claims must
+   reproduce from accepted primary-backed inputs. Unlinked same-document
+   snippets are not claim evidence. New report output must join numeric claims
+   to direct or input observations and primary-source trail rows by explicit
+   IDs per `contracts/openapi.json`, never by array order or encoded claim IDs.
 5. Mocked, cached, or incomplete data must be labeled and must never be reported as live validation.
 6. Every material decision, assumption, blocker, and verification result must be recorded in git commits and pull requests.
 7. Agents must not silently change scope, formulas, source priority, or evaluation methodology.

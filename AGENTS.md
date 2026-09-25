@@ -223,3 +223,5 @@ history. Reject same-file aliases. A successful API request must not mutate
 the accepted snapshot. Required writer/critic configuration is part of runnable
 readiness. Company/Sector writer calls and Orchestrator synthesis are explicit
 roles; deterministic retrieval alone is not a model specialist.
+
+The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.

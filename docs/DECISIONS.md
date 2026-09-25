@@ -1341,3 +1341,5 @@ this slice is accepted, including alias rejection and repeated-run source-hash
 tests. Readiness must incorporate required writer/critic configuration. Initial
 model analysis is role-specific, followed by a separate constrained synthesis;
 the new writer must not become one global call mislabeled as several agents.
+
+The unchanged analysis_runs table definition is separated into contracts/run-store-schema.sql. New runtime history initialization applies it only to ANALYSIS_RUNS_DB_PATH; canonical analytical schema initialization excludes it. Existing dataset artifacts are not migrated.

@@ -159,3 +159,5 @@ Các test offline xác minh luồng điều phối; chưa chứng minh chất l�
 của model thật hoặc khả năng dùng ứng dụng đã triển khai. Multi-period và macro
 chưa được hỗ trợ trên API này. Bộ câu hỏi cuối vẫn pre-freeze. Quy trình CI
 Python kiểm contract và suite trong checkout; bằng chứng ignored có gate riêng.
+
+Application run history uses contracts/run-store-schema.sql on its separate ANALYSIS_RUNS_DB_PATH. contracts/schema.sql remains the analytical schema contract; accepted snapshots are never initialized or migrated for run history.

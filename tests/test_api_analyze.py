@@ -794,7 +794,13 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(critic.calls, 0)
 
     def test_writer_rejects_number_words_in_missing_claims_and_synthesis(self) -> None:
-        for phrase in ("seventeen percent", "mười bảy phần trăm"):
+        for phrase in (
+            "seventeen percent",
+            "mười bảy phần trăm",
+            "half the typical figure",
+            "twice as high",
+            "double the typical figure",
+        ):
             with self.subTest(phrase=phrase):
                 provider = _FiveMemberPeerProvider()
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")

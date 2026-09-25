@@ -130,7 +130,9 @@ _WRITER_NUMERAL_WORD_RE = re.compile(
     r"\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
     r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|"
     r"forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|"
-    r"trillion|percent(?:age)?|basis\s+points?|không|một|mốt|hai|ba|bốn|tư|năm|"
+    r"trillion|half|halves|quarter|quarters|twice|double|doubled|doubles|doubling|"
+    r"triple|tripled|triples|tripling|threefold|fourfold|percent(?:age)?|basis\s+points?|"
+    r"không|một|mốt|hai|ba|bốn|tư|năm|"
     r"lăm|sáu|bảy|tám|chín|mười|mươi|trăm|nghìn|ngàn|triệu|tỷ|tỉ|phần\s+trăm|"
     r"điểm\s+cơ\s+bản)\b",
     re.IGNORECASE,

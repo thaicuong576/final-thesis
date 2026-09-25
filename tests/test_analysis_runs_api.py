@@ -18,7 +18,7 @@ from thesis_api.database import (
     get_analysis_run,
     get_analysis_report,
 )
-from test_api_analyze import _fixture_provider_binding, _gold_fixture
+from test_api_analyze import _ExplicitOfflineAcceptingCritic, _fixture_provider_binding, _gold_fixture
 
 
 class AnalysisRunsApiTests(unittest.TestCase):
@@ -173,6 +173,9 @@ class AnalysisRunsApiTests(unittest.TestCase):
 
     def test_analyze_stream_persists_run(self) -> None:
         with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=_ExplicitOfflineAcceptingCritic(),
+        ), patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
         ):

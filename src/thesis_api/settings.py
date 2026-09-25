@@ -50,6 +50,9 @@ class Settings(BaseSettings):
         alias="OPENAI_MODEL",
     )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    # Explicit opt-in only.  The Gold reporting-scope authority is an
+    # independently pinned sidecar and is never discovered from the data tree.
+    gold_scope_authority_path: Path | None = Field(default=None, alias="GOLD_SCOPE_AUTHORITY_PATH")
 
     def get_sqlite_path(self) -> Path:
         """Resolve canonical SQLite database path."""

@@ -22,7 +22,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
     sqlite_path = current_settings.get_sqlite_path()
-    engine = AnalysisEngine(sqlite_path)
+    engine = AnalysisEngine(sqlite_path, current_settings)
 
     app = FastAPI(
         title="Final Thesis API",
@@ -101,6 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 request,
                 db_path=current_settings.get_sqlite_path(),
                 step_delay=step_delay,
+                settings=current_settings,
             ),
             media_type="text/event-stream",
             headers={

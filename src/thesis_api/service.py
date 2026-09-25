@@ -1,9 +1,4 @@
-"""Truthful API boundary over accepted, provider-backed dataset snapshots.
-
-The reference API currently executes company facts and Stage-1 deterministic
-acceptance only. Macro, sector, semantic critique, and revision are not
-implemented by this path and are never implied by its output.
-"""
+"""Provider-bound adaptive analysis runtime over accepted data snapshots."""
 
 from __future__ import annotations
 
@@ -12,25 +7,52 @@ from datetime import datetime, timezone
 import json
 import logging
 from pathlib import Path
+from queue import Queue
 import re
 import sqlite3
+from threading import Thread
 import time
 from typing import Any, Iterator, Sequence
 import uuid
 
 from thesis_data.acceptance import validate_stage1_claims
 from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
+from thesis_data.analysis_plan import (
+    ANALYSIS_PLAN_VERSION,
+    AnalysisAgent,
+    AnalysisPlan,
+    AnalysisRequirement,
+    AnalysisScope,
+    ApplicableLink,
+    ApplicableLinkType,
+    CausalClaimPolicy,
+    FulfillmentPolicy,
+    InferenceCeiling,
+    LinkLevel,
+    MissingDataPolicy,
+    RequirementType,
+)
 from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
 from thesis_data.dataset_contract import (
     AnalyticalLevel,
+    CanonicalObservation,
     DatasetCapabilityCatalog,
     DatasetRef,
     SupportedOperation,
 )
 from thesis_data.dataset_provider import DatasetProviderError, FinancialDatasetProvider
 from thesis_data.gold_dataset_provider import GoldSqliteDatasetProvider
+from thesis_data.openai_semantic_critic import OpenAISemanticCritic
+from thesis_data.provider_config import ProviderExecutionConfig
+from thesis_data.revision_controller import (
+    BoundedRevisionController,
+    RevisionRequest,
+    RevisionResult,
+)
 from thesis_data.schema import (
     AcceptancePolicy,
+    AcceptanceDecision,
+    AssertionOperator,
     AssertionType,
     AtomicClaim,
     ClaimDataRef,
@@ -38,9 +60,12 @@ from thesis_data.schema import (
     InferenceType,
     QualityStatus,
     StructuredAssertion,
+    UnresolvedReasonCode,
 )
+from thesis_data.dataset_provider import peer_benchmark_observation_id
 
 from .database import save_analysis_run
+from .llm import LLMConfigurationError
 from .settings import get_settings
 from .schemas import (
     AnalysisPlanDTO,
@@ -137,13 +162,42 @@ class ProviderBinding:
         self.provider_name = provider_name
 
 
-def _load_provider(db_path: Path) -> ProviderBinding:
+_GOLD_SCOPE_AUTHORITY_SHA256 = "fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f"
+
+
+def _load_provider(
+    db_path: Path,
+    *,
+    scope_authority_path: Path | None = None,
+) -> ProviderBinding:
     """Open a supported accepted snapshot through a provider boundary only."""
 
-    adapters: tuple[tuple[str, Any], ...] = (
+    adapters: list[tuple[str, Any]] = [
         ("canonical-sqlite", CanonicalSqliteDatasetProvider(db_path)),
-        ("gold-sqlite", GoldSqliteDatasetProvider(db_path, dataset_id="gold-sqlite")),
-    )
+    ]
+    if scope_authority_path is None:
+        adapters.append(("gold-sqlite", GoldSqliteDatasetProvider(db_path, dataset_id="gold-sqlite")))
+    else:
+        # The sidecar is used only on an explicit, hash-pinned deployment
+        # configuration. Never auto-discover it beside a database.
+        try:
+            from thesis_data.gold_scope_authority import VerifiedGoldObservationScopeAuthority
+
+            authority = VerifiedGoldObservationScopeAuthority.load(
+                Path(scope_authority_path),
+                expected_canonical_sha256=_GOLD_SCOPE_AUTHORITY_SHA256,
+            )
+            gold_provider = GoldSqliteDatasetProvider(
+                db_path,
+                dataset_id="gold-sqlite",
+                scope_authority=authority,
+            )
+        except (ImportError, TypeError, OSError, ValueError) as exc:
+            raise AnalysisBlocked(
+                "gold_scope_authority_unavailable",
+                "The explicitly configured Gold reporting-scope authority could not be hash-verified or applied.",
+            ) from exc
+        adapters.append(("gold-sqlite-authorized", gold_provider))
     for provider_name, provider in adapters:
         try:
             dataset_ref = provider.current_dataset_ref()
@@ -425,7 +479,7 @@ def _stage1_claim(
         claim_type="numeric",
         title=f"{ticker} {display_name} {period}",
         interpretation="Provider-backed factual observation; no financial interpretation was generated.",
-        limitation="Semantic critique and bounded revision were not run by this API path.",
+        limitation="No additional qualitative or causal interpretation is made beyond the structured observation.",
         scope=scope,
         assertions=(
             StructuredAssertion(
@@ -675,7 +729,8 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
             "label": f"Snapshot peer group ({len(item.entity_ids)} companies)",
             "entityIds": list(item.entity_ids),
             "readonly": True,
-            "executable": False,
+            "executable": any(len(item.entity_ids) >= 2 for item in catalog.peer_universes)
+            and SupportedOperation.GET_PEER_BENCHMARK in catalog.supported_operations,
         }
         for item in catalog.peer_universes
     ]
@@ -695,8 +750,8 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
             "status": "AVAILABLE" if macro_available else "UNAVAILABLE",
             "minimumContractSatisfied": macro_available,
             "summary": "Macro observations are declared by the accepted provider." if macro_available else "No accepted macro observation capability is declared.",
-            "details": "The API analysis route does not execute macro analysis.",
-            "executable": False,
+            "details": "Macro observations are retrieved only when explicitly requested and declared by the accepted provider." if macro_available else "The API analysis route requires declared macro observations before macro claims can execute.",
+            "executable": macro_available,
         },
         "ingestionTimestamp": None,
         "validationTimestamp": None,
@@ -706,7 +761,12 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         "journal_mode": _journal_mode_from_provider(binding),
         "db_tickers_count": sum(1 for item in catalog.entities if item.entity_type.value == "company"),
         "analysis_available": company_available,
-        "implemented_capabilities": ["company"] if company_available else [],
+        "implemented_capabilities": (
+            (["company"] if company_available else [])
+            + (["sector"] if any(len(item.entity_ids) >= 2 for item in catalog.peer_universes)
+               and SupportedOperation.GET_PEER_BENCHMARK in catalog.supported_operations else [])
+            + (["macro"] if macro_available else [])
+        ),
         "supported_operations": sorted(item.value for item in catalog.supported_operations),
     }
 
@@ -759,12 +819,18 @@ def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
     }
 
 
-def get_dataset_capabilities(db_path: Path | None = None) -> dict[str, Any]:
+def get_dataset_capabilities(db_path: Path | None = None, *, settings=None) -> dict[str, Any]:
     """Return only capabilities declared by a validated snapshot provider."""
 
     resolved_db_path = Path(db_path) if db_path is not None else get_settings().get_sqlite_path()
     try:
-        return _capabilities_payload(_load_provider(resolved_db_path))
+        authority_path = getattr(settings, "gold_scope_authority_path", None) if settings is not None else None
+        binding = (
+            _load_provider(resolved_db_path, scope_authority_path=Path(authority_path))
+            if authority_path is not None
+            else _load_provider(resolved_db_path)
+        )
+        return _capabilities_payload(binding)
     except AnalysisBlocked as exc:
         return _unavailable_capabilities(exc.detail, exc.code)
     except (DatasetProviderError, sqlite3.Error, OSError, ValueError):
@@ -965,185 +1031,61 @@ def generate_company_assessment(
 
 
 class AnalysisEngine:
-    """Run company observations against a validated snapshot and Stage-1 gates."""
+    """Run the frozen-plan specialist and bounded acceptance runtime."""
 
-    def __init__(self, db_path: Path) -> None:
+    def __init__(
+        self,
+        db_path: Path,
+        settings=None,
+        *,
+        semantic_critic=None,
+    ) -> None:
         self.db_path = Path(db_path)
+        self.settings = settings or get_settings()
+        self._semantic_critic = semantic_critic
 
-    def _analyze(self, request: AnalysisRequest) -> AnalysisResponse:
+    def _binding(self) -> ProviderBinding:
+        authority_path = getattr(self.settings, "gold_scope_authority_path", None)
+        if authority_path is not None:
+            return _load_provider(self.db_path, scope_authority_path=Path(authority_path))
+        return _load_provider(self.db_path)
+
+    def _analyze(
+        self,
+        request: AnalysisRequest,
+        *,
+        event_sink=None,
+    ) -> AnalysisResponse:
         try:
-            binding = _load_provider(self.db_path)
-            target = _resolve_target(request, binding.catalog)
-            period, metric_ids = _validate_company_only_scope(request, target, binding.catalog)
-            operations = set(binding.catalog.supported_operations)
-            if not _COMPANY_REQUIRED_OPERATIONS.issubset(operations):
-                raise AnalysisBlocked(
-                    "company_provenance_capability_unavailable",
-                    "The accepted provider cannot resolve observations and primary sources required for company claims.",
-                )
+            binding = self._binding()
+            semantic_critic = self._semantic_critic
+            if semantic_critic is None:
+                from .adaptive_runtime import build_openai_semantic_critic
 
-            metric_by_id = {item.metric_id: item for item in binding.catalog.metrics}
-            claims: list[AtomicClaim] = []
-            observations: list[Any] = []
-            primary_observations_by_claim: list[tuple[Any, ...]] = []
-            sources: dict[str, Any] = {}
-            evidence_by_id: dict[str, Any] = {}
-            for metric_id in metric_ids:
-                claim, observation, primary_observations, claim_sources, evidence = _stage1_claim(
-                    provider=binding.provider,
-                    dataset_ref=binding.dataset_ref,
-                    ticker=target,
-                    period=period,
-                    metric_id=metric_id,
-                    display_name=metric_by_id[metric_id].display_name,
-                    include_evidence=SupportedOperation.GET_EVIDENCE in operations,
-                )
-                claims.append(claim)
-                observations.append(observation)
-                primary_observations_by_claim.append(primary_observations)
-                sources.update({source.source_ref: source for source in claim_sources})
-                evidence_by_id.update({item.evidence_id: item for item in evidence})
+                try:
+                    semantic_critic = build_openai_semantic_critic(self.settings)
+                except (ValueError, LLMConfigurationError) as exc:
+                    return _error_report(
+                        "semantic_provider_unconfigured",
+                        "A configured OpenAI-compatible semantic reviewer is required before specialist execution.",
+                        request,
+                    )
+            from .adaptive_runtime import run_adaptive_analysis
 
-            workload_scope = ClaimScope(
-                entities=(target,), periods=(period,), metric_ids=metric_ids
-            )
-            resolver = ProviderStage1DatasetResolver(binding.provider, binding.dataset_ref)
-            stage1_report = validate_stage1_claims(
-                resolver,
-                tuple(claims),
-                workload_scope,
-                AcceptancePolicy(policy_version="api-stage1-v1", provisional_threshold=0.75),
-            )
-            if not stage1_report.passed:
-                violations = sorted(
-                    {
-                        violation
-                        for gate in stage1_report.gate_results.values()
-                        for violation in gate.violations
-                    }
-                    | set(stage1_report.integrity_violations)
-                )
-                detail = "; ".join(violations) if violations else "Stage-1 rejected the candidate claims."
-                raise AnalysisBlocked("stage1_rejected", detail)
-
-            metric_specific_evidence = all(
-                bool(claim.evidence_refs)
-                and all(
-                    evidence_by_id[evidence_id].metric_id == observation.metric_id
-                    and evidence_by_id[evidence_id].entity_id == target
-                    and evidence_by_id[evidence_id].period_id == period
-                    for evidence_id in claim.evidence_refs
-                )
-                for claim, observation in zip(claims, observations)
-            )
-            reporting_scope_known = all(
-                bool(
-                    getattr(observation, "reporting_scope", None)
-                    or observation.metadata.get("reporting_scope")
-                )
-                for observation in observations
-            )
-            plan = _plan(
-                request,
-                target,
-                period,
-                binding.dataset_ref.dataset_snapshot_id,
-                metric_ids,
-                metric_specific_evidence,
-                reporting_scope_known,
-            )
-            evidence_trail: list[EvidenceTrailDTO] = []
-            claim_dtos: list[AtomicClaimDTO] = []
-            for claim, observation, primary_observations in zip(
-                claims, observations, primary_observations_by_claim
-            ):
-                claim_evidence = [evidence_by_id[item] for item in claim.evidence_refs]
-                claim_dtos.append(
-                    AtomicClaimDTO(
-                        claim_id=claim.claim_id,
-                        observation_id=observation.observation_id,
-                        input_observation_ids=list(observation.input_observation_ids),
-                        formula_version=observation.derivation_method,
-                        capability="company",
-                        ticker=target,
-                        metric=metric_by_id[observation.metric_id].display_name,
-                        period=period,
-                        statement=claim.claim_text,
-                        claim_type="factual_observation",
-                        evidence_refs=list(claim.evidence_refs),
-                        confidence=None,
-                        stage1_status="accepted",
-                        stage2_critique_status=None,
-                    )
-                )
-                for primary_observation in primary_observations:
-                    source = sources[primary_observation.source_ref]
-                    primary_metric = metric_by_id.get(primary_observation.metric_id)
-                    evidence_trail.append(
-                        EvidenceTrailDTO(
-                            claim_id=claim.claim_id,
-                            observation_id=primary_observation.observation_id,
-                            source_id=source.source_ref,
-                            source_url=source.source_url,
-                            metric=(
-                                primary_metric.display_name
-                                if primary_metric is not None
-                                else primary_observation.metric_id
-                            ),
-                            ticker=primary_observation.entity_id,
-                            period=primary_observation.period_id,
-                            value=primary_observation.value,
-                            source_doc=source.source_url,
-                            table_locator=_observation_source_locator(primary_observation),
-                            provenance_hash=source.content_hash,
-                        )
-                    )
-                for item in claim_evidence:
-                    source = sources[item.source_ref]
-                    evidence_trail.append(
-                        EvidenceTrailDTO(
-                            evidence_id=item.evidence_id,
-                            claim_id=claim.claim_id,
-                            observation_id=observation.observation_id,
-                            source_id=source.source_ref,
-                            source_url=source.source_url,
-                            metric=metric_by_id[observation.metric_id].display_name,
-                            ticker=target,
-                            period=period,
-                            value=observation.value,
-                            source_doc=source.source_url,
-                            table_locator=item.locator,
-                            provenance_hash=source.content_hash,
-                        )
-                    )
-
-            return AnalysisResponse(
-                report_id=f"report-{uuid.uuid4().hex}",
-                status="partial",
-                analysis_plan=plan,
-                macro_context=None,
-                sector_benchmark=None,
-                company_insights=[
-                    CompanyInsightDTO(
-                        ticker=target,
-                        assessment="No qualitative assessment was performed by this API path.",
-                    )
-                ],
-                cross_level_critique=[],
-                atomic_claims=claim_dtos,
-                evidence_trail=evidence_trail,
-                revision_summary=None,
-                limitations=plan.known_limitations,
+            return run_adaptive_analysis(
+                provider=binding.provider,
+                dataset_ref=binding.dataset_ref,
+                catalog=binding.catalog,
+                request=request,
+                settings=self.settings,
+                semantic_critic=semantic_critic,
+                emit=event_sink,
             )
         except AnalysisBlocked as exc:
             return _error_report(exc.code, exc.detail, request)
         except (DatasetProviderError, sqlite3.Error, OSError, ValueError) as exc:
             logger.warning("Analysis provider failed: %s", type(exc).__name__)
-            return _error_report(
-                "provider_failure",
-                "The accepted dataset provider could not satisfy this request.",
-                request,
-            )
+            return _error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request)
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         report = self._analyze(request)
@@ -1167,19 +1109,19 @@ class AnalysisEngine:
                 created_at=datetime.now(timezone.utc).isoformat(),
                 query=request.query,
                 target_ticker=plan.target_ticker or "",
-                peer_tickers=[],
+                peer_tickers=plan.peer_tickers,
                 period=plan.period or "",
                 status=report.status,
                 report_json=report.model_dump(mode="json", exclude_none=True),
                 events_json=events,
-                model_used="provider-stage1",
+                model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
                 latency_ms=None,
             )
         except Exception as exc:
             logger.warning("Failed to persist validated analysis run: %s", type(exc).__name__)
 
     def get_capabilities(self) -> dict[str, Any]:
-        return get_dataset_capabilities(self.db_path)
+        return get_dataset_capabilities(self.db_path, settings=self.settings)
 
     def is_ready(self) -> tuple[bool, str, str | None]:
         capabilities = self.get_capabilities()
@@ -1190,23 +1132,35 @@ class AnalysisEngine:
         )
 
     def stream_analysis(self, request: AnalysisRequest, step_delay: float = 0.35) -> Iterator[str]:
-        yield from stream_analysis_query(request, db_path=self.db_path, step_delay=step_delay)
+        yield from stream_analysis_query(
+            request, db_path=self.db_path, step_delay=step_delay,
+            settings=self.settings, semantic_critic=self._semantic_critic,
+        )
 
 
 def stream_analysis_query(
     req: AnalysisRequest,
     db_path: Path | None = None,
     step_delay: float = 0.35,
+    *,
+    settings=None,
+    semantic_critic=None,
 ) -> Iterator[str]:
-    """Stream only plan, Stage-1, synthesis, blocked, and report events that occurred."""
+    """Stream actual plan, specialist, review, revision, synthesis, and terminal events."""
 
-    del step_delay
-    engine = AnalysisEngine(db_path or get_settings().get_sqlite_path())
+    del step_delay  # timing is determined by real work; no scripted delays/events remain
+    current_settings = settings or get_settings()
+    engine = AnalysisEngine(
+        db_path or current_settings.get_sqlite_path(),
+        current_settings,
+        semantic_critic=semantic_critic,
+    )
     started_at = time.monotonic()
     sequence = 1
     events: list[dict[str, Any]] = []
+    pending: Queue[dict[str, Any] | None] = Queue()
 
-    def emit(event_type: str, payload: dict[str, Any]) -> str:
+    def emit(event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
         nonlocal sequence
         event = AnalysisSessionEventDTO(
             eventId=f"evt-{uuid.uuid4().hex}",
@@ -1218,56 +1172,45 @@ def stream_analysis_query(
         sequence += 1
         event_dict = event.model_dump(by_alias=True)
         events.append(event_dict)
-        data = json.dumps(event_dict, ensure_ascii=False)
-        return f"event: {event_type}\ndata: {data}\n\n"
+        pending.put(event_dict)
+        return event_dict
 
-    yield emit(
+    emit(
         "USER_REQUEST_CONFIRMED",
         {
             "rawQuestion": req.query,
             "datasetName": "Accepted snapshot",
-            "scopeSignature": " | ".join(
-                item for item in (req.target_ticker, req.period) if item
-            ),
+            "scopeSignature": " | ".join(item for item in (req.target_ticker, req.period) if item),
         },
     )
-    yield emit(
-        "PLANNING_STARTED",
-        {"message": "Checking the request against the configured accepted snapshot."},
-    )
+    emit("PLANNING_STARTED", {"message": "Checking the request against declared snapshot capabilities."})
 
-    report = engine._analyze(req)
-    if report.status == "error":
-        reason = report.limitations[0] if report.limitations else "analysis_blocked"
-        yield emit(
-            "RUN_BLOCKED",
-            {"reason": reason, "reportId": report.report_id, "status": report.status},
-        )
-        return
+    def run() -> None:
+        try:
+            report = engine._analyze(req, event_sink=emit)
+            if report.status == "error":
+                if not events or events[-1].get("type") != "RUN_BLOCKED":
+                    reason = report.limitations[0] if report.limitations else "analysis_blocked"
+                    emit("RUN_BLOCKED", {"reason": reason, "reportId": report.report_id, "status": report.status})
+            else:
+                emit("REPORT_READY", {
+                    "reportId": report.report_id,
+                    "status": report.status,
+                    "message": "The terminal accepted report is ready with its limitations and provenance joins.",
+                    "report": report.model_dump(mode="json", exclude_none=True),
+                })
+                engine.persist_run(req, report, events)
+        except Exception as exc:
+            logger.warning("SSE analysis failed: %s", type(exc).__name__)
+            emit("RUN_BLOCKED", {"reason": "adaptive_runtime_failure", "status": "error"})
+        finally:
+            pending.put(None)
 
-    plan = report.analysis_plan
-    assert plan is not None
-    yield emit(
-        "PLAN_CREATED",
-        {
-            "requiredSpecialists": plan.required_capabilities,
-            "planSummary": "Company-only provider retrieval with deterministic Stage-1 acceptance.",
-            "message": f"Bound to accepted snapshot {plan.dataset_snapshot_id} for {plan.target_ticker} at {plan.period}.",
-        },
-    )
-    yield emit(
-        "REVIEW_STARTED",
-        {"message": "Running deterministic Stage-1 acceptance. Semantic critique and revision are unavailable."},
-    )
-    yield emit("SYNTHESIS_STARTED", {"message": "Assembling the accepted factual claims and evidence trail."})
-    yield emit("SYNTHESIS_COMPLETED", {"message": "The provider-backed Stage-1 report has been assembled."})
-    yield emit(
-        "REPORT_READY",
-        {
-            "reportId": report.report_id,
-            "status": report.status,
-            "message": "The Stage-1 factual report is ready with the listed limitations.",
-            "report": report.model_dump(mode="json", exclude_none=True),
-        },
-    )
-    engine.persist_run(req, report, events)
+    Thread(target=run, name="analysis-sse-runtime", daemon=True).start()
+    while True:
+        event = pending.get()
+        if event is None:
+            break
+        event_type = str(event["type"])
+        data = json.dumps(event, ensure_ascii=False)
+        yield f"event: {event_type}\ndata: {data}\n\n"

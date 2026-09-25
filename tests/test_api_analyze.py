@@ -19,11 +19,28 @@ from thesis_data.dataset_contract import (
     DatasetEvidence,
     DatasetMetric,
     DatasetPeriod,
+    PeerUniverse,
     DatasetRef,
     DatasetSource,
     SupportedOperation,
 )
-from thesis_data.schema import QualityStatus, SourceTier
+from thesis_data.schema import (
+    CritiqueAction,
+    CritiqueIssue,
+    CritiqueIssueStatus,
+    CritiqueIssueType,
+    CritiqueSeverity,
+    QualityStatus,
+    SourceTier,
+)
+from thesis_data.semantic_evaluation import (
+    ApplicableLinkResult,
+    SemanticDimension,
+    SemanticDimensionApplicability,
+    SemanticDimensionResult,
+    StructuredCriticResult,
+    expected_dimension_applicability,
+)
 from thesis_data.storage import create_gold_snapshot_schema
 
 from thesis_api.main import create_app
@@ -38,6 +55,84 @@ from thesis_api.service import (
     _stage1_claim,
 )
 from thesis_api.settings import Settings
+
+
+class _ExplicitOfflineAcceptingCritic:
+    """Contract-valid offline test double; never used by the production factory."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def evaluate(self, *, plan, claims, stage1_report, round_context):
+        self.calls += 1
+        del stage1_report, round_context
+        claim_ids = tuple(claim.claim_id for claim in claims)
+        dimensions = []
+        for dimension, applicability in expected_dimension_applicability(plan).items():
+            dimensions.append(SemanticDimensionResult(
+                dimension=dimension,
+                applicability=applicability,
+                score=0.9 if applicability is SemanticDimensionApplicability.APPLICABLE else None,
+                rationale="Explicit offline test fixture accepted the supplied claim structure.",
+                supporting_claim_ids=claim_ids if applicability is SemanticDimensionApplicability.APPLICABLE else (),
+            ))
+        link_results = tuple(
+            ApplicableLinkResult(
+                link_id=link.link_id,
+                score=0.9,
+                rationale="Explicit offline test fixture confirmed the declared link was reviewed.",
+                supporting_claim_ids=claim_ids[:1],
+            )
+            for link in plan.applicable_links
+        )
+        return StructuredCriticResult(
+            evaluator_version="test-only-offline-accepting-critic-v1",
+            dimension_scores=tuple(dimensions),
+            fulfilled_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
+            applicable_link_results=link_results,
+        )
+
+
+class _RevisionScenarioCritic:
+    """Explicit test critic for a repaired or unrepairable company issue."""
+
+    def __init__(self, *, resolve_after_revision: bool) -> None:
+        self.resolve_after_revision = resolve_after_revision
+        self.calls = 0
+
+    def evaluate(self, *, plan, claims, stage1_report, round_context):
+        del stage1_report
+        self.calls += 1
+        claim_ids = tuple(claim.claim_id for claim in claims)
+        req_id = plan.requirements[0].requirement_id
+        resolved = self.resolve_after_revision and round_context.round_number > 0
+        issue = CritiqueIssue(
+            issue_id="test-injected-claim-review",
+            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+            severity=CritiqueSeverity.MAJOR,
+            affected_agent="company",
+            affected_claim_ids=(claim_ids[0],),
+            affected_requirement_ids=(req_id,),
+            description="Test fixture requires the company specialist to recheck its claim.",
+            required_action=CritiqueAction.REVISE_CLAIM,
+            resolution_status=(CritiqueIssueStatus.RESOLVED if resolved else CritiqueIssueStatus.OPEN),
+        )
+        dimensions = []
+        for dimension, applicability in expected_dimension_applicability(plan).items():
+            dimensions.append(SemanticDimensionResult(
+                dimension=dimension,
+                applicability=applicability,
+                score=0.9 if applicability is SemanticDimensionApplicability.APPLICABLE else None,
+                rationale="Explicit revision test fixture result.",
+                supporting_claim_ids=claim_ids if applicability is SemanticDimensionApplicability.APPLICABLE else (),
+                issue_ids=(issue.issue_id,) if dimension is SemanticDimension.ANSWER_COVERAGE else (),
+            ))
+        return StructuredCriticResult(
+            evaluator_version="test-only-revision-scenario-v1",
+            dimension_scores=tuple(dimensions),
+            critique_issues=(issue,),
+            fulfilled_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
+        )
 
 
 def _gold_fixture(
@@ -165,6 +260,146 @@ def _fixture_provider_binding(path: Path, *, expose_locator: bool) -> ProviderBi
     return ProviderBinding(provider, binding.dataset_ref, binding.catalog, binding.provider_name)
 
 
+class _FiveMemberPeerProvider:
+    """Small provider double with one accepted missing peer cell and scoped values."""
+
+    def __init__(self) -> None:
+        self.dataset_ref = DatasetRef(dataset_id="peer-fixture", dataset_snapshot_id="peer-fixture-v1")
+        peer_ids = ("ACB", "BID", "CTG", "MBB", "VCB")
+        entity_ids = ("TCB", *peer_ids)
+        self.catalog = DatasetCapabilityCatalog(
+            dataset_ref=self.dataset_ref,
+            entities=tuple(DatasetEntity(entity_id=item, entity_type=DatasetEntityType.COMPANY, display_name=item) for item in entity_ids),
+            periods=(DatasetPeriod(period_id="2024_Q1", label="2024 Q1"),),
+            metrics=(DatasetMetric(metric_id="bank.roe", display_name="bank.roe", analytical_level=AnalyticalLevel.COMPANY, default_unit="percent"),),
+            peer_universes=(PeerUniverse(peer_universe_id="vn-banks-v1", display_name="Accepted five-member universe", entity_ids=peer_ids),),
+            source_refs=tuple(f"source-{ticker}" for ticker in entity_ids if ticker != "ACB"),
+            supported_operations=(
+                SupportedOperation.GET_METRIC,
+                SupportedOperation.GET_PEER_BENCHMARK,
+                SupportedOperation.RESOLVE_OBSERVATION,
+                SupportedOperation.GET_SOURCE,
+                SupportedOperation.GET_EVIDENCE,
+            ),
+        )
+        self.observations = {}
+        values = {"TCB": 16.0, "BID": 10.0, "CTG": 12.0, "MBB": 14.0, "VCB": 18.0}
+        for ticker in entity_ids:
+            observation_id = f"obs-{ticker}-roe-q1"
+            if ticker == "ACB":
+                item = CanonicalObservation(
+                    observation_id=observation_id,
+                    dataset_id=self.dataset_ref.dataset_id,
+                    dataset_snapshot_id=self.dataset_ref.dataset_snapshot_id,
+                    entity_id=ticker,
+                    period_id="2024_Q1",
+                    metric_id="bank.roe",
+                    validation_status=QualityStatus.MISSING,
+                    missing_reason="DATA_UNAVAILABLE",
+                    period_basis="point_in_time",
+                    reporting_scope=None,
+                )
+            else:
+                item = CanonicalObservation(
+                    observation_id=observation_id,
+                    dataset_id=self.dataset_ref.dataset_id,
+                    dataset_snapshot_id=self.dataset_ref.dataset_snapshot_id,
+                    entity_id=ticker,
+                    period_id="2024_Q1",
+                    metric_id="bank.roe",
+                    value=values[ticker],
+                    unit="percent",
+                    period_basis="point_in_time",
+                    source_ref=f"source-{ticker}",
+                    source_locator=f"table:roe;row:{ticker}",
+                    reporting_scope="consolidated",
+                    validation_status=QualityStatus.VALID,
+                )
+            self.observations[(ticker, "2024_Q1", "bank.roe")] = item
+        self.sources = {
+            f"source-{ticker}": DatasetSource(
+                source_ref=f"source-{ticker}",
+                source_type="filing",
+                source_tier=SourceTier.PRIMARY,
+                source_url=f"https://example.test/{ticker}/filing",
+                publisher="Accepted test source",
+                retrieved_at="2026-09-25T00:00:00Z",
+                content_hash=f"sha256-{ticker}",
+                validation_status=QualityStatus.VALID,
+            )
+            for ticker in entity_ids if ticker != "ACB"
+        }
+
+    def get_capabilities(self, dataset_ref):
+        return self.catalog
+
+    def get_metric(self, dataset_ref, entity_id, period_id, metric_id):
+        return self.observations.get((entity_id, period_id, metric_id))
+
+    def get_entity_metrics(self, dataset_ref, entity_id, period_ids, metric_ids):
+        return tuple(
+            item for period_id in period_ids for metric_id in metric_ids
+            if (item := self.get_metric(dataset_ref, entity_id, period_id, metric_id)) is not None
+        )
+
+    def get_peer_benchmark(self, dataset_ref, peer_universe_id, period_id, metric_ids, peer_entity_ids=None):
+        from statistics import median
+        from thesis_data.dataset_provider import peer_benchmark_observation_id
+
+        universe = self.catalog.peer_universe(peer_universe_id)
+        effective = universe.effective_entity_ids(peer_entity_ids)
+        result = []
+        for metric_id in metric_ids:
+            members = [self.get_metric(dataset_ref, entity, period_id, metric_id) for entity in effective]
+            valid = [item for item in members if item is not None and item.validation_status is QualityStatus.VALID]
+            missing = [item for item in members if item is not None and item.validation_status is QualityStatus.MISSING]
+            benchmark_id = peer_benchmark_observation_id(dataset_ref, peer_universe_id, period_id, metric_id, effective)
+            if not valid:
+                result.append(CanonicalObservation(
+                    observation_id=benchmark_id, dataset_id=dataset_ref.dataset_id,
+                    dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
+                    entity_id=peer_universe_id, period_id=period_id, metric_id=metric_id,
+                    period_basis="point_in_time", reporting_scope="consolidated",
+                    validation_status=QualityStatus.MISSING, missing_reason="DATA_UNAVAILABLE",
+                    metadata={"aggregation_method": "median", "peer_universe_id": peer_universe_id,
+                              "peer_entity_ids": list(effective), "requested_denominator": len(effective),
+                              "eligible_denominator": 0, "missing_members": []},
+                ))
+            else:
+                result.append(CanonicalObservation(
+                    observation_id=benchmark_id, dataset_id=dataset_ref.dataset_id,
+                    dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
+                    entity_id=peer_universe_id, period_id=period_id, metric_id=metric_id,
+                    value=float(median(item.value for item in valid)), unit=valid[0].unit,
+                    period_basis="point_in_time", reporting_scope="consolidated",
+                    validation_status=QualityStatus.VALID,
+                    derivation_method="peer_median_v1",
+                    input_observation_ids=tuple(item.observation_id for item in valid),
+                    metadata={"aggregation_method": "median", "peer_universe_id": peer_universe_id,
+                              "peer_entity_ids": list(effective), "requested_denominator": len(effective),
+                              "eligible_denominator": len(valid),
+                              "missing_members": [{"entity_id": item.entity_id, "observation_id": item.observation_id,
+                                                   "validation_status": item.validation_status.value,
+                                                   "reason": item.missing_reason} for item in missing]},
+                ))
+        return tuple(result)
+
+    def get_source(self, dataset_ref, source_ref):
+        return self.sources.get(source_ref)
+
+    def get_evidence(self, dataset_ref, source_refs, entity_id=None, period_id=None, metric_id=None):
+        return ()
+
+    def resolve_evidence(self, dataset_ref, evidence_id):
+        return None
+
+    def resolve_observation(self, dataset_ref, observation_id):
+        return next((item for item in self.observations.values() if item.observation_id == observation_id), None)
+
+    def get_macro_observation(self, *args, **kwargs):
+        return None
+
+
 class ApiAnalyzeIntegrationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory()
@@ -175,9 +410,16 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             app_env="test",
             sqlite_db_path=str(self.db_path),
         )
+        self.test_critic = _ExplicitOfflineAcceptingCritic()
+        self.critic_factory_patch = patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=self.test_critic,
+        )
+        self.critic_factory_patch.start()
+        self.addCleanup(self.critic_factory_patch.stop)
         self.client = TestClient(create_app(self.settings))
 
-    def test_company_claims_are_provider_backed_and_stage1_accepted_only(self) -> None:
+    def test_company_claims_are_provider_backed_and_both_stages_accepted(self) -> None:
         with patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
@@ -194,19 +436,19 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         data = response.json()
         report = AnalysisResponse.model_validate(data)
 
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         self.assertEqual(report.analysis_plan.required_capabilities, ["company"])
         self.assertEqual(report.analysis_plan.dataset_snapshot_id, "gold-snapshot-api-fixture")
         self.assertIsNone(report.macro_context)
         self.assertIsNone(report.sector_benchmark)
-        self.assertIsNone(report.revision_summary)
+        self.assertEqual(report.revision_summary.status, "passed")
         self.assertEqual(report.cross_level_critique, [])
         self.assertEqual({claim.stage1_status for claim in report.atomic_claims}, {"accepted"})
         self.assertTrue(all(claim.evidence_refs == [] for claim in report.atomic_claims))
-        self.assertTrue(all(claim.stage2_critique_status is None for claim in report.atomic_claims))
+        self.assertEqual({claim.stage2_critique_status for claim in report.atomic_claims}, {"sound"})
         self.assertTrue(all(claim.confidence is None for claim in report.atomic_claims))
         self.assertNotIn("confidence", data["atomic_claims"][0])
-        self.assertNotIn("stage2_critique_status", data["atomic_claims"][0])
+        self.assertEqual(data["atomic_claims"][0]["stage2_critique_status"], "sound")
         self.assertTrue(any("primary source locator and source hash" in item for item in report.limitations))
         self.assertTrue(any("does not infer consolidated or parent-only scope" in item for item in report.limitations))
         self.assertEqual({claim.metric for claim in report.atomic_claims}, {"bank.roe", "bank.npl_g35"})
@@ -230,6 +472,31 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         self.assertEqual({item.source_id for item in report.evidence_trail}, {"source-roe", "source-npl"})
         self.assertTrue(all(item.source_url == "https://example.test/acb/report" for item in report.evidence_trail))
+
+    def test_missing_semantic_provider_blocks_before_specialist_retrieval(self) -> None:
+        client = TestClient(create_app(Settings(
+            app_env="test",
+            sqlite_db_path=str(self.db_path),
+            openai_api_key=None,
+        )))
+        binding = _fixture_provider_binding(self.db_path, expose_locator=True)
+        with patch("thesis_api.service._load_provider", return_value=binding), patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            side_effect=ValueError("semantic_provider_unconfigured"),
+        ), patch.object(binding.provider, "get_metric", wraps=binding.provider.get_metric) as get_metric:
+            report = AnalysisResponse.model_validate(client.post(
+                "/api/analyze",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            ).json())
+
+        self.assertEqual(report.status, "error")
+        self.assertIn("semantic_provider_unconfigured", report.limitations[0])
+        self.assertEqual(report.atomic_claims, [])
+        get_metric.assert_not_called()
 
     def test_unsupported_entity_returns_no_numeric_claims(self) -> None:
         report = AnalysisResponse.model_validate(
@@ -257,6 +524,167 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 self.assertEqual(report.atomic_claims, [])
                 self.assertEqual(report.evidence_trail, [])
 
+    def test_multiperiod_comparison_is_explicitly_rejected_before_retrieval(self) -> None:
+        provider = _FiveMemberPeerProvider()
+        binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        with patch("thesis_api.service._load_provider", return_value=binding), patch.object(provider, "get_metric", wraps=provider.get_metric) as get_metric:
+            for query in (
+                "Compare ROE of TCB from 2024_Q1 to 2024_Q4",
+                "Across 2024_Q1–Q4, compare TCB ROE with the peer set",
+            ):
+                with self.subTest(query=query):
+                    report = AnalysisResponse.model_validate(self.client.post(
+                        "/api/analyze",
+                        json={
+                            "query": query,
+                            "target_ticker": "TCB",
+                            "period": "2024_Q1",
+                            "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                        },
+                    ).json())
+                    self.assertEqual(report.status, "error")
+                    self.assertIn("multi_period_unsupported", report.limitations[0])
+            get_metric.assert_not_called()
+
+    def test_peer_run_uses_provider_median_and_preserves_missing_member_denominator(self) -> None:
+        provider = _FiveMemberPeerProvider()
+        binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
+            provider,
+            "get_peer_benchmark",
+            wraps=provider.get_peer_benchmark,
+        ) as get_benchmark:
+            report = AnalysisResponse.model_validate(self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Compare ROE of TCB with the five bank peer universe in 2024 Q1",
+                    "target_ticker": "TCB",
+                    "period": "2024_Q1",
+                    "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                },
+            ).json())
+        self.assertEqual(
+            get_benchmark.call_args_list[0].kwargs["peer_entity_ids"],
+            ("ACB", "BID", "CTG", "MBB", "VCB"),
+        )
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertEqual(report.analysis_plan.required_capabilities, ["sector", "company"])
+        benchmark = report.sector_benchmark
+        self.assertEqual(benchmark.peer_median_roe, 13.0)
+        self.assertEqual(benchmark.peer_universe_id, "vn-banks-v1")
+        self.assertEqual(benchmark.requested_denominator, 5)
+        self.assertEqual(benchmark.eligible_denominator, 4)
+        self.assertEqual(benchmark.effective_peer_entity_ids, ["ACB", "BID", "CTG", "MBB", "VCB"])
+        self.assertEqual(benchmark.eligible_peer_entity_ids, ["BID", "CTG", "MBB", "VCB"])
+        self.assertEqual(benchmark.missing_members[0]["entity_id"], "ACB")
+        self.assertEqual(benchmark.missing_members[0]["observation_id"], "obs-ACB-roe-q1")
+        self.assertEqual(benchmark.missing_members[0]["validation_status"], "missing")
+        self.assertEqual(benchmark.missing_members[0]["reason"], "DATA_UNAVAILABLE")
+        aggregate = next(item for item in report.atomic_claims if item.capability == "sector" and item.formula_version == "peer_median_v1")
+        self.assertEqual(len(aggregate.input_observation_ids), 4)
+        self.assertEqual(aggregate.formula_version, "peer_median_v1")
+        self.assertEqual({item.ticker for item in report.evidence_trail if item.claim_id == aggregate.claim_id}, {"BID", "CTG", "MBB", "VCB"})
+
+    def test_peer_run_fails_closed_without_scope_or_period_basis(self) -> None:
+        for field, code in (
+            ("reporting_scope", "peer_reporting_scope_unavailable"),
+            ("period_basis", "peer_period_basis_unavailable"),
+        ):
+            with self.subTest(field=field):
+                provider = _FiveMemberPeerProvider()
+                observation_key = ("TCB", "2024_Q1", "bank.roe")
+                provider.observations[observation_key] = provider.observations[observation_key].model_copy(
+                    update={field: None}
+                )
+                binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+                with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
+                    provider,
+                    "get_peer_benchmark",
+                    wraps=provider.get_peer_benchmark,
+                ) as get_benchmark:
+                    report = AnalysisResponse.model_validate(self.client.post(
+                        "/api/analyze",
+                        json={
+                            "query": "Compare ROE of TCB with the five bank peer universe in 2024 Q1",
+                            "target_ticker": "TCB",
+                            "period": "2024_Q1",
+                            "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                        },
+                    ).json())
+                self.assertEqual(report.status, "error")
+                self.assertIn(code, report.limitations[0])
+                get_benchmark.assert_not_called()
+
+    def test_injected_claim_issue_triggers_targeted_revision_and_acceptance(self) -> None:
+        critic = _RevisionScenarioCritic(resolve_after_revision=True)
+        original_stage1_claim = _stage1_claim
+        stage1_calls = 0
+
+        def inject_one_narrative_defect(**kwargs):
+            nonlocal stage1_calls
+            stage1_calls += 1
+            claim, *rest = original_stage1_claim(**kwargs)
+            if stage1_calls == 1:
+                claim = claim.model_copy(update={
+                    "claim_text": "Test-injected wording defect requiring a company recheck."
+                })
+            return (claim, *rest)
+
+        with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=critic,
+        ), patch(
+            "thesis_api.service._stage1_claim",
+            side_effect=inject_one_narrative_defect,
+        ) as stage1_claim:
+            report = AnalysisResponse.model_validate(self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            ).json())
+
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertEqual(report.revision_summary.status, "revised_and_passed")
+        self.assertEqual(report.revision_summary.rounds_executed, 2)
+        self.assertEqual(report.revision_summary.revised_capabilities, ["company"])
+        self.assertIn("test-injected-claim-review [unsupported_claim/MAJOR/RESOLVED/REVISE_CLAIM]", report.revision_summary.reason)
+        self.assertEqual(critic.calls, 2)
+        self.assertEqual(stage1_claim.call_count, 2)
+        self.assertEqual(
+            report.atomic_claims[0].statement,
+            "ACB has provider-backed bank.roe=17.25 percent for 2024_Q4.",
+        )
+
+    def test_unrepairable_critical_issue_fails_after_bounded_revisions(self) -> None:
+        critic = _RevisionScenarioCritic(resolve_after_revision=False)
+        with patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=critic,
+        ), patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ), patch(
+            "thesis_api.service._stage1_claim",
+            wraps=_stage1_claim,
+        ) as stage1_claim:
+            report = AnalysisResponse.model_validate(self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            ).json())
+
+        self.assertEqual(report.status, "error")
+        self.assertIn("fail_acceptance", report.limitations[0])
+        self.assertEqual(report.atomic_claims, [])
+        self.assertEqual(critic.calls, 3)
+        self.assertEqual(stage1_claim.call_count, 3)
+
     def test_full_metric_names_are_resolved_without_falling_back_to_all_metrics(self) -> None:
         with patch(
             "thesis_api.service._load_provider",
@@ -272,7 +700,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     },
                 ).json()
             )
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         self.assertEqual({claim.metric for claim in report.atomic_claims}, {"bank.roe"})
 
         unsupported = AnalysisResponse.model_validate(
@@ -304,7 +732,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             )
             capabilities = client.get("/api/capabilities").json()
             ready = client.get("/api/ready")
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         self.assertEqual(len(report.atomic_claims), 1)
         self.assertEqual(report.atomic_claims[0].evidence_refs, [])
         self.assertEqual(len(report.evidence_trail), 1)
@@ -431,7 +859,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     },
                 ).json()
             )
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         self.assertEqual(
             {claim.metric for claim in report.atomic_claims},
             {"bank.roa", "bank.roe", "bank.npl_g35", "bank.llr"},
@@ -636,7 +1064,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     period="2024_Q4",
                 )
             )
-        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.status, "completed")
         output_claim = report.atomic_claims[0]
         self.assertEqual(output_claim.observation_id, "derived-npl")
         self.assertEqual(output_claim.input_observation_ids, ["input-npl", "input-loans"])

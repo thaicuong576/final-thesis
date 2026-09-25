@@ -32,12 +32,14 @@ call counts. Preserve failed runs in the completion denominator.
 | T03 | missingness | ACB 2024_Q1: answer what can and cannot be concluded; never replace the four missing cells. | Company | Missing-data fail-closed E2E |
 | T04 | company trend | TCB 2024_Q1–Q4: explain NPL and LLR movement without introducing unsupported causes. | Company | Multi-period request + exact period scope |
 | T05 | company trend | MBB 2024_Q1–Q4: assess ROA/ROE movement and distinguish observed trend from interpretation. | Company | Multi-period request + exact period scope |
-| T06 | peer snapshot | Compare MBB, TCB and VCB at 2024_Q4 on NPL and LLR; name the accepted-member denominator. | Company + Peer | Query-adaptive peer runtime |
-| T07 | peer snapshot | Compare MBB, TCB and VCB at 2024_Q4 on ROA and ROE; do not generalize to the whole sector. | Company + Peer | Query-adaptive peer runtime |
-| T08 | multi-period peer | Across 2024_Q1–Q4, compare MBB, TCB and VCB on the trade-off between asset quality and profitability. | Company + Peer + synthesis | Multi-period peer runtime and context budget |
+| T06 | peer snapshot | Compare ACB, MBB, TCB, VCB and VPB at 2024_Q4 on NPL and LLR; name the accepted-member denominator. | Company + Peer | Query-adaptive peer runtime |
+| T07 | peer snapshot | Compare ACB, MBB, TCB, VCB and VPB at 2024_Q4 on ROA and ROE; do not generalize to the whole sector. | Company + Peer | Query-adaptive peer runtime + D-072 authority gate |
+| T08 | multi-period peer | Across 2024_Q1–Q4, compare the five-bank Gold set on the trade-off between asset quality and profitability; preserve ACB Q1 missingness and disclose each period's accepted denominator. | Company + Peer + synthesis | Multi-period peer runtime and context budget |
 
-VPB ROE is excluded while D-063/D-072 remains blocked. Other valid VPB metrics
-may be added only in a separately versioned task. CTG is excluded because it is
+D-063/D-072 now admit VPB ROE for the exact hash-bound Gold v5 snapshot after
+the independent review attestation and authority reconciliation. Every peer
+task still reports its accepted-member denominator and does not generalize the
+five-bank case study to the whole banking sector. CTG is excluded because it is
 an operational portability case, not a Gold benchmark label. Macro tasks are a
 separate optional stratum and are not added until period-aligned macro
 observations pass the Gold gate.

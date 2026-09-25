@@ -1,6 +1,6 @@
 {
   "manifest_id": "p4-gold-evaluation-task-specs-v1",
-  "status": "inputs_frozen_not_scored",
+  "status": "immutable_candidate_question_set_not_final_experiment_freeze",
   "protocol_ref": "docs/EVALUATION-PROTOCOL-V1-DRAFT.md",
   "protocol_status": "pre-freeze; final experiment freeze requires same-snapshot peer and critique/revision E2E gates",
   "dataset": {
@@ -15,7 +15,8 @@
     "encoding": "UTF-8",
     "newline": "LF",
     "sha256_raw_file_bytes": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
-    "question_sha256": "SHA-256 of each exact question_text encoded as UTF-8"
+    "question_sha256": "SHA-256 of each exact question_text encoded as UTF-8",
+    "status": "immutable_candidate_questions"
   },
   "peer_universe": {
     "peer_universe_id": "sector:bank",
@@ -53,14 +54,18 @@
         "Company"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": true,
       "eligibility_gate": "Gold provider + Stage-1 E2E",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question."
     },
     {
       "task_id": "T02",
@@ -82,14 +87,18 @@
         "Company"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": true,
       "eligibility_gate": "Gold provider + Stage-1 E2E",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_company_stage1_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Gold provider and Stage-1 E2E is not verified for this exact question."
     },
     {
       "task_id": "T03",
@@ -111,14 +120,18 @@
         "Company"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": true,
       "eligibility_gate": "Missing-data fail-closed E2E",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_missingness_fail_closed_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Missing-data fail-closed E2E is not verified for this exact question."
     },
     {
       "task_id": "T04",
@@ -141,14 +154,18 @@
         "Company"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": true,
       "eligibility_gate": "Multi-period request + exact period scope",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed."
     },
     {
       "task_id": "T05",
@@ -171,14 +188,18 @@
         "Company"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": true,
       "eligibility_gate": "Multi-period request + exact period scope",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_runtime_contract",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; this request must fail closed."
     },
     {
       "task_id": "T06",
@@ -203,7 +224,6 @@
         "Peer"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": false,
       "eligibility_gate": "Query-adaptive peer runtime E2E",
       "arms": [
         "A",
@@ -218,7 +238,12 @@
         "TCB",
         "VCB",
         "VPB"
-      ]
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Single-period query-adaptive peer runtime E2E is not verified for this exact question."
     },
     {
       "task_id": "T07",
@@ -243,7 +268,6 @@
         "Peer"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": false,
       "eligibility_gate": "Query-adaptive peer runtime E2E + D-072 authority gate",
       "arms": [
         "A",
@@ -258,7 +282,12 @@
         "TCB",
         "VCB",
         "VPB"
-      ]
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "candidate_pending_single_period_peer_runtime_e2e",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Single-period query-adaptive peer runtime and D-072 E2E gates are not verified for this exact question."
     },
     {
       "task_id": "T08",
@@ -291,7 +320,6 @@
       "applicable_links": [
         "company_to_peer"
       ],
-      "eligible_for_gold_v5_data_path": false,
       "eligibility_gate": "Multi-period peer runtime + context budget + critique/revision E2E",
       "arms": [
         "A",
@@ -306,7 +334,12 @@
         "TCB",
         "VCB",
         "VPB"
-      ]
+      ],
+      "underlying_gold_data_cells_available": true,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "ineligible_until_multi_period_peer_and_revision_e2e",
+      "current_runtime_behavior_or_blocker": "multi_period_unsupported",
+      "eligibility_notes": "Current public analysis contract supports one period; peer synthesis and critique/revision E2E are also unverified."
     },
     {
       "task_id": "T09",
@@ -323,14 +356,18 @@
       ],
       "required_capabilities": [],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": false,
       "eligibility_gate": "Reject unsupported period before provider dispatch",
       "arms": [
         "A",
         "B",
         "C"
       ],
-      "prompt_version": "prompt-contract-v1"
+      "prompt_version": "prompt-contract-v1",
+      "underlying_gold_data_cells_available": false,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "negative_scope_control_candidate",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Unsupported-period fail-closed E2E control has not been run."
     },
     {
       "task_id": "T10",
@@ -356,7 +393,6 @@
         "Peer"
       ],
       "applicable_links": [],
-      "eligible_for_gold_v5_data_path": false,
       "eligibility_gate": "Reject CTG outside the frozen Gold peer universe",
       "arms": [
         "A",
@@ -372,9 +408,22 @@
         "VCB",
         "VPB",
         "CTG"
-      ]
+      ],
+      "underlying_gold_data_cells_available": false,
+      "scoring_eligible_now": false,
+      "current_eligibility_status": "negative_peer_universe_control_candidate",
+      "current_runtime_behavior_or_blocker": "pending",
+      "eligibility_notes": "Unsupported-peer fail-closed E2E control has not been run."
     }
   ],
   "scoring_runs_created": false,
-  "ab_c_results_created": false
+  "ab_c_results_created": false,
+  "freeze_condition": {
+    "protocol_final_freeze_ready": false,
+    "blockers": [
+      "query_adaptive_peer_runtime_e2e",
+      "multi_period_request_contract",
+      "critique_revision_e2e"
+    ]
+  }
 }

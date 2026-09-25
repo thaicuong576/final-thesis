@@ -451,6 +451,7 @@ class GoldProviderTests(unittest.TestCase):
 
         self.assertEqual(company.entity_id, "entity-a")
         self.assertEqual(company.value, 1.2)
+        self.assertIsNone(company.reporting_scope)
         self.assertEqual(macro.value, 4.5)
         self.assertEqual(missing.validation_status, QualityStatus.MISSING)
         self.assertIsNone(missing.value)
@@ -458,6 +459,10 @@ class GoldProviderTests(unittest.TestCase):
         self.assertEqual(benchmark[0].value, 1.5)
         self.assertIsNone(benchmark[0].source_ref)
         self.assertEqual(benchmark[0].derivation_method, "peer_median_v1")
+        self.assertEqual(benchmark[0].metadata["aggregation_version"], "peer_median_v1")
+        self.assertEqual(benchmark[0].metadata["requested_denominator"], 2)
+        self.assertEqual(benchmark[0].metadata["eligible_denominator"], 2)
+        self.assertEqual(benchmark[0].metadata["missing_members"], [])
         self.assertEqual(
             set(benchmark[0].input_observation_ids), {"obs-a-roa", "obs-b-roa"}
         )
@@ -573,6 +578,8 @@ class ApplicationRuntimeTests(unittest.TestCase):
             set(benchmark.input_observation_ids),
             {"obs-company-a", "obs-company-b"},
         )
+        self.assertEqual(benchmark.metadata["requested_denominator"], 2)
+        self.assertEqual(benchmark.metadata["eligible_denominator"], 2)
         self.assertNotIn("obs-company-c", benchmark.input_observation_ids)
         self.assertIsNone(benchmark.source_ref)
         self.assertEqual(

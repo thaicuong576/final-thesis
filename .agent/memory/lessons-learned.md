@@ -487,3 +487,22 @@ cấp file SQLite cho provider này.
 - Khi triển khai backend, phải cung cấp snapshot Gold đã kiểm định qua artifact
   hoặc mount có kiểm soát và cấu hình `SQLITE_DB_PATH` rõ ràng. Không dựa vào
   artifact ignored ở máy developer hoặc tự suy ra đường dẫn từ `DATABASE_URL`.
+
+## [LESSON-019] Close SQLite fixtures explicitly on Windows
+
+- **Date:** 2026-09-25
+- **Scope:** temporary SQLite fixtures in data-provider tests
+- **Status:** ACTIVE
+
+### Context & Root Cause
+
+The `sqlite3.Connection` context manager commits or rolls back a transaction,
+but does not close the connection. On Windows, a fixture database can therefore
+remain locked when `TemporaryDirectory` tries to remove it, obscuring the test
+failure with a cleanup `PermissionError`.
+
+### Permanent Solution
+
+Use `try/finally: connection.close()` (or `contextlib.closing`) for temporary
+SQLite fixtures and read-only audit connections. Keep transaction management
+separate from connection lifetime.

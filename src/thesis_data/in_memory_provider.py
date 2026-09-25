@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from statistics import median
 from typing import Iterable, Sequence
 
 from .dataset_contract import (
@@ -12,7 +11,7 @@ from .dataset_contract import (
     DatasetRef,
     DatasetSource,
 )
-from .dataset_provider import DatasetProviderError, peer_benchmark_observation_id
+from .dataset_provider import DatasetProviderError, aggregate_peer_median
 from .schema import QualityStatus
 
 
@@ -102,59 +101,32 @@ class InMemoryFinancialDatasetProvider:
             effective_peer_entity_ids = universe.effective_entity_ids(peer_entity_ids)
         except ValueError as exc:
             raise DatasetProviderError(str(exc)) from exc
+        for metric_id in metric_ids:
+            metric = next(
+                (item for item in self._catalog.metrics if item.metric_id == metric_id),
+                None,
+            )
+            if metric is None or metric.analytical_level.value != "company":
+                raise DatasetProviderError("peer benchmark requires company-level metrics")
         result: list[CanonicalObservation] = []
         for metric_id in metric_ids:
-            values = [
+            member_observations = [
                 item
                 for item in self._observations
                 if item.entity_id in effective_peer_entity_ids
                 and item.period_id == period_id
                 and item.metric_id == metric_id
-                and item.validation_status is QualityStatus.VALID
-                and item.value is not None
             ]
-            benchmark_id = peer_benchmark_observation_id(
-                dataset_ref,
-                peer_universe_id,
-                period_id,
-                metric_id,
-                effective_peer_entity_ids,
+            result.append(
+                aggregate_peer_median(
+                    dataset_ref=dataset_ref,
+                    peer_universe_id=peer_universe_id,
+                    period_id=period_id,
+                    metric_id=metric_id,
+                    peer_entity_ids=effective_peer_entity_ids,
+                    member_observations=member_observations,
+                )
             )
-            if values:
-                result.append(
-                    CanonicalObservation(
-                        observation_id=benchmark_id,
-                        dataset_id=dataset_ref.dataset_id,
-                        dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                        entity_id=peer_universe_id,
-                        period_id=period_id,
-                        metric_id=metric_id,
-                        value=float(median(item.value for item in values)),
-                        unit=values[0].unit,
-                        validation_status=QualityStatus.VALID,
-                        derivation_method="peer_median_v1",
-                        input_observation_ids=tuple(
-                            item.observation_id for item in values
-                        ),
-                        metadata={
-                            "benchmark_method": "peer_median_v1",
-                            "peer_entity_ids": list(effective_peer_entity_ids),
-                        },
-                    )
-                )
-            else:
-                result.append(
-                    CanonicalObservation(
-                        observation_id=benchmark_id,
-                        dataset_id=dataset_ref.dataset_id,
-                        dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
-                        entity_id=peer_universe_id,
-                        period_id=period_id,
-                        metric_id=metric_id,
-                        validation_status=QualityStatus.MISSING,
-                        missing_reason="DATA_UNAVAILABLE",
-                    )
-                )
         return tuple(result)
 
     def get_evidence(

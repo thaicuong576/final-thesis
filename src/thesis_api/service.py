@@ -397,7 +397,11 @@ def _stage1_claim(
             if item.source_ref in source_refs
             and item.entity_id == ticker
             and item.period_id == period
-            and item.metric_id == metric_id
+            and (item.metric_id is None or item.metric_id == metric_id)
+            and _evidence_has_explicit_observation_link(
+                item,
+                observation_id=observation.observation_id,
+            )
         )
         if include_evidence
         else ()
@@ -443,6 +447,25 @@ def _stage1_claim(
         origin="deterministic_reference",
     )
     return claim, observation, primary_observations, sources, evidence
+
+
+def _evidence_has_explicit_observation_link(
+    evidence: Any,
+    *,
+    observation_id: str,
+) -> bool:
+    """Require the provider to return a reviewed observation-to-snippet join.
+
+    Scope matches such as source, ticker, period, metric, or page overlap do
+    not establish that a document snippet supports this numeric observation.
+    The provider must populate ``observation_id`` only from a reviewed mapping.
+    A claim ID alone is not a sufficient join to the accepted observation.
+    Current DatasetEvidence has no observation-link field, so current provider
+    snippets remain supplementary and are not attached to numeric claims.
+    """
+
+    linked_observation_id = getattr(evidence, "observation_id", None)
+    return linked_observation_id == observation_id
 
 
 def _resolve_primary_lineage(

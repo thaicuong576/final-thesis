@@ -354,6 +354,60 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         capability_metric_ids = {item["id"] for item in _capabilities_payload(binding)["metrics"]}
         self.assertNotIn("bank.input.npl_g35_balance", capability_metric_ids)
 
+    def test_direct_claim_omits_same_source_metric_snippet_without_reviewed_link(self) -> None:
+        binding = _fixture_provider_binding(self.db_path, expose_locator=True)
+        unrelated = DatasetEvidence(
+            evidence_id="same-source-metric-scope-unlinked",
+            source_ref="source-roe",
+            entity_id="ACB",
+            period_id="2024_Q4",
+            metric_id="bank.roe",
+            locator="page:42;row:neighboring-note",
+            quote="A same-source snippet with no reviewed observation link.",
+        )
+        claim_only_link = SimpleNamespace(
+            evidence_id="claim-only-link-is-insufficient",
+            source_ref="source-roe",
+            entity_id="ACB",
+            period_id="2024_Q4",
+            metric_id="bank.roe",
+            claim_id="claim-obs-roe",
+            locator="page:42;row:ROE",
+            quote="A claim identifier without an observation join.",
+        )
+        explicitly_linked = SimpleNamespace(
+            evidence_id="reviewed-observation-link",
+            source_ref="source-roe",
+            entity_id="ACB",
+            period_id="2024_Q4",
+            metric_id="bank.roe",
+            observation_id="obs-roe",
+            locator="page:42;row:ROE",
+            quote="Provider-declared reviewed link to the exact observation.",
+        )
+
+        class Provider:
+            def __getattr__(self, name):
+                return getattr(binding.provider, name)
+
+            def get_evidence(self, *_args, **_kwargs):
+                return unrelated, claim_only_link, explicitly_linked
+
+        claim, observation, _, _, evidence = _stage1_claim(
+            provider=Provider(),
+            dataset_ref=binding.dataset_ref,
+            ticker="ACB",
+            period="2024_Q4",
+            metric_id="bank.roe",
+            display_name="ROE",
+        )
+
+        self.assertEqual(observation.observation_id, "obs-roe")
+        self.assertEqual(claim.source_refs, ("source-roe",))
+        self.assertEqual([item.evidence_id for item in evidence], ["reviewed-observation-link"])
+        self.assertEqual(claim.evidence_refs, ("reviewed-observation-link",))
+        self.assertEqual(claim.support, "evidence_backed")
+
     def test_acb_generic_gold_snippets_are_not_fanned_out_across_metrics(self) -> None:
         db_path = _gold_fanout_fixture(Path(self.directory.name) / "gold-fanout.sqlite")
         client = TestClient(create_app(Settings(app_env="test", sqlite_db_path=str(db_path))))
@@ -461,9 +515,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             source_ref="source-npl",
             entity_id="CTG",
             period_id="2024_Q4",
-            metric_id=None,
-            locator="page:57",
-            quote="Source-period level Gold snippet without a reviewed metric link.",
+            metric_id="bank.npl_g35",
+            locator="page:57;row:unrelated-note",
+            quote="Same-source metric-scope snippet without a reviewed observation link.",
         )
 
         class Provider:
@@ -516,22 +570,26 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(claim.evidence_refs, ())
         self.assertEqual(claim.support, "source_locator_only")
 
-        reviewed_evidence = DatasetEvidence(
-            evidence_id="reviewed-npl-coverage",
+        same_metric_unlinked_evidence = DatasetEvidence(
+            evidence_id="same-source-metric-scope-unlinked",
             source_ref="source-npl",
             entity_id="CTG",
             period_id="2024_Q4",
             metric_id="bank.npl_g35",
-            locator="page:57;section:NPL coverage",
-            quote="The filing text supporting the reviewed NPL coverage calculation.",
+            locator="page:57;row:unrelated-note",
+            quote="A same-source snippet without a reviewed observation link.",
         )
 
-        class MappedProvider(Provider):
+        class SameScopeProvider(Provider):
             def get_evidence(self, *_args, **_kwargs):
-                return generic_evidence, reviewed_evidence
+                return generic_evidence, same_metric_unlinked_evidence
 
             def resolve_evidence(self, _dataset_ref, evidence_id):
-                return reviewed_evidence if evidence_id == reviewed_evidence.evidence_id else None
+                return (
+                    same_metric_unlinked_evidence
+                    if evidence_id == same_metric_unlinked_evidence.evidence_id
+                    else None
+                )
 
         catalog = DatasetCapabilityCatalog(
             dataset_ref=dataset_ref,
@@ -561,7 +619,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         with patch(
             "thesis_api.service._load_provider",
-            return_value=ProviderBinding(MappedProvider(), dataset_ref, catalog, "fixture"),
+            return_value=ProviderBinding(SameScopeProvider(), dataset_ref, catalog, "fixture"),
         ):
             report = AnalysisEngine(self.db_path)._analyze(
                 AnalysisRequest(
@@ -575,7 +633,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(output_claim.observation_id, "derived-npl")
         self.assertEqual(output_claim.input_observation_ids, ["input-npl", "input-loans"])
         self.assertEqual(output_claim.formula_version, "npl_g35_ratio_v1")
-        self.assertEqual(output_claim.evidence_refs, ["reviewed-npl-coverage"])
+        self.assertEqual(output_claim.evidence_refs, [])
         self.assertTrue(
             all(item.claim_id == output_claim.claim_id for item in report.evidence_trail)
         )
@@ -592,11 +650,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(input_trails["input-loans"].source_id, "source-loans")
         self.assertEqual(input_trails["input-loans"].table_locator, "page:54;row:loans")
         self.assertEqual(input_trails["input-loans"].provenance_hash, "sha256-source-loans")
-        mapped_trail = next(
-            item for item in report.evidence_trail if item.evidence_id == "reviewed-npl-coverage"
-        )
-        self.assertEqual(mapped_trail.observation_id, "derived-npl")
-        self.assertEqual(mapped_trail.source_id, "source-npl")
+        self.assertTrue(all(item.evidence_id is None for item in report.evidence_trail))
 
     def test_missing_metric_locator_fails_closed_even_when_source_snippets_exist(self) -> None:
         with patch(

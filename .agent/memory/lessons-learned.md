@@ -316,6 +316,11 @@ cấp file SQLite cho provider này.
 - Numeric claim phải đi qua observation hợp lệ, source hợp lệ, locator riêng
   của observation đó và Stage-1. Nếu provider làm rơi locator, API phải block;
   evidence source/period-level chỉ được xem là tham khảo bổ sung.
+- Khớp cùng source, ticker, period, metric hoặc trang vẫn chưa chứng minh một
+  snippet hỗ trợ đúng numeric observation. Chỉ observation ID link rõ ràng từ
+  mapping đã được review mới đủ để thêm snippet vào `evidence_refs`;
+  `DatasetEvidence` hiện chưa có trường link nên API để các numeric `evidence_refs`
+  rỗng và giữ provenance trong observation/source locator trail.
 - `/api/capabilities` và `/api/ready` chỉ báo runnable khi provider tìm được ít
   nhất một claim đáp ứng các điều kiện này. Sync và SSE dùng chung kết quả.
 - Khi triển khai backend, phải cung cấp snapshot Gold đã kiểm định qua artifact

@@ -84,15 +84,17 @@
     "execution": "thesis_data.comparative_gate.audit_comparative_definition_gate; SQLite mode=ro"
   },
   "record_update_control_hashes_canonical_lf_utf8_sha256": {
-    ".agent/memory/lessons-learned.md": "107B2CE1D6BFA87E6325FB8216DD0CF12774A4EF0780AB35DAA02E28EECB12B4",
-    "AGENTS.md": "928B680873B240AD5BEE155BCB9CCB2BED05924287E39A5AB88CEA66B7D937E7",
     "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md": "4E6054A42B914B61B0C7481F7E44F039F01E573A8B4259085551454196CD4718",
     "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json": "4810AA16F0B03B9EBDD1045D4E92FCA978C9CDD66B8F23F8F85A04CA912CC5AE",
-    "docs/DATA-CONTRACT.md": "20E064C09C979F00F96B415E32169359263934292710FB177317BE209459E279",
-    "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json": "7A0650C077FB42820644C3D4E32C5E49AD671C85F2597266DD5B980459F7CEBF",
-    "scripts/verify_vpb_roe_authority_records.py": "58D13CA1EE0033F563848F02A50EA6E095A5BA4F0A33B4BB946C00369FBF7608"
+    "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json": "7A0650C077FB42820644C3D4E32C5E49AD671C85F2597266DD5B980459F7CEBF"
   },
   "authority_manifest_ref": "reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json",
   "authority_manifest_id": "vpb-roe-parent-equity-authority-20260925",
-  "statement": "The distinct reviewer ACCEPTed the exact reviewed head after confirming source/control lineage, Q4 parent-equity calculation and total-equity alternative, and eligible Gold v5 gate output. This attestation binds that verdict; later records apply portable acyclic hash binding."
+  "statement": "The distinct reviewer ACCEPTed the exact reviewed head after confirming source/control lineage, Q4 parent-equity calculation and total-equity alternative, and eligible Gold v5 gate output. This attestation binds that verdict and the scoped VPB control records. Repository-wide living policy files are referenced semantically and are not byte-pinned by this authority graph.",
+  "record_update_policy_refs": [
+    "docs/DECISIONS.md#D-063",
+    "docs/DECISIONS.md#D-072",
+    "docs/DATA-CONTRACT.md#Hash modes for repository evidence manifests",
+    "AGENTS.md#Operating principles 2"
+  ]
 }

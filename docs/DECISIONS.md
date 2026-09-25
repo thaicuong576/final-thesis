@@ -1010,11 +1010,11 @@ is retained only as a diagnostic comparison.
 
 The gate is open only because attestation
 reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
-(canonical SHA-256: 092B5F092F3F6283BAC48F9E1716F36BE84D5ABDC518FFF9E9DFA9DA851E9508)
+(canonical SHA-256: FC1D17BDBBAE9877F482875E730766D049CA5151D32173857D9EDEF2F31E7BAB)
 records reviewer task /root/vpb_d072_reviewer_luna, verdict ACCEPT, and exact
 reviewed head 2b292ddf21bd6be8a550f81fb518fca5dc419efb. The current authority
 manifest is reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
-(canonical SHA-256: D494E136FCDF35E69BAE591265FB50E4FED6A044DFD524518A6A862AEAEADE25).
+(canonical SHA-256: 9BC7BDD2EAACA8BFF723B50C547A48B65A7F12B2F81B23303D2B285F1C19C33E).
 
 Reason: a high numeric coverage percentage cannot compensate for a
 cross-issuer semantic mismatch. Parent-attributable profit and equity provide
@@ -1222,7 +1222,7 @@ did not open the gate.
 The independent reviewer task /root/vpb_d072_reviewer_luna reviewed exact PR
 head 2b292ddf21bd6be8a550f81fb518fca5dc419efb and returned ACCEPT. Durable
 attestation: reports/data-foundation/vpb-roe-parent-equity-independent-review-attestation-20260925.json
-(canonical SHA-256: 092B5F092F3F6283BAC48F9E1716F36BE84D5ABDC518FFF9E9DFA9DA851E9508).
+(canonical SHA-256: FC1D17BDBBAE9877F482875E730766D049CA5151D32173857D9EDEF2F31E7BAB).
 It records exact reviewed control hashes, raw hashes of the Q1-Q4
 official source PDFs, candidate and adjudicated/promotion ledgers, Gold v5
 SQLite and labels, and the comparative gate manifest. It also records the
@@ -1239,11 +1239,13 @@ data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json
 (raw SHA-256: 4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410) and returned eligible with no blockers across 80 cells
 (76 valid, four missing). The authority manifest
 reports/data-foundation/vpb-roe-parent-equity-authority-manifest-20260925.json
-(canonical SHA-256: D494E136FCDF35E69BAE591265FB50E4FED6A044DFD524518A6A862AEAEADE25)
-binds the attestation, current control records and raw immutable evidence
+(canonical SHA-256: 9BC7BDD2EAACA8BFF723B50C547A48B65A7F12B2F81B23303D2B285F1C19C33E)
+binds the attestation, VPB-scoped control records and raw immutable evidence
 hashes. Tracked-text hashes use canonical LF UTF-8 SHA-256; immutable evidence
-uses raw-byte SHA-256. The review verifier reads tracked controls from its
-checkout and ignored artifacts only from an explicit evidence root.
+uses raw-byte SHA-256. Living repository policy files are checked by stable
+semantic markers rather than byte-pinned by this authority. The review verifier
+reads scoped tracked controls from its checkout and ignored artifacts only from
+an explicit evidence root.
 
 D-063's earlier VPB factual statement that total consolidated equity was used
 is superseded: Q1-Q4 evidence and accepted review use parent-attributable

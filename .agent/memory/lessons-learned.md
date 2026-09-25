@@ -347,11 +347,14 @@ checks synthetic LF and CRLF forms plus the Git blob. It reads ignored
 artifacts only from an explicit evidence root; CI can validate tracked
 controls without that root but cannot validate ignored local evidence.
 
-Hash references form a one-way chain: an attestation binds reviewed/current
-controls but does not hash itself or the authority; the authority binds the
-attestation but does not hash itself; D-063/D-072 cite the resulting hashes and
-are not included in that authority control set. Do not introduce reverse hash
-references that create a cycle.
+Hash references form a one-way chain: an attestation binds the exact reviewed
+head and current VPB-scoped controls but does not hash itself or the authority;
+the authority binds the attestation but does not hash itself; D-063/D-072 cite
+the resulting hashes and are not included in that authority control set. Living
+repository files (`AGENTS.md`, contracts, decisions, lessons, verifier code)
+must remain semantic policy references rather than byte-pinned domain evidence.
+Otherwise any unrelated repository update invalidates an accepted data gate.
+Do not introduce reverse hash references that create a cycle.
 
 The original checker, adjudication and promotion ledgers remain unchanged. The
 promotion ledger's register_review_status stays blank for the four VPB targets;

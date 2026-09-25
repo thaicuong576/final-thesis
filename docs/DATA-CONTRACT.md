@@ -56,6 +56,13 @@ A legacy worktree-byte hash may be retained only as audit metadata. It is not
 an authoritative hash for tracked text. A manifest that binds control artifacts
 must record each artifact's hash_mode beside its sha256.
 
+An authority manifest may byte-pin only immutable evidence and control records
+owned by that authority scope. Repository-wide living files such as
+`AGENTS.md`, this contract, decision logs, lessons, and verifier code are policy
+references, not domain evidence artifacts. Refer to their stable sections and
+verify required markers semantically so unrelated architecture or workflow
+updates do not invalidate an accepted data decision.
+
 Verification scripts resolve tracked controls from their current checkout.
 Ignored evidence must come only from an explicit `--evidence-root` argument;
 default behavior is the current repository and fails closed when evidence is

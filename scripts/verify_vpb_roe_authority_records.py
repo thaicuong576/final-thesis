@@ -43,6 +43,12 @@ def git_blob(rev: str, rel: str) -> bytes:
     return subprocess.run(["git", "show", f"{rev}:{Path(rel).as_posix()}"], cwd=ROOT,
                           check=True, capture_output=True).stdout
 
+def require_markers(rel: str, markers: tuple[str, ...]) -> None:
+    text = (ROOT / rel).read_text(encoding="utf-8")
+    for marker in markers:
+        if marker not in text:
+            fail(f"policy marker missing from {rel}: {marker}")
+
 def verify(evidence_root: Path) -> dict:
     evidence_root = evidence_root.resolve()
     authority = read_json(ROOT / AUTHORITY_REL)
@@ -54,7 +60,54 @@ def verify(evidence_root: Path) -> dict:
     if authority.get("eligibility") != "eligible_for_five_issuer_comparative_roe_scope_on_gold_v5":
         fail("scoped comparison eligibility is not open")
 
+    expected_policy_refs = [
+        "docs/DECISIONS.md#D-063",
+        "docs/DECISIONS.md#D-072",
+        "docs/DATA-CONTRACT.md#Hash modes for repository evidence manifests",
+        "AGENTS.md#Operating principles 2",
+    ]
+    if authority.get("policy_refs") != expected_policy_refs:
+        fail("authority policy references changed")
+    require_markers(
+        "docs/DECISIONS.md",
+        (
+            "## D-063:",
+            "parent_attributable_equity",
+            "gate is open only because attestation",
+            "## D-072:",
+            "eligible comparative gate result alone",
+            "five-issuer comparison gate is open",
+        ),
+    )
+    require_markers(
+        "docs/DATA-CONTRACT.md",
+        (
+            "## Hash modes for repository evidence manifests",
+            "canonical_lf_utf8_sha256",
+            "raw_file_bytes_sha256",
+            "explicit `--evidence-root`",
+        ),
+    )
+    require_markers(
+        "AGENTS.md",
+        (
+            "canonical_lf_utf8_sha256",
+            "raw_file_bytes_sha256",
+            "explicit `--evidence-root`",
+        ),
+    )
+
     controls = {}
+    forbidden_living_controls = {
+        "AGENTS.md",
+        "docs/DATA-CONTRACT.md",
+        "docs/DECISIONS.md",
+        ".agent/memory/lessons-learned.md",
+        "scripts/verify_vpb_roe_authority_records.py",
+    }
+    control_refs = {item["artifact_ref"] for item in authority["control_artifacts"]}
+    if control_refs & forbidden_living_controls:
+        fail(f"authority byte-pins living repository controls: {sorted(control_refs & forbidden_living_controls)}")
     for item in authority["control_artifacts"]:
         rel = item["artifact_ref"]
         if item.get("hash_mode") != "canonical_lf_utf8_sha256":
@@ -171,6 +224,7 @@ def verify(evidence_root: Path) -> dict:
         fail(f"Gold v5 VPB ROE mismatch: {observed!r}")
     return {"result": "PASS", "evidence_root": str(evidence_root), "tracked_text_hash_mode": "canonical_lf_utf8_sha256",
             "lf_crlf_variants_checked": 2 * len(controls), "git_blob_hashes_checked": len(controls),
+            "policy_markers_checked": expected_policy_refs,
             "reviewed_head_controls_checked": len(attestation["reviewed_control_hashes_canonical_lf_utf8_sha256"]),
             "control_hashes": controls, "raw_evidence_hashes": dict(sorted(raw_artifacts.items())),
             "reviewer_task_path": attestation["reviewer_task_path"], "reviewed_head_sha": attestation["reviewed_head_sha"],

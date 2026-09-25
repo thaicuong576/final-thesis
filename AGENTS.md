@@ -31,6 +31,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    Evidence manifests use `canonical_lf_utf8_sha256` for Git-tracked UTF-8 text
    controls and `raw_file_bytes_sha256` for immutable evidence. Ignored evidence
    verification requires an explicit `--evidence-root`.
+   Authority manifests byte-pin only scope-specific evidence and control
+   records. Living repository policy files such as `AGENTS.md`, contracts,
+   decisions, and lessons are referenced by stable section markers and tested
+   semantically; they must not be frozen into a domain evidence hash graph.
    For a new bank, a structurally valid CSV or OCR result is a candidate only.
    Published numeric claims require observation-level reconciliation to a
    primary source with exact locator, period basis, reporting scope, and a

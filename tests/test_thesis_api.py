@@ -81,7 +81,10 @@ class ThesisApiTests(unittest.TestCase):
         self.assertIn("accepted", data.get("detail", "").casefold())
 
     def test_readiness_reports_connected_database_when_snapshot_is_not_runnable(self) -> None:
-        database = _gold_fixture(Path(self.temp_dir.name) / "missing-locator.sqlite")
+        database = _gold_fixture(
+            Path(self.temp_dir.name) / "missing-locator.sqlite",
+            include_metric_locators=False,
+        )
         app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
         response = TestClient(app).get("/api/ready")
         self.assertEqual(response.status_code, 503)

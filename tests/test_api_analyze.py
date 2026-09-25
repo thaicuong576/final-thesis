@@ -40,7 +40,13 @@ from thesis_api.service import (
 from thesis_api.settings import Settings
 
 
-def _gold_fixture(path: Path, *, include_evidence: bool = True, source_tier: str = "primary") -> Path:
+def _gold_fixture(
+    path: Path,
+    *,
+    include_evidence: bool = True,
+    include_metric_locators: bool = True,
+    source_tier: str = "primary",
+) -> Path:
     create_gold_snapshot_schema(path)
     connection = sqlite3.connect(path)
     connection.execute(
@@ -59,9 +65,9 @@ def _gold_fixture(path: Path, *, include_evidence: bool = True, source_tier: str
     connection.executemany(
         "INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
-            ("obs-roe", "ACB", "bank", "bank.roe", 17.25, "percent", "2024_Q4", "2024-12-31", "point_in_time", "source-roe", "page:42;row:ROE", "valid", None),
-            ("obs-npl", "ACB", "bank", "bank.npl_g35", 1.03, "percent", "2024_Q4", "2024-12-31", "point_in_time", "source-npl", "page:61;row:NPL", "valid", None),
-            ("obs-input-npl-balance", "ACB", "bank", "bank.input.npl_g35_balance", 123.0, "billion_vnd", "2024_Q4", "2024-12-31", "point_in_time", "source-input", "page:62;row:NPL balance", "valid", None),
+            ("obs-roe", "ACB", "bank", "bank.roe", 17.25, "percent", "2024_Q4", "2024-12-31", "point_in_time", "source-roe", "page:42;row:ROE" if include_metric_locators else None, "valid", None),
+            ("obs-npl", "ACB", "bank", "bank.npl_g35", 1.03, "percent", "2024_Q4", "2024-12-31", "point_in_time", "source-npl", "page:61;row:NPL" if include_metric_locators else None, "valid", None),
+            ("obs-input-npl-balance", "ACB", "bank", "bank.input.npl_g35_balance", 123.0, "billion_vnd", "2024_Q4", "2024-12-31", "point_in_time", "source-input", "page:62;row:NPL balance" if include_metric_locators else None, "valid", None),
         ),
     )
     if include_evidence:
@@ -467,6 +473,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 unit="billion_vnd",
                 source_ref="source-npl",
                 validation_status=QualityStatus.VALID,
+                source_locator="page:57;row:bad-debts",
                 metadata={"source_locator": "page:57;row:bad-debts"},
             ),
             "input-loans": CanonicalObservation(
@@ -480,6 +487,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 unit="billion_vnd",
                 source_ref="source-loans",
                 validation_status=QualityStatus.VALID,
+                source_locator="page:54;row:loans",
                 metadata={"source_locator": "page:54;row:loans"},
             ),
         }

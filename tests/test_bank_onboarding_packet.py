@@ -294,16 +294,6 @@ class BankOnboardingPacketTests(unittest.TestCase):
                         self.assertIsNotNone(source_input.value)
                         pending.append(source_input)
             source_refs = tuple(sorted(source_refs_set))
-            evidence_by_metric = {
-                metric_id: provider.get_evidence(
-                    dataset_ref,
-                    source_refs,
-                    entity_id="CTG",
-                    period_id="2024_Q4",
-                    metric_id=metric_id,
-                )[0].evidence_id
-                for metric_id in ("bank.npl_g35", "bank.llr_coverage")
-            }
             csv_source = DatasetSource(
                 source_ref="upload:unreviewed-ctg-csv",
                 source_type="csv",
@@ -332,7 +322,10 @@ class BankOnboardingPacketTests(unittest.TestCase):
             derived_claims = tuple(
                 self._numeric_claim(
                     observation=observation,
-                    evidence_id=evidence_by_metric[observation.metric_id],
+                    # Numeric support comes from the exact observation and
+                    # primary-source locator. No reviewed observation-to-snippet
+                    # link exists for these source-level document records.
+                    evidence_id=None,
                     source_refs=source_refs,
                     ref_type="derived_metric",
                     claim_id=f"ctg-{observation.metric_id}",
@@ -427,6 +420,7 @@ class BankOnboardingPacketTests(unittest.TestCase):
             metric_id=observation.metric_id,
             asserted_value=observation.value,
             unit=observation.unit,
+            formula_version=observation.derivation_method,
             data_refs=(data_ref,),
         )
         return AtomicClaim(

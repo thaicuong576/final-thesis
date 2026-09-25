@@ -18,6 +18,7 @@ from .dataset_contract import (
     DatasetMetric,
     DatasetPeriod,
     DatasetSource,
+    ObservationReview,
     PeerUniverse,
 )
 from .evidence_contract import DatasetDocument
@@ -78,6 +79,99 @@ class CanonicalDatasetCandidate:
 class CsvNormalizationResult:
     candidate: CanonicalDatasetCandidate
     validation_report: OnboardingValidationReport
+
+
+def reconcile_candidate_observations(
+    candidate: CanonicalDatasetCandidate,
+    *,
+    primary_sources: tuple[DatasetSource, ...],
+    reviews: dict[str, ObservationReview],
+    period_bases: dict[str, str],
+    reporting_scopes: dict[str, str],
+) -> CanonicalDatasetCandidate:
+    """Return a candidate whose numeric values were explicitly reviewed.
+
+    Structural CSV normalization intentionally leaves numeric values pending.
+    This separate operation requires one human review per numeric cell and
+    moves accepted values onto the reviewed primary source while retaining the
+    uploaded CSV source and its raw row metadata for audit.
+    """
+
+    if not primary_sources:
+        raise ValueError("source reconciliation requires at least one primary source")
+    sources = (*candidate.all_sources, *primary_sources)
+    source_by_ref = {item.source_ref: item for item in sources}
+    if len(source_by_ref) != len(sources):
+        raise ValueError("source reconciliation source refs must be unique")
+    for source in primary_sources:
+        if (
+            source.validation_status is not QualityStatus.VALID
+            or getattr(source.source_tier, "value", source.source_tier) != "primary"
+        ):
+            raise ValueError("review evidence must resolve to a valid primary source")
+
+    numeric = {
+        item.observation_id: item
+        for item in candidate.observations
+        if item.value is not None
+    }
+    if set(reviews) != set(numeric):
+        raise ValueError("every numeric candidate observation requires exactly one review")
+    if set(period_bases) != set(numeric) or set(reporting_scopes) != set(numeric):
+        raise ValueError("every numeric candidate observation requires period basis and reporting scope")
+
+    accepted: list[CanonicalObservation] = []
+    allowed_bases = {"point_in_time", "quarter_only", "ytd", "annual", "ttm"}
+    allowed_scopes = {"consolidated", "separate", "system"}
+    for observation in candidate.observations:
+        if observation.value is None:
+            accepted.append(observation)
+            continue
+        review = reviews[observation.observation_id]
+        evidence = review.primary_evidence
+        for reference in evidence:
+            source = source_by_ref.get(reference.source_ref)
+            if source is None:
+                raise ValueError("review evidence source does not resolve")
+            if (
+                source.validation_status is not QualityStatus.VALID
+                or getattr(source.source_tier, "value", source.source_tier) != "primary"
+            ):
+                raise ValueError("review evidence must use a valid primary source")
+        period_basis = period_bases[observation.observation_id]
+        reporting_scope = reporting_scopes[observation.observation_id]
+        if period_basis not in allowed_bases:
+            raise ValueError("reviewed observation period basis is unsupported")
+        if reporting_scope not in allowed_scopes:
+            raise ValueError("reviewed observation reporting scope is unsupported")
+        primary = evidence[0]
+        metadata = dict(observation.metadata)
+        metadata["candidate_source_ref"] = observation.source_ref
+        accepted.append(
+            observation.model_copy(
+                update={
+                    "source_ref": primary.source_ref,
+                    "source_locator": primary.locator,
+                    "period_basis": period_basis,
+                    "reporting_scope": reporting_scope,
+                    "review": review,
+                    "validation_status": QualityStatus.VALID,
+                    "metadata": metadata,
+                }
+            )
+        )
+    return CanonicalDatasetCandidate(
+        metadata=candidate.metadata,
+        source=candidate.source,
+        entities=candidate.entities,
+        periods=candidate.periods,
+        metrics=candidate.metrics,
+        observations=tuple(accepted),
+        peer_universes=candidate.peer_universes,
+        additional_sources=(*candidate.additional_sources, *primary_sources),
+        documents=candidate.documents,
+        evidence=candidate.evidence,
+    )
 
 
 def normalize_period(value: str) -> str:
@@ -207,7 +301,7 @@ def normalize_csv_dataset(
     issues: list[OnboardingValidationIssue] = mapping_issues
     duplicate_keys: dict[tuple[str, str, str], int] = {}
     rejected_rows: set[int] = set()
-    accepted_count = 0
+    candidate_count = 0
     missing_count = 0
 
     if not staged.rows:
@@ -333,18 +427,16 @@ def normalize_csv_dataset(
                 CanonicalObservation(
                     **common,
                     value=parsed_value,
-                    validation_status=QualityStatus.VALID,
+                    validation_status=QualityStatus.PENDING_VALIDATION,
                 )
             )
-            accepted_count += 1
+            candidate_count += 1
 
     status = (
         OnboardingValidationStatus.VALID
         if not any(issue.severity.value == "ERROR" for issue in issues)
         else OnboardingValidationStatus.INVALID
     )
-    if status is OnboardingValidationStatus.VALID:
-        source = source.model_copy(update={"validation_status": QualityStatus.VALID})
     content_manifest_hash = compute_content_manifest_hash(
         sources=(source,),
         observations=tuple(observations),
@@ -384,7 +476,7 @@ def normalize_csv_dataset(
         status=status,
         issues=tuple(issues),
         row_count=staged.row_count,
-        accepted_observation_count=accepted_count,
+        candidate_observation_count=candidate_count,
         missing_observation_count=missing_count,
         rejected_row_count=len(rejected_rows),
     )

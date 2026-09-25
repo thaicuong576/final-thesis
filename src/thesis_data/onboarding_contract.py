@@ -242,7 +242,12 @@ class OnboardingValidationIssue(BaseModel):
 
 
 class OnboardingValidationReport(BaseModel):
-    """Deterministic publication decision for one candidate snapshot."""
+    """Deterministic structural validation result for one candidate snapshot.
+
+    A VALID report means the candidate is structurally well-formed. It does not
+    mean its values have been reconciled to primary sources or accepted for
+    analysis.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -252,7 +257,7 @@ class OnboardingValidationReport(BaseModel):
     status: OnboardingValidationStatus
     issues: tuple[OnboardingValidationIssue, ...] = Field(default_factory=tuple)
     row_count: int = Field(ge=0)
-    accepted_observation_count: int = Field(ge=0)
+    candidate_observation_count: int = Field(ge=0)
     missing_observation_count: int = Field(ge=0)
     rejected_row_count: int = Field(ge=0)
 
@@ -417,6 +422,7 @@ def _manifest_observation_items(values: Sequence[Any]) -> list[dict[str, Any]]:
                 "dataset_snapshot_id",
                 "observation_id",
                 "input_observation_ids",
+                "calculation_receipt",
             },
         )
         if isinstance(value, BaseModel):
@@ -435,6 +441,20 @@ def _manifest_observation_items(values: Sequence[Any]) -> list[dict[str, Any]]:
         lineage_refs = tuple(
             str(ref).strip() for ref in raw.get("input_observation_ids", ())
         )
+        receipt = raw.get("calculation_receipt")
+        if receipt is not None:
+            normalized_receipt = dict(receipt)
+            normalized_inputs = []
+            for input_receipt in receipt.get("ordered_inputs", ()):
+                stable_input = dict(input_receipt)
+                # Observation IDs contain the final snapshot ID. The same
+                # receipt is hashed before and after final binding, so the
+                # formula-ordered input facts are stable while the separate
+                # input_observation_content field binds them to this manifest.
+                stable_input.pop("observation_id", None)
+                normalized_inputs.append(stable_input)
+            normalized_receipt["ordered_inputs"] = normalized_inputs
+            item["calculation_receipt"] = normalized_receipt
         base_items.append((item, lineage_refs))
 
     items: list[dict[str, Any]] = []
@@ -584,8 +604,10 @@ def promote_snapshot_metadata(
     raw_descriptor: RawDatasetDescriptor,
     metadata: DatasetSnapshotMetadata,
     validation_report: OnboardingValidationReport,
+    *,
+    source_reconciled: bool = False,
 ) -> DatasetSnapshotMetadata:
-    """Promote candidate metadata only with a matching VALID report."""
+    """Promote metadata after structural validation and source reconciliation."""
 
     validate_snapshot_metadata(raw_descriptor, metadata)
     if metadata.status is not DatasetSnapshotStatus.CANDIDATE:
@@ -596,6 +618,10 @@ def promote_snapshot_metadata(
         raise ValueError("validation report snapshot ID does not match snapshot metadata")
     if validation_report.status is not OnboardingValidationStatus.VALID:
         raise ValueError("only a VALID onboarding report can promote a snapshot")
+    if not source_reconciled:
+        raise ValueError(
+            "structural validation alone cannot accept a snapshot; source reconciliation is required"
+        )
     return metadata.model_copy(update={"status": DatasetSnapshotStatus.ACCEPTED})
 
 
@@ -619,30 +645,41 @@ def validate_snapshot_metadata(
 
 
 def demo_metric_registry() -> MetricRegistry:
-    """Return a small definition registry, not a claim of dataset availability."""
+    """Return the bank metric IDs used by the metric dictionary.
+
+    This registry validates candidate mappings only; it does not claim that
+    any dataset contains accepted observations.
+    """
 
     return MetricRegistry(
         definitions=(
             MetricDefinition(
-                metric_id="company.roa",
+                metric_id="bank.roa",
                 display_name="Return on assets",
                 analytical_level=AnalyticalLevel.COMPANY,
                 default_unit="percent",
                 description="Profitability relative to company assets.",
             ),
             MetricDefinition(
-                metric_id="company.roe",
+                metric_id="bank.roe",
                 display_name="Return on equity",
                 analytical_level=AnalyticalLevel.COMPANY,
                 default_unit="percent",
                 description="Profitability relative to company equity.",
             ),
             MetricDefinition(
-                metric_id="company.npl",
-                display_name="Non-performing loan ratio",
+                metric_id="bank.npl_g35",
+                display_name="Share of loans in groups 3–5",
                 analytical_level=AnalyticalLevel.COMPANY,
                 default_unit="percent",
-                description="Non-performing loans relative to the defined loan base.",
+                description="Group 3–5 loans relative to gross customer loans.",
+            ),
+            MetricDefinition(
+                metric_id="bank.llr_coverage",
+                display_name="Provision coverage of group 3–5 NPL",
+                analytical_level=AnalyticalLevel.COMPANY,
+                default_unit="percent",
+                description="Loan loss provisions relative to group 3–5 NPL balance.",
             ),
             MetricDefinition(
                 metric_id="sector.credit_growth",

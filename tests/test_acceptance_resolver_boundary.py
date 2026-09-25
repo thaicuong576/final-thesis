@@ -21,6 +21,8 @@ from thesis_data.dataset_contract import (
     DatasetPeriod,
     DatasetRef,
     DatasetSource,
+    ObservationEvidenceRef,
+    ObservationReview,
     PeerUniverse,
     canonical_observation_id,
 )
@@ -33,7 +35,7 @@ from thesis_data.onboarding_contract import (
     FieldMetricMapping,
     demo_metric_registry,
 )
-from thesis_data.onboarding_validation import normalize_csv_dataset
+from thesis_data.onboarding_validation import normalize_csv_dataset, reconcile_candidate_observations
 from thesis_data.schema import ClaimDataRef, QualityStatus
 from thesis_data.storage import create_gold_snapshot_schema
 
@@ -563,7 +565,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             metric_mappings=(
                 FieldMetricMapping(
                     raw_field="ROA (%)",
-                    metric_id="company.roa",
+                    metric_id="bank.roa",
                     unit="percent",
                     analytical_level="company",
                 ),
@@ -607,14 +609,52 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
         )
         candidate = replace(
             result.candidate,
-            additional_sources=(document_source,),
             documents=(document,),
             evidence=(evidence,),
+        )
+        reviewed = reconcile_candidate_observations(
+            candidate,
+            primary_sources=(document_source,),
+            reviews={
+                canonical_observation_id(
+                    candidate.metadata.dataset_snapshot_id,
+                    "BANK-X",
+                    "2024_Q4",
+                    "bank.roa",
+                ): ObservationReview(
+                    reviewer_id="fixture-reviewer",
+                    reviewed_at="2026-09-11T00:00:00+00:00",
+                    decision="matched_reported_value",
+                    primary_evidence=(
+                        ObservationEvidenceRef(
+                            source_ref=document_source.source_ref,
+                            locator="page:1; section:profitability; row:ROA",
+                        ),
+                    ),
+                    resolution_note="Fixture observation manually reconciled to the filing.",
+                )
+            },
+            period_bases={
+                canonical_observation_id(
+                    candidate.metadata.dataset_snapshot_id,
+                    "BANK-X",
+                    "2024_Q4",
+                    "bank.roa",
+                ): "ttm"
+            },
+            reporting_scopes={
+                canonical_observation_id(
+                    candidate.metadata.dataset_snapshot_id,
+                    "BANK-X",
+                    "2024_Q4",
+                    "bank.roa",
+                ): "consolidated"
+            },
         )
         db_path = root / "canonical.sqlite"
         accepted = materialize_canonical_snapshot(
             db_path,
-            candidate,
+            reviewed,
             staged.raw_descriptor,
             result.validation_report,
         )
@@ -622,7 +662,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             accepted.dataset_snapshot_id,
             "BANK-X",
             "2024_Q4",
-            "company.roa",
+            "bank.roa",
         )
         return db_path, DatasetRef(
             dataset_id="canonical-dataset",
@@ -636,7 +676,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             resolver = ProviderStage1DatasetResolver(provider, ref)
 
             observation = resolver.resolve_observation_ref(
-                self._ref(observation_id, "observation", "BANK-X", "company.roa")
+                self._ref(observation_id, "observation", "BANK-X", "bank.roa")
             )
             evidence = resolver.resolve_evidence("evidence-canonical-company")
             source = resolver.resolve_source("document-source:filing-1")

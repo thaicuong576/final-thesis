@@ -315,28 +315,105 @@ for WAL, and verified not to share file identity. Test configuration remains
 responsible for using temp databases, but an accidental default path can now
 damage only the disposable worktree snapshot rather than the root artifact.
 
-## [LESSON-015] Validate derived arithmetic at snapshot promotion
+## [LESSON-014] Keep Artifact Byte Identity Beside the Strict Onboarding Packet
+
+- **Date:** 2026-09-24
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `data/onboarding/`
+- **Status:** `ACTIVE` -> Included in the provider-neutral packet loader.
+
+### 1. Context & Symptom
+The bank onboarding packet contract records the source URL, exact SHA-256, and
+relative artifact reference, but does not include a byte-length field. The
+official annual report is a scanned PDF without a selectable text layer, so
+page-aware source review also needs a verified immutable artifact and explicit
+page metadata.
+
+### 2. Root Cause
+The exchange packet schema is intentionally strict and rejects undeclared
+source fields. Adding `byte_length` directly to a packet would violate its
+contract even though byte count is part of the data readiness audit.
+
+### 3. Workaround & Permanent Solution
+1. Keep byte length, URL, SHA-256, page count, and scan status in a strict
+   sidecar source manifest; verify all of them against the packet and bytes
+   before constructing a canonical candidate.
+2. Manually reconcile scanned statement values from rendered pages and retain
+   both physical and printed page numbers. OCR/parser output remains a search
+   aid and cannot mark a value valid.
+
+## [LESSON-015] Keep Derived Source Lineage on Accepted Inputs
 
 - **Date:** 2026-09-25
-- **Scope:** new-bank operational snapshot acceptance
-- **Status:** contract accepted in D-071; implementation and E2E test pending.
+- **Scope:** `src/thesis_data/bank_onboarding.py`, `src/thesis_data/canonical_snapshot.py`
+- **Status:** `ACTIVE`
 
-An accepted observation label plus input IDs does not prove that a supplied
-derived value was actually calculated from those inputs. The current canonical
-snapshot validator checks input existence, and Stage-1 can check claim/value,
-formula version and source lineage, but neither recalculates the ratio. A
-formula unit test also does not prove the onboarding path called that formula.
+### 1. Context & Symptom
+Stage1 correctly requires a derived observation to have a null direct
+`source_ref` and to retain its formula and input observation IDs. Bank packet
+conversion was copying the reviewed filing source onto every row, and canonical
+snapshot validation required that direct source even for derived values.
 
-Before promoting a new-bank derived candidate, call the versioned deterministic
-formula on accepted inputs, verify unit/period/scope and numeric tolerance, and
-record a calculation receipt. Keep this gate in the data promotion boundary;
-Stage-1 then checks the published claim against the accepted result. Until that
-path passes, a CTG packet is a reviewed candidate, not proof of a generic
-derived-metric ingestion guarantee.
+### 2. Root Cause
+The generic packet mapper and materializer applied direct-observation source
+rules before distinguishing reported values from reproducible derived values.
+
+### 3. Permanent Solution
+1. Map direct source and locator from the accepted review evidence.
+2. Map valid derived observations with a null `source_ref`, their reviewed
+   locator, formula version, and input IDs.
+3. Materialization validates primary review evidence and valid numeric inputs
+   for derived observations while keeping direct-source requirements for
+   reported observations.
 
 ---
 
-## [LESSON-016] A correct ignored artifact can still conflict with project truth
+## [LESSON-016] Recompute Derived Values Before Operational Acceptance
+
+- **Date:** 2026-09-25
+- **Scope:** `src/thesis_data/metrics.py`, `src/thesis_data/canonical_snapshot.py`,
+  `src/thesis_data/canonical_sqlite_provider.py`
+- **Status:** contract accepted in D-071; implementation included in the CTG onboarding change; integrated verification pending.
+
+### 1. Context & Symptom
+An accepted observation label plus input IDs does not prove that a supplied
+derived value was actually calculated from those inputs. An onboarding
+candidate could have a structurally valid CSV, reviewed primary-source
+locators, formula names, and input IDs while still containing a derived number
+that the operational promotion path had never recomputed. Source review alone
+did not prove the submitted arithmetic, and a formula unit test does not prove
+the onboarding path called that formula.
+
+### 2. Root Cause
+Candidate validation checked that the formula and input references existed, but
+did not run the deterministic formula code or preserve a receipt of that run.
+The canonical snapshot validator checks input existence and Stage-1 checks the
+claim/value, formula version, and source lineage, but neither substitutes for
+recalculation at promotion.
+
+### 3. Permanent Solution
+1. Before promoting a new-bank derived candidate, register explicit
+   metric/formula versions with ordered input metric, unit,
+   period-basis, output, period-rule, and tolerance contracts. Promotion must
+   resolve each accepted input ID and recompute through the registered metric
+   function; unsupported formulas or mismatches fail closed.
+2. Verify unit, period, scope, and numeric tolerance, then persist a
+   machine-readable calculation receipt on each accepted derived
+   observation. Include input identities and values, formula version, both
+   outputs, tolerance, and result so providers can expose the same provenance.
+3. The CTG Q4 packet's rounded ratios are accepted only within explicit
+   tolerance: NPL candidate 1.219 vs 1.218950000795433229958915168 (difference
+   0.000049999204566770041084832, tolerance 0.00005), and LLR candidate 174.6762
+   vs 174.6761886399215389098888044 (difference
+   0.0000113600784610901111956, tolerance 0.00005). Exact amount formulas and
+   the four-decimal ROA/ROE formulas reproduce exactly.
+
+Keep this gate in the data-promotion boundary; Stage-1 checks the published
+claim against the accepted result. A reviewed CTG packet before this path passes
+is not proof of a generic derived-metric ingestion guarantee.
+
+---
+
+## [LESSON-017] A correct ignored artifact can still conflict with project truth
 
 - **Date:** 2026-09-25
 - **Scope:** VPB ROE comparative eligibility and Gold v5 provenance

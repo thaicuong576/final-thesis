@@ -39,7 +39,7 @@ Rules:
   to the filing's exact page, table, or note.
 - Failed retrievals remain in manifests but cannot produce valid observations.
 
-## Onboarding packet and acceptance boundary
+## Outside-Gold onboarding packet and acceptance boundary
 
 `contracts/bank-onboarding-packet-v1.schema.json` describes the exchange packet
 for a bank outside the current Gold sample. It is an input contract, not a new
@@ -74,6 +74,29 @@ reviewed operational snapshot without joining the frozen five-bank Gold v5
 benchmark. The app must label each snapshot's validation level and supported
 entities, periods, and metrics accurately.
 
+Structural validation only creates a candidate. A valid technical report does
+not accept its values for analysis. Numeric CSV observations and their
+`user_supplied` source stay `pending_validation` until each observation has a
+recorded reviewer decision that resolves to primary filing evidence and an
+exact page, table, or note locator.
+
+The application `CanonicalObservation` carries `source_locator`,
+`period_basis`, and `reporting_scope` as first-class fields, plus structured
+review evidence. Accepted direct observations require a valid reviewed primary
+source and locator. Accepted derived observations keep `source_ref=null`; their
+source trail runs through the formula version and accepted input observation
+IDs, while the reviewed locator records the filing evidence used to reproduce
+the value. Every derived input must itself have valid source or derivation
+provenance. Canonical SQLite schema v3 persists these fields without changing
+Gold v5 physical data; fields absent from an older Gold snapshot, such as
+company `reporting_scope`, remain null at the provider boundary.
+
+Bank ratio mappings use the `bank.*` IDs in `docs/METRIC-DICTIONARY.md`.
+Source-backed formula primitives may use `bank.input.*` IDs, which are exposed
+for lineage and evidence checks. An accepted operational snapshot outside Gold
+does not become benchmark Gold unless it separately passes the Gold coverage,
+label, and independent-checker gates.
+
 An OCR/parser output follows the same candidate route. Text, tables, or chart
 descriptions from a scanned PDF cannot bypass source reconciliation, and page
 order/locator must survive parsing. Unsupported charts or ambiguous numbers
@@ -99,7 +122,11 @@ reason: string | null
 
 Rules:
 
-- Numeric/valid values must include unit, period, source ID, and period basis.
+- Numeric/valid direct values must include unit, period, source ID, source
+  locator, and period basis. Numeric/valid derived values must include unit,
+  period, source locator, period basis, formula version, and accepted input
+  observation IDs; their direct source ID is null and provenance resolves
+  through their inputs.
 - `value=null` is required for missing or zero-denominator results and must include a reason.
 - A reasoned `missing` observation may omit source ID, unit, period basis, and
   locator because no source was found; it must remain excluded from valid-only
@@ -113,6 +140,9 @@ Rules:
   must be reported explicitly by ticker, metric, and period; missing-data
   behavior is evaluated as a separate outcome.
 - A source locator is required for every valid observation; a page/section locator is required for paginated evidence.
+- A valid direct observation's source ID and locator must match its reviewed
+  primary evidence. A valid derived observation's locator must match reviewed
+  primary evidence, and every input must resolve to a valid numeric observation.
 - Conflicting values are retained as separate observations until reconciled.
 
 ## DerivedMetric

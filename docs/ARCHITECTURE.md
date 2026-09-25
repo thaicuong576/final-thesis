@@ -18,8 +18,9 @@ The system separates deterministic financial computation from qualitative retrie
 `POST /api/analyze` and `/api/analyze/stream` share an adaptive runtime. The
 request resolves against the accepted capability catalog and freezes a typed
 plan before specialist retrieval. Company-only requests invoke Company; peer
-requests invoke Company and Sector. Unsupported macro or multi-period scope
-fails before specialist work. Missing semantic-provider configuration also
+requests invoke Company and Sector. Macro runs only when the accepted provider
+declares the requested capability and observations; the current Gold sample
+has none. Unsupported macro or multi-period scope fails before specialist work. Missing semantic-provider configuration also
 blocks before retrieval.
 
 Company claims preserve accepted observation, source and metric-specific

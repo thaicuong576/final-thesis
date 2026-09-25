@@ -145,7 +145,9 @@ They synthesize provider-backed claims, run Stage-1, then the configured
 semantic critic with at most two targeted revision rounds. Every revised
 candidate passes Stage-1 again. Tests use explicit offline critics; they do not
 establish live provider readiness. Missing semantic configuration blocks before
-specialist retrieval. Macro and multi-period requests remain unsupported.
+specialist retrieval. Multi-period requests remain unsupported. Macro runs only
+when the accepted provider declares the requested capability/observations;
+the current Gold case study has no accepted macro data.
 T04/T05/T08 remain ineligible for final evaluation.
 
 Peer identity and claim scope use the requested member set; the numeric

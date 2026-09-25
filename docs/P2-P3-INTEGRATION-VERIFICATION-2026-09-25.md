@@ -22,7 +22,7 @@ Status: under independent review; final experiment and deployment gates remain o
 | Provenance | Requested peer identity, eligible numeric inputs, locators and authority remain explicit. |
 | Snapshot traceability | Exact dataset/snapshot/hash authority; no silent fallback. |
 | Analyst value | Company/peer scope, truthful missingness and reviewable correction are the intended deliverables. |
-| Scope restraint | Macro, unrestricted PDF ingestion and whole-sector generalization remain outside this slice. |
+| Scope restraint | No macro data promotion, unrestricted PDF ingestion or whole-sector generalization. Macro activation requires accepted provider-declared capability. |
 
 ## Verified data inputs
 

@@ -3,7 +3,7 @@
   "info": {
     "title": "Hierarchical Financial Multi-Agent Analysis API",
     "version": "1.2.0",
-    "description": "Reference API for analysis of Vietnamese listed banks. The current runtime supports single-period company and peer requests with provider-backed claims, deterministic acceptance and bounded semantic review. Macro and multi-period requests remain unsupported."
+    "description": "Reference API for analysis of Vietnamese listed banks. The runtime supports single-period provider-backed analysis, deterministic acceptance and bounded semantic review. Macro is activated only when the accepted provider declares the requested capability and observations; the current Gold case study has no accepted macro data. Multi-period requests remain unsupported."
   },
   "paths": {
     "/api/health": {
@@ -73,7 +73,7 @@
     "/api/analyze": {
       "post": {
         "summary": "Submit analysis query (synchronous)",
-        "description": "Freezes a query-derived plan before retrieval, invokes only required Company/Sector capabilities, synthesizes canonical claims, runs Stage-1, then configured semantic critique and at most two targeted revision rounds. Unsupported scope or unavailable configuration fails closed. Offline tests do not establish live provider readiness.",
+        "description": "Freezes a query-derived plan before retrieval, invokes only required provider-declared capabilities, synthesizes canonical claims, runs Stage-1, then configured semantic critique and at most two targeted revision rounds. Unsupported scope or unavailable configuration fails closed. Offline tests do not establish live provider readiness.",
         "requestBody": {
           "required": true,
           "content": {
@@ -148,7 +148,7 @@
           "query": {
             "type": "string",
             "description": "Natural language analytical question in Vietnamese or English",
-            "example": "Phan tich ROE va chat luong tai san (NPL) cua ACB va TCB nam 2024"
+            "example": "Phân tích ACB tại 2024_Q4 dựa trên ROE và NPL."
           },
           "target_ticker": {
             "type": "string",
@@ -169,8 +169,20 @@
           "period": {
             "type": "string",
             "description": "One supported snapshot period (for example 2024_Q4). Compact or expanded multi-period ranges fail with multi_period_unsupported; historical trend runners do not imply support in this API.",
-            "example": "2024"
+            "example": "2024_Q4"
           }
+        },
+        "example": {
+          "query": "So sánh ROE và NPL của ACB với MBB, TCB, VCB và VPB tại 2024_Q4.",
+          "target_ticker": "ACB",
+          "peer_tickers": [
+            "ACB",
+            "MBB",
+            "TCB",
+            "VCB",
+            "VPB"
+          ],
+          "period": "2024_Q4"
         }
       },
       "AnalysisPlan": {
@@ -206,7 +218,7 @@
           },
           "period": {
             "type": "string",
-            "example": "2024"
+            "example": "2024_Q4"
           },
           "required_capabilities": {
             "type": "array",

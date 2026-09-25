@@ -1310,8 +1310,10 @@ verified scope are required; all-missing remains `all_values_missing`.
 The reference API freezes the plan before retrieval and supports one-period
 Company/Sector execution through synthesis, Stage-1, semantic critique and at
 most two targeted revisions. Every revision is re-synthesized and rechecked.
-Missing semantic configuration and unsupported macro/multi-period scope block
-before specialist retrieval. Offline critic tests do not count as live model
+Missing semantic configuration and unsupported scope block before specialist
+retrieval. Macro is conditional on accepted provider-declared capability and
+observations; the current Gold sample has no accepted macro data. Multi-period
+requests remain unsupported. Offline critic tests do not count as live model
 validation. T04/T05/T08 remain ineligible and no final A/B/C result is created.
 
 Candidate evaluation text controls use canonical LF UTF-8 hashing, preserving

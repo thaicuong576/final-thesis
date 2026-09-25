@@ -126,7 +126,7 @@ Specialist Outputs → Synthesis → AtomicClaim[] → Stage-1 → Semantic Crit
 - Frontend chỉ truyền request intent và hiển thị run state, evidence, claims và reports. Toàn bộ logic về applicability, planning, claim generation, acceptance và revision nằm ở backend/core.
 
 ### 7.2. Ranh giới Lưu trữ (Persistence Boundary)
-- Tách biệt hoàn toàn giữa **Application Persistence** (lưu phân tích, sự kiện, report metadata, trạng thái phiên làm việc trong Supabase/PostgreSQL) và **Canonical Analytical Data** (dữ liệu tài chính chuẩn tắc).
+- Tách biệt hoàn toàn giữa **Application Persistence** (lưu phân tích, sự kiện, report metadata, trạng thái phiên làm việc; SQLite là adapter tham chiếu hiện tại, Supabase/PostgreSQL là adapter triển khai có thể thay thế) và **Canonical Analytical Data** (dữ liệu tài chính chuẩn tắc).
 - Core không gọi SDK Supabase trực tiếp khắp nơi mà đi qua Repository / Provider Interfaces rõ ràng.
 
 ---
@@ -156,8 +156,9 @@ theo D-073; core vẫn chỉ nhận dữ liệu qua provider. Metadata nhóm yê
 nhóm có dữ liệu hợp lệ được giữ riêng để giải thích mẫu số.
 
 Các test offline xác minh luồng điều phối; chưa chứng minh chất lượng phân tích
-của model thật hoặc khả năng dùng ứng dụng đã triển khai. Multi-period và macro
-chưa được hỗ trợ trên API này. Bộ câu hỏi cuối vẫn pre-freeze. Quy trình CI
+của model thật hoặc khả năng dùng ứng dụng đã triển khai. Multi-period chưa
+được hỗ trợ. Macro chỉ chạy khi provider khai báo capability và dữ liệu được
+chấp nhận tương ứng; mẫu Gold hiện tại chưa có dữ liệu macro đạt cổng. Bộ câu hỏi cuối vẫn pre-freeze. Quy trình CI
 Python kiểm contract và suite trong checkout; bằng chứng ignored có gate riêng.
 
 Application run history uses contracts/run-store-schema.sql on its separate ANALYSIS_RUNS_DB_PATH. contracts/schema.sql remains the analytical schema contract; accepted snapshots are never initialized or migrated for run history.

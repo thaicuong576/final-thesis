@@ -14,7 +14,8 @@
     "path": "data/evaluation/p4-questions-v1.jsonl",
     "encoding": "UTF-8",
     "newline": "LF",
-    "sha256_raw_file_bytes": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+    "hash_mode": "canonical_lf_utf8_sha256",
+    "canonical_lf_utf8_sha256": "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
     "question_sha256": "SHA-256 of each exact question_text encoded as UTF-8",
     "status": "immutable_candidate_questions"
   },

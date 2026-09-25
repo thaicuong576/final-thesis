@@ -61,7 +61,7 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def verify_candidate_question_bindings(repository_root: Path) -> dict[str, Any]:
-    """Check exact question bytes, task eligibility, and linked manifest hashes."""
+    """Check canonical question text, task eligibility, and linked manifest hashes."""
 
     repository_root = Path(repository_root).resolve()
     audit = _read_json(repository_root / AUDIT_REL)
@@ -72,15 +72,21 @@ def verify_candidate_question_bindings(repository_root: Path) -> dict[str, Any]:
     coverage_bytes = (repository_root / COVERAGE_REL).read_bytes()
     evaluation_inputs = audit.get("evaluation_inputs", {})
 
-    question_hash = _sha256(question_bytes)
+    question_hash = _canonical_sha256(question_bytes)
     specs_hash = _canonical_sha256(specs_bytes)
     coverage_hash = _canonical_sha256(coverage_bytes)
+    if (
+        evaluation_inputs.get("question_set_hash_mode") != "canonical_lf_utf8_sha256"
+        or specs.get("question_set", {}).get("hash_mode") != "canonical_lf_utf8_sha256"
+        or coverage.get("question_set_hash_mode") != "canonical_lf_utf8_sha256"
+    ):
+        _fail("question set hash mode must be canonical_lf_utf8_sha256")
     expected_hashes = (
-        (evaluation_inputs.get("question_set_sha256_raw_file_bytes"), question_hash, "question set"),
+        (evaluation_inputs.get("question_set_canonical_lf_utf8_sha256"), question_hash, "question set"),
         (evaluation_inputs.get("task_specs_canonical_lf_utf8_sha256"), specs_hash, "task specs"),
         (evaluation_inputs.get("expected_coverage_canonical_lf_utf8_sha256"), coverage_hash, "expected coverage"),
-        (specs.get("question_set", {}).get("sha256_raw_file_bytes"), question_hash, "task question reference"),
-        (coverage.get("question_set_sha256_raw_file_bytes"), question_hash, "coverage question reference"),
+        (specs.get("question_set", {}).get("canonical_lf_utf8_sha256"), question_hash, "task question reference"),
+        (coverage.get("question_set_canonical_lf_utf8_sha256"), question_hash, "coverage question reference"),
         (coverage.get("task_specs_canonical_lf_utf8_sha256"), specs_hash, "coverage task-spec reference"),
     )
     for expected, actual, label in expected_hashes:
@@ -179,7 +185,7 @@ def verify_candidate_question_bindings(repository_root: Path) -> dict[str, Any]:
         _fail("audit task eligibility map differs from task specs")
 
     return {
-        "question_set_raw_sha256": question_hash,
+        "question_set_canonical_lf_utf8_sha256": question_hash,
         "task_specs_canonical_lf_utf8_sha256": specs_hash,
         "expected_coverage_canonical_lf_utf8_sha256": coverage_hash,
         "task_count": len(question_rows),

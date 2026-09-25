@@ -6,6 +6,7 @@ import unittest
 
 from scripts.verify_p4_evaluation_inputs import (
     VerificationError,
+    _canonical_bytes,
     peer_probe_record,
     verify_candidate_question_bindings,
     verify_peer_probe_records,
@@ -22,8 +23,51 @@ class P4EvaluationVerifierTests(unittest.TestCase):
         report = verify_candidate_question_bindings(ROOT)
 
         self.assertEqual(report["task_count"], 10)
+        self.assertEqual(
+            report["question_set_canonical_lf_utf8_sha256"],
+            "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+        )
         self.assertFalse(report["final_protocol_freeze_ready"])
         self.assertFalse(report["scoring_eligible_now"])
+
+    def test_lf_and_crlf_control_checkouts_verify_identically(self):
+        relative_paths = (
+            "data/evaluation/gold-v5-peer-input-audit-v1.json",
+            "data/evaluation/p4-questions-v1.jsonl",
+            "data/evaluation/p4-task-specs-v1.json",
+            "data/evaluation/p4-expected-coverage-v1.json",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            temp_root = Path(directory)
+            lf_root = temp_root / "lf"
+            crlf_root = temp_root / "crlf"
+            for root in (lf_root, crlf_root):
+                for relative in relative_paths:
+                    target = root / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(ROOT / relative, target)
+
+            for relative in relative_paths:
+                crlf_path = crlf_root / relative
+                file_bytes = crlf_path.read_bytes()
+                lf_bytes = file_bytes.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+                crlf_path.write_bytes(lf_bytes.replace(b"\n", b"\r\n"))
+
+            lf_report = verify_candidate_question_bindings(lf_root)
+            crlf_report = verify_candidate_question_bindings(crlf_root)
+
+        self.assertEqual(lf_report, crlf_report)
+        self.assertEqual(
+            crlf_report["question_set_canonical_lf_utf8_sha256"],
+            "c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09",
+        )
+
+    def test_canonical_question_bytes_preserve_bom_codepoints_whitespace_and_final_newline(self):
+        bom = b"\xef\xbb\xbf"
+        raw = bom + '  {"word":"Tiếng Việt"}  \r\n\t{"last":true}  \r'.encode("utf-8")
+        expected = bom + '  {"word":"Tiếng Việt"}  \n\t{"last":true}  \n'.encode("utf-8")
+
+        self.assertEqual(_canonical_bytes(raw), expected)
 
     def test_candidate_verifier_rejects_coverage_hash_drift(self):
         with tempfile.TemporaryDirectory() as directory:

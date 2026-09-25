@@ -2,10 +2,18 @@
   "manifest_id": "vpb-roe-parent-equity-authority-20260925",
   "status": "reconciliation_pending",
   "created_at": "2026-09-25T06:20:00+07:00",
-  "decision_refs": ["D-063", "D-072"],
+  "decision_refs": [
+    "D-063",
+    "D-072"
+  ],
   "scope": {
     "entity_id": "VPB",
-    "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+    "periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
     "metric_id": "bank.roe",
     "reporting_scope": "consolidated",
     "equity_convention": "parent_attributable_equity"
@@ -69,10 +77,22 @@
     }
   ],
   "accepted_results": [
-    {"period": "2024_Q1", "roe_percent_4dp": 8.0671},
-    {"period": "2024_Q2", "roe_percent_4dp": 8.5867},
-    {"period": "2024_Q3", "roe_percent_4dp": 9.6445},
-    {"period": "2024_Q4", "roe_percent_4dp": 11.4117}
+    {
+      "period": "2024_Q1",
+      "roe_percent_4dp": 8.0671
+    },
+    {
+      "period": "2024_Q2",
+      "roe_percent_4dp": 8.5867
+    },
+    {
+      "period": "2024_Q3",
+      "roe_percent_4dp": 9.6445
+    },
+    {
+      "period": "2024_Q4",
+      "roe_percent_4dp": 11.4117
+    }
   ],
   "q4_independent_recalculation": {
     "unit": "million_vnd",
@@ -102,8 +122,83 @@
     "blockers": []
   },
   "remaining_gates": [
-    "reconcile stale D-063 factual clause and stale review README/manifest",
-    "a distinct independent reviewer confirms this manifest and gate result"
+    "a distinct independent reviewer issues the final confirmation of the updated authority manifest, status reconciliation, and hash-matched Gold v5 comparative gate result"
   ],
-  "eligibility": "blocked_until_remaining_gates_pass"
+  "eligibility": "blocked_pending_distinct_final_confirmation",
+  "record_update_status": "stale_review_status_records_reconciled_pending_distinct_final_confirmation",
+  "review_status_record_reconciliation": {
+    "updated_on": "2026-09-25",
+    "superseded_records": [
+      {
+        "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md",
+        "sha256": "5D85C74ABA6B41A97A2F2D1A2AFFE1E251D1B8E1E46B7D62AB842FAE02BF2496",
+        "observed_status": "candidate_pending_fresh_review"
+      },
+      {
+        "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v1.json",
+        "sha256": "24BF42B3D19B2EEE264BCBB03827585755096AA278795B95EB00EC825267A0B2",
+        "observed_status": "candidate_pending_fresh_review"
+      }
+    ],
+    "current_records": [
+      {
+        "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md",
+        "status": "two_checkers_and_adjudication_accepted; distinct_authority_confirmation_pending"
+      },
+      {
+        "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json",
+        "status": "two_checkers_and_adjudication_accepted; distinct_authority_confirmation_pending"
+      },
+      {
+        "artifact_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json",
+        "status": "promotion_register_status_blank_preserved; adjudicated_status_linked; final_confirmation_pending"
+      }
+    ],
+    "adjudicated_review_ledger_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_review-ledger-adjudicated-v1.csv",
+    "adjudicated_review_ledger_sha256": "05005D49BB917802A06E992DCCE9E34C7809CEB26F9E63147A1EFBC9EEB5A8FA",
+    "gold_v5_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "gold_v5_sqlite_ref": "data/processed/gold-bank-2025-expanded-v5-evidence.sqlite",
+    "gold_v5_sqlite_sha256": "1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73",
+    "gold_v5_labels_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_gold-labels-v5.jsonl",
+    "gold_v5_labels_sha256": "C264CB6680C67B3FEBD33AF41ED8FCFB29A9FD5A771E2F3F954E816E690D7846",
+    "comparative_gate_manifest_ref": "data/manifests/gold-bank-2025-expansion-v5/comparative-definition-gate-v2.json",
+    "comparative_gate_manifest_sha256": "4DE186FE9A31AEE6467A153A546044D0E70142770B3F1C5817D62D97D5341410",
+    "comparative_gate_result": {
+      "eligible": true,
+      "blockers": [],
+      "cells_checked": 80,
+      "valid_cells": 76,
+      "missing_cells": 4
+    }
+  },
+  "promotion_ledger_status_gap": {
+    "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/official-review-v1/official_expansion_review-ledger-promotion-v4.csv",
+    "sha256": "4A27D58CFD9FF476946A50BCBF26CA1E5F4E2FEC596CF4ED5C32D39F6978263D",
+    "field": "register_review_status",
+    "targets": {
+      "VPB:2024_Q1:bank.roe": "",
+      "VPB:2024_Q2:bank.roe": "",
+      "VPB:2024_Q3:bank.roe": "",
+      "VPB:2024_Q4:bank.roe": ""
+    },
+    "resolution_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json",
+    "resolution_status": "blank_original_values_preserved; accepted_status sourced from adjudicated ledger; no new review claimed"
+  },
+  "control_artifacts": [
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/README.md",
+      "sha256": "9E1D5A8E1FCB0B0678E2399449171453539E9D410F503FBBF9D9DE19A9708283",
+      "availability": "repository_bound"
+    },
+    {
+      "artifact_ref": "data/reconciliation/gold-bank-2025-expansion-v3/VPB-parent-roe-review-v1/VPB_parent_roe_manifest-v2.json",
+      "sha256": "1078E659064825A564F50226DF52BC3844F7713B02310FB79953BD2C736B8B26",
+      "availability": "repository_bound"
+    },
+    {
+      "artifact_ref": "reports/data-foundation/vpb-roe-promotion-review-status-reconciliation-20260925.json",
+      "sha256": "FE9AA784CA79C3D1A9F9C9E46C4891B708916C718EDDF6EC32C8C5A859F2A2EC",
+      "availability": "repository_bound"
+    }
+  ]
 }

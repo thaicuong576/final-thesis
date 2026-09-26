@@ -607,3 +607,20 @@ under an explicit evidence root. Keep per-observation locator, period basis,
 reporting scope and review evidence attached to accepted values. Add negative
 tests for unknown source types, malformed or mismatched hashes, document/source
 hash splits, and directly constructed candidates that bypass byte verification.
+
+## [LESSON-029] Historical deployment checks must be labeled
+
+- Date: 2026-09-27
+- Scope: `docs/DEPLOYMENT-STAGING.md`, readiness and walkthrough operations
+- Status: ACTIVE
+
+A staging guide retained a Sprint 0 Supabase `DATABASE_URL` and
+`/api/ready=200` record while current analytical readiness requires an explicit
+SQLite snapshot identity and hash; the live readiness response was `503`.
+Historical smoke tests can mislead deployment owners unless date, revision and
+scope are explicit.
+
+Permanent solution: label historical records, keep the current runtime
+contract and latest read-only response in the guide, and require the accepted
+snapshot/hash, separate run store and model configuration before walkthrough or
+scoring.

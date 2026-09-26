@@ -2,7 +2,7 @@
 
 This document establishes the staging deployment architecture, operational runbooks, and platform contracts for the **Sprint 0: Deployment Walking Skeleton**.
 
-## Current analysis configuration (2026-09-25)
+## Current analysis configuration (2026-09-27)
 
 The sections below retain the initial hosting setup. The analysis runtime also
 requires an accepted snapshot, separate history storage and model configuration:
@@ -23,6 +23,34 @@ Render readiness health-check change remain pending deployment work.
 On ephemeral hosting, provision the accepted artifact on each start and use a
 separate runtime history path. A restart may reset temporary history; disclose
 that behavior in the preview. Deployment changes require explicit approval.
+
+> [!IMPORTANT]
+> **Current readiness truth (2026-09-27):** the public API returns `503` from
+> `/api/ready` with `database=disconnected` and no accepted snapshot;
+> `/api/capabilities` returns `analysis_available=false` and
+> `limitation_code=accepted_snapshot_unavailable`. The historical Supabase
+> smoke test later in this document is not current thesis acceptance. Do not
+> send an analysis request until the accepted SQLite artifact is explicitly
+> provisioned and readiness passes.
+
+### Accepted-snapshot provisioning contract
+
+Before enabling a teacher walkthrough or a scored run, provision these
+server-side values from a reviewed artifact; never put them in `VITE_*`
+variables:
+
+| Variable | Required value | Readiness meaning |
+|---|---|---|
+| `SQLITE_DB_PATH` | Explicit path to the accepted SQLite file | Empty, missing, or default-inferred paths fail closed. |
+| `EXPECTED_DATASET_SNAPSHOT_ID` | Exact provider-reported snapshot identity | Prevents an arbitrary file from being treated as the intended dataset. |
+| `EXPECTED_SQLITE_SHA256` | 64-character raw-file SHA-256 | Binds the reviewed bytes to the runtime artifact. |
+| `ANALYSIS_RUNS_DB_PATH` | Distinct writable path | Run history must not alias or mutate the accepted snapshot. |
+| `GOLD_SCOPE_AUTHORITY_PATH` | Verified sidecar when Gold peer scope is used | Unknown reporting scope remains blocked. |
+| `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | Server-side specialist/writer/critic configuration | Necessary for runnable analysis but not proof of model quality. |
+
+The runtime must also reject SQLite WAL/journal sidecars, failed integrity
+checks, byte changes during validation, hash mismatch, provider snapshot
+mismatch and unavailable company observations.
 
 ---
 
@@ -92,7 +120,12 @@ Infrastructure & Providers
 |---|---|---|---|
 | `APP_ENV` | Yes | `staging` | Runtime environment mode (`development`, `staging`, `production`). |
 | `APP_NAME` | No | `final-thesis-api` | Identifier reported by `/api/health` and `/api/version`. |
-| `DATABASE_URL` | For readiness | `postgresql://postgres.[REF]:[PWD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require` | PostgreSQL connection string. Checked by `/api/ready`. |
+| `DATABASE_URL` | Legacy Sprint 0 connectivity only | `postgresql://postgres.[REF]:[PWD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require` | Optional Supabase adapter connection; it is not accepted analytical evidence for the current runtime. |
+| `SQLITE_DB_PATH` | Yes for analysis readiness | `/opt/render/project/src/data/accepted.sqlite` | Explicit accepted analytical snapshot opened read-only; default inference is rejected. |
+| `EXPECTED_DATASET_SNAPSHOT_ID` | Yes for analysis readiness | `snapshot-...` | Exact provider-reported snapshot identity required at startup. |
+| `EXPECTED_SQLITE_SHA256` | Yes for analysis readiness | *(64-character SHA-256)* | Raw-file hash for the reviewed accepted snapshot. |
+| `ANALYSIS_RUNS_DB_PATH` | Yes for analysis readiness | `/tmp/analysis_runs.sqlite` | Distinct writable history store; aliases with the dataset are rejected. |
+| `GOLD_SCOPE_AUTHORITY_PATH` | When Gold peer scope is used | `/opt/render/project/src/config/gold-scope-authority.json` | Explicit hash-verified reporting-scope authority sidecar. |
 | `CORS_ORIGINS` | Yes | `http://localhost:5173,https://final-thesis-frontend.vercel.app` | Comma-separated list or JSON array of allowed browser origins. |
 | `CORS_ORIGIN_REGEX` | No | `^https://.*final-thesis.*\.vercel\.app$` | Optional regex pattern for dynamic Vercel preview branch URLs. |
 | `APP_REVISION` | No | `${RENDER_GIT_COMMIT}` | Deployment Git commit SHA returned by `/api/version`. |
@@ -106,7 +139,7 @@ Infrastructure & Providers
 
 > [!CAUTION]
 > **Secret Boundary Rule**:
-> Never prefix backend secrets (`DATABASE_URL`, `OPENAI_API_KEY`, etc.) with `VITE_`. Vite bundles all `VITE_*` environment variables directly into public client-side JavaScript.
+> Never prefix backend secrets or snapshot controls (`DATABASE_URL`, `OPENAI_API_KEY`, `SQLITE_DB_PATH`, expected hashes, etc.) with `VITE_`. Vite bundles all `VITE_*` environment variables directly into public client-side JavaScript.
 
 ---
 
@@ -171,7 +204,11 @@ Render deploys the FastAPI application directly from Git using `render.yaml` or 
 - **Active Environment Variables**:
   - `PYTHONPATH`: `src`
   - `APP_ENV`: `staging`
-  - `DATABASE_URL`: `postgresql://postgres.klaukirnadifltzhqidg:[SECRET]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require`
+  - `DATABASE_URL`: legacy Supabase connectivity variable retained for Sprint 0 infrastructure only; it does not provision accepted analytical data.
+  - `SQLITE_DB_PATH`: **not provisioned in the current public staging service**; required before analysis readiness can pass.
+  - `EXPECTED_DATASET_SNAPSHOT_ID`: **not provisioned in the current public staging service**.
+  - `EXPECTED_SQLITE_SHA256`: **not provisioned in the current public staging service**.
+  - `ANALYSIS_RUNS_DB_PATH`: **not provisioned in the current public staging service**; must be distinct from the accepted snapshot.
   - `CORS_ORIGINS`: `["http://localhost:5173","https://final-thesis-frontend.vercel.app"]`
   - `CORS_ORIGIN_REGEX`: `^https://.*final-thesis.*\.vercel\.app$`
 
@@ -194,6 +231,16 @@ services:
       - key: APP_ENV
         value: staging
       - key: DATABASE_URL
+        sync: false
+      - key: SQLITE_DB_PATH
+        sync: false
+      - key: EXPECTED_DATASET_SNAPSHOT_ID
+        sync: false
+      - key: EXPECTED_SQLITE_SHA256
+        sync: false
+      - key: ANALYSIS_RUNS_DB_PATH
+        sync: false
+      - key: GOLD_SCOPE_AUTHORITY_PATH
         sync: false
       - key: CORS_ORIGINS
         sync: false
@@ -244,9 +291,10 @@ This prevents 404 errors when a user bookmarks or hard-refreshes any SPA route.
 
 ---
 
-## 7. Supabase PostgreSQL Staging Configuration
+## 7. Historical Supabase PostgreSQL Staging Adapter
 
-Supabase provides the managed PostgreSQL database instance.
+Supabase provides the historical Sprint 0 managed PostgreSQL adapter. It is
+not the accepted analytical snapshot for the current thesis runtime.
 
 ### Active Staging Database Project
 
@@ -271,11 +319,12 @@ In the Supabase Dashboard:
    ```
 5. Set this connection string in the Render service environment as `DATABASE_URL`.
 
-### Database Invariant for Sprint 0
+### Historical Database Invariant for Sprint 0
 
 - **NO domain tables created**: Table schemas (`analyses`, `reports`, `audit_events`, `embeddings`) will be created in future slices when their respective contracts are implemented.
 - **NO Gold data migration**: Raw research datasets remain local and immutable.
-- Connectivity is validated purely via `SELECT 1` through `GET /api/ready`.
+- Historical connectivity was validated purely via `SELECT 1` through
+  `GET /api/ready`; that probe does not establish accepted snapshot readiness.
 
 ---
 
@@ -304,9 +353,12 @@ Render free-tier instances spin down after 15 minutes without incoming HTTP traf
 
 ---
 
-## 9. Smoke Test Acceptance Verification
+## 9. Historical Sprint 0 Smoke Test Record
 
-Verified live against the active staging deployment:
+The following record is retained for traceability to the Sprint 0 deployment
+walking skeleton. It is tied to the historical deployment revision shown below
+and must not be presented as current analytical readiness or thesis evaluation
+evidence.
 
 ### 1. Backend Liveness Probe
 ```bash
@@ -323,7 +375,7 @@ curl -i https://final-thesis-zgwt.onrender.com/api/version
 - **Response**: `{"service": "final-thesis-api", "environment": "staging", "revision": "1bec250621a5f37796a5657279e3bb6eaba2d7aa"}`
 - **Verification**: Zero secret tokens, passwords, or connection URLs in response headers or body.
 
-### 3. Database Readiness Probe (Supabase Reachability)
+### 3. Historical Database Probe (Supabase Reachability)
 ```bash
 curl -i https://final-thesis-zgwt.onrender.com/api/ready
 ```
@@ -350,7 +402,34 @@ curl -i -X OPTIONS https://final-thesis-zgwt.onrender.com/api/health \
 
 ---
 
-## 10. Rollback Procedure
+## 10. Current Read-only Recheck (2026-09-27)
+
+No deployment settings, secrets, data files, uploads or analysis requests were
+changed or sent during this recheck.
+
+### Public API
+
+```text
+GET https://final-thesis-zgwt.onrender.com/api/ready
+HTTP 503
+{"status":"unavailable","database":"disconnected","dataset_snapshot_id":null,"detail":"No readable accepted canonical or Gold snapshot is configured."}
+
+GET https://final-thesis-zgwt.onrender.com/api/capabilities
+HTTP 200
+snapshotId=null; datasetId=null; entities=[]; periods=[]; metrics=[];
+analysis_available=false; limitation_code=accepted_snapshot_unavailable;
+database_status=disconnected; semantic_reviewer_configured=true;
+specialist_writer_configured=true; analysis_runs_store_configured=true
+```
+
+### Frontend walkthrough state
+
+The public frontend reports a disconnected data foundation with zero banks,
+metrics and periods; the analysis action is disabled; and the report library
+contains explicitly simulated/mock examples. This is a blocked walkthrough
+state until an accepted SQLite snapshot is provisioned and `/api/ready` passes.
+
+## 11. Rollback Procedure
 
 If a staging deployment exhibits fatal errors:
 1. **Frontend (Vercel)**:

@@ -577,3 +577,16 @@ an alternative executor needs an immutable canonical producer/owner field on
 `AtomicClaim`. Add that field contract-first, preserve it through revision and
 bind it into candidate hashes; do not infer ownership from overlapping plan
 requirements or import an application DTO into the reusable core.
+
+## [LESSON-025] Persist a terminal SSE event before publishing it
+
+- Date: 2026-09-26
+- Scope: analysis stream run-history persistence
+
+When `REPORT_READY` is included in persisted event history, stage it without
+queueing it to the client, persist the final run, then publish it. If
+persistence fails, remove the staged event and restore the sequence before
+emitting `RUN_BLOCKED`. A nested closure that decrements the outer sequence
+must declare `nonlocal sequence`; otherwise the failure path raises
+`UnboundLocalError` and hides the persistence reason. Cover success round-trip
+and failure event ordering through the real SSE route.

@@ -1233,7 +1233,12 @@ def stream_analysis_query(
     events: list[dict[str, Any]] = []
     pending: Queue[dict[str, Any] | None] = Queue()
 
-    def emit(event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def emit(
+        event_type: str,
+        payload: dict[str, Any],
+        *,
+        publish: bool = True,
+    ) -> dict[str, Any]:
         nonlocal sequence
         event = AnalysisSessionEventDTO(
             eventId=f"evt-{uuid.uuid4().hex}",
@@ -1245,7 +1250,8 @@ def stream_analysis_query(
         sequence += 1
         event_dict = event.model_dump(by_alias=True)
         events.append(event_dict)
-        pending.put(event_dict)
+        if publish:
+            pending.put(event_dict)
         return event_dict
 
     emit(
@@ -1263,6 +1269,7 @@ def stream_analysis_query(
     emit("PLANNING_STARTED", {"message": "Checking the request against declared snapshot capabilities."})
 
     def run() -> None:
+        nonlocal sequence
         try:
             report = engine._analyze(req, event_sink=emit)
             if report.status == "error":
@@ -1270,18 +1277,23 @@ def stream_analysis_query(
                     reason = report.limitations[0] if report.limitations else "analysis_blocked"
                     emit("RUN_BLOCKED", {"reason": reason, "reportId": report.report_id, "status": report.status})
             else:
-                try:
-                    engine.persist_run(req, report, events)
-                except Exception as exc:
-                    logger.error("Accepted SSE report could not be persisted: %s", type(exc).__name__)
-                    emit("RUN_BLOCKED", {"reason": "analysis_run_persistence_failed", "status": "error"})
-                    return
-                emit("REPORT_READY", {
+                ready_event = emit("REPORT_READY", {
                     "reportId": report.report_id,
                     "status": report.status,
                     "message": "The terminal accepted report is ready with its limitations and provenance joins.",
                     "report": report.model_dump(mode="json", exclude_none=True),
-                })
+                }, publish=False)
+                try:
+                    engine.persist_run(req, report, events)
+                except Exception as exc:
+                    logger.error("Accepted SSE report could not be persisted: %s", type(exc).__name__)
+                    # The prepared terminal event is persisted only on success
+                    # and is never exposed to the client on failure.
+                    events.pop()
+                    sequence -= 1
+                    emit("RUN_BLOCKED", {"reason": "analysis_run_persistence_failed", "status": "error"})
+                    return
+                pending.put(ready_event)
         except Exception as exc:
             logger.warning("SSE analysis failed: %s", type(exc).__name__)
             emit("RUN_BLOCKED", {"reason": "adaptive_runtime_failure", "status": "error"})

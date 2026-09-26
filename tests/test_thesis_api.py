@@ -89,6 +89,47 @@ class ThesisApiTests(unittest.TestCase):
         self.assertEqual(data.get("database"), "disconnected")
         self.assertIn("accepted", data.get("detail", "").casefold())
 
+    def test_api_requires_explicit_accepted_snapshot_path(self) -> None:
+        with patch.dict("os.environ", {"SQLITE_DB_PATH": ""}):
+            settings = Settings(
+                app_env="test",
+                analysis_runs_db_path=str(Path(self.temp_dir.name) / "unconfigured-runs.sqlite"),
+                openai_api_key="test-key",
+            )
+        app = create_app(settings)
+        client = TestClient(app)
+        with patch("thesis_api.service._load_provider") as load_provider:
+            ready = client.get("/api/ready")
+            analysis = client.post(
+                "/api/analyze",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            )
+            stream = client.post(
+                "/api/analyze/stream",
+                json={
+                    "query": "What is the return on equity for ACB in 2024 Q4?",
+                    "target_ticker": "ACB",
+                    "period": "2024_Q4",
+                },
+            )
+        self.assertEqual(ready.status_code, 503)
+        self.assertEqual(ready.json()["status"], "unavailable")
+        self.assertIsNone(ready.json()["dataset_snapshot_id"])
+        self.assertIn("SQLITE_DB_PATH", ready.json()["detail"])
+        self.assertEqual(analysis.json()["status"], "error")
+        self.assertIn(
+            "accepted_snapshot_path_unconfigured",
+            analysis.json()["limitations"][0],
+        )
+        self.assertIn("event: RUN_BLOCKED", stream.text)
+        self.assertNotIn("event: REPORT_READY", stream.text)
+        load_provider.assert_not_called()
+        client.close()
+
     def test_readiness_reports_connected_database_when_snapshot_is_not_runnable(self) -> None:
         database = _gold_fixture(
             Path(self.temp_dir.name) / "missing-locator.sqlite",

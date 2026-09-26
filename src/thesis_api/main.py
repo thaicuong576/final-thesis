@@ -26,6 +26,7 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
         sqlite_path, current_settings,
         semantic_critic=semantic_critic,
         analysis_writer=analysis_writer,
+        require_explicit_snapshot_path=True,
     )
 
     app = FastAPI(
@@ -117,6 +118,7 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
                 settings=current_settings,
                 semantic_critic=semantic_critic,
                 analysis_writer=analysis_writer,
+                require_explicit_snapshot_path=True,
             ),
             media_type="text/event-stream",
             headers={

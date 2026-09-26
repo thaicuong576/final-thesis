@@ -1040,11 +1040,13 @@ class AnalysisEngine:
         *,
         semantic_critic=None,
         analysis_writer=None,
+        require_explicit_snapshot_path: bool = False,
     ) -> None:
         self.db_path = Path(db_path)
         self.settings = settings or get_settings()
         self._semantic_critic = semantic_critic
         self._analysis_writer = analysis_writer
+        self._require_explicit_snapshot_path = require_explicit_snapshot_path
 
     def _runs_store_path(self) -> Path:
         return self.settings.get_analysis_runs_path(dataset_path=self.db_path)
@@ -1069,6 +1071,15 @@ class AnalysisEngine:
         event_sink=None,
     ) -> AnalysisResponse:
         try:
+            if (
+                self._require_explicit_snapshot_path
+                and not self.settings.has_explicit_sqlite_db_path
+            ):
+                return _error_report(
+                    "accepted_snapshot_path_unconfigured",
+                    "SQLITE_DB_PATH must explicitly identify the accepted analytical snapshot.",
+                    request,
+                )
             try:
                 self._runs_store_path()
             except (OSError, ValueError):
@@ -1165,7 +1176,16 @@ class AnalysisEngine:
         )
 
     def get_capabilities(self) -> dict[str, Any]:
-        capabilities = get_dataset_capabilities(self.db_path, settings=self.settings)
+        if (
+            self._require_explicit_snapshot_path
+            and not self.settings.has_explicit_sqlite_db_path
+        ):
+            capabilities = _unavailable_capabilities(
+                "SQLITE_DB_PATH must explicitly identify the accepted analytical snapshot.",
+                "accepted_snapshot_path_unconfigured",
+            )
+        else:
+            capabilities = get_dataset_capabilities(self.db_path, settings=self.settings)
         model_configured = self._model_runtime_configured()
         try:
             runs_path = self._runs_store_path()
@@ -1206,6 +1226,7 @@ class AnalysisEngine:
             request, db_path=self.db_path, step_delay=step_delay,
             settings=self.settings, semantic_critic=self._semantic_critic,
             analysis_writer=self._analysis_writer,
+            require_explicit_snapshot_path=self._require_explicit_snapshot_path,
         )
 
 
@@ -1217,6 +1238,7 @@ def stream_analysis_query(
     settings=None,
     semantic_critic=None,
     analysis_writer=None,
+    require_explicit_snapshot_path: bool = False,
 ) -> Iterator[str]:
     """Stream actual plan, specialist, review, revision, synthesis, and terminal events."""
 
@@ -1227,6 +1249,7 @@ def stream_analysis_query(
         current_settings,
         semantic_critic=semantic_critic,
         analysis_writer=analysis_writer,
+        require_explicit_snapshot_path=require_explicit_snapshot_path,
     )
     started_at = time.monotonic()
     sequence = 1

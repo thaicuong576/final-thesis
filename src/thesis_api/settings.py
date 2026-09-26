@@ -71,6 +71,14 @@ class Settings(BaseSettings):
             return repo_path.resolve()
         return p.resolve()
 
+    @property
+    def has_explicit_sqlite_db_path(self) -> bool:
+        """Whether a non-empty SQLITE_DB_PATH was supplied by config or caller."""
+        return (
+            "sqlite_db_path" in self.model_fields_set
+            and bool(self.sqlite_db_path.strip())
+        )
+
     def get_analysis_runs_path(self, *, dataset_path: Path | None = None) -> Path:
         """Resolve the writable operational store and reject aliases to accepted data."""
         raw_path = Path(self.analysis_runs_db_path).expanduser()

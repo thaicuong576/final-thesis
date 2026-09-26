@@ -61,3 +61,34 @@ Report base SHA, branch, commit SHA, PR, changed files, tests, known failures, e
 - Tests: 53 focused onboarding/provider tests; full unittest discovery (663 tests, 4 skipped); OpenAPI, architecture guardrails, compileall, explicit-root P4 verifier, and `git diff --check` all passed.
 - Known test failures: none. The suite's persistence-failure and DB-connectivity probes emitted their expected diagnostic messages and exited successfully. Separate read-only live deployment preflight found `/api/ready` returns 503 and `/api/capabilities` reports no accepted snapshot; see the P4 preflight in the masterplan. This is a later P4 gate, not a P1 test failure.
 - Working tree: clean after the final handoff commit; ignored source evidence and operational SQLite artifacts are not tracked.
+
+## Current task — API accepted-snapshot readiness and revision audit
+
+- Base: `1cab2549db20f710165cffe8197aaa24a4014d69`
+- Branch: `codex/api-readiness-revision-audit-20260927`
+- Role: `worker-api`
+- Tracking: Linear issue creation explicitly waived for this thesis workstream.
+
+### Scope
+
+Audit and improve only API/agent/runtime readiness and bounded semantic-critic
+revision wiring, with related tests and documentation. Do not edit frontend,
+data artifacts, contracts/schema, deployment settings, or secrets. Do not run
+real external analysis. Preserve fail-closed behavior and never characterize
+offline fixtures or configuration checks as live readiness.
+
+### Acceptance criteria
+
+1. API readiness and analysis cannot select the repository's default SQLite
+   filename as an accepted snapshot unless a non-empty `SQLITE_DB_PATH` was
+   explicitly supplied.
+2. A configured path still must resolve through the accepted provider and
+   expose runnable company observations; model configuration and a distinct
+   writable run store remain required for API readiness.
+3. Regression tests prove an unconfigured path blocks before provider use;
+   existing targeted revision tests continue to prove selected feedback reaches
+   the writer and revised output is reaccepted.
+4. Record local audit evidence and external live-provider/deployment limits
+   without claiming they were verified here.
+5. Run targeted tests plus OpenAPI and architecture checks, commit conventionally,
+   push, open a PR to `main`, run `gh pr checks <PR>`, and leave it unmerged.

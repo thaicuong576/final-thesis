@@ -1,8 +1,38 @@
 # Master plan hoàn thiện khóa luận hướng ứng dụng (24–29/09/2026)
 
 **Trạng thái:** kế hoạch thực thi, rà soát sau mỗi cổng nghiệm thu.  
-**Base kiểm tra:** `main` tại `3e50b95` ngày 24/09/2026.  
+**Base kiểm tra:** `origin/main` tại `1cab2549db20f710165cffe8197aaa24a4014d69` ngày 26/09/2026; các mốc lịch sử bên dưới giữ nguyên base đã ghi trong chứng cứ tương ứng.
 **Phạm vi:** ứng dụng phân tích cơ bản ngân hàng niêm yết Việt Nam; thực nghiệm trên mẫu ngân hàng được kiểm định. Chứng khoán và bao phủ toàn ngành là hướng mở rộng.
+
+**Ghi chú trạng thái hiện hành (26/09/2026):** PR #59 (`1cab2549…`) đã sửa
+cách băm `ComplexityPlan`/`ComplexityJob` v1 sang
+`canonical_lf_utf8_sha256`. Kiểm thử hồi quy read-only xác nhận cả năm plan
+hiện có (`gold`, `parallel`, `scaling` và hai plan lịch sử
+`scaling-5issuer`) đều audit hợp lệ; hai plan 5-issuer chỉ phát cảnh báo
+tương thích legacy CRLF đúng ngoại lệ hẹp của D-073. Phát hiện hash mismatch
+được ghi trong bản cập nhật P2 bên dưới là lịch sử đã được xử lý, không còn là
+blocker kiểm soát này. Đây chỉ là bằng chứng toàn vẹn của plan/question
+controls; bộ câu hỏi, prompt, run configuration và protocol A/B/C vẫn
+**pre-freeze**, chưa có kết quả chấm điểm.
+
+P3 runtime đã có bằng chứng implementation offline: PR #54 và các bản ghi
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`/
+`docs/P2-IMPLEMENTATION-VERIFICATION-2026-09-26.md` xác nhận Company-only
+trend, Company/Peer một kỳ, Stage-1, targeted revision, SSE và run-history
+round-trip bằng provider/writer/critic fixture. Đây chưa phải live-provider
+quality, deployed readiness, teacher walkthrough hoặc A/B/C evidence; T08
+multi-period Peer vẫn bị chặn theo D-074. PR #60 là bản thảo Chương 3 đang mở
+và không được merge trong phạm vi kế hoạch này.
+
+Deployment preflight hiện hành là frontend/health có thể truy cập nhưng
+`/api/ready` trả 503; capabilities không có accepted snapshot, dataset,
+entities, periods hoặc metrics. Preflight không gửi analysis request và không
+tạo analysis run, nhưng `/api/ready` và `/api/capabilities` có thể khởi tạo
+schema run-history nếu schema chưa tồn tại, nên không được coi là hoàn toàn
+side-effect-free. Teacher walkthrough và live A/B/C vẫn bị chặn cho tới khi
+snapshot accepted, run store tách biệt và writer/critic được provision tường
+minh rồi qua readiness/workflow smoke test. Không thay đổi deployment settings
+hoặc gửi analysis request có ghi run trong phạm vi kế hoạch này.
 
 ## 1. Đích nghiệm thu
 

@@ -56,7 +56,7 @@ Report base SHA, branch, commit SHA, PR, changed files, tests, known failures, e
 - Base SHA: `b87649af2c32f4499dcd6ebe82ae62799c9d5b1f`.
 - Branch: `codex/p1-validated-bank-onboarding-20260926`.
 - Implementation commit SHA: `8d31901dcfa83e6a2514a062f1d9cf6f72d4f83d`.
-- PR: [#56 — feat(data): validated bank onboarding path](https://github.com/thaicuong576/final-thesis/pull/56), opened as draft. Remote checks pass on the final handoff head.
+- PR: [#56 — feat(data): validated bank onboarding path](https://github.com/thaicuong576/final-thesis/pull/56), opened as draft. Remote checks passed on implementation handoff commit `d55d4d0`; checks for later PR heads must be read from the current PR status.
 - Changed files: `.agent/memory/lessons-learned.md`, `TASK.md`, `docs/P1-DATA-PORTABILITY-PREFLIGHT-2026-09-26.md`, `src/thesis_data/bank_onboarding.py`, `src/thesis_data/canonical_snapshot.py`, `src/thesis_data/operational_onboarding.py`, `src/thesis_data/source_artifacts.py`, `tests/test_acceptance_resolver_boundary.py`, `tests/test_bank_onboarding_packet.py`, `tests/test_phase0b_csv_onboarding.py`, and `tests/test_phase0c_evidence_transferability.py`.
 - Tests: 53 focused onboarding/provider tests; full unittest discovery (663 tests, 4 skipped); OpenAPI, architecture guardrails, compileall, explicit-root P4 verifier, and `git diff --check` all passed.
 - Known failures: none. The suite's persistence-failure and DB-connectivity probes emitted their expected diagnostic messages and exited successfully.

@@ -6,6 +6,7 @@ from enum import StrEnum
 from hashlib import sha256
 import json
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -13,6 +14,12 @@ from .workload_contract import CompositeWorkloadSpec
 
 
 PERIOD_PATTERN = r"^\d{4}_Q[1-4]$"
+QuestionSetHashMode = Literal[
+    "raw_file_bytes_sha256",
+    "canonical_lf_utf8_sha256",
+]
+RAW_FILE_BYTES_HASH_MODE: QuestionSetHashMode = "raw_file_bytes_sha256"
+CANONICAL_LF_UTF8_HASH_MODE: QuestionSetHashMode = "canonical_lf_utf8_sha256"
 
 
 class QuestionType(StrEnum):
@@ -171,11 +178,24 @@ def load_question_set(path: Path) -> QuestionSet:
         raise ValueError(f"invalid question set {path}: {exc}") from exc
 
 
-def question_set_sha256(path: Path) -> str:
-    """Return the SHA-256 of the exact question-set bytes on disk."""
+def question_set_sha256(
+    path: Path,
+    *,
+    hash_mode: QuestionSetHashMode = RAW_FILE_BYTES_HASH_MODE,
+) -> str:
+    """Hash a question set using an explicit byte or canonical text mode."""
 
-    digest = sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    if hash_mode == CANONICAL_LF_UTF8_HASH_MODE:
+        return canonical_lf_utf8_sha256(path)
+    if hash_mode == RAW_FILE_BYTES_HASH_MODE:
+        return sha256(path.read_bytes()).hexdigest()
+    else:
+        raise ValueError(f"unsupported question-set hash mode: {hash_mode}")
+
+
+def canonical_lf_utf8_sha256(path: Path) -> str:
+    """Hash tracked UTF-8 text after normalizing only CRLF and lone CR to LF."""
+
+    text = path.read_bytes().decode("utf-8", errors="strict")
+    canonical_bytes = text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+    return sha256(canonical_bytes).hexdigest()

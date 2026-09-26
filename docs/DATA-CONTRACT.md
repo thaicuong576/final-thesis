@@ -56,6 +56,28 @@ A legacy worktree-byte hash may be retained only as audit metadata. It is not
 an authoritative hash for tracked text. A manifest that binds control artifacts
 must record each artifact's hash_mode beside its sha256.
 
+ComplexityPlan and ComplexityJob v1 bind the tracked complexity question set
+with canonical_lf_utf8_sha256. Their question_set_hash_mode field records this
+mode on newly written plans and jobs. Existing v1 plan/job artifacts that
+predate this additive field and already store the canonical digest are read
+using the same fixed v1 mode; their question hashes and files are not
+rewritten. The builder and auditor both pass the mode explicitly. This
+normalization changes only CRLF or lone-CR line endings to LF after strict
+UTF-8 decoding; it preserves BOM, code points, whitespace, and final-newline
+state.
+
+Two historical 5-issuer plan files retain a Windows CRLF raw-byte digest. The
+auditor accepts that digest only under the exact D-073 compatibility pins for
+those plan files, question-set identity/content, and stored plan/job hashes.
+It emits a compatibility warning. An absent hash-mode field alone never
+enables raw-hash fallback, and any change to the pinned question set or plan
+artifact fails the compatibility check.
+
+This complexity-plan contract does not change D-031 baseline run-manifest
+question-set hashing: run manifests continue to bind the exact question-set
+file bytes with raw_file_bytes_sha256. Immutable evidence also remains
+byte-hashed.
+
 An authority manifest may byte-pin only immutable evidence and control records
 owned by that authority scope. Repository-wide living files such as
 `AGENTS.md`, this contract, decision logs, lessons, and verifier code are policy

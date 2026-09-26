@@ -11,7 +11,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .experiment_contract import ExperimentArm
-from .question_set import QuestionType, load_question_set, question_set_sha256
+from .question_set import (
+    CANONICAL_LF_UTF8_HASH_MODE,
+    QuestionType,
+    canonical_lf_utf8_sha256,
+    load_question_set,
+    question_set_sha256,
+)
 from .workload_contract import AnalysisTask, WorkloadTier
 
 
@@ -51,6 +57,99 @@ class ComplexityPlanStatus(StrEnum):
     PLANNED_NOT_EXECUTED = "planned_not_executed"
 
 
+COMPLEXITY_QUESTION_SET_HASH_MODE = CANONICAL_LF_UTF8_HASH_MODE
+
+
+@dataclass(frozen=True)
+class _LegacyComplexityHashAllowance:
+    question_set_path: str
+    question_set_id: str
+    canonical_question_set_sha256: str
+    legacy_raw_question_set_sha256: str
+    canonical_plan_sha256: str
+
+
+_LEGACY_COMPLEXITY_HASH_ALLOWANCES = {
+    "experiments/runs/complexity-plan-scaling-5issuer-v1.json":
+        _LegacyComplexityHashAllowance(
+            question_set_path="experiments/question-set-scaling-5issuer-v1.json",
+            question_set_id="pilot-2024-bank-scaling-5issuer-v1",
+            canonical_question_set_sha256=(
+                "dde57071fd43dc905d12e6ea6869dcf907b5a7dc94868792aefcb4894696771b"
+            ),
+            legacy_raw_question_set_sha256=(
+                "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad"
+            ),
+            canonical_plan_sha256=(
+                "cb7ca2b7f11e74f629e6b58e77f84afe97f922bbc89af43150a4de8fc16d5e36"
+            ),
+        ),
+    "experiments/runs/complexity-plan-scaling-5issuer-v2.json":
+        _LegacyComplexityHashAllowance(
+            question_set_path="experiments/question-set-scaling-5issuer-v1.json",
+            question_set_id="pilot-2024-bank-scaling-5issuer-v1",
+            canonical_question_set_sha256=(
+                "dde57071fd43dc905d12e6ea6869dcf907b5a7dc94868792aefcb4894696771b"
+            ),
+            legacy_raw_question_set_sha256=(
+                "597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad"
+            ),
+            canonical_plan_sha256=(
+                "10f3e912788720d7374ef294308b3b7982f989c79e061d024e792263b462dcb1"
+            ),
+        ),
+}
+
+
+def _repository_relative_path(path: Path) -> str | None:
+    repository_root = Path(__file__).resolve().parents[2]
+    try:
+        return path.resolve().relative_to(repository_root).as_posix().casefold()
+    except ValueError:
+        return None
+
+
+def _legacy_complexity_hash_warning(
+    plan_path: Path,
+    question_set_path: Path,
+    plan: ComplexityPlan,
+    question_set,
+) -> str | None:
+    """Recognize only the two pinned legacy plans with a verified Windows hash."""
+
+    plan_relative_path = _repository_relative_path(plan_path)
+    if plan_relative_path is None:
+        return None
+    allowance = _LEGACY_COMPLEXITY_HASH_ALLOWANCES.get(plan_relative_path)
+    if allowance is None:
+        return None
+    if _repository_relative_path(question_set_path) != allowance.question_set_path:
+        return None
+    if plan.schema_version != 1 or plan.question_set_id != allowance.question_set_id:
+        return None
+    if question_set.question_set_id != allowance.question_set_id:
+        return None
+    if plan.question_set_sha256 != allowance.legacy_raw_question_set_sha256:
+        return None
+    if any(
+        job.question_set_sha256 != allowance.legacy_raw_question_set_sha256
+        for job in plan.jobs
+    ):
+        return None
+    if "question_set_hash_mode" in plan.model_fields_set:
+        return None
+    if any("question_set_hash_mode" in job.model_fields_set for job in plan.jobs):
+        return None
+    if (
+        canonical_lf_utf8_sha256(question_set_path)
+        != allowance.canonical_question_set_sha256
+    ):
+        return None
+    if canonical_lf_utf8_sha256(plan_path) != allowance.canonical_plan_sha256:
+        return None
+    return "legacy_windows_crlf_raw_question_set_hash_accepted"
+
+
 class ComplexityJob(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -58,6 +157,9 @@ class ComplexityJob(BaseModel):
     snapshot_id: str = Field(min_length=1)
     question_set_id: str = Field(min_length=1)
     question_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    question_set_hash_mode: Literal["canonical_lf_utf8_sha256"] = (
+        COMPLEXITY_QUESTION_SET_HASH_MODE
+    )
     question_id: str = Field(min_length=1)
     arm: ExperimentArm
     workload_tier: WorkloadTier
@@ -79,6 +181,9 @@ class ComplexityPlan(BaseModel):
     snapshot_id: str = Field(min_length=1)
     question_set_id: str = Field(min_length=1)
     question_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    question_set_hash_mode: Literal["canonical_lf_utf8_sha256"] = (
+        COMPLEXITY_QUESTION_SET_HASH_MODE
+    )
     model_id: str = Field(min_length=1)
     tier_1_reference_question_set_id: str = Field(min_length=1)
     tier_1_reference_plan_path: str = Field(min_length=1)
@@ -117,7 +222,10 @@ def build_complexity_plan(
         raise ValueError("arms must be non-empty and unique")
     if not snapshot_id or not model_id:
         raise ValueError("snapshot_id and model_id must not be empty")
-    digest = question_set_sha256(question_set_path)
+    digest = question_set_sha256(
+        question_set_path,
+        hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
+    )
     jobs: list[ComplexityJob] = []
     for question in question_set.questions:
         workload = question.workload
@@ -134,6 +242,7 @@ def build_complexity_plan(
                     snapshot_id=snapshot_id,
                     question_set_id=question_set.question_set_id,
                     question_set_sha256=digest,
+                    question_set_hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
                     question_id=question.id,
                     arm=arm,
                     workload_tier=workload.tier,
@@ -152,6 +261,7 @@ def build_complexity_plan(
         snapshot_id=snapshot_id,
         question_set_id=question_set.question_set_id,
         question_set_sha256=digest,
+        question_set_hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
         model_id=model_id,
         tier_1_reference_question_set_id=tier_1_reference_question_set_id,
         tier_1_reference_plan_path=tier_1_reference_plan_path,
@@ -190,13 +300,32 @@ def audit_complexity_plan(
             plan.snapshot_id,
             plan.question_set_id,
         )
-    actual_hash = question_set_sha256(question_set_path)
-    if plan.question_set_sha256 != actual_hash:
+    actual_hash = question_set_sha256(
+        question_set_path,
+        hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
+    )
+    if plan.question_set_hash_mode != COMPLEXITY_QUESTION_SET_HASH_MODE:
+        blockers.append("plan_question_set_hash_mode_mismatch")
+    legacy_hash_warning = _legacy_complexity_hash_warning(
+        plan_path,
+        question_set_path,
+        plan,
+        question_set,
+    )
+    if plan.question_set_sha256 != actual_hash and legacy_hash_warning is None:
         blockers.append("plan_question_set_hash_mismatch")
     if plan.question_set_id != question_set.question_set_id:
         blockers.append("plan_question_set_id_mismatch")
-    if any(job.question_set_sha256 != actual_hash for job in plan.jobs):
+    if (
+        any(job.question_set_sha256 != actual_hash for job in plan.jobs)
+        and legacy_hash_warning is None
+    ):
         blockers.append("job_question_set_hash_mismatch")
+    if any(
+        job.question_set_hash_mode != COMPLEXITY_QUESTION_SET_HASH_MODE
+        for job in plan.jobs
+    ):
+        blockers.append("job_question_set_hash_mode_mismatch")
     if any(job.model_id != plan.model_id for job in plan.jobs):
         blockers.append("job_model_id_mismatch")
 
@@ -238,6 +367,7 @@ def audit_complexity_plan(
         job_count=len(plan.jobs),
         snapshot_id=plan.snapshot_id,
         question_set_id=plan.question_set_id,
+        warnings=(legacy_hash_warning,) if legacy_hash_warning is not None else (),
     )
 
 
@@ -249,6 +379,7 @@ class BaselinePlanAudit:
     job_count: int
     snapshot_id: str | None
     question_set_id: str | None
+    warnings: tuple[str, ...] = ()
 
 
 def _job_metrics(question, question_set) -> tuple[str, ...]:

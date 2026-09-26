@@ -360,9 +360,11 @@ silently widening the bank issuer/period/metric scope or manufacturing labels.
 Status: Accepted.
 
 Every generated run manifest records `question_set_sha256`, computed from the
-exact question-set file passed to the runner. The manifest writer and offline
-fixture verify this binding; an ID alone is not considered sufficient evidence
-that all arms used identical questions.
+exact question-set file passed to the runner using raw-file-byte SHA-256. The
+manifest writer and offline fixture verify this binding; an ID alone is not
+considered sufficient evidence that all arms used identical questions. This
+exact-byte requirement applies to baseline run manifests and remains unchanged
+by D-073's canonical-LF mode for complexity-plan question-set controls.
 
 Reason: question-set edits can otherwise preserve the same human-readable ID
 while changing the evaluated task, weakening cross-arm reproducibility.
@@ -1320,6 +1322,33 @@ Candidate evaluation text controls use canonical LF UTF-8 hashing, preserving
 BOM, Unicode code points, whitespace and final newline. A Windows checkout may
 change line endings without changing analytical identity. Immutable source
 files and SQLite continue to use raw-byte hashing.
+
+ComplexityPlan and ComplexityJob v1 apply that canonical mode to their
+question-set SHA-256 fields, and both builder and auditor select the mode
+explicitly. Newly written plans and jobs persist question_set_hash_mode.
+Existing v1 artifacts with canonical stored hashes that predate the additive
+field use the fixed canonical mode when loaded, so their question hashes and
+files remain unchanged.
+
+The historical files `experiments/runs/complexity-plan-scaling-5issuer-v1.json`
+and `experiments/runs/complexity-plan-scaling-5issuer-v2.json` store the Windows
+CRLF raw-byte question hash
+`597aed173a54edadc1048a9843caf781f43a71c85053181d20e88c1792e6abad`. Their question
+set, `experiments/question-set-scaling-5issuer-v1.json`, has canonical LF hash
+`dde57071fd43dc905d12e6ea6869dcf907b5a7dc94868792aefcb4894696771b`.
+The auditor accepts the legacy hash only when the repository-relative plan
+path, its canonical plan hash (v1
+`cb7ca2b7f11e74f629e6b58e77f84afe97f922bbc89af43150a4de8fc16d5e36`; v2
+`10f3e912788720d7374ef294308b3b7982f989c79e061d024e792263b462dcb1`),
+question-set path and ID, canonical question-set hash, and all plan/job legacy
+hash fields match these pinned records, with the old mode fields absent. Such
+audits report `legacy_windows_crlf_raw_question_set_hash_accepted`. There is no general
+raw-hash fallback for missing mode fields. Plan/question bytes and experiment
+settings are not rewritten; new builds always use canonical LF.
+
+This narrow historical audit compatibility does not establish experiment
+readiness or scoring eligibility; the separate freeze and data-readiness gates
+still apply.
 
 The API contract also repairs eleven pre-existing empty reference keys to
 `$ref` and documents additive peer metadata. Python CI validates the OpenAPI

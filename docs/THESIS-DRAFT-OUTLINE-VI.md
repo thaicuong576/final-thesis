@@ -63,3 +63,24 @@ giá công bằng.
 - Khi PR #60 và các PR working draft chưa merge, bản report phải liên kết tới
   chúng như nguồn làm việc và ghi rõ trạng thái review, không giả định nội
   dung đã là main.
+
+## Ma trận lắp ghép artifact hiện tại
+
+Bảng này ngăn việc ghép nhầm bản nháp bảy chương với các phần đã được viết
+theo outline sáu chương. Các PR dưới đây đều là review-only tại ngày ghi nhận;
+việc chúng có CI xanh không làm nội dung trở thành `main` hoặc kết quả nghiệm
+thu.
+
+| Phần | Artifact/nguồn làm việc | Trạng thái lắp ghép |
+|---|---|---|
+| Chương 1–2 | `docs/THESIS-CHAPTERS-1-2-WORKING-2026-09-26-VI.md` | Có bản working; rà lại trích dẫn và thuật ngữ khi khóa report. |
+| Chương 3 | [PR #60 — phương pháp nghiên cứu](https://github.com/thaicuong576/final-thesis/pull/60) | Open/green/review-only; không giả định đã merge. |
+| Chương 4 | [PR #63 — thiết kế hệ thống](https://github.com/thaicuong576/final-thesis/pull/63) | Open/green/review-only; giữ giới hạn deployment trong chương. |
+| Chương 5–6 | `docs/THESIS-CHAPTERS-5-6-WORKING-2026-09-27-VI.md` trên [PR #70](https://github.com/thaicuong576/final-thesis/pull/70) | Working draft; các kết quả live và A/B/C vẫn `PENDING`. |
+| Cổng nghiệm thu | [PR #64 walkthrough](https://github.com/thaicuong576/final-thesis/pull/64), [PR #66 freeze readiness](https://github.com/thaicuong576/final-thesis/pull/66) | Evidence/control artifacts, không phải kết quả pass. |
+
+Trước khi khóa bản sáu chương, người biên tập phải tạo một bản assembly mới
+trên `main` mới nhất, kiểm tra RQ1–RQ3 xuất hiện nhất quán ở Chương 1, 3, 5 và
+6, đối chiếu mọi số liệu với snapshot/run manifest, rồi thay thế `PENDING` chỉ
+khi cổng tương ứng có evidence. Không được lấy bản nháp cũ bảy chương làm
+nguồn lắp ghép mặc định.

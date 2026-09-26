@@ -607,3 +607,19 @@ under an explicit evidence root. Keep per-observation locator, period basis,
 reporting scope and review evidence attached to accepted values. Add negative
 tests for unknown source types, malformed or mismatched hashes, document/source
 hash splits, and directly constructed candidates that bypass byte verification.
+
+## [LESSON-028] Keep the approved six-chapter report outline tracked
+
+- Date: 2026-09-27
+- Scope: thesis report artifacts and README documentation links
+- Status: ACTIVE
+
+The repository README referenced `docs/THESIS-DRAFT-OUTLINE-VI.md`, but the
+file was absent from `origin/main`, while the available integrated draft still
+described seven chapters. A report worker must not silently use the seven-
+chapter draft when the approved deliverable is six chapters.
+
+Keep the six-chapter outline as a tracked, link-checked artifact; treat the
+seven-chapter draft as historical input and preserve the source thesis as
+read-only. Chapter 5/6 evidence must remain explicitly pending until live
+runtime and A/B/C gates pass.

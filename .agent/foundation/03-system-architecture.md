@@ -160,8 +160,10 @@ tích của model thật hoặc khả năng dùng ứng dụng đã triển khai
 Company-only trend từ hai đến bốn kỳ; multi-period Peer/Macro vẫn bị chặn.
 Macro chỉ chạy khi provider khai báo capability và dữ liệu được chấp nhận tương
 ứng; mẫu Gold hiện tại chưa có dữ liệu macro đạt cổng. T04/T05 đã qua exact-
-question E2E, targeted revision và independent audit bằng fixture offline,
-nhưng chưa đủ điều kiện chấm điểm trước live-provider/readiness và freeze.
+question E2E và targeted revision; một internal read-only audit riêng trả về
+GREEN ở PR head `b094b603d83b3f129878656da9c3cbd021128c34` (ghi tại
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). Tuy vậy, chúng chưa đủ
+điều kiện chấm điểm trước live-provider/readiness và freeze.
 Bộ câu hỏi cuối vẫn pre-freeze. CI Python kiểm contract và suite trong checkout;
 bằng chứng ignored có gate riêng.
 
@@ -173,6 +175,8 @@ D-074 mở đúng một lát cắt nhiều kỳ cho Company trend: từ hai đ�
 tự, một target, context tách theo kỳ và output dạng metric-period record. Mỗi
 numeric claim vẫn thuộc đúng một kỳ và giữ provenance đầy đủ. Một trend là một
 logical run, không phải ghép bốn report một kỳ. Multi-period Peer/Macro và T08
-vẫn bị chặn trước retrieval. T04/T05 đã đạt exact-question E2E và audit độc lập
-trên fixture offline; chúng vẫn chưa đủ điều kiện chấm điểm cho đến khi live-
-provider/readiness và experiment-freeze gates cùng đạt.
+vẫn bị chặn trước retrieval. T04/T05 đã đạt exact-question E2E trên fixture
+offline; internal read-only audit tại PR head
+`b094b603d83b3f129878656da9c3cbd021128c34` trả về GREEN (xem
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). Chúng vẫn chưa đủ điều
+kiện chấm điểm cho đến khi live-provider/readiness và experiment-freeze gates cùng đạt.

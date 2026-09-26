@@ -150,8 +150,10 @@ providers/critics and do not establish live provider readiness. Missing semantic
 configuration blocks before specialist retrieval. Multi-period Peer/Macro
 requests remain unsupported. Macro runs only when the accepted provider declares
 the requested capability/observations; the current Gold case study has no
-accepted macro data. Exact-question T04/T05, targeted-revision, and SSE/run-history
-offline acceptance tests passed and were independently audited in PR #54. These
+accepted macro data. Exact-question T04/T05, targeted-revision, and
+SSE/run-history offline acceptance tests passed. A separate internal read-only
+audit at PR head `b094b603d83b3f129878656da9c3cbd021128c34` returned GREEN
+(recorded in `docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). These
 are implementation probes, not live-provider or scoring evidence; T04/T05/T08
 remain ineligible for final A/B/C evaluation.
 

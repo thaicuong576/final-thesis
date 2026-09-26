@@ -44,7 +44,9 @@ They do not establish live semantic quality or deployed readiness. The current
 Render deployment still needs an explicitly provisioned accepted snapshot;
 ignored local SQLite files are not packaged by Git. Dataset storage and mutable
 run history also need deployment isolation before release. T04/T05 pass exact-
-question offline acceptance and independent audit, but remain unscored pending
+question offline acceptance; a separate internal read-only audit at PR head
+`b094b603d83b3f129878656da9c3cbd021128c34` returned GREEN (recorded in
+`P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). They remain unscored pending
 live-provider readiness and experiment freeze; multi-period Peer task T08 remains
 unsupported. A health response alone proves only liveness.
 
@@ -57,7 +59,9 @@ stays compatible. Multi-period Peer/Macro scope still fails before retrieval, so
 T08 remains outside this slice. Reusable Stage-1 verifies every expected
 metric-period cell against the frozen plan, and candidate hashing binds the
 ordered periods. Exact T04/T05 question E2E, targeted revision, and SSE/run-store
-round-trip passed with offline fixtures and independent audit in PR #54. This is
+round-trip passed with offline fixtures. A separate internal read-only audit at
+PR head `b094b603d83b3f129878656da9c3cbd021128c34` returned GREEN (recorded in
+`P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). This is
 implementation acceptance, not live-model, deployment, or scored-experiment
 evidence.
 

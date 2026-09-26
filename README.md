@@ -44,7 +44,8 @@ the final loop.
 - `experiments/` — versioned question set, scoring rubric, and run-contract preparation.
 - `docs/ADVISOR-SCOPE-ONE-PAGER-VI.md` — concise Vietnamese scope decision for advisor review.
 - `docs/THESIS-DRAFT-OUTLINE-VI.md` — chapter outline separating writable design from gated results.
-- `docs/THESIS-DRAFT-CHAPTERS-1-4-VI.md` — working prose draft for the stable parts of Chapters 1–4.
+- `docs/THESIS-DRAFT-CHAPTERS-1-4-VI.md` — legacy seven-chapter working draft; superseded and retained for reference only (see [PR #74](https://github.com/thaicuong576/final-thesis/pull/74)).
+- [Six-chapter outline and Chapters 5–6 working report](https://github.com/thaicuong576/final-thesis/pull/70) — approved structure and evidence-bounded report draft; live results remain pending.
 
 ## Repository entry points
 

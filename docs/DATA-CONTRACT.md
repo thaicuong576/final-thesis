@@ -483,13 +483,15 @@ availability from evidence availability (for example `MISSING_DATA` and
 unsupported inference, hard-gate failures, unresolved contradictions, or
 provider/system failures.
 
-The merged reference API currently routes single-period company and peer
-requests through the semantic evaluator and bounded revision controller. D-074
-defines the target contract for bounded Company-only trends of at most four
-periods; support must not be claimed until exact-question end-to-end tests pass.
-Trend claims remain atomic per period, and synthesis cannot introduce ungrounded
-numbers or causes. Multi-period peer/macro remains unsupported. Live-provider
-quality, deployed readiness and final A/B/C scoring are separate gates.
+The merged reference API routes single-period Company/Peer requests through
+the semantic evaluator and bounded revision controller, and supports bounded
+Company-only trends of two to four ordered periods under D-074. Exact-question
+T04/T05 offline end-to-end tests, including targeted revision and SSE-to-history
+round-trip, pass on PR #54's merged implementation. Trend claims remain atomic
+per period, and synthesis cannot introduce ungrounded numbers or causes.
+Multi-period Peer/Macro remains unsupported. These offline fixtures do not prove
+live-provider quality, deployed readiness or final A/B/C scoring; those remain
+separate gates.
 
 ## Run configuration and prompt version
 

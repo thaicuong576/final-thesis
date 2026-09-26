@@ -140,15 +140,20 @@ boundary and the transferability rule.
 ## Current public API analysis contract
 
 `POST /api/analyze` and `/api/analyze/stream` freeze a request-derived plan
-before retrieval and support single-period Company and Sector/Peer execution.
-They synthesize provider-backed claims, run Stage-1, then the configured
-semantic critic with at most two targeted revision rounds. Every revised
-candidate passes Stage-1 again. Tests use explicit offline critics; they do not
-establish live provider readiness. Missing semantic configuration blocks before
-specialist retrieval. Multi-period requests remain unsupported. Macro runs only
-when the accepted provider declares the requested capability/observations;
-the current Gold case study has no accepted macro data.
-T04/T05/T08 remain ineligible for final evaluation.
+before retrieval and support single-period Company/Sector/Peer execution plus
+bounded Company-only trends with two to four ordered periods. Trend plans retain
+the period list and final anchor; reusable Stage-1 validates the planned
+entity/metric/period matrix. They synthesize provider-backed claims, run Stage-1,
+then the configured semantic critic with at most two targeted revision rounds.
+Every revised candidate passes Stage-1 again. Tests use explicit offline
+providers/critics and do not establish live provider readiness. Missing semantic
+configuration blocks before specialist retrieval. Multi-period Peer/Macro
+requests remain unsupported. Macro runs only when the accepted provider declares
+the requested capability/observations; the current Gold case study has no
+accepted macro data. Exact-question T04/T05, targeted-revision, and SSE/run-history
+offline acceptance tests passed and were independently audited in PR #54. These
+are implementation probes, not live-provider or scoring evidence; T04/T05/T08
+remain ineligible for final A/B/C evaluation.
 
 Peer identity and claim scope use the requested member set; the numeric
 denominator and data references use only eligible accepted inputs. Every

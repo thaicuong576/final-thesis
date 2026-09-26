@@ -164,3 +164,12 @@ Trước P2 và P4, Lead ghi lại câu trả lời tiền kiểm nếu phát si
   A/B/C công bằng và điền kết quả định lượng vào Chương 5–6. Cho tới lúc đó,
   các bản thảo phải giữ `PENDING`/`NOT_READY` và không được mô tả app hoặc
   pilot lịch sử như nghiệm thu cuối.
+- **Bổ sung sau audit ứng dụng:** PR #68 được cập nhật tới head `2eff23d` để
+  lưu kết quả DoD frontend: 9 file/53 test pass và `npm run build` pass; full
+  backend suite độc lập vẫn là 671 pass, 4 skip. Đây là kiểm chứng checkout,
+  không phải smoke test URL triển khai; cảnh báo chunk lớn của Vite không làm
+  build fail. PR #70 cập nhật head `073fbc1` để Chương 5–6 trỏ tới audit PR #68.
+- **Canonical hóa cấu trúc luận văn:** PR #74 thêm cảnh báo vào bản nháp bảy
+  chương lịch sử, trỏ về đường sáu chương được duyệt và giữ nguyên nội dung
+  cũ để tham khảo. Bản nháp bảy chương không được dùng làm cấu trúc nộp hoặc
+  nguồn thay thế cho các ô `PENDING`.

@@ -117,3 +117,50 @@ Trước P2 và P4, Lead ghi lại câu trả lời tiền kiểm nếu phát si
 - **Cổng P4 còn độc lập:** read-only audit trong P2 cho thấy `complexity-plan-gold-v1.json` và `complexity-plan-parallel-v1.json` chưa đủ điều kiện chấm điểm: cả hai khai báo question-set hash `c7700c714315c890bab54997eca6aa1c78406ca5539c2a6d46d6d78ad7f2f3fb`, trong khi bytes hiện tại của question set có SHA-256 `79d2ffd7eabf7ed85df8ce527e74b58a0afb9b8f19ff9528fb75f00242babf81`. Audit trả `plan_question_set_hash_mismatch` và `job_question_set_hash_mismatch`; giữ các plan ngoài scoring cho đến khi có sửa chữa được review riêng. Không có question/config nào được thay đổi trong P2.
 - **P4 deployment preflight (26/09; chỉ gọi GET, không tạo analysis run):** frontend `https://fin-ai.eddiephung.me/` trả HTTP 200 và backend `/api/health` trả 200, nhưng `/api/ready` trả 503. `/api/capabilities` trả `snapshotId=null`, `datasetId=null`, không có entities/periods/metrics, `database_status=disconnected`, `analysis_available=false` và `limitation_code=accepted_snapshot_unavailable`. Preflight không gửi yêu cầu phân tích và không tạo analysis run. Tuy nhiên, nếu schema run-history chưa tồn tại, `/api/ready` và `/api/capabilities` có thể khởi tạo bảng/index qua `ensure_analysis_runs_table`; vì vậy các GET này không được bảo đảm hoàn toàn không có side effect. Không có secret hoặc analysis run nào được tạo. Link đang public chưa sẵn sàng cho giảng viên chạy phân tích; không gửi yêu cầu phân tích có ghi run cho tới khi snapshot được cấu hình tường minh và readiness pass. HTTP 200 ở trang frontend/health không phải bằng chứng ứng dụng đã sẵn sàng.
 - UI smoke test read-only xác nhận các trang phản ánh đúng trạng thái này: Analysis hiển thị API chưa xác nhận dữ liệu, 0 ngân hàng/kỳ/chỉ tiêu và khóa nút bắt đầu; Data view báo snapshot/catalog chưa công bố và kho dữ liệu disconnected. Report Library ghi rõ cả ba báo cáo là mẫu dữ liệu giả lập, không phải kết quả API/đã kiểm định; hiện chưa có report live để thầy thử.
+
+## 10. Cập nhật thực thi (27/09/2026)
+
+- **Quan hệ với hiệu chỉnh hash lịch sử:** câu P4 về mismatch hash lịch sử ở
+  phần trên được hiệu chỉnh riêng trong PR #69; bản cập nhật trạng thái này
+  không lặp lại hoặc tự ý sửa plan/question artifact của PR đó.
+- **Trạng thái PR và Chương 3–6:** PR #60 (Chương 3), PR #63 (Chương 4),
+  và PR #70 (working draft Chương 5–6) đều đang mở, mergeable và đã qua các
+  check được báo cáo; chúng là bản thảo/assembly evidence, chưa phải bản luận
+  văn cuối. PR #60 đã được rà lại tại đúng head `e2f83e9`: chỉ thêm một tài
+  liệu Markdown, 15 liên kết nội bộ trong file đều resolve và nội dung giữ
+  rõ các TODO, chưa có kết quả A/B/C hay readiness live. Không PR nào được
+  merge trong cập nhật này.
+- **API, Stage-1 và revision:** PR #67 và PR #68 vẫn mở, mergeable và xanh.
+  Audit độc lập trên head PR #68 `c9acb68` chạy 98 test API/revision mục tiêu,
+  toàn bộ unittest discovery 671 test với 4 skip, OpenAPI, architecture
+  guardrails, compileall và `git diff --check` đều đạt. Các cảnh báo timeout
+  kết nối DB và lỗi persistence mô phỏng là chẩn đoán đã biết của fixture;
+  audit không gọi phân tích live và không chứng minh provider/model live hoặc
+  deployed readiness. PR #68 đặc biệt khóa `SQLITE_DB_PATH` tường minh trước
+  readiness, synchronous analysis và SSE.
+- **Bộ câu hỏi, prompt và rubric:** PR #65 đăng ký prompt contract v1 nhưng
+  A/B/C vẫn pre-freeze. PR #72 căn chỉnh rubric với protocol một người chấm:
+  ẩn arm, xáo trộn thứ tự, chấm lại một tập đã khai báo sau độ trễ, giữ raw
+  answer/reason code và báo cáo giới hạn within-rater; không tạo score/run.
+  Tất cả task vẫn phải qua composite truth gate, readiness và run-control
+  trước khi đóng băng.
+- **Readiness và walkthrough:** PR #64 (teacher walkthrough) và PR #71
+  (deployment runbook) ghi nhận cùng một trạng thái blocked. Bằng chứng đọc
+  mới nhất ngày 27/09 cho public API là `GET /api/ready` HTTP 503 với
+  `No readable accepted canonical or Gold snapshot is configured`; capabilities
+  trả `snapshotId=null`, `datasetId=null`, catalog rỗng và
+  `analysis_available=false`. Frontend chỉ hiển thị data foundation
+  disconnected, nút phân tích bị khóa và report mẫu/mock. Không gửi POST,
+  upload, secret hay deployment-setting mutation.
+- **P4/A-B/C:** PR #66 vẫn ghi `NOT_READY_FOR_FREEZE`; verifier P4 chỉ đạt khi
+  chạy với evidence root tường minh, kiểm tra 80 ô Gold (76 hợp lệ, 4 missing),
+  nhưng không tạo run hoặc score. Hash question set ứng viên là
+  `c4747af992441cc6063fa9dc08b1a09fc1a4a923a5415a2de4391c03e17fbc09`.
+  Vì snapshot chưa được provision cho runtime và prompt/rubric/run controls
+  chưa đóng băng, chưa có kết quả A/B/C hợp lệ để đưa vào Chương 5.
+- **Cổng tiếp theo:** cần một accepted SQLite snapshot được provision với
+  identity/hash tường minh, run store riêng và model/writer/critic config;
+  sau đó mới có thể chạy walkthrough thật, đóng băng task/protocol, thực hiện
+  A/B/C công bằng và điền kết quả định lượng vào Chương 5–6. Cho tới lúc đó,
+  các bản thảo phải giữ `PENDING`/`NOT_READY` và không được mô tả app hoặc
+  pilot lịch sử như nghiệm thu cuối.

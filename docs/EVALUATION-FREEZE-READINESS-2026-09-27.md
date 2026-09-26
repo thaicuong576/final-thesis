@@ -29,6 +29,26 @@ provider quality, accepted-snapshot readiness, or fair A/B/C evidence.
 The Gold snapshot identity and question-set identity must be copied into every
 run manifest. A task ID or prompt version by itself is not sufficient binding.
 
+### Explicit evidence-root verification
+
+On 27/09, the read-only `p4-evaluation-inputs-v1` verifier was run with an
+explicit external evidence root because the ignored Gold SQLite artifact is not
+present in this managed checkout. The verifier returned `PASS` with:
+
+- Gold raw-byte SHA-256 unchanged at
+  `1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73`;
+- SQLite integrity `ok`, 80 Gold cells checked, 76 valid cells and 4 missing;
+- 17/17 source artifacts matched and 16 peer probes reproduced;
+- candidate question-set, task-spec and expected-coverage hashes bound to the
+  verifier output;
+- `final_protocol_freeze_ready: false` and `scoring_eligible_now: false`.
+
+The same command without `--evidence-root` fails closed because the ignored Gold
+file is absent from the managed worktree. This is an evidence-packaging/runtime
+provisioning blocker, not permission to copy, regenerate or silently substitute
+the Gold database. Any future run must record the explicit evidence root or a
+reviewed deployment artifact identity.
+
 ## 3. Candidate task gate matrix
 
 | Tasks | Scope | Current gate | Why not scoring-eligible |

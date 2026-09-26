@@ -200,6 +200,7 @@ class _RuntimeStage1Evaluator:
             tuple(claims),
             self.workload_scope,
             policy,
+            plan=plan,
         )
         self.last_report = Stage1ValidationReport(
             passed=all(item.passed for item in report.gate_results.values()) and not report.integrity_violations,

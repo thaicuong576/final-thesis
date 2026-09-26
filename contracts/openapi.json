@@ -637,7 +637,22 @@
               "value": {
                 "type": "null"
               },
+              "unit": {
+                "type": "null"
+              },
+              "period_basis": {
+                "type": "null"
+              },
+              "reporting_scope": {
+                "type": "null"
+              },
+              "observation_id": {
+                "type": "null"
+              },
               "source_id": {
+                "type": "null"
+              },
+              "claim_id": {
                 "type": "null"
               },
               "missing_reason": {

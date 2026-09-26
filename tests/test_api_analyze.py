@@ -25,13 +25,19 @@ from thesis_data.dataset_contract import (
     SupportedOperation,
 )
 from thesis_data.schema import (
+    AssertionType,
+    AtomicClaim,
+    ClaimDataRef,
+    ClaimScope,
     CritiqueAction,
     CritiqueIssue,
     CritiqueIssueStatus,
     CritiqueIssueType,
     CritiqueSeverity,
+    InferenceType,
     QualityStatus,
     SourceTier,
+    StructuredAssertion,
 )
 from thesis_data.semantic_evaluation import (
     ApplicableLinkResult,
@@ -44,8 +50,9 @@ from thesis_data.semantic_evaluation import (
 from thesis_data.storage import create_gold_snapshot_schema
 
 from thesis_api.main import create_app
-from thesis_api.adaptive_runtime import _RuntimeStage1Evaluator
+from thesis_api.adaptive_runtime import _API_POLICY, _RuntimeStage1Evaluator, _plan_request
 from thesis_api.schemas import AnalysisRequest, AnalysisResponse
+from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_api.service import (
     AnalysisBlocked,
     AnalysisEngine,
@@ -723,6 +730,76 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         self.assertEqual({item.source_id for item in report.evidence_trail}, {"source-roe", "source-npl"})
         self.assertTrue(all(item.source_url == "https://example.test/acb/report" for item in report.evidence_trail))
+
+    def test_stage1_rejects_numeric_zero_claim_for_accepted_missing_observation(self) -> None:
+        provider = _FiveMemberPeerProvider()
+        missing = provider.resolve_observation(provider.dataset_ref, "obs-ACB-roe-q1")
+        self.assertIsNotNone(missing)
+        self.assertEqual(missing.validation_status, QualityStatus.MISSING)
+        self.assertEqual(missing.missing_reason, "DATA_UNAVAILABLE")
+
+        request = AnalysisRequest(
+            query="What is the ROE for ACB in 2024 Q1?",
+            target_ticker="ACB",
+            period="2024_Q1",
+        )
+        plan, _target, periods, _company_metrics, _peers, _macro_metrics = _plan_request(
+            request, provider.dataset_ref, provider.catalog
+        )
+        workload_scope = ClaimScope(
+            entities=plan.scope.entities,
+            periods=periods,
+            metric_ids=plan.scope.metric_ids,
+        )
+        zero_claim = AtomicClaim(
+            claim_id="zero-for-missing-observation",
+            claim_text="ACB ROE was zero in 2024 Q1.",
+            claim_type="numeric",
+            title="ACB ROE",
+            interpretation="A numeric value was supplied for an explicitly missing observation.",
+            limitation="Regression fixture.",
+            scope=ClaimScope(
+                entities=("ACB",), periods=("2024_Q1",), metric_ids=("bank.roe",)
+            ),
+            assertions=(StructuredAssertion(
+                assertion_id="zero-assertion",
+                assertion_type=AssertionType.METRIC_VALUE,
+                entity="ACB",
+                period="2024_Q1",
+                metric_id="bank.roe",
+                asserted_value=0.0,
+                unit="percent",
+                data_refs=(ClaimDataRef(
+                    ref_id="obs-ACB-roe-q1",
+                    ref_type="observation",
+                    entity="ACB",
+                    period="2024_Q1",
+                    metric_id="bank.roe",
+                ),),
+            ),),
+            evidence_refs=(),
+            source_refs=(),
+            inference_type=InferenceType.FACT,
+            support="partially_supported",
+        )
+        evaluator = _RuntimeStage1Evaluator(
+            resolver=ProviderStage1DatasetResolver(provider, provider.dataset_ref),
+            workload_scope=workload_scope,
+        )
+
+        report = evaluator.evaluate(plan=plan, claims=(zero_claim,), policy=_API_POLICY)
+
+        self.assertFalse(report.passed)
+        reference_violations = report.gate_results["reference_validity"].violations
+        self.assertTrue(any(
+            "observation_reference_unaccepted:obs-ACB-roe-q1" in item
+            for item in reference_violations
+        ), reference_violations)
+        numeric_violations = report.gate_results["numeric_accuracy"].violations
+        self.assertTrue(any(
+            "observation_reference_unaccepted:obs-ACB-roe-q1" in item
+            for item in numeric_violations
+        ), numeric_violations)
 
     def test_writer_rejects_unsupported_prose_and_accepts_grounded_limitation(self) -> None:
         attacks = (

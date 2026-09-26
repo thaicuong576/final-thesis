@@ -94,10 +94,13 @@ Company/Peer, revision/SSE/history và responsive UI chỉ được đánh dấu
 chạy được trên một deployment có snapshot/provider hợp lệ. HTTP 200 của
 frontend hoặc health endpoint không đủ để thay thế `/api/ready`.
 
-PR #67 là một patch reviewable nhằm pin và kiểm tra SQLite snapshot tại startup,
-nhưng đang mở và chưa được merge; nội dung PR không phải bằng chứng deployment
-đã được cấu hình. Không có deployment setting hoặc secret nào được thay đổi
-trong bản working này.
+PR #67 và PR #68 là các patch reviewable nhằm pin và kiểm tra SQLite snapshot
+tại startup; PR #68 bổ sung điều kiện `SQLITE_DB_PATH` tường minh trước
+readiness, synchronous analysis và SSE. PR #68 đã qua audit offline độc lập
+(98 test API/revision mục tiêu; full suite 671 passed, 4 skipped; OpenAPI và
+architecture guardrails đạt), nhưng vẫn mở và chưa được merge. Nội dung các PR
+không phải bằng chứng deployment đã được cấu hình. Không có deployment setting
+hoặc secret nào được thay đổi trong bản working này.
 
 ### 5.5. Trạng thái thiết kế thực nghiệm A/B/C
 

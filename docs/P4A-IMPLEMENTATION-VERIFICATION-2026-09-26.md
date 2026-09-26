@@ -11,7 +11,7 @@
 ## Acceptance evidence
 
 - T04 and T05 use the canonical question text from `data/evaluation/p4-questions-v1.jsonl`; each offline API end-to-end case checks eight expected metric-period cells, Company-only dispatch, and claim/evidence joins.
-- The plan-aware core Stage-1 gate checks the full `(entity, metric, period)` matrix. The T05 revision case changes only the targeted ROE claim prose, preserves factual and provenance fields, and revalidates all eight claims. An unresolved critical issue fails within the bounded two-round controller.
+- The plan-aware core Stage-1 gate checks the full `(entity, metric, period)` matrix. The T05 revision case changes only the targeted ROE claim prose, preserves factual and provenance fields, and revalidates all eight claims. An unresolved major issue fails within the bounded two-round controller.
 - The actual `/api/analyze/stream` route reaches `REPORT_READY` only after the final run is persisted. The test fetches `/api/runs/{id}` and compares ordered periods, full serialized `atomic_claims`, full `evidence_trail`, cross-array claim IDs, and terminal state. A persistence failure emits `RUN_BLOCKED` without `REPORT_READY`.
 - The implementation run reported **657 tests passed, 4 skipped**. OpenAPI, architecture guardrails, compileall, diff check, P4 and VPB verifiers passed. The accepted Gold v5 raw SQLite SHA-256 remained `1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73`.
 - PR CI passed the Python contracts/tests check. Vercel status checks were cancelled by ignored-build rules; they are not deployment smoke-test evidence.

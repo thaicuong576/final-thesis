@@ -235,7 +235,7 @@ roles; deterministic retrieval alone is not a model specialist.
 
 The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.
 
-## Multi-period Company trend target gate (runtime pending)
+## Multi-period Company trend target gate (implemented; evaluation pending)
 
 D-074 allows a bounded Company-only trend request with two to four unique,
 chronologically ordered periods. The plan, specialist context, claims, semantic
@@ -244,10 +244,11 @@ uses metric-period records; never collapse the same metric from several periods
 into one map entry. Each expected cell is accepted or explicitly missing, and
 Stage-1 rejects silent partial coverage.
 
-This completeness guarantee must be enforced in reusable `src/thesis_data`
+This completeness guarantee is enforced in reusable `src/thesis_data`
 acceptance against the frozen plan/expected-cell contract. API-only completeness
 checks are insufficient. Candidate identity binds the ordered periods even if
-the claim set is unchanged.
+the claim set is unchanged. Live-provider readiness and final evaluation remain
+pending as recorded in D-074.
 
 The legacy `period` is the final/anchor period when `periods` is supplied.
 Duplicate, descending, over-budget or query-mismatched lists fail before any

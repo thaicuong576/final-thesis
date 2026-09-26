@@ -38,9 +38,14 @@ The API runtime uses an operationally frozen plan identity. Specialist and
 synthesis writers receive a serialized `plan.model_dump(...)`, not the
 planner's live object. Stage-1 and the semantic critic receive deep copies.
 The revision controller deep-copies the plan into workflow state, binds the
-serialized plan into its candidate identity, and rejects a changed plan
-fingerprint during finalization with `analysis_plan_mutated`. The final report
-is rendered from the same request plan after the guarded workflow returns.
+candidate identity, and separately fingerprints the full serialized plan.
+`candidate_hash()` covers selected fields—plan version, dataset and snapshot
+IDs, query ID, ordered periods, claims, and optional synthesis summary and
+supporting claim IDs; it does not hash the full plan. `_plan_payload_hash()`
+hashes the complete JSON serialization of the plan and is stored separately in
+workflow state. Finalization recomputes that full-plan fingerprint and raises
+`analysis_plan_mutated` if it changed. The final report is rendered from the
+same request plan after the guarded workflow returns.
 
 The reusable `AnalysisPlan` Pydantic class currently does not set
 `frozen=True`; direct callers of the core can mutate a local instance. The API

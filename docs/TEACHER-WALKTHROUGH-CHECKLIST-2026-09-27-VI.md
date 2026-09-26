@@ -177,6 +177,25 @@ Nếu bất kỳ điều kiện nào chưa có evidence, trạng thái phải l�
 một lần kiểm tra workflow có ghi evidence; không được suy ra từ các fixture
 offline hay từ HTTP 200 của health endpoint.
 
+## 7. Recheck read-only ngày 27/09/2026
+
+Một lần kiểm tra mới chỉ dùng GET và browser navigation đã được thực hiện lúc
+`2026-09-27 01:05 ICT` (`2026-09-26 18:05 UTC`). Không gửi
+`POST /api/analyze` hoặc `/api/analyze/stream`, không upload file và không thay
+đổi deployment settings.
+
+| Surface | Kết quả quan sát | Ý nghĩa nghiệm thu |
+|---|---|---|
+| [`/api/ready`](https://final-thesis-zgwt.onrender.com/api/ready) | HTTP `503`; `status=unavailable`, `database=disconnected`, `dataset_snapshot_id=null`; detail: `No readable accepted canonical or Gold snapshot is configured.` | Readiness vẫn BLOCKED. |
+| [`/api/capabilities`](https://final-thesis-zgwt.onrender.com/api/capabilities) | HTTP `200`, nhưng `snapshotId`, `datasetId`, entities, periods và metrics đều rỗng; `analysis_available=false`, `limitation_code=accepted_snapshot_unavailable`. | Capability response không cấp quyền chạy analysis. |
+| [`/data`](https://fin-ai.eddiephung.me/data) | UI hiển thị snapshot chưa công bố, 0 ngân hàng, 0 chỉ tiêu, kỳ chưa công bố và kho dữ liệu `disconnected`. | Dataset journey BLOCKED đúng theo backend. |
+| [`/analysis`](https://fin-ai.eddiephung.me/analysis) | UI ghi API chưa xác nhận dữ liệu; nút `Bắt đầu phân tích` disabled và không có catalog usable. | Không thể bắt đầu Company/Peer workflow. |
+| [`/reports`](https://fin-ai.eddiephung.me/reports) | UI gắn nhãn cả 3 báo cáo là mẫu minh họa dữ liệu giả lập, không phải kết quả API/đã kiểm định. | Không có live report để chấm walkthrough. |
+
+**Kết luận lần recheck:** `BLOCKED`, không phải `PASS`. Bằng chứng này củng cố
+trạng thái hiện tại và không thay thế điều kiện provision accepted snapshot,
+readiness, workflow run, provenance trail hoặc teacher sign-off.
+
 ### Tài liệu đối chiếu
 
 - [Masterplan khóa luận](THESIS-MASTERPLAN-2026-09-24.md)

@@ -140,15 +140,22 @@ boundary and the transferability rule.
 ## Current public API analysis contract
 
 `POST /api/analyze` and `/api/analyze/stream` freeze a request-derived plan
-before retrieval and support single-period Company and Sector/Peer execution.
-They synthesize provider-backed claims, run Stage-1, then the configured
-semantic critic with at most two targeted revision rounds. Every revised
-candidate passes Stage-1 again. Tests use explicit offline critics; they do not
-establish live provider readiness. Missing semantic configuration blocks before
-specialist retrieval. Multi-period requests remain unsupported. Macro runs only
-when the accepted provider declares the requested capability/observations;
-the current Gold case study has no accepted macro data.
-T04/T05/T08 remain ineligible for final evaluation.
+before retrieval and support single-period Company/Sector/Peer execution plus
+bounded Company-only trends with two to four ordered periods. Trend plans retain
+the period list and final anchor; reusable Stage-1 validates the planned
+entity/metric/period matrix. They synthesize provider-backed claims, run Stage-1,
+then the configured semantic critic with at most two targeted revision rounds.
+Every revised candidate passes Stage-1 again. Tests use explicit offline
+providers/critics and do not establish live provider readiness. Missing semantic
+configuration blocks before specialist retrieval. Multi-period Peer/Macro
+requests remain unsupported. Macro runs only when the accepted provider declares
+the requested capability/observations; the current Gold case study has no
+accepted macro data. Exact-question T04/T05, targeted-revision, and
+SSE/run-history offline acceptance tests passed. A separate internal read-only
+audit at PR head `b094b603d83b3f129878656da9c3cbd021128c34` returned GREEN
+(recorded in `docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). These
+are implementation probes, not live-provider or scoring evidence; T04/T05/T08
+remain ineligible for final A/B/C evaluation.
 
 Peer identity and claim scope use the requested member set; the numeric
 denominator and data references use only eligible accepted inputs. Every
@@ -228,7 +235,7 @@ roles; deterministic retrieval alone is not a model specialist.
 
 The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.
 
-## Multi-period Company trend target gate (runtime pending)
+## Multi-period Company trend target gate (implemented; evaluation pending)
 
 D-074 allows a bounded Company-only trend request with two to four unique,
 chronologically ordered periods. The plan, specialist context, claims, semantic
@@ -237,10 +244,11 @@ uses metric-period records; never collapse the same metric from several periods
 into one map entry. Each expected cell is accepted or explicitly missing, and
 Stage-1 rejects silent partial coverage.
 
-This completeness guarantee must be enforced in reusable `src/thesis_data`
+This completeness guarantee is enforced in reusable `src/thesis_data`
 acceptance against the frozen plan/expected-cell contract. API-only completeness
 checks are insufficient. Candidate identity binds the ordered periods even if
-the claim set is unchanged.
+the claim set is unchanged. Live-provider readiness and final evaluation remain
+pending as recorded in D-074.
 
 The legacy `period` is the final/anchor period when `periods` is supplied.
 Duplicate, descending, over-budget or query-mismatched lists fail before any

@@ -155,19 +155,28 @@ Scope của Gold chỉ được bổ sung qua authority sidecar khai báo rõ v�
 theo D-073; core vẫn chỉ nhận dữ liệu qua provider. Metadata nhóm yêu cầu và
 nhóm có dữ liệu hợp lệ được giữ riêng để giải thích mẫu số.
 
-Các test offline xác minh luồng điều phối; chưa chứng minh chất lượng phân tích
-của model thật hoặc khả năng dùng ứng dụng đã triển khai. Multi-period chưa
-được hỗ trợ. Macro chỉ chạy khi provider khai báo capability và dữ liệu được
-chấp nhận tương ứng; mẫu Gold hiện tại chưa có dữ liệu macro đạt cổng. Bộ câu hỏi cuối vẫn pre-freeze. Quy trình CI
-Python kiểm contract và suite trong checkout; bằng chứng ignored có gate riêng.
+Các test offline xác minh luồng điều phối, nhưng chưa chứng minh chất lượng phân
+tích của model thật hoặc khả năng dùng ứng dụng đã triển khai. P4A hỗ trợ
+Company-only trend từ hai đến bốn kỳ; multi-period Peer/Macro vẫn bị chặn.
+Macro chỉ chạy khi provider khai báo capability và dữ liệu được chấp nhận tương
+ứng; mẫu Gold hiện tại chưa có dữ liệu macro đạt cổng. T04/T05 đã qua exact-
+question E2E và targeted revision; một internal read-only audit riêng trả về
+GREEN ở PR head `b094b603d83b3f129878656da9c3cbd021128c34` (ghi tại
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). Tuy vậy, chúng chưa đủ
+điều kiện chấm điểm trước live-provider/readiness và freeze.
+Bộ câu hỏi cuối vẫn pre-freeze. CI Python kiểm contract và suite trong checkout;
+bằng chứng ignored có gate riêng.
 
 Application run history uses contracts/run-store-schema.sql on its separate ANALYSIS_RUNS_DB_PATH. contracts/schema.sql remains the analytical schema contract; accepted snapshots are never initialized or migrated for run history.
 
-### Hợp đồng P4A đã chấp nhận, đang triển khai
+### Hợp đồng P4A đã triển khai và kiểm chứng
 
 D-074 mở đúng một lát cắt nhiều kỳ cho Company trend: từ hai đến bốn kỳ có thứ
 tự, một target, context tách theo kỳ và output dạng metric-period record. Mỗi
 numeric claim vẫn thuộc đúng một kỳ và giữ provenance đầy đủ. Một trend là một
 logical run, không phải ghép bốn report một kỳ. Multi-period Peer/Macro và T08
-vẫn bị chặn trước retrieval. Chưa được công bố T04/T05 đủ điều kiện hoặc protocol
-đã freeze cho đến khi exact-question E2E và audit độc lập cùng đạt.
+vẫn bị chặn trước retrieval. T04/T05 đã đạt exact-question E2E trên fixture
+offline; internal read-only audit tại PR head
+`b094b603d83b3f129878656da9c3cbd021128c34` trả về GREEN (xem
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). Chúng vẫn chưa đủ điều
+kiện chấm điểm cho đến khi live-provider/readiness và experiment-freeze gates cùng đạt.

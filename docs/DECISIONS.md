@@ -1376,8 +1376,15 @@ portability limitation, not permission to omit the API role-mapping gate.
 
 ## D-074: Open a bounded Company trend contract before multi-period peer work
 
-Status: Accepted for P4A implementation. T04/T05 remain unscored candidates
-until exact-question end-to-end evidence passes; T08 remains ineligible.
+Status: Implemented in PR #54 (squash merge
+`b1aeda4901a1cc2525a3d82409da24955bd0cecf`). A separate internal read-only
+audit returned GREEN at PR head
+`b094b603d83b3f129878656da9c3cbd021128c34`; see
+`docs/P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`. T04/T05 exact-question
+offline end-to-end, targeted-revision and SSE/run-history acceptance gates pass.
+T04/T05 remain unscored pending live-provider readiness and experiment freeze;
+T08
+remains ineligible because multi-period Peer scope is unsupported.
 
 D-038 already requires a trend to carry its complete ordered period scope as one
 logical task, but D-039 applied that rule to the historical BaselineJob boundary.

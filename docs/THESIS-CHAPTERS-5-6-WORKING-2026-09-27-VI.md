@@ -80,6 +80,14 @@ dataset accepted, không có entities/periods/metrics, báo
 `accepted_snapshot_unavailable`. Không có analysis request được gửi và không
 có live report để dùng trong walkthrough.
 
+Read-only recheck lúc 01:05 ICT ngày 27/09 (được ghi trong [teacher
+walkthrough checklist trên PR #64](https://github.com/thaicuong576/final-thesis/pull/64))
+cho kết quả cùng chiều: `/api/ready` vẫn trả 503 với
+`dataset_snapshot_id=null`, `/api/capabilities` vẫn không có phạm vi chạy được,
+trang Data hiển thị kho dữ liệu disconnected, nút bắt đầu ở Analysis disabled,
+và Report Library gắn nhãn cả ba mục là dữ liệu giả lập. Đây là bằng chứng
+deployment hiện tại đang chặn đúng, không phải bằng chứng walkthrough đã pass.
+
 Vì vậy, checklist walkthrough phải được đọc là checklist nghiệm thu chứ không
 phải biên bản pass. Các journey Dataset → Create Analysis → Session → Report,
 Company/Peer, revision/SSE/history và responsive UI chỉ được đánh dấu pass khi

@@ -185,10 +185,17 @@ def question_set_sha256(
 ) -> str:
     """Hash a question set using an explicit byte or canonical text mode."""
 
-    content = path.read_bytes()
     if hash_mode == CANONICAL_LF_UTF8_HASH_MODE:
-        text = content.decode("utf-8", errors="strict")
-        content = text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
-    elif hash_mode != RAW_FILE_BYTES_HASH_MODE:
+        return canonical_lf_utf8_sha256(path)
+    if hash_mode == RAW_FILE_BYTES_HASH_MODE:
+        return sha256(path.read_bytes()).hexdigest()
+    else:
         raise ValueError(f"unsupported question-set hash mode: {hash_mode}")
-    return sha256(content).hexdigest()
+
+
+def canonical_lf_utf8_sha256(path: Path) -> str:
+    """Hash tracked UTF-8 text after normalizing only CRLF and lone CR to LF."""
+
+    text = path.read_bytes().decode("utf-8", errors="strict")
+    canonical_bytes = text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+    return sha256(canonical_bytes).hexdigest()

@@ -31,9 +31,10 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
    Evidence manifests use `canonical_lf_utf8_sha256` for Git-tracked UTF-8 text
    controls and `raw_file_bytes_sha256` for immutable evidence. Ignored evidence
    verification requires an explicit `--evidence-root`.
-   ComplexityPlan/ComplexityJob v1 question-set hashes explicitly use
+   New ComplexityPlan/ComplexityJob v1 question-set hashes explicitly use
    `canonical_lf_utf8_sha256`; D-031 baseline run-manifest question-set hashes
-   continue to bind raw file bytes.
+   continue to bind raw file bytes. D-073 permits the pinned historical
+   5-issuer plan hashes only through its exact audit compatibility exception.
    Authority manifests byte-pin only scope-specific evidence and control
    records. Living repository policy files such as `AGENTS.md`, contracts,
    decisions, and lessons are referenced by stable section markers and tested

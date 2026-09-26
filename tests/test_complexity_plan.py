@@ -139,17 +139,67 @@ class ComplexityPlanTests(unittest.TestCase):
 
     def test_existing_complexity_plans_validate_without_artifact_changes(self):
         root = Path(__file__).parents[1]
-        question_path = root / "experiments" / "question-set-complexity-v1.json"
-        for filename in (
-            "complexity-plan-gold-v1.json",
-            "complexity-plan-parallel-v1.json",
-        ):
+        plan_inputs = (
+            (
+                "complexity-plan-gold-v1.json",
+                "question-set-complexity-v1.json",
+                False,
+            ),
+            (
+                "complexity-plan-parallel-v1.json",
+                "question-set-complexity-v1.json",
+                False,
+            ),
+            (
+                "complexity-plan-scaling-v1.json",
+                "question-set-scaling-v1.json",
+                False,
+            ),
+            (
+                "complexity-plan-scaling-5issuer-v1.json",
+                "question-set-scaling-5issuer-v1.json",
+                True,
+            ),
+            (
+                "complexity-plan-scaling-5issuer-v2.json",
+                "question-set-scaling-5issuer-v1.json",
+                True,
+            ),
+        )
+        for filename, question_filename, legacy_hash in plan_inputs:
             with self.subTest(plan=filename):
                 audit = audit_complexity_plan(
                     root / "experiments" / "runs" / filename,
-                    question_path,
+                    root / "experiments" / question_filename,
                 )
                 self.assertTrue(audit.eligible, audit.blockers)
+                self.assertEqual(
+                    "legacy_windows_crlf_raw_question_set_hash_accepted"
+                    in audit.warnings,
+                    legacy_hash,
+                )
+
+    def test_legacy_crlf_hash_allowance_rejects_changed_question_content(self):
+        root = Path(__file__).parents[1]
+        plan_path = (
+            root
+            / "experiments"
+            / "runs"
+            / "complexity-plan-scaling-5issuer-v1.json"
+        )
+        question_path = root / "experiments" / "question-set-scaling-5issuer-v1.json"
+        with tempfile.TemporaryDirectory() as directory:
+            changed_question_path = Path(directory) / question_path.name
+            changed_question_path.write_bytes(question_path.read_bytes() + b" ")
+            audit = audit_complexity_plan(plan_path, changed_question_path)
+
+        self.assertFalse(audit.eligible)
+        self.assertIn("plan_question_set_hash_mismatch", audit.blockers)
+        self.assertIn("job_question_set_hash_mismatch", audit.blockers)
+        self.assertNotIn(
+            "legacy_windows_crlf_raw_question_set_hash_accepted",
+            audit.warnings,
+        )
 
 
 if __name__ == "__main__":

@@ -595,7 +595,7 @@ and failure event ordering through the real SSE route.
 
 - Date: 2026-09-26
 - Scope: generic operational onboarding and canonical snapshot promotion
-- Status: PENDING
+- Status: ACTIVE
 
 An onboarding caller must not be able to make a source acceptable by declaring
 an arbitrary source type or a hash-shaped string. Promotion must validate the

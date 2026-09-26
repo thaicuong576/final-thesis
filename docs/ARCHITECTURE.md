@@ -42,8 +42,16 @@ members, while numeric claims reference only eligible accepted observations.
 Offline tests demonstrate these control paths, including targeted revision.
 They do not establish live semantic quality or deployed readiness. The current
 Render deployment still needs an explicitly provisioned accepted snapshot;
-ignored local SQLite files are not packaged by Git. Dataset storage and mutable
-run history also need deployment isolation before release. T04/T05 pass exact-
+ignored local SQLite files are not packaged by Git. The API requires explicit
+`SQLITE_DB_PATH`, `EXPECTED_DATASET_SNAPSHOT_ID`, and `EXPECTED_SQLITE_SHA256`
+configuration. Startup checks the provider-reported snapshot ID, raw SQLite
+bytes, SQLite integrity, journal mode, and file stability before caching a
+read-only provider binding. WAL mode or SQLite sidecars fail readiness because
+the pinned main-file hash would be incomplete or unstable.
+`ANALYSIS_RUNS_DB_PATH` remains a separate writable store initialized at
+startup; readiness reads it without creating schema. These checks validate
+only the configured artifact and do not establish live deployment readiness.
+T04/T05 pass exact-
 question offline acceptance; a separate internal read-only audit at PR head
 `b094b603d83b3f129878656da9c3cbd021128c34` returned GREEN (recorded in
 `P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md`). They remain unscored pending
@@ -304,6 +312,14 @@ not presumed logical contradictions and do not replace semantic critique.
 - Evidence metadata is stored alongside document and chunk identifiers.
 - Gold snapshots, experiment configurations, and outputs are versioned.
 - Secrets never enter the repository.
+- The reference API accepts a SQLite snapshot only when an explicit path,
+  expected provider snapshot ID, and raw-byte SHA-256 are configured. At
+  startup it verifies the ID, hash, `PRAGMA integrity_check`, non-WAL journal
+  mode, absence of SQLite sidecars, and stable file metadata. It caches that
+  provider binding and opens analytical data read-only for later requests.
+- Mutable `analysis_runs` history belongs only to the distinct
+  `ANALYSIS_RUNS_DB_PATH`. Startup may initialize this operational store;
+  readiness probes only inspect it and never create schema.
 
 ## Evaluation boundary
 

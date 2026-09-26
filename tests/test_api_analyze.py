@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -52,6 +53,7 @@ from thesis_data.storage import create_gold_snapshot_schema
 from thesis_api.main import create_app
 from thesis_api.adaptive_runtime import _API_POLICY, _RuntimeStage1Evaluator, _plan_request
 from thesis_api.schemas import AnalysisRequest, AnalysisResponse
+from thesis_api.database import ensure_analysis_runs_table
 from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_api.service import (
     AnalysisBlocked,
@@ -291,6 +293,22 @@ def _gold_fixture(
     connection.commit()
     connection.close()
     return path
+
+
+def _snapshot_pins(path: Path) -> dict[str, str]:
+    """Pin a synthetic test snapshot by its physical fixture metadata and bytes."""
+
+    connection = sqlite3.connect(f"file:{Path(path).resolve()}?mode=ro", uri=True)
+    try:
+        row = connection.execute("SELECT snapshot_id FROM snapshot_metadata").fetchone()
+    finally:
+        connection.close()
+    if row is None:
+        raise AssertionError("test snapshot fixture has no snapshot metadata")
+    return {
+        "expected_dataset_snapshot_id": str(row[0]),
+        "expected_sqlite_sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest(),
+    }
 
 
 def _gold_fanout_fixture(path: Path) -> Path:
@@ -654,6 +672,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             app_name="final-thesis-api-test",
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            **_snapshot_pins(self.db_path),
         )
         self.test_critic = _ExplicitOfflineAcceptingCritic()
         self.critic_factory_patch = patch(
@@ -664,6 +683,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.addCleanup(self.critic_factory_patch.stop)
         self.settings.openai_api_key = "test-key"
         self.settings.analysis_runs_db_path = str(Path(self.directory.name) / "analysis-runs.sqlite")
+        ensure_analysis_runs_table(Path(self.settings.analysis_runs_db_path))
         self.writer = _ExplicitOfflineAnalysisWriter()
         self.client = TestClient(create_app(self.settings, analysis_writer=self.writer))
         self.addCleanup(self.client.close)
@@ -672,6 +692,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         settings = Settings(
             app_env="test",
             sqlite_db_path=str(database),
+            **_snapshot_pins(database),
             analysis_runs_db_path=str(database.with_name(database.stem + "-runs.sqlite")),
             openai_api_key=api_key,
         )
@@ -881,6 +902,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 provider = _FiveMemberPeerProvider()
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+                self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
                 writer = _ExplicitOfflineAnalysisWriter(missing_text=phrase)
                 critic = _ExplicitOfflineAcceptingCritic()
                 with patch("thesis_api.service._load_provider", return_value=binding):
@@ -903,6 +925,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             injected_summary="The report mentions seventeen percent as context."
         )
         critic = _ExplicitOfflineAcceptingCritic()
+        self.settings.expected_dataset_snapshot_id = _snapshot_pins(self.db_path)["expected_dataset_snapshot_id"]
         with patch(
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
@@ -925,6 +948,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         client = TestClient(create_app(Settings(
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            **_snapshot_pins(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "no-model-runs.sqlite"),
             openai_api_key=None,
         )))
@@ -977,6 +1001,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
     def test_macro_writer_runs_only_for_a_provider_declared_macro_metric(self) -> None:
         provider = _DeclaredMacroProvider()
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "macro-fixture")
+        self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
         writer = _ExplicitOfflineAnalysisWriter()
         with patch("thesis_api.service._load_provider", return_value=binding):
             report = AnalysisEngine(
@@ -997,6 +1022,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
     def test_multiperiod_comparison_is_explicitly_rejected_before_retrieval(self) -> None:
         provider = _FiveMemberPeerProvider()
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
         with patch("thesis_api.service._load_provider", return_value=binding), patch.object(provider, "get_metric", wraps=provider.get_metric) as get_metric:
             for query in (
                 "Compare ROE of TCB from 2024_Q1 to 2024_Q4",
@@ -1022,6 +1048,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
     def test_peer_run_uses_provider_median_and_preserves_missing_member_denominator(self) -> None:
         provider = _FiveMemberPeerProvider()
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
         with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
             provider,
             "get_peer_benchmark",
@@ -1061,6 +1088,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
     def test_peer_metrics_keep_distinct_membership_records(self) -> None:
         provider = _DifferentMetricEligibilityPeerProvider()
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
         with patch("thesis_api.service._load_provider", return_value=binding):
             report = AnalysisResponse.model_validate(self.client.post(
                 "/api/analyze",
@@ -1102,20 +1130,23 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     update={field: None}
                 )
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+                self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
                 with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
                     provider,
                     "get_peer_benchmark",
                     wraps=provider.get_peer_benchmark,
                 ) as get_benchmark:
-                    report = AnalysisResponse.model_validate(self.client.post(
-                        "/api/analyze",
-                        json={
-                            "query": "Compare ROE of TCB with the five bank peer universe in 2024 Q1",
-                            "target_ticker": "TCB",
-                            "period": "2024_Q1",
-                            "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
-                        },
-                    ).json())
+                    app = create_app(self.settings, analysis_writer=self.writer)
+                    with TestClient(app) as client:
+                        report = AnalysisResponse.model_validate(client.post(
+                            "/api/analyze",
+                            json={
+                                "query": "Compare ROE of TCB with the five bank peer universe in 2024 Q1",
+                                "target_ticker": "TCB",
+                                "period": "2024_Q1",
+                                "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
+                            },
+                        ).json())
                 self.assertEqual(report.status, "error")
                 self.assertIn(code, report.limitations[0])
                 get_benchmark.assert_not_called()
@@ -1136,6 +1167,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             return tuple(result)
 
         binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "peer-fixture")
+        self.settings.expected_dataset_snapshot_id = provider.dataset_ref.dataset_snapshot_id
         with patch("thesis_api.service._load_provider", return_value=binding), patch.object(
             provider, "get_peer_benchmark", side_effect=legacy_benchmark
         ):
@@ -1353,6 +1385,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         missing_model = Settings(
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            **_snapshot_pins(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "model-missing-runs.sqlite"),
             openai_api_key=None,
         )
@@ -1360,7 +1393,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             "thesis_api.service._load_provider",
             side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
         ):
-            capabilities = AnalysisEngine(self.db_path, missing_model).get_capabilities()
+            missing_model_engine = AnalysisEngine(self.db_path, missing_model)
+            missing_model_engine.initialize_runtime()
+            capabilities = missing_model_engine.get_capabilities()
         self.assertFalse(capabilities["analysis_available"])
         self.assertTrue(capabilities["analysis_runs_store_configured"])
         self.assertFalse(capabilities["specialist_writer_configured"])
@@ -1385,6 +1420,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 settings = Settings(
                     app_env="test",
                     sqlite_db_path=str(self.db_path),
+                    **_snapshot_pins(self.db_path),
                     analysis_runs_db_path=str(runs_path),
                     openai_api_key="test-key",
                 )
@@ -1392,7 +1428,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     "thesis_api.service._load_provider",
                     side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
                 ):
-                    capabilities = AnalysisEngine(self.db_path, settings).get_capabilities()
+                    alias_engine = AnalysisEngine(self.db_path, settings)
+                    alias_engine.initialize_runtime()
+                    capabilities = alias_engine.get_capabilities()
                 self.assertFalse(capabilities["analysis_available"])
                 self.assertFalse(capabilities["analysis_runs_store_configured"])
                 self.assertEqual(capabilities["limitation_code"], "analysis_runs_store_invalid")
@@ -1688,6 +1726,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 SupportedOperation.GET_EVIDENCE,
             ),
         )
+        self.settings.expected_dataset_snapshot_id = dataset_ref.dataset_snapshot_id
         with patch(
             "thesis_api.service._load_provider",
             return_value=ProviderBinding(SameScopeProvider(), dataset_ref, catalog, "fixture"),
@@ -1750,6 +1789,8 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         settings = Settings(
             app_env="test",
             sqlite_db_path=str(missing),
+            expected_dataset_snapshot_id="gold-snapshot-api-fixture",
+            expected_sqlite_sha256="0" * 64,
             analysis_runs_db_path=str(Path(self.directory.name) / "missing-database-runs.sqlite"),
             openai_api_key="test-key",
         )

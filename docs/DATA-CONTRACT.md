@@ -646,3 +646,17 @@ or streamed analysis must not change the dataset schema, bytes or sidecars.
 Readiness must account for required writer/critic configuration as well as
 accepted-data availability; a missing model configuration cannot advertise a
 runnable analysis service. Secret contents never appear in readiness output.
+
+The reference SQLite adapter also requires explicit `SQLITE_DB_PATH`,
+`EXPECTED_DATASET_SNAPSHOT_ID`, and `EXPECTED_SQLITE_SHA256` configuration. The
+digest is `raw_file_bytes_sha256` over the exact accepted SQLite file bytes;
+the expected snapshot ID is compared with the provider's logical identity.
+Process startup opens the file read-only, runs `PRAGMA integrity_check`, checks
+the expected ID and hash, and rejects WAL mode, journal sidecars, or file
+changes during validation. It caches the validated provider binding so the
+whole-file hash is not repeated per request. SQLite providers continue to open
+the analytical file in read-only mode. The writable run-store schema is
+initialized during application startup on the distinct run-store path;
+`/api/ready` only inspects that store and has no schema-creation side effect.
+This SQLite validation belongs to the reference adapter and does not add a
+physical-database dependency to the reusable analysis core.

@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from thesis_api.database import check_database_connection
 from thesis_api.main import create_app
 from thesis_api.settings import Settings
-from test_api_analyze import _fixture_provider_binding, _gold_fixture
+from test_api_analyze import _fixture_provider_binding, _gold_fixture, _snapshot_pins
 
 
 class ThesisApiTests(unittest.TestCase):
@@ -31,6 +31,8 @@ class ThesisApiTests(unittest.TestCase):
             app_revision="test-commit-sha-12345",
             openai_api_key="sk-mock-openai-secret-key",
             sqlite_db_path=str(missing_database),
+            expected_dataset_snapshot_id="gold-snapshot-api-fixture",
+            expected_sqlite_sha256="0" * 64,
         )
         self.app = create_app(self.settings)
         self.client = TestClient(self.app)
@@ -64,6 +66,7 @@ class ThesisApiTests(unittest.TestCase):
         settings = Settings(
             app_env="test",
             sqlite_db_path=str(database),
+            **_snapshot_pins(database),
             analysis_runs_db_path=str(Path(self.temp_dir.name) / "analysis-runs.sqlite"),
             openai_api_key="test-key",
             openai_base_url="https://example.test/v1",
@@ -94,8 +97,14 @@ class ThesisApiTests(unittest.TestCase):
             Path(self.temp_dir.name) / "missing-locator.sqlite",
             include_metric_locators=False,
         )
-        app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
-        response = TestClient(app).get("/api/ready")
+        settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(database),
+            **_snapshot_pins(database),
+            analysis_runs_db_path=str(Path(self.temp_dir.name) / "missing-locator-runs.sqlite"),
+        )
+        with TestClient(create_app(settings)) as client:
+            response = client.get("/api/ready")
         self.assertEqual(response.status_code, 503)
         data = response.json()
         self.assertEqual(data.get("status"), "unavailable")

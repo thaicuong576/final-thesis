@@ -25,6 +25,10 @@ constitution, stop and resolve the conflict before coding.
 - Period and unit conversions must be explicit.
 - A published claim must be traceable to an accepted observation or cited document.
 - Views and summaries must not silently mix incompatible snapshots.
+- The API must not infer an accepted snapshot path or identity. Readiness
+  requires an explicit SQLite path, expected provider snapshot ID, and exact
+  raw-byte SHA-256; integrity and file stability are checked before the
+  read-only provider can be used.
 - An anomaly trigger is not a true contradiction without an independent evaluation label.
 
 ## Data quality
@@ -53,6 +57,8 @@ constitution, stop and resolve the conflict before coding.
 - Record model name, model version, prompt/configuration version, timing, calls, tokens, and cost.
 - Make a clean rerun possible from documented commands.
 - Never overwrite an existing raw or staging snapshot with a gold derivative.
+- Mutable analysis history must use a separate `ANALYSIS_RUNS_DB_PATH`; a
+  successful request must leave accepted snapshot bytes and sidecars unchanged.
 
 ## Security and privacy
 

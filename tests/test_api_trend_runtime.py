@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import sqlite3
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -65,6 +67,25 @@ def _canonical_question(task_id: str) -> str:
         if item["task_id"] == task_id:
             return item["question_text"]
     raise AssertionError(f"Canonical P4 question {task_id} was not found")
+
+
+def _pinned_provider_fixture(path: Path, snapshot_id: str) -> str:
+    """Create a tiny non-WAL SQLite artifact for an injected provider test."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(path)
+    try:
+        connection.execute(
+            "CREATE TABLE snapshot_metadata (snapshot_id TEXT, created_at_utc TEXT, status TEXT, config_json TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO snapshot_metadata VALUES (?, ?, ?, ?)",
+            (snapshot_id, "2026-09-27T00:00:00Z", "gold", "{}"),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _trend_catalog() -> DatasetCapabilityCatalog:
@@ -526,9 +547,16 @@ class CompanyTrendRequestTests(unittest.TestCase):
             with self.subTest(ticker=ticker), TemporaryDirectory() as directory:
                 provider = _TrendProvider(ticker, metrics)
                 writer = _TrendWriter()
+                accepted_path = Path(directory) / "accepted.sqlite"
+                snapshot_hash = _pinned_provider_fixture(
+                    accepted_path,
+                    provider.dataset_ref.dataset_snapshot_id,
+                )
                 settings = Settings(
                     app_env="test",
-                    sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
+                    sqlite_db_path=str(accepted_path),
+                    expected_dataset_snapshot_id=provider.dataset_ref.dataset_snapshot_id,
+                    expected_sqlite_sha256=snapshot_hash,
                     analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
                 )
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "trend-fixture")
@@ -537,9 +565,9 @@ class CompanyTrendRequestTests(unittest.TestCase):
                     semantic_critic=_ExplicitOfflineAcceptingCritic(),
                     analysis_writer=writer,
                 )
-                with TestClient(app) as client, patch(
+                with patch(
                     "thesis_api.service._load_provider", return_value=binding,
-                ):
+                ), TestClient(app) as client:
                     response = client.post(
                         "/api/analyze",
                         json={
@@ -616,18 +644,25 @@ class CompanyTrendRequestTests(unittest.TestCase):
             return report
 
         with TemporaryDirectory() as directory:
+            accepted_path = Path(directory) / "accepted.sqlite"
+            snapshot_hash = _pinned_provider_fixture(
+                accepted_path,
+                provider.dataset_ref.dataset_snapshot_id,
+            )
             settings = Settings(
                 app_env="test",
-                sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
+                sqlite_db_path=str(accepted_path),
+                expected_dataset_snapshot_id=provider.dataset_ref.dataset_snapshot_id,
+                expected_sqlite_sha256=snapshot_hash,
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
-            with TestClient(app) as client, patch(
+            with patch(
                 "thesis_api.service._load_provider", return_value=binding,
             ), patch(
                 "thesis_api.adaptive_runtime.validate_stage1_claims",
                 side_effect=capture_stage1,
-            ):
+            ), TestClient(app) as client:
                 response = client.post(
                     "/api/analyze",
                     json={"query": query, "target_ticker": "MBB", "periods": periods},
@@ -711,18 +746,25 @@ class CompanyTrendRequestTests(unittest.TestCase):
             return original_stage1(*args, **kwargs)
 
         with TemporaryDirectory() as directory:
+            accepted_path = Path(directory) / "accepted.sqlite"
+            snapshot_hash = _pinned_provider_fixture(
+                accepted_path,
+                provider.dataset_ref.dataset_snapshot_id,
+            )
             settings = Settings(
                 app_env="test",
-                sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
+                sqlite_db_path=str(accepted_path),
+                expected_dataset_snapshot_id=provider.dataset_ref.dataset_snapshot_id,
+                expected_sqlite_sha256=snapshot_hash,
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
-            with TestClient(app) as client, patch(
+            with patch(
                 "thesis_api.service._load_provider", return_value=binding,
             ), patch(
                 "thesis_api.adaptive_runtime.validate_stage1_claims",
                 side_effect=count_stage1,
-            ):
+            ), TestClient(app) as client:
                 response = client.post(
                     "/api/analyze",
                     json={"query": query, "target_ticker": "MBB", "periods": periods},
@@ -772,9 +814,16 @@ class CompanyTrendRequestTests(unittest.TestCase):
             return parsed
 
         with TemporaryDirectory() as directory:
+            accepted_path = Path(directory) / "accepted.sqlite"
+            snapshot_hash = _pinned_provider_fixture(
+                accepted_path,
+                provider.dataset_ref.dataset_snapshot_id,
+            )
             settings = Settings(
                 app_env="test",
-                sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
+                sqlite_db_path=str(accepted_path),
+                expected_dataset_snapshot_id=provider.dataset_ref.dataset_snapshot_id,
+                expected_sqlite_sha256=snapshot_hash,
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
             )
             app = create_app(
@@ -782,14 +831,14 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 semantic_critic=_ExplicitOfflineAcceptingCritic(),
                 analysis_writer=writer,
             )
-            with TestClient(app) as client, patch(
+            with patch(
                 "thesis_api.service._load_provider", return_value=binding,
             ), patch.object(
                 AnalysisEngine,
                 "persist_run",
                 autospec=True,
                 side_effect=persist_then_read,
-            ):
+            ), TestClient(app) as client:
                 response = client.post(
                     "/api/analyze/stream",
                     json={"query": query, "target_ticker": "MBB", "periods": periods},

@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import hashlib
 import json
 import logging
 from pathlib import Path
 from queue import Queue
 import re
 import sqlite3
-from threading import Thread
+from threading import Lock, Thread
 import time
 from typing import Any, Iterator, Sequence
 import uuid
@@ -163,6 +164,7 @@ class ProviderBinding:
 
 
 _GOLD_SCOPE_AUTHORITY_SHA256 = "fef07af9f3deea7afbaa60ad51c8db740388e88b64bcf843d8ab5ec8f0ad777f"
+_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
 def _load_provider(
@@ -214,6 +216,131 @@ def _load_provider(
         "accepted_snapshot_unavailable",
         "The configured SQLite file does not expose a supported accepted canonical or Gold snapshot.",
     )
+
+
+def _stable_file_state(path: Path) -> tuple[int, int, int, int, int]:
+    stat = path.stat()
+    return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+
+
+def _assert_no_sqlite_sidecars(path: Path) -> None:
+    for suffix in ("-wal", "-shm", "-journal"):
+        if Path(f"{path}{suffix}").exists():
+            raise AnalysisBlocked(
+                "accepted_snapshot_mutable",
+                "The configured accepted SQLite snapshot has a journal or WAL sidecar. Provision a quiescent, immutable SQLite file before enabling readiness.",
+            )
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _validate_configured_snapshot(
+    db_path: Path | None,
+    settings,
+) -> ProviderBinding:
+    """Validate the configured immutable SQLite artifact before binding a provider."""
+
+    if db_path is None:
+        raise AnalysisBlocked(
+            "accepted_snapshot_path_unconfigured",
+            "SQLITE_DB_PATH must explicitly point to the accepted analytical SQLite snapshot.",
+        )
+    expected_snapshot_id = getattr(settings, "expected_dataset_snapshot_id", None)
+    if not isinstance(expected_snapshot_id, str) or not expected_snapshot_id.strip():
+        raise AnalysisBlocked(
+            "expected_snapshot_id_unconfigured",
+            "EXPECTED_DATASET_SNAPSHOT_ID must identify the accepted snapshot configured at SQLITE_DB_PATH.",
+        )
+    expected_sha256 = getattr(settings, "expected_sqlite_sha256", None)
+    if not isinstance(expected_sha256, str) or not expected_sha256.strip():
+        raise AnalysisBlocked(
+            "expected_snapshot_hash_unconfigured",
+            "EXPECTED_SQLITE_SHA256 must contain the raw-file SHA-256 for the accepted SQLite snapshot.",
+        )
+    expected_sha256 = expected_sha256.strip().lower()
+    if not _SHA256_RE.fullmatch(expected_sha256):
+        raise AnalysisBlocked(
+            "expected_snapshot_hash_invalid",
+            "EXPECTED_SQLITE_SHA256 must contain exactly 64 hexadecimal characters.",
+        )
+
+    resolved_path = Path(db_path).expanduser().resolve(strict=False)
+    if not resolved_path.is_file():
+        raise AnalysisBlocked(
+            "accepted_snapshot_unavailable",
+            "SQLITE_DB_PATH does not resolve to an existing SQLite file; provision the accepted snapshot explicitly.",
+        )
+    try:
+        initial_state = _stable_file_state(resolved_path)
+        _assert_no_sqlite_sidecars(resolved_path)
+        connection = sqlite3.connect(
+            f"file:{resolved_path}?mode=ro",
+            uri=True,
+            timeout=2.0,
+        )
+        try:
+            journal_row = connection.execute("PRAGMA journal_mode").fetchone()
+            journal_mode = str(journal_row[0]).casefold() if journal_row else "unknown"
+            if journal_mode == "wal":
+                raise AnalysisBlocked(
+                    "accepted_snapshot_mutable",
+                    "The configured accepted SQLite snapshot is in WAL mode. Provision a quiescent immutable file without WAL sidecars before enabling readiness.",
+                )
+            integrity_rows = connection.execute("PRAGMA integrity_check").fetchall()
+        finally:
+            connection.close()
+        if len(integrity_rows) != 1 or str(integrity_rows[0][0]).casefold() != "ok":
+            raise AnalysisBlocked(
+                "accepted_snapshot_integrity_failed",
+                "SQLite PRAGMA integrity_check did not return ok for the configured accepted snapshot.",
+            )
+        _assert_no_sqlite_sidecars(resolved_path)
+        actual_sha256 = _sha256_file(resolved_path)
+        final_state = _stable_file_state(resolved_path)
+        _assert_no_sqlite_sidecars(resolved_path)
+        if initial_state != final_state:
+            raise AnalysisBlocked(
+                "accepted_snapshot_mutable",
+                "The configured SQLite snapshot changed during startup validation. Stop writers and provision a stable accepted file.",
+            )
+        if actual_sha256 != expected_sha256:
+            raise AnalysisBlocked(
+                "accepted_snapshot_hash_mismatch",
+                "The configured SQLite bytes do not match EXPECTED_SQLITE_SHA256; verify the artifact and its pinned digest.",
+            )
+        scope_authority_path = getattr(settings, "gold_scope_authority_path", None)
+        if scope_authority_path is None:
+            binding = _load_provider(resolved_path)
+        else:
+            binding = _load_provider(
+                resolved_path,
+                scope_authority_path=Path(scope_authority_path),
+            )
+        if binding.dataset_ref.dataset_snapshot_id != expected_snapshot_id.strip():
+            raise AnalysisBlocked(
+                "accepted_snapshot_id_mismatch",
+                "The provider-reported snapshot ID does not match EXPECTED_DATASET_SNAPSHOT_ID; verify the configured artifact and identity.",
+            )
+        if _stable_file_state(resolved_path) != final_state:
+            raise AnalysisBlocked(
+                "accepted_snapshot_mutable",
+                "The configured SQLite snapshot changed while its provider binding was being validated. Stop writers and provision a stable accepted file.",
+            )
+        _assert_no_sqlite_sidecars(resolved_path)
+        return binding
+    except AnalysisBlocked:
+        raise
+    except (OSError, sqlite3.Error, DatasetProviderError, ValueError) as exc:
+        raise AnalysisBlocked(
+            "accepted_snapshot_integrity_failed",
+            "The configured SQLite snapshot could not be read and validated. Check the path, file integrity, and read-only access.",
+        ) from exc
 
 
 def _normalized(value: str) -> str:
@@ -822,14 +949,10 @@ def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
 def get_dataset_capabilities(db_path: Path | None = None, *, settings=None) -> dict[str, Any]:
     """Return only capabilities declared by a validated snapshot provider."""
 
-    resolved_db_path = Path(db_path) if db_path is not None else get_settings().get_sqlite_path()
+    current_settings = settings or get_settings()
+    resolved_db_path = Path(db_path) if db_path is not None else current_settings.get_sqlite_path()
     try:
-        authority_path = getattr(settings, "gold_scope_authority_path", None) if settings is not None else None
-        binding = (
-            _load_provider(resolved_db_path, scope_authority_path=Path(authority_path))
-            if authority_path is not None
-            else _load_provider(resolved_db_path)
-        )
+        binding = _validate_configured_snapshot(resolved_db_path, current_settings)
         return _capabilities_payload(binding)
     except AnalysisBlocked as exc:
         return _unavailable_capabilities(exc.detail, exc.code)
@@ -1035,16 +1158,20 @@ class AnalysisEngine:
 
     def __init__(
         self,
-        db_path: Path,
+        db_path: Path | None,
         settings=None,
         *,
         semantic_critic=None,
         analysis_writer=None,
     ) -> None:
-        self.db_path = Path(db_path)
+        self.db_path = Path(db_path) if db_path is not None else None
         self.settings = settings or get_settings()
         self._semantic_critic = semantic_critic
         self._analysis_writer = analysis_writer
+        self._snapshot_lock = Lock()
+        self._snapshot_validation_complete = False
+        self._snapshot_binding: ProviderBinding | None = None
+        self._snapshot_error: AnalysisBlocked | None = None
 
     def _runs_store_path(self) -> Path:
         return self.settings.get_analysis_runs_path(dataset_path=self.db_path)
@@ -1057,10 +1184,51 @@ class AnalysisEngine:
         )
 
     def _binding(self) -> ProviderBinding:
-        authority_path = getattr(self.settings, "gold_scope_authority_path", None)
-        if authority_path is not None:
-            return _load_provider(self.db_path, scope_authority_path=Path(authority_path))
-        return _load_provider(self.db_path)
+        if not self._snapshot_validation_complete:
+            with self._snapshot_lock:
+                if not self._snapshot_validation_complete:
+                    try:
+                        self._snapshot_binding = _validate_configured_snapshot(self.db_path, self.settings)
+                    except AnalysisBlocked as exc:
+                        self._snapshot_error = exc
+                    self._snapshot_validation_complete = True
+        if self._snapshot_error is not None:
+            raise AnalysisBlocked(self._snapshot_error.code, self._snapshot_error.detail)
+        assert self._snapshot_binding is not None
+        return self._snapshot_binding
+
+    def initialize_runtime(self) -> None:
+        """Validate accepted data once and initialize only the separate run store."""
+
+        try:
+            self._binding()
+            runs_path = self._runs_store_path()
+            ensure_analysis_runs_table(runs_path)
+        except (AnalysisBlocked, OSError, ValueError, sqlite3.Error) as exc:
+            logger.info("API startup remains unavailable: %s", type(exc).__name__)
+
+    def _analysis_runs_store_available(self) -> bool:
+        try:
+            runs_path = self._runs_store_path()
+            if not runs_path.is_file():
+                return False
+            connection = sqlite3.connect(
+                f"file:{runs_path.resolve()}?mode=ro",
+                uri=True,
+                timeout=2.0,
+            )
+            try:
+                table = connection.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'analysis_runs'"
+                ).fetchone()
+                if table is None:
+                    return False
+                connection.execute("SELECT COUNT(*) FROM analysis_runs").fetchone()
+                return True
+            finally:
+                connection.close()
+        except (OSError, ValueError, sqlite3.Error):
+            return False
 
     def _analyze(
         self,
@@ -1069,6 +1237,7 @@ class AnalysisEngine:
         event_sink=None,
     ) -> AnalysisResponse:
         try:
+            binding = self._binding()
             try:
                 self._runs_store_path()
             except (OSError, ValueError):
@@ -1083,7 +1252,6 @@ class AnalysisEngine:
                     "A configured OpenAI-compatible specialist writer and semantic reviewer are required before retrieval.",
                     request,
                 )
-            binding = self._binding()
             semantic_critic = self._semantic_critic
             analysis_writer = self._analysis_writer
             if semantic_critic is None:
@@ -1165,19 +1333,17 @@ class AnalysisEngine:
         )
 
     def get_capabilities(self) -> dict[str, Any]:
-        capabilities = get_dataset_capabilities(self.db_path, settings=self.settings)
-        model_configured = self._model_runtime_configured()
         try:
-            runs_path = self._runs_store_path()
-            ensure_analysis_runs_table(runs_path)
-            connection = sqlite3.connect(runs_path, timeout=2.0)
-            try:
-                connection.execute("SELECT COUNT(*) FROM analysis_runs").fetchone()
-            finally:
-                connection.close()
-            store_configured = True
-        except (OSError, ValueError, sqlite3.Error):
-            store_configured = False
+            capabilities = _capabilities_payload(self._binding())
+        except AnalysisBlocked as exc:
+            capabilities = _unavailable_capabilities(exc.detail, exc.code)
+        except (DatasetProviderError, sqlite3.Error, OSError, ValueError):
+            capabilities = _unavailable_capabilities(
+                "The accepted dataset provider could not verify runnable company observations.",
+                "provider_failure",
+            )
+        model_configured = self._model_runtime_configured()
+        store_configured = self._analysis_runs_store_available()
         capabilities["semantic_reviewer_configured"] = model_configured
         capabilities["specialist_writer_configured"] = model_configured
         capabilities["analysis_runs_store_configured"] = store_configured
@@ -1203,7 +1369,7 @@ class AnalysisEngine:
 
     def stream_analysis(self, request: AnalysisRequest, step_delay: float = 0.35) -> Iterator[str]:
         yield from stream_analysis_query(
-            request, db_path=self.db_path, step_delay=step_delay,
+            request, engine=self, db_path=self.db_path, step_delay=step_delay,
             settings=self.settings, semantic_critic=self._semantic_critic,
             analysis_writer=self._analysis_writer,
         )
@@ -1214,6 +1380,7 @@ def stream_analysis_query(
     db_path: Path | None = None,
     step_delay: float = 0.35,
     *,
+    engine: AnalysisEngine | None = None,
     settings=None,
     semantic_critic=None,
     analysis_writer=None,
@@ -1222,7 +1389,7 @@ def stream_analysis_query(
 
     del step_delay  # timing is determined by real work; no scripted delays/events remain
     current_settings = settings or get_settings()
-    engine = AnalysisEngine(
+    current_engine = engine or AnalysisEngine(
         db_path or current_settings.get_sqlite_path(),
         current_settings,
         semantic_critic=semantic_critic,
@@ -1271,7 +1438,7 @@ def stream_analysis_query(
     def run() -> None:
         nonlocal sequence
         try:
-            report = engine._analyze(req, event_sink=emit)
+            report = current_engine._analyze(req, event_sink=emit)
             if report.status == "error":
                 if not events or events[-1].get("type") != "RUN_BLOCKED":
                     reason = report.limitations[0] if report.limitations else "analysis_blocked"
@@ -1284,7 +1451,7 @@ def stream_analysis_query(
                     "report": report.model_dump(mode="json", exclude_none=True),
                 }, publish=False)
                 try:
-                    engine.persist_run(req, report, events)
+                    current_engine.persist_run(req, report, events)
                 except Exception as exc:
                     logger.error("Accepted SSE report could not be persisted: %s", type(exc).__name__)
                     # The prepared terminal event is persisted only on success

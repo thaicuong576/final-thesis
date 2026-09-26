@@ -1459,3 +1459,31 @@ T08 is deferred to a separate decision because per-period peer denominators,
 context budget and the `company_to_peer` versus public applicable-link naming
 mismatch must be resolved together. This decision does not freeze the P4
 protocol, authorize live scoring, add macro data, or claim live-model quality.
+
+## D-075: Pin and validate the reference API's accepted SQLite snapshot at startup
+
+Status: Accepted for the reference API startup/readiness boundary.
+
+The API requires an explicitly configured `SQLITE_DB_PATH`,
+`EXPECTED_DATASET_SNAPSHOT_ID`, and `EXPECTED_SQLITE_SHA256`. The latter is a
+raw-file-bytes SHA-256 of the exact accepted SQLite artifact; the expected ID
+must match the logical identity reported by its provider. Startup opens the
+file read-only, runs SQLite `integrity_check`, verifies both pins, and rejects
+WAL mode, active journal sidecars, or file changes observed during validation.
+The validated provider binding is cached for the process, avoiding repeated
+whole-file hashes on requests. Analytical SQLite access remains read-only; the
+mutable `analysis_runs` table is initialized only on the distinct
+`ANALYSIS_RUNS_DB_PATH`. Readiness probes inspect but do not create run-store
+schema.
+
+The immutable single-file hash requirement applies to the reference SQLite
+adapter. It does not move SQLite details into the reusable core, change either
+database schema, rewrite Gold, or establish live deployment readiness. A
+snapshot using WAL or requiring mutable sidecars must be provisioned as a
+quiescent immutable artifact before the API can advertise readiness.
+
+Reason: capabilities, accepted numeric observations, and run history must all
+be bound to the same explicit snapshot identity while successful requests
+leave accepted data unchanged. An inferred local path, an unchecked database
+file, or a hash over only the main file while WAL state is active cannot meet
+that boundary.

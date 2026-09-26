@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Response, status
@@ -28,10 +29,16 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
         analysis_writer=analysis_writer,
     )
 
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        engine.initialize_runtime()
+        yield
+
     app = FastAPI(
         title="Final Thesis API",
         description="Deployment walking skeleton for hierarchical financial analysis application",
         version="0.1.0",
+        lifespan=lifespan,
     )
 
     # Explicit CORS configuration
@@ -112,6 +119,7 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
         return StreamingResponse(
             stream_analysis_query(
                 request,
+                engine=engine,
                 db_path=sqlite_path,
                 step_delay=step_delay,
                 settings=current_settings,

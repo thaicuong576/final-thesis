@@ -37,9 +37,17 @@ class Settings(BaseSettings):
     )
     app_revision: str | None = Field(default=None, alias="APP_REVISION")
     render_git_commit: str | None = Field(default=None, alias="RENDER_GIT_COMMIT")
-    sqlite_db_path: str = Field(
-        default="data/processed/finance_master_v2.sqlite",
+    sqlite_db_path: str | None = Field(
+        default=None,
         alias="SQLITE_DB_PATH",
+    )
+    expected_dataset_snapshot_id: str | None = Field(
+        default=None,
+        alias="EXPECTED_DATASET_SNAPSHOT_ID",
+    )
+    expected_sqlite_sha256: str | None = Field(
+        default=None,
+        alias="EXPECTED_SQLITE_SHA256",
     )
     analysis_runs_db_path: str = Field(
         default="data/runtime/analysis_runs.sqlite",
@@ -58,18 +66,15 @@ class Settings(BaseSettings):
     # independently pinned sidecar and is never discovered from the data tree.
     gold_scope_authority_path: Path | None = Field(default=None, alias="GOLD_SCOPE_AUTHORITY_PATH")
 
-    def get_sqlite_path(self) -> Path:
-        """Resolve canonical SQLite database path."""
-        p = Path(self.sqlite_db_path)
-        if p.is_absolute() and p.exists():
-            return p
-        if p.exists():
-            return p.resolve()
+    def get_sqlite_path(self) -> Path | None:
+        """Resolve the explicitly configured accepted snapshot path."""
+        if self.sqlite_db_path is None or not self.sqlite_db_path.strip():
+            return None
+        p = Path(self.sqlite_db_path).expanduser()
+        if p.is_absolute():
+            return p.resolve(strict=False)
         repo_root = Path(__file__).resolve().parents[2]
-        repo_path = repo_root / self.sqlite_db_path
-        if repo_path.exists():
-            return repo_path.resolve()
-        return p.resolve()
+        return (repo_root / p).resolve(strict=False)
 
     def get_analysis_runs_path(self, *, dataset_path: Path | None = None) -> Path:
         """Resolve the writable operational store and reject aliases to accepted data."""
@@ -78,7 +83,10 @@ class Settings(BaseSettings):
             runs_path = raw_path.resolve(strict=False)
         else:
             runs_path = (Path(__file__).resolve().parents[2] / raw_path).resolve(strict=False)
-        accepted_path = (dataset_path or self.get_sqlite_path()).expanduser().resolve(strict=False)
+        accepted_path_value = dataset_path if dataset_path is not None else self.get_sqlite_path()
+        if accepted_path_value is None:
+            raise ValueError("accepted_snapshot_path_unconfigured")
+        accepted_path = accepted_path_value.expanduser().resolve(strict=False)
         aliases = runs_path == accepted_path
         if not aliases and runs_path.exists() and accepted_path.exists():
             try:

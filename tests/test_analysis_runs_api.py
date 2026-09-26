@@ -19,7 +19,7 @@ from thesis_api.database import (
     get_analysis_run,
     get_analysis_report,
 )
-from test_api_analyze import _ExplicitOfflineAcceptingCritic, _ExplicitOfflineAnalysisWriter, _fixture_provider_binding, _gold_fixture
+from test_api_analyze import _ExplicitOfflineAcceptingCritic, _ExplicitOfflineAnalysisWriter, _fixture_provider_binding, _gold_fixture, _snapshot_pins
 
 
 class AnalysisRunsApiTests(unittest.TestCase):
@@ -34,9 +34,11 @@ class AnalysisRunsApiTests(unittest.TestCase):
             app_name="final-thesis-api-test",
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            **_snapshot_pins(self.db_path),
             analysis_runs_db_path=str(self.runs_path),
             openai_api_key="test-key",
         )
+        ensure_analysis_runs_table(self.runs_path)
         self.app = create_app(self.settings, analysis_writer=_ExplicitOfflineAnalysisWriter())
         self.client = TestClient(self.app)
 

@@ -178,9 +178,17 @@ and resolvable evidence. Missing locator/evidence or unsupported scope blocks
 the claim. SSE emits `REPORT_READY` only for the accepted runtime result and
 `RUN_BLOCKED` for errors; review/revision events reflect actual transitions. Readiness requires a runnable
 accepted snapshot. `SQLITE_DB_PATH` must point to an explicitly supplied
-validated snapshot; the ignored local Gold artifact is not packaged by Git or
-implicitly available on Render/Vercel. Do not infer consolidated or parent-only
-reporting scope when the observation does not declare it.
+validated snapshot, with `EXPECTED_DATASET_SNAPSHOT_ID` and
+`EXPECTED_SQLITE_SHA256` pinning its provider-reported identity and raw file
+bytes. Startup opens the configured SQLite file read-only, checks integrity,
+rejects WAL/journal sidecars or a changing file, and caches the validated
+provider binding for the process. The runtime requires a quiescent immutable
+SQLite artifact; the ignored local Gold artifact is not packaged by Git or
+implicitly available on Render/Vercel. Readiness checks are read-only; only
+startup initializes the separate `ANALYSIS_RUNS_DB_PATH` store. Successful API
+requests must not change accepted snapshot bytes or sidecars. Do not infer
+consolidated or parent-only reporting scope when the observation does not
+declare it.
 
 ## GitHub Flow and branch safety
 

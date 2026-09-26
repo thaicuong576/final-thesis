@@ -11,6 +11,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from thesis_api.main import create_app
+from thesis_api.database import ensure_analysis_runs_table
 from thesis_api.schemas import AnalysisResponse, AnalysisSessionEventDTO
 from thesis_api.settings import Settings
 from test_api_analyze import (
@@ -19,6 +20,7 @@ from test_api_analyze import (
     _RevisionScenarioCritic,
     _fixture_provider_binding,
     _gold_fixture,
+    _snapshot_pins,
     _stage1_claim,
 )
 
@@ -37,9 +39,11 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         settings = Settings(
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            **_snapshot_pins(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "analysis-runs.sqlite"),
             openai_api_key="test-key",
         )
+        ensure_analysis_runs_table(Path(settings.analysis_runs_db_path))
         self.client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         self.addCleanup(self.client.close)
 
@@ -172,6 +176,8 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         missing = Path(self.directory.name) / "missing.sqlite"
         settings = Settings(
             app_env="test", sqlite_db_path=str(missing),
+            expected_dataset_snapshot_id="gold-snapshot-api-fixture",
+            expected_sqlite_sha256="0" * 64,
             analysis_runs_db_path=str(Path(self.directory.name) / "missing-runs.sqlite"),
             openai_api_key="test-key",
         )

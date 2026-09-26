@@ -607,3 +607,17 @@ under an explicit evidence root. Keep per-observation locator, period basis,
 reporting scope and review evidence attached to accepted values. Add negative
 tests for unknown source types, malformed or mismatched hashes, document/source
 hash splits, and directly constructed candidates that bypass byte verification.
+
+## [LESSON-027] A main-file hash does not pin an active SQLite WAL snapshot
+
+- Date: 2026-09-27
+- Scope: reference API startup/readiness for accepted SQLite snapshots
+- Status: ACTIVE
+
+SQLite WAL mode can keep committed state in sidecar files, so hashing only the
+main database file does not identify the complete state a reader can observe.
+The API must fail readiness for WAL mode, journal sidecars, failed
+`PRAGMA integrity_check`, or file changes observed during startup validation.
+Pin the configured file's raw bytes and provider-reported snapshot ID once at
+startup, then reuse a read-only provider binding. Keep mutable analysis history
+in its distinct run store, and keep readiness GETs free of schema creation.

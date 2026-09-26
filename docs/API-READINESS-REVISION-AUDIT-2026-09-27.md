@@ -4,7 +4,8 @@
 
 This audit covers the API accepted-snapshot readiness boundary and the bounded
 semantic critique/revision wiring. No deployment configuration, secret,
-frontend, schema contract, or data artifact was inspected or changed; no real
+frontend source, schema contract, or data artifact was changed; frontend
+validation was run only as an independent application DoD check. No real
 external analysis was run.
 
 The API previously resolved the default `data/processed/finance_master_v2.sqlite`
@@ -42,6 +43,12 @@ The following local checks passed:
 - OpenAPI contract: `python scripts/check_openapi_contract.py`.
 - Architecture boundaries: `python scripts/check_architecture_guardrails.py`.
 - Python compile: `python -m compileall -q src scripts tests`.
+- Frontend tests: `npm test -- --run` — 9 files and 53 tests passed.
+- Frontend build: `npm run build` — TypeScript and Vite production build
+  passed. This validates the checked-out frontend, not the deployed URL.
+- Independent full-suite rerun: 671 tests passed, 4 skipped. The expected
+  persistence-failure and database-connectivity diagnostics remained
+  non-failing fixture probes.
 - `git diff --check`.
 
 The readiness suite logged its existing timeout diagnostic for the placeholder

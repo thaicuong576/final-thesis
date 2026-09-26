@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 import re
 import sqlite3
@@ -28,7 +29,11 @@ from thesis_data.onboarding_contract import FieldMappingSpec, FieldMetricMapping
 from thesis_data.onboarding_validation import normalize_csv_dataset, reconcile_candidate_observations
 from thesis_data.storage import create_gold_snapshot_schema
 from thesis_data.schema import QualityStatus
+from thesis_data.source_artifacts import resolve_primary_source_artifacts
 from thesis_data.transferability import run_metric_probe
+
+
+PRIMARY_FILING_BYTES = b"fixture primary filing bytes for evidence boundary tests"
 
 
 class Phase0CEvidenceBoundaryTests(unittest.TestCase):
@@ -61,12 +66,12 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         )
         primary_source = DatasetSource(
             source_ref="document-source:filing-1",
-            source_type="pdf",
+            source_type="filing",
             source_tier="primary",
             source_url="urn:document:filing-1",
             publisher="Issuer reporting service",
             retrieved_at="2026-09-11T00:00:00+00:00",
-            content_hash="document-source-hash",
+            content_hash=hashlib.sha256(PRIMARY_FILING_BYTES).hexdigest(),
             validation_status=QualityStatus.VALID,
         )
         numeric = result.candidate.observations[0]
@@ -93,6 +98,32 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         result = replace(result, candidate=reviewed)
         return staged, result
 
+    def _materialize(self, path, candidate, raw_descriptor, validation_report):
+        evidence_root = Path(path).parent / "source-evidence"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        artifact_paths = {}
+        primary_sources = [
+            source for source in candidate.all_sources
+            if source.validation_status is QualityStatus.VALID
+            and getattr(source.source_tier, "value", source.source_tier) == "primary"
+        ]
+        for index, source in enumerate(primary_sources):
+            artifact_path = evidence_root / f"primary-{index}.pdf"
+            artifact_path.write_bytes(PRIMARY_FILING_BYTES)
+            artifact_paths[source.source_ref] = artifact_path
+        verified = resolve_primary_source_artifacts(
+            sources=candidate.all_sources,
+            artifact_paths=artifact_paths,
+            evidence_root=evidence_root,
+        )
+        return materialize_canonical_snapshot(
+            path,
+            candidate,
+            raw_descriptor,
+            validation_report,
+            verified_source_artifacts=verified,
+        )
+
     def with_evidence(self):
         staged, result = self.normalized()
         document_source = result.candidate.additional_sources[0]
@@ -104,7 +135,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             document_type="financial_filing",
             title="Quarterly filing extract",
             publisher="Issuer reporting service",
-            content_hash="document-content-hash",
+            content_hash=document_source.content_hash,
             metadata={"extraction": "pre_extracted", "language": "en"},
         )
         evidence = DatasetEvidence(
@@ -189,7 +220,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         staged, result = self.normalized()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(path, result.candidate, staged.raw_descriptor, result.validation_report)
             provider = CanonicalSqliteDatasetProvider(path)
             capabilities = provider.get_capabilities(provider.current_dataset_ref())
         self.assertNotIn("get_evidence", {item.value for item in capabilities.supported_operations})
@@ -198,7 +229,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         staged, result = self.with_evidence()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(path, result.candidate, staged.raw_descriptor, result.validation_report)
             provider = CanonicalSqliteDatasetProvider(path)
             ref = provider.current_dataset_ref()
             capabilities = provider.get_capabilities(ref)
@@ -268,7 +299,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
 
         def materialize(candidate, directory, filename):
             path = Path(directory) / filename
-            accepted = materialize_canonical_snapshot(
+            accepted = self._materialize(
                 path,
                 candidate,
                 staged.raw_descriptor,
@@ -280,7 +311,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             base_id = materialize(result.candidate, directory, "base.sqlite")
             same_id = materialize(result.candidate, directory, "same.sqlite")
             changed_document = result.candidate.documents[0].model_copy(
-                update={"content_hash": "changed-document-content"}
+                update={"title": "Changed filing title"}
             )
             changed_document_id = materialize(
                 replace(result.candidate, documents=(changed_document,)),
@@ -315,7 +346,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
 
         def materialize(candidate, directory, filename):
             path = Path(directory) / filename
-            accepted = materialize_canonical_snapshot(
+            accepted = self._materialize(
                 path,
                 candidate,
                 staged.raw_descriptor,
@@ -415,6 +446,12 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
                     update={"dataset_snapshot_id": "wrong-snapshot"}
                 ),),
             ),
+            "document source hash mismatch": replace(
+                result.candidate,
+                documents=(result.candidate.documents[0].model_copy(
+                    update={"content_hash": "c" * 64}
+                ),),
+            ),
             "duplicate source refs": replace(
                 result.candidate,
                 additional_sources=(result.candidate.source,),
@@ -424,7 +461,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
             for name, candidate in cases.items():
                 with self.subTest(name=name):
                     with self.assertRaises(ValueError):
-                        materialize_canonical_snapshot(
+                        self._materialize(
                             Path(directory) / (re.sub(r"[^a-z]+", "-", name) + ".sqlite"),
                             candidate,
                             staged.raw_descriptor,
@@ -435,7 +472,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         staged, result = self.with_evidence()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(path, result.candidate, staged.raw_descriptor, result.validation_report)
             connection = sqlite3.connect(path)
             connection.execute("UPDATE evidence SET dataset_id = ?", ("wrong",))
             connection.commit()
@@ -457,7 +494,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         staged, result = self.normalized()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(path, result.candidate, staged.raw_descriptor, result.validation_report)
             for column, value, message in (
                 ("schema_version", "canonical-snapshot-future", "schema version"),
                 ("contract_version", "onboarding-contract-future", "contract version"),
@@ -481,7 +518,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         staged, result = self.normalized()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "legacy-canonical.sqlite"
-            materialize_canonical_snapshot(path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(path, result.candidate, staged.raw_descriptor, result.validation_report)
             connection = sqlite3.connect(path)
             connection.execute("DROP TABLE evidence")
             connection.execute("DROP TABLE documents")
@@ -496,7 +533,7 @@ class Phase0CEvidenceBoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             canonical_path = root / "canonical.sqlite"
-            materialize_canonical_snapshot(canonical_path, result.candidate, staged.raw_descriptor, result.validation_report)
+            self._materialize(canonical_path, result.candidate, staged.raw_descriptor, result.validation_report)
             canonical_provider = CanonicalSqliteDatasetProvider(canonical_path)
             canonical_ref = canonical_provider.current_dataset_ref()
             canonical_request = self._request(canonical_ref)

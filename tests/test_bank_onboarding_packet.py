@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 from dataclasses import replace
 from decimal import Decimal
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -16,7 +17,9 @@ from thesis_data.acceptance import validate_stage1_claims
 from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_data.bank_onboarding import (
     build_bank_dataset_candidate,
+    load_verified_bank_dataset_candidate,
     parse_bank_onboarding_packet,
+    verify_reconciliation_register,
     verify_packet_artifacts,
 )
 from thesis_data.canonical_snapshot import materialize_canonical_snapshot
@@ -28,7 +31,9 @@ from thesis_data.dataset_contract import (
 from thesis_data.dataset_provider import DatasetProviderError
 from thesis_data.gold_dataset_provider import GoldSqliteDatasetProvider
 from thesis_data.onboarding_contract import demo_metric_registry
+from thesis_data.operational_onboarding import promote_bank_onboarding_snapshot
 from thesis_data.storage import create_gold_snapshot_schema
+from thesis_data.source_artifacts import resolve_primary_source_artifacts
 from thesis_data.transferability import run_metric_probe
 from thesis_data.schema import (
     AcceptancePolicy,
@@ -50,18 +55,24 @@ RECONCILIATION_PATH = PACKET_PATH.with_name(PACKET_PATH.stem + "-reconciliation.
 
 class BankOnboardingPacketTests(unittest.TestCase):
     def load_packet(self):
-        packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())
-        paths, details = verify_packet_artifacts(
+        packet, candidate, raw_descriptor, report = load_verified_bank_dataset_candidate(
+            packet_path=PACKET_PATH,
+            source_manifest_path=SOURCE_MANIFEST_PATH,
+            reconciliation_path=RECONCILIATION_PATH,
+            evidence_root=REPOSITORY_ROOT,
+        )
+        artifact_paths, _ = verify_packet_artifacts(
             packet,
             packet_path=PACKET_PATH,
             source_manifest_path=SOURCE_MANIFEST_PATH,
+            evidence_root=REPOSITORY_ROOT,
         )
-        candidate, raw_descriptor, report = build_bank_dataset_candidate(
-            packet,
-            artifact_paths=paths,
-            artifact_details=details,
+        verified = resolve_primary_source_artifacts(
+            sources=candidate.all_sources,
+            artifact_paths=artifact_paths,
+            evidence_root=REPOSITORY_ROOT,
         )
-        return packet, candidate, raw_descriptor, report
+        return packet, candidate, raw_descriptor, report, verified
 
     @staticmethod
     def request(provider, entity_id: str, metric_id: str, period_id: str = "2024_Q4"):
@@ -78,24 +89,26 @@ class BankOnboardingPacketTests(unittest.TestCase):
         return ref, request
 
     def test_ctg_packet_materializes_and_resolves_all_primary_metrics_with_source_lineage(self):
-        packet, candidate, raw_descriptor, report = self.load_packet()
-        self.assertEqual(report.status.value, "VALID")
-        self.assertEqual(candidate.metadata.status.value, "candidate")
-        self.assertEqual(
-            {item.metric_id for item in candidate.metrics if item.metric_id in {
-                "bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"
-            }},
-            {"bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"},
-        )
-
+        packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "ctg-canonical.sqlite"
-            accepted = materialize_canonical_snapshot(
-                db_path, candidate, raw_descriptor, report
+            promotion = promote_bank_onboarding_snapshot(
+                packet_path=PACKET_PATH,
+                source_manifest_path=SOURCE_MANIFEST_PATH,
+                reconciliation_path=RECONCILIATION_PATH,
+                evidence_root=REPOSITORY_ROOT,
+                target_path=db_path,
             )
-            provider = CanonicalSqliteDatasetProvider(db_path, dataset_id=packet.dataset_id)
+            accepted = promotion.metadata
+            provider = promotion.provider
             ref = provider.current_dataset_ref()
             self.assertEqual(ref.dataset_snapshot_id, accepted.dataset_snapshot_id)
+            self.assertEqual(accepted.status.value, "accepted")
+            self.assertEqual(
+                promotion.source_content_hash,
+                "36513DD8B060712B188F9EAB03B1A7F9479AB21E63866DD95E45759D03EC5369".lower(),
+            )
+            self.assertEqual(len(promotion.snapshot_file_sha256), 64)
             resolved = {}
             for metric_id in ("bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"):
                 scoped_ref, request = self.request(provider, "CTG", metric_id)
@@ -158,8 +171,34 @@ class BankOnboardingPacketTests(unittest.TestCase):
         self.assertEqual(resolved["bank.roa"].value, 1.1536)
         self.assertEqual(resolved["bank.roe"].value, 18.6012)
 
+    def test_operational_promotion_rejects_any_source_evidence_target(self):
+        before_hash = hashlib.sha256(PACKET_PATH.read_bytes()).hexdigest()
+        source_pdf = REPOSITORY_ROOT / "data" / "raw" / "bank-onboarding-v1" / "ctg-2024-consolidated-audited.pdf"
+        with self.assertRaisesRegex(ValueError, "separate from source evidence"):
+            promote_bank_onboarding_snapshot(
+                packet_path=PACKET_PATH,
+                source_manifest_path=SOURCE_MANIFEST_PATH,
+                reconciliation_path=RECONCILIATION_PATH,
+                evidence_root=REPOSITORY_ROOT,
+                target_path=source_pdf,
+            )
+        self.assertEqual(hashlib.sha256(PACKET_PATH.read_bytes()).hexdigest(), before_hash)
+
+    def test_operational_promotion_refuses_protected_store_names(self):
+        with tempfile.TemporaryDirectory() as directory:
+            protected_target = Path(directory) / "analysis_runs.sqlite"
+            with self.assertRaisesRegex(ValueError, "protected Gold or run-history store"):
+                promote_bank_onboarding_snapshot(
+                    packet_path=PACKET_PATH,
+                    source_manifest_path=SOURCE_MANIFEST_PATH,
+                    reconciliation_path=RECONCILIATION_PATH,
+                    evidence_root=REPOSITORY_ROOT,
+                    target_path=protected_target,
+                )
+            self.assertFalse(protected_target.exists())
+
     def test_materialized_ctg_derived_observations_have_recomputed_persisted_receipts(self):
-        packet, candidate, raw_descriptor, report = self.load_packet()
+        packet, candidate, raw_descriptor, report, verified = self.load_packet()
         expected_outputs = {
             ("bank.input.npl_g35_balance", "2024_Q4"): ("20989.767", "20989.767", "0.0000001"),
             ("bank.input.parent_attributable_equity", "2024_Q4"): ("147533.979", "147533.979", "0.0000001"),
@@ -171,7 +210,13 @@ class BankOnboardingPacketTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "ctg-receipts.sqlite"
-            accepted = materialize_canonical_snapshot(db_path, candidate, raw_descriptor, report)
+            accepted = materialize_canonical_snapshot(
+                db_path,
+                candidate,
+                raw_descriptor,
+                report,
+                verified_source_artifacts=verified,
+            )
             provider = CanonicalSqliteDatasetProvider(db_path, dataset_id=packet.dataset_id)
             ref = provider.current_dataset_ref()
             self.assertEqual(ref.dataset_snapshot_id, accepted.dataset_snapshot_id)
@@ -218,7 +263,7 @@ class BankOnboardingPacketTests(unittest.TestCase):
             self.assertTrue(all("__derived_calculation_receipt_v1" in item for item in persisted_derived))
 
     def test_materialization_rejects_derived_value_formula_unit_scope_and_input_mismatches(self):
-        _, candidate, raw_descriptor, report = self.load_packet()
+        _, candidate, raw_descriptor, report, verified = self.load_packet()
         target_metric = "bank.npl_g35"
         target_period = "2024_Q4"
 
@@ -251,15 +296,25 @@ class BankOnboardingPacketTests(unittest.TestCase):
                     db_path = Path(directory) / f"rejected-{index}.sqlite"
                     with self.assertRaisesRegex(ValueError, message):
                         materialize_canonical_snapshot(
-                            db_path, invalid_candidate, raw_descriptor, report
+                            db_path,
+                            invalid_candidate,
+                            raw_descriptor,
+                            report,
+                            verified_source_artifacts=verified,
                         )
                     self.assertFalse(db_path.exists(), "failed promotion must not create an accepted snapshot")
 
     def test_stage1_accepts_ctg_derived_metrics_and_rejects_unreviewed_csv(self):
-        packet, candidate, raw_descriptor, report = self.load_packet()
+        packet, candidate, raw_descriptor, report, verified = self.load_packet()
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "ctg-stage1.sqlite"
-            materialize_canonical_snapshot(db_path, candidate, raw_descriptor, report)
+            materialize_canonical_snapshot(
+                db_path,
+                candidate,
+                raw_descriptor,
+                report,
+                verified_source_artifacts=verified,
+            )
             provider = CanonicalSqliteDatasetProvider(db_path, dataset_id=packet.dataset_id)
             dataset_ref = provider.current_dataset_ref()
             npl = provider.get_metric(dataset_ref, "CTG", "2024_Q4", "bank.npl_g35")
@@ -456,6 +511,7 @@ class BankOnboardingPacketTests(unittest.TestCase):
                     packet,
                     packet_path=PACKET_PATH,
                     source_manifest_path=changed_manifest,
+                    evidence_root=REPOSITORY_ROOT,
                 )
             manifest["artifacts"][source_id]["byte_length"] -= 1
             manifest["artifacts"][source_id]["content_sha256"] = "0" * 64
@@ -465,11 +521,71 @@ class BankOnboardingPacketTests(unittest.TestCase):
                     packet,
                     packet_path=PACKET_PATH,
                     source_manifest_path=changed_manifest,
+                    evidence_root=REPOSITORY_ROOT,
+                )
+
+    def test_packet_artifact_verification_requires_explicit_evidence_root(self):
+        packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "evidence root"):
+                verify_packet_artifacts(
+                    packet,
+                    packet_path=PACKET_PATH,
+                    source_manifest_path=SOURCE_MANIFEST_PATH,
+                    evidence_root=Path(directory),
+                )
+
+    def test_verified_candidate_fails_closed_when_reconciliation_register_changes(self):
+        packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())
+        _paths, details = verify_packet_artifacts(
+            packet,
+            packet_path=PACKET_PATH,
+            source_manifest_path=SOURCE_MANIFEST_PATH,
+            evidence_root=REPOSITORY_ROOT,
+        )
+        with RECONCILIATION_PATH.open(encoding="utf-8-sig", newline="") as stream:
+            reader = csv.DictReader(stream)
+            fieldnames = reader.fieldnames
+            rows = list(reader)
+        rows[0]["value"] = "0"
+        with tempfile.TemporaryDirectory() as directory:
+            changed_register = Path(directory) / "changed-reconciliation.csv"
+            with changed_register.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            with self.assertRaisesRegex(ValueError, "reconciliation register value mismatch"):
+                verify_reconciliation_register(
+                    packet,
+                    reconciliation_path=changed_register,
+                    artifact_details=details,
+                )
+            with self.assertRaisesRegex(ValueError, "reconciliation register value mismatch"):
+                load_verified_bank_dataset_candidate(
+                    packet_path=PACKET_PATH,
+                    source_manifest_path=SOURCE_MANIFEST_PATH,
+                    reconciliation_path=changed_register,
+                    evidence_root=REPOSITORY_ROOT,
                 )
 
     def test_reconciliation_register_covers_packet_reviews_and_ttm_basis(self):
         packet = json.loads(PACKET_PATH.read_text(encoding="utf-8"))
+        parsed_packet = parse_bank_onboarding_packet(PACKET_PATH.read_bytes())
         manifest = json.loads(SOURCE_MANIFEST_PATH.read_text(encoding="utf-8"))
+        artifact_paths, artifact_details = verify_packet_artifacts(
+            parsed_packet,
+            packet_path=PACKET_PATH,
+            source_manifest_path=SOURCE_MANIFEST_PATH,
+            evidence_root=REPOSITORY_ROOT,
+        )
+        self.assertEqual(
+            verify_reconciliation_register(
+                parsed_packet,
+                reconciliation_path=RECONCILIATION_PATH,
+                artifact_details=artifact_details,
+            ),
+            len(parsed_packet.observations),
+        )
         source_id = packet["sources"][0]["source_id"]
         artifact = manifest["artifacts"][source_id]
         with RECONCILIATION_PATH.open(encoding="utf-8-sig", newline="") as stream:
@@ -534,13 +650,55 @@ class BankOnboardingPacketTests(unittest.TestCase):
             packet,
             packet_path=PACKET_PATH,
             source_manifest_path=SOURCE_MANIFEST_PATH,
+            evidence_root=REPOSITORY_ROOT,
         )
+        with RECONCILIATION_PATH.open(encoding="utf-8-sig", newline="") as stream:
+            fieldnames = next(csv.reader(stream))
+            stream.seek(0)
+            rows = list(csv.DictReader(stream))
+        with tempfile.TemporaryDirectory() as directory:
+            register_path = Path(directory) / "reconciliation.csv"
+            coverage_row = next(row for row in rows if row["observation_id"] == coverage["observation_id"])
+            coverage_row.update({
+                "value": "",
+                "unit": "",
+                "period_basis": "",
+                "reporting_scope": "unknown",
+                "formula_version": "",
+                "input_observation_ids": "",
+                "source_locator": "",
+                "reviewer_id": "",
+                "reviewed_at": "",
+                "review_decision": "",
+                "source_sha256": "",
+                "source_url": "",
+            })
+            with register_path.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            verify_reconciliation_register(
+                packet,
+                reconciliation_path=register_path,
+                artifact_details=details,
+            )
         candidate, raw_descriptor, report = build_bank_dataset_candidate(
             packet, artifact_paths=paths, artifact_details=details
         )
+        verified = resolve_primary_source_artifacts(
+            sources=candidate.all_sources,
+            artifact_paths=paths,
+            evidence_root=REPOSITORY_ROOT,
+        )
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "explicit-missing.sqlite"
-            materialize_canonical_snapshot(db_path, candidate, raw_descriptor, report)
+            materialize_canonical_snapshot(
+                db_path,
+                candidate,
+                raw_descriptor,
+                report,
+                verified_source_artifacts=verified,
+            )
             provider = CanonicalSqliteDatasetProvider(db_path)
             ref, request = self.request(provider, "CTG", "bank.llr_coverage")
             observation = run_metric_probe(

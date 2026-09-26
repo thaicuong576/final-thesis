@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone
 from dataclasses import replace
+import hashlib
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -37,7 +38,11 @@ from thesis_data.onboarding_contract import (
 )
 from thesis_data.onboarding_validation import normalize_csv_dataset, reconcile_candidate_observations
 from thesis_data.schema import ClaimDataRef, QualityStatus
+from thesis_data.source_artifacts import resolve_primary_source_artifacts
 from thesis_data.storage import create_gold_snapshot_schema
+
+
+CANONICAL_FIXTURE_FILING = b"fixture source bytes for acceptance resolver boundary"
 
 
 class AcceptanceResolverBoundaryTests(unittest.TestCase):
@@ -590,12 +595,12 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
         )
         document_source = DatasetSource(
             source_ref="document-source:filing-1",
-            source_type="pdf",
+            source_type="filing",
             source_tier="primary",
             source_url="urn:document:filing-1",
             publisher="Issuer reporting service",
             retrieved_at="2026-09-11T00:00:00+00:00",
-            content_hash="document-source-hash",
+            content_hash=hashlib.sha256(CANONICAL_FIXTURE_FILING).hexdigest(),
             validation_status=QualityStatus.VALID,
         )
         document = DatasetDocument(
@@ -606,7 +611,7 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             document_type="financial_filing",
             title="Quarterly filing extract",
             publisher="Issuer reporting service",
-            content_hash="document-content-hash",
+            content_hash=document_source.content_hash,
         )
         evidence = DatasetEvidence(
             evidence_id="evidence-canonical-company",
@@ -662,11 +667,21 @@ class AcceptanceResolverBoundaryTests(unittest.TestCase):
             },
         )
         db_path = root / "canonical.sqlite"
+        evidence_root = root / "source-evidence"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        artifact_path = evidence_root / "filing.pdf"
+        artifact_path.write_bytes(CANONICAL_FIXTURE_FILING)
+        verified = resolve_primary_source_artifacts(
+            sources=reviewed.all_sources,
+            artifact_paths={document_source.source_ref: artifact_path},
+            evidence_root=evidence_root,
+        )
         accepted = materialize_canonical_snapshot(
             db_path,
             reviewed,
             staged.raw_descriptor,
             result.validation_report,
+            verified_source_artifacts=verified,
         )
         observation_id = canonical_observation_id(
             accepted.dataset_snapshot_id,

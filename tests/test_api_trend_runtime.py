@@ -828,12 +828,12 @@ class CompanyTrendRequestTests(unittest.TestCase):
             expected_cells,
         )
         self.assertEqual(
-            {item["claim_id"] for item in stream_report["atomic_claims"]},
-            {item["claim_id"] for item in stored_report["atomic_claims"]},
+            stream_report["atomic_claims"],
+            stored_report["atomic_claims"],
         )
         self.assertEqual(
-            {item["claim_id"] for item in stream_report["atomic_claims"]},
-            {item["claim_id"] for item in stored_report["evidence_trail"]},
+            stream_report["evidence_trail"],
+            stored_report["evidence_trail"],
         )
         self.assertEqual(
             [item["period"] for item in stored_report["atomic_claims"]],

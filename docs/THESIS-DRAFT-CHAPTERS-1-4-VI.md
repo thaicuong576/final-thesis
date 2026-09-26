@@ -1,5 +1,13 @@
 # Thiết kế và đánh giá hệ thống phân tích ngân hàng niêm yết Việt Nam dựa trên dữ liệu có truy nguyên bằng kiến trúc một tác tử và đa tác tử phân cấp
 
+> [!WARNING]
+> **Bản working này đã được supersede.** Tài liệu giữ cấu trúc bảy chương
+> lịch sử và không phải cấu trúc nộp cuối. Bản làm việc theo outline sáu chương
+> được duyệt, cùng Chương 5–6 có bằng chứng giới hạn, đang được theo dõi trong
+> [PR #70](https://github.com/thaicuong576/final-thesis/pull/70). Không dùng
+> tài liệu này để trích dẫn cấu trúc cuối hoặc thay thế các ô `PENDING` bằng
+> số liệu chưa có run manifest và nguồn tương ứng.
+
 ## Chương 1 Giới thiệu
 
 ### Bối cảnh và nhu cầu phân tích

@@ -360,9 +360,11 @@ silently widening the bank issuer/period/metric scope or manufacturing labels.
 Status: Accepted.
 
 Every generated run manifest records `question_set_sha256`, computed from the
-exact question-set file passed to the runner. The manifest writer and offline
-fixture verify this binding; an ID alone is not considered sufficient evidence
-that all arms used identical questions.
+exact question-set file passed to the runner using raw-file-byte SHA-256. The
+manifest writer and offline fixture verify this binding; an ID alone is not
+considered sufficient evidence that all arms used identical questions. This
+exact-byte requirement applies to baseline run manifests and remains unchanged
+by D-073's canonical-LF mode for complexity-plan question-set controls.
 
 Reason: question-set edits can otherwise preserve the same human-readable ID
 while changing the evaluated task, weakening cross-arm reproducibility.
@@ -1320,6 +1322,14 @@ Candidate evaluation text controls use canonical LF UTF-8 hashing, preserving
 BOM, Unicode code points, whitespace and final newline. A Windows checkout may
 change line endings without changing analytical identity. Immutable source
 files and SQLite continue to use raw-byte hashing.
+
+ComplexityPlan and ComplexityJob v1 apply that canonical mode to their
+question-set SHA-256 fields, and both builder and auditor select the mode
+explicitly. Newly written plans and jobs persist question_set_hash_mode.
+Existing v1 artifacts that predate the additive field use the fixed canonical
+mode when loaded, so their question hashes and files remain unchanged. This
+line-ending repair does not establish experiment readiness or scoring
+eligibility; the separate freeze and data-readiness gates still apply.
 
 The API contract also repairs eleven pre-existing empty reference keys to
 `$ref` and documents additive peer metadata. Python CI validates the OpenAPI

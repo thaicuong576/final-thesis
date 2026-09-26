@@ -56,6 +56,20 @@ A legacy worktree-byte hash may be retained only as audit metadata. It is not
 an authoritative hash for tracked text. A manifest that binds control artifacts
 must record each artifact's hash_mode beside its sha256.
 
+ComplexityPlan and ComplexityJob v1 bind the tracked complexity question set
+with canonical_lf_utf8_sha256. Their question_set_hash_mode field records this
+mode on newly written plans and jobs. Existing v1 plan/job artifacts that
+predate this additive field are read using the same fixed v1 mode; their
+question hashes and files are not rewritten. The builder and auditor both pass
+the mode explicitly. This normalization changes only CRLF or lone-CR line
+endings to LF after strict UTF-8 decoding; it preserves BOM, code points,
+whitespace, and final-newline state.
+
+This complexity-plan contract does not change D-031 baseline run-manifest
+question-set hashing: run manifests continue to bind the exact question-set
+file bytes with raw_file_bytes_sha256. Immutable evidence also remains
+byte-hashed.
+
 An authority manifest may byte-pin only immutable evidence and control records
 owned by that authority scope. Repository-wide living files such as
 `AGENTS.md`, this contract, decision logs, lessons, and verifier code are policy

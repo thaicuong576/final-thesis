@@ -11,7 +11,12 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .experiment_contract import ExperimentArm
-from .question_set import QuestionType, load_question_set, question_set_sha256
+from .question_set import (
+    CANONICAL_LF_UTF8_HASH_MODE,
+    QuestionType,
+    load_question_set,
+    question_set_sha256,
+)
 from .workload_contract import AnalysisTask, WorkloadTier
 
 
@@ -51,6 +56,9 @@ class ComplexityPlanStatus(StrEnum):
     PLANNED_NOT_EXECUTED = "planned_not_executed"
 
 
+COMPLEXITY_QUESTION_SET_HASH_MODE = CANONICAL_LF_UTF8_HASH_MODE
+
+
 class ComplexityJob(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -58,6 +66,9 @@ class ComplexityJob(BaseModel):
     snapshot_id: str = Field(min_length=1)
     question_set_id: str = Field(min_length=1)
     question_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    question_set_hash_mode: Literal["canonical_lf_utf8_sha256"] = (
+        COMPLEXITY_QUESTION_SET_HASH_MODE
+    )
     question_id: str = Field(min_length=1)
     arm: ExperimentArm
     workload_tier: WorkloadTier
@@ -79,6 +90,9 @@ class ComplexityPlan(BaseModel):
     snapshot_id: str = Field(min_length=1)
     question_set_id: str = Field(min_length=1)
     question_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    question_set_hash_mode: Literal["canonical_lf_utf8_sha256"] = (
+        COMPLEXITY_QUESTION_SET_HASH_MODE
+    )
     model_id: str = Field(min_length=1)
     tier_1_reference_question_set_id: str = Field(min_length=1)
     tier_1_reference_plan_path: str = Field(min_length=1)
@@ -117,7 +131,10 @@ def build_complexity_plan(
         raise ValueError("arms must be non-empty and unique")
     if not snapshot_id or not model_id:
         raise ValueError("snapshot_id and model_id must not be empty")
-    digest = question_set_sha256(question_set_path)
+    digest = question_set_sha256(
+        question_set_path,
+        hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
+    )
     jobs: list[ComplexityJob] = []
     for question in question_set.questions:
         workload = question.workload
@@ -134,6 +151,7 @@ def build_complexity_plan(
                     snapshot_id=snapshot_id,
                     question_set_id=question_set.question_set_id,
                     question_set_sha256=digest,
+                    question_set_hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
                     question_id=question.id,
                     arm=arm,
                     workload_tier=workload.tier,
@@ -152,6 +170,7 @@ def build_complexity_plan(
         snapshot_id=snapshot_id,
         question_set_id=question_set.question_set_id,
         question_set_sha256=digest,
+        question_set_hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
         model_id=model_id,
         tier_1_reference_question_set_id=tier_1_reference_question_set_id,
         tier_1_reference_plan_path=tier_1_reference_plan_path,
@@ -190,13 +209,23 @@ def audit_complexity_plan(
             plan.snapshot_id,
             plan.question_set_id,
         )
-    actual_hash = question_set_sha256(question_set_path)
+    actual_hash = question_set_sha256(
+        question_set_path,
+        hash_mode=COMPLEXITY_QUESTION_SET_HASH_MODE,
+    )
+    if plan.question_set_hash_mode != COMPLEXITY_QUESTION_SET_HASH_MODE:
+        blockers.append("plan_question_set_hash_mode_mismatch")
     if plan.question_set_sha256 != actual_hash:
         blockers.append("plan_question_set_hash_mismatch")
     if plan.question_set_id != question_set.question_set_id:
         blockers.append("plan_question_set_id_mismatch")
     if any(job.question_set_sha256 != actual_hash for job in plan.jobs):
         blockers.append("job_question_set_hash_mismatch")
+    if any(
+        job.question_set_hash_mode != COMPLEXITY_QUESTION_SET_HASH_MODE
+        for job in plan.jobs
+    ):
+        blockers.append("job_question_set_hash_mode_mismatch")
     if any(job.model_id != plan.model_id for job in plan.jobs):
         blockers.append("job_model_id_mismatch")
 

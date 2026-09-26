@@ -292,6 +292,7 @@ def candidate_hash(
         "dataset_id": plan.dataset_id,
         "dataset_snapshot_id": plan.dataset_snapshot_id,
         "query_id": plan.query_id,
+        "periods": list(plan.scope.periods),
         "claims": [
             claim.model_dump(mode="json")
             for claim in sorted(normalized_claims, key=lambda item: item.claim_id)

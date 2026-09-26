@@ -505,6 +505,19 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
         claims = (_company_claim(),)
         self.assertEqual(candidate_hash(plan, claims), candidate_hash(plan, claims))
 
+    def test_reordered_frozen_period_scope_changes_candidate_hash(self):
+        forward_data = _company_plan().model_dump(mode="python")
+        forward_data["scope"]["periods"] = ("2024_Q1", "2024_Q4")
+        reverse_data = _company_plan().model_dump(mode="python")
+        reverse_data["scope"]["periods"] = ("2024_Q4", "2024_Q1")
+        forward = AnalysisPlan.model_validate(forward_data)
+        reverse = AnalysisPlan.model_validate(reverse_data)
+        claims = (_company_claim(),)
+
+        self.assertNotEqual(
+            candidate_hash(forward, claims), candidate_hash(reverse, claims)
+        )
+
     def test_material_claim_change_changes_candidate_hash(self):
         plan = _company_plan()
         original = _company_claim()

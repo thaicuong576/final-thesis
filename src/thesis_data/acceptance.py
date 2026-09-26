@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import math
 from typing import Any, Mapping, Sequence
 
+from .analysis_plan import AnalysisPlan, AnalysisAgent, RequirementType
 from .composite_schema import CompositeClaim
 from .acceptance_resolver import Stage1DatasetResolver
 from .dataset_contract import CanonicalObservation, DatasetSource
@@ -1223,11 +1224,185 @@ def _evaluation_summary(
     )
 
 
+def _company_trend_coverage_evaluations(
+    resolver: Stage1DatasetResolver,
+    claims: Sequence[AtomicClaim],
+    workload_scope: ClaimScope,
+    plan: AnalysisPlan | None,
+) -> list[_UnitEvaluation]:
+    """Require every cell in a frozen multi-period Company scope exactly once.
+
+    This remains dormant for legacy callers, single-period plans and peer scopes.
+    Company trend plans have one entity and one or more company metrics over an
+    ordered multi-period scope; their expected facts are the full typed matrix,
+    independent of how many factual requirements or claims the producer emits.
+    Planned trend assertions are checked separately and never fill a matrix cell.
+    """
+
+    if (
+        plan is None
+        or len(plan.scope.periods) < 2
+        or len(plan.scope.entities) != 1
+        or not plan.scope.company_metric_ids
+        or plan.scope.comparison_universe
+    ):
+        return []
+
+    target_entity = plan.scope.entities[0]
+    expected_cells = tuple(
+        (target_entity, metric_id, period)
+        for metric_id in plan.scope.company_metric_ids
+        for period in plan.scope.periods
+    )
+    expected_cell_set = set(expected_cells)
+    violations: list[str] = []
+
+    if resolver.dataset_ref != plan.dataset_ref:
+        violations.append("company_metric_period_plan_dataset_mismatch")
+    if (
+        set(workload_scope.entities) != set(plan.scope.entities)
+        or set(workload_scope.periods) != set(plan.scope.periods)
+        or not set(plan.scope.company_metric_ids).issubset(workload_scope.metric_ids)
+        or workload_scope.comparison_universe is not None
+    ):
+        violations.append("company_metric_period_plan_scope_mismatch")
+
+    facts_by_cell: dict[tuple[str, str, str], list[StructuredAssertion]] = {}
+    trend_assertions: list[tuple[str, StructuredAssertion]] = []
+    for claim in claims:
+        for assertion in claim.assertions:
+            if assertion.assertion_type in {
+                AssertionType.METRIC_VALUE,
+                AssertionType.MISSINGNESS,
+            }:
+                cell = (assertion.entity, assertion.metric_id, assertion.period)
+                facts_by_cell.setdefault(cell, []).append(assertion)
+            elif assertion.assertion_type is AssertionType.TREND:
+                trend_assertions.append((claim.claim_id, assertion))
+
+    evaluations: list[_UnitEvaluation] = []
+    for cell in expected_cells:
+        entity, metric_id, period = cell
+        key = f"company_metric_period:{entity}|{metric_id}|{period}"
+        assertions = facts_by_cell.get(cell, [])
+        cell_violations: list[str] = []
+        if not assertions:
+            cell_violations.append(f"company_metric_period_missing:{entity}|{metric_id}|{period}")
+        elif len(assertions) != 1:
+            cell_violations.append(f"company_metric_period_duplicate:{entity}|{metric_id}|{period}")
+        else:
+            assertion = assertions[0]
+            if assertion.assertion_type is AssertionType.METRIC_VALUE:
+                if assertion.asserted_value is None or assertion.unit is None:
+                    cell_violations.append(
+                        f"company_metric_period_numeric_value_invalid:{entity}|{metric_id}|{period}"
+                    )
+                if (
+                    len(assertion.data_refs) != 1
+                    or assertion.data_refs[0].ref_type
+                    not in {"observation", "derived_metric"}
+                    or (
+                        assertion.data_refs
+                        and (
+                            assertion.data_refs[0].entity,
+                            assertion.data_refs[0].metric_id,
+                            assertion.data_refs[0].period,
+                        )
+                        != cell
+                    )
+                    or assertion.reference_ref is not None
+                    or assertion.benchmark_ref is not None
+                ):
+                    cell_violations.append(
+                        f"company_metric_period_numeric_lineage_mismatch:{entity}|{metric_id}|{period}"
+                    )
+            else:
+                missing_ref = (
+                    assertion.data_refs[0]
+                    if len(assertion.data_refs) == 1
+                    else None
+                )
+                if (
+                    assertion.operator is not AssertionOperator.MISSING
+                    or assertion.asserted_value is not None
+                    or missing_ref is None
+                    or missing_ref.ref_type != "missing_cell"
+                    or (missing_ref.entity, missing_ref.metric_id, missing_ref.period)
+                    != cell
+                    or assertion.reference_ref is not None
+                    or assertion.benchmark_ref is not None
+                ):
+                    cell_violations.append(
+                        f"company_metric_period_missingness_invalid:{entity}|{metric_id}|{period}"
+                    )
+                elif missing_ref is not None:
+                    try:
+                        observation = resolver.resolve_observation_ref(missing_ref)
+                    except (TypeError, ValueError):
+                        observation = None
+                    if (
+                        observation is None
+                        or _status_value(observation.validation_status) != "missing"
+                        or observation.value is not None
+                        or not isinstance(observation.missing_reason, str)
+                        or not observation.missing_reason.strip()
+                    ):
+                        cell_violations.append(
+                            f"company_metric_period_missingness_unaccepted:{entity}|{metric_id}|{period}"
+                        )
+        evaluations.append(
+            _UnitEvaluation(key=key, violations=tuple(dict.fromkeys(cell_violations)))
+        )
+
+    for cell in sorted(set(facts_by_cell) - expected_cell_set):
+        evaluations.append(
+            _UnitEvaluation(
+                key=f"company_metric_period_extra:{'|'.join(cell)}",
+                violations=(f"company_metric_period_extra:{'|'.join(cell)}",),
+            )
+        )
+
+    planned_trends = tuple(
+        requirement
+        for requirement in plan.requirements
+        if requirement.requirement_type is RequirementType.TREND
+        and AnalysisAgent.COMPANY in requirement.required_agents
+        and tuple(requirement.periods) == tuple(plan.scope.periods)
+    )
+    for claim_id, assertion in trend_assertions:
+        planned = any(
+            assertion.entity in requirement.entities
+            and assertion.metric_id in requirement.metric_ids
+            and assertion.period in requirement.periods
+            for requirement in planned_trends
+        )
+        if not planned:
+            evaluations.append(
+                _UnitEvaluation(
+                    key=f"company_trend_unplanned:{claim_id}:{assertion.assertion_id}",
+                    violations=(
+                        f"company_trend_assertion_unplanned:{claim_id}:{assertion.assertion_id}",
+                    ),
+                )
+            )
+
+    if violations:
+        evaluations.append(
+            _UnitEvaluation(
+                key="company_metric_period_plan",
+                violations=tuple(dict.fromkeys(violations)),
+            )
+        )
+    return evaluations
+
+
 def validate_stage1_claims(
     resolver: Stage1DatasetResolver,
     claims: Sequence[AtomicClaim],
     workload_scope: ClaimScope,
     policy: AcceptancePolicy,
+    *,
+    plan: AnalysisPlan | None = None,
 ) -> Stage1ValidationReport:
     """Run all currently deterministic Stage-1 integrity gates.
 
@@ -1240,6 +1415,9 @@ def validate_stage1_claims(
     normalized_claims = tuple(claims)
     integrity_violations = ("empty_claim_set",) if not normalized_claims else ()
     scope_evaluations = _scope_evaluations(normalized_claims, workload_scope)
+    company_trend_coverage = _company_trend_coverage_evaluations(
+        resolver, normalized_claims, workload_scope, plan
+    )
     reference_evaluations = _reference_evaluations(resolver, normalized_claims, policy)
     evidence_evaluations = _evidence_evaluations(resolver, normalized_claims, policy)
     numeric_evaluations = _numeric_evaluations(resolver, normalized_claims, policy)
@@ -1284,9 +1462,9 @@ def validate_stage1_claims(
         ),
         "scope_compliance": gate(
             "scope_compliance",
-            scope_evaluations,
+            (*scope_evaluations, *company_trend_coverage),
             extra_violations=integrity_violations,
-            evaluation_unit="claim_scope_bundle",
+            evaluation_unit="claim_scope_or_company_metric_period_cell",
         ),
         "fabricated_or_unaccepted_records": gate(
             "fabricated_or_unaccepted_records", reference_evaluations, evaluation_unit="reference"

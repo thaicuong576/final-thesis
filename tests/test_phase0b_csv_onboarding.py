@@ -27,6 +27,10 @@ from thesis_data.onboarding_validation import (
     reconcile_candidate_observations,
 )
 from thesis_data.schema import QualityStatus
+from thesis_data.source_artifacts import resolve_primary_source_artifacts
+
+
+REVIEWED_FILING_BYTES = b"fixture reviewed filing used by CSV onboarding tests"
 
 
 class Phase0BCsvOnboardingTests(unittest.TestCase):
@@ -79,7 +83,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
             source_url="https://example.test/filing.pdf",
             publisher="Fixture issuer",
             retrieved_at="2026-09-24T00:00:00+00:00",
-            content_hash="fixture-primary-source-hash",
+            content_hash=hashlib.sha256(REVIEWED_FILING_BYTES).hexdigest(),
             validation_status=QualityStatus.VALID,
         )
         numeric = [item for item in result.candidate.observations if item.value is not None]
@@ -289,7 +293,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
             candidate = self.reviewed_candidate(result)
-            accepted = materialize_canonical_snapshot(
+            accepted = self.materialize(
                 db_path,
                 candidate,
                 staged.raw_descriptor,
@@ -329,7 +333,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(
+            self.materialize(
                 db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             provider = CanonicalSqliteDatasetProvider(db_path, dataset_id="csv-dataset")
@@ -350,12 +354,101 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "VALID"):
-                materialize_canonical_snapshot(
+                self.materialize(
                     Path(directory) / "invalid.sqlite",
                     result.candidate,
                     staged.raw_descriptor,
                     result.validation_report,
                 )
+
+    def test_promotion_rejects_unhashed_sources_and_csv_relabelled_as_primary(self):
+        staged = self.stage(self.valid_text())
+        result = normalize_csv_dataset(
+            staged,
+            dataset_id="csv-dataset",
+            mapping=self.mapping(),
+            registry=demo_metric_registry(),
+        )
+        candidate = self.reviewed_candidate(result)
+        primary = candidate.additional_sources[0]
+        with tempfile.TemporaryDirectory() as directory:
+            invalid_hash_candidate = replace(
+                candidate,
+                additional_sources=(primary.model_copy(update={"content_hash": "not-a-sha256"}),),
+            )
+            with self.assertRaisesRegex(ValueError, "source content hash"):
+                self.materialize(
+                    Path(directory) / "invalid-hash.sqlite",
+                    invalid_hash_candidate,
+                    staged.raw_descriptor,
+                    result.validation_report,
+                )
+
+            relabeled_csv_candidate = replace(
+                candidate,
+                additional_sources=(primary.model_copy(update={"source_type": "csv"}),),
+            )
+            with self.assertRaisesRegex(ValueError, "source type"):
+                self.materialize(
+                    Path(directory) / "relabeled-csv.sqlite",
+                    relabeled_csv_candidate,
+                    staged.raw_descriptor,
+                    result.validation_report,
+                )
+
+            forged_hash_candidate = replace(
+                candidate,
+                additional_sources=(primary.model_copy(update={"content_hash": "d" * 64}),),
+            )
+            with self.assertRaisesRegex(ValueError, "explicit evidence root"):
+                materialize_canonical_snapshot(
+                    Path(directory) / "unverified-primary.sqlite",
+                    forged_hash_candidate,
+                    staged.raw_descriptor,
+                    result.validation_report,
+                )
+
+    def test_evidence_root_resolver_checks_primary_bytes_against_source_hash(self):
+        result = self.normalize(self.valid_text())
+        candidate = self.reviewed_candidate(result)
+        source = candidate.additional_sources[0]
+        with tempfile.TemporaryDirectory() as directory:
+            evidence_root = Path(directory) / "evidence"
+            evidence_root.mkdir()
+            artifact_path = evidence_root / "filing.pdf"
+            artifact_path.write_bytes(b"different filing bytes")
+            with self.assertRaisesRegex(ValueError, "SHA-256 verification failed"):
+                resolve_primary_source_artifacts(
+                    sources=candidate.all_sources,
+                    artifact_paths={source.source_ref: artifact_path},
+                    evidence_root=evidence_root,
+                )
+
+    def materialize(self, db_path, candidate, raw_descriptor, validation_report):
+        evidence_root = Path(db_path).parent / "source-evidence"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        artifact_paths = {}
+        primary_sources = [
+            source for source in candidate.all_sources
+            if source.validation_status is QualityStatus.VALID
+            and getattr(source.source_tier, "value", source.source_tier) == "primary"
+        ]
+        for index, source in enumerate(primary_sources):
+            artifact_path = evidence_root / f"primary-{index}.pdf"
+            artifact_path.write_bytes(REVIEWED_FILING_BYTES)
+            artifact_paths[source.source_ref] = artifact_path
+        verified = resolve_primary_source_artifacts(
+            sources=candidate.all_sources,
+            artifact_paths=artifact_paths,
+            evidence_root=evidence_root,
+        )
+        return materialize_canonical_snapshot(
+            db_path,
+            candidate,
+            raw_descriptor,
+            validation_report,
+            verified_source_artifacts=verified,
+        )
 
     def test_materialization_rolls_back_on_write_failure(self):
         staged = self.stage(self.valid_text())
@@ -370,7 +463,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "rollback.sqlite"
             with self.assertRaisesRegex(sqlite3.IntegrityError, "UNIQUE"):
-                materialize_canonical_snapshot(
+                self.materialize(
                     db_path,
                     duplicate_entity,
                     staged.raw_descriptor,
@@ -400,7 +493,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "canonical.sqlite"
-            materialize_canonical_snapshot(
+            self.materialize(
                 db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             provider = CanonicalSqliteDatasetProvider(db_path)
@@ -431,7 +524,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                 )
                 candidate = self.reviewed_candidate(result)
                 db_path = Path(directory) / "corrupt.sqlite"
-                materialize_canonical_snapshot(
+                self.materialize(
                     db_path, candidate, staged.raw_descriptor, result.validation_report
                 )
                 connection = sqlite3.connect(db_path)
@@ -468,7 +561,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         self.assertEqual(result.candidate.observations[0].validation_status, QualityStatus.PENDING_VALIDATION)
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "pending observations"):
-                materialize_canonical_snapshot(
+                self.materialize(
                     Path(directory) / "unreviewed.sqlite",
                     result.candidate,
                     staged.raw_descriptor,
@@ -490,7 +583,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
                 )
                 candidate = self.reviewed_candidate(result)
                 db_path = Path(directory) / "malformed-json.sqlite"
-                materialize_canonical_snapshot(
+                self.materialize(
                     db_path, candidate, staged.raw_descriptor, result.validation_report
                 )
                 connection = sqlite3.connect(db_path)
@@ -518,7 +611,7 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         candidate = self.reviewed_candidate(result)
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "invalid-json.sqlite"
-            materialize_canonical_snapshot(
+            self.materialize(
                 db_path, candidate, staged.raw_descriptor, result.validation_report
             )
             connection = sqlite3.connect(db_path)
@@ -560,14 +653,14 @@ class Phase0BCsvOnboardingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             db_path = Path(directory) / "retry.sqlite"
             with self.assertRaises(sqlite3.IntegrityError):
-                materialize_canonical_snapshot(
+                self.materialize(
                     db_path,
                     duplicate_entity,
                     staged.raw_descriptor,
                     result.validation_report,
                 )
             self.assertFalse(db_path.exists())
-            accepted = materialize_canonical_snapshot(
+            accepted = self.materialize(
                 db_path,
                 candidate,
                 staged.raw_descriptor,

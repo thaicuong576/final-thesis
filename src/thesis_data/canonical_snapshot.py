@@ -6,6 +6,7 @@ from dataclasses import replace
 from decimal import Decimal
 import json
 from pathlib import Path
+import re
 import sqlite3
 
 from .dataset_contract import (
@@ -29,6 +30,7 @@ from .onboarding_contract import (
 from .onboarding_validation import CanonicalDatasetCandidate
 from .metrics import operational_derived_formula
 from .schema import QualityStatus
+from .source_artifacts import VerifiedSourceArtifacts
 
 
 CANONICAL_SNAPSHOT_SCHEMA_VERSION = "canonical-snapshot-v3"
@@ -43,6 +45,15 @@ def _json(value: object) -> str:
 
 
 CANONICAL_CALCULATION_RECEIPT_METADATA_KEY = "__derived_calculation_receipt_v1"
+_SHA256_PATTERN = re.compile(r"^[a-fA-F0-9]{64}$")
+_SOURCE_TYPES = {
+    "api",
+    "filing",
+    "issuer_ir",
+    "market_data",
+    "policy",
+    "research_report",
+}
 
 
 def _unit_matches(actual: str | None, expected: str) -> bool:
@@ -286,9 +297,12 @@ def _validate_candidate(
     candidate: CanonicalDatasetCandidate,
     accepted_metadata: DatasetSnapshotMetadata,
     raw_descriptor: RawDatasetDescriptor,
+    verified_source_artifacts: VerifiedSourceArtifacts | None,
 ) -> CanonicalDatasetCandidate:
     if accepted_metadata.status is not DatasetSnapshotStatus.ACCEPTED:
         raise ValueError("materialization requires accepted metadata")
+    if not _SHA256_PATTERN.fullmatch(raw_descriptor.content_hash):
+        raise ValueError("raw source content hash must be an exact SHA-256")
     if candidate.source.content_hash != raw_descriptor.content_hash:
         raise ValueError("canonical source hash does not match raw descriptor")
     source_refs = [item.source_ref for item in candidate.all_sources]
@@ -296,11 +310,34 @@ def _validate_candidate(
         raise ValueError("canonical source refs must be unique")
     for source in candidate.all_sources:
         tier = getattr(source.source_tier, "value", source.source_tier)
+        if not _SHA256_PATTERN.fullmatch(source.content_hash):
+            raise ValueError("canonical source content hash must be an exact SHA-256")
         if source.validation_status is QualityStatus.VALID:
+            if source.source_type not in _SOURCE_TYPES:
+                raise ValueError("accepted canonical source type is unsupported")
             continue
         if tier == "user_supplied" and source.validation_status is QualityStatus.PENDING_VALIDATION:
             continue
         raise ValueError("non-user-supplied canonical sources must be valid before publication")
+    accepted_primary_sources = tuple(
+        source
+        for source in candidate.all_sources
+        if source.validation_status is QualityStatus.VALID
+        and getattr(source.source_tier, "value", source.source_tier) == "primary"
+    )
+    if accepted_primary_sources:
+        if (
+            not isinstance(verified_source_artifacts, VerifiedSourceArtifacts)
+            or not verified_source_artifacts.matches(candidate.all_sources)
+        ):
+            raise ValueError(
+                "accepted primary evidence requires bytes verified beneath an explicit evidence root"
+            )
+    elif verified_source_artifacts is not None and (
+        not isinstance(verified_source_artifacts, VerifiedSourceArtifacts)
+        or not verified_source_artifacts.matches(candidate.all_sources)
+    ):
+        raise ValueError("verified primary evidence does not match candidate sources")
     if not candidate.entities or not candidate.periods or not candidate.metrics:
         raise ValueError("accepted canonical snapshot must contain entities, periods, and metrics")
     entity_ids = {item.entity_id for item in candidate.entities}
@@ -339,6 +376,8 @@ def _validate_candidate(
             raise ValueError("document dataset identity does not match snapshot metadata")
         if document.source_ref not in source_refs:
             raise ValueError("document source does not resolve to the snapshot")
+        if document.content_hash != source_by_ref[document.source_ref].content_hash:
+            raise ValueError("document content hash does not match its source record")
     for item in candidate.evidence:
         if (
             item.source_ref not in source_refs
@@ -417,6 +456,7 @@ def _validate_candidate(
                     review_source is None
                     or review_source.validation_status is not QualityStatus.VALID
                     or getattr(review_source.source_tier, "value", review_source.source_tier) != "primary"
+                    or review_source.source_type not in _SOURCE_TYPES
                 ):
                     raise ValueError("review primary evidence does not resolve to a valid primary source")
             if item.derivation_method is None:
@@ -612,6 +652,8 @@ def materialize_canonical_snapshot(
     candidate: CanonicalDatasetCandidate,
     raw_descriptor: RawDatasetDescriptor,
     validation_report: OnboardingValidationReport,
+    *,
+    verified_source_artifacts: VerifiedSourceArtifacts | None = None,
 ) -> DatasetSnapshotMetadata:
     """Promote and atomically materialize one accepted canonical snapshot."""
 
@@ -627,7 +669,12 @@ def materialize_canonical_snapshot(
     reconciliation_metadata = candidate.metadata.model_copy(
         update={"status": DatasetSnapshotStatus.ACCEPTED}
     )
-    candidate = _validate_candidate(candidate, reconciliation_metadata, raw_descriptor)
+    candidate = _validate_candidate(
+        candidate,
+        reconciliation_metadata,
+        raw_descriptor,
+        verified_source_artifacts,
+    )
     accepted_metadata = promote_snapshot_metadata(
         raw_descriptor,
         candidate.metadata,
@@ -639,7 +686,12 @@ def materialize_canonical_snapshot(
         accepted_metadata,
         raw_descriptor,
     )
-    candidate = _validate_candidate(candidate, accepted_metadata, raw_descriptor)
+    candidate = _validate_candidate(
+        candidate,
+        accepted_metadata,
+        raw_descriptor,
+        verified_source_artifacts,
+    )
     target = Path(db_path)
     target_existed_before = target.exists()
     if target_existed_before and target.stat().st_size > 0:

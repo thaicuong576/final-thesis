@@ -7,6 +7,7 @@ before a candidate is materialized through the generic canonical provider.
 
 from __future__ import annotations
 
+import csv
 from datetime import datetime
 from decimal import Decimal
 import hashlib
@@ -444,6 +445,7 @@ def verify_packet_artifacts(
     *,
     packet_path: Path,
     source_manifest_path: Path,
+    evidence_root: Path,
 ) -> tuple[dict[str, Path], dict[str, dict[str, object]]]:
     """Verify each artifact against its byte/hash sidecar before reconciliation."""
 
@@ -453,8 +455,10 @@ def verify_packet_artifacts(
         raise ValueError("source artifact manifest is unreadable") from exc
     if manifest.get("schema_version") != "1.0" or not isinstance(manifest.get("artifacts"), dict):
         raise ValueError("source artifact manifest schema is invalid")
+    root = Path(evidence_root).resolve()
+    if not root.is_dir():
+        raise ValueError("explicit evidence root must be an existing directory")
     base = packet_path.resolve().parent
-    root = Path(__file__).resolve().parents[2]
     paths: dict[str, Path] = {}
     details: dict[str, dict[str, object]] = {}
     for source in packet.sources:
@@ -471,7 +475,7 @@ def verify_packet_artifacts(
             raise ValueError("source byte length is invalid")
         artifact_path = (base / source.artifact_ref).resolve()
         if not artifact_path.is_relative_to(root):
-            raise ValueError("source artifact_ref must resolve inside the repository")
+            raise ValueError("source artifact_ref must resolve inside the explicit evidence root")
         try:
             content = artifact_path.read_bytes()
         except OSError as exc:
@@ -484,6 +488,139 @@ def verify_packet_artifacts(
         paths[source.source_id] = artifact_path
         details[source.source_id] = record
     return paths, details
+
+
+def verify_reconciliation_register(
+    packet: BankOnboardingPacket,
+    *,
+    reconciliation_path: Path,
+    artifact_details: dict[str, dict[str, object]],
+) -> int:
+    """Check that the human review register exactly covers the packet rows.
+
+    The register is a second durable control record. It cannot grant acceptance
+    by itself; it must agree with the packet's review, source manifest, metric,
+    period, scope, units, locator and formula lineage for every row.
+    """
+
+    try:
+        with Path(reconciliation_path).open(
+            "r", encoding="utf-8-sig", newline=""
+        ) as stream:
+            reader = csv.DictReader(stream)
+            required_fields = {
+                "observation_id",
+                "metric_id",
+                "value",
+                "unit",
+                "period_id",
+                "period_basis",
+                "reporting_scope",
+                "formula_version",
+                "input_observation_ids",
+                "source_locator",
+                "reviewer_id",
+                "reviewed_at",
+                "review_decision",
+                "source_sha256",
+                "source_url",
+            }
+            if reader.fieldnames is None or set(reader.fieldnames) != required_fields:
+                raise ValueError("reconciliation register columns do not match the packet contract")
+            rows = list(reader)
+    except OSError as exc:
+        raise ValueError("reconciliation register is unavailable") from exc
+
+    row_by_id: dict[str, dict[str, str]] = {}
+    for row in rows:
+        observation_id = row.get("observation_id", "")
+        if not observation_id or observation_id in row_by_id:
+            raise ValueError("reconciliation register observation IDs must be non-empty and unique")
+        row_by_id[observation_id] = row
+    expected_ids = {item.observation_id for item in packet.observations}
+    if set(row_by_id) != expected_ids:
+        raise ValueError("reconciliation register must cover every packet observation exactly once")
+
+    source_by_id = {item.source_id: item for item in packet.sources}
+    for observation in packet.observations:
+        row = row_by_id[observation.observation_id]
+        formula = observation.formula
+        review = observation.review
+        primary_refs = review.primary_evidence if review is not None else ()
+        control_source_id = (
+            primary_refs[0].source_id
+            if primary_refs
+            else observation.candidate_source_id
+        )
+        first_source = source_by_id.get(control_source_id or "")
+        detail = artifact_details.get(first_source.source_id, {}) if first_source else {}
+        expected = {
+            "metric_id": observation.metric_id,
+            "value": "" if observation.value is None else str(observation.value),
+            "unit": observation.unit or "",
+            "period_id": observation.period_id,
+            "period_basis": observation.period_basis or "",
+            "reporting_scope": observation.reporting_scope,
+            "formula_version": formula.formula_version if formula else "",
+            "input_observation_ids": ";".join(formula.input_observation_ids) if formula else "",
+            "source_locator": (
+                " | ".join(item.source_locator for item in primary_refs)
+                if primary_refs
+                else observation.candidate_locator or ""
+            ),
+            "reviewer_id": review.reviewer_id if review else "",
+            "reviewed_at": review.reviewed_at if review else "",
+            "review_decision": review.decision if review else "",
+            "source_sha256": str(detail.get("content_sha256", "")),
+            "source_url": str(detail.get("source_url", "")),
+        }
+        for field_name, expected_value in expected.items():
+            actual_value = row.get(field_name, "")
+            if field_name == "value" and expected_value:
+                try:
+                    matches = Decimal(actual_value) == Decimal(expected_value)
+                except Exception as exc:
+                    raise ValueError(
+                        f"reconciliation register value is invalid for {observation.observation_id}"
+                    ) from exc
+            else:
+                matches = actual_value == expected_value
+            if not matches:
+                raise ValueError(
+                    f"reconciliation register {field_name} mismatch for {observation.observation_id}"
+                )
+    return len(rows)
+
+
+def load_verified_bank_dataset_candidate(
+    *,
+    packet_path: Path,
+    source_manifest_path: Path,
+    reconciliation_path: Path,
+    evidence_root: Path,
+    created_at: datetime | None = None,
+) -> tuple[BankOnboardingPacket, CanonicalDatasetCandidate, RawDatasetDescriptor, OnboardingValidationReport]:
+    """Load a source-verified packet only after every control record agrees."""
+
+    packet = parse_bank_onboarding_packet(Path(packet_path).read_bytes())
+    artifact_paths, artifact_details = verify_packet_artifacts(
+        packet,
+        packet_path=packet_path,
+        source_manifest_path=source_manifest_path,
+        evidence_root=evidence_root,
+    )
+    verify_reconciliation_register(
+        packet,
+        reconciliation_path=reconciliation_path,
+        artifact_details=artifact_details,
+    )
+    candidate, raw_descriptor, report = build_bank_dataset_candidate(
+        packet,
+        artifact_paths=artifact_paths,
+        artifact_details=artifact_details,
+        created_at=created_at,
+    )
+    return packet, candidate, raw_descriptor, report
 
 
 def build_bank_dataset_candidate(

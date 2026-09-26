@@ -590,3 +590,20 @@ emitting `RUN_BLOCKED`. A nested closure that decrements the outer sequence
 must declare `nonlocal sequence`; otherwise the failure path raises
 `UnboundLocalError` and hides the persistence reason. Cover success round-trip
 and failure event ordering through the real SSE route.
+
+## [LESSON-026] Source claims require verified bytes and document identity
+
+- Date: 2026-09-26
+- Scope: generic operational onboarding and canonical snapshot promotion
+- Status: ACTIVE
+
+An onboarding caller must not be able to make a source acceptable by declaring
+an arbitrary source type or a hash-shaped string. Promotion must validate the
+source type against the recognized allowlist, verify an exact SHA-256 against
+the immutable evidence bytes, and require each document's hash to agree with
+its source record. Caller-supplied hash strings or hash maps are not proof;
+generic materialization must require a verifier result produced from the bytes
+under an explicit evidence root. Keep per-observation locator, period basis,
+reporting scope and review evidence attached to accepted values. Add negative
+tests for unknown source types, malformed or mismatched hashes, document/source
+hash splits, and directly constructed candidates that bypass byte verification.

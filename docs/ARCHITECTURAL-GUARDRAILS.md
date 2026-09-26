@@ -127,6 +127,13 @@ StructuredAssertion, EvidenceRef, Scope, InferenceType, and Limitation
 contracts. Preserve dataset/snapshot identity where applicable. Free prose may
 not silently introduce material unsupported assertions.
 
+For any multi-period plan, the ordered period scope is one immutable part of
+the request and candidate identity. Repeated metrics are represented as typed
+metric-period records and period-specific claims; a map keyed only by metric is
+not a valid multi-period boundary. Every planned entity/metric/period cell must
+be accepted or explicitly missing before synthesis. A partial period list or a
+silent fallback to one period fails before specialist dispatch.
+
 ### Phase 2 — Deterministic acceptance harness
 
 The reusable acceptance harness must fail closed on numeric inaccuracy, invalid

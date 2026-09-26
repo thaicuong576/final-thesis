@@ -227,3 +227,23 @@ readiness. Company/Sector writer calls and Orchestrator synthesis are explicit
 roles; deterministic retrieval alone is not a model specialist.
 
 The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.
+
+## Multi-period Company trend target gate (runtime pending)
+
+D-074 allows a bounded Company-only trend request with two to four unique,
+chronologically ordered periods. The plan, specialist context, claims, semantic
+rounds, SSE and persisted result must retain the identical ordered list. Output
+uses metric-period records; never collapse the same metric from several periods
+into one map entry. Each expected cell is accepted or explicitly missing, and
+Stage-1 rejects silent partial coverage.
+
+This completeness guarantee must be enforced in reusable `src/thesis_data`
+acceptance against the frozen plan/expected-cell contract. API-only completeness
+checks are insufficient. Candidate identity binds the ordered periods even if
+the claim set is unchanged.
+
+The legacy `period` is the final/anchor period when `periods` is supplied.
+Duplicate, descending, over-budget or query-mismatched lists fail before any
+provider/model call. Multi-period Peer/Macro remains unsupported, so T08 stays
+blocked. T04/T05 are implementation probes, not permission to hard-code their
+issuers, metrics or year and not evidence of final A/B/C scoring.

@@ -97,7 +97,9 @@ class OpenAIAnalysisWriter:
                 "You are the constrained orchestrator synthesizer. Summarize only the supplied specialist prose "
                 "and frozen plan. Keep every claim ID join implicit in prose; do not add facts, numbers, sources, "
                 "period labels, causal claims, or conclusions beyond the inputs. Address selected critique descriptions and "
-                "required actions. Return a concise caveat-aware summary."
+                "required actions. For a Company plan with multiple ordered periods, the specialist outputs may include "
+                "accepted_observation rows. You may describe only the direction supported by those exact metric-period "
+                "values; do not add numeric values, deltas, causes, or unstated periods. Return a concise caveat-aware summary."
             ),
             payload={"plan": plan, "specialist_outputs": specialist_outputs, "selected_issues": list(issues)},
             schema={

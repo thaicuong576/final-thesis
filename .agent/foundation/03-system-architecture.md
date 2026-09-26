@@ -162,3 +162,12 @@ chấp nhận tương ứng; mẫu Gold hiện tại chưa có dữ liệu macro
 Python kiểm contract và suite trong checkout; bằng chứng ignored có gate riêng.
 
 Application run history uses contracts/run-store-schema.sql on its separate ANALYSIS_RUNS_DB_PATH. contracts/schema.sql remains the analytical schema contract; accepted snapshots are never initialized or migrated for run history.
+
+### Hợp đồng P4A đã chấp nhận, đang triển khai
+
+D-074 mở đúng một lát cắt nhiều kỳ cho Company trend: từ hai đến bốn kỳ có thứ
+tự, một target, context tách theo kỳ và output dạng metric-period record. Mỗi
+numeric claim vẫn thuộc đúng một kỳ và giữ provenance đầy đủ. Một trend là một
+logical run, không phải ghép bốn report một kỳ. Multi-period Peer/Macro và T08
+vẫn bị chặn trước retrieval. Chưa được công bố T04/T05 đủ điều kiện hoặc protocol
+đã freeze cho đến khi exact-question E2E và audit độc lập cùng đạt.

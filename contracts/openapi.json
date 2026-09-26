@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Hierarchical Financial Multi-Agent Analysis API",
-    "version": "1.2.0",
-    "description": "Reference API for analysis of Vietnamese listed banks. The runtime supports single-period provider-backed analysis, deterministic acceptance and bounded semantic review. Macro is activated only when the accepted provider declares the requested capability and observations; the current Gold case study has no accepted macro data. Multi-period requests remain unsupported."
+    "version": "1.3.0",
+    "description": "Reference API for analysis of Vietnamese listed banks. The contract preserves single-period provider-backed company/peer analysis and adds a bounded Company-only trend shape with deterministic acceptance and bounded semantic review. Multi-period peer/macro scope remains unsupported."
   },
   "paths": {
     "/api/health": {
@@ -141,6 +141,7 @@
     "schemas": {
       "AnalysisRequest": {
         "type": "object",
+        "description": "Period normalization: period only becomes [period]; periods only uses its final item as the anchor; both require period == periods[-1]; neither is allowed only when exactly one canonical period can be resolved from query. A multi-period query requires explicit periods and any periods/range stated in query must match it exactly. All conflicts fail before provider or model calls.",
         "required": [
           "query"
         ],
@@ -168,8 +169,24 @@
           },
           "period": {
             "type": "string",
-            "description": "One supported snapshot period (for example 2024_Q4). Compact or expanded multi-period ranges fail with multi_period_unsupported; historical trend runners do not imply support in this API.",
+            "description": "Legacy single-period selector, or the final/anchor period when periods is also supplied. When both fields are present, this value must equal the last item of periods.",
             "example": "2024_Q4"
+          },
+          "periods": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Exact canonical period scope in strictly increasing chronological order. One item is equivalent to a single-period request. Two to four items select the bounded Company-only trend path; peer or macro multi-period scope remains unsupported. The list must match every explicit period or expanded range in query.",
+            "example": [
+              "2024_Q1",
+              "2024_Q2",
+              "2024_Q3",
+              "2024_Q4"
+            ]
           }
         },
         "example": {
@@ -191,7 +208,9 @@
           "plan_id",
           "query",
           "required_capabilities",
-          "dataset_snapshot_id"
+          "dataset_snapshot_id",
+          "period",
+          "periods"
         ],
         "properties": {
           "plan_id": {
@@ -218,7 +237,24 @@
           },
           "period": {
             "type": "string",
+            "description": "Final/anchor period. It equals the last item of periods.",
             "example": "2024_Q4"
+          },
+          "periods": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "Frozen ordered period scope used by every specialist, claim, synthesis/revision round, event and persisted report.",
+            "example": [
+              "2024_Q1",
+              "2024_Q2",
+              "2024_Q3",
+              "2024_Q4"
+            ]
           },
           "required_capabilities": {
             "type": "array",
@@ -454,8 +490,218 @@
           },
           "assessment": {
             "type": "string"
+          },
+          "metric_period_records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyMetricPeriodRecord"
+            },
+            "description": "Company trend responses with 2–4 frozen periods populate authoritative metric-by-period facts ordered first by AnalysisPlan.periods and then by requested metric order. Single-period responses may omit or return an empty array to preserve the legacy scalar format. Multi-period reports must not collapse repeated metrics into legacy scalar fields."
           }
         }
+      },
+      "CompanyMetricPeriodRecord": {
+        "type": "object",
+        "description": "One Company fact or explicit missing cell for one metric and one period. The valid and missing states are mutually exclusive.",
+        "required": [
+          "metric_id",
+          "period"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "validation_status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "missing"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period_basis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reporting_scope": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scope_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "verified",
+              "unavailable",
+              null
+            ],
+            "description": "For a valid record, verified requires a non-empty reporting_scope; unavailable requires reporting_scope=null and an explicit AnalysisResponse limitation. Unknown scope never supports peer comparison. Missing cells use null."
+          },
+          "observation_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "claim_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "missing_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "oneOf": [
+          {
+            "title": "Valid metric-period fact",
+            "required": [
+              "validation_status",
+              "value",
+              "unit",
+              "period_basis",
+              "reporting_scope",
+              "scope_status",
+              "observation_id",
+              "source_id",
+              "claim_id",
+              "missing_reason"
+            ],
+            "properties": {
+              "validation_status": {
+                "const": "valid"
+              },
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "period_basis": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope_status": {
+                "enum": [
+                  "verified",
+                  "unavailable"
+                ]
+              },
+              "observation_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "claim_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "missing_reason": {
+                "type": "null"
+              }
+            },
+            "oneOf": [
+              {
+                "properties": {
+                  "scope_status": {
+                    "const": "verified"
+                  },
+                  "reporting_scope": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "scope_status": {
+                    "const": "unavailable"
+                  },
+                  "reporting_scope": {
+                    "type": "null"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "title": "Explicit missing metric-period cell",
+            "required": [
+              "validation_status",
+              "value",
+              "missing_reason"
+            ],
+            "properties": {
+              "validation_status": {
+                "const": "missing"
+              },
+              "value": {
+                "type": "null"
+              },
+              "unit": {
+                "type": "null"
+              },
+              "period_basis": {
+                "type": "null"
+              },
+              "reporting_scope": {
+                "type": "null"
+              },
+              "scope_status": {
+                "type": "null"
+              },
+              "observation_id": {
+                "type": "null"
+              },
+              "source_id": {
+                "type": "null"
+              },
+              "claim_id": {
+                "type": "null"
+              },
+              "missing_reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
       },
       "CritiqueItem": {
         "type": "object",

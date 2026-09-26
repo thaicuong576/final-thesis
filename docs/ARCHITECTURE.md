@@ -44,6 +44,17 @@ ignored local SQLite files are not packaged by Git. Dataset storage and mutable
 run history also need deployment isolation before release. Multi-period tasks
 T04/T05/T08 remain ineligible. A health response alone proves only liveness.
 
+### Accepted P4A contract under implementation
+
+D-074 defines the next bounded slice: one logical Company trend request carries
+two to four ordered periods, creates a period-keyed context and publishes typed
+metric-period records plus period-specific claims. The single-period path stays
+compatible. Multi-period peer and macro scope still fail before retrieval, so
+T08 remains outside this slice. Reusable Stage-1 must verify every expected
+metric-period cell against the frozen plan, and candidate hashing binds the
+ordered periods. This section is a design commitment only until T04/T05
+exact-question end-to-end tests pass; it is not experiment evidence.
+
 ## Logical flow
 
 ```text

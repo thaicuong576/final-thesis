@@ -1373,3 +1373,53 @@ Alternative executors therefore require a later contract migration adding an
 immutable producer/owner field and binding it to candidate hashes; inferring
 ownership from `required_agents` is rejected as ambiguous. This is a recorded
 portability limitation, not permission to omit the API role-mapping gate.
+
+## D-074: Open a bounded Company trend contract before multi-period peer work
+
+Status: Accepted for P4A implementation. T04/T05 remain unscored candidates
+until exact-question end-to-end evidence passes; T08 remains ineligible.
+
+D-038 already requires a trend to carry its complete ordered period scope as one
+logical task, but D-039 applied that rule to the historical BaselineJob boundary.
+D-073 intentionally kept the public reference API single-period. The next
+vertical slice extends that public contract only for Company trends while
+preserving the single-period company/peer path.
+
+`AnalysisRequest.periods` carries one to four unique canonical periods in
+strictly increasing order. `period` remains the legacy single-period selector
+and, when both fields are supplied, must equal the final item. One period keeps
+the current behavior. With `periods` alone, the final item becomes the anchor;
+with `period` alone, the normalized list is a singleton. If neither is supplied,
+the query must resolve to exactly one canonical period; a range always requires
+the explicit list. Two to four periods require exactly one target entity and
+Company capability; peer or macro multi-period scope fails before retrieval.
+The frozen plan always stores both the list and its final anchor. The explicit
+list must match any periods or range declared by the query. This is a
+context-budget boundary, not a hard-coded issuer or metric list.
+
+One Company trend run builds separate read-only context for every requested
+period and requires complete coverage of the `(entity, metric, period)` matrix.
+Reusable Stage-1 acceptance enforces this matrix against the frozen plan (or an
+explicit typed expected-cell set); an API-only completeness check is not
+sufficient. The ordered period list is part of candidate identity.
+Output uses ordered metric-period records so a repeated metric cannot overwrite
+another period. Every accepted numeric cell retains unit, period basis,
+reporting-scope status, observation/source/locator lineage and one
+period-specific AtomicClaim. If source scope is unavailable, a Company-only
+record may expose the accepted fact with explicit `scope_status=unavailable`
+and a report limitation; it cannot enter peer or cross-bank comparison, and no
+scope may be inferred. Missing cells remain explicit with a reason. Trend
+synthesis may state a grounded direction but must not create new numeric deltas,
+causes or cross-period facts without an approved deterministic formula and
+provenance.
+
+The same frozen period scope flows through writer input, synthesis, Stage-1,
+semantic context, targeted revision, SSE and persisted run history. A revision
+may alter only grounded prose and must rerun Stage-1. T04 and T05 are the exact
+acceptance probes, but reusable logic cannot special-case TCB, MBB, 2024 or the
+four selected metrics.
+
+T08 is deferred to a separate decision because per-period peer denominators,
+context budget and the `company_to_peer` versus public applicable-link naming
+mismatch must be resolved together. This decision does not freeze the P4
+protocol, authorize live scoring, add macro data, or claim live-model quality.

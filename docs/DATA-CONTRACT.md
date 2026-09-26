@@ -332,8 +332,10 @@ coverage with source-candidate coverage.
 agent_id: string                 # must equal the AgentCallRequest.role
 status: enum(success, partial, failed)
 ticker: string | null
-period: string
-metrics: map[string, number | null]
+period: string                   # final/anchor period
+periods: tuple[string, ...]      # exact frozen ordered scope
+metrics: map[string, number | null] # legacy single-period compatibility only
+metric_period_records: list[MetricPeriodRecord]
 metric_units: map[string, string]
 metric_periods: map[string, string]
 sector_benchmarks: map[string, number | null]
@@ -342,6 +344,22 @@ evidence: list[EvidenceSnippet]
 quality_flags: list[string]
 observation_ids: list[string]
 source_ids: list[string]
+```
+
+```text
+MetricPeriodRecord
+metric_id: string
+period: string                  # public and internal canonical field name
+value: finite number | null
+unit: string | null
+period_basis: string | null
+reporting_scope: string | null
+scope_status: enum(verified, unavailable) | null
+validation_status: enum(valid, missing)
+observation_id: string | null
+source_id: string | null
+claim_id: string | null
+missing_reason: string | null
 ```
 
 Rules:
@@ -354,6 +372,20 @@ Rules:
   `AnalysisPlan`; an inactive role is `NOT_APPLICABLE`, not a failed role.
 - Every published metric has a corresponding unit, period, observation ID/source
   ID, and evidence or explicit source-record locator.
+- Company trend output with 2–4 frozen periods is canonicalized to
+  `metric_period_records`, ordered first by the frozen period list and then by
+  requested metric order. Single-period responses may omit or return an empty
+  array to preserve the legacy scalar format. Multi-period output must not use
+  `metrics`, `metric_units`, or `metric_periods` as its sole representation
+  because repeated metric keys would overwrite earlier periods.
+- In a trend response, each expected `(ticker, metric_id, period)` cell appears
+  exactly once. A
+  `valid` record has a finite value, non-empty unit/basis and a provenance join
+  through its claim/observation. Reporting scope is either `verified` with a
+  non-empty value or `unavailable` with null plus an explicit report limitation.
+  Unavailable scope blocks peer comparison and is never inferred. A `missing`
+  record has null facts/lineage, null scope status, and a non-empty reason.
+  Pending/conflicting observations are not published as facts.
 - Agents preserve nulls and quality flags.
 - Invalid payloads are rejected before critique or synthesis.
 - Agents do not calculate financial ratios from unstructured prose.
@@ -382,6 +414,14 @@ question must use exactly the ordered periods declared by that question; the
 runtime rejects a partial list and prepares a separate period-keyed context for
 each requested period. Run manifests preserve this period scope so trend calls
 remain auditable and comparable.
+
+For the bounded P4A public API, `periods` contains one to four unique canonical
+periods in strictly increasing chronological order. The legacy `period`, when
+present with the list, equals its final item. Two or more periods select a
+Company-only trend plan with one target entity. Duplicate, descending,
+over-budget, query-mismatched, peer or macro multi-period scope fails before
+provider or model dispatch. A multi-period request remains one logical run; it
+is not decomposed into independently accepted single-period reports.
 
 For a `macro_to_bank` question, the runtime also requires the caller's macro
 indicator list to match the question's declared `macro_indicator_ids` exactly
@@ -443,10 +483,13 @@ availability from evidence availability (for example `MISSING_DATA` and
 unsupported inference, hard-gate failures, unresolved contradictions, or
 provider/system failures.
 
-The reference API now routes single-period company and peer requests through
-the semantic evaluator and bounded revision controller. Offline end-to-end
-tests verify the route; live provider execution and deployed accepted-snapshot
-readiness remain separate gates. Multi-period requests remain unsupported.
+The merged reference API currently routes single-period company and peer
+requests through the semantic evaluator and bounded revision controller. D-074
+defines the target contract for bounded Company-only trends of at most four
+periods; support must not be claimed until exact-question end-to-end tests pass.
+Trend claims remain atomic per period, and synthesis cannot introduce ungrounded
+numbers or causes. Multi-period peer/macro remains unsupported. Live-provider
+quality, deployed readiness and final A/B/C scoring are separate gates.
 
 ## Run configuration and prompt version
 

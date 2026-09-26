@@ -927,7 +927,7 @@ def build_analysis_plan(
         request.query,
         request.target_ticker,
         request.peer_tickers,
-        request.period,
+        (request.periods[-1] if request.periods else request.period),
     )
     query = _normalized(request.query)
     needs_macro = any(item in query for item in _MACRO_TERMS)
@@ -1253,7 +1253,11 @@ def stream_analysis_query(
         {
             "rawQuestion": req.query,
             "datasetName": "Accepted snapshot",
-            "scopeSignature": " | ".join(item for item in (req.target_ticker, req.period) if item),
+            "scopeSignature": " | ".join(
+                [item for item in (req.target_ticker,) if item]
+                + list(req.periods or ([req.period] if req.period else []))
+            ),
+            "periods": list(req.periods or ([req.period] if req.period else [])),
         },
     )
     emit("PLANNING_STARTED", {"message": "Checking the request against declared snapshot capabilities."})

@@ -86,6 +86,7 @@ from .schemas import (
     AtomicClaimDTO,
     BoundedRevisionSummaryDTO,
     CompanyInsightDTO,
+    CompanyMetricPeriodRecordDTO,
     CritiqueItemDTO,
     EvidenceTrailDTO,
     MacroContextDTO,
@@ -106,8 +107,21 @@ _MACRO_LINK_TERMS = (
     "ảnh hưởng", "anh huong", "tác động", "tac dong", "truyền dẫn", "truyen dan",
 )
 _QUARTER_RE = re.compile(r"\b(20\d{2})\s*_?\s*[Qq]([1-4])\b")
+_FY_PERIOD_RE = re.compile(r"\bFY\s*(20\d{2})\b", re.IGNORECASE)
+_FY_RANGE_RE = re.compile(r"\bFY\s*(20\d{2})\s*(?:to|through|[-–—])\s*(?:FY)?\s*(20\d{2})\b", re.IGNORECASE)
 _COMPACT_QUARTER_RANGE_RE = re.compile(
     r"\b(20\d{2})\s*_?\s*[Qq]([1-4])\s*[-–—]\s*[Qq]([1-4])\b"
+)
+_FULL_QUARTER_RANGE_RE = re.compile(
+    r"\b(20\d{2})\s*_?\s*[Qq]([1-4])\s*"
+    r"(?:to|through|across|until|[-–—])\s*"
+    r"(?:(20\d{2})\s*_?\s*)?[Qq]([1-4])\b",
+    re.IGNORECASE,
+)
+_BETWEEN_QUARTER_RANGE_RE = re.compile(
+    r"\b(?:between|from|từ|tu)\s+(20\d{2})\s*_?\s*[Qq]([1-4])\s+"
+    r"(?:and|to|through|đến|den)\s+(?:(20\d{2})\s*_?\s*)?[Qq]([1-4])\b",
+    re.IGNORECASE,
 )
 _PERIOD_RANGE_RE = re.compile(
     r"\b(?:across|from|between|since|through|over|last|từ|tu|trong giai đoạn)\b.{0,45}"
@@ -175,11 +189,9 @@ class _RuntimeStage1Evaluator:
         *,
         resolver: ProviderStage1DatasetResolver,
         workload_scope: ClaimScope,
-        expected_requirements: Sequence[AnalysisRequirement],
     ) -> None:
         self.resolver = resolver
         self.workload_scope = workload_scope
-        self.expected_requirements = tuple(expected_requirements)
         self.last_report: Stage1ValidationReport | None = None
 
     def evaluate(self, *, plan: AnalysisPlan, claims, policy: AcceptancePolicy) -> Stage1ValidationReport:
@@ -189,22 +201,10 @@ class _RuntimeStage1Evaluator:
             self.workload_scope,
             policy,
         )
-        violations: list[str] = []
-        for requirement in self.expected_requirements:
-            found = any(
-                assertion.entity in requirement.entities
-                and assertion.period in requirement.periods
-                and assertion.metric_id in requirement.metric_ids
-                for claim in claims
-                for assertion in claim.assertions
-            )
-            if not found:
-                violations.append(f"plan_requirement_missing_claim:{requirement.requirement_id}")
-        integrity_violations = report.integrity_violations + tuple(violations)
         self.last_report = Stage1ValidationReport(
-            passed=all(item.passed for item in report.gate_results.values()) and not integrity_violations,
+            passed=all(item.passed for item in report.gate_results.values()) and not report.integrity_violations,
             gate_results=report.gate_results,
-            integrity_violations=integrity_violations,
+            integrity_violations=report.integrity_violations,
         )
         return self.last_report
 
@@ -227,6 +227,7 @@ class _EventingCritic:
             "REVIEW_FEEDBACK_CREATED",
             {
                 "round": round_context.round_number,
+                "periods": list(plan.scope.periods),
                 "issueCount": len(result.critique_issues),
                 "openIssueCount": sum(
                     issue.resolution_status is CritiqueIssueStatus.OPEN
@@ -256,13 +257,14 @@ class _ProviderRevisionExecutor:
             "REVISION_REQUESTED",
             {
                 "round": request.next_round_number,
+                "periods": list(request.plan.scope.periods),
                 "targetSpecialists": list(target_specialists),
                 "issueCount": len(request.selected_issues),
             },
         )
         self.emit(
             "REVISION_ACTIVITY",
-            {"round": request.next_round_number, "message": "Applying selected critique feedback to targeted specialist prose and constrained synthesis."},
+            {"round": request.next_round_number, "periods": list(request.plan.scope.periods), "message": "Applying selected critique feedback to targeted specialist prose and constrained synthesis."},
         )
         revised_claims, revised_summary, revised_support_ids, revised_claim_ids = self.rerun(request)
         synthesis_changed = (
@@ -278,6 +280,7 @@ class _ProviderRevisionExecutor:
             "REVISION_COMPLETED",
             {
                 "round": request.next_round_number,
+                "periods": list(request.plan.scope.periods),
                 "revisedSpecialists": list(target_specialists),
                 "synthesisRevised": synthesis_changed,
             },
@@ -349,31 +352,172 @@ def _check_single_period(request: AnalysisRequest) -> None:
         raise ValueError("multi_period_unsupported: the public request contract supports one exact period per run")
 
 
+def _quarter_ordinal(year: int, quarter: int) -> int:
+    return year * 4 + quarter - 1
+
+
+def _ordinal_quarter(ordinal: int) -> str:
+    year, quarter_index = divmod(ordinal, 4)
+    return f"{year}_Q{quarter_index + 1}"
+
+
+def _expand_quarter_range(start_year: str, start_quarter: str, end_year: str | None, end_quarter: str) -> tuple[str, ...]:
+    first = _quarter_ordinal(int(start_year), int(start_quarter))
+    last = _quarter_ordinal(int(end_year or start_year), int(end_quarter))
+    if last < first:
+        raise ValueError("query_period_range_descending: query period range is descending")
+    return tuple(_ordinal_quarter(item) for item in range(first, last + 1))
+
+
+def _query_declared_periods(query: str) -> tuple[tuple[str, ...], bool]:
+    """Extract explicit canonical quarter scope and the supported range forms."""
+
+    range_match = _COMPACT_QUARTER_RANGE_RE.search(query)
+    if range_match:
+        declared = _expand_quarter_range(*range_match.groups()[:2], None, range_match.group(3))
+        return declared, True
+    range_match = _FULL_QUARTER_RANGE_RE.search(query) or _BETWEEN_QUARTER_RANGE_RE.search(query)
+    if range_match:
+        declared = _expand_quarter_range(*range_match.groups())
+        return declared, True
+    fiscal_range = _FY_RANGE_RE.search(query)
+    if fiscal_range:
+        first, last = (int(item) for item in fiscal_range.groups())
+        if last < first:
+            raise ValueError("query_period_range_descending: query period range is descending")
+        return tuple(f"FY{year}" for year in range(first, last + 1)), True
+
+    declared_matches = [
+        (match.start(), f"{year}_Q{quarter}")
+        for match in _QUARTER_RE.finditer(query)
+        for year, quarter in (match.groups(),)
+    ]
+    declared_matches.extend(
+        (match.start(), f"FY{year}")
+        for match in _FY_PERIOD_RE.finditer(query)
+        for year in (match.group(1),)
+    )
+    normalized = tuple(dict.fromkeys(period for _position, period in sorted(declared_matches)))
+    if _PERIOD_RANGE_RE.search(query) or _YEAR_QUARTER_RANGE_RE.search(query):
+        raise ValueError("query_period_range_unsupported: provide an explicit canonical period list for this range")
+    return normalized, False
+
+
+def _resolve_periods(request: AnalysisRequest, catalog: DatasetCapabilityCatalog) -> tuple[str, ...]:
+    period_ids = tuple(item.period_id for item in catalog.periods)
+    catalog_periods = {item.casefold(): item for item in period_ids}
+    try:
+        query_periods, query_has_range = _query_declared_periods(request.query)
+    except ValueError as exc:
+        code, _, detail = str(exc).partition(": ")
+        from .service import AnalysisBlocked
+
+        raise AnalysisBlocked(code, detail or str(exc)) from exc
+
+    if (query_has_range or len(query_periods) > 1) and not request._periods_explicit:
+        from .service import AnalysisBlocked
+
+        raise AnalysisBlocked(
+            "explicit_periods_required",
+            "A multi-period question requires an explicit ordered periods list.",
+        )
+
+    supplied = tuple(request.periods or ())
+    if not supplied:
+        if query_has_range or len(query_periods) > 1:
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "explicit_periods_required",
+                "A multi-period question requires an explicit ordered periods list.",
+            )
+        if len(query_periods) == 1:
+            supplied = query_periods
+        elif request.period:
+            supplied = (request.period,)
+        else:
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "exact_period_required",
+                "Provide one exact snapshot period or an explicit ordered periods list.",
+            )
+
+    resolved: list[str] = []
+    for requested in supplied:
+        exact = catalog_periods.get(requested.casefold())
+        if exact is None:
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "unsupported_period",
+                f"Period {requested} is not an exact period in the accepted snapshot.",
+            )
+        if not re.fullmatch(r"\d{4}_Q[1-4]|FY\d{4}", exact, re.I):
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "unsupported_period_contract",
+                f"Period {exact} is discoverable but is not supported by the current Stage-1 claim contract.",
+            )
+        resolved.append(exact)
+
+    periods = tuple(resolved)
+    if len(periods) > 4:
+        from .service import AnalysisBlocked
+
+        raise AnalysisBlocked("period_budget_exceeded", "Company trend requests support at most four periods.")
+    if request.period is not None and request.period.casefold() != periods[-1].casefold():
+        from .service import AnalysisBlocked
+
+        raise AnalysisBlocked("period_anchor_mismatch", "The legacy period must equal the final period in the explicit list.")
+    if query_periods and tuple(item.casefold() for item in query_periods) != tuple(item.casefold() for item in periods):
+        from .service import AnalysisBlocked
+
+        raise AnalysisBlocked(
+            "query_period_scope_mismatch",
+            "The explicit period list must exactly match every period or expanded range stated in the query.",
+        )
+    return periods
+
+
 def _plan_request(
     request: AnalysisRequest,
     dataset_ref: DatasetRef,
     catalog: DatasetCapabilityCatalog,
 ) -> tuple[AnalysisPlan, str | None, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
-    """Capability-validate and freeze the complete single-period plan."""
+    """Capability-validate and freeze the complete ordered plan."""
 
     from .service import (
         AnalysisBlocked,
         _catalog_entity_matches,
         _normalized,
         _requested_metrics,
-        _resolve_period,
         _resolve_target,
         _provider_macro_available,
     )
 
+    macro_requested = _has_macro_request(request)
+    comparison_requested = _is_comparison_requested(request)
     try:
-        _check_single_period(request)
-    except ValueError as exc:
-        code, _, detail = str(exc).partition(": ")
-        raise AnalysisBlocked(code, detail or str(exc)) from exc
-
-    periods = (_resolve_period(request, catalog),)
-    period = periods[0]
+        declared_periods, query_has_range = _query_declared_periods(request.query)
+    except ValueError:
+        # Let _resolve_periods report the detailed Company range error below;
+        # comparison/macro requests still need to stop before specialist work.
+        declared_periods = ()
+        query_has_range = bool(_PERIOD_RANGE_RE.search(request.query) or _YEAR_QUARTER_RANGE_RE.search(request.query))
+    multi_period_requested = (
+        len(request.periods or ()) > 1
+        or query_has_range
+        or len(declared_periods) > 1
+    )
+    if multi_period_requested and macro_requested:
+        raise AnalysisBlocked("unsupported_multi_period_macro_scope", "Multi-period macro analysis is outside the supported Company trend scope.")
+    if multi_period_requested and comparison_requested:
+        raise AnalysisBlocked("multi_period_unsupported", "Multi-period analysis is supported only for one Company target.")
+    periods = _resolve_periods(request, catalog)
+    period = periods[-1]
+    multi_period = len(periods) > 1
     company_entities = {
         entity.entity_id for entity in catalog.entities if entity.entity_type.value == "company"
     }
@@ -395,7 +539,6 @@ def _plan_request(
     else:
         target = None
 
-    macro_requested = _has_macro_request(request)
     if macro_requested and not _provider_macro_available(catalog):
         raise AnalysisBlocked(
             "unsupported_macro_scope",
@@ -403,6 +546,10 @@ def _plan_request(
         )
     if target is None and not macro_requested:
         raise AnalysisBlocked("target_entity_required", "Provide one accepted company or an explicit supported macro request.")
+    if multi_period and target is not None:
+        extra_entities = [item for item in _catalog_entity_matches(request.query, catalog) if item != target]
+        if extra_entities:
+            raise AnalysisBlocked("unsupported_multi_period_entity_scope", "A Company trend request must resolve to exactly one target entity.")
 
     company_metric_ids = _requested_metrics(request, catalog) if target else ()
     macro_metric_rows = tuple(
@@ -467,18 +614,32 @@ def _plan_request(
 
     requirements: list[AnalysisRequirement] = []
     for metric_id in company_metric_ids:
-        requirements.append(
-            AnalysisRequirement(
-                requirement_id=f"company:{target}:{period}:{metric_id}",
-                requirement_type=RequirementType.FACTUAL_OBSERVATION,
-                description=f"Report the accepted {metric_id} observation for {target} at {period}.",
-                required_agents=(AnalysisAgent.COMPANY,),
-                entities=(target,), periods=periods, metric_ids=(metric_id,),
-                inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
-                fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
-                missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
+        for cell_period in periods:
+            requirements.append(
+                AnalysisRequirement(
+                    requirement_id=f"company:{target}:{cell_period}:{metric_id}",
+                    requirement_type=RequirementType.FACTUAL_OBSERVATION,
+                    description=f"Report the accepted {metric_id} observation for {target} at {cell_period}.",
+                    required_agents=(AnalysisAgent.COMPANY,),
+                    entities=(target,), periods=(cell_period,), metric_ids=(metric_id,),
+                    inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
+                    fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
+                    missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
+                )
             )
-        )
+        if multi_period:
+            requirements.append(
+                AnalysisRequirement(
+                    requirement_id=f"company-trend:{target}:{metric_id}",
+                    requirement_type=RequirementType.TREND,
+                    description=f"Summarize the grounded direction of {metric_id} across the frozen period scope.",
+                    required_agents=(AnalysisAgent.COMPANY,),
+                    entities=(target,), periods=periods, metric_ids=(metric_id,),
+                    inference_ceiling=InferenceCeiling.TREND_ALLOWED,
+                    fulfillment_policy=FulfillmentPolicy.VALID_VALUE_REQUIRED,
+                    missing_data_policy=MissingDataPolicy.REJECT_MISSING,
+                )
+            )
     if peer_universe_id:
         for peer in peer_ids:
             for metric_id in company_metric_ids:
@@ -561,7 +722,7 @@ def _plan_request(
         dataset_id=dataset_ref.dataset_id,
         dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
         query_id="query-" + hashlib.sha256(
-            f"{dataset_ref.dataset_snapshot_id}\0{_normalized(request.query)}".encode("utf-8")
+            f"{dataset_ref.dataset_snapshot_id}\0{_normalized(request.query)}\0{'|'.join(periods)}".encode("utf-8")
         ).hexdigest()[:16],
         normalized_question=_normalized(request.query),
         scope=AnalysisScope(
@@ -799,7 +960,7 @@ class _AdaptiveRun:
             raise AnalysisBlocked("analysis_writer_provenance_reference_rejected", "The presentation writer repeated a provenance identifier.")
         return clean
 
-    def _validate_synthesis_prose(self, prose: Any) -> str:
+    def _validate_synthesis_prose(self, prose: Any, *, plan: AnalysisPlan) -> str:
         from .service import AnalysisBlocked
         from thesis_data.semantic_critic import numeric_or_period_tokens, validate_synthesis_summary
 
@@ -814,15 +975,18 @@ class _AdaptiveRun:
             raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", str(exc)) from exc
         if numeric_or_period_tokens(clean) or _WRITER_PERIOD_LITERAL_RE.search(clean) or _WRITER_PERIOD_WORD_RE.search(clean) or _WRITER_NUMERAL_WORD_RE.search(unicodedata.normalize("NFC", clean)):
             raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis must not introduce numeric or period claims in this runtime slice.")
-        if _WRITER_TEMPORAL_CHANGE_RE.search(clean) or _WRITER_CAUSAL_RE.search(clean):
+        multi_period_company = len(plan.scope.periods) > 1 and bool(plan.scope.company_metric_ids)
+        if (not multi_period_company and _WRITER_TEMPORAL_CHANGE_RE.search(clean)) or _WRITER_CAUSAL_RE.search(clean):
             raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis may not introduce temporal or causal claims in this runtime slice.")
         for entity in self.catalog.entities:
             for alias in (entity.entity_id, entity.display_name):
-                if alias and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
+                planned_entity = multi_period_company and entity.entity_id in plan.scope.entities
+                if alias and not planned_entity and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
                     raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The report-level synthesis is rendered from accepted specialist prose and cannot introduce entity claims.")
         for metric in self.catalog.metrics:
             for alias in (metric.metric_id, metric.display_name):
-                if alias and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
+                planned_metric = multi_period_company and metric.metric_id in plan.scope.company_metric_ids
+                if alias and not planned_metric and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
                     raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The report-level synthesis is rendered from accepted specialist prose and cannot introduce metric claims.")
         if re.search(r"\b(?:claim|obs(?:ervation)?|source|assertion|evidence)[-_](?:[0-9a-f]{8,}|[A-Z0-9]{6,})\b|https?://", clean, re.IGNORECASE):
             raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis may not introduce source or claim identifiers.")
@@ -891,14 +1055,27 @@ class _AdaptiveRun:
             output.append(claim.model_copy(update={"claim_text": prose}, deep=True))
         return tuple(output)
 
-    def _specialist_outputs(self, claims: Sequence[AtomicClaim]) -> dict[str, list[dict[str, str]]]:
-        outputs: dict[str, list[dict[str, str]]] = {}
+    def _specialist_outputs(self, claims: Sequence[AtomicClaim], plan: AnalysisPlan) -> dict[str, list[dict[str, Any]]]:
+        outputs: dict[str, list[dict[str, Any]]] = {}
         for claim in claims:
             role = self._claim_roles.get(claim.claim_id)
             if role is None:
                 artifact = self.artifacts.get(claim.claim_id)
                 role = artifact.capability if artifact else ""
-            outputs.setdefault(role, []).append({"claim_id": claim.claim_id, "prose": claim.claim_text})
+            item: dict[str, Any] = {"claim_id": claim.claim_id, "prose": claim.claim_text}
+            artifact = self.artifacts.get(claim.claim_id)
+            if artifact is not None and len(plan.scope.periods) > 1 and role == "company":
+                observation = artifact.observation
+                item["accepted_observation"] = {
+                    "entity_id": observation.entity_id,
+                    "metric_id": observation.metric_id,
+                    "period_id": observation.period_id,
+                    "value": observation.value,
+                    "unit": observation.unit,
+                    "validation_status": observation.validation_status.value,
+                    "missing_reason": observation.missing_reason,
+                }
+            outputs.setdefault(role, []).append(item)
         return outputs
 
     def _write_synthesis(self, plan, claims: Sequence[AtomicClaim], issues=()) -> tuple[str, list[str]]:
@@ -906,7 +1083,7 @@ class _AdaptiveRun:
 
         output = self.writer.synthesize(
             plan=plan.model_dump(mode="json"),
-            specialist_outputs=self._specialist_outputs(claims),
+            specialist_outputs=self._specialist_outputs(claims, plan),
             issues=[self._issue_payload(issue) for issue in issues],
         )
         expected_claim_ids = [claim.claim_id for claim in claims]
@@ -917,7 +1094,7 @@ class _AdaptiveRun:
             or len(set(output.get("supporting_claim_ids", ()))) != len(expected_claim_ids)
         ):
             raise AnalysisBlocked("analysis_synthesis_support_invalid", "Synthesis must identify every and only final claim in stable candidate order.")
-        return self._validate_synthesis_prose(output["summary"]), expected_claim_ids
+        return self._validate_synthesis_prose(output["summary"], plan=plan), expected_claim_ids
 
     def execute(self) -> AnalysisResponse:
         from .service import AnalysisBlocked, _requested_metrics
@@ -925,7 +1102,7 @@ class _AdaptiveRun:
         plan, target, periods, company_metrics, peers, macro_metrics = _plan_request(
             self.request, self.dataset_ref, self.catalog
         )
-        period = periods[0]
+        period = periods[-1]
         operations = set(self.catalog.supported_operations)
         required_ops = {SupportedOperation.GET_METRIC, SupportedOperation.RESOLVE_OBSERVATION, SupportedOperation.GET_SOURCE}
         if company_metrics and not required_ops.issubset(operations):
@@ -936,7 +1113,9 @@ class _AdaptiveRun:
         # Plan and capability validation are complete before any role retrieves observations.
         self.emit("PLAN_CREATED", {
             "requiredSpecialists": self._active_roles(plan),
-            "planSummary": "Frozen provider-bound plan with explicit single-period scope and accepted snapshot identity.",
+            "period": period,
+            "periods": list(periods),
+            "planSummary": "Frozen provider-bound plan with exact ordered period scope and accepted snapshot identity.",
             "message": f"Bound to accepted snapshot {self.dataset_ref.dataset_snapshot_id}.",
         })
         company_role_claims: list[AtomicClaim] = []
@@ -944,14 +1123,15 @@ class _AdaptiveRun:
         macro_role_claims: list[AtomicClaim] = []
 
         if target and company_metrics:
-            self._role_started("company", target, period)
-            company_role_claims.extend(self._fetch_direct("company", (target,), company_metrics, period))
+            self._role_started("company", target, period, periods)
+            for company_period in periods:
+                company_role_claims.extend(self._fetch_direct("company", (target,), company_metrics, company_period))
         if peers:
-            self._role_started("sector", self._peer_universe_id(plan), period)
+            self._role_started("sector", self._peer_universe_id(plan), period, periods)
             peer_role_claims.extend(self._fetch_direct("sector", peers, company_metrics, period))
             peer_role_claims.extend(self._fetch_benchmarks(target, peers, company_metrics, period, plan))
         if macro_metrics:
-            self._role_started("macro", "VN", period)
+            self._role_started("macro", "VN", period, periods)
             for metric_id in macro_metrics:
                 artifact = _create_macro_claim(
                     self.provider, self.dataset_ref, metric=self.metric_by_id[metric_id],
@@ -977,7 +1157,7 @@ class _AdaptiveRun:
             self._claim_roles.update({claim.claim_id: role for claim in claims})
             written = self._invoke_specialist_writer(plan, role, claims)
             raw_role_claims[role] = list(written)
-            self._role_completed(role, len(written))
+            self._role_completed(role, len(written), periods)
 
         initial_claims = tuple(
             raw_role_claims[role][index]
@@ -986,7 +1166,7 @@ class _AdaptiveRun:
         )
         if not initial_claims:
             raise AnalysisBlocked("no_provider_claims", "No accepted provider-backed specialist claims were produced.")
-        self.emit("SYNTHESIS_STARTED", {"message": "The orchestrator is synthesizing grounded specialist prose before acceptance review."})
+        self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is synthesizing grounded specialist prose before acceptance review."})
         synthesis_summary, synthesis_supporting_claim_ids = self._write_synthesis(plan, initial_claims)
         workload = ClaimScope(
             entities=plan.scope.entities, periods=periods,
@@ -994,14 +1174,11 @@ class _AdaptiveRun:
             comparison_universe=self._peer_universe_id(plan) if peers else None,
         )
         resolver = ProviderStage1DatasetResolver(self.provider, self.dataset_ref)
-        stage1 = _RuntimeStage1Evaluator(
-            resolver=resolver, workload_scope=workload,
-            expected_requirements=plan.requirements,
-        )
+        stage1 = _RuntimeStage1Evaluator(resolver=resolver, workload_scope=workload)
         revision = _ProviderRevisionExecutor(
             rerun=self._targeted_rerun, emit=self.emit,
         )
-        self.emit("REVIEW_STARTED", {"stage": "stage1", "message": "Running deterministic provenance, scope, numeric, missingness, and frozen-plan gates."})
+        self.emit("REVIEW_STARTED", {"stage": "stage1", "periods": list(periods), "message": "Running deterministic provenance, scope, numeric, missingness, and frozen-plan gates."})
         eventing_critic = _EventingCritic(self.critic, self.emit)
         controller = BoundedRevisionController(
             policy=_API_POLICY,
@@ -1042,7 +1219,7 @@ class _AdaptiveRun:
             revised_claim_ids=self._revised_claim_ids,
             synthesis_revised=result.synthesis_was_revised,
         )
-        self.emit("SYNTHESIS_COMPLETED", {"message": "The terminal candidate, provenance joins, and limitations are ready."})
+        self.emit("SYNTHESIS_COMPLETED", {"periods": list(periods), "message": "The terminal candidate, provenance joins, and limitations are ready."})
         return report
 
     def _active_roles(self, plan: AnalysisPlan) -> list[str]:
@@ -1052,17 +1229,18 @@ class _AdaptiveRun:
     def _peer_universe_id(self, plan: AnalysisPlan) -> str | None:
         return plan.scope.comparison_universe[0] if plan.scope.comparison_universe else None
 
-    def _role_started(self, role: str, entity: str, period: str) -> None:
-        self.emit("SPECIALIST_INVOKED", {"specialist": role, "scope": entity, "period": period})
-        self.emit("SPECIALIST_STARTED", {"specialist": role, "message": f"Retrieving accepted {role} observations for {entity} at {period}."})
-        self.emit("SPECIALIST_ACTIVITY", {"specialist": role, "activityType": "DATA_RETRIEVAL"})
+    def _role_started(self, role: str, entity: str, period: str, periods: Sequence[str]) -> None:
+        frozen_periods = list(periods)
+        self.emit("SPECIALIST_INVOKED", {"specialist": role, "scope": entity, "period": period, "periods": frozen_periods})
+        self.emit("SPECIALIST_STARTED", {"specialist": role, "period": period, "periods": frozen_periods, "message": f"Retrieving accepted {role} observations for {entity} across {', '.join(frozen_periods)}."})
+        self.emit("SPECIALIST_ACTIVITY", {"specialist": role, "activityType": "DATA_RETRIEVAL", "periods": frozen_periods})
 
-    def _role_completed(self, role: str, claims: int) -> None:
-        self.emit("SPECIALIST_OUTPUT_CREATED", {"specialist": role, "claimCount": claims})
-        self.emit("SPECIALIST_COMPLETED", {"specialist": role, "claimCount": claims})
+    def _role_completed(self, role: str, claims: int, periods: Sequence[str]) -> None:
+        self.emit("SPECIALIST_OUTPUT_CREATED", {"specialist": role, "claimCount": claims, "periods": list(periods)})
+        self.emit("SPECIALIST_COMPLETED", {"specialist": role, "claimCount": claims, "periods": list(periods)})
 
     def _fetch_direct(self, role: str, entities: Sequence[str], metric_ids: Sequence[str], period: str) -> list[AtomicClaim]:
-        from .service import _stage1_claim
+        from .service import AnalysisBlocked, _stage1_claim
 
         artifacts: list[AtomicClaim] = []
         for entity in entities:
@@ -1080,6 +1258,11 @@ class _AdaptiveRun:
                     continue
                 if observation.validation_status is not QualityStatus.VALID or observation.value is None or not observation.unit:
                     continue
+                if role == "company" and len(self.request.periods or ()) > 1 and not observation.period_basis:
+                    raise AnalysisBlocked(
+                        "company_trend_period_basis_missing",
+                        f"The accepted {metric_id} observation for {entity} at {period} has no source-backed period basis.",
+                    )
                 claim, observation, primary, sources, evidence = _stage1_claim(
                     provider=self.provider, dataset_ref=self.dataset_ref, ticker=entity,
                     period=period, metric_id=metric_id, display_name=metric.display_name,
@@ -1363,7 +1546,8 @@ class _AdaptiveRun:
             if not affected_by_role[role]:
                 raise AnalysisBlocked("revision_issue_target_empty", "Critique feedback does not resolve to a claim in its affected specialist scope.")
 
-        period = request.plan.scope.periods[0]
+        periods = request.plan.scope.periods
+        period = periods[-1]
         company_entity_ids = {entity.entity_id for entity in self.catalog.entities if entity.entity_type.value == "company"}
         target = next((entity for entity in request.plan.scope.entities if entity != "VN" and entity not in request.plan.scope.comparison_universe and entity in company_entity_ids), None)
         peer_ids = tuple(entity for entity in request.plan.scope.entities if entity in company_entity_ids and entity != target)
@@ -1373,27 +1557,42 @@ class _AdaptiveRun:
 
         for role in roles:
             targeted_ids = affected_by_role[role]
-            metric_ids = tuple(dict.fromkeys(
-                assertion.metric_id
+            targeted_cells = tuple(dict.fromkeys(
+                (assertion.period, assertion.metric_id)
                 for claim in request.current_claims
                 if claim.claim_id in targeted_ids
                 for assertion in claim.assertions
             ))
+            targeted_periods = tuple(
+                item for item in periods if any(cell_period == item for cell_period, _metric in targeted_cells)
+            )
+            metric_ids_by_period = {
+                item: tuple(dict.fromkeys(metric_id for cell_period, metric_id in targeted_cells if cell_period == item))
+                for item in targeted_periods
+            }
             if role == "company" and target:
-                raw = self._fetch_direct("company", (target,), metric_ids, period)
+                raw = [
+                    claim
+                    for item_period in targeted_periods
+                    for claim in self._fetch_direct(
+                        "company", (target,), metric_ids_by_period[item_period], item_period,
+                    )
+                ]
             elif role == "sector" and target and peer_ids:
+                metric_ids = tuple(dict.fromkeys(metric_id for _item_period, metric_id in targeted_cells))
                 raw = self._fetch_direct("sector", peer_ids, metric_ids, period)
                 raw.extend(self._fetch_benchmarks(target, peer_ids, metric_ids, period, request.plan))
             elif role == "macro":
                 raw = []
-                for metric_id in metric_ids:
-                    metric = self.metric_by_id[metric_id]
-                    artifact = _create_macro_claim(
-                        self.provider, self.dataset_ref, metric=metric, period=period,
-                        include_evidence=SupportedOperation.GET_EVIDENCE in self.catalog.supported_operations,
-                    )
-                    self.artifacts[artifact.claim.claim_id] = artifact
-                    raw.append(artifact.claim)
+                for item_period in targeted_periods:
+                    for metric_id in metric_ids_by_period[item_period]:
+                        metric = self.metric_by_id[metric_id]
+                        artifact = _create_macro_claim(
+                            self.provider, self.dataset_ref, metric=metric, period=item_period,
+                            include_evidence=SupportedOperation.GET_EVIDENCE in self.catalog.supported_operations,
+                        )
+                        self.artifacts[artifact.claim.claim_id] = artifact
+                        raw.append(artifact.claim)
             else:
                 raise AnalysisBlocked("revision_target_scope_invalid", "The targeted specialist has no executable frozen scope.")
 
@@ -1461,6 +1660,7 @@ class _AdaptiveRun:
         claim_dtos: list[AtomicClaimDTO] = []
         evidence_rows: list[EvidenceTrailDTO] = []
         target_values: dict[str, float | None] = {}
+        company_records_by_cell: dict[tuple[str, str], CompanyMetricPeriodRecordDTO] = {}
         sector_values: dict[str, Any] = {}
         benchmark_records: list[PeerBenchmarkRecordDTO] = []
         macro_values: dict[str, Any] = {}
@@ -1474,8 +1674,49 @@ class _AdaptiveRun:
             dto_observation_id = observation.observation_id
             input_ids = list(observation.input_observation_ids)
             claim_type = "missingness" if is_missing else ("peer_comparison" if role == "sector" and observation.derivation_method else "factual_observation")
-            if role == "company" and not is_missing:
+            if role == "company" and not is_missing and len(plan.scope.periods) == 1:
                 target_values[observation.metric_id.rsplit(".", 1)[-1].casefold()] = observation.value
+            if role == "company" and len(plan.scope.periods) > 1:
+                key = (observation.metric_id, observation.period_id)
+                if is_missing:
+                    company_records_by_cell[key] = CompanyMetricPeriodRecordDTO(
+                        metric_id=observation.metric_id,
+                        period=observation.period_id,
+                        validation_status="missing",
+                        value=None,
+                        unit=None,
+                        period_basis=None,
+                        reporting_scope=None,
+                        scope_status=None,
+                        observation_id=None,
+                        source_id=None,
+                        claim_id=None,
+                        missing_reason=observation.missing_reason or "accepted_missingness",
+                    )
+                else:
+                    source_id = next(
+                        (
+                            primary.source_ref
+                            for primary in artifact.primary_observations
+                            if getattr(primary, "source_ref", None) in artifact.sources
+                        ),
+                        next(iter(claim.source_refs), None),
+                    )
+                    reporting_scope = (observation.reporting_scope or "").strip() or None
+                    company_records_by_cell[key] = CompanyMetricPeriodRecordDTO(
+                        metric_id=observation.metric_id,
+                        period=observation.period_id,
+                        validation_status="valid",
+                        value=observation.value,
+                        unit=observation.unit,
+                        period_basis=observation.period_basis,
+                        reporting_scope=reporting_scope,
+                        scope_status="verified" if reporting_scope else "unavailable",
+                        observation_id=observation.observation_id,
+                        source_id=source_id,
+                        claim_id=claim.claim_id,
+                        missing_reason=None,
+                    )
             if role == "macro":
                 macro_values[observation.metric_id.rsplit(".", 1)[-1]] = observation.value
             if role == "sector" and observation.derivation_method == "peer_median_v1":
@@ -1522,7 +1763,7 @@ class _AdaptiveRun:
                 known_limitations.append(
                     "Claims without a reviewed metric-specific document snippet rely on the accepted observation's primary source locator and source hash."
                 )
-            if getattr(observation, "reporting_scope", None) is None:
+            if not (getattr(observation, "reporting_scope", None) or "").strip():
                 if role == "company":
                     known_limitations.append(
                         f"Reporting scope is unavailable for {observation.observation_id}; the API does not infer consolidated or parent-only scope."
@@ -1584,7 +1825,7 @@ class _AdaptiveRun:
         plan_dto = AnalysisPlanDTO(
             plan_id=f"plan-{hashlib.sha256(plan.query_id.encode()).hexdigest()[:12]}",
             query=self.request.query, target_ticker=target, peer_tickers=list(peers),
-            period=plan.scope.periods[0], required_capabilities=capabilities,
+            period=plan.scope.periods[-1], periods=list(plan.scope.periods), required_capabilities=capabilities,
             applicable_links=links, dataset_snapshot_id=plan.dataset_snapshot_id,
             rationale="Frozen query-adaptive plan created before provider specialist retrieval.",
             known_limitations=plan_limitations,
@@ -1618,10 +1859,20 @@ class _AdaptiveRun:
         ) if any(key.startswith("peer_median_") for key in sector_values) else None
         company_insights: list[CompanyInsightDTO] = []
         if target:
+            metric_period_records = (
+                [
+                    company_records_by_cell[(metric_id, period_id)]
+                    for period_id in plan.scope.periods
+                    for metric_id in company_metrics
+                ]
+                if len(plan.scope.periods) > 1
+                else []
+            )
             company_insights.append(CompanyInsightDTO(
                 ticker=target,
                 **{key: value for key, value in target_values.items() if key in {"roe", "roa", "nim", "npl", "cir", "casa", "car", "ldr", "llr"}},
                 assessment=synthesis_summary or "Accepted provider facts are listed in the atomic claims.",
+                metric_period_records=metric_period_records,
             ))
         final_round = state.rounds[-1]
         status = "completed" if state.final_decision is AcceptanceDecision.ACCEPT else "accepted_with_limitations"

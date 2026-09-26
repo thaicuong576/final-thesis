@@ -354,6 +354,7 @@ value: finite number | null
 unit: string | null
 period_basis: string | null
 reporting_scope: string | null
+scope_status: enum(verified, unavailable) | null
 validation_status: enum(valid, missing)
 observation_id: string | null
 source_id: string | null
@@ -371,14 +372,20 @@ Rules:
   `AnalysisPlan`; an inactive role is `NOT_APPLICABLE`, not a failed role.
 - Every published metric has a corresponding unit, period, observation ID/source
   ID, and evidence or explicit source-record locator.
-- New Company output is canonicalized to `metric_period_records`, ordered first
-  by the frozen period list and then by requested metric order. Multi-period
-  output must not use `metrics`, `metric_units`, or `metric_periods` as its sole
-  representation because repeated metric keys would overwrite earlier periods.
-- Each expected `(ticker, metric_id, period)` cell appears exactly once. A
-  `valid` record has a finite value, non-empty unit/basis/scope and a provenance
-  join through its claim/observation. A `missing` record has a null value and a
-  non-empty reason. Pending/conflicting observations are not published as facts.
+- Company trend output with 2–4 frozen periods is canonicalized to
+  `metric_period_records`, ordered first by the frozen period list and then by
+  requested metric order. Single-period responses may omit or return an empty
+  array to preserve the legacy scalar format. Multi-period output must not use
+  `metrics`, `metric_units`, or `metric_periods` as its sole representation
+  because repeated metric keys would overwrite earlier periods.
+- In a trend response, each expected `(ticker, metric_id, period)` cell appears
+  exactly once. A
+  `valid` record has a finite value, non-empty unit/basis and a provenance join
+  through its claim/observation. Reporting scope is either `verified` with a
+  non-empty value or `unavailable` with null plus an explicit report limitation.
+  Unavailable scope blocks peer comparison and is never inferred. A `missing`
+  record has null facts/lineage, null scope status, and a non-empty reason.
+  Pending/conflicting observations are not published as facts.
 - Agents preserve nulls and quality flags.
 - Invalid payloads are rejected before critique or synthesis.
 - Agents do not calculate financial ratios from unstructured prose.

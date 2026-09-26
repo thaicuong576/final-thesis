@@ -1404,10 +1404,14 @@ explicit typed expected-cell set); an API-only completeness check is not
 sufficient. The ordered period list is part of candidate identity.
 Output uses ordered metric-period records so a repeated metric cannot overwrite
 another period. Every accepted numeric cell retains unit, period basis,
-reporting scope, observation/source/locator lineage and one period-specific
-AtomicClaim. Missing cells remain explicit with a reason. Trend synthesis may
-state a grounded direction but must not create new numeric deltas, causes or
-cross-period facts without an approved deterministic formula and provenance.
+reporting-scope status, observation/source/locator lineage and one
+period-specific AtomicClaim. If source scope is unavailable, a Company-only
+record may expose the accepted fact with explicit `scope_status=unavailable`
+and a report limitation; it cannot enter peer or cross-bank comparison, and no
+scope may be inferred. Missing cells remain explicit with a reason. Trend
+synthesis may state a grounded direction but must not create new numeric deltas,
+causes or cross-period facts without an approved deterministic formula and
+provenance.
 
 The same frozen period scope flows through writer input, synthesis, Stage-1,
 semantic context, targeted revision, SSE and persisted run history. A revision

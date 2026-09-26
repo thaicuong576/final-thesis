@@ -493,11 +493,10 @@
           },
           "metric_period_records": {
             "type": "array",
-            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/CompanyMetricPeriodRecord"
             },
-            "description": "Authoritative metric-by-period facts for API v1.3 Company reports, ordered first by AnalysisPlan.periods and then by requested metric order. Every new v1.3 response populates this array, including one-period reports; only persisted pre-v1.3 reports may omit it. Multi-period reports must not collapse repeated metrics into legacy scalar fields."
+            "description": "Company trend responses with 2–4 frozen periods populate authoritative metric-by-period facts ordered first by AnalysisPlan.periods and then by requested metric order. Single-period responses may omit or return an empty array to preserve the legacy scalar format. Multi-period reports must not collapse repeated metrics into legacy scalar fields."
           }
         }
       },
@@ -548,6 +547,18 @@
               "null"
             ]
           },
+          "scope_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "verified",
+              "unavailable",
+              null
+            ],
+            "description": "For a valid record, verified requires a non-empty reporting_scope; unavailable requires reporting_scope=null and an explicit AnalysisResponse limitation. Unknown scope never supports peer comparison. Missing cells use null."
+          },
           "observation_id": {
             "type": [
               "string",
@@ -582,6 +593,7 @@
               "unit",
               "period_basis",
               "reporting_scope",
+              "scope_status",
               "observation_id",
               "source_id",
               "claim_id",
@@ -602,9 +614,11 @@
                 "type": "string",
                 "minLength": 1
               },
-              "reporting_scope": {
-                "type": "string",
-                "minLength": 1
+              "scope_status": {
+                "enum": [
+                  "verified",
+                  "unavailable"
+                ]
               },
               "observation_id": {
                 "type": "string",
@@ -621,7 +635,30 @@
               "missing_reason": {
                 "type": "null"
               }
-            }
+            },
+            "oneOf": [
+              {
+                "properties": {
+                  "scope_status": {
+                    "const": "verified"
+                  },
+                  "reporting_scope": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "scope_status": {
+                    "const": "unavailable"
+                  },
+                  "reporting_scope": {
+                    "type": "null"
+                  }
+                }
+              }
+            ]
           },
           {
             "title": "Explicit missing metric-period cell",
@@ -644,6 +681,9 @@
                 "type": "null"
               },
               "reporting_scope": {
+                "type": "null"
+              },
+              "scope_status": {
                 "type": "null"
               },
               "observation_id": {

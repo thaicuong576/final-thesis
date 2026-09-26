@@ -5,14 +5,37 @@ These models strictly adhere to contracts/openapi.json and contracts/mock-data.j
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+import math
+import re
+from typing import Any, List, Literal, Optional
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator, model_serializer, model_validator
+
+
+_CANONICAL_PERIOD_RE = re.compile(r"^(?P<quarter>20\d{2}_Q[1-4]|FY\d{4})$", re.IGNORECASE)
+
+
+def _canonical_period(value: str) -> str:
+    candidate = value.strip().upper()
+    if not _CANONICAL_PERIOD_RE.fullmatch(candidate):
+        raise ValueError("periods must use canonical YYYY_Qn or FYyyyy values")
+    return candidate
+
+
+def _period_order(value: str) -> float:
+    match = re.fullmatch(r"(20\d{2})_Q([1-4])", value)
+    if match:
+        return int(match.group(1)) * 4 + int(match.group(2)) - 1
+    fiscal_year = re.fullmatch(r"FY(\d{4})", value)
+    if fiscal_year:
+        return int(fiscal_year.group(1)) * 4 + 3.5
+    raise ValueError("unsupported period")
 
 
 class AnalysisRequest(BaseModel):
     """Natural language analysis query with optional target, peer universe, and period filters."""
 
     model_config = ConfigDict(extra="ignore")
+    _periods_explicit: bool = PrivateAttr(default=False)
 
     query: str = Field(
         ...,
@@ -32,8 +55,48 @@ class AnalysisRequest(BaseModel):
     period: Optional[str] = Field(
         default=None,
         description="Analysis period or fiscal year (e.g., '2024', '2024_Q4')",
-        examples=["2024"],
+        examples=["2024_Q4"],
     )
+    periods: Optional[List[str]] = Field(
+        default=None,
+        min_length=1,
+        max_length=4,
+        description="Exact ordered period scope for a Company trend; the legacy period is normalized to the final anchor.",
+        examples=[["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"]],
+    )
+
+    @field_validator("period")
+    @classmethod
+    def normalize_legacy_period(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        candidate = value.strip()
+        if re.fullmatch(r"\d{4}", candidate):
+            return candidate
+        return _canonical_period(candidate)
+
+    @field_validator("periods")
+    @classmethod
+    def normalize_period_list(cls, values: list[str] | None) -> list[str] | None:
+        return [_canonical_period(value) for value in values] if values is not None else None
+
+    @model_validator(mode="after")
+    def normalize_period_scope(self) -> "AnalysisRequest":
+        self._periods_explicit = "periods" in self.model_fields_set
+        if self.periods is None:
+            if self.period is not None:
+                self.periods = [self.period]
+            return self
+        if len(set(self.periods)) != len(self.periods):
+            raise ValueError("periods must be unique")
+        order = [_period_order(item) for item in self.periods]
+        if any(current <= prior for prior, current in zip(order, order[1:])):
+            raise ValueError("periods must be strictly increasing chronologically")
+        anchor = self.periods[-1]
+        if self.period is not None and self.period != anchor:
+            raise ValueError("period must equal the final item of periods")
+        self.period = anchor
+        return self
 
 
 class AnalysisPlanDTO(BaseModel):
@@ -48,6 +111,7 @@ class AnalysisPlanDTO(BaseModel):
         default_factory=list, description="Peer comparison bank tickers", examples=[["TCB", "MBB"]]
     )
     period: Optional[str] = Field(default=None, description="Analysis period declared by the selected snapshot", examples=["2024_Q4"])
+    periods: List[str] = Field(default_factory=list, description="Exact frozen ordered period scope; period is the final anchor.")
     required_capabilities: List[str] = Field(
         ...,
         description="Required specialist capabilities (macro, sector, company)",
@@ -166,6 +230,90 @@ class CompanyInsightDTO(BaseModel):
     car: Optional[float] = Field(default=None, description="Capital adequacy ratio (%)")
     ldr: Optional[float] = Field(default=None, description="Loan-to-deposit ratio (%)")
     assessment: str = Field(..., description="Synthesized analytical commentary")
+    metric_period_records: List["CompanyMetricPeriodRecordDTO"] = Field(
+        default_factory=list,
+        description="Authoritative facts or explicit missingness ordered by frozen period, then requested metric.",
+    )
+
+
+class CompanyMetricPeriodRecordDTO(BaseModel):
+    """One Company fact or accepted missing cell at one exact period."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metric_id: str = Field(min_length=1)
+    period: str = Field(min_length=1)
+    validation_status: Literal["valid", "missing"]
+    value: Optional[float] = None
+    unit: Optional[str] = None
+    period_basis: Optional[str] = None
+    reporting_scope: Optional[str] = None
+    scope_status: Optional[Literal["verified", "unavailable"]] = None
+    observation_id: Optional[str] = None
+    source_id: Optional[str] = None
+    claim_id: Optional[str] = None
+    missing_reason: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_record_state(self) -> "CompanyMetricPeriodRecordDTO":
+        if self.validation_status == "valid":
+            if (
+                self.value is None
+                or not math.isfinite(self.value)
+                or not self.unit
+                or not self.unit.strip()
+                or not self.period_basis
+                or not self.period_basis.strip()
+                or (
+                    (
+                        self.scope_status == "verified"
+                        and (not self.reporting_scope or not self.reporting_scope.strip())
+                    )
+                    or (self.scope_status == "unavailable" and self.reporting_scope is not None)
+                    or self.scope_status not in {"verified", "unavailable"}
+                )
+                or not self.observation_id
+                or not self.observation_id.strip()
+                or not self.source_id
+                or not self.source_id.strip()
+                or not self.claim_id
+                or not self.claim_id.strip()
+                or self.missing_reason is not None
+            ):
+                raise ValueError("valid metric-period records require finite facts and exact provenance")
+        elif (
+            self.value is not None
+            or self.unit is not None
+            or self.period_basis is not None
+            or self.reporting_scope is not None
+            or self.scope_status is not None
+            or self.observation_id is not None
+            or self.source_id is not None
+            or self.claim_id is not None
+            or not self.missing_reason
+        ):
+            raise ValueError("missing metric-period records require null facts and a reason")
+        return self
+
+    @model_serializer(mode="wrap")
+    def serialize_contract_nulls(self, handler):
+        payload = handler(self)
+        for field_name in (
+            "metric_id",
+            "period",
+            "validation_status",
+            "value",
+            "unit",
+            "period_basis",
+            "reporting_scope",
+            "scope_status",
+            "observation_id",
+            "source_id",
+            "claim_id",
+            "missing_reason",
+        ):
+            payload.setdefault(field_name, getattr(self, field_name))
+        return payload
 
 
 class CritiqueItemDTO(BaseModel):
@@ -335,3 +483,15 @@ class AnalysisResponse(BaseModel):
         default_factory=list,
         description="Ordered claim IDs explicitly used to produce the report-level synthesis",
     )
+
+    @model_validator(mode="after")
+    def require_scope_limitation(self) -> "AnalysisResponse":
+        limitations = tuple(item.casefold() for item in self.limitations)
+        for insight in self.company_insights:
+            for record in insight.metric_period_records:
+                if record.validation_status != "valid" or record.scope_status != "unavailable":
+                    continue
+                limitation_key = f"scope is unavailable for {record.observation_id}".casefold()
+                if not any(limitation_key in item for item in limitations):
+                    raise ValueError("unavailable reporting scope requires an explicit response limitation")
+        return self

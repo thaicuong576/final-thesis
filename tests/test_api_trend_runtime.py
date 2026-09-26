@@ -836,6 +836,10 @@ class CompanyTrendRequestTests(unittest.TestCase):
             stored_report["evidence_trail"],
         )
         self.assertEqual(
+            {item["claim_id"] for item in stream_report["atomic_claims"]},
+            {item["claim_id"] for item in stream_report["evidence_trail"]},
+        )
+        self.assertEqual(
             [item["period"] for item in stored_report["atomic_claims"]],
             [period for period in periods for _metric in metrics],
         )

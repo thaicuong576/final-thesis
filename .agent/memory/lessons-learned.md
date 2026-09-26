@@ -607,3 +607,15 @@ under an explicit evidence root. Keep per-observation locator, period basis,
 reporting scope and review evidence attached to accepted values. Add negative
 tests for unknown source types, malformed or mismatched hashes, document/source
 hash splits, and directly constructed candidates that bypass byte verification.
+
+## [LESSON-027] Keep referenced prompt-control artifacts present
+
+- Date: 2026-09-27
+- Scope: `docs/DATA-CONTRACT.md`, `docs/PROMPT-CONTRACT-VI.md`, experiment freeze controls
+- Status: ACTIVE
+
+Context: `docs/DATA-CONTRACT.md` and related runtime documentation referenced `prompt-contract-v1`, while the tracked `docs/PROMPT-CONTRACT-VI.md` artifact was missing. Candidate task specifications therefore carried a version string but had no auditable arm-specific prompt register.
+
+Root cause: a contract reference was introduced without a tracked-artifact existence/link check.
+
+Permanent solution: keep the prompt register in tracked documentation, enumerate arm-specific behavior and freeze inputs, require rendered `prompt_sha256` records before scoring, and treat a missing prompt artifact as a freeze blocker rather than silently accepting the version string.

@@ -183,6 +183,25 @@ describe('useAnalysisSessionStream', () => {
     expect(result.current.report).toBeNull();
   });
 
+  it('treats stream closure with RUN_BLOCKED as a blocked terminal completion, not an error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      body: createMockStream([
+        'event: RUN_BLOCKED\ndata: {"eventId":"evt-blk-1","sequence":1,"occurredAtMs":10,"type":"RUN_BLOCKED","payload":{"reason":"unsupported_period: Period 2024 is not an exact period in the accepted snapshot."}}\n\n'
+      ])
+    } as unknown as Response);
+    const request = { query: 'Phân tích LLR_COVERAGE của ACB trong năm 2024' };
+    const { result } = renderHook(() => useAnalysisSessionStream({ request }));
+
+    await waitFor(() => expect(result.current.isComplete).toBe(true));
+    expect(result.current.isError).toBe(false);
+    expect(result.current.isBlocked).toBe(true);
+    expect(result.current.report).toBeNull();
+    expect(result.current.viewModel.currentPhase).toBe('BLOCKED');
+  });
+
   it('shows configured endpoint details', () => {
     const { result } = renderHook(() => useAnalysisSessionStream({
       apiEndpoint: 'https://custom-api.example/api/analyze/stream',

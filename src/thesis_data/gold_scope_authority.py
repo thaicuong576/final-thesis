@@ -145,5 +145,13 @@ class VerifiedGoldObservationScopeAuthority:
         return self.authority.authority_ref
 
     @property
+    def dataset_id(self) -> str:
+        return self.authority.dataset_id
+
+    @property
+    def snapshot_id(self) -> str:
+        return self.authority.snapshot_id
+
+    @property
     def entries_by_observation_id(self) -> dict[str, GoldObservationScopeEntry]:
         return {entry.observation_id: entry for entry in self.authority.entries}

@@ -635,3 +635,11 @@ environment is missing one required value. Keep the required variable names
 and expected public values in the deployment runbook, verify service-level
 configuration through the Render control plane, and diagnose bootstrap
 validation failures before investigating object bytes or SQLite integrity.
+
+## [LESSON-029] Provider dataset identity must bind to verified authority
+
+- Date: 2026-09-27
+- Scope: Gold provider binding and reporting-scope authority
+- Status: ACTIVE
+
+When initializing `GoldSqliteDatasetProvider` with a verified `VerifiedGoldObservationScopeAuthority`, the provider constructor's `dataset_id` argument must take `authority.dataset_id` (e.g. `gold-bank-2025-expanded-v5-evidence`), not a hardcoded placeholder like `"gold-sqlite"`. `GoldSqliteDatasetProvider._validate_scope_authority` strictly validates that `authority.dataset_id == self._dataset_id` and fails closed on mismatch with `DatasetProviderError("reporting-scope authority dataset_id mismatch")`. In `thesis_api.service._load_provider`, passing a hardcoded mismatched dataset ID caused the provider binding to skip the authorized provider and report the database as disconnected with HTTP 503.

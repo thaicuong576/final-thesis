@@ -11,18 +11,33 @@ requires an accepted snapshot, separate history storage and model configuration:
 |---|---|
 | `SQLITE_DB_PATH` | Explicit accepted analytical snapshot, opened read-only. The ignored local Gold file is not supplied by a Git deployment. |
 | `ANALYSIS_RUNS_DB_PATH` | Separate writable history file; same-file aliases with the dataset are rejected. Schema: `contracts/run-store-schema.sql`. |
+| `EXPECTED_DATASET_SNAPSHOT_ID`, `EXPECTED_SQLITE_SHA256` | Immutable identity and byte hash required before the accepted file is served. |
+| `SUPABASE_URL`, `SUPABASE_STORAGE_BUCKET`, `SUPABASE_STORAGE_OBJECT` | Private object-storage location used to hydrate the snapshot on an ephemeral Render start. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Render-only secret used for the private Storage download; never expose it to Vite or commit it. |
 | `GOLD_SCOPE_AUTHORITY_PATH` | Explicit hash-verified authority sidecar for Gold peer reporting scope; see D-073. |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | Server-side configuration for active specialist writers, synthesis and critic. No key is exposed to the browser. |
 
 Analysis readiness requires accepted data and required model configuration.
 Configuration presence does not prove provider reachability or model quality.
 Final staging acceptance requires a real same-snapshot report, history roundtrip
-and source-hash verification. Artifact provisioning/startup hash checks and the
-Render readiness health-check change remain pending deployment work.
+and source-hash verification. The application now hydrates and validates the
+explicit snapshot before serving traffic; applying the Render secret and
+deploying remain user-authorized operational steps.
 
 On ephemeral hosting, provision the accepted artifact on each start and use a
 separate runtime history path. A restart may reset temporary history; disclose
 that behavior in the preview. Deployment changes require explicit approval.
+
+### Free Render snapshot hydration
+
+The accepted Gold file is uploaded once to a **private** Supabase Storage
+bucket. On each Render process start, the API downloads the configured object
+to `SQLITE_DB_PATH`, verifies its SHA-256, SQLite integrity, and
+`snapshot_metadata.snapshot_id`, then atomically publishes the file to the
+read-only provider. A missing or mismatched secret, object, hash, or identity
+fails closed before the service serves readiness. Render Free's local file is
+ephemeral, so a restart re-downloads the same immutable object; users do not
+upload the snapshot per analysis request.
 
 ---
 
@@ -96,6 +111,14 @@ Infrastructure & Providers
 | `CORS_ORIGINS` | Yes | `http://localhost:5173,https://final-thesis-frontend.vercel.app` | Comma-separated list or JSON array of allowed browser origins. |
 | `CORS_ORIGIN_REGEX` | No | `^https://.*final-thesis.*\.vercel\.app$` | Optional regex pattern for dynamic Vercel preview branch URLs. |
 | `APP_REVISION` | No | `${RENDER_GIT_COMMIT}` | Deployment Git commit SHA returned by `/api/version`. |
+| `SQLITE_DB_PATH` | Yes | `/tmp/accepted.sqlite` | Explicit local path populated by startup hydration and opened read-only. |
+| `ANALYSIS_RUNS_DB_PATH` | Yes | `/tmp/analysis_runs.sqlite` | Separate writable history path; never alias the accepted snapshot. |
+| `EXPECTED_DATASET_SNAPSHOT_ID` | Yes | `gold-bank-2025-expanded-v5-evidence` | Expected `snapshot_metadata` identity. |
+| `EXPECTED_SQLITE_SHA256` | Yes | `1b1b5c...` | Expected raw file SHA-256. |
+| `SUPABASE_URL` | Yes for free hydration | `https://<project>.supabase.co` | Supabase project URL; not a secret. |
+| `SUPABASE_STORAGE_BUCKET` | Yes for free hydration | `thesis-snapshots` | Private Storage bucket. |
+| `SUPABASE_STORAGE_OBJECT` | Yes for free hydration | `gold-bank-2025-expanded-v5-evidence.sqlite` | Exact immutable object path. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes for free hydration | *(Secret)* | Server-only Storage credential. Never expose to the browser. |
 | `OPENAI_API_KEY` | Later phases | *(Secret)* | Server-side LLM key. **Never exposed to client or version endpoint**. |
 
 ### Frontend Environment Variables (`frontend`)
@@ -193,6 +216,24 @@ services:
         value: src
       - key: APP_ENV
         value: staging
+      - key: SQLITE_DB_PATH
+        value: /tmp/accepted.sqlite
+      - key: ANALYSIS_RUNS_DB_PATH
+        value: /tmp/analysis_runs.sqlite
+      - key: EXPECTED_DATASET_SNAPSHOT_ID
+        value: gold-bank-2025-expanded-v5-evidence
+      - key: EXPECTED_SQLITE_SHA256
+        value: 1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73
+      - key: SUPABASE_URL
+        value: https://klaukirnadifltzhqidg.supabase.co
+      - key: SUPABASE_STORAGE_BUCKET
+        value: thesis-snapshots
+      - key: SUPABASE_STORAGE_OBJECT
+        value: gold-bank-2025-expanded-v5-evidence.sqlite
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GOLD_SCOPE_AUTHORITY_PATH
+        value: data/evaluation/gold-v5-reporting-scope-authority-v1.json
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGINS

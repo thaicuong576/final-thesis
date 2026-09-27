@@ -273,7 +273,7 @@ thì dự kiến hoặc trạng thái pending.
 - [P4A Runtime Acceptance Evidence](P4A-IMPLEMENTATION-VERIFICATION-2026-09-26.md)
 - [Thesis Masterplan](THESIS-MASTERPLAN-2026-09-24.md)
 
-**TODO trước khi hợp nhất vào bản sáu chương:** đồng bộ thuật ngữ với Chương
-3 sau khi PR #60 được quyết định; thay các câu mô tả deployment hiện tại bằng
-evidence mới nếu readiness thay đổi; chỉ viết Chương 5–6 ở thì quá khứ sau khi
-có report live, run manifest và bảng chấm tương ứng.
+**TODO trước khi hợp nhất vào bản sáu chương:** đồng bộ thuật ngữ giữa các
+working chapters; thay các câu mô tả deployment bằng evidence mới nếu
+readiness thay đổi; chỉ viết Chương 5–6 ở thì quá khứ sau khi có report live,
+run manifest và bảng chấm tương ứng.

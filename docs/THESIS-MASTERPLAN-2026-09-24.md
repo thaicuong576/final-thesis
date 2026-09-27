@@ -120,4 +120,25 @@ Trước P2 và P4, Lead ghi lại câu trả lời tiền kiểm nếu phát si
 - **P4 question-set hash finding đã được xử lý bằng PR #59 (merge commit `1cab254`, 26/09).** ComplexityPlan/ComplexityJob v1 mới dùng `canonical_lf_utf8_sha256`; D-031 baseline run manifests tiếp tục ràng buộc raw bytes. Hai plan lịch sử 5-issuer chỉ được chấp nhận qua compatibility exception D-073 đã ghim chính xác; thay đổi question/plan khác không được hưởng fallback tổng quát. Auditor độc lập xác nhận cả năm complexity plan hiện có qua audit ở PR head `fdaac574`; không đổi question text, cấu hình thực nghiệm hay tạo/scoring run. Việc sửa hash chỉ giải quyết tính nhất quán của artifact, **không** đóng băng protocol hoặc chứng minh eligibility/readiness cho A/B/C.
 - **P4 deployment preflight gần nhất (26/09; chỉ gọi GET, không tạo analysis run):** frontend `https://fin-ai.eddiephung.me/` trả HTTP 200 và backend `/api/health` trả 200, nhưng `/api/ready` trả 503. `/api/capabilities` trả `snapshotId=null`, `datasetId=null`, không có entities/periods/metrics, `database_status=disconnected`, `analysis_available=false` và `limitation_code=accepted_snapshot_unavailable`. Preflight không gửi yêu cầu phân tích và không tạo analysis run. Tuy nhiên, nếu schema run-history chưa tồn tại, `/api/ready` và `/api/capabilities` có thể khởi tạo bảng/index qua `ensure_analysis_runs_table`; vì vậy các GET này không được bảo đảm hoàn toàn không có side effect. Không có secret hoặc analysis run nào được tạo. Đây là trạng thái cuối được ghi nhận trong hồ sơ đang dẫn; chưa có kiểm chứng mới sau đó. Không gửi yêu cầu phân tích có ghi run cho tới khi snapshot được cấu hình tường minh và readiness pass. HTTP 200 ở trang frontend/health không phải bằng chứng ứng dụng đã sẵn sàng.
 - UI smoke test read-only cùng ngày xác nhận các trang phản ánh đúng trạng thái blocked: Analysis hiển thị API chưa xác nhận dữ liệu, 0 ngân hàng/kỳ/chỉ tiêu và khóa nút bắt đầu; Data view báo snapshot/catalog chưa công bố và kho dữ liệu disconnected. Report Library ghi rõ cả ba báo cáo là mẫu dữ liệu giả lập, không phải kết quả API/đã kiểm định; chưa có report live để thầy thử.
-- **Tài liệu thesis:** PR #57 đã đưa working copy Chương 1–2 lên `main`; PR #60 là working copy Chương 3, mở tại base `1cab254` và chưa được merge. Chưa có nội dung Chương 4–6 hoàn tất trên cơ sở kết quả cuối cùng.
+- **Tài liệu thesis:** working copies Chương 3–6 và outline sáu chương hiện đã được đưa vào repository để tiếp tục biên tập, nhưng vẫn là working drafts; chưa có nội dung Chương 5–6 nào được phép trình bày như kết quả A/B/C cuối cùng.
+
+## 10. Cập nhật handoff hiện hành (27/09/2026)
+
+- PR #76 đã đưa private Supabase Storage snapshot bootstrap lên `main`. Deploy
+  Render mới nhất build thành công nhưng startup bị fail-closed vì runtime
+  thiếu ít nhất một trong sáu biến cấu hình bootstrap (`SUPABASE_URL`, bucket,
+  object, service key, snapshot ID hoặc SHA-256). Đây là blocker cấu hình,
+  chưa phải bằng chứng SQLite hỏng.
+- Snapshot Gold cần hydrate là
+  `gold-bank-2025-expanded-v5-evidence`, raw-byte SHA-256
+  `1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73`, từ
+  private bucket/object đã ghi trong `docs/HANDOFF-2026-09-27-RENDER-SUPABASE.md`.
+  Render filesystem free là ephemeral; upload snapshot là thao tác versioning,
+  không phải thao tác của từng analysis request.
+- PR #67/#68 là các patch startup/readiness lịch sử và đã được supersede bởi
+  PR #76; không dùng chúng làm chỉ dẫn runtime hiện hành. Readiness phải được
+  xác minh bằng GET `/api/version`, `/api/ready`, `/api/capabilities` sau khi
+  sửa environment và deploy, không dùng POST analysis làm health probe.
+- Handoff kế tiếp là: xác minh environment tại Render backend service, deploy
+  revision `e6d2a453`, kiểm tra readiness, rồi mới walkthrough thật và đóng
+  băng A/B/C khi có explicit ngân sách/model/repetition từ người dùng.

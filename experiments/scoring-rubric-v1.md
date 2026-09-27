@@ -1,12 +1,14 @@
 # Blind scoring rubric v1
 
-Status: draft ready for advisor review; freeze before observing arm outputs.
+Status: draft aligned with the applied-thesis single-rater protocol; freeze
+before observing arm outputs.
 
 ## Unit of scoring
 
-Reviewers split each answer into atomic claims. A numeric claim is atomic when
-it has one issuer, metric, period, unit, and value. A trend or anomaly statement
-is scored against its supporting gold label and evidence record.
+The author-rater splits each answer into atomic claims. A numeric claim is
+atomic when it has one issuer, metric, period, unit, and value. A trend or
+anomaly statement is scored against its supporting gold label and evidence
+record.
 
 ## Primary measures
 
@@ -16,6 +18,7 @@ is scored against its supporting gold label and evidence record.
 | Evidence completeness | 1 if a published claim has source ID and a page/table/section locator; 0 otherwise. |
 | Citation correctness | 1 if the cited source actually supports the claim's issuer, metric, value, and period; 0 otherwise. |
 | Coverage discipline | 1 if every required metric is returned or explicitly marked unavailable with a valid reason; 0 otherwise. |
+| Completion status | Record the terminal accepted/limited/failed state; keep every planned run in the completion denominator rather than converting failure into a quality score. |
 | Anomaly classification | 1 if the label matches the independently reviewed gold category: true contradiction, explainable divergence, data conflict, or insufficient evidence. |
 
 Report each measure as numerator/denominator and percentage. Do not hide
@@ -31,10 +34,21 @@ unscorable claims; classify them as contract or review failures.
 ## Review procedure
 
 1. Freeze the gold labels, question set, rubric, and arm configuration.
-2. Randomize answer order and hide the arm identity from reviewers.
-3. Use two independent checkers for the review subset.
-4. Resolve disagreements by an adjudicator or report them as unresolved.
-5. Preserve the original answer, reviewer decisions, and reason codes.
+2. Randomize answer order and hide the arm identity from the author-rater.
+3. The author-rater scores the blinded answers using the frozen rubric and
+   records a reason code for each non-perfect or not-applicable decision.
+4. Before scoring, predeclare a subset for delayed re-scoring. After the
+   declared delay, the same author-rater scores that subset again without
+   consulting the first scores; report within-rater agreement and any changed
+   decisions.
+5. Preserve the original answer, both review records where a delayed rescore
+   exists, timestamps and reason codes. Ambiguities remain explicitly
+   unresolved or limited; no post-hoc adjudicator is introduced.
+
+This is an intentionally single-rater applied-thesis design. It does not claim
+inter-rater reliability and does not require an external checker, adjudicator
+or user study. A future multi-rater extension would require a separately
+registered protocol and must not be mixed with these results.
 
 Each review record must also include the run ID and the frozen evaluation
 binding: snapshot ID, question-set SHA-256, rubric version, prompt version, and

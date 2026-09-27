@@ -123,6 +123,25 @@ research → specification → plan → data foundation → baseline → hierarc
 
 Each phase must leave a durable handoff and a verified state update before the next phase begins.
 
+## Active handoff — 2026-09-27
+
+The current durable state is recorded in
+`docs/HANDOFF-2026-09-27-RENDER-SUPABASE.md`. A new session MUST read that
+file before acting. The latest canonical `main` commit is
+`e6d2a453fb2f3567e23666250944e92fcb0b11dc` (PR #76, private Supabase
+snapshot bootstrap). The next starting point is Render staging recovery: the
+merged deploy built successfully but failed during startup because at least
+one of the six Supabase snapshot-bootstrap environment variables was missing
+or empty. Do not treat this as a SQLite corruption finding until configuration
+is corrected and the object download is attempted. Verify with read-only
+`/api/version`, `/api/ready`, and `/api/capabilities`; never use live analysis
+as a readiness probe.
+
+The next session may connect the official Render and project-scoped,
+read-only Supabase MCP servers through Codex Desktop OAuth. Render MCP has
+write/deploy capabilities, so retain approval gates for environment changes
+and redeploys. No secret or service-role key is recorded in repository files.
+
 ## Current priority
 
 The immediate priority is the six-day applied-thesis completion plan in

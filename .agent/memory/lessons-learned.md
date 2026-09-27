@@ -621,3 +621,17 @@ temporary local path at startup. The bootstrap must validate raw bytes,
 SQLite integrity and snapshot identity before readiness; the file must never
 be uploaded once per analysis request. Mutable run history remains a separate
 store and may require a different persistence decision for production.
+
+## [LESSON-028] Blueprint values are not proof of service environment state
+
+- Date: 2026-09-27
+- Scope: Render staging deployment configuration
+- Status: ACTIVE
+
+Adding non-secret environment values to `render.yaml` does not prove that an
+already-existing Render service has received those values. A deploy can build
+successfully and still fail during application startup when the runtime
+environment is missing one required value. Keep the required variable names
+and expected public values in the deployment runbook, verify service-level
+configuration through the Render control plane, and diagnose bootstrap
+validation failures before investigating object bytes or SQLite integrity.

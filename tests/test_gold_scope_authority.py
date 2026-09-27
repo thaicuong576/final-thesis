@@ -4,6 +4,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from thesis_data.dataset_contract import CanonicalObservation, DatasetRef, QualityStatus
 from thesis_data.dataset_provider import DatasetProviderError, aggregate_peer_median
@@ -356,6 +357,22 @@ class GoldScopeAuthorityTests(unittest.TestCase):
                 )
                 with self.assertRaisesRegex(DatasetProviderError, message):
                     provider.get_capabilities(ref)
+
+    def test_verified_scope_authority_properties_and_service_binding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            db_path, _ = self.create_snapshot(root)
+            authority = self.write_authority(db_path, root)
+            self.assertEqual(authority.dataset_id, "gold-fixture")
+            self.assertEqual(authority.snapshot_id, "gold-fixture-v1")
+
+            authority_path = root / "scope-authority.json"
+            from thesis_api.service import _load_provider
+            with patch("thesis_api.service._GOLD_SCOPE_AUTHORITY_SHA256", authority.canonical_sha256):
+                binding = _load_provider(db_path, scope_authority_path=authority_path)
+            self.assertEqual(binding.provider_name, "gold-sqlite-authorized")
+            self.assertEqual(binding.dataset_ref.dataset_id, "gold-fixture")
+            self.assertEqual(binding.dataset_ref.dataset_snapshot_id, "gold-fixture-v1")
 
 
 if __name__ == "__main__":

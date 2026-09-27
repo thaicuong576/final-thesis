@@ -189,7 +189,7 @@ def _load_provider(
             )
             gold_provider = GoldSqliteDatasetProvider(
                 db_path,
-                dataset_id="gold-sqlite",
+                dataset_id=authority.dataset_id,
                 scope_authority=authority,
             )
         except (ImportError, TypeError, OSError, ValueError) as exc:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Sequence
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,6 +44,27 @@ class Settings(BaseSettings):
     analysis_runs_db_path: str = Field(
         default="data/runtime/analysis_runs.sqlite",
         alias="ANALYSIS_RUNS_DB_PATH",
+    )
+    expected_dataset_snapshot_id: str | None = Field(
+        default=None,
+        alias="EXPECTED_DATASET_SNAPSHOT_ID",
+    )
+    expected_sqlite_sha256: str | None = Field(
+        default=None,
+        alias="EXPECTED_SQLITE_SHA256",
+    )
+    supabase_url: str | None = Field(default=None, alias="SUPABASE_URL")
+    supabase_storage_bucket: str | None = Field(
+        default=None,
+        alias="SUPABASE_STORAGE_BUCKET",
+    )
+    supabase_storage_object: str | None = Field(
+        default=None,
+        alias="SUPABASE_STORAGE_OBJECT",
+    )
+    supabase_service_role_key: SecretStr | None = Field(
+        default=None,
+        alias="SUPABASE_SERVICE_ROLE_KEY",
     )
     openai_base_url: str = Field(
         default="https://superup.codelypixverse.com/v1",

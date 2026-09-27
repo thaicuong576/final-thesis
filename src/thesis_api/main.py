@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+import logging
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Response, status
@@ -16,12 +18,27 @@ from .database import (
 from .schemas import AnalysisRequest, AnalysisResponse
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
+from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(settings: Settings | None = None, *, semantic_critic=None, analysis_writer=None) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
     sqlite_path = current_settings.get_sqlite_path()
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        """Hydrate an explicitly configured private snapshot before serving traffic."""
+        try:
+            ensure_snapshot_from_settings(current_settings)
+        except SnapshotBootstrapError:
+            logger.exception("Accepted snapshot bootstrap failed; refusing application startup.")
+            raise
+        yield
+
     engine = AnalysisEngine(
         sqlite_path, current_settings,
         semantic_critic=semantic_critic,
@@ -32,6 +49,7 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
         title="Final Thesis API",
         description="Deployment walking skeleton for hierarchical financial analysis application",
         version="0.1.0",
+        lifespan=lifespan,
     )
 
     # Explicit CORS configuration

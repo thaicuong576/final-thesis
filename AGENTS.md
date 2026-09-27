@@ -182,6 +182,16 @@ validated snapshot; the ignored local Gold artifact is not packaged by Git or
 implicitly available on Render/Vercel. Do not infer consolidated or parent-only
 reporting scope when the observation does not declare it.
 
+For the free Render staging path, the explicitly pinned Gold snapshot may be
+stored once in a private Supabase Storage bucket and hydrated at API startup to
+the configured `SQLITE_DB_PATH`. Startup must verify the expected raw-file
+SHA-256, SQLite integrity, and `snapshot_metadata.snapshot_id` before serving
+readiness. The Supabase Storage service-role credential is Render-only and
+must never reach the browser or repository. Render Free's local filesystem is
+ephemeral, so restart hydration is expected; uploading is a snapshot-version
+operation, not an analysis-request operation. `ANALYSIS_RUNS_DB_PATH` remains a
+separate writable store and may reset on free-instance restart.
+
 ## GitHub Flow and branch safety
 
 `main` is the only canonical integration branch. Never implement directly on

@@ -607,3 +607,17 @@ under an explicit evidence root. Keep per-observation locator, period basis,
 reporting scope and review evidence attached to accepted values. Add negative
 tests for unknown source types, malformed or mismatched hashes, document/source
 hash splits, and directly constructed candidates that bypass byte verification.
+
+## [LESSON-027] Free Render needs immutable object hydration
+
+- Date: 2026-09-27
+- Scope: staging snapshot provisioning
+- Status: ACTIVE
+
+Render Free cannot retain a local SQLite file across restart or spin-down, and
+it does not provide a persistent disk on the free compute plan. A private
+object-storage copy is therefore the durable source, while the API hydrates a
+temporary local path at startup. The bootstrap must validate raw bytes,
+SQLite integrity and snapshot identity before readiness; the file must never
+be uploaded once per analysis request. Mutable run history remains a separate
+store and may require a different persistence decision for production.

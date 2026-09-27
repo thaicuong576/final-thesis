@@ -13,6 +13,24 @@ services:
         value: src
       - key: APP_ENV
         value: staging
+      - key: SQLITE_DB_PATH
+        value: /tmp/accepted.sqlite
+      - key: ANALYSIS_RUNS_DB_PATH
+        value: /tmp/analysis_runs.sqlite
+      - key: EXPECTED_DATASET_SNAPSHOT_ID
+        value: gold-bank-2025-expanded-v5-evidence
+      - key: EXPECTED_SQLITE_SHA256
+        value: 1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73
+      - key: SUPABASE_URL
+        value: https://klaukirnadifltzhqidg.supabase.co
+      - key: SUPABASE_STORAGE_BUCKET
+        value: thesis-snapshots
+      - key: SUPABASE_STORAGE_OBJECT
+        value: gold-bank-2025-expanded-v5-evidence.sqlite
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GOLD_SCOPE_AUTHORITY_PATH
+        value: data/evaluation/gold-v5-reporting-scope-authority-v1.json
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGINS

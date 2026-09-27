@@ -128,9 +128,10 @@ Each phase must leave a durable handoff and a verified state update before the n
 The current durable state is recorded in
 `docs/HANDOFF-2026-09-27-RENDER-SUPABASE.md`. A new session MUST read that
 file before acting. The latest canonical `main` commit is
-`e6d2a453fb2f3567e23666250944e92fcb0b11dc` (PR #76, private Supabase
-snapshot bootstrap). The next starting point is Render staging recovery: the
-merged deploy built successfully but failed during startup because at least
+`a38d5a9c26f107e2e84ebf53a85285ef10674106` (PR #77, handoff clarification);
+the implementation baseline is `e6d2a453fb2f3567e23666250944e92fcb0b11dc`
+(PR #76, private Supabase snapshot bootstrap). The next starting point is
+Render staging recovery: the merged deploy built successfully but failed during
 one of the six Supabase snapshot-bootstrap environment variables was missing
 or empty. Do not treat this as a SQLite corruption finding until configuration
 is corrected and the object download is attempted. Verify with read-only
@@ -142,14 +143,20 @@ read-only Supabase MCP servers through Codex Desktop OAuth. Render MCP has
 write/deploy capabilities, so retain approval gates for environment changes
 and redeploys. No secret or service-role key is recorded in repository files.
 
-## Current priority
+## Current priority (read the active handoff first)
 
-The immediate priority is the six-day applied-thesis completion plan in
-`docs/THESIS-MASTERPLAN-2026-09-24.md`: prove a validated new-bank onboarding
-path, complete the query-adaptive critique/revision loop, verify the deployed
-analyst workflow, rerun a fair A/B/C evaluation, and finish the approved
-six-chapter report. The previously scored issuer-count benchmark is historical
-evidence, not proof that the final revision loop is implemented.
+The filename date `2026-09-24` in
+`docs/THESIS-MASTERPLAN-2026-09-24.md` is the date that plan was authored; it
+does **not** mean a new session should roll the project back to 2026-09-24.
+For the current 2026-09-27 handoff, the immediate execution priority is the
+Render/Supabase staging recovery described in
+`docs/HANDOFF-2026-09-27-RENDER-SUPABASE.md`. Only after `/api/ready` is green
+should the agent resume the broader six-day applied-thesis completion plan:
+prove a validated new-bank onboarding path, complete the query-adaptive
+critique/revision loop, verify the deployed analyst workflow, rerun a fair
+A/B/C evaluation, and finish the approved six-chapter report. The previously
+scored issuer-count benchmark is historical evidence, not proof that the final
+revision loop is implemented.
 
 Do not admit new-bank or OCR-extracted observations into an analysis snapshot
 until source coverage, metric definitions, period alignment, provenance, and

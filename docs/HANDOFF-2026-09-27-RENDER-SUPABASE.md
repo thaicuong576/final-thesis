@@ -6,9 +6,12 @@ Read this file and `AGENTS.md` before doing anything else. The canonical
 integration branch is `main`; the latest merged commit at handoff time is:
 
 ```text
-e6d2a453fb2f3567e23666250944e92fcb0b11dc
-feat(api): [THES-76] hydrate private SQLite snapshot on startup (#76)
+a38d5a9c26f107e2e84ebf53a85285ef10674106
+docs(ops): record Render/Supabase handoff state (#77)
 ```
+
+The implementation baseline for the private SQLite snapshot bootstrap is
+`e6d2a453fb2f3567e23666250944e92fcb0b11dc` (PR #76).
 
 The current coding task is not to redesign the infrastructure. First make the
 existing Render staging service boot successfully with the already-uploaded

@@ -198,8 +198,10 @@ function AnalysisSessionWorkspaceContent({
 
   const isActuallyLive = activeMode === 'LIVE' && Boolean(dynamicRequest);
 
-  // Status Badge Component
-  const connectionBadge = (
+  const isBlocked = liveStream.isBlocked || activeViewModel.currentPhase === 'BLOCKED';
+
+  // Status Badge Component: Suppressed for blocked terminal state so only "Cần điều chỉnh yêu cầu" is prominent
+  const connectionBadge = isBlocked ? null : (
     <div className="flex items-center gap-2">
       {wantsLiveStream ? (
         <Badge
@@ -226,14 +228,14 @@ function AnalysisSessionWorkspaceContent({
 
   return (
     <div className="space-y-4">
-      {/* Backend Live Connection Error Banner */}
+      {/* Backend Live Connection Error Banner (suppressed for blocked runs) */}
       {wantsLiveStream && !dynamicRequest && (
         <div className="rounded-md border border-warning/40 bg-warning-soft/50 p-3 text-xs text-ink" role="alert">
           Chưa có câu hỏi được xác nhận. Quay lại màn hình tạo phân tích để kiểm tra phạm vi trước khi gửi API.
         </div>
       )}
 
-      {liveStream.isError && (
+      {liveStream.isError && !isBlocked && (
         <div className="border border-[#c84b3f]/30 bg-[#fdf2f2] text-[#c84b3f] rounded-md px-3.5 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-[#c84b3f] shrink-0" aria-hidden="true" />
@@ -281,6 +283,7 @@ function AnalysisSessionWorkspaceContent({
             ? () => onViewReport(reportArtifact)
             : undefined
         }
+        onBackToComposer={onBackToComposer}
       />
 
       {/* Layer D: Specialist Inspection Sheet */}

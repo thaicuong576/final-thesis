@@ -16,6 +16,20 @@ function reportStream(report?: Record<string, unknown>) {
   });
 }
 
+function blockedStream(reason: string) {
+  const encoder = new TextEncoder();
+  const data = `event: RUN_BLOCKED\ndata: ${JSON.stringify({
+    type: 'RUN_BLOCKED',
+    payload: { reason }
+  })}\n\n`;
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(data));
+      controller.close();
+    }
+  });
+}
+
 describe('AnalysisSessionWorkspace API and demo states', () => {
   beforeEach(() => vi.restoreAllMocks());
 
@@ -88,5 +102,34 @@ describe('AnalysisSessionWorkspace API and demo states', () => {
 
     await waitFor(() => expect(screen.getByText('API lỗi')).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
+  });
+
+  it('handles RUN_BLOCKED without showing false SSE connection error or API lỗi badge', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      body: blockedStream('unsupported_period: Period 2024 is not an exact period in the accepted snapshot.')
+    } as unknown as Response);
+
+    const onBackToComposer = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <AnalysisSessionWorkspace
+          isLiveStream
+          streamRequest={{ query: 'Phân tích LLR_COVERAGE của ACB trong năm 2024', target_ticker: 'ACB', period: '2024' }}
+          onBackToComposer={onBackToComposer}
+        />
+      </MemoryRouter>
+    );
+
+    const badges = await screen.findAllByText('Cần điều chỉnh yêu cầu');
+    expect(badges.length).toBeGreaterThan(0);
+    expect(screen.getByText(/unsupported_period: Period 2024 is not an exact period/)).toBeInTheDocument();
+    expect(screen.queryByText(/Lỗi kết nối Live SSE/)).not.toBeInTheDocument();
+    expect(screen.queryByText('API lỗi')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Thử lại Live/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Chỉnh sửa câu hỏi/ })[0]).toBeInTheDocument();
   });
 });

@@ -45,6 +45,7 @@ export interface UseAnalysisSessionStreamReturn {
   viewModel: AnalysisSessionViewModel;
   isStreaming: boolean;
   isComplete: boolean;
+  isBlocked: boolean;
   isError: boolean;
   error: Error | null;
   backendTarget: string;
@@ -176,6 +177,7 @@ export function useAnalysisSessionStream({
   const [events, setEvents] = useState<AnalysisSessionEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
@@ -204,10 +206,13 @@ export function useAnalysisSessionStream({
 
       setIsStreaming(true);
       setIsComplete(false);
+      setIsBlocked(false);
       setIsError(false);
       setError(null);
       setEvents([]);
       setReport(null);
+
+      const accumulatedEvents: AnalysisSessionEvent[] = [];
 
       try {
         const payload = {
@@ -238,7 +243,6 @@ export function useAnalysisSessionStream({
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
         let buffer = '';
-        const accumulatedEvents: AnalysisSessionEvent[] = [];
 
         while (true) {
           const { done, value } = await reader.read();
@@ -263,6 +267,8 @@ export function useAnalysisSessionStream({
                 const normalized = normalizeAnalysisResponseToReport(rawReport, targetReq);
                 setReport(normalized);
                 onComplete?.(normalized);
+              } else if (parsedEvent.type === 'RUN_BLOCKED') {
+                setIsBlocked(true);
               }
             }
           }
@@ -283,17 +289,32 @@ export function useAnalysisSessionStream({
               const normalized = normalizeAnalysisResponseToReport(rawReport, targetReq);
               setReport(normalized);
               onComplete?.(normalized);
+            } else if (parsedEvent.type === 'RUN_BLOCKED') {
+              setIsBlocked(true);
             }
           }
         }
 
-        if (!accumulatedEvents.some((event) => event.type === 'REPORT_READY')) {
+        const hasReportReady = accumulatedEvents.some((event) => event.type === 'REPORT_READY');
+        const hasRunBlocked = accumulatedEvents.some((event) => event.type === 'RUN_BLOCKED');
+
+        if (!hasReportReady && !hasRunBlocked) {
           throw new Error('Luồng đã kết thúc nhưng API không gửi báo cáo. Phiên chưa được đánh dấu hoàn tất.');
+        }
+        if (hasRunBlocked) {
+          setIsBlocked(true);
         }
         setIsComplete(true);
         setIsStreaming(false);
       } catch (err: unknown) {
         if (controller.signal.aborted) {
+          return;
+        }
+        // If RUN_BLOCKED was already received, the run ended deterministically without connection failure
+        if (accumulatedEvents.some((event) => event.type === 'RUN_BLOCKED')) {
+          setIsBlocked(true);
+          setIsComplete(true);
+          setIsStreaming(false);
           return;
         }
         const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -361,6 +382,7 @@ export function useAnalysisSessionStream({
     viewModel,
     isStreaming,
     isComplete,
+    isBlocked,
     isError,
     error,
     backendTarget,

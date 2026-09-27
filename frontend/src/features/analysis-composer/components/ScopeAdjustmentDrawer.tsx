@@ -170,9 +170,12 @@ export function ScopeAdjustmentDrawer({
 
             {/* Periods */}
             <div className="space-y-2">
-              <label className="font-semibold text-ink block">
-                Chu kỳ thời gian ({selectedPeriodIds.length})
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-ink block">
+                  Chu kỳ thời gian ({selectedPeriodIds.length})
+                </label>
+                <span className="text-[10px] text-ink-tertiary font-mono">Chỉ hỗ trợ kỳ quý</span>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {capabilities.periods.map((period) => {
                   const isSelected = selectedPeriodIds.includes(period.id);
@@ -181,18 +184,23 @@ export function ScopeAdjustmentDrawer({
                       key={period.id}
                       type="button"
                       onClick={() => togglePeriod(period.id)}
-                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-semibold transition ${
                         isSelected
                           ? 'border-[#1c5d9c] bg-[#f5f8fb] text-[#1c5d9c]'
                           : 'border-line bg-white text-muted hover:border-slate-400'
                       }`}
+                      title={`Mã kỳ snapshot: ${period.id}`}
                     >
                       {isSelected && <Check className="size-3.5 stroke-[2]" />}
-                      <span>Q{period.quarter}/{period.year}</span>
+                      <span className="font-mono">Q{period.quarter}/{period.year}</span>
+                      <span className="text-[10px] opacity-75 font-mono">({period.id})</span>
                     </button>
                   );
                 })}
               </div>
+              <p className="text-[11px] text-muted">
+                Snapshot chỉ lưu các quan sát theo từng quý (ví dụ: <code>2024_Q4</code>). Vui lòng chọn kỳ quý thay vì kỳ gộp cả năm.
+              </p>
             </div>
 
             {/* Metrics */}

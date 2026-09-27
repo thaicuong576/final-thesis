@@ -1,4 +1,4 @@
-import { CheckCircle2, FileText } from 'lucide-react';
+import { CheckCircle2, FileText, ArrowLeft } from 'lucide-react';
 import { useNavigate, useInRouterContext } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -120,6 +120,7 @@ interface OrchestratorThreadProps {
   isDemo?: boolean;
   onViewReport?: () => void;
   isStreaming?: boolean;
+  onBackToComposer?: () => void;
 }
 
 export function OrchestratorThread({
@@ -130,7 +131,8 @@ export function OrchestratorThread({
   reportData,
   isDemo = false,
   onViewReport,
-  isStreaming = false
+  isStreaming = false,
+  onBackToComposer
 }: OrchestratorThreadProps) {
   return (
     <div className="border border-line bg-white rounded-lg p-5 shadow-surface space-y-4">
@@ -230,6 +232,29 @@ export function OrchestratorThread({
             <span className="text-xs font-mono text-ink-secondary">
               Điều phối viên & các tác tử chuyên sâu đang truy xuất BCTC và đối chuẩn dữ liệu...
             </span>
+          </div>
+        )}
+
+        {/* Blocked Guidance Callout */}
+        {threadItems.some((t) => t.type === 'ORCHESTRATOR_MESSAGE' && t.phase === 'BLOCKED') && onBackToComposer && (
+          <div className="ml-11 p-3.5 rounded-lg border border-amber-border bg-amber-soft/40 text-ink flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 max-w-2xl">
+            <div className="text-xs space-y-1">
+              <p className="font-semibold text-ink flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-border" />
+                <span>Yêu cầu cần được điều chỉnh theo phạm vi dữ liệu khả dụng</span>
+              </p>
+              <p className="text-ink-secondary leading-relaxed">
+                Snapshot hiện tại chỉ chấp nhận các kỳ quý cụ thể (ví dụ: <code className="font-mono text-xs px-1 py-0.5 bg-card rounded border border-border">2024_Q4</code> hoặc <code className="font-mono text-xs px-1 py-0.5 bg-card rounded border border-border">Q4/2024</code>). Hãy bấm chỉnh sửa câu hỏi để chọn lại kỳ.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={onBackToComposer}
+              className="bg-amber text-ink hover:bg-amber-hover border border-amber-border text-xs font-bold gap-1.5 h-8 px-3.5 shadow-tactile shrink-0 cursor-pointer self-start sm:self-auto"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+              Chỉnh sửa câu hỏi
+            </Button>
           </div>
         )}
       </div>

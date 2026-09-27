@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState, type KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Building2 } from 'lucide-react';
+import { ArrowRight, Building2, Calendar } from 'lucide-react';
 import type { ParsedScope } from '../model/types';
 import type { Entity, Metric, Period } from '@/entities/capability/model/types';
 import { formatPeriodsSignature } from '../model/intentParser';
@@ -34,15 +34,8 @@ export function HeroComposer({
   const [internalQuestion, setInternalQuestion] = useState(initialQuestion);
   const question = isControlled ? controlledQuestion : internalQuestion;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const availableYears = [...new Set(availablePeriods.map((period) => period.year))].sort((a, b) => b - a);
-  const latestFullYear = availableYears.find((year) => {
-    const quarters = new Set(availablePeriods.filter((period) => period.year === year).map((period) => period.quarter));
-    return [1, 2, 3, 4].every((quarter) => quarters.has(quarter));
-  });
   const latestPeriod = [...availablePeriods].sort((left, right) => right.year - left.year || right.quarter - left.quarter)[0];
-  const examplePeriod = latestFullYear
-    ? `trong năm ${latestFullYear}`
-    : latestPeriod
+  const examplePeriod = latestPeriod
     ? `tại Q${latestPeriod.quarter}/${latestPeriod.year}`
     : '';
   const firstMetric = availableMetrics[0]?.acronym;
@@ -88,6 +81,32 @@ export function HeroComposer({
       return;
     } else {
       next = `${question.trim().replace(/[.,;]$/, '')} và ${ticker}.`;
+    }
+    if (!isControlled) {
+      setInternalQuestion(next);
+    }
+    onQuestionChange?.(next);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  }
+
+  function handleQuickPeriodClick(period: Period) {
+    const periodCode = `Q${period.quarter}/${period.year}`;
+    let next: string;
+    if (!question.trim()) {
+      next = `Phân tích tại ${periodCode}`;
+    } else {
+      const clean = question.trim().replace(/[.,;]$/, '');
+      const yearPattern = new RegExp(`trong\\s+năm\\s+${period.year}|năm\\s+${period.year}`, 'i');
+      const quarterPattern = /tại\s+Q[1-4]\/\d{4}|Q[1-4]\/\d{4}|\b\d{4}_Q[1-4]\b/i;
+      if (yearPattern.test(clean)) {
+        next = `${clean.replace(yearPattern, `tại ${periodCode}`)}.`;
+      } else if (quarterPattern.test(clean)) {
+        next = `${clean.replace(quarterPattern, periodCode)}.`;
+      } else {
+        next = `${clean} tại ${periodCode}.`;
+      }
     }
     if (!isControlled) {
       setInternalQuestion(next);
@@ -162,6 +181,38 @@ export function HeroComposer({
         })}
       </div>}
 
+      {/* Quick Period Interactive Selector Chips */}
+      {availablePeriods.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          <span className="text-[11px] font-mono text-ink-secondary flex items-center gap-1 mr-0.5">
+            <Calendar className="w-3 h-3 text-ink-secondary" aria-hidden="true" />
+            <span>Kỳ quý trong snapshot:</span>
+          </span>
+          {availablePeriods.map((period) => {
+            const periodLabel = `Q${period.quarter}/${period.year}`;
+            const isSelected = parsedScope?.periods.some((p) => p.id === period.id);
+            return (
+              <button
+                key={period.id}
+                type="button"
+                onClick={() => handleQuickPeriodClick(period)}
+                className={`px-2 py-0.5 text-xs font-mono font-semibold rounded transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-amber text-ink border border-amber-border font-bold'
+                    : 'bg-card text-ink-secondary hover:text-ink hover:bg-surface-hover border border-line'
+                }`}
+                title={`Kỳ snapshot: ${period.id}`}
+              >
+                {isSelected ? `✓ ${periodLabel}` : `+ ${periodLabel}`}
+              </button>
+            );
+          })}
+          <span className="text-[10px] text-ink-tertiary font-mono">
+            (Snapshot chỉ hỗ trợ kỳ quý, không hỗ trợ cả năm)
+          </span>
+        </div>
+      )}
+
       {/* Hero Composer Box */}
       <div className="border border-line bg-card rounded-md p-4 space-y-3 transition-colors focus-within:border-amber-border focus-within:ring-1 focus-within:ring-amber-border shadow-none">
         <label htmlFor="analysis-hero-composer" className="sr-only">
@@ -176,9 +227,9 @@ export function HeroComposer({
           maxLength={500}
           placeholder={availableEntities.length > 0
             ? firstMetric && examplePeriod
-              ? `Nêu rõ ngân hàng, một chỉ tiêu và kỳ dữ liệu; ví dụ: Phân tích ${firstMetric} của ${availableEntities[0].ticker} ${examplePeriod}.`
-              : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và năm hoặc quý cần phân tích.'
-            : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và năm hoặc quý cần phân tích.'}
+              ? `Nêu rõ ngân hàng, một chỉ tiêu và kỳ dữ liệu; ví dụ: Phân tích ${firstMetric} của ${availableEntities[0].ticker} ${examplePeriod} (hoặc ${latestPeriod?.year}_Q${latestPeriod?.quarter}).`
+              : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và quý cần phân tích (ví dụ: Q4/2024).'
+            : 'Nêu rõ mã ngân hàng, một chỉ tiêu được hỗ trợ và quý cần phân tích (ví dụ: Q4/2024).'}
           className="w-full min-h-[120px] border-0 p-0 text-sm text-ink placeholder:text-ink-tertiary focus:outline-none focus:ring-0 resize-none leading-relaxed bg-transparent"
         />
 

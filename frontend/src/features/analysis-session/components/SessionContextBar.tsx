@@ -82,7 +82,11 @@ export function SessionContextBar({
             variant="outline"
             size="sm"
             onClick={onBackToComposer}
-            className="self-start sm:self-auto border-line text-xs font-medium text-ink hover:bg-canvas gap-1.5 h-8"
+            className={`self-start sm:self-auto gap-1.5 h-8 text-xs transition-all cursor-pointer ${
+              currentPhase === 'BLOCKED'
+                ? 'border-amber-border bg-amber text-ink hover:bg-amber-hover shadow-tactile ring-2 ring-amber/30 font-bold'
+                : 'border-line text-ink hover:bg-canvas font-medium'
+            }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
             Chỉnh sửa câu hỏi

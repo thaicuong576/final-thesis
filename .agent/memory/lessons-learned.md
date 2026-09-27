@@ -643,3 +643,11 @@ validation failures before investigating object bytes or SQLite integrity.
 - Status: ACTIVE
 
 When initializing `GoldSqliteDatasetProvider` with a verified `VerifiedGoldObservationScopeAuthority`, the provider constructor's `dataset_id` argument must take `authority.dataset_id` (e.g. `gold-bank-2025-expanded-v5-evidence`), not a hardcoded placeholder like `"gold-sqlite"`. `GoldSqliteDatasetProvider._validate_scope_authority` strictly validates that `authority.dataset_id == self._dataset_id` and fails closed on mismatch with `DatasetProviderError("reporting-scope authority dataset_id mismatch")`. In `thesis_api.service._load_provider`, passing a hardcoded mismatched dataset ID caused the provider binding to skip the authorized provider and report the database as disconnected with HTTP 503.
+
+## [LESSON-030] SSE Stream Consumers Must Handle Terminal Blocked States Cleanly Without False Connection Errors
+
+- Date: 2026-09-28
+- Scope: Frontend SSE Stream Consumer & Session Workspace (`useAnalysisSessionStream.ts`, `AnalysisSessionWorkspace.tsx`)
+- Status: ACTIVE
+
+When an SSE stream terminates after emitting domain validation errors such as `RUN_BLOCKED` (e.g. `unsupported_period: Period 2024 is not an exact period in the accepted snapshot`), the stream consumer must recognize `RUN_BLOCKED` as an intentional, business-level terminal state rather than throwing an unhandled exception or reporting a network/server outage ("Luồng đã kết thúc nhưng API không gửi báo cáo"). Treating business rejection as a network connection error shows false-positive failure banners ("Lỗi kết nối Live SSE tới backend", "API lỗi", "Thử lại Live"), misleading users into retrying identical queries rather than modifying their inputs. The UI must cleanly transition into `BLOCKED` ("Cần điều chỉnh yêu cầu"), suppress network error alerts, and prominently highlight corrective actions (such as "← Chỉnh sửa câu hỏi" and exposing exact supported quarterly periods like `2024_Q1` to `2024_Q4`).

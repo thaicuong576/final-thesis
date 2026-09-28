@@ -46,7 +46,9 @@ class OpenAIAnalysisWriter:
                 "and observations. Write concise grounded prose for each exact claim_id. Do not change facts, "
                 "scope, uncertainty, limitations, or provenance. Do not add causal conclusions, external facts, "
                 "source IDs, period labels, or numerical values that are absent from the supplied claim. Address the selected "
-                "critique descriptions and required actions when present. Return every requested claim exactly once."
+                "critique descriptions and required actions when present. Return every requested claim exactly once.\n\n"
+                "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with the root key 'claim_texts'. "
+                "Schema: {\"claim_texts\": [{\"claim_id\": \"exact_claim_id\", \"prose\": \"grounded narrative\", \"supporting_claim_ids\": [\"exact_claim_id\"]}]}"
             ),
             payload={"plan": plan, "role": role, "claims": list(claims), "selected_issues": list(issues)},
             schema={
@@ -105,12 +107,11 @@ class OpenAIAnalysisWriter:
         result = self._request(
             name="analysis_synthesis",
             instructions=(
-                "You are the constrained orchestrator synthesizer. Summarize only the supplied specialist prose "
-                "and frozen plan. Keep every claim ID join implicit in prose; do not add facts, numbers, sources, "
-                "period labels, causal claims, or conclusions beyond the inputs. Address selected critique descriptions and "
-                "required actions. For a Company plan with multiple ordered periods, the specialist outputs may include "
-                "accepted_observation rows. You may describe only the direction supported by those exact metric-period "
-                "values; do not add numeric values, deltas, causes, or unstated periods. Return a concise caveat-aware summary."
+                "You are an executive synthesis writer. Summarize only the supplied claims into concise prose. "
+                "Do not introduce external facts, causal conclusions, or claims absent from the supplied list. "
+                "Cite every supporting claim ID exactly as provided.\n\n"
+                "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
+                "Schema: {\"summary\": \"executive summary\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
             ),
             payload={"plan": plan, "specialist_outputs": specialist_outputs, "selected_issues": list(issues)},
             schema={

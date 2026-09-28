@@ -552,6 +552,19 @@ class ContractErReportTests(unittest.TestCase):
                     )
                     self.assertTrue(matched, f"{name}: fraction {fm} does not match any cited lead_count fact: {text}")
 
+    def test_07_humanize_locator(self) -> None:
+        """7. Verify humanize_locator correctly parses real Gold v5 source locators per ER-3 §4."""
+        from scripts.er_fixture_helpers import humanize_locator
+
+        s1 = (
+            "pdf_pages:29;printed_page:21;section:note_5_customer_loans;row:loan_quality;"
+            "denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription"
+        )
+        self.assertEqual(humanize_locator(s1), "tr. 21 · note 5 customer loans")
+
+        s2 = "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check"
+        self.assertEqual(humanize_locator(s2), "tr. 15 · Phân tích chất lượng nợ cho vay")
+
 
 if __name__ == "__main__":
     unittest.main()

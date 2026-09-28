@@ -679,41 +679,52 @@
     {
       "note_no": 1,
       "source_id": "official-VPB-2024-Q1-consolidated-lookup",
-      "title": "VPB · BCTC hợp nhất QQ1/2024",
+      "title": "VPB · Báo cáo tài chính quý 1/2024",
       "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/bctc-hop-nhat-ban-tra-cuu-q1-2024.pdf",
-      "locator": "tr. 6, 8 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 6, 8",
       "fact_ids": [
-        "fact:value:VPB:2024_Q1:bank.roe"
+        "fact:value:VPB:2024_Q1:bank.roe",
+        "fact:gap_to_median:VPB:sector:bank:2024_Q1:bank.roe",
+        "fact:delta:VPB:2024_Q1_to_2024_Q2:bank.roe",
+        "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe"
       ]
     },
     {
       "note_no": 2,
       "source_id": "official-VPB-2024-Q2-consolidated-lookup",
-      "title": "VPB · BCTC hợp nhất QQ2/2024",
+      "title": "VPB · Báo cáo tài chính quý 2/2024",
       "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q2/bctc-hop-nhat-ban-tra-cuu-q2-2024.pdf",
-      "locator": "tr. 6, 8 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 6, 8",
       "fact_ids": [
-        "fact:value:VPB:2024_Q2:bank.roe"
+        "fact:value:VPB:2024_Q2:bank.roe",
+        "fact:delta:VPB:2024_Q1_to_2024_Q2:bank.roe",
+        "fact:delta:VPB:2024_Q2_to_2024_Q3:bank.roe"
       ]
     },
     {
       "note_no": 3,
       "source_id": "official-VPB-2024-Q3-consolidated-lookup",
-      "title": "VPB · BCTC hợp nhất QQ3/2024",
+      "title": "VPB · Báo cáo tài chính quý 3/2024",
       "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q3/bctc-hop-nhat-ban-tra-cuu-q3-2024.pdf",
-      "locator": "tr. 6, 8 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 6, 8",
       "fact_ids": [
-        "fact:value:VPB:2024_Q3:bank.roe"
+        "fact:value:VPB:2024_Q3:bank.roe",
+        "fact:delta:VPB:2024_Q2_to_2024_Q3:bank.roe",
+        "fact:delta:VPB:2024_Q3_to_2024_Q4:bank.roe"
       ]
     },
     {
       "note_no": 4,
       "source_id": "official-VPB-2024-Q4-consolidated-lookup",
-      "title": "VPB · BCTC hợp nhất QQ4/2024",
+      "title": "VPB · Báo cáo tài chính quý 4/2024",
       "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
-      "locator": "tr. 6, 8 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 6, 8",
       "fact_ids": [
-        "fact:value:VPB:2024_Q4:bank.roe"
+        "fact:value:VPB:2024_Q4:bank.roe",
+        "fact:gap_to_median:VPB:sector:bank:2024_Q4:bank.roe",
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.roe",
+        "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe",
+        "fact:delta:VPB:2024_Q3_to_2024_Q4:bank.roe"
       ]
     }
   ],

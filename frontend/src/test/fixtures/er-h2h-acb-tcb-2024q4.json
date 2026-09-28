@@ -566,23 +566,63 @@
     {
       "note_no": 1,
       "source_id": "official-ACB-2024-Q4-consolidated",
-      "title": "ACB · BCTC hợp nhất QQ4/2024",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
       "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
-      "locator": "tr. 2, 3, 7 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 2, 3, 7 · consolidated equity · consolidated income statement · subsidiaries",
       "fact_ids": [
         "fact:value:ACB:2024_Q4:bank.roe",
-        "fact:value:ACB:2024_Q4:bank.roa"
+        "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roe",
+        "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+        "fact:lead_count:ACB:vs:TCB:2024_Q4"
       ]
     },
     {
       "note_no": 2,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+      "fact_ids": [
+        "fact:value:ACB:2024_Q4:bank.llr_coverage",
+        "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 3,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 3, 1 · Báo cáo kết quả hoạt động hợp nhất · Tổng tài sản",
+      "fact_ids": [
+        "fact:value:ACB:2024_Q4:bank.roa",
+        "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa"
+      ]
+    },
+    {
+      "note_no": 4,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 15 · Phân tích chất lượng nợ cho vay",
+      "fact_ids": [
+        "fact:value:ACB:2024_Q4:bank.npl_g35"
+      ]
+    },
+    {
+      "note_no": 5,
       "source_id": "official-TCB-2024-FY-results-presentation",
-      "title": "TCB · BCTC hợp nhất QQ4/2024",
+      "title": "TCB · Tài liệu công bố cho nhà đầu tư 2024",
       "url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
-      "locator": "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
+      "locator": "tr. 30 · 4Q24 financial highlights",
       "fact_ids": [
         "fact:value:TCB:2024_Q4:bank.roe",
-        "fact:value:TCB:2024_Q4:bank.roa"
+        "fact:value:TCB:2024_Q4:bank.roa",
+        "fact:value:TCB:2024_Q4:bank.llr_coverage",
+        "fact:value:TCB:2024_Q4:bank.npl_g35",
+        "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roe",
+        "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.llr_coverage",
+        "fact:derived_ratio:TCB:2024_Q4:derived.roe_over_roa",
+        "fact:lead_count:TCB:vs:ACB:2024_Q4"
       ]
     }
   ],

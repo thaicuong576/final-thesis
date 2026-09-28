@@ -707,46 +707,78 @@
     {
       "note_no": 1,
       "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
-      "title": "VCB · BCTC hợp nhất QQ4/2024",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
       "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
-      "locator": "tr. 35 · Thuyết minh dự phòng rủi ro tín dụng",
+      "locator": "tr. 30, 31 · note customer loans · note loan loss provision",
       "fact_ids": [
-        "fact:value:VCB:2024_Q4:bank.llr_coverage"
+        "fact:value:VCB:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:spread:sector:bank:2024_Q4:bank.llr_coverage"
       ]
     },
     {
       "note_no": 2,
       "source_id": "official-VPB-2024-Q4-consolidated-lookup",
-      "title": "VPB · BCTC hợp nhất QQ4/2024",
+      "title": "VPB · Báo cáo tài chính quý 4/2024",
       "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
-      "locator": "tr. 45 · Thuyết minh dự phòng rủi ro cho vay",
+      "locator": "tr. 44 · 11",
       "fact_ids": [
-        "fact:value:VPB:2024_Q4:bank.llr_coverage"
+        "fact:value:VPB:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:ratio_to_median:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:spread:sector:bank:2024_Q4:bank.llr_coverage"
       ]
     },
     {
       "note_no": 3,
       "source_id": "official-TCB-2024-FY-results-presentation",
-      "title": "TCB · BCTC hợp nhất QQ4/2024",
+      "title": "TCB · Tài liệu công bố cho nhà đầu tư 2024",
       "url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
-      "locator": "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
-      "fact_ids": []
+      "locator": "tr. 30 · 4Q24 financial highlights",
+      "fact_ids": [
+        "fact:peer_rank:TCB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
     },
     {
       "note_no": 4,
       "source_id": "expansion:official-MBB-2024-Q4-consolidated",
-      "title": "MBB · BCTC hợp nhất QQ4/2024",
+      "title": "MBB · Báo cáo tài chính quý 4/2024",
       "url": "https://www.mbbank.com.vn/resources/files/NhaDauTu/2025/2401/20250124---mbb---cbtt-bctc-hop-nhat-q4-2024-tieng-viet.pdf",
-      "locator": "tr. 24 · Thuyết minh dự phòng rủi ro tín dụng",
-      "fact_ids": []
+      "locator": "tr. 21, 24 · note 5 customer loans · note 6 credit risk provision",
+      "fact_ids": [
+        "fact:peer_rank:MBB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
     },
     {
       "note_no": 5,
       "source_id": "official-ACB-2024-Q4-consolidated",
-      "title": "ACB · BCTC hợp nhất QQ4/2024",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
       "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
-      "locator": "tr. 33 · Thuyết minh dự phòng rủi ro cho vay khách hàng",
-      "fact_ids": []
+      "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+      "fact_ids": [
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 6,
+      "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+      "locator": "consolidated balance sheet · consolidated income statement",
+      "fact_ids": [
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa"
+      ]
+    },
+    {
+      "note_no": 7,
+      "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+      "title": "VPB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+      "locator": "tr. 41 · 10.1",
+      "fact_ids": [
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35"
+      ]
     }
   ],
   "error": null

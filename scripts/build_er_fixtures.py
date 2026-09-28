@@ -96,46 +96,43 @@ ALL_METRICS = ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"]
 ALL_PERIODS = ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"]
 
 
-def format_source_note(db: GoldDatabase, note_no: int, ticker: str, metric: str, period: str, fact_ids: List[str]) -> Dict[str, Any]:
-    obs = db.get_obs(ticker, metric, period)
-    if not obs or not obs.get("source_id"):
-        return {
-            "note_no": note_no,
-            "source_id": f"src:{ticker}:{period}",
-            "title": f"{ticker} · BCTC hợp nhất {period.replace('2024_', 'Q')}/2024",
-            "url": "https://acb.com.vn",
-            "locator": "BCTC hợp nhất",
-            "fact_ids": fact_ids,
-        }
-    src_id = obs["source_id"]
-    src = db.get_source(src_id)
-    url = src["source_url"] if src else ""
-    period_label = period.replace("2024_", "Q") + "/2024"
-    title = f"{ticker} · BCTC hợp nhất {period_label}"
+try:
+    from scripts.er_fixture_helpers import humanize_locator
+except ImportError:
+    from er_fixture_helpers import humanize_locator
 
-    loc_map = {
-        ("ACB", "bank.npl_g35"): "tr. 29 · Thuyết minh nợ cho vay khách hàng và phân loại nợ",
-        ("ACB", "bank.llr_coverage"): "tr. 33 · Thuyết minh dự phòng rủi ro cho vay khách hàng",
-        ("ACB", "bank.roa"): "tr. 1, 3 · Báo cáo kết quả hoạt động hợp nhất và Tổng tài sản",
-        ("ACB", "bank.roe"): "tr. 2, 3, 7 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
-        ("VCB", "bank.npl_g35"): "tr. 33 · Thuyết minh cho vay khách hàng và nợ xấu",
-        ("VCB", "bank.llr_coverage"): "tr. 35 · Thuyết minh dự phòng rủi ro tín dụng",
-        ("VCB", "bank.roa"): "tr. 4, 7 · Bảng cân đối kế toán và Báo cáo kết quả kinh doanh",
-        ("VCB", "bank.roe"): "tr. 4, 7 · Bảng cân đối kế toán và Báo cáo kết quả kinh doanh",
-        ("TCB", "bank.npl_g35"): "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
-        ("TCB", "bank.llr_coverage"): "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
-        ("TCB", "bank.roa"): "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
-        ("TCB", "bank.roe"): "tr. 30 · Báo cáo kết quả kinh doanh FY2024, Chỉ tiêu tài chính",
-        ("MBB", "bank.npl_g35"): "tr. 21 · Thuyết minh nợ cho vay và phân loại nợ",
-        ("MBB", "bank.llr_coverage"): "tr. 24 · Thuyết minh dự phòng rủi ro tín dụng",
-        ("MBB", "bank.roa"): "tr. 3, 6 · Bảng cân đối kế toán và Báo cáo kết quả kinh doanh",
-        ("MBB", "bank.roe"): "tr. 3, 6 · Bảng cân đối kế toán và Báo cáo kết quả kinh doanh",
-        ("VPB", "bank.npl_g35"): "tr. 41 · Thuyết minh phân tích chất lượng nợ cho vay",
-        ("VPB", "bank.llr_coverage"): "tr. 45 · Thuyết minh dự phòng rủi ro cho vay",
-        ("VPB", "bank.roa"): "tr. 5, 8 · Bảng cân đối kế toán và Báo cáo kết quả kinh doanh",
-        ("VPB", "bank.roe"): "tr. 6, 8 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
-    }
-    locator = loc_map.get((ticker, metric), "tr. 15 · Thuyết minh báo cáo tài chính")
+
+def format_source_note(
+    db: GoldDatabase,
+    note_no: int,
+    ticker: str,
+    metric: str,
+    period: str,
+    fact_ids: List[str],
+) -> Dict[str, Any]:
+    obs = db.get_obs(ticker, metric, period)
+    if not obs:
+        raise ValueError(f"Observation not found in Gold v5 for {ticker}, {metric}, {period}")
+    src_id = obs.get("source_id")
+    if not src_id:
+        raise ValueError(f"Observation {obs.get('observation_id')} is missing source_id in Gold v5")
+
+    src = db.get_source(src_id)
+    if not src or not src.get("source_url"):
+        raise ValueError(f"Source {src_id} missing in source_records or has empty source_url")
+
+    url = src["source_url"]
+    src_type = src.get("source_type", "filing")
+
+    year, q_part = period.split("_")
+    quarter = q_part.replace("Q", "")
+    if src_type == "issuer_ir":
+        title = f"{ticker} · Tài liệu công bố cho nhà đầu tư {year}"
+    else:
+        title = f"{ticker} · Báo cáo tài chính quý {quarter}/{year}"
+
+    raw_locator = obs.get("source_locator") or ""
+    locator = humanize_locator(raw_locator)
 
     return {
         "note_no": note_no,
@@ -373,7 +370,7 @@ def build_er_lookup_fixture(db: GoldDatabase) -> Dict[str, Any]:
                     },
                     {
                         "sentence_id": "s-ans-2",
-                        "text": "Mức nợ xấu này xếp thứ nhất trong nhóm 5 ngân hàng và giảm 0,26 điểm phần trăm so với quý 3/2024.",
+                        "text": "Mức nợ xấu này thấp nhất trong nhóm 5 ngân hàng và giảm 0,26 điểm phần trăm so với quý 3/2024.",
                         "fact_ids": [fact_rank["fact_id"], fact_delta["fact_id"]],
                         "author": "company",
                         "source": "model",
@@ -385,8 +382,14 @@ def build_er_lookup_fixture(db: GoldDatabase) -> Dict[str, Any]:
     }
 
     source_notes = [
-        format_source_note(db, 1, "VCB", "bank.npl_g35", "2024_Q4", [fact_val_q4["fact_id"]]),
-        format_source_note(db, 2, "VCB", "bank.npl_g35", "2024_Q3", [fact_val_q3["fact_id"]]),
+        format_source_note(
+            db, 1, "VCB", "bank.npl_g35", "2024_Q4",
+            [fact_val_q4["fact_id"], fact_rank["fact_id"], fact_delta["fact_id"]],
+        ),
+        format_source_note(
+            db, 2, "VCB", "bank.npl_g35", "2024_Q3",
+            [fact_val_q3["fact_id"], fact_delta["fact_id"]],
+        ),
     ]
 
     return {
@@ -800,11 +803,44 @@ def build_er_ranking_fixture(db: GoldDatabase) -> Dict[str, Any]:
     }
 
     source_notes = [
-        format_source_note(db, 1, "VCB", "bank.llr_coverage", "2024_Q4", ["fact:value:VCB:2024_Q4:bank.llr_coverage"]),
-        format_source_note(db, 2, "VPB", "bank.llr_coverage", "2024_Q4", ["fact:value:VPB:2024_Q4:bank.llr_coverage"]),
-        format_source_note(db, 3, "TCB", "bank.llr_coverage", "2024_Q4", []),
-        format_source_note(db, 4, "MBB", "bank.llr_coverage", "2024_Q4", []),
-        format_source_note(db, 5, "ACB", "bank.llr_coverage", "2024_Q4", []),
+        format_source_note(
+            db, 1, "VCB", "bank.llr_coverage", "2024_Q4",
+            [
+                "fact:value:VCB:2024_Q4:bank.llr_coverage",
+                "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:spread:sector:bank:2024_Q4:bank.llr_coverage",
+            ],
+        ),
+        format_source_note(
+            db, 2, "VPB", "bank.llr_coverage", "2024_Q4",
+            [
+                "fact:value:VPB:2024_Q4:bank.llr_coverage",
+                "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:ratio_to_median:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:spread:sector:bank:2024_Q4:bank.llr_coverage",
+            ],
+        ),
+        format_source_note(
+            db, 3, "TCB", "bank.llr_coverage", "2024_Q4",
+            ["fact:peer_rank:TCB:sector:bank:2024_Q4:bank.llr_coverage"],
+        ),
+        format_source_note(
+            db, 4, "MBB", "bank.llr_coverage", "2024_Q4",
+            ["fact:peer_rank:MBB:sector:bank:2024_Q4:bank.llr_coverage"],
+        ),
+        format_source_note(
+            db, 5, "ACB", "bank.llr_coverage", "2024_Q4",
+            ["fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage"],
+        ),
+        format_source_note(
+            db, 6, "VCB", "bank.roa", "2024_Q4",
+            ["fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa"],
+        ),
+        format_source_note(
+            db, 7, "VPB", "bank.npl_g35", "2024_Q4",
+            ["fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35"],
+        ),
     ]
 
     return {
@@ -1218,10 +1254,41 @@ def build_er_trend_fixture(db: GoldDatabase) -> Dict[str, Any]:
     }
 
     source_notes = [
-        format_source_note(db, 1, "VPB", "bank.roe", "2024_Q1", ["fact:value:VPB:2024_Q1:bank.roe"]),
-        format_source_note(db, 2, "VPB", "bank.roe", "2024_Q2", ["fact:value:VPB:2024_Q2:bank.roe"]),
-        format_source_note(db, 3, "VPB", "bank.roe", "2024_Q3", ["fact:value:VPB:2024_Q3:bank.roe"]),
-        format_source_note(db, 4, "VPB", "bank.roe", "2024_Q4", ["fact:value:VPB:2024_Q4:bank.roe"]),
+        format_source_note(
+            db, 1, "VPB", "bank.roe", "2024_Q1",
+            [
+                "fact:value:VPB:2024_Q1:bank.roe",
+                "fact:gap_to_median:VPB:sector:bank:2024_Q1:bank.roe",
+                "fact:delta:VPB:2024_Q1_to_2024_Q2:bank.roe",
+                "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe",
+            ],
+        ),
+        format_source_note(
+            db, 2, "VPB", "bank.roe", "2024_Q2",
+            [
+                "fact:value:VPB:2024_Q2:bank.roe",
+                "fact:delta:VPB:2024_Q1_to_2024_Q2:bank.roe",
+                "fact:delta:VPB:2024_Q2_to_2024_Q3:bank.roe",
+            ],
+        ),
+        format_source_note(
+            db, 3, "VPB", "bank.roe", "2024_Q3",
+            [
+                "fact:value:VPB:2024_Q3:bank.roe",
+                "fact:delta:VPB:2024_Q2_to_2024_Q3:bank.roe",
+                "fact:delta:VPB:2024_Q3_to_2024_Q4:bank.roe",
+            ],
+        ),
+        format_source_note(
+            db, 4, "VPB", "bank.roe", "2024_Q4",
+            [
+                "fact:value:VPB:2024_Q4:bank.roe",
+                "fact:gap_to_median:VPB:sector:bank:2024_Q4:bank.roe",
+                "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.roe",
+                "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe",
+                "fact:delta:VPB:2024_Q3_to_2024_Q4:bank.roe",
+            ],
+        ),
     ]
 
     return {
@@ -1557,8 +1624,48 @@ def build_er_h2h_fixture(db: GoldDatabase) -> Dict[str, Any]:
     }
 
     source_notes = [
-        format_source_note(db, 1, "ACB", "bank.roe", "2024_Q4", ["fact:value:ACB:2024_Q4:bank.roe", "fact:value:ACB:2024_Q4:bank.roa"]),
-        format_source_note(db, 2, "TCB", "bank.roe", "2024_Q4", ["fact:value:TCB:2024_Q4:bank.roe", "fact:value:TCB:2024_Q4:bank.roa"]),
+        format_source_note(
+            db, 1, "ACB", "bank.roe", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.roe",
+                "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roe",
+                "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+                "fact:lead_count:ACB:vs:TCB:2024_Q4",
+            ],
+        ),
+        format_source_note(
+            db, 2, "ACB", "bank.llr_coverage", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.llr_coverage",
+                "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.llr_coverage",
+            ],
+        ),
+        format_source_note(
+            db, 3, "ACB", "bank.roa", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.roa",
+                "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+            ],
+        ),
+        format_source_note(
+            db, 4, "ACB", "bank.npl_g35", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.npl_g35",
+            ],
+        ),
+        format_source_note(
+            db, 5, "TCB", "bank.roe", "2024_Q4",
+            [
+                "fact:value:TCB:2024_Q4:bank.roe",
+                "fact:value:TCB:2024_Q4:bank.roa",
+                "fact:value:TCB:2024_Q4:bank.llr_coverage",
+                "fact:value:TCB:2024_Q4:bank.npl_g35",
+                "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roe",
+                "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.llr_coverage",
+                "fact:derived_ratio:TCB:2024_Q4:derived.roe_over_roa",
+                "fact:lead_count:TCB:vs:ACB:2024_Q4",
+            ],
+        ),
     ]
 
     return {
@@ -2068,7 +2175,7 @@ def build_er_profile_fixture(db: GoldDatabase) -> Dict[str, Any]:
     signals = [
         {
             "group": "profitability",
-            "label": "Khả năng sinh lời",
+            "label": "Sinh lời",
             "verdict": "above_peers",
             "metric_ids": ["bank.roe", "bank.roa"],
             "fact_ids": [
@@ -2078,7 +2185,7 @@ def build_er_profile_fixture(db: GoldDatabase) -> Dict[str, Any]:
         },
         {
             "group": "asset_quality",
-            "label": "Chất lượng tài sản",
+            "label": "Chất lượng nợ",
             "verdict": "in_line",
             "metric_ids": ["bank.npl_g35"],
             "fact_ids": [
@@ -2124,9 +2231,47 @@ def build_er_profile_fixture(db: GoldDatabase) -> Dict[str, Any]:
     ]
 
     source_notes = [
-        format_source_note(db, 1, "ACB", "bank.roe", "2024_Q4", ["fact:value:ACB:2024_Q4:bank.roe", "fact:value:ACB:2024_Q4:bank.roa"]),
-        format_source_note(db, 2, "ACB", "bank.npl_g35", "2024_Q4", ["fact:value:ACB:2024_Q4:bank.npl_g35", "fact:value:ACB:2024_Q4:bank.llr_coverage"]),
-        format_source_note(db, 3, "ACB", "bank.llr_coverage", "2024_Q3", ["fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"]),
+        format_source_note(
+            db, 1, "ACB", "bank.roe", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.roe",
+                "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+                "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roe",
+                "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+            ],
+        ),
+        format_source_note(
+            db, 2, "ACB", "bank.roa", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.roa",
+                "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roa",
+                "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roa",
+                "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+            ],
+        ),
+        format_source_note(
+            db, 3, "ACB", "bank.npl_g35", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.npl_g35",
+                "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.npl_g35",
+                "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            ],
+        ),
+        format_source_note(
+            db, 4, "ACB", "bank.llr_coverage", "2024_Q4",
+            [
+                "fact:value:ACB:2024_Q4:bank.llr_coverage",
+                "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+                "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage",
+            ],
+        ),
+        format_source_note(
+            db, 5, "ACB", "bank.llr_coverage", "2024_Q3",
+            [
+                "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage",
+            ],
+        ),
     ]
 
     return {

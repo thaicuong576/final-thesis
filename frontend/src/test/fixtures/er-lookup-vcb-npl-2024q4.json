@@ -295,7 +295,7 @@
           },
           {
             "sentence_id": "s-ans-2",
-            "text": "Mức nợ xấu này xếp thứ nhất trong nhóm 5 ngân hàng và giảm 0,26 điểm phần trăm so với quý 3/2024.",
+            "text": "Mức nợ xấu này thấp nhất trong nhóm 5 ngân hàng và giảm 0,26 điểm phần trăm so với quý 3/2024.",
             "fact_ids": [
               "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
               "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
@@ -323,21 +323,24 @@
     {
       "note_no": 1,
       "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
-      "title": "VCB · BCTC hợp nhất QQ4/2024",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
       "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
-      "locator": "tr. 33 · Thuyết minh cho vay khách hàng và nợ xấu",
+      "locator": "tr. 30 · note customer loans",
       "fact_ids": [
-        "fact:value:VCB:2024_Q4:bank.npl_g35"
+        "fact:value:VCB:2024_Q4:bank.npl_g35",
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
+        "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
       ]
     },
     {
       "note_no": 2,
       "source_id": "expansion:official-VCB-2024-Q3-consolidated",
-      "title": "VCB · BCTC hợp nhất QQ3/2024",
+      "title": "VCB · Báo cáo tài chính quý 3/2024",
       "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20241030---VCB---BCTC-Hop-nhat-Q32024.pdf?ts=00010101000000",
-      "locator": "tr. 33 · Thuyết minh cho vay khách hàng và nợ xấu",
+      "locator": "tr. 27 · note customer loans",
       "fact_ids": [
-        "fact:value:VCB:2024_Q3:bank.npl_g35"
+        "fact:value:VCB:2024_Q3:bank.npl_g35",
+        "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
       ]
     }
   ],

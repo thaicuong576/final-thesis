@@ -2036,7 +2036,7 @@
   "signals": [
     {
       "group": "profitability",
-      "label": "Khả năng sinh lời",
+      "label": "Sinh lời",
       "verdict": "above_peers",
       "metric_ids": [
         "bank.roe",
@@ -2049,7 +2049,7 @@
     },
     {
       "group": "asset_quality",
-      "label": "Chất lượng tài sản",
+      "label": "Chất lượng nợ",
       "verdict": "in_line",
       "metric_ids": [
         "bank.npl_g35"
@@ -2117,31 +2117,60 @@
     {
       "note_no": 1,
       "source_id": "official-ACB-2024-Q4-consolidated",
-      "title": "ACB · BCTC hợp nhất QQ4/2024",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
       "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
-      "locator": "tr. 2, 3, 7 · Vốn chủ sở hữu và Báo cáo kết quả kinh doanh",
+      "locator": "tr. 2, 3, 7 · consolidated equity · consolidated income statement · subsidiaries",
       "fact_ids": [
         "fact:value:ACB:2024_Q4:bank.roe",
-        "fact:value:ACB:2024_Q4:bank.roa"
+        "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roe",
+        "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa"
       ]
     },
     {
       "note_no": 2,
       "source_id": "official-ACB-2024-Q4-consolidated",
-      "title": "ACB · BCTC hợp nhất QQ4/2024",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
       "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
-      "locator": "tr. 29 · Thuyết minh nợ cho vay khách hàng và phân loại nợ",
+      "locator": "tr. 3, 1 · Báo cáo kết quả hoạt động hợp nhất · Tổng tài sản",
       "fact_ids": [
-        "fact:value:ACB:2024_Q4:bank.npl_g35",
-        "fact:value:ACB:2024_Q4:bank.llr_coverage"
+        "fact:value:ACB:2024_Q4:bank.roa",
+        "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roa",
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roa",
+        "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa"
       ]
     },
     {
       "note_no": 3,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 15 · Phân tích chất lượng nợ cho vay",
+      "fact_ids": [
+        "fact:value:ACB:2024_Q4:bank.npl_g35",
+        "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.npl_g35",
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.npl_g35"
+      ]
+    },
+    {
+      "note_no": 4,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+      "fact_ids": [
+        "fact:value:ACB:2024_Q4:bank.llr_coverage",
+        "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 5,
       "source_id": "official-ACB-2024-Q3-consolidated",
-      "title": "ACB · BCTC hợp nhất QQ3/2024",
+      "title": "ACB · Báo cáo tài chính quý 3/2024",
       "url": "https://acb.com.vn/acbwebsite/files/20240930-ACB-BCTC%20Q3.2024_HN.pdf",
-      "locator": "tr. 33 · Thuyết minh dự phòng rủi ro cho vay khách hàng",
+      "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
       "fact_ids": [
         "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
       ]

@@ -9,7 +9,13 @@ import {
   SAMPLE_REPORTS,
   type AnalysisReport
 } from '@/features/analysis-report';
-import { AdaptiveReport, type AdaptiveReportResponse } from '@/features/equity-report';
+import {
+  AdaptiveReport,
+  DEFAULT_METRICS,
+  type AdaptiveReportResponse,
+  type MetricPresentation
+} from '@/features/equity-report';
+import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { getApiBaseUrl, normalizeAnalysisResponseToReport } from '@/features/analysis-session/useAnalysisSessionStream';
 import { ReportErrorBoundary } from './ReportErrorBoundary';
 
@@ -206,6 +212,33 @@ function ReportPageContent({
     };
   }, [id, initialSyncReport, retryCount]);
 
+  const capabilitiesQuery = useAnalysisCapabilities();
+  const rawMetrics = capabilitiesQuery.data?.metrics;
+  const capabilityMetrics = useMemo<MetricPresentation[] | undefined>(() => {
+    if (!rawMetrics) return undefined;
+    return rawMetrics.map((m) => {
+      const fallback = DEFAULT_METRICS[m.id];
+      if (fallback) {
+        return {
+          ...fallback,
+          label: m.label || fallback.label,
+          acronym: m.acronym || fallback.acronym,
+        };
+      }
+      return {
+        id: m.id,
+        acronym: m.acronym || m.id,
+        label: m.label || m.id,
+        shortLabel: m.acronym || m.id,
+        unit: '%',
+        direction: 'higher_is_better',
+        decimals: 1,
+        group: m.topicId || 'general',
+        groupLabel: m.topicId || 'Chung',
+      };
+    });
+  }, [rawMetrics]);
+
   const activeReport = propReport || initialSyncReport || (fetchState.id === id ? fetchState.report : null);
   const isLoading = !initialSyncReport && Boolean(id) && (fetchState.id !== id || fetchState.isLoading);
   const isNotFound = !initialSyncReport && fetchState.id === id && fetchState.isNotFound;
@@ -353,7 +386,7 @@ function ReportPageContent({
       }
     >
       {isAdaptive ? (
-        <AdaptiveReport report={adaptiveReport} />
+        <AdaptiveReport report={adaptiveReport} metrics={capabilityMetrics} />
       ) : (
         <LegacyReport report={legacyReport} isDemo={isDemo} />
       )}

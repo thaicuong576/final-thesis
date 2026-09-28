@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { useChartWidth } from './useChartWidth';
 
 export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const width = useChartWidth(containerRef, 560);
+
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
   const metricMeta = getMetricPresentation(dataset.metric_ids?.[0] || '', metrics);
 
@@ -51,14 +55,14 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
   const actualYMin = ticks[0] ?? yMin;
   const actualYMax = ticks[ticks.length - 1] ?? yMax;
 
-  const chartWidth = 320;
-  const chartHeight = 110;
-  const leftMargin = 30;
-  const rightMargin = 85; // space for end labels
-  const topMargin = 16;
+  const chartWidth = width;
+  const chartHeight = Math.min(220, Math.max(140, Math.round(width * 0.32)));
+  const leftMargin = 38;
+  const rightMargin = 95; // space for end labels
+  const topMargin = 22;
   const bottomMargin = 22;
 
-  const plotWidth = chartWidth - leftMargin - rightMargin;
+  const plotWidth = Math.max(10, chartWidth - leftMargin - rightMargin);
   const plotHeight = chartHeight - topMargin - bottomMargin;
 
   const scaleX = (index: number) => {
@@ -115,14 +119,25 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
   const lastMedianPoint = medianPoints[medianPoints.length - 1];
 
   return (
-    <div className={`my-2 ${className}`}>
+    <div ref={containerRef} className={`w-full max-w-[640px] my-2 ${className}`}>
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         width="100%"
+        height={chartHeight}
         role="img"
         aria-label={`Biểu đồ diễn biến ${metricMeta.shortLabel} của ${targetEntity}`}
         className="overflow-visible font-sans"
       >
+        {/* Y Axis Unit Label */}
+        <text
+          x={leftMargin}
+          y={topMargin - 8}
+          fontSize="11"
+          fill="var(--text-muted, #85857e)"
+        >
+          {metricMeta.shortLabel} ({metricMeta.unit})
+        </text>
+
         {/* Horizontal grid lines & Y labels */}
         {ticks.map((t) => {
           const y = scaleY(t);
@@ -140,7 +155,7 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 x={leftMargin - 6}
                 y={y + 3}
                 textAnchor="end"
-                fontSize="10"
+                fontSize="11"
                 fill="var(--text-muted, #85857e)"
               >
                 {t}
@@ -159,7 +174,7 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
               x={x}
               y={chartHeight - 4}
               textAnchor="middle"
-              fontSize="10"
+              fontSize="11"
               fill="var(--text-muted, #85857e)"
             >
               {shortPeriod}
@@ -218,8 +233,8 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
           <text
             x={leftMargin + plotWidth + 6}
             y={lastTargetPoint.y + 3}
-            fontSize="10"
-            fontWeight="600"
+            fontSize="11"
+            fontWeight="700"
             fill="var(--text-accent, #bc7600)"
           >
             {targetEntity} {formatMetricValue(lastTargetPoint.val, metricMeta)}
@@ -230,8 +245,8 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
         {lastMedianPoint && (
           <text
             x={leftMargin + plotWidth + 6}
-            y={lastMedianPoint.y + (Math.abs(lastMedianPoint.y - (lastTargetPoint?.y || 0)) < 12 ? 14 : 3)}
-            fontSize="10"
+            y={lastMedianPoint.y + (Math.abs(lastMedianPoint.y - (lastTargetPoint?.y || 0)) < 14 ? 15 : 3)}
+            fontSize="11"
             fill="var(--text-muted, #85857e)"
           >
             trung vị {formatMetricValue(lastMedianPoint.val, metricMeta)}

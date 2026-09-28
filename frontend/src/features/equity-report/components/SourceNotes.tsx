@@ -11,7 +11,8 @@ export const SourceNotes: React.FC = () => {
       if (r.entity_id) allEntities.add(r.entity_id);
     }
   }
-  const isPeerComparison = allEntities.size > 1;
+  const qType = report.question_type;
+  const showSampleDisclaimer = (qType === 'company_profile' || qType === 'ranking') && allEntities.size >= 3;
   const peerCount = allEntities.size || 5;
 
   const limitations = (report.limitations as string[] | undefined) || [];
@@ -46,7 +47,7 @@ export const SourceNotes: React.FC = () => {
       <div className="space-y-0.5 text-text-muted">
         <div>
           Số liệu do code tính từ BCTC gốc, agent chỉ diễn giải.
-          {isPeerComparison && ` Mẫu ${peerCount} ngân hàng, không đại diện toàn ngành.`} Không phải khuyến nghị đầu tư.
+          {showSampleDisclaimer && ` Mẫu ${peerCount} ngân hàng, không đại diện toàn ngành.`} Không phải khuyến nghị đầu tư.
         </div>
         {limitations.length > 0 && (
           <div className="mt-1">

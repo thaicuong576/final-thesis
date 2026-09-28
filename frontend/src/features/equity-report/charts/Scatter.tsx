@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { useChartWidth } from './useChartWidth';
 
 export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const width = useChartWidth(containerRef, 560);
+
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
 
   const metricXId = dataset.metric_ids?.[0] || 'bank.npl_g35';
@@ -32,29 +36,38 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
   const medianX = medianXRef ? Number(medianXRef.value) : null;
   const medianY = medianYRef ? Number(medianYRef.value) : null;
 
-  // Scale ranges
+  // Scale ranges strictly from data (including medians), +8% padding each side, no negative truncation if data >= 0
   const xValues = Array.from(entityMap.values()).map((p) => p.x);
-  if (medianX !== null) xValues.push(medianX);
+  if (medianX !== null && !isNaN(medianX)) xValues.push(medianX);
   const yValues = Array.from(entityMap.values()).map((p) => p.y);
-  if (medianY !== null) yValues.push(medianY);
+  if (medianY !== null && !isNaN(medianY)) yValues.push(medianY);
 
-  const minX = Math.max(0, Math.floor(Math.min(...xValues, 0.5)));
-  const maxX = Math.ceil(Math.max(...xValues, 4.5));
-  const minY = Math.max(0, Math.floor((Math.min(...yValues, 40) - 20) / 20) * 20);
-  const maxY = Math.ceil((Math.max(...yValues, 220) + 20) / 50) * 50;
+  const rawMinX = xValues.length > 0 ? Math.min(...xValues) : 0;
+  const rawMaxX = xValues.length > 0 ? Math.max(...xValues) : 1;
+  const spanX = rawMaxX - rawMinX || (rawMaxX !== 0 ? Math.abs(rawMaxX) * 0.1 : 1);
+  const padX = spanX * 0.08;
+  const paddedMinX = rawMinX >= 0 ? Math.max(0, rawMinX - padX) : rawMinX - padX;
+  const paddedMaxX = rawMaxX + padX;
 
-  const ticksX = niceTicks(minX, maxX, 4);
-  const actualMinX = ticksX[0] ?? minX;
-  const actualMaxX = ticksX[ticksX.length - 1] ?? maxX;
+  const rawMinY = yValues.length > 0 ? Math.min(...yValues) : 0;
+  const rawMaxY = yValues.length > 0 ? Math.max(...yValues) : 1;
+  const spanY = rawMaxY - rawMinY || (rawMaxY !== 0 ? Math.abs(rawMaxY) * 0.1 : 1);
+  const padY = spanY * 0.08;
+  const paddedMinY = rawMinY >= 0 ? Math.max(0, rawMinY - padY) : rawMinY - padY;
+  const paddedMaxY = rawMaxY + padY;
 
-  const ticksY = niceTicks(minY, maxY, 4);
-  const actualMinY = ticksY[0] ?? minY;
-  const actualMaxY = ticksY[ticksY.length - 1] ?? maxY;
+  const ticksX = niceTicks(paddedMinX, paddedMaxX, 4);
+  const actualMinX = ticksX[0] ?? paddedMinX;
+  const actualMaxX = ticksX[ticksX.length - 1] ?? paddedMaxX;
 
-  const chartW = 320;
-  const chartH = 220;
-  const leftM = 36;
-  const rightM = 16;
+  const ticksY = niceTicks(paddedMinY, paddedMaxY, 4);
+  const actualMinY = ticksY[0] ?? paddedMinY;
+  const actualMaxY = ticksY[ticksY.length - 1] ?? paddedMaxY;
+
+  const chartW = width;
+  const chartH = Math.min(280, Math.max(200, Math.round(width * 0.46)));
+  const leftM = 40;
+  const rightM = 24;
   const topM = 24;
   const bottomM = 28;
 
@@ -72,28 +85,24 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
   };
 
   // Label offsets heuristic to avoid overlapping
-  const getOffset = (entity: string): { dx: number; dy: number; anchor: 'start' | 'end' | 'middle' } => {
-    switch (entity) {
-      case 'ACB':
-        return { dx: 6, dy: 14, anchor: 'start' };
-      case 'MBB':
-        return { dx: 8, dy: -3, anchor: 'start' };
-      case 'TCB':
-        return { dx: -8, dy: -2, anchor: 'end' };
-      case 'VCB':
-        return { dx: 8, dy: 4, anchor: 'start' };
-      case 'VPB':
-        return { dx: -8, dy: -6, anchor: 'end' };
-      default:
-        return { dx: 6, dy: 3, anchor: 'start' };
-    }
+  const getOffset = (entity: string, cx: number, cy: number): { dx: number; dy: number; anchor: 'start' | 'end' | 'middle' } => {
+    if (entity === 'ACB') return { dx: 6, dy: 14, anchor: 'start' };
+    if (entity === 'MBB') return { dx: 8, dy: -3, anchor: 'start' };
+    if (entity === 'TCB') return { dx: -8, dy: -2, anchor: 'end' };
+    if (entity === 'VCB') return { dx: 8, dy: 4, anchor: 'start' };
+    if (entity === 'VPB') return { dx: -8, dy: -6, anchor: 'end' };
+
+    if (cx > leftM + plotW - 40) return { dx: -8, dy: 3, anchor: 'end' };
+    if (cy < topM + 20) return { dx: 6, dy: 12, anchor: 'start' };
+    return { dx: 6, dy: 3, anchor: 'start' };
   };
 
   return (
-    <div className={`my-2 ${className}`}>
+    <div ref={containerRef} className={`w-full max-w-[640px] my-2 ${className}`}>
       <svg
         viewBox={`0 0 ${chartW} ${chartH}`}
         width="100%"
+        height={chartH}
         role="img"
         aria-label={`Biểu đồ phân tán ${metricX.shortLabel} và ${metricY.shortLabel}`}
         className="overflow-visible font-sans"
@@ -115,7 +124,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
                 x={leftM - 6}
                 y={y + 4}
                 textAnchor="end"
-                fontSize="10"
+                fontSize="11"
                 fill="var(--text-muted, #85857e)"
               >
                 {t}
@@ -133,7 +142,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
               x={x}
               y={chartH - 12}
               textAnchor="middle"
-              fontSize="10"
+              fontSize="11"
               fill="var(--text-muted, #85857e)"
             >
               {t}%
@@ -168,14 +177,14 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
         )}
 
         {/* Axis descriptive labels */}
-        <text x={leftM} y={topM - 10} fontSize="10" fill="var(--text-muted, #85857e)">
+        <text x={leftM} y={topM - 10} fontSize="11" fill="var(--text-muted, #85857e)">
           {metricY.shortLabel} ({metricY.unit}) ↑ dày hơn
         </text>
         <text
           x={leftM + plotW}
           y={chartH - 2}
           textAnchor="end"
-          fontSize="10"
+          fontSize="11"
           fill="var(--text-muted, #85857e)"
         >
           {metricX.shortLabel} → cao hơn
@@ -184,7 +193,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
           x={leftM + plotW}
           y={topM - 10}
           textAnchor="end"
-          fontSize="10"
+          fontSize="11"
           fill="var(--text-muted, #85857e)"
         >
           đường đứt: trung vị
@@ -195,7 +204,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
           const isHighlight = highlightSet.has(entity);
           const cx = scaleX(pt.x);
           const cy = scaleY(pt.y);
-          const offset = getOffset(entity);
+          const offset = getOffset(entity, cx, cy);
           const formattedX = formatMetricValue(pt.x, metricX);
           const formattedY = formatMetricValue(pt.y, metricY);
           const ariaLabel = `${entity} · ${metricX.shortLabel}: ${formattedX} · ${metricY.shortLabel}: ${formattedY} · ${fmtPeriod(pt.period)}`;

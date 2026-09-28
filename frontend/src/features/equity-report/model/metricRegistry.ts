@@ -43,7 +43,7 @@ export const DEFAULT_METRICS: Record<string, MetricPresentation> = {
     unit: '%',
     direction: 'higher_is_better',
     decimals: 1,
-    group: 'reserve_cushion',
+    group: 'provisioning',
     groupLabel: 'Đệm dự phòng'
   },
   'bank.cir': {

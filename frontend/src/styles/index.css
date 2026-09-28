@@ -158,7 +158,6 @@ textarea::placeholder, input::placeholder { color: var(--text-tertiary); opacity
 
 @media print {
   nav,
-  aside,
   button,
   .print\:hidden {
     display: none !important;

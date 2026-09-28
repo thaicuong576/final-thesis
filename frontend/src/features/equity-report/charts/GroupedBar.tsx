@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { useChartWidth } from './useChartWidth';
 
 export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const width = useChartWidth(containerRef, 560);
+
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
 
   const metricIds = dataset.metric_ids || [];
@@ -29,19 +33,19 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
   const ticksY = niceTicks(0, Math.ceil(maxVal * 1.15), 3);
   const actualMaxY = ticksY[ticksY.length - 1] || maxVal;
 
-  const chartW = 320;
-  const chartH = 140;
-  const leftM = 32;
-  const rightM = 16;
-  const topM = 16;
-  const bottomM = 24;
+  const chartW = width;
+  const chartH = Math.min(220, Math.max(150, Math.round(width * 0.38)));
+  const leftM = 36;
+  const rightM = 20;
+  const topM = 20;
+  const bottomM = 28;
 
-  const plotW = chartW - leftM - rightM;
+  const plotW = Math.max(10, chartW - leftM - rightM);
   const plotH = chartH - topM - bottomM;
 
   const numClusters = metricIds.length || 1;
   const clusterWidth = plotW / numClusters;
-  const barWidth = Math.min(22, (clusterWidth - 12) / Math.max(1, entities.length));
+  const barWidth = Math.min(28, (clusterWidth - 16) / Math.max(1, entities.length));
 
   const scaleY = (v: number) => {
     if (actualMaxY === 0) return topM + plotH;
@@ -49,10 +53,11 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
   };
 
   return (
-    <div className={`my-2 ${className}`}>
+    <div ref={containerRef} className={`w-full max-w-[640px] my-2 ${className}`}>
       <svg
         viewBox={`0 0 ${chartW} ${chartH}`}
         width="100%"
+        height={chartH}
         role="img"
         aria-label="Biểu đồ cột so sánh theo chỉ tiêu"
         className="overflow-visible font-sans"
@@ -74,7 +79,7 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
                 x={leftM - 6}
                 y={y + 3}
                 textAnchor="end"
-                fontSize="9"
+                fontSize="11"
                 fill="var(--text-muted, #85857e)"
               >
                 {t}
@@ -96,8 +101,8 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
                 x={clusterCenter}
                 y={chartH - 6}
                 textAnchor="middle"
-                fontSize="10"
-                fontWeight="500"
+                fontSize="11"
+                fontWeight="600"
                 fill="var(--text-secondary, #62625d)"
               >
                 {meta.shortLabel}
@@ -121,7 +126,7 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
                     <rect
                       x={barX}
                       y={barY}
-                      width={Math.max(barWidth - 2, 2)}
+                      width={Math.max(barWidth - 3, 2)}
                       height={Math.max(barH, 1)}
                       rx={2}
                       fill={isHighlight ? 'var(--fill-accent, #ee9f0d)' : 'var(--border-stronger, #a3a39f)'}
@@ -134,11 +139,11 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
                     </rect>
                     {/* Value text above bar */}
                     <text
-                      x={barX + (barWidth - 2) / 2}
+                      x={barX + (barWidth - 3) / 2}
                       y={barY - 3}
                       textAnchor="middle"
-                      fontSize="9"
-                      fontWeight={isHighlight ? '600' : '400'}
+                      fontSize="11"
+                      fontWeight={isHighlight ? '700' : '400'}
                       fill="var(--text-primary, #20201e)"
                     >
                       {formatted}

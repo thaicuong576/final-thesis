@@ -14,7 +14,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
 };
 
 export const ReportMasthead: React.FC = () => {
-  const { report, datasets, highlight } = useEquityReport();
+  const { report, facts, datasets, highlight } = useEquityReport();
   const qType = (report.question_type || 'lookup') as QuestionType;
 
   const noteLabel =
@@ -28,13 +28,23 @@ export const ReportMasthead: React.FC = () => {
     ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' }).format(new Date(rawDate))
     : '28/09/2026';
 
-  // Period label
-  const allPeriods: string[] = datasets.flatMap((d) => d.periods || []);
-  const uniquePeriods: string[] = Array.from(new Set(allPeriods));
-  const fallbackPeriod = String((report as { period?: string }).period || '2024_Q4');
-  const periodLabel = uniquePeriods.length > 1
-    ? fmtPeriodRange(uniquePeriods)
-    : fmtPeriod(uniquePeriods[0] || fallbackPeriod);
+  // Period label: answer_card displays anchor period (e.g. "Quý 4/2024"), not period range
+  const periodLabel = (() => {
+    if (report.report_spec?.kind === 'answer_card') {
+      const answerBlock = report.report_spec.blocks?.find((b) => b.type === 'answer');
+      const targetFact = answerBlock && 'value_fact_id' in answerBlock
+        ? facts.find((f) => f.fact_id === answerBlock.value_fact_id)
+        : facts.find((f) => f.fact_type === 'value');
+      const anchorPeriod = targetFact?.period || (report as { period?: string }).period || '2024_Q4';
+      return fmtPeriod(anchorPeriod);
+    }
+    const allPeriods: string[] = datasets.flatMap((d) => d.periods || []);
+    const uniquePeriods: string[] = Array.from(new Set(allPeriods));
+    const fallbackPeriod = String((report as { period?: string }).period || '2024_Q4');
+    return uniquePeriods.length > 1
+      ? fmtPeriodRange(uniquePeriods)
+      : fmtPeriod(uniquePeriods[0] || fallbackPeriod);
+  })();
 
   // Badges: ranking has NO entity badge; head_to_head has 2-3 badges; others show focus entities
   const showBadges = qType !== 'ranking' && highlight.length > 0;

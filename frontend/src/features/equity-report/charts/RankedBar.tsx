@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod } from '@/shared/lib/formatting';
+import { useChartWidth } from './useChartWidth';
 
 export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
-  const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const width = useChartWidth(containerRef, 560);
+
+  const highlightList = highlight.length > 0 ? highlight : dataset.highlight_entity_ids || [];
+  const primaryHighlight = highlightList[0];
+  const secondaryHighlights = new Set(highlightList.slice(1));
+
   const metricMeta = getMetricPresentation(dataset.metric_ids?.[0] || '', metrics);
 
   const rawRows = dataset.rows || [];
@@ -25,15 +32,15 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
     1
   );
 
-  const rowHeight = 22;
-  const barHeight = 13;
-  const leftMargin = 38;
-  const rightMargin = 55; // space for value labels
-  const topMargin = 12;
-  const chartWidth = 320;
-  const availableBarWidth = chartWidth - leftMargin - rightMargin;
+  const rowHeight = 24;
+  const barHeight = 14;
+  const leftMargin = 42;
+  const rightMargin = 65; // space for value labels
+  const topMargin = 14;
+  const chartWidth = width;
+  const availableBarWidth = Math.max(10, chartWidth - leftMargin - rightMargin);
 
-  const totalHeight = topMargin + sortedRows.length * rowHeight + 14;
+  const totalHeight = Math.min(320, topMargin + sortedRows.length * rowHeight + 20);
 
   // Scale function: value 0 maps to leftMargin, maxValue maps to leftMargin + availableBarWidth
   const scaleX = (val: number) => {
@@ -44,10 +51,11 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
   const medianX = medianVal !== null ? scaleX(medianVal) : null;
 
   return (
-    <div className={`my-2 ${className}`}>
+    <div ref={containerRef} className={`w-full max-w-[640px] my-2 ${className}`}>
       <svg
         viewBox={`0 0 ${chartWidth} ${totalHeight}`}
         width="100%"
+        height={totalHeight}
         role="img"
         aria-label={`Biểu đồ xếp hạng ${metricMeta.shortLabel}`}
         className="overflow-visible font-sans"
@@ -58,17 +66,17 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
             <line
               x1={medianX}
               x2={medianX}
-              y1={2}
-              y2={totalHeight - 8}
+              y1={4}
+              y2={totalHeight - 14}
               stroke="var(--text-muted, #85857e)"
               strokeDasharray="3 3"
               strokeWidth="1"
             />
             <text
               x={medianX}
-              y={totalHeight - 1}
+              y={totalHeight - 2}
               textAnchor="middle"
-              fontSize="9"
+              fontSize="11"
               fill="var(--text-muted, #85857e)"
             >
               trung vị
@@ -78,7 +86,22 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
 
         {/* Rows */}
         {sortedRows.map((row, idx) => {
-          const isHighlight = highlightSet.has(row.entity_id);
+          const isPrimary = row.entity_id === primaryHighlight;
+          const isSecondary = secondaryHighlights.has(row.entity_id);
+          const isHighlight = isPrimary || isSecondary;
+
+          const barFill = isPrimary
+            ? 'var(--fill-accent, #ee9f0d)'
+            : isSecondary
+            ? 'var(--text-secondary, #52524e)'
+            : 'var(--border-stronger, #a3a39f)';
+
+          const labelFill = isPrimary
+            ? 'var(--text-accent, #bc7600)'
+            : isSecondary
+            ? 'var(--text-primary, #20201e)'
+            : 'var(--text-secondary, #62625d)';
+
           const y = topMargin + idx * rowHeight;
           const val = Number(row.value);
           const barW = Math.max(scaleX(val) - leftMargin, 2);
@@ -94,8 +117,8 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 textAnchor="end"
                 fontSize="11"
                 fontFamily="var(--font-mono, monospace)"
-                fontWeight={isHighlight ? '600' : '400'}
-                fill={isHighlight ? 'var(--text-accent, #bc7600)' : 'var(--text-secondary, #62625d)'}
+                fontWeight={isHighlight ? '700' : '400'}
+                fill={labelFill}
               >
                 {row.entity_id}
               </text>
@@ -107,7 +130,7 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 width={barW}
                 height={barHeight}
                 rx={2}
-                fill={isHighlight ? 'var(--fill-accent, #ee9f0d)' : 'var(--border-stronger, #a3a39f)'}
+                fill={barFill}
                 tabIndex={0}
                 role="graphics-symbol"
                 aria-label={ariaLabel}
@@ -121,8 +144,8 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 x={leftMargin + barW + 5}
                 y={y + barHeight - 2}
                 fontSize="11"
-                fontWeight={isHighlight ? '600' : '400'}
-                fill={isHighlight ? 'var(--text-primary, #20201e)' : 'var(--text-primary, #20201e)'}
+                fontWeight={isHighlight ? '700' : '400'}
+                fill="var(--text-primary, #20201e)"
               >
                 {formattedVal}
               </text>

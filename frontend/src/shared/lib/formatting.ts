@@ -148,26 +148,27 @@ export function fmtPeriodRange(periods: string[] | string | null | undefined): s
 export function niceTicks(min: number, max: number, count = 3): number[] {
   if (min >= max) return [min];
   const range = max - min;
-  const rawStep = range / (count - 1);
-  if (Number.isInteger(rawStep) && rawStep > 0) {
-    const res: number[] = [];
-    for (let i = 0; i < count; i++) {
-      res.push(min + i * rawStep);
-    }
-    return res;
-  }
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
-  const norm = rawStep / magnitude;
+  const rawStep = range / Math.max(1, count - 1);
   let step: number;
-  if (norm <= 1.5) step = 1 * magnitude;
-  else if (norm <= 3) step = 2 * magnitude;
-  else if (norm <= 7) step = 5 * magnitude;
-  else step = 10 * magnitude;
+  if (Number.isInteger(rawStep) && rawStep > 0 && (rawStep <= 5 || rawStep % 10 === 0)) {
+    step = rawStep;
+  } else {
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const norm = rawStep / magnitude;
+    if (norm <= 1.5) step = 1 * magnitude;
+    else if (norm <= 3) step = 2 * magnitude;
+    else if (norm <= 7) step = 5 * magnitude;
+    else step = 10 * magnitude;
+  }
 
   const start = Math.floor(min / step) * step;
+  const end = Math.ceil(max / step) * step;
+  const totalTicks = Math.round((end - start) / step);
   const ticks: number[] = [];
-  for (let v = start; v <= max + step * 0.01; v += step) {
-    ticks.push(Number(v.toFixed(4)));
+  for (let i = 0; i <= totalTicks; i++) {
+    const v = start + i * step;
+    ticks.push(Number(v.toFixed(6)));
   }
   return ticks;
 }
+

@@ -197,15 +197,37 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       expect(container.querySelector('.median-line')).not.toBeNull();
       expect(screen.getByText('trung vị')).toBeInTheDocument();
 
-      // Bars start from leftMargin (38)
+      // Bars start from leftMargin (42)
       const rects = container.querySelectorAll('rect');
       expect(rects.length).toBeGreaterThan(0);
       rects.forEach((rect) => {
-        expect(rect.getAttribute('x')).toBe('38');
+        expect(rect.getAttribute('x')).toBe('42');
       });
     });
 
-    it('LineTrend breaks at missing period without a connecting line across it', () => {
+    it('RankedBar: primary highlight uses accent, secondary highlight uses dark neutral with bold', () => {
+      const { container } = render(
+        <RankedBar
+          dataset={rankingFixture.datasets[0] as unknown as Dataset}
+          metrics={[]}
+          highlight={['VCB', 'TCB']}
+        />
+      );
+
+      // VCB is primary highlight -> accent fill
+      const vcbRect = container.querySelector('rect[aria-label*="VCB"]');
+      expect(vcbRect?.getAttribute('fill')).toBe('var(--fill-accent, #ee9f0d)');
+
+      // TCB is secondary highlight -> dark neutral fill
+      const tcbRect = container.querySelector('rect[aria-label*="TCB"]');
+      expect(tcbRect?.getAttribute('fill')).toBe('var(--text-secondary, #52524e)');
+
+      // Non-highlighted bank (e.g. ACB) -> stronger border fill
+      const acbRect = container.querySelector('rect[aria-label*="ACB"]');
+      expect(acbRect?.getAttribute('fill')).toBe('var(--border-stronger, #a3a39f)');
+    });
+
+    it('LineTrend breaks at missing period and renders Y-axis unit label', () => {
       // Create a dataset with 4 quarters where Q2 is missing
       const datasetWithGap: Dataset = {
         dataset_id: 'ds-test-gap',
@@ -229,11 +251,12 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
         <LineTrend dataset={datasetWithGap} metrics={[]} highlight={['VPB']} />
       );
 
+      // Y-axis unit label is displayed (e.g. ROE (%))
+      expect(screen.getByText('ROE (%)')).toBeInTheDocument();
+
       // Target polylines should not connect Q1 directly to Q3.
-      // Since Q1 is an isolated point before a gap, it renders as a circle point.
-      // Q3 and Q4 form a 2-point segment which renders as one polyline.
       const polylines = container.querySelectorAll('polyline[stroke="var(--fill-accent, #ee9f0d)"]');
-      expect(polylines.length).toBe(1); // Exactly 1 polyline (for Q3-Q4), not bridging across Q2!
+      expect(polylines.length).toBe(1);
 
       // Note about missing period displayed
       expect(screen.getByText(/Quý 2\/2024 chưa có số liệu đã kiểm định/)).toBeInTheDocument();
@@ -255,7 +278,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       expect(screen.getByText('Trung vị')).toBeInTheDocument();
     });
 
-    it('Scatter includes aria-label on every point and tooltip title', () => {
+    it('Scatter includes aria-label on every point and tooltip title, and all points lie inside plot area', () => {
       const { container } = render(
         <Scatter
           dataset={profileFixture.datasets[0] as unknown as Dataset}
@@ -265,11 +288,60 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       );
 
       const circles = container.querySelectorAll('circle[role="graphics-symbol"]');
-      expect(circles.length).toBeGreaterThan(0);
+      expect(circles.length).toBe(5);
 
       circles.forEach((c) => {
         expect(c.getAttribute('aria-label')).toBeTruthy();
         expect(c.querySelector('title')).not.toBeNull();
+
+        const cx = Number(c.getAttribute('cx'));
+        const cy = Number(c.getAttribute('cy'));
+        // Plot bounds: leftMargin=40, plotW=496 (max x=536); topMargin=24, plotH=206 (max y=230)
+        expect(cx).toBeGreaterThanOrEqual(40);
+        expect(cx).toBeLessThanOrEqual(536);
+        expect(cy).toBeGreaterThanOrEqual(24);
+        expect(cy).toBeLessThanOrEqual(230);
+      });
+    });
+
+    it('Scatter with another metric pair (ROE and NPL) also keeps all points inside plot area', () => {
+      const roeNplDataset: Dataset = {
+        dataset_id: 'ds-roe-npl',
+        shape: 'paired',
+        title: 'ROE và nợ xấu',
+        produced_by: { tool: 'scatter', agent: 'sector' },
+        metric_ids: ['bank.npl_g35', 'bank.roe'],
+        periods: ['2024_Q4'],
+        highlight_entity_ids: ['ACB'],
+        rows: [
+          { entity_id: 'ACB', metric_id: 'bank.npl_g35', period: '2024_Q4', status: 'valid', value: 1.51, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'ACB', metric_id: 'bank.roe', period: '2024_Q4', status: 'valid', value: 24.5, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VCB', metric_id: 'bank.npl_g35', period: '2024_Q4', status: 'valid', value: 0.96, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VCB', metric_id: 'bank.roe', period: '2024_Q4', status: 'valid', value: 21.7, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VPB', metric_id: 'bank.npl_g35', period: '2024_Q4', status: 'valid', value: 4.20, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q4', status: 'valid', value: 14.8, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null }
+        ],
+        reference_lines: [
+          { kind: 'median', metric_id: 'bank.npl_g35', period: '2024_Q4', value: 1.51, fact_id: 'ref-x' },
+          { kind: 'median', metric_id: 'bank.roe', period: '2024_Q4', value: 21.7, fact_id: 'ref-y' }
+        ],
+        allowed_charts: ['scatter']
+      };
+
+      const { container } = render(
+        <Scatter dataset={roeNplDataset} metrics={[]} highlight={['ACB']} />
+      );
+
+      const circles = container.querySelectorAll('circle[role="graphics-symbol"]');
+      expect(circles.length).toBe(3);
+
+      circles.forEach((c) => {
+        const cx = Number(c.getAttribute('cx'));
+        const cy = Number(c.getAttribute('cy'));
+        expect(cx).toBeGreaterThanOrEqual(40);
+        expect(cx).toBeLessThanOrEqual(536);
+        expect(cy).toBeGreaterThanOrEqual(24);
+        expect(cy).toBeLessThanOrEqual(230);
       });
     });
 
@@ -403,7 +475,33 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       expect(niceTicks(0, 6, 3)).toEqual([0, 3, 6]);
       expect(niceTicks(0, 240, 3)).toEqual([0, 120, 240]);
       expect(niceTicks(1, 3, 3)).toEqual([1, 2, 3]);
-      expect(niceTicks(5, 25, 3)).toEqual([5, 15, 25]);
+      expect(niceTicks(5, 25, 3)).toEqual([0, 10, 20, 30]);
+    });
+
+    it('niceTicks guarantees covering [min, max] with niceTicks(0,5,4) end >= 5 and niceTicks(0,250,4) end >= 250', () => {
+      const ticks5 = niceTicks(0, 5, 4);
+      expect(ticks5[0]).toBeLessThanOrEqual(0);
+      expect(ticks5[ticks5.length - 1]).toBeGreaterThanOrEqual(5);
+
+      const ticks250 = niceTicks(0, 250, 4);
+      expect(ticks250[0]).toBeLessThanOrEqual(0);
+      expect(ticks250[ticks250.length - 1]).toBeGreaterThanOrEqual(250);
+    });
+  });
+
+  describe('Report Masthead and SourceNotes Invariants', () => {
+    it('Masthead of answer_card displays anchor period Quý 4/2024 instead of dataset period range', () => {
+      renderReportInRouter(lookupFixture as unknown as AdaptiveReportResponse);
+      expect(screen.getByText('Quý 4/2024')).toBeInTheDocument();
+    });
+
+    it('SourceNotes omits non-representative disclaimer for head_to_head, but includes it for ranking', () => {
+      const { container: h2hContainer } = renderReportInRouter(h2hFixture as unknown as AdaptiveReportResponse);
+      expect(h2hContainer.textContent).not.toContain('không đại diện toàn ngành');
+
+      const { container: rankingContainer } = renderReportInRouter(rankingFixture as unknown as AdaptiveReportResponse);
+      expect(rankingContainer.textContent).toContain('không đại diện toàn ngành');
     });
   });
 });
+

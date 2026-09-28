@@ -26,7 +26,7 @@ export const AnswerBlock: React.FC<{ block: AnswerBlockType }> = ({ block }) => 
   return (
     <div className="my-4 font-sans">
       <div className="flex items-baseline gap-3 my-2">
-        <span className="text-[32px] font-bold text-text-primary leading-tight font-mono">
+        <span className="text-[32px] font-bold text-text-primary leading-tight font-sans tabular-nums">
           {displayVal}
         </span>
         {subLabel && (

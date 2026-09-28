@@ -130,6 +130,11 @@ class AnalysisPlanDTO(BaseModel):
     known_limitations: List[str] = Field(
         default_factory=list, description="Known analytical limitations or scope boundaries"
     )
+    question_type: Optional[str] = Field(default=None, description="Analytical question type")
+    planner_source: Optional[str] = Field(default=None, description="Planner source: model or rules")
+    rationale_vi: Optional[str] = Field(default=None, description="Vietnamese explanation of the chosen plan")
+    tools: List[dict[str, Any]] = Field(default_factory=list, description="List of planned tool invocations")
+    context_periods: List[str] = Field(default_factory=list, description="Context periods within the same year")
 
 
 class MacroContextDTO(BaseModel):

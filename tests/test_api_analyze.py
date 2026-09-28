@@ -1097,7 +1097,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             {"query": "ROE of ACB in 2024", "target_ticker": "ACB", "period": "2024"},
             {"query": "CIR of ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
             {"query": "Compare ROE of ACB and TCB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
-            {"query": "SBV policy rate effect on ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
+            {"query": "SBV policy rate in 2024 Q4", "period": "2024_Q4"},
         )
         for payload in requests:
             with self.subTest(payload=payload):

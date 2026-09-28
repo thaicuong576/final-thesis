@@ -93,9 +93,11 @@ _COMPARISON_TERMS = (
     "peer", "compare", "comparison", "ngành", "nganh", "sector", "trung vị", "trung vi", "benchmark",
 )
 _MACRO_TERMS = (
-    "vĩ mô", "vi mo", "macro", "chính sách", "chinh sach", "tiền tệ", "tien te",
-    "nhnn", "sbv", "lãi suất", "lai suat", "tín dụng", "tin dung", "lạm phát",
-    "lam phat", "cpi", "truyền dẫn", "truyen dan",
+    "vĩ mô", "vi mo", "macro", "chính sách tiền tệ", "chinh sach tien te",
+    "nhnn", "ngân hàng nhà nước", "ngan hang nha nuoc", "sbv",
+    "lãi suất điều hành", "lai suat dieu hanh",
+    "tăng trưởng tín dụng toàn ngành", "tang truong tin dung toan nganh",
+    "lạm phát", "lam phat", "cpi", "truyền dẫn", "truyen dan",
 )
 _METRIC_CODES = ("ROE", "ROA", "NIM", "NPL", "CIR", "CASA", "CAR", "LDR", "LLR")
 _METRIC_PHRASES = {
@@ -631,12 +633,27 @@ def _observation_source_locator(observation: Any) -> str | None:
     return locator.strip() if isinstance(locator, str) and locator.strip() else None
 
 
-def _error_report(code: str, detail: str, request: AnalysisRequest) -> AnalysisResponse:
+def _error_report(code: str, detail: str, request: AnalysisRequest, catalog: Any = None) -> AnalysisResponse:
+    from .messages_vi import get_error_message, suggestions_for
+    from .schemas import ErrorInfoDTO
+
+    if catalog is None:
+        try:
+            resolved_db = get_settings().get_sqlite_path()
+            if resolved_db.exists():
+                binding = _load_provider(resolved_db)
+                catalog = binding.catalog
+        except Exception:
+            catalog = None
+
     report_id = f"report-{uuid.uuid4().hex}"
+    message = get_error_message(code, catalog=catalog, default=detail)
+    suggestions = suggestions_for(catalog)[:3] if catalog is not None else []
     return AnalysisResponse(
         report_id=report_id,
         status="error",
         limitations=[f"{code}: {detail}"],
+        error=ErrorInfoDTO(code=code, message=message, suggestions=suggestions),
     )
 
 
@@ -712,17 +729,27 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         if match:
             period_row.update({"year": int(match.group(1)), "quarter": int(match.group(2))})
         periods.append(period_row)
-    metrics = [
-        {
+    from .metric_presentation import get_metric_presentation
+    from .messages_vi import suggestions_for
+    from .analysis_tools_catalog import ENABLED_QUESTION_TYPES
+
+    metrics = []
+    for item in catalog.metrics:
+        if _is_lineage_only_metric(item.metric_id):
+            continue
+        pres = get_metric_presentation(item.metric_id, item.display_name)
+        metrics.append({
             "id": item.metric_id,
             "acronym": item.metric_id.rsplit(".", 1)[-1].upper(),
-            "label": item.display_name,
+            "label": pres.label,
+            "shortLabel": pres.short_label,
             "topicId": item.analytical_level.value,
-            "unit": item.default_unit,
-        }
-        for item in catalog.metrics
-        if not _is_lineage_only_metric(item.metric_id)
-    ]
+            "unit": pres.unit or item.default_unit,
+            "direction": pres.direction,
+            "decimals": pres.decimals,
+            "group": pres.group,
+            "groupLabel": pres.group_label,
+        })
     peer_universes = [
         {
             "id": item.peer_universe_id,
@@ -744,6 +771,8 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         "periods": periods,
         "metrics": metrics,
         "topics": [],
+        "suggestedQuestions": suggestions_for(catalog),
+        "questionTypes": list(ENABLED_QUESTION_TYPES),
         "peerUniverses": peer_universes,
         "peerUniverse": peer_universes[0] if len(peer_universes) == 1 else None,
         "macro": {
@@ -796,6 +825,8 @@ def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
             "periods": [],
             "metrics": [],
             "topics": [],
+            "suggestedQuestions": [],
+            "questionTypes": ["lookup", "company_profile", "ranking", "trend", "head_to_head"],
             "peerUniverses": [],
             "peerUniverse": None,
             "macro": {

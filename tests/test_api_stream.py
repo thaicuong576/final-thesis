@@ -208,15 +208,24 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         self.assertEqual(events[-1][1]["payload"]["status"], sync.json()["status"])
 
     def test_unsupported_macro_scope_is_blocked_without_claim_or_revision_events(self) -> None:
+        # Macro request without target entity is blocked
         response = self.client.post(
             "/api/analyze/stream",
-            json={"query": "SBV policy rate effect on ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
+            json={"query": "Tăng trưởng tín dụng toàn ngành 2024 thế nào?"},
         )
         events = self._parse(response.text)
         self.assertEqual(events[-1][0], "RUN_BLOCKED")
         self.assertIn("unsupported_macro_scope", events[-1][1]["payload"]["reason"])
         self.assertNotIn("REVISION_REQUESTED", [item[0] for item in events])
         self.assertNotIn("REPORT_READY", [item[0] for item in events])
+
+        # Macro query with target entity proceeds with limitation and skips macro
+        response_with_target = self.client.post(
+            "/api/analyze/stream",
+            json={"query": "SBV policy rate effect on ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
+        )
+        events_with_target = self._parse(response_with_target.text)
+        self.assertIn("REPORT_READY", [item[0] for item in events_with_target])
 
 
 if __name__ == "__main__":

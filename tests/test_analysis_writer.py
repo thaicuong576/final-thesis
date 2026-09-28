@@ -100,6 +100,8 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
         self.assertIn("NEVER include any ticker symbols", fake.calls[2]["instructions"])
         self.assertIn("NEVER include digits, numbers, or spelled-out number words", fake.calls[2]["instructions"])
         self.assertIn("NEVER write any years, quarters, dates, or period labels", fake.calls[2]["instructions"])
+        self.assertIn("NEVER include temporal change or trend words", fake.calls[2]["instructions"])
+        self.assertIn("NEVER include causal explanation or attribution words", fake.calls[2]["instructions"])
 
     def test_writer_rejects_malformed_responses_and_out_of_scope_support(self) -> None:
         claim = _claim("claim-a")

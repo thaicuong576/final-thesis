@@ -17,6 +17,12 @@ export interface Metric {
   acronym: string;
   label: string;
   topicId: string;
+  shortLabel?: string;
+  unit?: string;
+  direction?: 'higher_is_better' | 'lower_is_better' | 'neutral' | string;
+  decimals?: number;
+  group?: string;
+  groupLabel?: string;
 }
 
 export interface TopicPreset {
@@ -51,6 +57,9 @@ export interface AnalysisCapabilities {
   analysis_available?: boolean;
   /** Runtime capabilities that the API has implemented for this snapshot. */
   implemented_capabilities?: string[];
+  /** Suggested questions from capabilities */
+  suggestedQuestions?: string[];
+  suggested_questions?: string[];
   /** Provider/database status reported by the API. */
   database_status?: string;
   db_tickers_count?: number;

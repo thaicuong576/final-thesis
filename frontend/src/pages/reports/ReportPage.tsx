@@ -217,24 +217,51 @@ function ReportPageContent({
   const capabilityMetrics = useMemo<MetricPresentation[] | undefined>(() => {
     if (!rawMetrics) return undefined;
     return rawMetrics.map((m) => {
+      const mRaw = m as unknown as Record<string, unknown>;
       const fallback = DEFAULT_METRICS[m.id];
-      if (fallback) {
-        return {
-          ...fallback,
-          label: m.label || fallback.label,
-          acronym: m.acronym || fallback.acronym,
-        };
-      }
+      const rawLabel = typeof m.label === 'string' && m.label.trim() !== '' && m.label !== m.id ? m.label : undefined;
+      const label = rawLabel || fallback?.label || m.id;
+      const acronym = (typeof m.acronym === 'string' && m.acronym) || fallback?.acronym || m.id;
+      const shortLabel =
+        (typeof mRaw.shortLabel === 'string' && mRaw.shortLabel) ||
+        (typeof mRaw.short_label === 'string' && mRaw.short_label) ||
+        (typeof m.acronym === 'string' && m.acronym) ||
+        fallback?.shortLabel ||
+        m.id;
+      const unit =
+        typeof mRaw.unit === 'string'
+          ? mRaw.unit
+          : (fallback?.unit ?? '');
+      const direction =
+        (typeof mRaw.direction === 'string' && (mRaw.direction as MetricPresentation['direction'])) ||
+        fallback?.direction ||
+        'neutral';
+      const decimals =
+        typeof mRaw.decimals === 'number'
+          ? mRaw.decimals
+          : (fallback?.decimals ?? 1);
+      const group =
+        (typeof mRaw.group === 'string' && mRaw.group) ||
+        m.topicId ||
+        fallback?.group ||
+        'general';
+      const groupLabel =
+        (typeof mRaw.groupLabel === 'string' && mRaw.groupLabel) ||
+        (typeof mRaw.group_label === 'string' && mRaw.group_label) ||
+        fallback?.groupLabel ||
+        m.topicId ||
+        'Chung';
+
       return {
         id: m.id,
-        acronym: m.acronym || m.id,
-        label: m.label || m.id,
-        shortLabel: m.acronym || m.id,
-        unit: '%',
-        direction: 'higher_is_better',
-        decimals: 1,
-        group: m.topicId || 'general',
-        groupLabel: m.topicId || 'Chung',
+        acronym,
+        label,
+        shortLabel,
+        unit,
+        direction,
+        decimals,
+        group,
+        groupLabel,
       };
     });
   }, [rawMetrics]);

@@ -494,6 +494,7 @@ class _PlanResult(tuple):
         spec=None,
         resolved=None,
         planner_source=None,
+        fallback_reasons=None,
     ):
         instance = super().__new__(
             cls, (plan, target, periods, metrics, peers, macro_metrics)
@@ -501,6 +502,7 @@ class _PlanResult(tuple):
         instance.spec = spec
         instance.resolved = resolved
         instance.planner_source = planner_source
+        instance.fallback_reasons = list(fallback_reasons or [])
         return instance
 
 
@@ -534,30 +536,21 @@ def _plan_request(
                     "unsupported_period",
                     f"Period {request.period} is not an exact period in the accepted snapshot.",
                 )
-        if _is_comparison_requested(request) and (
-            _PERIOD_RANGE_RE.search(request.query)
-            or _YEAR_QUARTER_RANGE_RE.search(request.query)
-            or _BETWEEN_QUARTER_RANGE_RE.search(request.query)
-        ):
-            raise AnalysisBlocked(
-                "multi_period_unsupported",
-                "Multi-period analysis is supported only for one Company target.",
-            )
-        # D-074 probe check: English query with explicit target_ticker and range syntax
-        if (
-            request.target_ticker
-            and (_PERIOD_RANGE_RE.search(request.query) or _YEAR_QUARTER_RANGE_RE.search(request.query))
-            and not re.search(r"(?:từ|tu|quý|quy|nam|năm)", request.query, re.I)
-        ):
-            raise AnalysisBlocked(
-                "explicit_periods_required",
-                "A multi-period question requires an explicit ordered periods list.",
-            )
 
         from .analysis_planner import plan_question, build_analysis_plan
 
+        planner_client = client
+        if planner_client is None and settings is not None:
+            if getattr(settings, "openai_api_key", None) and getattr(settings, "openai_api_key", "").strip():
+                try:
+                    from .llm import get_llm_client
+
+                    planner_client = get_llm_client(settings)
+                except Exception:
+                    planner_client = None
+
         spec, planner_source, fallback_reasons, resolved = plan_question(
-            request.query, catalog, settings=settings, client=client
+            request.query, catalog, settings=settings, client=planner_client
         )
         plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = (
             build_analysis_plan(
@@ -578,6 +571,7 @@ def _plan_request(
             spec=spec,
             resolved=resolved,
             planner_source=planner_source,
+            fallback_reasons=fallback_reasons,
         )
 
     macro_requested = _has_macro_request(request)
@@ -921,7 +915,7 @@ def _create_macro_claim(
 
 
 class _AdaptiveRun:
-    def __init__(self, *, provider, dataset_ref, catalog, request, settings, critic, writer, emit):
+    def __init__(self, *, provider, dataset_ref, catalog, request, settings, critic, writer, emit, client=None):
         self.provider = provider
         self.dataset_ref = dataset_ref
         self.catalog = catalog
@@ -930,6 +924,7 @@ class _AdaptiveRun:
         self.critic = critic
         self.writer = writer
         self.emit = emit
+        self.client = client
         self.metric_by_id = {item.metric_id: item for item in catalog.metrics}
         self.artifacts: dict[str, ClaimArtifact] = {}
         self.benchmark_request_metadata: dict[str, dict[str, Any]] = {}
@@ -1195,12 +1190,17 @@ class _AdaptiveRun:
         from .service import AnalysisBlocked, _requested_metrics
 
         plan_result = _plan_request(
-            self.request, self.dataset_ref, self.catalog, settings=self.settings
+            self.request,
+            self.dataset_ref,
+            self.catalog,
+            settings=self.settings,
+            client=self.client,
         )
         plan, target, periods, company_metrics, peers, macro_metrics = plan_result
         self.spec = getattr(plan_result, "spec", None)
         self.resolved = getattr(plan_result, "resolved", None)
         self.planner_source = getattr(plan_result, "planner_source", None)
+        self.fallback_reasons = getattr(plan_result, "fallback_reasons", [])
         period = periods[-1]
         operations = set(self.catalog.supported_operations)
         required_ops = {SupportedOperation.GET_METRIC, SupportedOperation.RESOLVE_OBSERVATION, SupportedOperation.GET_SOURCE}
@@ -1220,6 +1220,7 @@ class _AdaptiveRun:
         if self.spec is not None:
             plan_created_payload["questionType"] = self.spec.question_type
             plan_created_payload["plannerSource"] = self.planner_source
+            plan_created_payload["plannerFallbackReasons"] = list(self.fallback_reasons)
             plan_created_payload["rationaleVi"] = self.spec.rationale
             plan_created_payload["tools"] = [{"tool": t.tool, "params": t.params} for t in self.spec.tools]
             plan_created_payload["contextPeriods"] = list(self.resolved.context_periods if self.resolved else ())
@@ -1939,6 +1940,7 @@ class _AdaptiveRun:
             requirements=[item.model_dump(mode="json") for item in plan.requirements],
             question_type=self.spec.question_type if hasattr(self, "spec") and self.spec else None,
             planner_source=self.planner_source if hasattr(self, "planner_source") else None,
+            planner_fallback_reasons=list(self.fallback_reasons) if hasattr(self, "fallback_reasons") and self.fallback_reasons else [],
             rationale_vi=self.spec.rationale if hasattr(self, "spec") and self.spec else None,
             tools=[{"tool": t.tool, "params": t.params} for t in self.spec.tools] if hasattr(self, "spec") and self.spec else [],
             context_periods=list(self.resolved.context_periods) if hasattr(self, "resolved") and self.resolved else [],
@@ -2042,6 +2044,7 @@ def run_adaptive_analysis(
     semantic_critic,
     analysis_writer,
     emit: Callable[[str, dict[str, Any]], None] | None = None,
+    client: Any = None,
 ) -> AnalysisResponse:
     """Run a frozen-plan provider execution and bounded acceptance workflow."""
 
@@ -2054,6 +2057,7 @@ def run_adaptive_analysis(
             request=request, settings=settings, critic=semantic_critic,
             writer=analysis_writer,
             emit=emit_event,
+            client=client,
         ).execute()
     except AnalysisBlocked as exc:
         return _error_report(exc.code, exc.detail, request, catalog=catalog)

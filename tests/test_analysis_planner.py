@@ -246,15 +246,9 @@ class TestAnalysisPlanner(unittest.TestCase):
 
         # 1. Valid model plan accepted
         fake_client = MagicMock()
-        fake_resp = MagicMock()
-        fake_resp.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content='{"question_type":"lookup","focus_entity":"BANK_A","entities":["BANK_A"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[{"tool":"lookup","params":{"entities":["BANK_A"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu nợ xấu"}'
-                )
-            )
-        ]
-        fake_client.chat.completions.create.return_value = fake_resp
+        fake_client.responses.create.return_value = SimpleNamespace(
+            output_text='{"question_type":"lookup","focus_entity":"BANK_A","entities":["BANK_A"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[{"tool":"lookup","params":{"entities":["BANK_A"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu nợ xấu"}'
+        )
 
         plan_spec, source, fallbacks, _ = plan_question(
             "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
@@ -267,15 +261,9 @@ class TestAnalysisPlanner(unittest.TestCase):
         self.assertEqual(fallbacks, [])
 
         # 2. Model alters explicit entity -> rejected, falls back to rules
-        fake_resp_altered = MagicMock()
-        fake_resp_altered.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content='{"question_type":"lookup","focus_entity":"BANK_B","entities":["BANK_B"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[{"tool":"lookup","params":{"entities":["BANK_B"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu"}'
-                )
-            )
-        ]
-        fake_client.chat.completions.create.return_value = fake_resp_altered
+        fake_client.responses.create.return_value = SimpleNamespace(
+            output_text='{"question_type":"lookup","focus_entity":"BANK_B","entities":["BANK_B"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[{"tool":"lookup","params":{"entities":["BANK_B"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu"}'
+        )
 
         plan_spec_fb, source_fb, fallbacks_fb, _ = plan_question(
             "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
@@ -288,15 +276,9 @@ class TestAnalysisPlanner(unittest.TestCase):
         self.assertTrue(len(fallbacks_fb) > 0)
 
         # 3. Model chooses disabled question type -> fallback
-        fake_resp_disabled = MagicMock()
-        fake_resp_disabled.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content='{"question_type":"sector_theme","focus_entity":null,"entities":[],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[],"rationale":"Theme"}'
-                )
-            )
-        ]
-        fake_client.chat.completions.create.return_value = fake_resp_disabled
+        fake_client.responses.create.return_value = SimpleNamespace(
+            output_text='{"question_type":"sector_theme","focus_entity":null,"entities":[],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[],"rationale":"Theme"}'
+        )
 
         plan_spec_dis, source_dis, fallbacks_dis, _ = plan_question(
             "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
@@ -307,7 +289,7 @@ class TestAnalysisPlanner(unittest.TestCase):
         self.assertEqual(source_dis, "rules")
 
         # 4. Model exception -> fallback
-        fake_client.chat.completions.create.side_effect = RuntimeError("OpenAI error")
+        fake_client.responses.create.side_effect = RuntimeError("OpenAI error")
         plan_spec_err, source_err, fallbacks_err, _ = plan_question(
             "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
             self.catalog,
@@ -316,6 +298,59 @@ class TestAnalysisPlanner(unittest.TestCase):
         )
         self.assertEqual(source_err, "rules")
         self.assertIn("model_error", fallbacks_err)
+
+        # 5. Missing API key (client is None) -> fallback with model_unconfigured
+        plan_spec_none, source_none, fallbacks_none, _ = plan_question(
+            "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
+            self.catalog,
+            settings=SimpleNamespace(planner_mode="model_with_fallback"),
+            client=None,
+        )
+        self.assertEqual(source_none, "rules")
+        self.assertIn("model_unconfigured", fallbacks_none)
+
+    def test_runtime_plan_request_sources_and_fallbacks(self) -> None:
+        from thesis_api.adaptive_runtime import _plan_request
+        from thesis_api.schemas import AnalysisRequest
+
+        # 1. Model client returns valid plan -> plannerSource = "model"
+        fake_client = MagicMock()
+        fake_client.responses.create.return_value = SimpleNamespace(
+            output_text='{"question_type":"lookup","focus_entity":"BANK_A","entities":["BANK_A"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":["2024_Q4"],"tools":[{"tool":"lookup","params":{"entities":["BANK_A"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu"}'
+        )
+        plan_res = _plan_request(
+            request=AnalysisRequest(query="Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?"),
+            catalog=self.catalog,
+            dataset_ref=self.catalog.dataset_ref,
+            settings=SimpleNamespace(planner_mode="model_with_fallback", openai_api_key="sk-test", openai_model="gpt-4o-mini"),
+            client=fake_client,
+        )
+        self.assertEqual(plan_res.planner_source, "model")
+        self.assertEqual(plan_res.fallback_reasons, [])
+
+        # 2. Client raises -> plannerSource = "rules" and reason = "model_error"
+        fake_client_err = MagicMock()
+        fake_client_err.responses.create.side_effect = RuntimeError("Service unavailable")
+        plan_res_err = _plan_request(
+            request=AnalysisRequest(query="Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?"),
+            catalog=self.catalog,
+            dataset_ref=self.catalog.dataset_ref,
+            settings=SimpleNamespace(planner_mode="model_with_fallback", openai_api_key="sk-test", openai_model="gpt-4o-mini"),
+            client=fake_client_err,
+        )
+        self.assertEqual(plan_res_err.planner_source, "rules")
+        self.assertIn("model_error", plan_res_err.fallback_reasons)
+
+        # 3. Missing API key (no client, no key) -> plannerSource = "rules" and reason = "model_unconfigured"
+        plan_res_unconf = _plan_request(
+            request=AnalysisRequest(query="Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?"),
+            catalog=self.catalog,
+            dataset_ref=self.catalog.dataset_ref,
+            settings=SimpleNamespace(planner_mode="model_with_fallback", openai_api_key=None, openai_model="gpt-4o-mini"),
+            client=None,
+        )
+        self.assertEqual(plan_res_unconf.planner_source, "rules")
+        self.assertIn("model_unconfigured", plan_res_unconf.fallback_reasons)
 
     def test_build_analysis_plan_ranking_requirements_and_context_periods(self) -> None:
         # Ranking has requirement for all 5 entities

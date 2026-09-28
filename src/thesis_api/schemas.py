@@ -132,6 +132,9 @@ class AnalysisPlanDTO(BaseModel):
     )
     question_type: Optional[str] = Field(default=None, description="Analytical question type")
     planner_source: Optional[str] = Field(default=None, description="Planner source: model or rules")
+    planner_fallback_reasons: List[str] = Field(
+        default_factory=list, description="Fallback reasons if rules planner was used"
+    )
     rationale_vi: Optional[str] = Field(default=None, description="Vietnamese explanation of the chosen plan")
     tools: List[dict[str, Any]] = Field(default_factory=list, description="List of planned tool invocations")
     context_periods: List[str] = Field(default_factory=list, description="Context periods within the same year")
@@ -448,7 +451,7 @@ QuestionType = Literal[
 
 
 class MetricPresentationDTO(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
 
     id: str
     acronym: str
@@ -488,6 +491,10 @@ class CapabilitiesDTO(BaseModel):
     suggestedQuestions: List[str] = Field(default_factory=list)
     questionTypes: List[QuestionTypeInfoDTO] = Field(default_factory=list)
     readiness: Optional[str] = None
+
+    @property
+    def question_types(self) -> List[QuestionTypeInfoDTO]:
+        return self.questionTypes
 
 
 FactType = Literal[

@@ -91,3 +91,40 @@ TOOL_CATALOG: dict[str, ToolDefinition] = {
         enabled=False,
     ),
 }
+
+
+def get_question_types_info(catalog: Any = None) -> list[dict[str, str]]:
+    """Return enabled question types with localized label and example conforming to QuestionTypeInfoDTO."""
+    from .messages_vi import suggestions_for
+
+    suggestions = suggestions_for(catalog) if catalog is not None else []
+    # suggestions_for returns 5 questions ordered by: lookup, ranking, trend, head_to_head, company_profile
+    sugg_map: dict[str, str] = {}
+    if len(suggestions) >= 5:
+        sugg_map["lookup"] = suggestions[0]
+        sugg_map["ranking"] = suggestions[1]
+        sugg_map["trend"] = suggestions[2]
+        sugg_map["head_to_head"] = suggestions[3]
+        sugg_map["company_profile"] = suggestions[4]
+
+    fallback_examples: dict[str, str] = {
+        "lookup": "Tỷ lệ nợ xấu của ACB quý 4/2024 là bao nhiêu?",
+        "company_profile": "Sức khỏe tài chính của ACB so với các ngân hàng cùng nhóm, quý 4/2024",
+        "ranking": "Ngân hàng nào có ROE cao nhất quý 4/2024?",
+        "trend": "ROE của ACB thay đổi thế nào trong năm 2024?",
+        "head_to_head": "So sánh ACB và VCB quý 4/2024",
+    }
+    labels: dict[str, str] = {
+        "lookup": "Tra cứu",
+        "company_profile": "Hồ sơ doanh nghiệp",
+        "ranking": "Xếp hạng",
+        "trend": "Xu hướng",
+        "head_to_head": "So sánh trực diện",
+    }
+
+    result = []
+    for q_type in ENABLED_QUESTION_TYPES:
+        example = sugg_map.get(q_type) or fallback_examples.get(q_type, "")
+        label = labels.get(q_type, q_type)
+        result.append({"id": q_type, "label": label, "example": example})
+    return result

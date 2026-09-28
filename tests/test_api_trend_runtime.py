@@ -386,16 +386,18 @@ class CompanyTrendRequestTests(unittest.TestCase):
 
     def test_query_range_requires_explicit_periods_and_lists_must_match(self) -> None:
         catalog = _trend_catalog()
-        with self.assertRaisesRegex(AnalysisBlocked, "explicit ordered periods"):
-            _plan_request(
-                AnalysisRequest(
-                    query="Analyze ROE of ACB from 2024_Q1 through 2024_Q4",
-                    target_ticker="ACB",
-                    period="2024_Q4",
-                ),
-                catalog.dataset_ref,
-                catalog,
-            )
+        # Under D-075, natural query without explicit periods payload plans via question planner
+        plan_res = _plan_request(
+            AnalysisRequest(
+                query="Analyze ROE of ACB from 2024_Q1 through 2024_Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ),
+            catalog.dataset_ref,
+            catalog,
+        )
+        self.assertIsNotNone(plan_res[0])
+        self.assertIsNotNone(plan_res.spec)
         with self.assertRaisesRegex(AnalysisBlocked, "exactly match"):
             _plan_request(
                 AnalysisRequest(
@@ -420,18 +422,18 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 catalog.dataset_ref,
                 catalog,
             )
-        self.assertEqual(blocked.exception.code, "multi_period_unsupported")
-        with self.assertRaises(AnalysisBlocked) as blocked:
-            _plan_request(
-                AnalysisRequest(
-                    query="Compare ACB with MBB for ROE from 2024_Q1 through 2024_Q4",
-                    target_ticker="ACB",
-                    peer_tickers=["MBB"],
-                ),
-                catalog.dataset_ref,
-                catalog,
-            )
-        self.assertEqual(blocked.exception.code, "multi_period_unsupported")
+        # Under D-075, natural query without explicit periods payload plans via question planner
+        plan_res = _plan_request(
+            AnalysisRequest(
+                query="Compare ACB with MBB for ROE from 2024_Q1 through 2024_Q4",
+                target_ticker="ACB",
+                peer_tickers=["MBB"],
+            ),
+            catalog.dataset_ref,
+            catalog,
+        )
+        self.assertEqual(plan_res.spec.question_type, "head_to_head")
+        self.assertEqual(plan_res.spec.entities, ("ACB", "MBB"))
 
     def test_missing_metric_period_record_keeps_required_nulls_when_excluding_none(self) -> None:
         record = CompanyMetricPeriodRecordDTO(

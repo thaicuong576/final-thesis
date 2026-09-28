@@ -405,15 +405,84 @@ def validate_plan(
     return errors
 
 
+_PLAN_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "question_type": {"type": "string"},
+        "focus_entity": {"type": ["string", "null"]},
+        "entities": {"type": "array", "items": {"type": "string"}},
+        "metrics": {"type": "array", "items": {"type": "string"}},
+        "anchor_period": {"type": "string"},
+        "periods": {"type": "array", "items": {"type": "string"}},
+        "tools": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tool": {"type": "string"},
+                    "params": {
+                        "type": "object",
+                        "properties": {
+                            "entity": {"type": ["string", "null"]},
+                            "entities": {"type": ["array", "null"], "items": {"type": "string"}},
+                            "metric": {"type": ["string", "null"]},
+                            "metrics": {"type": ["array", "null"], "items": {"type": "string"}},
+                            "period": {"type": ["string", "null"]},
+                            "periods": {"type": ["array", "null"], "items": {"type": "string"}},
+                            "highlight_entity": {"type": ["string", "null"]},
+                            "context_metrics": {"type": ["array", "null"], "items": {"type": "string"}},
+                            "formula": {"type": ["string", "null"]},
+                            "metric_x": {"type": ["string", "null"]},
+                            "metric_y": {"type": ["string", "null"]},
+                        },
+                        "required": [
+                            "entity",
+                            "entities",
+                            "metric",
+                            "metrics",
+                            "period",
+                            "periods",
+                            "highlight_entity",
+                            "context_metrics",
+                            "formula",
+                            "metric_x",
+                            "metric_y",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
+                "required": ["tool", "params"],
+                "additionalProperties": False,
+            },
+        },
+        "rationale": {"type": "string"},
+    },
+    "required": [
+        "question_type",
+        "focus_entity",
+        "entities",
+        "metrics",
+        "anchor_period",
+        "periods",
+        "tools",
+        "rationale",
+    ],
+    "additionalProperties": False,
+}
+
+
 def model_plan(
     question: str,
     resolved: ResolvedQuery,
     catalog: DatasetCapabilityCatalog,
     client: Any = None,
+    model: str = "deepseek-v4-pro-0813",
 ) -> PlanSpec | None:
     """Call language model once to propose a plan, returning None if client is unavailable or errors."""
     if client is None:
         return None
+
+    from .analysis_writer import _clean_json_text
 
     # Construct concise payload
     catalog_companies = [
@@ -435,7 +504,7 @@ def model_plan(
             "explicit_periods": list(resolved.explicit_periods),
             "anchor_period": resolved.anchor_period,
             "explicit_metrics": list(resolved.explicit_metrics),
-            "flags": list(resolved.flags),
+            "flags": sorted(list(resolved.flags)),
         },
         "catalog": {
             "entities": catalog_companies,
@@ -456,21 +525,38 @@ def model_plan(
     }
 
     try:
-        response = client.chat.completions.create(
-            model=getattr(client, "model", "gpt-4o"),
-            messages=[
-                {"role": "system", "content": _MODEL_PLAN_PROMPT},
-                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.0,
+        response = client.responses.create(
+            model=model,
+            instructions=_MODEL_PLAN_PROMPT,
+            input=json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            text={"format": {"type": "json_schema", "name": "analysis_plan", "strict": True, "schema": _PLAN_SCHEMA}},
+            max_output_tokens=2500,
+            store=False,
         )
-        content = response.choices[0].message.content
-        data = json.loads(content)
-        tool_specs = tuple(
-            ToolCallSpec(tool=item["tool"], params=item.get("params", {}))
-            for item in data.get("tools", [])
-        )
+        output_text = getattr(response, "output_text", None)
+        if output_text is None:
+            choices = getattr(response, "choices", None)
+            if choices and hasattr(choices[0], "message"):
+                output_text = choices[0].message.content
+        if not isinstance(output_text, str) or not output_text.strip():
+            return None
+
+        clean_text = _clean_json_text(output_text)
+        data = json.loads(clean_text)
+        if not isinstance(data, dict):
+            return None
+
+        tool_specs = []
+        for item in data.get("tools", []):
+            if not isinstance(item, dict):
+                continue
+            raw_params = item.get("params", {})
+            if isinstance(raw_params, dict):
+                clean_params = {k: v for k, v in raw_params.items() if v is not None}
+            else:
+                clean_params = {}
+            tool_specs.append(ToolCallSpec(tool=item.get("tool", ""), params=clean_params))
+
         return PlanSpec(
             question_type=data.get("question_type", ""),
             focus_entity=data.get("focus_entity"),
@@ -478,7 +564,7 @@ def model_plan(
             metrics=tuple(data.get("metrics", ())),
             anchor_period=data.get("anchor_period", resolved.anchor_period),
             periods=tuple(data.get("periods", ())),
-            tools=tool_specs,
+            tools=tuple(tool_specs),
             rationale=data.get("rationale", ""),
         )
     except Exception:
@@ -495,18 +581,26 @@ def plan_question(
     from .query_understanding import resolve_query
 
     resolved = resolve_query(question, catalog)
-    planner_mode = getattr(settings, "planner_mode", "rules_only")
+    planner_mode = getattr(settings, "planner_mode", "model_with_fallback")
 
     fallback_reasons: list[str] = []
     if planner_mode == "model_with_fallback":
-        proposed = model_plan(question, resolved, catalog, client=client)
-        if proposed is not None:
-            errors = validate_plan(proposed, resolved, catalog)
-            if not errors:
-                return proposed, "model", [], resolved
-            fallback_reasons = errors
+        has_api_key = bool(
+            getattr(settings, "openai_api_key", None)
+            and getattr(settings, "openai_api_key", "").strip()
+        )
+        if client is None and not has_api_key:
+            fallback_reasons = ["model_unconfigured"]
         else:
-            fallback_reasons = ["model_error"]
+            model_name = getattr(settings, "openai_model", "deepseek-v4-pro-0813")
+            proposed = model_plan(question, resolved, catalog, client=client, model=model_name)
+            if proposed is not None:
+                errors = validate_plan(proposed, resolved, catalog)
+                if not errors:
+                    return proposed, "model", [], resolved
+                fallback_reasons = errors
+            else:
+                fallback_reasons = ["model_error"]
 
     rules_result = rules_plan(resolved, catalog)
     return rules_result, "rules", fallback_reasons, resolved

@@ -731,7 +731,7 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         periods.append(period_row)
     from .metric_presentation import get_metric_presentation
     from .messages_vi import suggestions_for
-    from .analysis_tools_catalog import ENABLED_QUESTION_TYPES
+    from .analysis_tools_catalog import get_question_types_info
 
     metrics = []
     for item in catalog.metrics:
@@ -772,7 +772,7 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         "metrics": metrics,
         "topics": [],
         "suggestedQuestions": suggestions_for(catalog),
-        "questionTypes": list(ENABLED_QUESTION_TYPES),
+        "questionTypes": get_question_types_info(catalog),
         "peerUniverses": peer_universes,
         "peerUniverse": peer_universes[0] if len(peer_universes) == 1 else None,
         "macro": {
@@ -816,6 +816,8 @@ def _journal_mode_from_provider(binding: ProviderBinding) -> str:
 
 
 def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
+    from .analysis_tools_catalog import get_question_types_info
+
     return {
             "snapshotId": None,
             "datasetId": None,
@@ -826,7 +828,7 @@ def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
             "metrics": [],
             "topics": [],
             "suggestedQuestions": [],
-            "questionTypes": ["lookup", "company_profile", "ranking", "trend", "head_to_head"],
+            "questionTypes": get_question_types_info(None),
             "peerUniverses": [],
             "peerUniverse": None,
             "macro": {
@@ -1071,11 +1073,13 @@ class AnalysisEngine:
         *,
         semantic_critic=None,
         analysis_writer=None,
+        planner_client=None,
     ) -> None:
         self.db_path = Path(db_path)
         self.settings = settings or get_settings()
         self._semantic_critic = semantic_critic
         self._analysis_writer = analysis_writer
+        self._planner_client = planner_client
 
     def _runs_store_path(self) -> Path:
         return self.settings.get_analysis_runs_path(dataset_path=self.db_path)
@@ -1099,6 +1103,7 @@ class AnalysisEngine:
         *,
         event_sink=None,
     ) -> AnalysisResponse:
+        catalog = None
         try:
             try:
                 self._runs_store_path()
@@ -1115,6 +1120,7 @@ class AnalysisEngine:
                     request,
                 )
             binding = self._binding()
+            catalog = binding.catalog
             semantic_critic = self._semantic_critic
             analysis_writer = self._analysis_writer
             if semantic_critic is None:
@@ -1127,6 +1133,7 @@ class AnalysisEngine:
                         "semantic_provider_unconfigured",
                         "A configured OpenAI-compatible semantic reviewer is required before specialist execution.",
                         request,
+                        catalog=catalog,
                     )
             if analysis_writer is None:
                 from .adaptive_runtime import build_openai_analysis_writer
@@ -1138,6 +1145,7 @@ class AnalysisEngine:
                         "analysis_writer_unconfigured",
                         "A configured OpenAI-compatible specialist writer is required before specialist execution.",
                         request,
+                        catalog=catalog,
                     )
             from .adaptive_runtime import run_adaptive_analysis
 
@@ -1150,12 +1158,13 @@ class AnalysisEngine:
                 semantic_critic=semantic_critic,
                 analysis_writer=analysis_writer,
                 emit=event_sink,
+                client=self._planner_client,
             )
         except AnalysisBlocked as exc:
-            return _error_report(exc.code, exc.detail, request)
+            return _error_report(exc.code, exc.detail, request, catalog=catalog)
         except (DatasetProviderError, sqlite3.Error, OSError, ValueError) as exc:
             logger.warning("Analysis provider failed: %s", type(exc).__name__)
-            return _error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request)
+            return _error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request, catalog=catalog)
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         report = self._analyze(request)
@@ -1164,10 +1173,17 @@ class AnalysisEngine:
                 self.persist_run(request, report, events=[])
             except Exception as exc:
                 logger.error("Validated analysis report could not be persisted: %s", type(exc).__name__)
+                catalog = None
+                try:
+                    binding = self._binding()
+                    catalog = binding.catalog
+                except Exception:
+                    pass
                 return _error_report(
                     "analysis_run_persistence_failed",
                     "The operational run store could not persist the accepted report.",
                     request,
+                    catalog=catalog,
                 )
         return report
 

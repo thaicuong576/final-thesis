@@ -51,7 +51,7 @@ from thesis_data.storage import create_gold_snapshot_schema
 
 from thesis_api.main import create_app
 from thesis_api.adaptive_runtime import _API_POLICY, _RuntimeStage1Evaluator, _plan_request
-from thesis_api.schemas import AnalysisRequest, AnalysisResponse
+from thesis_api.schemas import AnalysisRequest, AnalysisResponse, CapabilitiesDTO
 from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_api.service import (
     AnalysisBlocked,
@@ -1138,12 +1138,13 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 "Compare TCB ROE in 2024 Q1 to Q4",
             ):
                 with self.subTest(query=query):
+                    # Under D-075, explicit periods list with peer comparison is rejected before retrieval
                     report = AnalysisResponse.model_validate(self.client.post(
                         "/api/analyze",
                         json={
                             "query": query,
                             "target_ticker": "TCB",
-                            "period": "2024_Q1",
+                            "periods": ["2024_Q1", "2024_Q4"],
                             "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
                         },
                     ).json())
@@ -1479,6 +1480,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual({item["id"] for item in capabilities["metrics"]}, {"bank.roe", "bank.npl_g35"})
         self.assertTrue(all("sector" not in item["label"].casefold() for item in capabilities["peerUniverses"]))
         self.assertTrue(all(item["executable"] is False for item in capabilities["peerUniverses"]))
+        cap_dto = CapabilitiesDTO.model_validate(capabilities)
+        self.assertGreater(len(cap_dto.question_types), 0)
+        self.assertEqual(cap_dto.question_types[0].id, "lookup")
+        self.assertTrue(bool(cap_dto.question_types[0].label))
+        self.assertTrue(bool(cap_dto.question_types[0].example))
         self.assertEqual(ready_response.json()["status"], "ready")
 
     def test_readiness_requires_model_configuration_and_writable_distinct_run_store(self) -> None:
@@ -1892,7 +1898,12 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(result.json()["status"], "error")
         self.assertFalse(missing.exists())
-        self.assertEqual(client.get("/api/capabilities").json()["analysis_available"], False)
+        unavail = client.get("/api/capabilities").json()
+        self.assertEqual(unavail["analysis_available"], False)
+        unavail_dto = CapabilitiesDTO.model_validate(unavail)
+        self.assertFalse(unavail_dto.analysis_available)
+        self.assertGreater(len(unavail_dto.question_types), 0)
+        self.assertEqual(unavail_dto.question_types[0].id, "lookup")
         self.assertEqual(client.get("/api/ready").status_code, 503)
         client.close()
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import json
+import re
 from typing import Any, Protocol
 
 from pydantic import ValidationError
@@ -87,6 +88,16 @@ def _value(item: Any, key: str, default: Any = None) -> Any:
     if isinstance(item, Mapping):
         return item.get(key, default)
     return getattr(item, key, default)
+
+
+def _clean_json_text(text: str) -> str:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        # Remove leading ```json or ```
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        # Remove trailing ```
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    return cleaned.strip()
 
 
 def _strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
@@ -428,9 +439,10 @@ class OpenAISemanticCritic:
         if not isinstance(output_text, str) or not output_text.strip():
             raise OpenAISemanticCriticError("openai_semantic_critic_output_missing")
 
+        clean_text = _clean_json_text(output_text)
         try:
             decoded = json.loads(
-                output_text,
+                clean_text,
                 parse_constant=_reject_json_constant,
             )
         except (TypeError, ValueError, json.JSONDecodeError) as exc:

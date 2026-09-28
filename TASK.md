@@ -1,45 +1,31 @@
-# Task manifest — fix live stream RUN_BLOCKED handling and period guidance
+# TASK Manifest: [THES-15] Parse markdown code-fenced JSON in analysis writer and semantic critic
 
-## Identity
+- **Role**: worker-api
+- **Linear Issue**: [THES-15](https://linear.app/eddiephung/issue/THES-15)
+- **Worktree**: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-15-parse-fenced-json`
+- **Branch**: `feat/THES-15-parse-fenced-json`
 
-- Branch: `feat/THES-81-live-stream-blocked-ui`
-- Base: `6097a1893d18564d8c9d4038e89561273e41dbb4` (`origin/main`)
-- Role: `worker-ui`
-- Tracker: THES-81
-- Binding contracts: `docs/DATA-CONTRACT.md`, `.agent/rules/design/README.md`, `contracts/openapi.json`
-- User Screenshot: `C:/Users/ASUS/.gemini/antigravity/brain/ffbbfbd3-2b7f-4be7-88e0-6440290341a7/.user_uploaded/media_1790529968719.png`
+## Context & Problem
+DeepSeek and other third-party OpenAI-compatible model endpoints often wrap structured JSON responses in markdown code fences, for example:
+```json
+{
+  "claim_texts": [...]
+}
+```
+Currently, in `src/thesis_api/analysis_writer.py` (and similarly in `src/thesis_data/openai_semantic_critic.py`), `output_text` is decoded directly via `json.loads(output_text)` without stripping markdown code fences.
+When the response begins with backticks (`` ` ``), `json.loads` raises `json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)`, which raises `AnalysisWriterError: analysis_writer_json_invalid` and bubbles up to `adaptive_runtime_failure: The accepted provider or bounded semantic runtime could not satisfy this request.`
 
-## Objective
-
-Fix the false-positive SSE connection error banner when a run is legitimately blocked by domain validation (`RUN_BLOCKED`, e.g. `unsupported_period`), and ensure graceful guidance on Screen 2 (Live Session) and Screen 1 (Composer).
-
-## Problem Analysis from User Screenshot
-
-In the user's screenshot (`media_1790529968719.png`):
-1. User asked: "Phân tích LLR_COVERAGE của ACB trong năm 2024."
-2. Backend correctly validated capabilities: snapshot only contains quarterly periods (`2024_Q1` .. `2024_Q4`), not full year `2024`.
-3. Backend emitted `RUN_BLOCKED` event: `unsupported_period: Period 2024 is not an exact period in the accepted snapshot.`
-4. Frontend Screen 2 (Live Session) correctly showed badge `Cần điều chỉnh yêu cầu` and the event message, BUT because the SSE stream completed without a `REPORT_READY` event, the frontend erroneously triggered its stream-ended fallback error:
-   `Lỗi kết nối Live SSE tới backend (https://final-thesis-zgwt.onrender.com): Luồng đã kết thúc nhưng API không gửi báo cáo. Phiên chưa được đánh dấu hoàn tất..` with an `API lỗi` badge and `Thử lại Live` button.
-5. This misleads the user into thinking the backend/network crashed, when in reality it is a controlled business validation rejection (`RUN_BLOCKED`).
-
-## Required Fixes
-
-1. **Frontend SSE Stream Consumer (`frontend/src/`):**
-   - When receiving a `RUN_BLOCKED` event (or terminal blocked state):
-     - Mark the session state as `blocked` / `needs_adjustment`.
-     - Do NOT trigger the "Luồng đã kết thúc nhưng API không gửi báo cáo" error banner.
-     - Hide the `API lỗi` badge and `Thử lại Live` button.
-     - Keep the `Cần điều chỉnh yêu cầu` status and prompt the user to use "← Chỉnh sửa câu hỏi".
-2. **Frontend Composer Period Selector (`frontend/src/`):**
-   - Check how periods are displayed and selected from `/api/capabilities`.
-   - Ensure the user can easily pick from the valid periods in capabilities (`2024_Q1` to `2024_Q4`).
-3. **Verification:**
-   - Run frontend lint and build: `npm run build` or `npm run lint` in `frontend/`.
-   - Ensure clean build without errors.
-
-## Acceptance Criteria
-
-1. Submitting a query with an unsupported period (e.g. `2024`) shows a clean `Cần điều chỉnh yêu cầu` state with the orchestrator's explanation without any false network error banner.
-2. The user is guided to click "← Chỉnh sửa câu hỏi" to select an exact supported period (e.g. `2024_Q4`).
-3. All frontend tests/builds pass.
+## Requirements
+1. In `src/thesis_api/analysis_writer.py`:
+   - Create a clean helper `_clean_json_text(text: str) -> str` that strips leading/trailing markdown fences (e.g., ```` ```json\n...``` ```` or ```` ```\n...``` ````) and leading/trailing whitespace.
+   - Apply `_clean_json_text` to `output_text` before calling `json.loads(...)`.
+2. In `src/thesis_data/openai_semantic_critic.py`:
+   - Also sanitize `output_text` before `json.loads(..., parse_constant=_reject_json_constant)` to safely handle markdown code fences from OpenAI/DeepSeek endpoints.
+3. Add Unit Tests:
+   - Add unit tests verifying that markdown code-fenced JSON (```` ```json ... ``` ```` and ```` ``` ... ``` ````) parses correctly into dictionary without errors for both writer and critic.
+   - Run `pytest` on relevant test files to verify everything passes.
+4. Git & PR:
+   - Commit changes with message: `fix(api): [THES-15] parse markdown code-fenced JSON in analysis writer and semantic critic`
+   - Push to `origin feat/THES-15-parse-fenced-json`
+   - Create PR to `main` using `gh pr create`
+   - Verify `gh pr checks`

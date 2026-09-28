@@ -870,6 +870,135 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
         self.assertEqual(critic.calls, 0)
 
+    def test_writer_accepts_standard_rounded_numbers_and_rejects_unsupported(self) -> None:
+        connection = sqlite3.connect(self.db_path)
+        connection.execute(
+            "UPDATE metric_observations SET value = 1.6205 WHERE observation_id = 'obs-npl'"
+        )
+        connection.commit()
+        connection.close()
+
+        # Positive case: standard 2-decimal rounded version (1.62% for 1.6205%) is accepted
+        writer_rounded = _ExplicitOfflineAnalysisWriter(
+            injected_text="The non-performing loan ratio stands at 1.62% in reported results."
+        )
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=_ExplicitOfflineAcceptingCritic(),
+                analysis_writer=writer_rounded,
+            )._analyze(AnalysisRequest(
+                query="Analyze NPL of ACB in 2024 Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "completed", report.limitations)
+        self.assertIn("1.62%", report.atomic_claims[0].statement)
+
+        # Negative case 1: ungrounded number (999%) properly fails
+        writer_unsupported = _ExplicitOfflineAnalysisWriter(
+            injected_text="The non-performing loan ratio stands at 999% in reported results."
+        )
+        critic = _ExplicitOfflineAcceptingCritic()
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=critic,
+                analysis_writer=writer_unsupported,
+            )._analyze(AnalysisRequest(
+                query="Analyze NPL of ACB in 2024 Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "error")
+        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
+        self.assertEqual(critic.calls, 0)
+
+        # Negative case 2: swapping numbers across different claims (e.g. 17.25% into NPL)
+        writer_swapped = _ExplicitOfflineAnalysisWriter(
+            injected_text="The non-performing loan ratio stands at 17.25% in reported results."
+        )
+        critic = _ExplicitOfflineAcceptingCritic()
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            report = AnalysisEngine(
+                self.db_path,
+                self.settings,
+                semantic_critic=critic,
+                analysis_writer=writer_swapped,
+            )._analyze(AnalysisRequest(
+                query="Analyze NPL of ACB in 2024 Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ))
+        self.assertEqual(report.status, "error")
+        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
+        self.assertEqual(critic.calls, 0)
+
+    def test_allowed_numbers_includes_standard_rounding_and_handles_edge_cases(self) -> None:
+        from thesis_api.adaptive_runtime import _AdaptiveRun
+
+        claim_with_val = AtomicClaim(
+            claim_id="claim-test",
+            claim_type="numeric",
+            title="ACB NPL",
+            interpretation="Reported non-performing loan ratio.",
+            limitation="Direct observation.",
+            claim_text="Reported non-performing loan ratio.",
+            scope=ClaimScope(entities=("ACB",), periods=("2024_Q4",), metric_ids=("bank.npl_g35",)),
+            support="evidence_backed",
+            assertions=(StructuredAssertion(
+                assertion_id="test-assertion",
+                assertion_type=AssertionType.METRIC_VALUE,
+                entity="ACB",
+                period="2024_Q4",
+                metric_id="bank.npl_g35",
+                asserted_value=1.6205,
+                unit="percent",
+                data_refs=(ClaimDataRef(
+                    ref_id="obs-1",
+                    ref_type="observation",
+                    entity="ACB",
+                    period="2024_Q4",
+                    metric_id="bank.npl_g35",
+                ),),
+            ),),
+            evidence_refs=(),
+            source_refs=(),
+            inference_type=InferenceType.FACT,
+        )
+
+        allowed = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_with_val,))
+        self.assertIn("1.6205", allowed)
+        self.assertIn("1.6", allowed)
+        self.assertIn("1.62", allowed)
+        self.assertIn("1.621", allowed)
+
+        # Half-up rounding case: 1.625 -> both 1.62 and 1.63 allowed
+        assertion_half = claim_with_val.assertions[0].model_copy(update={"asserted_value": 1.625})
+        claim_half = claim_with_val.model_copy(update={"assertions": (assertion_half,)})
+        allowed_half = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_half,))
+        self.assertIn("1.62", allowed_half)
+        self.assertIn("1.63", allowed_half)
+
+        # None asserted value handles cleanly
+        assertion_none = claim_with_val.assertions[0].model_copy(
+            update={"asserted_value": None, "assertion_type": AssertionType.REFERENCE_ONLY}
+        )
+        claim_none = claim_with_val.model_copy(update={"assertions": (assertion_none,)})
+        allowed_none = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_none,))
+        self.assertIsInstance(allowed_none, set)
+
     def test_writer_rejects_number_words_in_missing_claims_and_synthesis(self) -> None:
         for phrase in (
             "seventeen percent",

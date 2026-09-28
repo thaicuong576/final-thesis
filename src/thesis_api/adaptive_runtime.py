@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import unicodedata
 import uuid
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
 
 from thesis_data.acceptance import validate_stage1_claims
@@ -879,6 +879,16 @@ class _AdaptiveRun:
             for assertion in claim.assertions:
                 if assertion.asserted_value is not None:
                     allowed.update(self._numeric_tokens(str(assertion.asserted_value)))
+                    try:
+                        raw_dec = Decimal(str(assertion.asserted_value))
+                        for places in (1, 2, 3):
+                            allowed.update(self._numeric_tokens(str(round(raw_dec, places).normalize())))
+                            allowed.add(f"{raw_dec:.{places}f}")
+                            half_up = raw_dec.quantize(Decimal(f"1e-{places}"), rounding=ROUND_HALF_UP)
+                            allowed.update(self._numeric_tokens(str(half_up.normalize())))
+                            allowed.add(f"{half_up}")
+                    except (InvalidOperation, TypeError):
+                        pass
         return allowed
 
     def _validate_writer_prose(self, prose: Any, claim: AtomicClaim) -> str:

@@ -49,7 +49,11 @@ class OpenAIAnalysisWriter:
                 "critique descriptions and required actions when present. Return every requested claim exactly once.\n\n"
                 "CRITICAL CONSTRAINTS FOR PROSE:\n"
                 "- NEVER mention any year (such as 2024), quarter (such as Q4, quý 4, fourth quarter), or period words in the 'prose' field. The period is bound at the report level; any period mention will cause an immediate validation failure.\n"
-                "- Write narrative focus solely on the entity, metric concept, and asserted value without period words.\n\n"
+                "- Write narrative focus solely on the entity, metric concept, and asserted value without period words.\n"
+                "- NUMERIC CONSTRAINTS FOR PROSE:\n"
+                "  * NEVER invent numbers, counts, rankings, differences, or quantities.\n"
+                "  * If you mention any numeric value from the claim, you MUST write the EXACT asserted value verbatim as provided (e.g. if the value is 1.6205, write '1.6205%', NEVER round to '1.62%' or '1.6%'). Any rounded or altered number risks immediate rejection.\n"
+                "  * When in doubt, describe the metric qualitatively without introducing additional digits.\n\n"
                 "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with the root key 'claim_texts'. "
                 "Schema: {\"claim_texts\": [{\"claim_id\": \"exact_claim_id\", \"prose\": \"grounded narrative with NO period words\", \"supporting_claim_ids\": [\"exact_claim_id\"]}]}"
             ),

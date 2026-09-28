@@ -94,6 +94,8 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
         self.assertFalse(fake.calls[0]["store"])
         self.assertIn("CRITICAL CONSTRAINTS FOR PROSE:", fake.calls[0]["instructions"])
         self.assertIn("NEVER mention any year", fake.calls[0]["instructions"])
+        self.assertIn("NUMERIC CONSTRAINTS FOR PROSE:", fake.calls[0]["instructions"])
+        self.assertIn("write the EXACT asserted value verbatim", fake.calls[0]["instructions"])
         self.assertIn("CRITICAL CONSTRAINTS FOR SUMMARY:", fake.calls[2]["instructions"])
         self.assertIn("NEVER include any ticker symbols", fake.calls[2]["instructions"])
         self.assertIn("NEVER include digits, numbers, or spelled-out number words", fake.calls[2]["instructions"])

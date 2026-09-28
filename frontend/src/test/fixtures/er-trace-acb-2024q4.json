@@ -2,35 +2,71 @@
   "run_id": "run-profile-acb-2024q4",
   "status": "completed",
   "query": "Sức khỏe tài chính của ACB so với các ngân hàng cùng nhóm, quý 4/2024",
-  "created_at": "2026-09-28T14:30:00Z",
-  "duration_ms": 28450,
-  "arm": "arm_c",
+  "created_at": "2024-12-31T17:00:00Z",
+  "duration_ms": 10500,
+  "arm": "arm_c_adaptive_revision",
   "steps": [
     {
       "step_id": "t-1",
       "seq": 1,
       "t_ms": 120,
       "actor": "orchestrator",
-      "recipient": null,
+      "recipient": "system",
       "kind": "plan",
       "summary": "Lập kế hoạch phân tích hồ sơ doanh nghiệp ACB",
       "detail": {
         "question_type": "company_profile",
-        "planner_source": "model",
-        "rationale": "Yêu cầu đánh giá tổng thể sức khỏe tài chính ACB so với các ngân hàng cùng nhóm",
-        "entities": ["ACB"],
-        "metric_ids": ["bank.npl_g35", "bank.llr_coverage", "bank.roa", "bank.roe"],
+        "planner_source": "rules",
+        "rationale": "Yêu cầu đánh giá sức khỏe tài chính toàn diện của ACB so với các ngân hàng cùng nhóm",
+        "entities": [
+          "ACB"
+        ],
+        "metric_ids": [
+          "bank.npl_g35",
+          "bank.llr_coverage",
+          "bank.roa",
+          "bank.roe"
+        ],
         "anchor_period": "2024_Q4",
-        "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+        "periods": [
+          "2024_Q1",
+          "2024_Q2",
+          "2024_Q3",
+          "2024_Q4"
+        ],
         "tools": [
-          { "tool": "peer_position", "agent": "sector", "label": "Vị thế nhóm" },
-          { "tool": "trend", "agent": "company", "label": "Xu hướng chỉ tiêu" },
-          { "tool": "decomposition", "agent": "company", "label": "Phân rã ROE/ROA" }
+          {
+            "tool": "peer_position",
+            "agent": "company",
+            "label": "Vị thế nhóm"
+          },
+          {
+            "tool": "trend",
+            "agent": "company",
+            "label": "Diễn biến chuỗi thời gian"
+          },
+          {
+            "tool": "decomposition",
+            "agent": "company",
+            "label": "Phân rã ROE/ROA"
+          }
         ],
         "agents": [
-          { "agent": "company", "decision": "run", "reason": "Phân tích nội tại ACB" },
-          { "agent": "sector", "decision": "run", "reason": "So sánh vị thế nhóm tham chiếu" },
-          { "agent": "macro", "decision": "skip", "reason": "Chưa có dữ liệu vĩ mô liên kết" }
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Phân tích nội tại doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "run",
+            "reason": "Tính toán vị thế nhóm ngân hàng"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Chưa có dữ liệu vĩ mô kiểm định"
+          }
         ],
         "defaults_applied": []
       }
@@ -42,49 +78,87 @@
       "actor": "orchestrator",
       "recipient": "company",
       "kind": "assign",
-      "summary": "Giao nhiệm vụ phân tích nội tại cho Company Agent",
+      "summary": "Giao nhiệm vụ trích xuất fact và vẽ biểu đồ cho agent công ty",
       "detail": {
-        "task": "Tính toán và phân tích các chỉ số tài chính của ACB trong năm 2024",
-        "tools": ["Xu hướng chỉ tiêu", "Phân rã ROE/ROA"]
+        "task": "peer_position, trend, decomposition",
+        "tools": [
+          "Vị thế nhóm",
+          "Diễn biến chuỗi thời gian",
+          "Phân rã ROE/ROA"
+        ]
       }
     },
     {
       "step_id": "t-3",
       "seq": 3,
-      "t_ms": 4200,
+      "t_ms": 1500,
       "actor": "company",
       "recipient": "orchestrator",
       "kind": "tool_result",
-      "summary": "Hoàn thành tính toán các chỉ tiêu tài chính và phân rã ROE/ROA",
+      "summary": "Hoàn thành tính toán các fact và 3 tập dữ liệu",
       "detail": {
-        "tool": "decomposition",
-        "label": "Phân rã ROE/ROA",
+        "tool": "peer_position",
+        "label": "Vị thế nhóm và chuỗi thời gian",
         "facts": [
-          { "fact_id": "fact:value:ACB:2024_Q4:bank.roe", "label": "ROE Q4", "display_value": "21,75%", "source_note_no": 1 },
-          { "fact_id": "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa", "label": "ROE/ROA", "display_value": "10,25x", "source_note_no": 1 }
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roe",
+            "label": "ROE Q4",
+            "display_value": "21,75%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "ROE gap",
+            "display_value": "+3,15 pp",
+            "source_note_no": 1
+          }
         ],
         "datasets": [
-          { "dataset_id": "ds-profile-acb-scatter", "title": "Tương quan ROE và Tỷ lệ bao phủ nợ xấu Q4/2024" }
+          {
+            "dataset_id": "ds-profile-acb-scatter",
+            "title": "ma trận định vị nợ xấu và đệm bao phủ, Q4/2024"
+          },
+          {
+            "dataset_id": "ds-profile-acb-heatmap",
+            "title": "thứ hạng các chỉ tiêu tài chính của ACB so với nhóm, Q4/2024"
+          },
+          {
+            "dataset_id": "ds-profile-acb-small-multiples",
+            "title": "diễn biến 4 chỉ tiêu tài chính của các ngân hàng qua các quý năm 2024"
+          }
         ],
         "missing": [
-          { "entity_id": "ACB", "metric_id": "bank.npl_g35", "period": "2024_Q1", "reason": "data_unreported_or_unconsolidated" }
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q1",
+            "reason": "ACB quý 1/2024 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+          }
         ]
       }
     },
     {
       "step_id": "t-4",
       "seq": 4,
-      "t_ms": 7800,
+      "t_ms": 4200,
       "actor": "company",
       "recipient": "verifier",
       "kind": "draft",
-      "summary": "Soạn thảo nhận định sơ bộ về sức khỏe tài chính ACB",
+      "summary": "Soạn thảo bản nháp nhận định ban đầu",
       "detail": {
         "sentences": [
           {
-            "sentence_id": "s-draft-1",
-            "text": "ACB duy trì hiệu quả sinh lời ROE 21,75% thuộc nhóm đầu.",
-            "fact_ids": ["fact:value:ACB:2024_Q4:bank.roe"]
+            "sentence_id": "s-prof-head",
+            "text": "ACB duy trì khả năng sinh lời với ROE xếp thứ 2 trong 5 ngân hàng, nhưng đệm dự phòng bao phủ nợ xấu thấp hơn trung vị nhóm 15,69 điểm phần trăm.",
+            "fact_ids": [
+              "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roe",
+              "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "s-prof-drop-1",
+            "text": "Lợi nhuận ACB tăng mạnh nhờ tối ưu hóa chi phí hoạt động và mở rộng cho vay bán lẻ.",
+            "fact_ids": []
           }
         ]
       }
@@ -92,21 +166,21 @@
     {
       "step_id": "t-5",
       "seq": 5,
-      "t_ms": 8200,
+      "t_ms": 4800,
       "actor": "verifier",
       "recipient": "orchestrator",
       "kind": "verify",
-      "summary": "Kiểm tra tính chuẩn xác của các câu trích dẫn fact",
+      "summary": "Kiểm tra tính chuẩn xác của các câu văn: loại 1 câu vi phạm luật nhân quả",
       "detail": {
-        "sentences_checked": 6,
-        "numbers_checked": 8,
-        "numbers_matched": 8,
+        "sentences_checked": 8,
+        "numbers_checked": 14,
+        "numbers_matched": 14,
         "dropped": [
           {
-            "sentence_id": "s-dropped-1",
-            "text": "ROE của ACB tăng cao do chính sách mở rộng cho vay bán lẻ hiệu quả.",
+            "sentence_id": "s-prof-drop-1",
+            "text": "Lợi nhuận ACB tăng mạnh nhờ tối ưu hóa chi phí hoạt động và mở rộng cho vay bán lẻ.",
             "reason_code": "causal_language",
-            "reason": "Câu chứa từ ngữ chỉ nguyên nhân chưa được kiểm chứng từ dữ liệu công bố."
+            "reason": "Sử dụng từ chỉ nguyên nhân (nhờ)."
           }
         ]
       }
@@ -114,16 +188,38 @@
     {
       "step_id": "t-6",
       "seq": 6,
-      "t_ms": 11500,
+      "t_ms": 6100,
       "actor": "orchestrator",
       "recipient": "critic",
       "kind": "compose",
-      "summary": "Tập hợp các khối dự thảo báo cáo hoàn chỉnh",
+      "summary": "Lắp ráp bố cục báo cáo hoàn chỉnh",
       "detail": {
         "kind": "note",
         "blocks": [
-          { "type": "headline", "title": "Tiêu đề" },
-          { "type": "figure", "title": "Ma trận Định vị ROE và Đệm bao phủ nợ xấu Q4/2024" }
+          {
+            "type": "headline",
+            "title": "Tiêu đề chính"
+          },
+          {
+            "type": "key_points",
+            "title": "Luận điểm chủ chốt"
+          },
+          {
+            "type": "figure",
+            "title": "Hình 1. Ma trận định vị"
+          },
+          {
+            "type": "figure",
+            "title": "Hình 2. Thứ hạng các chỉ tiêu"
+          },
+          {
+            "type": "figure",
+            "title": "Hình 3. Diễn biến 4 chỉ tiêu"
+          },
+          {
+            "type": "callout",
+            "title": "Cảnh báo phân kỳ"
+          }
         ],
         "composition_source": "model"
       }
@@ -131,62 +227,67 @@
     {
       "step_id": "t-7",
       "seq": 7,
-      "t_ms": 14200,
+      "t_ms": 7800,
       "actor": "critic",
-      "recipient": "company",
-      "kind": "critique_issue",
-      "summary": "Phản biện: Cần làm rõ phân kỳ giữa ROE cao và bao phủ nợ xấu thấp",
+      "recipient": "orchestrator",
+      "kind": "cross_level_finding",
+      "summary": "Phát hiện mâu thuẫn chéo giữa sinh lời cao và đệm bao phủ thấp",
       "detail": {
-        "issue_id": "cr-1",
-        "round": 1,
-        "issue_type": "cross_level_tension",
-        "severity": "notice",
-        "target_sentence_id": "s-prof-head",
-        "target_text": "ACB duy trì hiệu quả sinh lời ROE 21,75% thuộc nhóm đầu.",
-        "evidence": "Tỷ lệ bao phủ nợ xấu của ACB chỉ đạt 76,56%, thấp hơn trung vị 92,25%",
-        "evidence_fact_ids": ["fact:value:ACB:2024_Q4:bank.llr_coverage"],
-        "required_action": "Bổ sung nhận xét về đệm dự phòng bao nợ xấu vào tiêu đề chính"
+        "finding_id": "f-profile-divergent",
+        "kind": "divergent_signals",
+        "text": "Tín hiệu sinh lời vượt trội phân kỳ với mức đệm bao phủ nợ xấu mỏng hơn trung vị ngành.",
+        "fact_ids": [
+          "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+          "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+        ]
       }
     },
     {
       "step_id": "t-8",
       "seq": 8,
-      "t_ms": 17800,
+      "t_ms": 8200,
       "actor": "critic",
-      "recipient": "orchestrator",
-      "kind": "cross_level_finding",
-      "summary": "Xác nhận phát hiện phân kỳ tín hiệu giữa Sinh lời và Đệm dự phòng",
+      "recipient": "company",
+      "kind": "critique_issue",
+      "summary": "Yêu cầu làm rõ chiều biến động quý 4 của đệm dự phòng",
       "detail": {
-        "finding_id": "f-profile-divergent",
-        "kind": "divergent_signals",
-        "text": "Phân kỳ tín hiệu giữa khả năng sinh lời vượt trội và đệm dự phòng bao nợ xấu mỏng hơn trung vị.",
-        "fact_ids": ["fact:value:ACB:2024_Q4:bank.roe", "fact:value:ACB:2024_Q4:bank.llr_coverage"]
+        "issue_id": "iss-1",
+        "round": 1,
+        "issue_type": "evidence_sufficiency",
+        "severity": "notice",
+        "target_sentence_id": "s-prof-fig3",
+        "target_text": "Đệm bao phủ nợ xấu của ACB giảm.",
+        "evidence": "delta = -2.51 pp",
+        "evidence_fact_ids": [
+          "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
+        ],
+        "required_action": "Bổ sung số liệu delta cụ thể đã được kiểm định."
       }
     },
     {
       "step_id": "t-9",
       "seq": 9,
-      "t_ms": 21300,
+      "t_ms": 9400,
       "actor": "company",
       "recipient": "verifier",
       "kind": "revision",
-      "summary": "Hiệu chỉnh câu tiêu đề theo phản biện của Critic",
+      "summary": "Cập nhật câu văn với số liệu chính xác",
       "detail": {
         "round": 1,
-        "sentence_id": "s-prof-head",
-        "before": "ACB duy trì hiệu quả sinh lời ROE 21,75% thuộc nhóm đầu.",
-        "after": "ACB duy trì hiệu quả sinh lời ROE 21,75% thuộc nhóm đầu nhưng tỷ lệ bao phủ nợ xấu 76,56% thấp hơn mức trung vị.",
+        "sentence_id": "s-prof-fig3",
+        "before": "Đệm bao phủ nợ xấu của ACB giảm.",
+        "after": "Trong quý 4, đệm bao phủ nợ xấu của ACB giảm 2,51 điểm phần trăm so với quý 3.",
         "verified": true
       }
     },
     {
       "step_id": "t-10",
       "seq": 10,
-      "t_ms": 25100,
+      "t_ms": 9900,
       "actor": "critic",
       "recipient": "orchestrator",
       "kind": "accept",
-      "summary": "Chấp thuận bản hiệu chỉnh sau vòng 1",
+      "summary": "Phê duyệt toàn bộ báo cáo sau vòng 1",
       "detail": {
         "round": 1,
         "open_issues": 0
@@ -195,14 +296,14 @@
     {
       "step_id": "t-11",
       "seq": 11,
-      "t_ms": 28450,
+      "t_ms": 10500,
       "actor": "orchestrator",
-      "recipient": null,
+      "recipient": "system",
       "kind": "report_ready",
-      "summary": "Hoàn tất báo cáo và sẵn sàng kết xuất",
+      "summary": "Báo cáo sẵn sàng cung cấp cho người dùng",
       "detail": {
         "report_id": "rep-profile-acb-2024q4",
-        "duration_ms": 28450,
+        "duration_ms": 10500,
         "model_calls": 3
       }
     }

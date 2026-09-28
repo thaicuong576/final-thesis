@@ -119,7 +119,9 @@ class OpenAIAnalysisWriter:
                 "- You must write a strictly QUALITATIVE executive summary.\n"
                 "- NEVER include any ticker symbols (e.g., do NOT write MBB, VCB, ACB, TCB, VPB) or metric acronyms (do NOT write NPL, ROE, ROA, LLR). Use general descriptive terms such as 'the institution', 'credit quality', 'asset health', 'earnings profile'.\n"
                 "- NEVER include digits, numbers, or spelled-out number words (do NOT write digits like 1.5, or words like one, two, half, percent, percentage, etc.).\n"
-                "- NEVER write any years, quarters, dates, or period labels.\n\n"
+                "- NEVER write any years, quarters, dates, or period labels.\n"
+                "- NEVER include temporal change or trend words (do NOT write words like: improve, improved, improves, improving, deteriorate, deteriorated, deteriorates, deteriorating, increase, increased, increases, increasing, decrease, decreased, decreases, decreasing, trend, trending, momentum, rising, fell, falling, decline, declined, declines, declining, growth, grew, shrank, tăng, giảm, cải thiện, xấu đi, xu hướng, tăng trưởng, suy giảm). Describe only the static standing or condition, not changes over time.\n"
+                "- NEVER include causal explanation or attribution words (do NOT write words like: because, due to, driven by, caused by, cause, causes, leads to, resulted from, as a result, do, bởi, vì, nhờ, khiến, dẫn đến). State observations without attributing causal mechanisms.\n\n"
                 "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
                 "Schema: {\"summary\": \"qualitative executive overview\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
             ),

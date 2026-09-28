@@ -4,16 +4,19 @@ import { FileQuestion, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import {
-  AnalysisReportWorkspace,
+  LegacyReport,
   getReportById,
   SAMPLE_REPORTS,
   type AnalysisReport
 } from '@/features/analysis-report';
+import { AdaptiveReport, type AdaptiveReportResponse } from '@/features/equity-report';
 import { getApiBaseUrl, normalizeAnalysisResponseToReport } from '@/features/analysis-session/useAnalysisSessionStream';
 import { ReportErrorBoundary } from './ReportErrorBoundary';
 
+type ReportUnion = (AnalysisReport & { report_version?: string }) | AdaptiveReportResponse;
+
 interface ReportPageProps {
-  report?: AnalysisReport;
+  report?: ReportUnion;
 }
 
 export function ReportPage({ report: propReport }: ReportPageProps) {
@@ -36,10 +39,10 @@ function RouterBoundReportPage({
   propReport
 }: {
   id?: string;
-  propReport?: AnalysisReport;
+  propReport?: ReportUnion;
 }) {
   const location = useLocation();
-  const stateReport = (location.state as { report?: AnalysisReport } | null)?.report;
+  const stateReport = (location.state as { report?: ReportUnion } | null)?.report;
   return (
     <ReportPageContent
       id={id}
@@ -55,15 +58,15 @@ function ReportPageContent({
   stateReport
 }: {
   id?: string;
-  propReport?: AnalysisReport;
-  stateReport?: AnalysisReport;
+  propReport?: ReportUnion;
+  stateReport?: ReportUnion;
 }) {
   // Synchronous resolution priority:
   // 1. Explicit prop override (used by tests)
   // 2. Navigation location state from live analysis session
   // 3. Cached live analysis report in sessionStorage
   // 4. Explicitly routed demo samples
-  const initialSyncReport = useMemo<AnalysisReport | null>(() => {
+  const initialSyncReport = useMemo<ReportUnion | null>(() => {
     if (propReport) return propReport;
     if (stateReport?.report_id) return stateReport;
 
@@ -71,7 +74,7 @@ function ReportPageContent({
       const stored = window.sessionStorage.getItem('current_analysis_report');
       if (stored) {
         try {
-          const parsed = JSON.parse(stored) as AnalysisReport;
+          const parsed = JSON.parse(stored) as ReportUnion;
           if (
             parsed?.report_id &&
             (id === 'live-session' || parsed.report_id === id || !id)
@@ -91,16 +94,19 @@ function ReportPageContent({
     return null;
   }, [propReport, stateReport, id]);
 
+  const [retryCount, setRetryCount] = useState(0);
   const [fetchState, setFetchState] = useState<{
     id: string | undefined;
-    report: AnalysisReport | null;
+    report: ReportUnion | null;
     isLoading: boolean;
     isNotFound: boolean;
+    isError: boolean;
   }>({
     id,
     report: null,
     isLoading: Boolean(id && !initialSyncReport),
-    isNotFound: false
+    isNotFound: false,
+    isError: false
   });
 
   useEffect(() => {
@@ -111,6 +117,13 @@ function ReportPageContent({
     let isMounted = true;
 
     const fetchReport = async () => {
+      setFetchState((prev) => ({
+        ...prev,
+        isLoading: true,
+        isNotFound: false,
+        isError: false
+      }));
+
       try {
         const baseUrl = getApiBaseUrl();
         const origin =
@@ -134,25 +147,43 @@ function ReportPageContent({
         if (res.ok) {
           const data = await res.json();
           const reportData = (data.report || data) as Record<string, unknown>;
-          const normalized = normalizeAnalysisResponseToReport(reportData);
+
+          // If er-report-v1, keep as AdaptiveReportResponse; otherwise normalize to legacy
+          const normalized: ReportUnion =
+            reportData.report_version === 'er-report-v1'
+              ? (reportData as unknown as AdaptiveReportResponse)
+              : normalizeAnalysisResponseToReport(reportData);
+
           if (isMounted) {
             setFetchState({
               id,
               report: normalized,
               isLoading: false,
-              isNotFound: false
+              isNotFound: false,
+              isError: false
             });
           }
           return;
         }
 
         if (isMounted) {
-          setFetchState({
-            id,
-            report: null,
-            isLoading: false,
-            isNotFound: true
-          });
+          if (res.status === 404) {
+            setFetchState({
+              id,
+              report: null,
+              isLoading: false,
+              isNotFound: true,
+              isError: false
+            });
+          } else {
+            setFetchState({
+              id,
+              report: null,
+              isLoading: false,
+              isNotFound: false,
+              isError: true
+            });
+          }
         }
       } catch (err) {
         console.warn('Failed to fetch report from API:', err);
@@ -161,7 +192,8 @@ function ReportPageContent({
             id,
             report: null,
             isLoading: false,
-            isNotFound: true
+            isNotFound: false,
+            isError: true
           });
         }
       }
@@ -172,11 +204,12 @@ function ReportPageContent({
     return () => {
       isMounted = false;
     };
-  }, [id, initialSyncReport]);
+  }, [id, initialSyncReport, retryCount]);
 
   const activeReport = propReport || initialSyncReport || (fetchState.id === id ? fetchState.report : null);
   const isLoading = !initialSyncReport && Boolean(id) && (fetchState.id !== id || fetchState.isLoading);
   const isNotFound = !initialSyncReport && fetchState.id === id && fetchState.isNotFound;
+  const isError = !initialSyncReport && fetchState.id === id && fetchState.isError;
 
   if (isLoading) {
     return (
@@ -199,6 +232,47 @@ function ReportPageContent({
               <p className="text-xs text-ink-secondary max-w-md mx-auto leading-relaxed">
                 Đang truy xuất bản báo cáo và số liệu kiểm chứng từ cơ sở dữ liệu SQLite...
               </p>
+            </div>
+          </div>
+        </div>
+      </WorkspaceShell>
+    );
+  }
+
+  if (isError) {
+    return (
+      <WorkspaceShell
+        activeSection="reports"
+        context={
+          <div className="flex items-center justify-between w-full text-xs font-mono">
+            <span className="font-bold text-ink">BÁO CÁO PHÂN TÍCH</span>
+            <span className="text-[#c84b3f]">LỖI TẢI BÁO CÁO</span>
+          </div>
+        }
+      >
+        <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[640px] p-8 border border-line bg-card rounded-lg text-center space-y-4 shadow-sm">
+            <div className="inline-flex items-center justify-center size-12 rounded-full bg-surface-secondary border border-border text-danger mx-auto">
+              <FileQuestion className="size-6 text-[#c84b3f]" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-base font-bold text-ink">Không thể tải báo cáo phân tích</h2>
+              <p className="text-xs text-ink-secondary leading-relaxed">
+                Đã xảy ra lỗi khi kết nối tới máy chủ API để tải báo cáo mã{' '}
+                <code className="font-mono bg-surface-secondary px-1.5 py-0.5 rounded text-ink border border-border">{id}</code>.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-3">
+              <Button
+                onClick={() => setRetryCount((c) => c + 1)}
+                className="bg-amber text-ink border border-amber-border hover:bg-amber-hover text-xs font-semibold h-8 px-4"
+              >
+                <RotateCw className="size-3.5 mr-1.5" />
+                Thử lại
+              </Button>
+              <Button asChild variant="outline" className="border-line text-xs font-medium h-8 px-4">
+                <Link to="/reports">Xem danh sách báo cáo</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -242,13 +316,21 @@ function ReportPageContent({
     );
   }
 
+  const isAdaptive = (activeReport as { report_version?: string })?.report_version === 'er-report-v1';
+  const legacyReport = activeReport as AnalysisReport;
+  const adaptiveReport = activeReport as AdaptiveReportResponse;
+
   const peerText =
-    activeReport.peer_tickers && activeReport.peer_tickers.length > 0
-      ? ` & ${activeReport.peer_tickers.join(', ')}`
+    legacyReport.peer_tickers && legacyReport.peer_tickers.length > 0
+      ? ` & ${legacyReport.peer_tickers.join(', ')}`
       : '';
-  const scopeLabel = [activeReport.target_ticker, peerText ? peerText.trim() : '', activeReport.period]
-    .filter(Boolean)
-    .join(' · ') || 'Phạm vi chưa được API công bố';
+  const scopeLabel =
+    [legacyReport.target_ticker, peerText ? peerText.trim() : '', legacyReport.period]
+      .filter(Boolean)
+      .join(' · ') ||
+    (isAdaptive ? adaptiveReport.report_spec?.note_label : '') ||
+    'Phạm vi chưa được API công bố';
+
   const isDemo = SAMPLE_REPORTS.some(
     (sample) => (sample.slug === id || sample.id === id) && sample.report.report_id === activeReport.report_id
   );
@@ -270,7 +352,11 @@ function ReportPageContent({
         </div>
       }
     >
-      <AnalysisReportWorkspace report={activeReport} isDemo={isDemo} />
+      {isAdaptive ? (
+        <AdaptiveReport report={adaptiveReport} />
+      ) : (
+        <LegacyReport report={legacyReport} isDemo={isDemo} />
+      )}
     </WorkspaceShell>
   );
 }

@@ -1,0 +1,70 @@
+import React from 'react';
+import { useEquityReport } from './useEquityReport';
+import { fmtPeriod, fmtPeriodRange } from '@/shared/lib/formatting';
+import type { QuestionType } from '../model/types';
+
+const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  lookup: 'Tra cứu nhanh · Ngân hàng',
+  company_profile: 'Ghi chú doanh nghiệp · Ngân hàng',
+  ranking: 'Ghi chú sàng lọc · Ngân hàng',
+  trend: 'Ghi chú xu hướng · Ngân hàng',
+  head_to_head: 'Ghi chú so sánh · Ngân hàng',
+  sector_theme: 'Ghi chú toàn ngành · Ngân hàng',
+  relationship: 'Ghi chú quan hệ · Ngân hàng'
+};
+
+export const ReportMasthead: React.FC = () => {
+  const { report, datasets, highlight } = useEquityReport();
+  const qType = (report.question_type || 'lookup') as QuestionType;
+
+  const noteLabel =
+    report.report_spec?.note_label ||
+    QUESTION_TYPE_LABELS[qType] ||
+    'Báo cáo phân tích';
+
+  // Format date
+  const rawDate = (report as { created_at?: string }).created_at;
+  const dateStr = rawDate
+    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' }).format(new Date(rawDate))
+    : '28/09/2026';
+
+  // Period label
+  const allPeriods: string[] = datasets.flatMap((d) => d.periods || []);
+  const uniquePeriods: string[] = Array.from(new Set(allPeriods));
+  const fallbackPeriod = String((report as { period?: string }).period || '2024_Q4');
+  const periodLabel = uniquePeriods.length > 1
+    ? fmtPeriodRange(uniquePeriods)
+    : fmtPeriod(uniquePeriods[0] || fallbackPeriod);
+
+  // Badges: ranking has NO entity badge; head_to_head has 2-3 badges; others show focus entities
+  const showBadges = qType !== 'ranking' && highlight.length > 0;
+
+  return (
+    <header className="border-t-2 border-text-primary pt-2 mb-4 font-sans">
+      <div className="flex justify-between items-baseline text-xs text-text-secondary">
+        <span className="font-medium text-text-primary">{noteLabel}</span>
+        <span className="text-text-muted font-mono">{dateStr}</span>
+      </div>
+
+      <div className="flex items-center gap-2.5 mt-3">
+        {showBadges && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {highlight.map((code: string) => (
+              <span
+                key={code}
+                className="text-xs font-semibold px-2 py-0.5 border border-border-strong rounded font-mono text-text-primary bg-surface-primary"
+              >
+                {code}
+              </span>
+            ))}
+          </div>
+        )}
+        {periodLabel && (
+          <span className="text-xs text-text-muted font-medium">
+            {periodLabel}
+          </span>
+        )}
+      </div>
+    </header>
+  );
+};

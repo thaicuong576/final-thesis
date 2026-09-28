@@ -1,6 +1,7 @@
 -- Application persistence only: apply to ANALYSIS_RUNS_DB_PATH.
 -- This schema must never be applied to SQLITE_DB_PATH / an accepted snapshot.
 -- Existing accepted dataset bytes and schemas are not migrated by this contract.
+-- Idempotent runtime migration is handled in ER-5; failed runs are persisted; target_ticker and period remain NOT NULL (use empty string '' when blocked before planning).
 CREATE TABLE IF NOT EXISTS analysis_runs (
     run_id TEXT PRIMARY KEY,
     created_at TEXT NOT NULL,
@@ -12,8 +13,17 @@ CREATE TABLE IF NOT EXISTS analysis_runs (
     report_json TEXT,
     events_json TEXT,
     model_used TEXT,
-    latency_ms INTEGER
+    latency_ms INTEGER,
+    trace_json TEXT,
+    error_code TEXT,
+    duration_ms INTEGER,
+    model_calls INTEGER,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    arm TEXT,
+    question_type TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_analysis_runs_target ON analysis_runs(target_ticker, period);
+

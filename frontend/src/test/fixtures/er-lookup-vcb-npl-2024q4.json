@@ -1,0 +1,348 @@
+{
+  "report_id": "rep-lookup-vcb-npl-2024q4",
+  "status": "completed",
+  "report_version": "er-report-v1",
+  "question_type": "lookup",
+  "analysis_plan": null,
+  "macro_context": null,
+  "sector_benchmark": null,
+  "company_insights": [],
+  "cross_level_critique": [],
+  "atomic_claims": [],
+  "evidence_trail": [],
+  "revision_summary": null,
+  "limitations": [],
+  "synthesis_summary": "Tỷ lệ nợ xấu của VCB quý 4/2024 đạt 0,96%, giữ vị trí thấp nhất nhóm ngân hàng tham chiếu.",
+  "synthesis_supporting_claim_ids": [],
+  "facts": [
+    {
+      "fact_id": "fact:value:VCB:2024_Q4:bank.npl_g35",
+      "fact_type": "value",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 0.9636,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VCB:2024_Q3:bank.npl_g35",
+      "fact_type": "value",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q3",
+      "from_period": null,
+      "value": 1.2228,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.npl_g35"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
+      "fact_type": "peer_rank",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 1.0,
+      "unit": "rank",
+      "rank_better": 1,
+      "rank_desc": 5,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": [
+        "fact:value:VCB:2024_Q4:bank.npl_g35"
+      ]
+    },
+    {
+      "fact_id": "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35",
+      "fact_type": "delta",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": "2024_Q3",
+      "value": -0.2592000000000001,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "period-delta-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": [
+        "fact:value:VCB:2024_Q3:bank.npl_g35",
+        "fact:value:VCB:2024_Q4:bank.npl_g35"
+      ]
+    },
+    {
+      "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35",
+      "fact_type": "peer_median",
+      "entity_id": null,
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 1.5122,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": 5,
+      "formula_version": "peer-median-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": []
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "ds-vcb-npl-lookup",
+      "shape": "kpi",
+      "title": "tỷ lệ nợ xấu VCB, Q4/2024",
+      "produced_by": {
+        "tool": "lookup",
+        "agent": "company"
+      },
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "periods": [
+        "2024_Q4",
+        "2024_Q3"
+      ],
+      "highlight_entity_ids": [
+        "VCB"
+      ],
+      "rows": [
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 0.9636,
+          "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "rank_better": 1,
+          "rank_desc": 5,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q3",
+          "status": "valid",
+          "value": 1.2228,
+          "observation_id": "expansion:official-VCB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+          "rank_better": null,
+          "rank_desc": null,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [
+        {
+          "kind": "median",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "value": 1.5122,
+          "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35"
+        }
+      ],
+      "allowed_charts": [
+        "kpi_strip"
+      ]
+    },
+    {
+      "dataset_id": "ds-vcb-npl-peers-q4",
+      "shape": "ranked_list",
+      "title": "tỷ lệ nợ xấu các ngân hàng, Q4/2024",
+      "produced_by": {
+        "tool": "ranking",
+        "agent": "sector"
+      },
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "periods": [
+        "2024_Q4"
+      ],
+      "highlight_entity_ids": [
+        "VCB"
+      ],
+      "rows": [
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 0.9636,
+          "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "rank_better": 1,
+          "rank_desc": 5,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "TCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.17,
+          "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "rank_better": 2,
+          "rank_desc": 4,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "ACB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.5122,
+          "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "rank_better": 3,
+          "rank_desc": 3,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "MBB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.6205,
+          "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "rank_better": 4,
+          "rank_desc": 2,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 4.1956,
+          "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+          "rank_better": 5,
+          "rank_desc": 1,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [
+        {
+          "kind": "median",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "value": 1.5122,
+          "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35"
+        }
+      ],
+      "allowed_charts": [
+        "ranked_bar",
+        "comparison_table"
+      ]
+    }
+  ],
+  "report_spec": {
+    "kind": "answer_card",
+    "note_label": "Tra cứu nhanh",
+    "blocks": [
+      {
+        "type": "answer",
+        "value_fact_id": "fact:value:VCB:2024_Q4:bank.npl_g35",
+        "sentences": [
+          {
+            "sentence_id": "s-ans-1",
+            "text": "Tỷ lệ nợ xấu của VCB quý 4/2024 đạt 0,96%.",
+            "fact_ids": [
+              "fact:value:VCB:2024_Q4:bank.npl_g35"
+            ],
+            "author": "company",
+            "source": "model",
+            "revision": 0
+          },
+          {
+            "sentence_id": "s-ans-2",
+            "text": "Mức nợ xấu này thấp nhất trong nhóm 5 ngân hàng và giảm 0,26 điểm phần trăm so với quý 3/2024.",
+            "fact_ids": [
+              "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
+              "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
+            ],
+            "author": "company",
+            "source": "model",
+            "revision": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signals": [],
+  "cross_level_findings": [],
+  "narrative_audit": {
+    "sentences_checked": 2,
+    "sentences_accepted": 2,
+    "sentences_dropped": [],
+    "numbers_checked": 3,
+    "numbers_matched": 3,
+    "blocks_dropped": [],
+    "composition_source": "model"
+  },
+  "source_notes": [
+    {
+      "note_no": 1,
+      "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+      "locator": "tr. 30 · note customer loans",
+      "fact_ids": [
+        "fact:value:VCB:2024_Q4:bank.npl_g35",
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
+        "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
+      ]
+    },
+    {
+      "note_no": 2,
+      "source_id": "expansion:official-VCB-2024-Q3-consolidated",
+      "title": "VCB · Báo cáo tài chính quý 3/2024",
+      "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20241030---VCB---BCTC-Hop-nhat-Q32024.pdf?ts=00010101000000",
+      "locator": "tr. 27 · note customer loans",
+      "fact_ids": [
+        "fact:value:VCB:2024_Q3:bank.npl_g35",
+        "fact:delta:VCB:2024_Q3_to_2024_Q4:bank.npl_g35"
+      ]
+    }
+  ],
+  "error": null
+}

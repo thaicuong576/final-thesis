@@ -646,3 +646,50 @@ or streamed analysis must not change the dataset schema, bytes or sidecars.
 Readiness must account for required writer/critic configuration as well as
 accepted-data availability; a missing model configuration cannot advertise a
 runnable analysis service. Secret contents never appear in readiness output.
+
+## Report v2 (er-report-v1) and verified adaptive analytical contracts
+
+Decision D-075 introduces the Report v2 (`er-report-v1`) analytical contract for query-adaptive equity-research reporting, deterministic analytical tools, verified narrative generation, and persisted execution traces.
+
+### 1. Question Types and Analytical Planning
+The system classifies natural-language queries into a closed set of question types:
+- `lookup`: Exact factual queries for a specific entity, metric, and period.
+- `company_profile`: Multi-dimensional CAMEL health and peer positioning for a single entity.
+- `ranking`: Cross-entity ranking on one or more metrics across a peer universe.
+- `trend`: Longitudinal evolution for an entity across 2 to 4 canonical periods.
+- `head_to_head`: Multi-metric comparison between two or more specific institutions.
+- `sector_theme` / `relationship`: Extended group dispersion and metric correlation analyses.
+
+The Orchestrator selects tools from a catalog, and code validates and freezes the plan before data fetching. If planning fails, deterministic rules-based planning is applied.
+
+### 2. Deterministic Analysis Tools and Fact Contracts
+Every numeric claim permitted in Report v2 must be generated as a typed `Fact` by a deterministic tool running over accepted observations.
+- Each `Fact` carries `fact_id`, `fact_type`, `metric_id`, `period`, `value`, `unit`, `formula_version`, and `input_observation_ids`.
+- Derived facts (such as ratios or rankings) carry explicit `formula_version` and input observation IDs.
+- Direct observation claims at the anchor period are verified against Stage-1 acceptance. Context period inputs are reconciled through accepted observations.
+
+### 3. Datasets for Exhibits and Tables
+Visual exhibits and comparison tables are driven by structured `Dataset` payloads rather than fixed prose blocks:
+- Dataset rows preserve raw accepted observation values directly from providers without model intervention.
+- Missing cells are represented explicitly with `status: "missing"`, `value: null`, and a typed `missing_reason`.
+- Reference lines provide benchmark context (such as peer medians).
+- Code populates `allowed_charts` based on strict dataset shape compatibility.
+
+### 4. ReportSpec and Modular Block Composition
+The final report structure is defined as a `ReportSpec` (`kind: "answer_card" | "note"`):
+- Closed block catalog: `answer` (answer cards), `headline`, `key_points`, `section`, `figure`, `callout`, and `table`.
+- Figure blocks bind directly to a `dataset_id` and specify one of 8 compatible chart types (`kpi_strip`, `ranked_bar`, `line_trend`, `small_multiples`, `scatter`, `rank_heatmap`, `grouped_bar`, `comparison_table`).
+- If an assembled specification violates chart or dataset constraints, it falls back to the deterministic default layout for the query type.
+
+### 5. Verified Narrative Model
+Narrative commentary uses sentence-level fact verification:
+- Each sentence must cite one or more valid `fact_ids`.
+- The verifier validates that numbers, ranks, entities, periods, and directional trend/comparison words match the cited facts.
+- Explicit causal claims and investment advice are rejected.
+- Invalid sentences are individually dropped and recorded in `NarrativeAudit` (`sentences_dropped`). Execution continues without failing the entire run.
+
+### 6. Persisted Run Trace
+Every run, whether successful, partially accepted, or blocked/failed, is persisted with structured `TraceStep` records.
+- Traces capture execution milestones (`plan`, `assign`, `tool_result`, `draft`, `verify`, `compose`, `critique_issue`, `cross_level_finding`, `revision`, `accept`, `report_ready`, `blocked`).
+- Raw model prompts and internal chain-of-thought are strictly excluded.
+

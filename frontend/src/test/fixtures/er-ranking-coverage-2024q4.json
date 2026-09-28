@@ -1,0 +1,785 @@
+{
+  "report_id": "rep-ranking-coverage-2024q4",
+  "status": "completed",
+  "report_version": "er-report-v1",
+  "question_type": "ranking",
+  "analysis_plan": null,
+  "macro_context": null,
+  "sector_benchmark": null,
+  "company_insights": [],
+  "cross_level_critique": [],
+  "atomic_claims": [],
+  "evidence_trail": [],
+  "revision_summary": null,
+  "limitations": [],
+  "synthesis_summary": "VCB dẫn đầu ngành về tỷ lệ bao phủ nợ xấu trong khi VPB có mức đệm dự phòng mỏng nhất.",
+  "synthesis_supporting_claim_ids": [],
+  "facts": [
+    {
+      "fact_id": "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_rank",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 1.0,
+      "unit": "rank",
+      "rank_better": 1,
+      "rank_desc": 1,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:TCB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_rank",
+      "entity_id": "TCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 2.0,
+      "unit": "rank",
+      "rank_better": 2,
+      "rank_desc": 2,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_rank",
+      "entity_id": "ACB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 4.0,
+      "unit": "rank",
+      "rank_better": 4,
+      "rank_desc": 4,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:MBB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_rank",
+      "entity_id": "MBB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 3.0,
+      "unit": "rank",
+      "rank_better": 3,
+      "rank_desc": 3,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_rank",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 5.0,
+      "unit": "rank",
+      "rank_better": 5,
+      "rank_desc": 5,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.npl_g35",
+      "fact_type": "peer_rank",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 1.0,
+      "unit": "rank",
+      "rank_better": 1,
+      "rank_desc": 5,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35",
+      "fact_type": "peer_rank",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 5.0,
+      "unit": "rank",
+      "rank_better": 5,
+      "rank_desc": 1,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa",
+      "fact_type": "peer_rank",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.roa",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 5.0,
+      "unit": "rank",
+      "rank_better": 5,
+      "rank_desc": 5,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.roa",
+      "fact_type": "peer_rank",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.roa",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 4.0,
+      "unit": "rank",
+      "rank_better": 4,
+      "rank_desc": 4,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "ratio_to_median",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 2.420757433191253,
+      "unit": "x",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "ratio-to-median-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:ratio_to_median:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "ratio_to_median",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 0.6089525671989975,
+      "unit": "x",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "ratio-to-median-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:spread:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "spread",
+      "entity_id": null,
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 167.1361,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": 5,
+      "formula_version": "spread-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VCB:2024_Q4:bank.llr_coverage",
+      "fact_type": "value",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 223.311,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q4:bank.llr_coverage",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 56.1749,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": [
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_median",
+      "entity_id": null,
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 92.2484,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": 5,
+      "formula_version": "peer-median-v1",
+      "input_observation_ids": [
+        "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+        "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "ds-ranked-coverage-2024q4",
+      "shape": "ranked_list",
+      "title": "tỷ lệ bao phủ nợ xấu, Q4/2024",
+      "produced_by": {
+        "tool": "ranking",
+        "agent": "sector"
+      },
+      "metric_ids": [
+        "bank.llr_coverage"
+      ],
+      "periods": [
+        "2024_Q4"
+      ],
+      "highlight_entity_ids": [
+        "VCB"
+      ],
+      "rows": [
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 223.311,
+          "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "rank_better": 1,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "TCB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 113.8,
+          "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "rank_better": 2,
+          "rank_desc": 2,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "MBB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 92.2484,
+          "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+          "rank_better": 3,
+          "rank_desc": 3,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "ACB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 76.5591,
+          "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+          "rank_better": 4,
+          "rank_desc": 4,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 56.1749,
+          "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+          "rank_better": 5,
+          "rank_desc": 5,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [
+        {
+          "kind": "median",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "value": 92.2484,
+          "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+        }
+      ],
+      "allowed_charts": [
+        "ranked_bar",
+        "comparison_table"
+      ]
+    },
+    {
+      "dataset_id": "ds-ranking-context-metrics",
+      "shape": "peer_table",
+      "title": "chỉ tiêu chất lượng nợ và sinh lời bổ trợ, Q4/2024",
+      "produced_by": {
+        "tool": "ranking",
+        "agent": "sector"
+      },
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.roa"
+      ],
+      "periods": [
+        "2024_Q4"
+      ],
+      "highlight_entity_ids": [
+        "VCB",
+        "VPB"
+      ],
+      "rows": [
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 0.9636,
+          "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "rank_better": 1,
+          "rank_desc": 5,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "TCB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.17,
+          "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "rank_better": 2,
+          "rank_desc": 4,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "ACB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.5122,
+          "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "rank_better": 3,
+          "rank_desc": 3,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "MBB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.6205,
+          "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "rank_better": 4,
+          "rank_desc": 2,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.npl_g35",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 4.1956,
+          "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+          "rank_better": 5,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.roa",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.7249,
+          "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+          "rank_better": 5,
+          "rank_desc": 5,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "TCB",
+          "metric_id": "bank.roa",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 2.4,
+          "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+          "rank_better": 1,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "ACB",
+          "metric_id": "bank.roa",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 2.1215,
+          "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+          "rank_better": 3,
+          "rank_desc": 3,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "MBB",
+          "metric_id": "bank.roa",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 2.2135,
+          "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "rank_better": 2,
+          "rank_desc": 2,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.roa",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 1.8361,
+          "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa",
+          "rank_better": 4,
+          "rank_desc": 4,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [],
+      "allowed_charts": [
+        "rank_heatmap",
+        "comparison_table"
+      ]
+    }
+  ],
+  "report_spec": {
+    "kind": "note",
+    "note_label": "Ghi chú sàng lọc · Ngân hàng",
+    "blocks": [
+      {
+        "type": "headline",
+        "sentence": {
+          "sentence_id": "s-rank-head",
+          "text": "VCB có đệm bao phủ nợ xấu cao nhất, gấp 2,42 lần trung vị nhóm.",
+          "fact_ids": [
+            "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+            "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage"
+          ],
+          "author": "sector",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "figure",
+        "figure_no": 1,
+        "chart": "ranked_bar",
+        "dataset_id": "ds-ranked-coverage-2024q4",
+        "title": "tỷ lệ bao phủ nợ xấu, Q4/2024",
+        "takeaway": {
+          "sentence_id": "s-rank-fig",
+          "text": "VCB dẫn đầu nhóm với tỷ lệ bao phủ 223,31%, trong khi VPB xếp vị trí thấp nhất ở mức 56,17%.",
+          "fact_ids": [
+            "fact:value:VCB:2024_Q4:bank.llr_coverage",
+            "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+            "fact:value:VPB:2024_Q4:bank.llr_coverage",
+            "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage"
+          ],
+          "author": "sector",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "key_points",
+        "items": [
+          {
+            "title": "Chênh lệch lớn",
+            "sentences": [
+              {
+                "sentence_id": "s-rank-kp1",
+                "text": "Khoảng cách giữa ngân hàng dẫn đầu và thấp nhất đạt 167,14 điểm phần trăm.",
+                "fact_ids": [
+                  "fact:spread:sector:bank:2024_Q4:bank.llr_coverage",
+                  "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+                  "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage"
+                ],
+                "author": "sector",
+                "source": "model",
+                "revision": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "tone": "notice",
+        "title": "Lưu ý chéo",
+        "finding_id": "f-cross-extreme-vcb-vpb",
+        "sentences": [
+          {
+            "sentence_id": "s-rank-call",
+            "text": "VCB xếp thứ nhất về bao phủ nợ xấu nhưng xếp thứ 5 về ROA; VPB xếp thứ 5 ở cả bao phủ và nợ xấu.",
+            "fact_ids": [
+              "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+              "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa",
+              "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+              "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35"
+            ],
+            "author": "critic",
+            "source": "model",
+            "revision": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signals": [],
+  "cross_level_findings": [
+    {
+      "finding_id": "f-cross-extreme-vcb-vpb",
+      "kind": "cross_metric_extreme",
+      "severity": "notice",
+      "text": "VCB dẫn đầu bao phủ nhưng xếp cuối ROA; VPB đứng cuối ở cả hai chỉ tiêu rủi ro tín dụng.",
+      "fact_ids": [
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa",
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35"
+      ],
+      "status": "confirmed"
+    }
+  ],
+  "narrative_audit": {
+    "sentences_checked": 4,
+    "sentences_accepted": 4,
+    "sentences_dropped": [],
+    "numbers_checked": 7,
+    "numbers_matched": 7,
+    "blocks_dropped": [],
+    "composition_source": "model"
+  },
+  "source_notes": [
+    {
+      "note_no": 1,
+      "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+      "locator": "tr. 30, 31 · note customer loans · note loan loss provision",
+      "fact_ids": [
+        "fact:value:VCB:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:spread:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 2,
+      "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+      "title": "VPB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+      "locator": "tr. 44 · 11",
+      "fact_ids": [
+        "fact:value:VPB:2024_Q4:bank.llr_coverage",
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:ratio_to_median:VPB:sector:bank:2024_Q4:bank.llr_coverage",
+        "fact:spread:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 3,
+      "source_id": "official-TCB-2024-FY-results-presentation",
+      "title": "TCB · Tài liệu công bố cho nhà đầu tư 2024",
+      "url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+      "locator": "tr. 30 · 4Q24 financial highlights",
+      "fact_ids": [
+        "fact:peer_rank:TCB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 4,
+      "source_id": "expansion:official-MBB-2024-Q4-consolidated",
+      "title": "MBB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.mbbank.com.vn/resources/files/NhaDauTu/2025/2401/20250124---mbb---cbtt-bctc-hop-nhat-q4-2024-tieng-viet.pdf",
+      "locator": "tr. 21, 24 · note 5 customer loans · note 6 credit risk provision",
+      "fact_ids": [
+        "fact:peer_rank:MBB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 5,
+      "source_id": "official-ACB-2024-Q4-consolidated",
+      "title": "ACB · Báo cáo tài chính quý 4/2024",
+      "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+      "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+      "fact_ids": [
+        "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "note_no": 6,
+      "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+      "title": "VCB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+      "locator": "consolidated balance sheet · consolidated income statement",
+      "fact_ids": [
+        "fact:peer_rank:VCB:sector:bank:2024_Q4:bank.roa"
+      ]
+    },
+    {
+      "note_no": 7,
+      "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+      "title": "VPB · Báo cáo tài chính quý 4/2024",
+      "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+      "locator": "tr. 41 · 10.1",
+      "fact_ids": [
+        "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.npl_g35"
+      ]
+    }
+  ],
+  "error": null
+}

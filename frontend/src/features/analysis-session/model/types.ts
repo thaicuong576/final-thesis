@@ -200,6 +200,43 @@ export interface RunBlockedPayload {
   reason: string;
 }
 
+export type TraceActor = 'orchestrator' | 'company' | 'sector' | 'macro' | 'critic' | 'verifier' | 'system';
+
+export type TraceKind =
+  | 'plan'
+  | 'assign'
+  | 'tool_result'
+  | 'draft'
+  | 'verify'
+  | 'compose'
+  | 'critique_issue'
+  | 'cross_level_finding'
+  | 'revision'
+  | 'accept'
+  | 'report_ready'
+  | 'blocked';
+
+export interface TraceStep {
+  step_id: string;
+  seq: number;
+  t_ms: number;
+  actor: TraceActor;
+  recipient: TraceActor | null;
+  kind: TraceKind;
+  summary: string;
+  detail: Record<string, unknown>;
+}
+
+export interface RunTrace {
+  run_id: string;
+  status: string;
+  query: string;
+  created_at: string;
+  duration_ms: number;
+  arm: string | null;
+  steps: TraceStep[];
+}
+
 // Event Contract: Strongly typed discriminated union
 export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'USER_REQUEST_CONFIRMED'; payload: UserRequestConfirmedPayload }
@@ -218,6 +255,8 @@ export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_STARTED'; payload: SynthesisStartedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_COMPLETED'; payload: SynthesisCompletedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'REPORT_READY'; payload: ReportReadyPayload }
-  | { eventId: string; sequence: number; occurredAtMs: number; type: 'RUN_BLOCKED'; payload: RunBlockedPayload };
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'RUN_BLOCKED'; payload: RunBlockedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'TRACE_STEP'; payload: TraceStep };
 
 export type AnalysisSessionEventType = AnalysisSessionEvent['type'];
+

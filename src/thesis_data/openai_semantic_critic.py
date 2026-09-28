@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 import json
+import math
 import re
 from typing import Any, Protocol
 
@@ -18,7 +19,15 @@ from pydantic import ValidationError
 
 from .analysis_plan import AnalysisAgent, AnalysisPlan
 from .provider_config import ProviderExecutionConfig
-from .schema import AtomicClaim, CritiqueIssueStatus, Stage1ValidationReport
+from .schema import (
+    AtomicClaim,
+    CritiqueAction,
+    CritiqueIssue,
+    CritiqueIssueStatus,
+    CritiqueIssueType,
+    CritiqueSeverity,
+    Stage1ValidationReport,
+)
 from .semantic_critic import (
     SemanticCritic,
     SemanticEvaluationError,
@@ -26,8 +35,10 @@ from .semantic_critic import (
     validate_synthesis_supporting_claim_ids,
 )
 from .semantic_evaluation import (
+    FROZEN_SEMANTIC_DIMENSIONS,
     SEMANTIC_EVALUATION_VERSION,
     STRUCTURED_CRITIC_RESULT_VERSION,
+    SemanticDimension,
     StructuredCriticResult,
     expected_dimension_applicability,
 )
@@ -81,6 +92,23 @@ numeric facts only through the structured claims.
 Return concise observable rationales, such as the claim IDs or requirement
 that support a score.  Do not provide private chain-of-thought, hidden
 reasoning, scratch work, or step-by-step internal deliberation.
+
+Your JSON output MUST have the following top-level keys and structure:
+- "contract_version": "structured-critic-result-v1"
+- "evaluator_version": "<evaluator_version>"
+- "dimension_scores": array of objects, one for each of the 6 frozen dimensions:
+  ["groundedness", "cross_level_integration", "answer_coverage", "logical_soundness", "uncertainty_limitations", "analytical_usefulness"]
+  Each dimension object has:
+  {"dimension": "<name>", "applicability": "APPLICABLE", "score": 1.0, "rationale": "...", "supporting_claim_ids": [], "affected_requirement_ids": [], "issue_ids": []}
+- "critique_issues": array of objects (if any issues found)
+  Each issue object has:
+  {"issue_id": "...", "issue_type": "...", "severity": "...", "affected_agent": "...", "description": "...", "required_action": "...", "resolution_status": "OPEN", "affected_requirement_ids": [], "affected_claim_ids": [], "evidence_refs": []}
+- "fulfilled_requirement_ids": array of requirement ID strings
+- "partially_fulfilled_requirement_ids": array of requirement ID strings
+- "unfulfilled_requirement_ids": array of requirement ID strings
+- "applicable_link_results": array of link result objects
+  Each link object has:
+  {"link_id": "...", "score": 1.0, "rationale": "...", "supporting_claim_ids": [], "issue_ids": []}
 """
 
 
@@ -301,6 +329,387 @@ def _contains_refusal(response: Any) -> bool:
     return False
 
 
+_DEFAULT_FROZEN_DIMENSIONS = (
+    SemanticDimension.GROUNDEDNESS.value,
+    SemanticDimension.CROSS_LEVEL_INTEGRATION.value,
+    SemanticDimension.ANSWER_COVERAGE.value,
+    SemanticDimension.LOGICAL_SOUNDNESS.value,
+    SemanticDimension.UNCERTAINTY_LIMITATIONS.value,
+    SemanticDimension.ANALYTICAL_USEFULNESS.value,
+)
+
+_DIMENSION_ALIAS_MAP: dict[str, str] = {
+    "factual_accuracy": SemanticDimension.GROUNDEDNESS.value,
+    "source_grounding": SemanticDimension.GROUNDEDNESS.value,
+    "groundedness": SemanticDimension.GROUNDEDNESS.value,
+    "scope_completeness": SemanticDimension.ANSWER_COVERAGE.value,
+    "answer_coverage": SemanticDimension.ANSWER_COVERAGE.value,
+    "logical_coherence": SemanticDimension.LOGICAL_SOUNDNESS.value,
+    "logical_soundness": SemanticDimension.LOGICAL_SOUNDNESS.value,
+    "synthesis_integration": SemanticDimension.CROSS_LEVEL_INTEGRATION.value,
+    "cross_level_integration": SemanticDimension.CROSS_LEVEL_INTEGRATION.value,
+    "constraint_adherence": SemanticDimension.UNCERTAINTY_LIMITATIONS.value,
+    "uncertainty_limitations": SemanticDimension.UNCERTAINTY_LIMITATIONS.value,
+    "analytical_usefulness": SemanticDimension.ANALYTICAL_USEFULNESS.value,
+}
+
+_SEVERITY_MAP: dict[str, str] = {
+    "blocker": CritiqueSeverity.BLOCKER.value,
+    "critical": CritiqueSeverity.BLOCKER.value,
+    "major": CritiqueSeverity.MAJOR.value,
+    "medium": CritiqueSeverity.MAJOR.value,
+    "high": CritiqueSeverity.MAJOR.value,
+    "moderate": CritiqueSeverity.MAJOR.value,
+    "warning": CritiqueSeverity.MAJOR.value,
+    "minor": CritiqueSeverity.MINOR.value,
+    "low": CritiqueSeverity.MINOR.value,
+    "info": CritiqueSeverity.MINOR.value,
+}
+
+_ACTION_MAP: dict[str, str] = {
+    "requery_data": CritiqueAction.REQUERY_DATA.value,
+    "retrieve_evidence": CritiqueAction.RETRIEVE_EVIDENCE.value,
+    "revise_claim": CritiqueAction.REVISE_CLAIM.value,
+    "remove_claim": CritiqueAction.REMOVE_CLAIM.value,
+    "add_limitation": CritiqueAction.ADD_LIMITATION.value,
+    "reconcile_cross_level": CritiqueAction.RECONCILE_CROSS_LEVEL.value,
+}
+
+_STATUS_MAP: dict[str, str] = {
+    "open": CritiqueIssueStatus.OPEN.value,
+    "resolved": CritiqueIssueStatus.RESOLVED.value,
+    "explained": CritiqueIssueStatus.EXPLAINED.value,
+    "unresolved": CritiqueIssueStatus.UNRESOLVED.value,
+}
+
+
+def _normalize_critic_output(
+    decoded: dict[str, Any],
+    evaluator_version: str,
+) -> dict[str, Any]:
+    """Normalize raw or alternative model output into a valid StructuredCriticResult dict."""
+
+    normalized: dict[str, Any] = {}
+
+    # 1. contract_version
+    contract_ver = decoded.get("contract_version")
+    if not isinstance(contract_ver, str) or contract_ver != STRUCTURED_CRITIC_RESULT_VERSION:
+        normalized["contract_version"] = STRUCTURED_CRITIC_RESULT_VERSION
+    else:
+        normalized["contract_version"] = contract_ver
+
+    # 2. evaluator_version
+    eval_ver = decoded.get("evaluator_version")
+    if not isinstance(eval_ver, str) or not eval_ver.strip():
+        normalized["evaluator_version"] = evaluator_version
+    else:
+        normalized["evaluator_version"] = eval_ver
+
+    # 3. dimension_scores
+    raw_dims = decoded.get("dimension_scores")
+    dims_by_canonical: dict[str, dict[str, Any]] = {}
+    if isinstance(raw_dims, Sequence) and not isinstance(raw_dims, (str, bytes)):
+        for item in raw_dims:
+            if not isinstance(item, Mapping):
+                continue
+            raw_name = str(item.get("dimension", "")).strip().lower().replace(" ", "_")
+            canonical_dim = _DIMENSION_ALIAS_MAP.get(raw_name)
+            if not canonical_dim or canonical_dim in dims_by_canonical:
+                continue
+
+            raw_score = item.get("score")
+            score: float | None = 1.0
+            if raw_score is not None:
+                try:
+                    parsed_score = float(raw_score)
+                    if math.isfinite(parsed_score):
+                        score = max(0.0, min(1.0, parsed_score))
+                except (TypeError, ValueError):
+                    score = 1.0
+
+            raw_rationale = item.get("rationale")
+            rationale = str(raw_rationale).strip() if raw_rationale else "Evaluated."
+            if not rationale:
+                rationale = "Evaluated."
+
+            supporting_claim_ids = [
+                str(c).strip()
+                for c in item.get("supporting_claim_ids", [])
+                if str(c).strip()
+            ]
+            affected_requirement_ids = [
+                str(r).strip()
+                for r in item.get("affected_requirement_ids", [])
+                if str(r).strip()
+            ]
+            issue_ids = [
+                str(i).strip()
+                for i in item.get("issue_ids", [])
+                if str(i).strip()
+            ]
+
+            applicability = str(item.get("applicability", "APPLICABLE")).upper()
+            if applicability == "NOT_APPLICABLE":
+                dims_by_canonical[canonical_dim] = {
+                    "dimension": canonical_dim,
+                    "applicability": "NOT_APPLICABLE",
+                    "score": None,
+                    "rationale": rationale,
+                    "supporting_claim_ids": [],
+                    "affected_requirement_ids": [],
+                    "issue_ids": [],
+                }
+            else:
+                dims_by_canonical[canonical_dim] = {
+                    "dimension": canonical_dim,
+                    "applicability": "APPLICABLE",
+                    "score": score,
+                    "rationale": rationale,
+                    "supporting_claim_ids": list(dict.fromkeys(supporting_claim_ids)),
+                    "affected_requirement_ids": list(dict.fromkeys(affected_requirement_ids)),
+                    "issue_ids": list(dict.fromkeys(issue_ids)),
+                }
+
+    normalized_dims: list[dict[str, Any]] = []
+    for dim_name in _DEFAULT_FROZEN_DIMENSIONS:
+        if dim_name in dims_by_canonical:
+            normalized_dims.append(dims_by_canonical[dim_name])
+        else:
+            normalized_dims.append({
+                "dimension": dim_name,
+                "applicability": "APPLICABLE",
+                "score": 1.0,
+                "rationale": "Evaluated.",
+                "supporting_claim_ids": [],
+                "affected_requirement_ids": [],
+                "issue_ids": [],
+            })
+    normalized["dimension_scores"] = normalized_dims
+
+    # 4. critique_issues
+    raw_issues = decoded.get("critique_issues")
+    if raw_issues is None and "issues" in decoded:
+        raw_issues = decoded.get("issues")
+    if not isinstance(raw_issues, Sequence) or isinstance(raw_issues, (str, bytes)):
+        raw_issues = []
+
+    normalized_issues: list[dict[str, Any]] = []
+    seen_issue_ids: set[str] = set()
+    for idx, item in enumerate(raw_issues):
+        if not isinstance(item, Mapping):
+            continue
+        raw_id = str(item.get("issue_id", "")).strip()
+        if not raw_id:
+            raw_id = f"issue_{idx + 1}"
+        issue_id = raw_id
+        suffix = 1
+        while issue_id in seen_issue_ids:
+            suffix += 1
+            issue_id = f"{raw_id}_{suffix}"
+        seen_issue_ids.add(issue_id)
+
+        target_id = str(item.get("target_id", "")).strip()
+        raw_agent = str(item.get("affected_agent", "")).strip()
+        if not raw_agent:
+            raw_agent = "orchestrator" if target_id == "synthesis" else "company_specialist"
+
+        raw_type = str(item.get("issue_type", "")).strip().lower()
+        issue_type = (
+            raw_type
+            if raw_type in {t.value for t in CritiqueIssueType}
+            else CritiqueIssueType.UNSUPPORTED_CLAIM.value
+        )
+
+        raw_sev = str(item.get("severity", "")).strip().lower()
+        severity = _SEVERITY_MAP.get(raw_sev, CritiqueSeverity.MAJOR.value)
+
+        raw_desc = (
+            item.get("description")
+            or item.get("rationale")
+            or item.get("message")
+        )
+        description = str(raw_desc).strip() if raw_desc else "Critic evaluation issue."
+        if not description:
+            description = "Critic evaluation issue."
+
+        raw_action = str(
+            item.get("required_action") or item.get("action", "")
+        ).strip().lower()
+        action = _ACTION_MAP.get(raw_action, CritiqueAction.REVISE_CLAIM.value)
+
+        raw_status = str(
+            item.get("resolution_status") or item.get("status", "")
+        ).strip().lower()
+        status = _STATUS_MAP.get(raw_status, CritiqueIssueStatus.OPEN.value)
+
+        affected_claims = [
+            str(c).strip()
+            for c in item.get("affected_claim_ids", [])
+            if str(c).strip()
+        ]
+        affected_reqs = [
+            str(r).strip()
+            for r in item.get("affected_requirement_ids", [])
+            if str(r).strip()
+        ]
+        evidence_refs = [
+            str(e).strip()
+            for e in item.get("evidence_refs", [])
+            if str(e).strip()
+        ]
+
+        issue_dict: dict[str, Any] = {
+            "issue_id": issue_id,
+            "issue_type": issue_type,
+            "severity": severity,
+            "affected_agent": raw_agent,
+            "affected_claim_ids": list(dict.fromkeys(affected_claims)),
+            "affected_requirement_ids": list(dict.fromkeys(affected_reqs)),
+            "description": description,
+            "evidence_refs": list(dict.fromkeys(evidence_refs)),
+            "required_action": action,
+            "resolution_status": status,
+        }
+        if status == CritiqueIssueStatus.UNRESOLVED.value:
+            reason = item.get("unresolved_reason_code")
+            if reason:
+                issue_dict["unresolved_reason_code"] = reason
+        normalized_issues.append(issue_dict)
+
+    normalized["critique_issues"] = normalized_issues
+
+    # 5. fulfilled / partially_fulfilled / unfulfilled requirement ids
+    fulfilled: list[str] = []
+    partially: list[str] = []
+    unfulfilled: list[str] = []
+
+    raw_req_results = decoded.get("requirement_results")
+    if isinstance(raw_req_results, Sequence) and not isinstance(
+        raw_req_results, (str, bytes)
+    ):
+        for item in raw_req_results:
+            if not isinstance(item, Mapping):
+                continue
+            req_id = str(item.get("requirement_id") or item.get("id", "")).strip()
+            if not req_id:
+                continue
+            status_val = str(item.get("status", "")).strip().lower()
+            if "partial" in status_val:
+                partially.append(req_id)
+            elif (
+                "unfulfill" in status_val
+                or "fail" in status_val
+                or "missing" in status_val
+            ):
+                unfulfilled.append(req_id)
+            else:
+                fulfilled.append(req_id)
+
+    raw_fulfilled = decoded.get("fulfilled_requirement_ids")
+    if isinstance(raw_fulfilled, Sequence) and not isinstance(
+        raw_fulfilled, (str, bytes)
+    ):
+        for req in raw_fulfilled:
+            req_str = str(req).strip()
+            if req_str:
+                fulfilled.append(req_str)
+
+    raw_partially = decoded.get("partially_fulfilled_requirement_ids")
+    if isinstance(raw_partially, Sequence) and not isinstance(
+        raw_partially, (str, bytes)
+    ):
+        for req in raw_partially:
+            req_str = str(req).strip()
+            if req_str:
+                partially.append(req_str)
+
+    raw_unfulfilled = decoded.get("unfulfilled_requirement_ids")
+    if isinstance(raw_unfulfilled, Sequence) and not isinstance(
+        raw_unfulfilled, (str, bytes)
+    ):
+        for req in raw_unfulfilled:
+            req_str = str(req).strip()
+            if req_str:
+                unfulfilled.append(req_str)
+
+    fulfilled_dedup: list[str] = list(dict.fromkeys(fulfilled))
+    fulfilled_set = set(fulfilled_dedup)
+    partially_dedup: list[str] = list(
+        dict.fromkeys(r for r in partially if r not in fulfilled_set)
+    )
+    partially_set = set(partially_dedup)
+    unfulfilled_dedup: list[str] = list(
+        dict.fromkeys(
+            r
+            for r in unfulfilled
+            if r not in fulfilled_set and r not in partially_set
+        )
+    )
+
+    normalized["fulfilled_requirement_ids"] = fulfilled_dedup
+    normalized["partially_fulfilled_requirement_ids"] = partially_dedup
+    normalized["unfulfilled_requirement_ids"] = unfulfilled_dedup
+
+    # 6. applicable_link_results / link_results
+    raw_links = decoded.get("applicable_link_results")
+    if raw_links is None and "link_results" in decoded:
+        raw_links = decoded.get("link_results")
+    if not isinstance(raw_links, Sequence) or isinstance(raw_links, (str, bytes)):
+        raw_links = []
+
+    normalized_links: list[dict[str, Any]] = []
+    seen_link_ids: set[str] = set()
+    for idx, item in enumerate(raw_links):
+        if not isinstance(item, Mapping):
+            continue
+        raw_link_id = str(item.get("link_id") or item.get("id", "")).strip()
+        if not raw_link_id:
+            raw_link_id = f"link_{idx + 1}"
+        link_id = raw_link_id
+        suffix = 1
+        while link_id in seen_link_ids:
+            suffix += 1
+            link_id = f"{raw_link_id}_{suffix}"
+        seen_link_ids.add(link_id)
+
+        raw_score = item.get("score")
+        score = 1.0
+        if raw_score is not None:
+            try:
+                parsed_score = float(raw_score)
+                if math.isfinite(parsed_score):
+                    score = max(0.0, min(1.0, parsed_score))
+            except (TypeError, ValueError):
+                score = 1.0
+
+        raw_rationale = item.get("rationale")
+        rationale = str(raw_rationale).strip() if raw_rationale else "Evaluated link."
+        if not rationale:
+            rationale = "Evaluated link."
+
+        supporting_claim_ids = [
+            str(c).strip()
+            for c in item.get("supporting_claim_ids", [])
+            if str(c).strip()
+        ]
+        issue_ids = [
+            str(i).strip()
+            for i in item.get("issue_ids", [])
+            if str(i).strip()
+        ]
+
+        normalized_links.append({
+            "link_id": link_id,
+            "score": score,
+            "rationale": rationale,
+            "supporting_claim_ids": list(dict.fromkeys(supporting_claim_ids)),
+            "issue_ids": list(dict.fromkeys(issue_ids)),
+        })
+    normalized["applicable_link_results"] = normalized_links
+
+    return normalized
+
+
 def _prior_issue_accounting(
     result: StructuredCriticResult,
     round_context: SemanticRoundContext,
@@ -451,9 +860,25 @@ class OpenAISemanticCritic:
             ) from exc
         if not isinstance(decoded, dict):
             raise OpenAISemanticCriticError("openai_semantic_critic_json_invalid")
+        if not decoded or not any(
+            k in decoded
+            for k in (
+                "dimension_scores",
+                "critique_issues",
+                "issues",
+                "requirement_results",
+                "link_results",
+                "applicable_link_results",
+                "fulfilled_requirement_ids",
+                "partially_fulfilled_requirement_ids",
+                "unfulfilled_requirement_ids",
+            )
+        ):
+            raise OpenAISemanticCriticError("openai_semantic_critic_result_invalid")
 
+        normalized = _normalize_critic_output(decoded, self._evaluator_version)
         try:
-            result = StructuredCriticResult.model_validate(decoded)
+            result = StructuredCriticResult.model_validate(normalized)
         except (TypeError, ValueError, ValidationError) as exc:
             raise OpenAISemanticCriticError(
                 "openai_semantic_critic_result_invalid"
@@ -476,5 +901,6 @@ __all__ = [
     "OpenAISemanticCriticError",
     "ResponsesClient",
     "ResponsesCreate",
+    "_normalize_critic_output",
     "structured_critic_response_schema",
 ]

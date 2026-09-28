@@ -155,3 +155,19 @@ textarea::placeholder, input::placeholder { color: var(--text-tertiary); opacity
   .notice-action { @apply border border-[#cf8500]/50 bg-card px-2.5 py-1.5 font-semibold text-[#6e5225] hover:bg-[#fff5df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus; }
   .notice-link { @apply px-2 py-1.5 font-semibold text-[#6e5225] underline underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus; }
 }
+
+@media print {
+  nav,
+  button,
+  .print\:hidden {
+    display: none !important;
+  }
+  body, html {
+    background: #fff !important;
+    color: #20201e !important;
+  }
+  figure, .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

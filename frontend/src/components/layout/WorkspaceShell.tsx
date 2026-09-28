@@ -29,7 +29,7 @@ interface WorkspaceShellProps {
 export function WorkspaceShell({ activeSection, context, children }: WorkspaceShellProps) {
   return (
     <SidebarProvider defaultOpen className="min-h-screen bg-workspace text-ink">
-      <Sidebar collapsible="icon" className="border-r border-line bg-surface-secondary">
+      <Sidebar collapsible="icon" className="border-r border-line bg-surface-secondary print:hidden">
         <SidebarHeader className="min-h-[64px] justify-center px-4 py-3 border-b border-line bg-surface-secondary group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-3">
           <Link to="/analysis" className="flex items-center gap-2.5 text-xs font-semibold tracking-[-0.01em] text-ink group group-data-[collapsible=icon]:justify-center">
             <span className="grid size-7 shrink-0 place-items-center rounded-md border border-amber-border bg-amber text-ink shadow-[0_1px_0_rgba(98,63,0,0.55)] transition group-hover:bg-amber-hover" aria-hidden="true">
@@ -67,7 +67,7 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
       </Sidebar>
 
       <SidebarInset className="min-h-screen bg-workspace">
-        <header className="flex min-h-11 items-center gap-2.5 border-b border-line bg-card px-4">
+        <header className="flex min-h-11 items-center gap-2.5 border-b border-line bg-card px-4 print:hidden">
           <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1" />
           <Separator orientation="vertical" className="h-4 bg-line" />
           <div className="flex-1 min-w-0">

@@ -39,6 +39,7 @@ from .semantic_evaluation import (
     SEMANTIC_EVALUATION_VERSION,
     STRUCTURED_CRITIC_RESULT_VERSION,
     SemanticDimension,
+    SemanticDimensionApplicability,
     StructuredCriticResult,
     expected_dimension_applicability,
 )
@@ -386,6 +387,7 @@ _STATUS_MAP: dict[str, str] = {
 def _normalize_critic_output(
     decoded: dict[str, Any],
     evaluator_version: str,
+    plan: AnalysisPlan | None = None,
 ) -> dict[str, Any]:
     """Normalize raw or alternative model output into a valid StructuredCriticResult dict."""
 
@@ -405,7 +407,237 @@ def _normalize_critic_output(
     else:
         normalized["evaluator_version"] = eval_ver
 
-    # 3. dimension_scores
+    # 3. applicable_link_results / link_results
+    raw_links = decoded.get("applicable_link_results")
+    if raw_links is None and "link_results" in decoded:
+        raw_links = decoded.get("link_results")
+    if not isinstance(raw_links, Sequence) or isinstance(raw_links, (str, bytes)):
+        raw_links = []
+
+    normalized_links: list[dict[str, Any]] = []
+    seen_link_ids: set[str] = set()
+    for idx, item in enumerate(raw_links):
+        if not isinstance(item, Mapping):
+            continue
+        raw_link_id = str(item.get("link_id") or item.get("id", "")).strip()
+        if not raw_link_id:
+            raw_link_id = f"link_{idx + 1}"
+        link_id = raw_link_id
+        suffix = 1
+        while link_id in seen_link_ids:
+            suffix += 1
+            link_id = f"{raw_link_id}_{suffix}"
+        seen_link_ids.add(link_id)
+
+        raw_score = item.get("score")
+        score = 1.0
+        if raw_score is not None:
+            try:
+                parsed_score = float(raw_score)
+                if math.isfinite(parsed_score):
+                    score = max(0.0, min(1.0, parsed_score))
+            except (TypeError, ValueError):
+                score = 1.0
+
+        raw_rationale = item.get("rationale")
+        rationale = str(raw_rationale).strip() if raw_rationale else "Evaluated link."
+        if not rationale:
+            rationale = "Evaluated link."
+
+        supporting_claim_ids = [
+            str(c).strip()
+            for c in item.get("supporting_claim_ids", [])
+            if str(c).strip()
+        ]
+        issue_ids = [
+            str(i).strip()
+            for i in item.get("issue_ids", [])
+            if str(i).strip()
+        ]
+
+        normalized_links.append({
+            "link_id": link_id,
+            "score": score,
+            "rationale": rationale,
+            "supporting_claim_ids": list(dict.fromkeys(supporting_claim_ids)),
+            "issue_ids": list(dict.fromkeys(issue_ids)),
+        })
+
+    if plan is not None:
+        plan_link_ids = {link.link_id for link in plan.applicable_links}
+        if not plan_link_ids:
+            normalized_links = []
+        else:
+            filtered_links: list[dict[str, Any]] = []
+            seen_plan_links: set[str] = set()
+            for link in normalized_links:
+                lid = link["link_id"]
+                if lid in plan_link_ids and lid not in seen_plan_links:
+                    filtered_links.append(link)
+                    seen_plan_links.add(lid)
+            for plan_link in sorted(plan.applicable_links, key=lambda item: item.link_id):
+                if plan_link.link_id not in seen_plan_links:
+                    filtered_links.append({
+                        "link_id": plan_link.link_id,
+                        "score": 1.0,
+                        "rationale": "Link evaluated.",
+                        "supporting_claim_ids": [],
+                        "issue_ids": [],
+                    })
+                    seen_plan_links.add(plan_link.link_id)
+            normalized_links = filtered_links
+
+    candidate_link_issue_ids = {
+        iid
+        for link in normalized_links
+        for iid in link.get("issue_ids", [])
+    }
+
+    # 4. critique_issues
+    raw_issues = decoded.get("critique_issues")
+    if raw_issues is None and "issues" in decoded:
+        raw_issues = decoded.get("issues")
+    if not isinstance(raw_issues, Sequence) or isinstance(raw_issues, (str, bytes)):
+        raw_issues = []
+
+    plan_req_ids = (
+        {r.requirement_id for r in plan.requirements}
+        if plan is not None
+        else None
+    )
+    active_agents = _active_agent_ids(plan) if plan is not None else None
+
+    normalized_issues: list[dict[str, Any]] = []
+    seen_issue_ids: set[str] = set()
+    for idx, item in enumerate(raw_issues):
+        if not isinstance(item, Mapping):
+            continue
+        raw_id = str(item.get("issue_id", "")).strip()
+        if not raw_id:
+            raw_id = f"issue_{idx + 1}"
+        issue_id = raw_id
+        suffix = 1
+        while issue_id in seen_issue_ids:
+            suffix += 1
+            issue_id = f"{raw_id}_{suffix}"
+        seen_issue_ids.add(issue_id)
+
+        target_id = str(item.get("target_id", "")).strip()
+        raw_agent = str(item.get("affected_agent", "")).strip()
+        if not raw_agent:
+            raw_agent = "orchestrator" if target_id == "synthesis" else "company_specialist"
+
+        if active_agents is not None and raw_agent not in active_agents:
+            if target_id == "synthesis":
+                raw_agent = AnalysisAgent.ORCHESTRATOR.value
+            else:
+                specialists = [
+                    a for a in active_agents
+                    if a != AnalysisAgent.ORCHESTRATOR.value
+                ]
+                raw_agent = specialists[0] if specialists else active_agents[0]
+
+        raw_type = str(item.get("issue_type", "")).strip().lower()
+        issue_type = (
+            raw_type
+            if raw_type in {t.value for t in CritiqueIssueType}
+            else CritiqueIssueType.UNSUPPORTED_CLAIM.value
+        )
+
+        raw_sev = str(item.get("severity", "")).strip().lower()
+        severity = _SEVERITY_MAP.get(raw_sev, CritiqueSeverity.MAJOR.value)
+
+        raw_desc = (
+            item.get("description")
+            or item.get("rationale")
+            or item.get("message")
+        )
+        description = str(raw_desc).strip() if raw_desc else "Critic evaluation issue."
+        if not description:
+            description = "Critic evaluation issue."
+
+        raw_action = str(
+            item.get("required_action") or item.get("action", "")
+        ).strip().lower()
+        action = _ACTION_MAP.get(raw_action, CritiqueAction.REVISE_CLAIM.value)
+
+        if action == CritiqueAction.RECONCILE_CROSS_LEVEL.value:
+            if (
+                plan is None
+                or not plan.applicable_links
+                or issue_id not in candidate_link_issue_ids
+            ):
+                action = CritiqueAction.REVISE_CLAIM.value
+
+        raw_status = str(
+            item.get("resolution_status") or item.get("status", "")
+        ).strip().lower()
+        status = _STATUS_MAP.get(raw_status, CritiqueIssueStatus.OPEN.value)
+
+        affected_claims = [
+            str(c).strip()
+            for c in item.get("affected_claim_ids", [])
+            if str(c).strip()
+        ]
+        if raw_agent == AnalysisAgent.ORCHESTRATOR.value:
+            affected_claims = []
+
+        affected_reqs = [
+            str(r).strip()
+            for r in item.get("affected_requirement_ids", [])
+            if str(r).strip()
+        ]
+        if plan_req_ids is not None:
+            affected_reqs = [r for r in affected_reqs if r in plan_req_ids]
+
+        evidence_refs = [
+            str(e).strip()
+            for e in item.get("evidence_refs", [])
+            if str(e).strip()
+        ]
+
+        issue_dict: dict[str, Any] = {
+            "issue_id": issue_id,
+            "issue_type": issue_type,
+            "severity": severity,
+            "affected_agent": raw_agent,
+            "affected_claim_ids": list(dict.fromkeys(affected_claims)),
+            "affected_requirement_ids": list(dict.fromkeys(affected_reqs)),
+            "description": description,
+            "evidence_refs": list(dict.fromkeys(evidence_refs)),
+            "required_action": action,
+            "resolution_status": status,
+        }
+        if status == CritiqueIssueStatus.UNRESOLVED.value:
+            reason = item.get("unresolved_reason_code")
+            if reason:
+                issue_dict["unresolved_reason_code"] = reason
+        normalized_issues.append(issue_dict)
+
+    normalized["critique_issues"] = normalized_issues
+
+    # Clean up link issue_ids now that seen_issue_ids is finalized
+    assigned_cross_level_issues: set[str] = set()
+    reconcile_issue_ids = {
+        iss["issue_id"]
+        for iss in normalized_issues
+        if iss["required_action"] == CritiqueAction.RECONCILE_CROSS_LEVEL.value
+    }
+    for link in normalized_links:
+        cleaned_iids: list[str] = []
+        for iid in link["issue_ids"]:
+            if iid in seen_issue_ids:
+                if iid in reconcile_issue_ids:
+                    if iid not in assigned_cross_level_issues:
+                        cleaned_iids.append(iid)
+                        assigned_cross_level_issues.add(iid)
+                else:
+                    cleaned_iids.append(iid)
+        link["issue_ids"] = cleaned_iids
+
+    normalized["applicable_link_results"] = normalized_links
+
+    # 5. dimension_scores
     raw_dims = decoded.get("dimension_scores")
     dims_by_canonical: dict[str, dict[str, Any]] = {}
     if isinstance(raw_dims, Sequence) and not isinstance(raw_dims, (str, bytes)):
@@ -484,101 +716,45 @@ def _normalize_critic_output(
                 "affected_requirement_ids": [],
                 "issue_ids": [],
             })
+
+    if plan is not None:
+        expected_map = expected_dimension_applicability(plan)
+        for dim in normalized_dims:
+            dim_enum = SemanticDimension(dim["dimension"])
+            expected_app = expected_map[dim_enum]
+            dim["applicability"] = expected_app.value
+            if expected_app is SemanticDimensionApplicability.NOT_APPLICABLE:
+                dim["score"] = None
+                dim["supporting_claim_ids"] = []
+                dim["affected_requirement_ids"] = []
+                dim["issue_ids"] = []
+            else:
+                if dim["score"] is None or not math.isfinite(dim["score"]):
+                    dim["score"] = 1.0
+                else:
+                    dim["score"] = max(0.0, min(1.0, float(dim["score"])))
+                if plan_req_ids is not None:
+                    dim["affected_requirement_ids"] = [
+                        r for r in dim["affected_requirement_ids"] if r in plan_req_ids
+                    ]
+                dim["issue_ids"] = [
+                    i for i in dim["issue_ids"] if i in seen_issue_ids
+                ]
+    else:
+        for dim in normalized_dims:
+            if dim["applicability"] == "NOT_APPLICABLE":
+                dim["score"] = None
+                dim["supporting_claim_ids"] = []
+                dim["affected_requirement_ids"] = []
+                dim["issue_ids"] = []
+            else:
+                dim["issue_ids"] = [
+                    i for i in dim["issue_ids"] if i in seen_issue_ids
+                ]
+
     normalized["dimension_scores"] = normalized_dims
 
-    # 4. critique_issues
-    raw_issues = decoded.get("critique_issues")
-    if raw_issues is None and "issues" in decoded:
-        raw_issues = decoded.get("issues")
-    if not isinstance(raw_issues, Sequence) or isinstance(raw_issues, (str, bytes)):
-        raw_issues = []
-
-    normalized_issues: list[dict[str, Any]] = []
-    seen_issue_ids: set[str] = set()
-    for idx, item in enumerate(raw_issues):
-        if not isinstance(item, Mapping):
-            continue
-        raw_id = str(item.get("issue_id", "")).strip()
-        if not raw_id:
-            raw_id = f"issue_{idx + 1}"
-        issue_id = raw_id
-        suffix = 1
-        while issue_id in seen_issue_ids:
-            suffix += 1
-            issue_id = f"{raw_id}_{suffix}"
-        seen_issue_ids.add(issue_id)
-
-        target_id = str(item.get("target_id", "")).strip()
-        raw_agent = str(item.get("affected_agent", "")).strip()
-        if not raw_agent:
-            raw_agent = "orchestrator" if target_id == "synthesis" else "company_specialist"
-
-        raw_type = str(item.get("issue_type", "")).strip().lower()
-        issue_type = (
-            raw_type
-            if raw_type in {t.value for t in CritiqueIssueType}
-            else CritiqueIssueType.UNSUPPORTED_CLAIM.value
-        )
-
-        raw_sev = str(item.get("severity", "")).strip().lower()
-        severity = _SEVERITY_MAP.get(raw_sev, CritiqueSeverity.MAJOR.value)
-
-        raw_desc = (
-            item.get("description")
-            or item.get("rationale")
-            or item.get("message")
-        )
-        description = str(raw_desc).strip() if raw_desc else "Critic evaluation issue."
-        if not description:
-            description = "Critic evaluation issue."
-
-        raw_action = str(
-            item.get("required_action") or item.get("action", "")
-        ).strip().lower()
-        action = _ACTION_MAP.get(raw_action, CritiqueAction.REVISE_CLAIM.value)
-
-        raw_status = str(
-            item.get("resolution_status") or item.get("status", "")
-        ).strip().lower()
-        status = _STATUS_MAP.get(raw_status, CritiqueIssueStatus.OPEN.value)
-
-        affected_claims = [
-            str(c).strip()
-            for c in item.get("affected_claim_ids", [])
-            if str(c).strip()
-        ]
-        affected_reqs = [
-            str(r).strip()
-            for r in item.get("affected_requirement_ids", [])
-            if str(r).strip()
-        ]
-        evidence_refs = [
-            str(e).strip()
-            for e in item.get("evidence_refs", [])
-            if str(e).strip()
-        ]
-
-        issue_dict: dict[str, Any] = {
-            "issue_id": issue_id,
-            "issue_type": issue_type,
-            "severity": severity,
-            "affected_agent": raw_agent,
-            "affected_claim_ids": list(dict.fromkeys(affected_claims)),
-            "affected_requirement_ids": list(dict.fromkeys(affected_reqs)),
-            "description": description,
-            "evidence_refs": list(dict.fromkeys(evidence_refs)),
-            "required_action": action,
-            "resolution_status": status,
-        }
-        if status == CritiqueIssueStatus.UNRESOLVED.value:
-            reason = item.get("unresolved_reason_code")
-            if reason:
-                issue_dict["unresolved_reason_code"] = reason
-        normalized_issues.append(issue_dict)
-
-    normalized["critique_issues"] = normalized_issues
-
-    # 5. fulfilled / partially_fulfilled / unfulfilled requirement ids
+    # 6. fulfilled / partially_fulfilled / unfulfilled requirement ids
     fulfilled: list[str] = []
     partially: list[str] = []
     unfulfilled: list[str] = []
@@ -649,63 +825,6 @@ def _normalize_critic_output(
     normalized["fulfilled_requirement_ids"] = fulfilled_dedup
     normalized["partially_fulfilled_requirement_ids"] = partially_dedup
     normalized["unfulfilled_requirement_ids"] = unfulfilled_dedup
-
-    # 6. applicable_link_results / link_results
-    raw_links = decoded.get("applicable_link_results")
-    if raw_links is None and "link_results" in decoded:
-        raw_links = decoded.get("link_results")
-    if not isinstance(raw_links, Sequence) or isinstance(raw_links, (str, bytes)):
-        raw_links = []
-
-    normalized_links: list[dict[str, Any]] = []
-    seen_link_ids: set[str] = set()
-    for idx, item in enumerate(raw_links):
-        if not isinstance(item, Mapping):
-            continue
-        raw_link_id = str(item.get("link_id") or item.get("id", "")).strip()
-        if not raw_link_id:
-            raw_link_id = f"link_{idx + 1}"
-        link_id = raw_link_id
-        suffix = 1
-        while link_id in seen_link_ids:
-            suffix += 1
-            link_id = f"{raw_link_id}_{suffix}"
-        seen_link_ids.add(link_id)
-
-        raw_score = item.get("score")
-        score = 1.0
-        if raw_score is not None:
-            try:
-                parsed_score = float(raw_score)
-                if math.isfinite(parsed_score):
-                    score = max(0.0, min(1.0, parsed_score))
-            except (TypeError, ValueError):
-                score = 1.0
-
-        raw_rationale = item.get("rationale")
-        rationale = str(raw_rationale).strip() if raw_rationale else "Evaluated link."
-        if not rationale:
-            rationale = "Evaluated link."
-
-        supporting_claim_ids = [
-            str(c).strip()
-            for c in item.get("supporting_claim_ids", [])
-            if str(c).strip()
-        ]
-        issue_ids = [
-            str(i).strip()
-            for i in item.get("issue_ids", [])
-            if str(i).strip()
-        ]
-
-        normalized_links.append({
-            "link_id": link_id,
-            "score": score,
-            "rationale": rationale,
-            "supporting_claim_ids": list(dict.fromkeys(supporting_claim_ids)),
-            "issue_ids": list(dict.fromkeys(issue_ids)),
-        })
-    normalized["applicable_link_results"] = normalized_links
 
     return normalized
 
@@ -876,7 +995,11 @@ class OpenAISemanticCritic:
         ):
             raise OpenAISemanticCriticError("openai_semantic_critic_result_invalid")
 
-        normalized = _normalize_critic_output(decoded, self._evaluator_version)
+        normalized = _normalize_critic_output(
+            decoded,
+            self._evaluator_version,
+            plan=plan,
+        )
         try:
             result = StructuredCriticResult.model_validate(normalized)
         except (TypeError, ValueError, ValidationError) as exc:

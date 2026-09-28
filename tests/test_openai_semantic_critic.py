@@ -6,6 +6,8 @@ import json
 from types import SimpleNamespace
 import unittest
 
+from thesis_data.analysis_plan import build_tcb_macro_analysis_plan
+from thesis_data.dataset_contract import DatasetRef
 from thesis_data.openai_semantic_critic import (
     OpenAISemanticCritic,
     _clean_json_text,
@@ -21,7 +23,14 @@ from tests.test_phase3bd_openai_semantic_critic import (
     _result,
     _stage1,
 )
+from thesis_data.schema import CritiqueAction
 from thesis_data.semantic_critic import SemanticRoundContext
+from thesis_data.semantic_evaluation import (
+    SemanticDimension,
+    SemanticDimensionApplicability,
+    StructuredCriticResult,
+    deterministic_coverage_violations,
+)
 
 
 class OpenAISemanticCriticFencedJsonTests(unittest.TestCase):
@@ -350,7 +359,6 @@ class OpenAISemanticCriticNormalizationTests(unittest.TestCase):
         }
 
         normalized = _normalize_critic_output(valid_input, "openai-semantic-critic-v1:gpt-5")
-        from thesis_data.semantic_evaluation import StructuredCriticResult
         validated = StructuredCriticResult.model_validate(normalized)
         self.assertEqual(validated.contract_version, "structured-critic-result-v1")
         self.assertEqual(validated.evaluator_version, "openai-semantic-critic-v1:gpt-5")
@@ -359,6 +367,225 @@ class OpenAISemanticCriticNormalizationTests(unittest.TestCase):
         self.assertEqual(validated.critique_issues[0].issue_type.value, "missing_data")
         self.assertEqual(validated.critique_issues[0].severity.value, "MINOR")
         self.assertEqual(len(validated.applicable_link_results), 1)
+
+    def test_reconcile_cross_level_downgraded_to_revise_claim_when_no_links(self) -> None:
+        plan = _company_plan()
+        self.assertEqual(plan.applicable_links, ())
+
+        raw_decoded = {
+            "issues": [
+                {
+                    "issue_id": "SYN-001",
+                    "affected_agent": "company",
+                    "severity": "major",
+                    "rationale": "Cross level link mismatch",
+                    "required_action": "reconcile_cross_level",
+                    "affected_requirement_ids": ["R1"],
+                }
+            ],
+            "link_results": [
+                {
+                    "link_id": "hallucinated_link",
+                    "score": 0.8,
+                    "rationale": "Invented link",
+                    "issue_ids": ["SYN-001"],
+                }
+            ],
+            "requirement_results": [
+                {"requirement_id": "R1", "status": "fulfilled"}
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        # 1. Links filtered out because plan has no links
+        self.assertEqual(normalized["applicable_link_results"], [])
+
+        # 2. Action downgraded to REVISE_CLAIM
+        self.assertEqual(len(normalized["critique_issues"]), 1)
+        issue = normalized["critique_issues"][0]
+        self.assertEqual(issue["issue_id"], "SYN-001")
+        self.assertEqual(issue["required_action"], "REVISE_CLAIM")
+
+        # 3. Model validates cleanly and no stage1 violations
+        validated = StructuredCriticResult.model_validate(normalized)
+        violations = deterministic_coverage_violations(plan, validated, ())
+        self.assertNotIn("cross_level_reconciliation_requires_applicable_link:SYN-001", violations)
+        self.assertNotIn("cross_level_issue_link_result_missing:SYN-001", violations)
+
+    def test_orchestrator_issues_have_affected_claim_ids_cleared(self) -> None:
+        plan = _company_plan()
+
+        raw_decoded = {
+            "issues": [
+                {
+                    "issue_id": "ORCH-001",
+                    "affected_agent": "orchestrator",
+                    "severity": "major",
+                    "rationale": "Report summary issue",
+                    "target_id": "synthesis",
+                    "required_action": "revise_claim",
+                    "affected_claim_ids": ["claim-1", "claim-2"],
+                    "affected_requirement_ids": ["R1"],
+                },
+                {
+                    "issue_id": "ORCH-002",
+                    "affected_agent": "",
+                    "target_id": "synthesis",
+                    "severity": "minor",
+                    "rationale": "Synthesis tone issue",
+                    "required_action": "revise_claim",
+                    "affected_claim_ids": ["claim-3"],
+                    "affected_requirement_ids": ["R1"],
+                },
+            ],
+            "requirement_results": [
+                {"requirement_id": "R1", "status": "fulfilled"}
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        self.assertEqual(len(normalized["critique_issues"]), 2)
+        for issue in normalized["critique_issues"]:
+            self.assertEqual(issue["affected_agent"], "orchestrator")
+            self.assertEqual(issue["affected_claim_ids"], [])
+
+        validated = StructuredCriticResult.model_validate(normalized)
+        violations = deterministic_coverage_violations(plan, validated, ())
+        self.assertNotIn("orchestrator_issue_must_target_synthesis:ORCH-001", violations)
+        self.assertNotIn("orchestrator_issue_must_target_synthesis:ORCH-002", violations)
+
+    def test_dimension_applicabilities_aligned_with_plan(self) -> None:
+        plan = _company_plan()
+        self.assertEqual(plan.applicable_links, ())
+
+        raw_decoded = {
+            "dimension_scores": [
+                {
+                    "dimension": "cross_level_integration",
+                    "applicability": "APPLICABLE",
+                    "score": 0.85,
+                    "rationale": "Model thought cross level was applicable",
+                    "supporting_claim_ids": ["claim-1"],
+                    "affected_requirement_ids": ["R1"],
+                    "issue_ids": ["issue-1"],
+                }
+            ],
+            "requirement_results": [
+                {"requirement_id": "R1", "status": "fulfilled"}
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        cross_dim = next(
+            d for d in normalized["dimension_scores"]
+            if d["dimension"] == "cross_level_integration"
+        )
+        self.assertEqual(cross_dim["applicability"], "NOT_APPLICABLE")
+        self.assertIsNone(cross_dim["score"])
+        self.assertEqual(cross_dim["supporting_claim_ids"], [])
+        self.assertEqual(cross_dim["affected_requirement_ids"], [])
+        self.assertEqual(cross_dim["issue_ids"], [])
+
+        other_dims = [
+            d for d in normalized["dimension_scores"]
+            if d["dimension"] != "cross_level_integration"
+        ]
+        self.assertEqual(len(other_dims), 5)
+        for dim in other_dims:
+            self.assertEqual(dim["applicability"], "APPLICABLE")
+            self.assertIsNotNone(dim["score"])
+
+        validated = StructuredCriticResult.model_validate(normalized)
+        violations = deterministic_coverage_violations(plan, validated, ())
+        self.assertFalse(any("dimension_applicability_mismatch" in v for v in violations))
+
+    def test_plan_with_links_preserves_reconcile_cross_level_and_synthesizes_missing(self) -> None:
+        dataset_ref = DatasetRef(dataset_id="dataset", dataset_snapshot_id="snapshot")
+        plan = build_tcb_macro_analysis_plan(dataset_ref)
+        self.assertTrue(bool(plan.applicable_links))
+        plan_link = plan.applicable_links[0]
+
+        raw_decoded = {
+            "issues": [
+                {
+                    "issue_id": "CROSS-001",
+                    "affected_agent": "orchestrator",
+                    "severity": "major",
+                    "description": "Macro-bank cross level tension",
+                    "required_action": "reconcile_cross_level",
+                    "affected_requirement_ids": [r.requirement_id for r in plan.requirements[:1]],
+                }
+            ],
+            "link_results": [
+                {
+                    "link_id": plan_link.link_id,
+                    "score": 0.75,
+                    "rationale": "Evaluated plan link",
+                    "issue_ids": ["CROSS-001"],
+                },
+                {
+                    "link_id": "undeclared_link",
+                    "score": 0.5,
+                    "rationale": "Spurious link",
+                }
+            ],
+            "requirement_results": [
+                {"requirement_id": r.requirement_id, "status": "fulfilled"}
+                for r in plan.requirements
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        # 1. Reconcile cross level is preserved because issue is in valid link
+        self.assertEqual(len(normalized["critique_issues"]), 1)
+        self.assertEqual(normalized["critique_issues"][0]["required_action"], "RECONCILE_CROSS_LEVEL")
+
+        # 2. Only plan links kept, undeclared link filtered out
+        link_ids = [l["link_id"] for l in normalized["applicable_link_results"]]
+        self.assertIn(plan_link.link_id, link_ids)
+        self.assertNotIn("undeclared_link", link_ids)
+        self.assertEqual(set(link_ids), {l.link_id for l in plan.applicable_links})
+
+        # 3. Cross level integration is APPLICABLE
+        cross_dim = next(
+            d for d in normalized["dimension_scores"]
+            if d["dimension"] == "cross_level_integration"
+        )
+        self.assertEqual(cross_dim["applicability"], "APPLICABLE")
+
+    def test_inactive_agent_mapped_to_active_agent(self) -> None:
+        plan = _company_plan()
+
+        raw_decoded = {
+            "issues": [
+                {
+                    "issue_id": "ISS-001",
+                    "affected_agent": "macro",
+                    "description": "Observation discrepancy",
+                    "required_action": "revise_claim",
+                },
+                {
+                    "issue_id": "ISS-002",
+                    "affected_agent": "macro",
+                    "target_id": "synthesis",
+                    "description": "Synthesis issue with wrong agent",
+                    "required_action": "revise_claim",
+                },
+            ],
+            "requirement_results": [
+                {"requirement_id": "R1", "status": "fulfilled"}
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        issues = {i["issue_id"]: i for i in normalized["critique_issues"]}
+        self.assertEqual(issues["ISS-001"]["affected_agent"], "company")
+        self.assertEqual(issues["ISS-002"]["affected_agent"], "orchestrator")
 
 
 if __name__ == "__main__":

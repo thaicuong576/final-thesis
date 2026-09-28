@@ -24,7 +24,13 @@ from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_set
 logger = logging.getLogger(__name__)
 
 
-def create_app(settings: Settings | None = None, *, semantic_critic=None, analysis_writer=None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    semantic_critic=None,
+    analysis_writer=None,
+    planner_client=None,
+) -> FastAPI:
     """Factory creating the FastAPI application shell."""
     current_settings = settings or get_settings()
     sqlite_path = current_settings.get_sqlite_path()
@@ -43,6 +49,7 @@ def create_app(settings: Settings | None = None, *, semantic_critic=None, analys
         sqlite_path, current_settings,
         semantic_critic=semantic_critic,
         analysis_writer=analysis_writer,
+        planner_client=planner_client,
     )
 
     app = FastAPI(

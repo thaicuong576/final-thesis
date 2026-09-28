@@ -10,6 +10,14 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 from thesis_data.dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
@@ -51,7 +59,7 @@ from thesis_data.storage import create_gold_snapshot_schema
 
 from thesis_api.main import create_app
 from thesis_api.adaptive_runtime import _API_POLICY, _RuntimeStage1Evaluator, _plan_request
-from thesis_api.schemas import AnalysisRequest, AnalysisResponse
+from thesis_api.schemas import AnalysisRequest, AnalysisResponse, CapabilitiesDTO
 from thesis_data.acceptance_resolver import ProviderStage1DatasetResolver
 from thesis_api.service import (
     AnalysisBlocked,
@@ -654,6 +662,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             app_name="final-thesis-api-test",
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            planner_mode="rules_only",
         )
         self.test_critic = _ExplicitOfflineAcceptingCritic()
         self.critic_factory_patch = patch(
@@ -674,6 +683,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(database),
             analysis_runs_db_path=str(database.with_name(database.stem + "-runs.sqlite")),
             openai_api_key=api_key,
+            planner_mode="rules_only",
         )
         return create_app(settings, analysis_writer=writer or _ExplicitOfflineAnalysisWriter())
 
@@ -1059,6 +1069,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "no-model-runs.sqlite"),
             openai_api_key=None,
+            planner_mode="rules_only",
         )))
         self.addCleanup(client.close)
         binding = _fixture_provider_binding(self.db_path, expose_locator=True)
@@ -1097,7 +1108,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             {"query": "ROE of ACB in 2024", "target_ticker": "ACB", "period": "2024"},
             {"query": "CIR of ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
             {"query": "Compare ROE of ACB and TCB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
-            {"query": "SBV policy rate effect on ACB in 2024 Q4", "target_ticker": "ACB", "period": "2024_Q4"},
+            {"query": "SBV policy rate in 2024 Q4", "period": "2024_Q4"},
         )
         for payload in requests:
             with self.subTest(payload=payload):
@@ -1138,12 +1149,13 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 "Compare TCB ROE in 2024 Q1 to Q4",
             ):
                 with self.subTest(query=query):
+                    # Under D-075, explicit periods list with peer comparison is rejected before retrieval
                     report = AnalysisResponse.model_validate(self.client.post(
                         "/api/analyze",
                         json={
                             "query": query,
                             "target_ticker": "TCB",
-                            "period": "2024_Q1",
+                            "periods": ["2024_Q1", "2024_Q4"],
                             "peer_tickers": ["ACB", "BID", "CTG", "MBB", "VCB"],
                         },
                     ).json())
@@ -1479,6 +1491,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual({item["id"] for item in capabilities["metrics"]}, {"bank.roe", "bank.npl_g35"})
         self.assertTrue(all("sector" not in item["label"].casefold() for item in capabilities["peerUniverses"]))
         self.assertTrue(all(item["executable"] is False for item in capabilities["peerUniverses"]))
+        cap_dto = CapabilitiesDTO.model_validate(capabilities)
+        self.assertGreater(len(cap_dto.question_types), 0)
+        self.assertEqual(cap_dto.question_types[0].id, "lookup")
+        self.assertTrue(bool(cap_dto.question_types[0].label))
+        self.assertTrue(bool(cap_dto.question_types[0].example))
         self.assertEqual(ready_response.json()["status"], "ready")
 
     def test_readiness_requires_model_configuration_and_writable_distinct_run_store(self) -> None:
@@ -1487,6 +1504,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "model-missing-runs.sqlite"),
             openai_api_key=None,
+            planner_mode="rules_only",
         )
         with patch(
             "thesis_api.service._load_provider",
@@ -1519,6 +1537,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     sqlite_db_path=str(self.db_path),
                     analysis_runs_db_path=str(runs_path),
                     openai_api_key="test-key",
+                    planner_mode="rules_only",
                 )
                 with patch(
                     "thesis_api.service._load_provider",
@@ -1884,6 +1903,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(missing),
             analysis_runs_db_path=str(Path(self.directory.name) / "missing-database-runs.sqlite"),
             openai_api_key="test-key",
+            planner_mode="rules_only",
         )
         client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         result = client.post(
@@ -1892,7 +1912,12 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(result.json()["status"], "error")
         self.assertFalse(missing.exists())
-        self.assertEqual(client.get("/api/capabilities").json()["analysis_available"], False)
+        unavail = client.get("/api/capabilities").json()
+        self.assertEqual(unavail["analysis_available"], False)
+        unavail_dto = CapabilitiesDTO.model_validate(unavail)
+        self.assertFalse(unavail_dto.analysis_available)
+        self.assertGreater(len(unavail_dto.question_types), 0)
+        self.assertEqual(unavail_dto.question_types[0].id, "lookup")
         self.assertEqual(client.get("/api/ready").status_code, 503)
         client.close()
 

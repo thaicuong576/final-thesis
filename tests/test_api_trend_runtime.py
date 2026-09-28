@@ -10,6 +10,14 @@ from unittest.mock import patch
 
 from pydantic import ValidationError
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_data.acceptance import validate_stage1_claims
 from thesis_data.dataset_contract import (
@@ -386,16 +394,18 @@ class CompanyTrendRequestTests(unittest.TestCase):
 
     def test_query_range_requires_explicit_periods_and_lists_must_match(self) -> None:
         catalog = _trend_catalog()
-        with self.assertRaisesRegex(AnalysisBlocked, "explicit ordered periods"):
-            _plan_request(
-                AnalysisRequest(
-                    query="Analyze ROE of ACB from 2024_Q1 through 2024_Q4",
-                    target_ticker="ACB",
-                    period="2024_Q4",
-                ),
-                catalog.dataset_ref,
-                catalog,
-            )
+        # Under D-075, natural query without explicit periods payload plans via question planner
+        plan_res = _plan_request(
+            AnalysisRequest(
+                query="Analyze ROE of ACB from 2024_Q1 through 2024_Q4",
+                target_ticker="ACB",
+                period="2024_Q4",
+            ),
+            catalog.dataset_ref,
+            catalog,
+        )
+        self.assertIsNotNone(plan_res[0])
+        self.assertIsNotNone(plan_res.spec)
         with self.assertRaisesRegex(AnalysisBlocked, "exactly match"):
             _plan_request(
                 AnalysisRequest(
@@ -420,18 +430,18 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 catalog.dataset_ref,
                 catalog,
             )
-        self.assertEqual(blocked.exception.code, "multi_period_unsupported")
-        with self.assertRaises(AnalysisBlocked) as blocked:
-            _plan_request(
-                AnalysisRequest(
-                    query="Compare ACB with MBB for ROE from 2024_Q1 through 2024_Q4",
-                    target_ticker="ACB",
-                    peer_tickers=["MBB"],
-                ),
-                catalog.dataset_ref,
-                catalog,
-            )
-        self.assertEqual(blocked.exception.code, "multi_period_unsupported")
+        # Under D-075, natural query without explicit periods payload plans via question planner
+        plan_res = _plan_request(
+            AnalysisRequest(
+                query="Compare ACB with MBB for ROE from 2024_Q1 through 2024_Q4",
+                target_ticker="ACB",
+                peer_tickers=["MBB"],
+            ),
+            catalog.dataset_ref,
+            catalog,
+        )
+        self.assertEqual(plan_res.spec.question_type, "head_to_head")
+        self.assertEqual(plan_res.spec.entities, ("ACB", "MBB"))
 
     def test_missing_metric_period_record_keeps_required_nulls_when_excluding_none(self) -> None:
         record = CompanyMetricPeriodRecordDTO(
@@ -480,6 +490,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
             settings = Settings(
                 sqlite_db_path=str(base / "accepted.sqlite"),
                 analysis_runs_db_path=str(base / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             engine = AnalysisEngine(base / "accepted.sqlite", settings)
             request = AnalysisRequest(
@@ -530,6 +541,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                     app_env="test",
                     sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                     analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                    planner_mode="rules_only",
                 )
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "trend-fixture")
                 app = create_app(
@@ -620,6 +632,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
             with TestClient(app) as client, patch(
@@ -715,6 +728,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
             with TestClient(app) as client, patch(
@@ -776,6 +790,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(
                 settings,
@@ -866,7 +881,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 target_ticker="MBB",
                 periods=periods,
             ),
-            settings=Settings(),
+            settings=Settings(planner_mode="rules_only"),
             semantic_critic=critic,
             analysis_writer=writer,
         )

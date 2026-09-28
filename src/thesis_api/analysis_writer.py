@@ -110,16 +110,14 @@ class OpenAIAnalysisWriter:
         result = self._request(
             name="analysis_synthesis",
             instructions=(
-                "You are an executive synthesis writer. Summarize only the supplied claims into concise qualitative overview prose. "
-                "Do not introduce external facts, causal conclusions, or claims absent from the supplied list. "
-                "Cite every supporting claim ID exactly as provided.\n\n"
-                "CRITICAL NEGATIVE CONSTRAINTS FOR SUMMARY:\n"
+                "You are an executive synthesis writer. Summarize the specialist findings into a concise qualitative overview.\n\n"
+                "CRITICAL CONSTRAINTS FOR SUMMARY:\n"
                 "- You must write a strictly QUALITATIVE executive summary.\n"
+                "- NEVER include any ticker symbols (e.g., do NOT write MBB, VCB, ACB, TCB, VPB) or metric acronyms (do NOT write NPL, ROE, ROA, LLR). Use general descriptive terms such as 'the institution', 'credit quality', 'asset health', 'earnings profile'.\n"
                 "- NEVER include digits, numbers, or spelled-out number words (do NOT write digits like 1.5, or words like one, two, half, percent, percentage, etc.).\n"
-                "- NEVER write any years, quarters, dates, or period labels.\n"
-                "- Describe the business insights qualitatively (e.g. credit quality health, provisioning discipline, profitability dynamics) without any quantitative words or numbers.\n\n"
+                "- NEVER write any years, quarters, dates, or period labels.\n\n"
                 "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
-                "Schema: {\"summary\": \"qualitative executive overview without numbers or period labels\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
+                "Schema: {\"summary\": \"qualitative executive overview\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
             ),
             payload={"plan": plan, "specialist_outputs": specialist_outputs, "selected_issues": list(issues)},
             schema={

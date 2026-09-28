@@ -45,10 +45,13 @@ class OpenAIAnalysisWriter:
                 "You are a specialist presentation writer. Use only the supplied frozen plan, accepted claims, "
                 "and observations. Write concise grounded prose for each exact claim_id. Do not change facts, "
                 "scope, uncertainty, limitations, or provenance. Do not add causal conclusions, external facts, "
-                "source IDs, period labels, or numerical values that are absent from the supplied claim. Address the selected "
+                "source IDs, or numerical values that are absent from the supplied claim. Address the selected "
                 "critique descriptions and required actions when present. Return every requested claim exactly once.\n\n"
+                "CRITICAL CONSTRAINTS FOR PROSE:\n"
+                "- NEVER mention any year (such as 2024), quarter (such as Q4, quý 4, fourth quarter), or period words in the 'prose' field. The period is bound at the report level; any period mention will cause an immediate validation failure.\n"
+                "- Write narrative focus solely on the entity, metric concept, and asserted value without period words.\n\n"
                 "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with the root key 'claim_texts'. "
-                "Schema: {\"claim_texts\": [{\"claim_id\": \"exact_claim_id\", \"prose\": \"grounded narrative\", \"supporting_claim_ids\": [\"exact_claim_id\"]}]}"
+                "Schema: {\"claim_texts\": [{\"claim_id\": \"exact_claim_id\", \"prose\": \"grounded narrative with NO period words\", \"supporting_claim_ids\": [\"exact_claim_id\"]}]}"
             ),
             payload={"plan": plan, "role": role, "claims": list(claims), "selected_issues": list(issues)},
             schema={
@@ -107,11 +110,16 @@ class OpenAIAnalysisWriter:
         result = self._request(
             name="analysis_synthesis",
             instructions=(
-                "You are an executive synthesis writer. Summarize only the supplied claims into concise prose. "
+                "You are an executive synthesis writer. Summarize only the supplied claims into concise qualitative overview prose. "
                 "Do not introduce external facts, causal conclusions, or claims absent from the supplied list. "
                 "Cite every supporting claim ID exactly as provided.\n\n"
+                "CRITICAL NEGATIVE CONSTRAINTS FOR SUMMARY:\n"
+                "- You must write a strictly QUALITATIVE executive summary.\n"
+                "- NEVER include digits, numbers, or spelled-out number words (do NOT write digits like 1.5, or words like one, two, half, percent, percentage, etc.).\n"
+                "- NEVER write any years, quarters, dates, or period labels.\n"
+                "- Describe the business insights qualitatively (e.g. credit quality health, provisioning discipline, profitability dynamics) without any quantitative words or numbers.\n\n"
                 "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
-                "Schema: {\"summary\": \"executive summary\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
+                "Schema: {\"summary\": \"qualitative executive overview without numbers or period labels\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
             ),
             payload={"plan": plan, "specialist_outputs": specialist_outputs, "selected_issues": list(issues)},
             schema={

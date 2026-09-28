@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any, List, Literal, Optional
+from typing import Annotated, Any, List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator, model_serializer, model_validator
+
 
 
 _CANONICAL_PERIOD_RE = re.compile(r"^(?P<quarter>20\d{2}_Q[1-4]|FY\d{4})$", re.IGNORECASE)
@@ -429,6 +430,444 @@ class AnalysisSessionEventDTO(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict, description="Event-specific payload")
 
 
+
+QuestionType = Literal[
+    "lookup",
+    "company_profile",
+    "ranking",
+    "trend",
+    "head_to_head",
+    "sector_theme",
+    "relationship",
+]
+
+
+class MetricPresentationDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    acronym: str
+    label: str
+    shortLabel: str
+    unit: str
+    direction: Literal["higher_is_better", "lower_is_better", "neutral"]
+    decimals: int
+    group: str
+    groupLabel: str
+
+
+class QuestionTypeInfoDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: QuestionType
+    label: str
+    example: str
+
+
+class CapabilitiesDTO(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    snapshotId: Optional[str] = None
+    datasetId: Optional[str] = None
+    datasetSnapshotId: Optional[str] = None
+    dataset_snapshot_id: Optional[str] = None
+    analysis_available: Optional[bool] = None
+    implemented_capabilities: List[str] = Field(default_factory=list)
+    database_status: Optional[str] = None
+    entities: List[dict[str, Any]] = Field(default_factory=list)
+    periods: List[dict[str, Any]] = Field(default_factory=list)
+    metrics: List[MetricPresentationDTO] = Field(default_factory=list)
+    topics: List[dict[str, Any]] = Field(default_factory=list)
+    peerUniverse: Optional[dict[str, Any]] = None
+    macro: Optional[dict[str, Any]] = None
+    suggestedQuestions: List[str] = Field(default_factory=list)
+    questionTypes: List[QuestionTypeInfoDTO] = Field(default_factory=list)
+    readiness: Optional[str] = None
+
+
+FactType = Literal[
+    "value",
+    "peer_median",
+    "peer_rank",
+    "gap_to_median",
+    "delta",
+    "median_delta",
+    "pairwise_gap",
+    "spread",
+    "ratio_to_median",
+    "derived_ratio",
+    "lead_count",
+    "outlier",
+]
+
+
+class FactDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    fact_id: str
+    fact_type: FactType
+    entity_id: Optional[str] = None
+    other_entity_id: Optional[str] = None
+    universe_id: Optional[str] = None
+    metric_id: str
+    period: str
+    from_period: Optional[str] = None
+    value: Optional[float] = None
+    unit: str
+    rank_better: Optional[int] = None
+    rank_desc: Optional[int] = None
+    denominator: Optional[int] = None
+    formula_version: str
+    input_observation_ids: List[str] = Field(default_factory=list)
+    input_fact_ids: List[str] = Field(default_factory=list)
+
+
+class ProducedByDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    tool: str
+    agent: str
+
+
+class DatasetRowDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    entity_id: str
+    metric_id: str
+    period: str
+    status: Literal["valid", "missing"]
+    value: Optional[float] = None
+    observation_id: Optional[str] = None
+    rank_better: Optional[int] = None
+    rank_desc: Optional[int] = None
+    missing_reason: Optional[str] = None
+
+
+class ReferenceLineDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: str
+    metric_id: str
+    period: str
+    value: float
+    fact_id: Optional[str] = None
+
+
+DatasetShape = Literal[
+    "kpi",
+    "ranked_list",
+    "series",
+    "series_multi",
+    "peer_table",
+    "comparison_table",
+    "paired",
+]
+
+
+class DatasetDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dataset_id: str
+    shape: DatasetShape
+    title: str
+    produced_by: ProducedByDTO
+    metric_ids: List[str] = Field(default_factory=list)
+    periods: List[str] = Field(default_factory=list)
+    highlight_entity_ids: List[str] = Field(default_factory=list)
+    rows: List[DatasetRowDTO] = Field(default_factory=list)
+    reference_lines: List[ReferenceLineDTO] = Field(default_factory=list)
+    allowed_charts: List[str] = Field(default_factory=list)
+
+
+SentenceAuthor = Literal["orchestrator", "company", "sector", "macro", "critic", "system"]
+SentenceSource = Literal["model", "deterministic_fallback"]
+
+
+class SentenceDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sentence_id: str
+    text: str
+    fact_ids: List[str] = Field(default_factory=list)
+    author: SentenceAuthor
+    source: SentenceSource
+    revision: int = 0
+
+
+class AnswerBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["answer"] = "answer"
+    value_fact_id: str
+    sentences: List[SentenceDTO] = Field(default_factory=list)
+
+
+class HeadlineBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["headline"] = "headline"
+    sentence: SentenceDTO
+
+
+class KeyPointItemDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    sentences: List[SentenceDTO] = Field(default_factory=list)
+
+
+class KeyPointsBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["key_points"] = "key_points"
+    items: List[KeyPointItemDTO] = Field(default_factory=list)
+
+
+class SectionBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["section"] = "section"
+    title: str
+    sentences: List[SentenceDTO] = Field(default_factory=list)
+
+
+ChartType = Literal[
+    "kpi_strip",
+    "ranked_bar",
+    "line_trend",
+    "small_multiples",
+    "scatter",
+    "rank_heatmap",
+    "grouped_bar",
+    "comparison_table",
+]
+
+
+class FigureBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["figure"] = "figure"
+    figure_no: int
+    chart: ChartType
+    dataset_id: str
+    title: str
+    takeaway: SentenceDTO
+
+
+class CalloutBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["callout"] = "callout"
+    tone: Literal["notice", "warning"]
+    title: str
+    finding_id: Optional[str] = None
+    sentences: List[SentenceDTO] = Field(default_factory=list)
+
+
+class TableBlockDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["table"] = "table"
+    dataset_id: str
+    title: str
+
+
+ReportBlockDTO = Annotated[
+    Union[
+        AnswerBlockDTO,
+        HeadlineBlockDTO,
+        KeyPointsBlockDTO,
+        SectionBlockDTO,
+        FigureBlockDTO,
+        CalloutBlockDTO,
+        TableBlockDTO,
+    ],
+    Field(discriminator="type"),
+]
+
+
+class ReportSpecDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["answer_card", "note"]
+    note_label: Optional[str] = None
+    blocks: List[ReportBlockDTO] = Field(default_factory=list)
+
+
+SignalVerdict = Literal["above_peers", "in_line", "below_peers", "mixed", "insufficient_data"]
+
+
+class SignalDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    group: str
+    label: str
+    verdict: SignalVerdict
+    metric_ids: List[str] = Field(default_factory=list)
+    fact_ids: List[str] = Field(default_factory=list)
+
+
+class CrossLevelFindingDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    finding_id: str
+    kind: Literal["divergent_signals", "counter_trend", "cross_metric_extreme"]
+    severity: Literal["notice", "warning"]
+    text: str
+    fact_ids: List[str] = Field(default_factory=list)
+    status: Literal["confirmed", "dismissed"]
+
+
+SentenceDropReason = Literal[
+    "missing_fact_citation",
+    "unknown_fact",
+    "number_mismatch",
+    "unit_mismatch",
+    "rank_mismatch",
+    "count_mismatch",
+    "period_not_cited",
+    "entity_not_in_plan",
+    "trend_without_delta",
+    "trend_direction_mismatch",
+    "comparison_direction_mismatch",
+    "causal_language",
+    "investment_advice",
+    "unresolved_critique",
+]
+
+
+class SentenceDroppedDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sentence_id: str
+    author: str
+    text: str
+    reason_code: SentenceDropReason
+    reason: str
+
+
+class BlockDroppedDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: str
+    reason: str
+
+
+class NarrativeAuditDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sentences_checked: int
+    sentences_accepted: int
+    sentences_dropped: List[SentenceDroppedDTO] = Field(default_factory=list)
+    numbers_checked: int
+    numbers_matched: int
+    blocks_dropped: List[BlockDroppedDTO] = Field(default_factory=list)
+    composition_source: Literal["model", "deterministic_fallback"]
+
+
+class SourceNoteDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    note_no: int
+    source_id: str
+    title: str
+    url: Optional[str] = None
+    locator: Optional[str] = None
+    fact_ids: List[str] = Field(default_factory=list)
+
+
+class ErrorInfoDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str
+    message: str
+    suggestions: List[str] = Field(default_factory=list)
+
+
+TraceActor = Literal["orchestrator", "company", "sector", "macro", "critic", "verifier", "system"]
+TraceKind = Literal[
+    "plan",
+    "assign",
+    "tool_result",
+    "draft",
+    "verify",
+    "compose",
+    "critique_issue",
+    "cross_level_finding",
+    "revision",
+    "accept",
+    "report_ready",
+    "blocked",
+]
+
+
+class TraceStepDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    step_id: str
+    seq: int
+    t_ms: int
+    actor: TraceActor
+    recipient: Optional[TraceActor] = None
+    kind: TraceKind
+    summary: str
+    detail: dict[str, Any] = Field(default_factory=dict)
+
+
+class RunTraceDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str
+    status: str
+    query: str
+    created_at: str
+    duration_ms: int
+    arm: Optional[str] = None
+    steps: List[TraceStepDTO] = Field(default_factory=list)
+
+
+class AnalysisRunSummaryDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str
+    created_at: str
+    query: str
+    target_ticker: Optional[str] = None
+    peer_tickers: List[str] = Field(default_factory=list)
+    period: Optional[str] = None
+    status: str
+    latency_ms: Optional[int] = None
+    model_used: Optional[str] = None
+    error_code: Optional[str] = None
+    duration_ms: Optional[int] = None
+    arm: Optional[str] = None
+    question_type: Optional[str] = None
+
+
+class AnalysisRunRecordDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str
+    created_at: str
+    query: str
+    target_ticker: Optional[str] = None
+    peer_tickers: List[str] = Field(default_factory=list)
+    period: Optional[str] = None
+    status: str
+    latency_ms: Optional[int] = None
+    model_used: Optional[str] = None
+    report_json: Optional[dict[str, Any]] = None
+    events_json: List[dict[str, Any]] = Field(default_factory=list)
+    trace_json: Optional[dict[str, Any]] = None
+    error_code: Optional[str] = None
+    duration_ms: Optional[int] = None
+    model_calls: Optional[int] = None
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+    arm: Optional[str] = None
+    question_type: Optional[str] = None
+
+
 class AnalysisResponse(BaseModel):
     """Hierarchical financial multi-agent analysis report response adhering to OpenAPI spec."""
 
@@ -483,6 +922,46 @@ class AnalysisResponse(BaseModel):
         default_factory=list,
         description="Ordered claim IDs explicitly used to produce the report-level synthesis",
     )
+    report_version: Optional[str] = Field(
+        default=None,
+        description="Report specification version (e.g. 'er-report-v1')",
+    )
+    question_type: Optional[QuestionType] = Field(
+        default=None,
+        description="Resolved or planned question type",
+    )
+    report_spec: Optional[ReportSpecDTO] = Field(
+        default=None,
+        description="Structured modular report specification",
+    )
+    datasets: List[DatasetDTO] = Field(
+        default_factory=list,
+        description="Datasets backing report figures and tables",
+    )
+    facts: List[FactDTO] = Field(
+        default_factory=list,
+        description="Authoritative deterministic facts computed by tools",
+    )
+    signals: List[SignalDTO] = Field(
+        default_factory=list,
+        description="Performance signals across financial dimensions",
+    )
+    cross_level_findings: List[CrossLevelFindingDTO] = Field(
+        default_factory=list,
+        description="Cross-level synthesis findings",
+    )
+    narrative_audit: Optional[NarrativeAuditDTO] = Field(
+        default=None,
+        description="Audit of sentence and block verification",
+    )
+    source_notes: List[SourceNoteDTO] = Field(
+        default_factory=list,
+        description="Primary source reference notes",
+    )
+    error: Optional[ErrorInfoDTO] = Field(
+        default=None,
+        description="Error details when status is error",
+    )
 
     @model_validator(mode="after")
     def require_scope_limitation(self) -> "AnalysisResponse":
@@ -495,3 +974,7 @@ class AnalysisResponse(BaseModel):
                 if not any(limitation_key in item for item in limitations):
                     raise ValueError("unavailable reporting scope requires an explicit response limitation")
         return self
+
+
+AnalysisResponseDTO = AnalysisResponse
+

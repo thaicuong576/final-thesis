@@ -58,7 +58,14 @@ These metrics are not part of the primary gate until their definitions and cover
 | `macro.policy_rate` | Official SBV rate level and change | Rate type and effective date must be explicit. |
 | `macro.credit_growth` | Official source-disclosed system credit-growth value | Publication date and period basis must be aligned. |
 
+## Derived ratio metrics
+
+| Metric ID | Meaning | Formula | Basis | Unit | Primary source | Acceptance note |
+|---|---|---|---|---|---|---|
+| `derived.roe_over_roa` | Bội số ROE trên ROA | `bank.roe / bank.roa` | Quarter-only or TTM matching inputs | `lần` (x) | Derived from accepted `bank.roe` and `bank.roa` | Xấp xỉ bội số vốn chủ sở hữu bình quân (equity multiplier). Chỉ hợp lệ khi cả ROE và ROA có cùng cơ sở annualize và cùng phương pháp tính mẫu số bình quân. Chỉ dùng để mô tả cơ cấu đòn bẩy tài chính tương đối, tuyệt đối không suy diễn quan hệ nhân quả. |
+
 ## Period and source handling
+
 
 For every derived flow metric, store both the source YTD inputs and the derived quarter-only observation. If only an annual or TTM vendor ratio is available, retain it as a non-equivalent variant and do not mix it with quarter-only values in peer statistics.
 

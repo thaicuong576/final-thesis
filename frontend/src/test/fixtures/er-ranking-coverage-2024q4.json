@@ -1,0 +1,341 @@
+{
+  "report_id": "rep-ranking-coverage-2024q4",
+  "status": "completed",
+  "report_version": "er-report-v1",
+  "question_type": "ranking",
+  "analysis_plan": null,
+  "macro_context": null,
+  "sector_benchmark": null,
+  "company_insights": [],
+  "cross_level_critique": [],
+  "atomic_claims": [],
+  "evidence_trail": [],
+  "revision_summary": null,
+  "limitations": [],
+  "synthesis_summary": "VCB dẫn đầu nhóm về tỷ lệ bao phủ nợ xấu với 223,31%, gấp 2,4 lần trung vị ngành.",
+  "synthesis_supporting_claim_ids": [],
+  "facts": [
+    {
+      "fact_id": "fact:value:VCB:2024_Q4:bank.llr_coverage",
+      "fact_type": "value",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 223.311,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VCB:2024_Q4:bank.llr_coverage"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q4:bank.llr_coverage",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 56.1749,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q4:bank.llr_coverage"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q4:bank.npl_g35",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.npl_g35",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 4.1956,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q4:bank.npl_g35"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "peer_median",
+      "entity_id": null,
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 92.2484,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": 5,
+      "formula_version": "peer-median-v1",
+      "input_observation_ids": [
+        "obs:VCB:2024_Q4:bank.llr_coverage",
+        "obs:TCB:2024_Q4:bank.llr_coverage",
+        "obs:MBB:2024_Q4:bank.llr_coverage",
+        "obs:ACB:2024_Q4:bank.llr_coverage",
+        "obs:VPB:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "ratio_to_median",
+      "entity_id": "VCB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 2.4208,
+      "unit": "x",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "ratio-to-median-v1",
+      "input_observation_ids": [
+        "obs:VCB:2024_Q4:bank.llr_coverage",
+        "obs:TCB:2024_Q4:bank.llr_coverage",
+        "obs:MBB:2024_Q4:bank.llr_coverage",
+        "obs:ACB:2024_Q4:bank.llr_coverage",
+        "obs:VPB:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": [
+        "fact:value:VCB:2024_Q4:bank.llr_coverage",
+        "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+      ]
+    },
+    {
+      "fact_id": "fact:spread:sector:bank:2024_Q4:bank.llr_coverage",
+      "fact_type": "spread",
+      "entity_id": null,
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.llr_coverage",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 167.1361,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": 5,
+      "formula_version": "spread-v1",
+      "input_observation_ids": [
+        "obs:VCB:2024_Q4:bank.llr_coverage",
+        "obs:VPB:2024_Q4:bank.llr_coverage"
+      ],
+      "input_fact_ids": []
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "ds-ranked-coverage-2024q4",
+      "shape": "ranked_list",
+      "title": "Tỷ lệ bao phủ nợ xấu, Q4/2024",
+      "produced_by": { "tool": "ranking", "agent": "sector" },
+      "metric_ids": ["bank.llr_coverage"],
+      "periods": ["2024_Q4"],
+      "highlight_entity_ids": ["VCB", "VPB"],
+      "rows": [
+        {
+          "entity_id": "VCB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 223.311,
+          "observation_id": "obs:VCB:2024_Q4:bank.llr_coverage",
+          "rank_better": 1,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "TCB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 113.8,
+          "observation_id": "obs:TCB:2024_Q4:bank.llr_coverage",
+          "rank_better": 2,
+          "rank_desc": 2,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "MBB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 92.2484,
+          "observation_id": "obs:MBB:2024_Q4:bank.llr_coverage",
+          "rank_better": 3,
+          "rank_desc": 3,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "ACB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 76.5591,
+          "observation_id": "obs:ACB:2024_Q4:bank.llr_coverage",
+          "rank_better": 4,
+          "rank_desc": 4,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 56.1749,
+          "observation_id": "obs:VPB:2024_Q4:bank.llr_coverage",
+          "rank_better": 5,
+          "rank_desc": 5,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [
+        {
+          "kind": "median",
+          "metric_id": "bank.llr_coverage",
+          "period": "2024_Q4",
+          "value": 92.2484,
+          "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+        }
+      ],
+      "allowed_charts": ["ranked_bar", "comparison_table"]
+    }
+  ],
+  "report_spec": {
+    "kind": "note",
+    "note_label": "Báo cáo xếp hạng · Ngân hàng",
+    "blocks": [
+      {
+        "type": "headline",
+        "sentence": {
+          "sentence_id": "s-rank-head",
+          "text": "VCB sở hữu đệm dự phòng bao nợ xấu dày nhất nhóm với 223,31% trong quý 4/2024.",
+          "fact_ids": ["fact:value:VCB:2024_Q4:bank.llr_coverage"],
+          "author": "sector",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "figure",
+        "figure_no": 1,
+        "chart": "ranked_bar",
+        "dataset_id": "ds-ranked-coverage-2024q4",
+        "title": "Tỷ lệ bao phủ nợ xấu các ngân hàng, Q4/2024",
+        "takeaway": {
+          "sentence_id": "s-rank-fig",
+          "text": "Tỷ lệ bao phủ nợ xấu của VCB đạt 223,31%, cao gấp 2,42 lần mức trung vị 92,25% của nhóm.",
+          "fact_ids": [
+            "fact:value:VCB:2024_Q4:bank.llr_coverage",
+            "fact:ratio_to_median:VCB:sector:bank:2024_Q4:bank.llr_coverage",
+            "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+          ],
+          "author": "sector",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "key_points",
+        "items": [
+          {
+            "title": "Phân hóa mạnh mẽ trong nhóm tham chiếu",
+            "sentences": [
+              {
+                "sentence_id": "s-rank-kp-1",
+                "text": "Khoảng chênh lệch giữa ngân hàng cao nhất và thấp nhất lên tới 167,14 điểm phần trăm.",
+                "fact_ids": ["fact:spread:sector:bank:2024_Q4:bank.llr_coverage"],
+                "author": "sector",
+                "source": "model",
+                "revision": 0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "tone": "warning",
+        "title": "Lưu ý rủi ro đệm dự phòng mỏng tại VPB",
+        "finding_id": "f-extreme-vpb",
+        "sentences": [
+          {
+            "sentence_id": "s-rank-call-1",
+            "text": "VPB có tỷ lệ bao phủ nợ xấu thấp nhất nhóm ở mức 56,17% trong khi tỷ lệ nợ xấu ở mức cao nhất 4,20%.",
+            "fact_ids": [
+              "fact:value:VPB:2024_Q4:bank.llr_coverage",
+              "fact:value:VPB:2024_Q4:bank.npl_g35"
+            ],
+            "author": "critic",
+            "source": "model",
+            "revision": 0
+          }
+        ]
+      }
+    ]
+  },
+  "signals": [
+    {
+      "group": "provision_buffer",
+      "label": "Đệm dự phòng",
+      "verdict": "above_peers",
+      "metric_ids": ["bank.llr_coverage"],
+      "fact_ids": ["fact:value:VCB:2024_Q4:bank.llr_coverage"]
+    }
+  ],
+  "cross_level_findings": [
+    {
+      "finding_id": "f-extreme-vpb",
+      "kind": "cross_metric_extreme",
+      "severity": "warning",
+      "text": "VPB đồng thời ghi nhận tỷ lệ bao phủ thấp nhất và tỷ lệ nợ xấu cao nhất nhóm.",
+      "fact_ids": [
+        "fact:value:VPB:2024_Q4:bank.llr_coverage",
+        "fact:value:VPB:2024_Q4:bank.npl_g35"
+      ],
+      "status": "confirmed"
+    }
+  ],
+  "narrative_audit": {
+    "sentences_checked": 4,
+    "sentences_accepted": 4,
+    "sentences_dropped": [],
+    "numbers_checked": 6,
+    "numbers_matched": 6,
+    "blocks_dropped": [],
+    "composition_source": "model"
+  },
+  "source_notes": [
+    {
+      "note_no": 1,
+      "source_id": "src:sector:2024_Q4",
+      "title": "Tổng hợp BCTC kiểm toán nhóm Ngân hàng 2024",
+      "url": null,
+      "locator": "Thống kê chất lượng nợ Q4/2024",
+      "fact_ids": [
+        "fact:value:VCB:2024_Q4:bank.llr_coverage",
+        "fact:value:VPB:2024_Q4:bank.llr_coverage"
+      ]
+    }
+  ],
+  "error": null
+}

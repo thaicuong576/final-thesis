@@ -1459,3 +1459,63 @@ T08 is deferred to a separate decision because per-period peer denominators,
 context budget and the `company_to_peer` versus public applicable-link naming
 mismatch must be resolved together. This decision does not freeze the P4
 protocol, authorize live scoring, add macro data, or claim live-model quality.
+
+## D-075: Question-adaptive verified reports, deterministic analysis tools and persisted run trace
+
+Status: Approved in ER-1 contract baseline.
+
+### 1. Context and Problem Statement
+An end-to-end review of the live staging deployment on 2026-09-28 identified severe runtime and report limitations:
+- Out of 12 natural query tests, only 2 single-bank single-metric single-period queries succeeded. Peer comparisons (0/3) and trend queries (0/2) failed. Natural phrasing ("quý 4/2024", "năm 2024", "tỷ lệ nợ xấu") and homepage suggested questions were rejected.
+- Successful executions yielded a single isolated figure with generic English placeholder synthesis. In some cases, raw prompt instructions leaked directly into output.
+- Root cause: Synthesis was subject to blanket regex bans forbidding digits, bank names, periods, trend terms, causal language, and even Vietnamese number words. A single matching word triggered complete run abort. The semantic critic frequently eliminated the entire explanatory synthesis.
+- `cross_level_critique` remained empty, the frontend did not render synthesis, and failed runs were never persisted to history.
+
+### 2. A. Question Types and Plan Freezing
+The Orchestrator classifies incoming queries into a closed set of question types (`lookup`, `company_profile`, `ranking`, `trend`, `head_to_head`, `sector_theme`, `relationship`) and selects analytical tools from a closed catalog.
+- Deterministic code validates the proposed plan against the catalog and freezes the plan before data retrieval.
+- If model planning fails or produces an invalid configuration, the system falls back to a deterministic, rules-based plan.
+- All evaluation arms (A, B, C) share the identical frozen plan.
+
+### 3. B. Deterministic Analysis Tools and Fact Contracts
+Every numeric claim in the report must originate as a typed `Fact` calculated deterministically by analysis tools from accepted observations, carrying an explicit `formula_version`, `input_observation_ids`, and optional `input_fact_ids`.
+- Reusable Stage-1 acceptance covers direct observation claims at the anchor period.
+- Context period values used within multi-period facts are validated by resolving each input observation against accepted criteria.
+- Any newly introduced derived metric formulas (such as ROE/ROA ratio) must be documented in `docs/METRIC-DICTIONARY.md`.
+
+### 4. C. Verified Narrative Model
+The blanket prohibition of numbers, periods, entities, and trend words in synthesis is replaced with a sentence-by-sentence verification engine:
+- Every sentence must explicitly cite one or more `fact_ids`.
+- Numbers, ranks, periods, entities, trend words, and comparison words in each sentence are validated against the cited facts.
+- Explicit causal claims and investment advice remain strictly forbidden.
+- Any non-compliant sentence is discarded individually and recorded in a structured `NarrativeAudit`; a bad sentence never aborts the entire execution run.
+
+### 5. D. Modular Block-Assembled Report (`ReportSpec`)
+Reports are generated as a `ReportSpec` composed of discrete blocks selected from a closed catalog:
+- Block types: `answer` (for answer cards), `headline`, `key_points`, `section`, `figure`, `callout`, and `table`.
+- Figure blocks support 8 chart shapes (`kpi_strip`, `ranked_bar`, `line_trend`, `small_multiples`, `scatter`, `rank_heatmap`, `grouped_bar`, `comparison_table`) backed by structured `Dataset` payloads.
+- Code validates figure and chart compatibility against dataset shapes and bounds; invalid specs fall back to the default layout for the query type.
+
+### 6. E. Structured Trace Persistence
+Every run, including failed runs and blocked executions, is persisted to SQLite with chronological, structured `TraceStep` events:
+- Trace steps capture actor, recipient, action kind, summary, and structured details (plan, tool results, draft sentences, verification audit, critique issues, revisions, acceptance, or errors).
+- Trace events never expose raw chain-of-thought or model prompts.
+
+### 7. Macro Scope Handling
+When a user query touches macroeconomic factors but no accepted macro dataset is available, the system does not block if the company or sector dimensions can be answered. It proceeds with the answerable scope and logs an explicit limitation note.
+
+### 8. Evaluation Consistency Across Arms
+Research arms A, B, and C share the same query classification, frozen plan, analysis tools, deterministic facts, sentence verifier, and report block catalog. The 2026-09-09 pilot benchmark remains historical evidence and is not relabeled.
+
+### 9. Pre-Flight Guardrail Invariants (§10)
+1. Does this increase coupling to the current Gold dataset? No; contracts and tools operate on generic provider interfaces and canonical schemas.
+2. Does this increase coupling to SQLite or a physical schema? No; core logic is storage-agnostic, and run-store DDL changes are confined to operational history.
+3. Does this hard-code the current five-bank universe? No; core functions are pure and free of bank literals. Metric presentation metadata resides in the application registry.
+4. Would it still work if the frontend were replaced? Yes; contracts are strictly defined via OpenAPI 3.1.0 JSON schemas.
+5. Would it still work if the database were replaced through an adapter? Yes; data access routes through DatasetProvider abstractions.
+6. Is it reusable core logic or reference-application logic? Contracts and schemas are cross-layer interfaces; analytical tools and verification algorithms are reusable core logic, while DTOs and routes belong to the application layer.
+7. Does it preserve evidence/provenance? Yes; every fact preserves input observation IDs, formula versions, and source notes with primary locators.
+8. Does it preserve dataset/snapshot traceability? Yes; dataset_snapshot_id and observation IDs are preserved throughout facts, datasets, and traces.
+9. Does it help the financial-analyst workflow? Yes; enables natural Vietnamese query understanding, equity-research note generation, and transparent auditability.
+10. Is it thesis scope that is not necessary? No; this directly fulfills the query-adaptive multi-agent research objective with verifiable factual grounding.
+

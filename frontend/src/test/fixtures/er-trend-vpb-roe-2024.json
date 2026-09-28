@@ -1,0 +1,348 @@
+{
+  "report_id": "rep-trend-vpb-roe-2024",
+  "status": "completed",
+  "report_version": "er-report-v1",
+  "question_type": "trend",
+  "analysis_plan": null,
+  "macro_context": null,
+  "sector_benchmark": null,
+  "company_insights": [],
+  "cross_level_critique": [],
+  "atomic_claims": [],
+  "evidence_trail": [],
+  "revision_summary": null,
+  "limitations": [],
+  "synthesis_summary": "ROE của VPB cải thiện liên tục trong năm 2024 từ 8,07% lên 11,41%, thu hẹp khoảng cách với trung vị ngành.",
+  "synthesis_supporting_claim_ids": [],
+  "facts": [
+    {
+      "fact_id": "fact:value:VPB:2024_Q1:bank.roe",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.roe",
+      "period": "2024_Q1",
+      "from_period": null,
+      "value": 8.0671,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q1:bank.roe"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q2:bank.roe",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.roe",
+      "period": "2024_Q2",
+      "from_period": null,
+      "value": 8.5867,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q2:bank.roe"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q3:bank.roe",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.roe",
+      "period": "2024_Q3",
+      "from_period": null,
+      "value": 9.6445,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q3:bank.roe"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:value:VPB:2024_Q4:bank.roe",
+      "fact_type": "value",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.roe",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 11.4117,
+      "unit": "%",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "primary-observation-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q4:bank.roe"],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe",
+      "fact_type": "delta",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": null,
+      "metric_id": "bank.roe",
+      "period": "2024_Q4",
+      "from_period": "2024_Q1",
+      "value": 3.3446,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "period-delta-v1",
+      "input_observation_ids": [
+        "obs:VPB:2024_Q1:bank.roe",
+        "obs:VPB:2024_Q4:bank.roe"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:gap_to_median:VPB:sector:bank:2024_Q1:bank.roe",
+      "fact_type": "gap_to_median",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.roe",
+      "period": "2024_Q1",
+      "from_period": null,
+      "value": -9.3916,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "gap-to-median-v1",
+      "input_observation_ids": [
+        "obs:VPB:2024_Q1:bank.roe"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:gap_to_median:VPB:sector:bank:2024_Q4:bank.roe",
+      "fact_type": "gap_to_median",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.roe",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": -7.1848,
+      "unit": "pp",
+      "rank_better": null,
+      "rank_desc": null,
+      "denominator": null,
+      "formula_version": "gap-to-median-v1",
+      "input_observation_ids": [
+        "obs:VPB:2024_Q4:bank.roe"
+      ],
+      "input_fact_ids": []
+    },
+    {
+      "fact_id": "fact:peer_rank:VPB:sector:bank:2024_Q4:bank.roe",
+      "fact_type": "peer_rank",
+      "entity_id": "VPB",
+      "other_entity_id": null,
+      "universe_id": "sector:bank",
+      "metric_id": "bank.roe",
+      "period": "2024_Q4",
+      "from_period": null,
+      "value": 5.0,
+      "unit": "rank",
+      "rank_better": 5,
+      "rank_desc": 1,
+      "denominator": 5,
+      "formula_version": "peer-rank-v1",
+      "input_observation_ids": ["obs:VPB:2024_Q4:bank.roe"],
+      "input_fact_ids": []
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "ds-trend-vpb-roe-2024",
+      "shape": "series",
+      "title": "Diễn biến ROE của VPB qua các quý năm 2024",
+      "produced_by": { "tool": "trend", "agent": "company" },
+      "metric_ids": ["bank.roe"],
+      "periods": ["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"],
+      "highlight_entity_ids": ["VPB"],
+      "rows": [
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.roe",
+          "period": "2024_Q1",
+          "status": "valid",
+          "value": 8.0671,
+          "observation_id": "obs:VPB:2024_Q1:bank.roe",
+          "rank_better": 4,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.roe",
+          "period": "2024_Q2",
+          "status": "valid",
+          "value": 8.5867,
+          "observation_id": "obs:VPB:2024_Q2:bank.roe",
+          "rank_better": 5,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.roe",
+          "period": "2024_Q3",
+          "status": "valid",
+          "value": 9.6445,
+          "observation_id": "obs:VPB:2024_Q3:bank.roe",
+          "rank_better": 5,
+          "rank_desc": 1,
+          "missing_reason": null
+        },
+        {
+          "entity_id": "VPB",
+          "metric_id": "bank.roe",
+          "period": "2024_Q4",
+          "status": "valid",
+          "value": 11.4117,
+          "observation_id": "obs:VPB:2024_Q4:bank.roe",
+          "rank_better": 5,
+          "rank_desc": 1,
+          "missing_reason": null
+        }
+      ],
+      "reference_lines": [
+        {
+          "kind": "median",
+          "metric_id": "bank.roe",
+          "period": "2024_Q1",
+          "value": 17.4587,
+          "fact_id": null
+        },
+        {
+          "kind": "median",
+          "metric_id": "bank.roe",
+          "period": "2024_Q2",
+          "value": 19.2688,
+          "fact_id": null
+        },
+        {
+          "kind": "median",
+          "metric_id": "bank.roe",
+          "period": "2024_Q3",
+          "value": 19.5335,
+          "fact_id": null
+        },
+        {
+          "kind": "median",
+          "metric_id": "bank.roe",
+          "period": "2024_Q4",
+          "value": 18.5965,
+          "fact_id": null
+        }
+      ],
+      "allowed_charts": ["line_trend", "comparison_table"]
+    }
+  ],
+  "report_spec": {
+    "kind": "note",
+    "note_label": "Báo cáo xu hướng · VPB",
+    "blocks": [
+      {
+        "type": "headline",
+        "sentence": {
+          "sentence_id": "s-trend-head",
+          "text": "ROE của VPB tăng trưởng liên tục trong 4 quý năm 2024, từ 8,07% lên 11,41%.",
+          "fact_ids": [
+            "fact:value:VPB:2024_Q1:bank.roe",
+            "fact:value:VPB:2024_Q4:bank.roe"
+          ],
+          "author": "company",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "figure",
+        "figure_no": 1,
+        "chart": "line_trend",
+        "dataset_id": "ds-trend-vpb-roe-2024",
+        "title": "Diễn biến ROE của VPB và trung vị nhóm năm 2024",
+        "takeaway": {
+          "sentence_id": "s-trend-fig",
+          "text": "ROE cả năm tăng 3,34 điểm phần trăm, thu hẹp khoảng cách với trung vị ngành từ -9,39 điểm xuống -7,18 điểm.",
+          "fact_ids": [
+            "fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe",
+            "fact:gap_to_median:VPB:sector:bank:2024_Q1:bank.roe",
+            "fact:gap_to_median:VPB:sector:bank:2024_Q4:bank.roe"
+          ],
+          "author": "company",
+          "source": "model",
+          "revision": 0
+        }
+      },
+      {
+        "type": "key_points",
+        "items": [
+          {
+            "title": "Vị thế so với nhóm tham chiếu",
+            "sentences": [
+              {
+                "sentence_id": "s-trend-kp-1",
+                "text": "Mặc dù cải thiện đáng kể, ROE quý 4/2024 của VPB vẫn xếp thứ 5 trong 5 ngân hàng.",
+                "fact_ids": ["fact:peer_rank:VPB:sector:bank:2024_Q4:bank.roe"],
+                "author": "company",
+                "source": "model",
+                "revision": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "signals": [
+    {
+      "group": "profitability",
+      "label": "Khả năng sinh lời",
+      "verdict": "below_peers",
+      "metric_ids": ["bank.roe"],
+      "fact_ids": ["fact:value:VPB:2024_Q4:bank.roe"]
+    }
+  ],
+  "cross_level_findings": [],
+  "narrative_audit": {
+    "sentences_checked": 3,
+    "sentences_accepted": 3,
+    "sentences_dropped": [],
+    "numbers_checked": 6,
+    "numbers_matched": 6,
+    "blocks_dropped": [],
+    "composition_source": "model"
+  },
+  "source_notes": [
+    {
+      "note_no": 1,
+      "source_id": "src:VPB:2024",
+      "title": "BCTC hợp nhất VPB các quý năm 2024",
+      "url": "https://vpb.com.vn",
+      "locator": "Báo cáo kết quả kinh doanh",
+      "fact_ids": [
+        "fact:value:VPB:2024_Q1:bank.roe",
+        "fact:value:VPB:2024_Q4:bank.roe"
+      ]
+    }
+  ],
+  "error": null
+}

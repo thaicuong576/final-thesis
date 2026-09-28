@@ -587,6 +587,59 @@ class OpenAISemanticCriticNormalizationTests(unittest.TestCase):
         self.assertEqual(issues["ISS-001"]["affected_agent"], "company")
         self.assertEqual(issues["ISS-002"]["affected_agent"], "orchestrator")
 
+    def test_orchestrator_issues_demanding_numbers_in_synthesis_are_dropped(self) -> None:
+        plan = _company_plan()
+
+        raw_decoded = {
+            "issues": [
+                {
+                    "issue_id": "SYN-NUM-001",
+                    "affected_agent": "orchestrator",
+                    "target_id": "synthesis",
+                    "severity": "major",
+                    "rationale": "The report-level synthesis omits the actual numeric value (1.6205%). The synthesis should state the numeric fact directly.",
+                    "required_action": "revise_claim",
+                    "affected_requirement_ids": ["R1"],
+                },
+                {
+                    "issue_id": "SYN-OK-002",
+                    "affected_agent": "orchestrator",
+                    "target_id": "synthesis",
+                    "severity": "minor",
+                    "rationale": "The summary needs clearer concluding balance between loan book and capital buffer.",
+                    "required_action": "revise_claim",
+                    "affected_requirement_ids": ["R1"],
+                },
+            ],
+            "dimension_scores": [
+                {
+                    "dimension": "groundedness",
+                    "issue_ids": ["SYN-NUM-001", "SYN-OK-002"],
+                }
+            ],
+            "requirement_results": [
+                {"requirement_id": "R1", "status": "fulfilled"}
+            ],
+        }
+
+        normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
+
+        issue_ids = [i["issue_id"] for i in normalized["critique_issues"]]
+        self.assertNotIn("SYN-NUM-001", issue_ids)
+        self.assertIn("SYN-OK-002", issue_ids)
+
+        groundedness_dim = next(
+            d for d in normalized["dimension_scores"] if d["dimension"] == "groundedness"
+        )
+        self.assertNotIn("SYN-NUM-001", groundedness_dim["issue_ids"])
+        self.assertIn("SYN-OK-002", groundedness_dim["issue_ids"])
+
+        validated = StructuredCriticResult.model_validate(normalized)
+        violations = deterministic_coverage_violations(plan, validated, ())
+        self.assertFalse(any("SYN-NUM-001" in v for v in violations))
+        self.assertNotIn("orchestrator_issue_must_target_synthesis:SYN-OK-002", violations)
+
 
 if __name__ == "__main__":
     unittest.main()
+

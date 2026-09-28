@@ -1,36 +1,61 @@
-# TASK Manifest: [THES-17] Forbid entity tickers and metric acronyms in executive synthesis instructions
+# TASK MANIFEST: THES-18
 
-- **Role**: worker-api
-- **Linear Issue**: [THES-17](https://linear.app/eddiephung/issue/THES-17)
-- **Worktree**: `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-THES-17-synthesis-entity-constraints`
-- **Branch**: `feat/THES-17-synthesis-entity-constraints`
+- **Issue**: [THES-18](https://linear.app/eddiephung/issue/THES-18)
+- **Role**: Backend & Data Specialist (`worker-api` / `worker-data`)
+- **Workspace**: `.worktrees/feat-THES-18-critic-schema-robustness`
+- **Contracts**:
+  - `src/thesis_data/semantic_evaluation.py` (`StructuredCriticResult`, `FROZEN_SEMANTIC_DIMENSIONS`, `STRUCTURED_CRITIC_RESULT_VERSION`)
+  - `src/thesis_data/openai_semantic_critic.py`
 
-## Problem & Context
-In `adaptive_runtime.py`, `_validate_synthesis_prose` enforces that for single-period reports:
-- The synthesis summary is rendered from accepted specialist prose and cannot introduce entity or metric claims.
-- If any entity ticker (e.g. `MBB`, `VCB`, `ACB`, `TCB`, `VPB`) or metric acronym (e.g. `NPL`, `ROE`, `ROA`, `LLR`) appears in the `summary`, it triggers `AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The report-level synthesis is rendered from accepted specialist prose and cannot introduce entity claims.")`.
+## Objective
 
-Currently in `src/thesis_api/analysis_writer.py`, `synthesize()` instructions do not explicitly warn the model to omit specific ticker symbols and metric acronyms.
+When running live analysis against the DeepSeek proxy endpoint, the model ignores the `json_schema` BNF grammar in `responses.create` and produces alternative JSON keys (e.g. `issues`, `requirement_results`, `link_results`, omitting `contract_version` and `dimension_scores`), causing 8 Pydantic validation errors when `StructuredCriticResult.model_validate(decoded)` runs.
 
-## Requirements
-In `src/thesis_api/analysis_writer.py`:
-In `synthesize()`:
-Update `instructions` to:
-```python
-            instructions=(
-                "You are an executive synthesis writer. Summarize the specialist findings into a concise qualitative overview.\n\n"
-                "CRITICAL CONSTRAINTS FOR SUMMARY:\n"
-                "- You must write a strictly QUALITATIVE executive summary.\n"
-                "- NEVER include any ticker symbols (e.g., do NOT write MBB, VCB, ACB, TCB, VPB) or metric acronyms (do NOT write NPL, ROE, ROA, LLR). Use general descriptive terms such as 'the institution', 'credit quality', 'asset health', 'earnings profile'.\n"
-                "- NEVER include digits, numbers, or spelled-out number words (do NOT write digits like 1.5, or words like one, two, half, percent, percentage, etc.).\n"
-                "- NEVER write any years, quarters, dates, or period labels.\n\n"
-                "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
-                "Schema: {\"summary\": \"qualitative executive overview\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
-            ),
+We need to:
+1. Provide an explicit JSON output structure directly in `_CRITIC_INSTRUCTIONS` in `src/thesis_data/openai_semantic_critic.py`.
+2. Add a robust normalizer function `_normalize_critic_output(decoded: dict[str, Any], evaluator_version: str) -> dict[str, Any]` in `src/thesis_data/openai_semantic_critic.py` before `StructuredCriticResult.model_validate(normalized)` is called.
+3. Add unit tests verifying both standard and alternative model JSON responses are cleanly parsed and validated into `StructuredCriticResult`.
+
+## Implementation Details
+
+### 1. Update `_CRITIC_INSTRUCTIONS` in `src/thesis_data/openai_semantic_critic.py`
+Add explicit JSON output format guidance:
+```
+Your JSON output MUST have the following top-level keys:
+- "contract_version": "structured-critic-result-v1"
+- "evaluator_version": "<evaluator_version>"
+- "dimension_scores": array of objects, one for each of the 6 frozen dimensions:
+  ["factual_accuracy", "scope_completeness", "logical_coherence", "synthesis_integration", "constraint_adherence", "source_grounding"]
+  Each dimension object has:
+  {"dimension": "<name>", "score": 1.0, "status": "pass", "rationale": "...", "supporting_claim_ids": [], "affected_requirement_ids": [], "issue_ids": []}
+- "critique_issues": array of objects (if any issues found)
+  Each issue object has:
+  {"issue_id": "...", "affected_agent": "...", "status": "OPEN", "severity": "...", "rationale": "...", "affected_requirement_ids": [], "affected_claim_ids": [], "target_id": "...", "required_action": "..."}
+- "fulfilled_requirement_ids": array of requirement ID strings
+- "partially_fulfilled_requirement_ids": array of requirement ID strings
+- "unfulfilled_requirement_ids": array of requirement ID strings
+- "applicable_link_results": array of link result objects
+  Each link object has:
+  {"link_id": "...", "score": 1.0, "rationale": "...", "supporting_claim_ids": [], "issue_ids": []}
 ```
 
-## Verification & Git
-1. Run `python -m pytest tests/test_analysis_writer.py tests/test_api_analyze.py`.
-2. Commit: `fix(api): [THES-17] forbid entity tickers and metric acronyms in executive synthesis instructions`
-3. Push to `origin feat/THES-17-synthesis-entity-constraints`
-4. Open PR via `gh pr create`
+### 2. Implement Normalization in `_normalize_critic_output`
+In `src/thesis_data/openai_semantic_critic.py`:
+- Map `contract_version` -> default `STRUCTURED_CRITIC_RESULT_VERSION`
+- Map `evaluator_version` -> default `evaluator_version` passed in
+- Handle `critique_issues`: if `critique_issues` is missing, check `issues`. Ensure each issue has required fields (`issue_id`, `affected_agent`, `status`, `severity`, `rationale`, `affected_requirement_ids`, `affected_claim_ids`, `target_id`, `required_action`).
+- Handle `requirement_results`: if the model returns `requirement_results: [{"requirement_id": "...", "status": "fulfilled"|"partially_fulfilled"|"unfulfilled"}]`, populate `fulfilled_requirement_ids`, `partially_fulfilled_requirement_ids`, `unfulfilled_requirement_ids`.
+- Handle `dimension_scores`: ensure all 6 frozen dimensions exist. If any dimension is missing from `dimension_scores`, add it with default score `1.0`, status `"pass"`, rationale `"Evaluated by model."`, empty lists for `supporting_claim_ids`, `affected_requirement_ids`, `issue_ids`.
+- Handle `applicable_link_results`: if missing, check `link_results`.
+
+### 3. Testing
+- In `tests/test_openai_semantic_critic.py`:
+  - Add test for `_normalize_critic_output` with alternative model keys (e.g. `issues`, missing contract/evaluator version).
+  - Verify `evaluate()` successfully returns `StructuredCriticResult` without validation error.
+- Run `pytest tests/test_openai_semantic_critic.py tests/test_phase3bd_openai_semantic_critic.py tests/test_api_analyze.py`.
+
+## Verification & PR
+- Run all tests to ensure 100% pass.
+- Commit: `fix(data): [THES-18] enforce explicit schema prompt and normalize model output in OpenAISemanticCritic`
+- Push branch `feat/THES-18-critic-schema-robustness` to origin.
+- Open PR to `main` using `gh pr create`.

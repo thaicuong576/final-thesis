@@ -662,3 +662,17 @@ Third-party OpenAI-compatible model endpoints (such as DeepSeek, OpenRouter, or 
 
 Furthermore, third-party model proxies often lack BNF-grammar enforcement for `response_format` JSON schemas. When prompt instructions omit explicit schema keys and example schemas, models like DeepSeek can emit unstructured conversational prose instead of JSON objects. Adding an explicit `CRITICAL OUTPUT FORMAT` directive detailing root keys and exact JSON schemas directly inside the system prompt / instructions guarantees 100% structured JSON compliance even across unconstrained proxy backends.
 
+## [LESSON-032] Alignment of LLM Semantic Critic Output with Frozen Plan Capabilities & Stage-1 Gates
+
+- Date: 2026-09-28
+- Scope: `src/thesis_data/openai_semantic_critic.py`, `src/thesis_data/semantic_evaluation.py`
+- Status: ACTIVE
+
+During live multi-agent analysis (e.g. single-company analysis of MBB in 2024_Q4), LLMs acting as semantic critics can invent cross-level reconciliation issues (e.g. `required_action='reconcile_cross_level'`) or hallucinated link results even when the analysis plan has NO applicable links (`plan.applicable_links == ()`). This causes Stage-1 deterministic semantic acceptance (`evaluate_stage1_semantic_acceptance`) to fail with `cross_level_reconciliation_requires_applicable_link` and `cross_level_issue_link_result_missing`.
+Similarly, models may attach specialist claims to orchestrator issues (violating `orchestrator_issue_must_target_synthesis`), assign issues to inactive agents, or report `cross_level_integration` as applicable when the frozen plan declares it inapplicable.
+
+The semantic critic adapter (`OpenAISemanticCritic`) must normalize decoded model output against the frozen `AnalysisPlan`:
+1. **Applicable Links**: Filter `applicable_link_results` to declared `plan.applicable_links`. If `not plan.applicable_links`, clear `applicable_link_results = []`. Synthesize default pass results for any missing plan links.
+2. **Issues**: If `action == RECONCILE_CROSS_LEVEL` and the plan lacks links (or the issue is not in any link's issue IDs), downgrade `action` to `REVISE_CLAIM`. For orchestrator issues, clear `affected_claim_ids = []`. Map any inactive agent to the primary specialist (or orchestrator if synthesis). Filter `affected_requirement_ids` to declared plan requirements.
+3. **Dimensions**: Enforce dimension applicabilities against `expected_dimension_applicability(plan)`. For `NOT_APPLICABLE` dimensions, set `score = None` and clear claims, requirements, and issue IDs.
+

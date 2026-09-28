@@ -710,21 +710,21 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
                 round_context=context,
             )
 
-    def test_inactive_agent_and_undeclared_link_are_rejected_by_deterministic_validation(self):
+    def test_inactive_agent_and_undeclared_link_are_normalized(self):
         plan = _company_plan()
         issue = _issue("inactive", agent="macro")
         critic, client = self._critic_with(_result(plan, "placeholder"))
         client.responses.responses[0] = FakeResponse(
             _encoded(_result(plan, critic.evaluator_version, issues=(issue,)))
         )
-        with self.assertRaisesRegex(SemanticEvaluationError, "issue_agent_not_active"):
-            evaluate_semantic_round(
-                critic,
-                plan=plan,
-                claims=(),
-                stage1_report=_stage1(),
-                round_context=SemanticRoundContext(round_number=0),
-            )
+        artifact = evaluate_semantic_round(
+            critic,
+            plan=plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+        self.assertEqual(artifact.critic_result.critique_issues[0].affected_agent, "company")
 
         reconcile = _issue(
             "reconcile",
@@ -735,17 +735,17 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
                 _encoded(_result(plan, critic.evaluator_version, issues=(reconcile,)))
             )
         )
-        with self.assertRaisesRegex(
-            SemanticEvaluationError,
-            "cross_level_reconciliation_requires_applicable_link",
-        ):
-            evaluate_semantic_round(
-                critic,
-                plan=plan,
-                claims=(),
-                stage1_report=_stage1(),
-                round_context=SemanticRoundContext(round_number=0),
-            )
+        artifact2 = evaluate_semantic_round(
+            critic,
+            plan=plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+        self.assertEqual(
+            artifact2.critic_result.critique_issues[0].required_action,
+            CritiqueAction.REVISE_CLAIM,
+        )
 
     def test_unknown_claim_requirement_and_link_ids_fail_closed(self):
         plan = _company_plan()
@@ -795,28 +795,33 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
             ),
         )
         client.responses.responses.append(FakeResponse(_encoded(unknown_link)))
-        with self.assertRaisesRegex(SemanticEvaluationError, "unknown_link_id"):
-            evaluate_semantic_round(
-                critic,
-                plan=linked_plan,
-                claims=(),
-                stage1_report=_stage1(),
-                round_context=SemanticRoundContext(round_number=0),
-            )
+        artifact = evaluate_semantic_round(
+            critic,
+            plan=linked_plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+        self.assertNotIn("unknown-link", [l.link_id for l in artifact.critic_result.applicable_link_results])
 
-    def test_wrong_applicability_is_rejected(self):
+    def test_wrong_applicability_is_normalized(self):
         plan = _company_plan()
         critic, client = self._critic_with(_result(plan, "placeholder"))
         result = _result(plan, critic.evaluator_version, cross_applicable=True)
         client.responses.responses[0] = FakeResponse(_encoded(result))
-        with self.assertRaisesRegex(SemanticEvaluationError, "dimension_applicability_mismatch"):
-            evaluate_semantic_round(
-                critic,
-                plan=plan,
-                claims=(),
-                stage1_report=_stage1(),
-                round_context=SemanticRoundContext(round_number=0),
-            )
+        artifact = evaluate_semantic_round(
+            critic,
+            plan=plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+        cross_dim = next(
+            d for d in artifact.critic_result.dimension_scores
+            if d.dimension == SemanticDimension.CROSS_LEVEL_INTEGRATION
+        )
+        self.assertEqual(cross_dim.applicability, SemanticDimensionApplicability.NOT_APPLICABLE)
+        self.assertIsNone(cross_dim.score)
 
     def test_refusal_incomplete_missing_invalid_json_and_invalid_result_fail_closed(self):
         plan = _company_plan()

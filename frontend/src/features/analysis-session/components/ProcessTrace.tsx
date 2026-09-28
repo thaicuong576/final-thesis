@@ -246,6 +246,50 @@ export const ProcessTrace: React.FC<ProcessTraceProps> = ({ steps, live = false,
   );
 };
 
+const ISSUE_TYPE_LABELS: Record<string, string> = {
+  unsupported_claim: 'Nhận định thiếu căn cứ',
+  missing_data: 'Thiếu dữ liệu',
+  missing_evidence: 'Thiếu bằng chứng',
+  numeric_inconsistency: 'Số liệu không khớp',
+  scope_violation: 'Vi phạm phạm vi',
+  cross_level_contradiction: 'Mâu thuẫn đa cấp',
+  meaningful_divergence: 'Sai lệch ý nghĩa',
+  incomplete_synthesis: 'Tổng hợp chưa đủ',
+  malformed_output: 'Lỗi định dạng',
+};
+
+const SEVERITY_LABELS: Record<string, string> = {
+  blocker: 'Chặn',
+  major: 'Lớn',
+  minor: 'Nhỏ',
+  warning: 'Cảnh báo',
+  notice: 'Lưu ý',
+};
+
+const REQUIRED_ACTION_LABELS: Record<string, string> = {
+  requery_data: 'Truy vấn lại dữ liệu',
+  retrieve_evidence: 'Thu thập thêm chứng cứ',
+  revise_claim: 'Sửa nhận định',
+  remove_claim: 'Loại bỏ nhận định',
+  add_limitation: 'Bổ sung giới hạn',
+  reconcile_cross_level: 'Đối chiếu chéo',
+};
+
+function formatIssueType(raw?: string): string {
+  if (!raw) return '—';
+  return ISSUE_TYPE_LABELS[raw.toLowerCase()] || raw;
+}
+
+function formatSeverity(raw?: string): string {
+  if (!raw) return '—';
+  return SEVERITY_LABELS[raw.toLowerCase()] || raw;
+}
+
+function formatRequiredAction(raw?: string): string {
+  if (!raw) return '—';
+  return REQUIRED_ACTION_LABELS[raw.toLowerCase()] || raw;
+}
+
 function StepDetailRenderer({ kind, detail }: { kind: TraceKind; detail: Record<string, unknown> }) {
   if (!detail || Object.keys(detail).length === 0) return null;
 
@@ -463,11 +507,10 @@ function StepDetailRenderer({ kind, detail }: { kind: TraceKind; detail: Record<
         </div>
       );
     }
-
     case 'critique_issue': {
-      const issueType = (detail.issue_type as string) || '';
-      const severity = (detail.severity as string) || '';
-      const action = (detail.required_action as string) || '';
+      const issueType = formatIssueType((detail.issue_type as string) || (detail.type as string));
+      const severity = formatSeverity(detail.severity as string);
+      const action = formatRequiredAction((detail.required_action as string) || (detail.action as string));
       const targetText = detail.target_text as string | undefined;
       const evidence = detail.evidence as string | undefined;
 

@@ -143,6 +143,8 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
       };
     });
 
+    const engagedAgents = new Set<string>();
+
     for (const step of steps) {
       const actor = step.actor.toLowerCase();
       const recipient = step.recipient?.toLowerCase();
@@ -165,25 +167,35 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
         }
       }
 
-      // Child agents
-      if (step.kind === 'assign' && recipient && states[recipient]) {
+      // Any step with a recipient transitions that agent to "Đang làm" (run)
+      if (recipient && states[recipient]) {
+        engagedAgents.add(recipient);
         states[recipient] = {
           state: 'run',
-          summary: step.summary || 'Đang thực hiện phân tích'
+          summary: step.summary || 'Đang thực hiện'
         };
-      } else if ((step.kind === 'tool_result' || step.kind === 'draft') && states[actor]) {
+      }
+
+      // Steps produced by child agents
+      if (actor && states[actor] && actor !== 'orchestrator') {
+        engagedAgents.add(actor);
+      }
+
+      if ((step.kind === 'tool_result' || step.kind === 'draft') && states[actor]) {
         states[actor] = {
           state: 'done',
           summary: step.summary || 'Hoàn thành tính toán'
         };
       } else if (step.kind === 'critique_issue') {
         if (recipient && states[recipient]) {
+          engagedAgents.add(recipient);
           states[recipient] = {
             state: 'fix',
             summary: step.summary || 'Đang sửa theo phản biện'
           };
         }
         if (states.critic) {
+          engagedAgents.add('critic');
           states.critic = {
             state: 'run',
             summary: step.summary || 'Kiểm tra chéo'
@@ -197,6 +209,7 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
           };
         }
       } else if (step.kind === 'accept' && states.critic) {
+        engagedAgents.add('critic');
         states.critic = {
           state: 'done',
           summary: step.summary || 'Phê duyệt báo cáo'
@@ -204,7 +217,7 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
       }
     }
 
-    // When report is ready, all active agents are done
+    // When report is ready, only engaged agents transition to "Xong"; unengaged remain "Không dùng đến"
     const isCompleted = steps.some((s) => s.kind === 'report_ready');
     if (isCompleted) {
       states.orchestrator = {
@@ -212,10 +225,17 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
         summary: 'Báo cáo sẵn sàng'
       };
       childAgents.forEach((ag) => {
-        states[ag.id] = {
-          state: 'done',
-          summary: states[ag.id]?.summary || 'Hoàn tất'
-        };
+        if (engagedAgents.has(ag.id)) {
+          states[ag.id] = {
+            state: 'done',
+            summary: states[ag.id]?.summary || 'Hoàn tất'
+          };
+        } else {
+          states[ag.id] = {
+            state: 'idle',
+            summary: 'Không dùng đến'
+          };
+        }
       });
     }
 
@@ -346,7 +366,7 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
                 <div className="flex justify-between items-center text-xs font-semibold text-text-primary">
                   <span>{ag.label}</span>
                   <span className={`px-2 py-0.5 rounded text-[11px] ${cls.badge}`}>
-                    {STATE_LABELS[cur.state]}
+                    {cur.summary === 'Không dùng đến' ? 'Không dùng đến' : STATE_LABELS[cur.state]}
                   </span>
                 </div>
                 <div className="text-[11px] text-text-secondary mt-1 min-h-[16px] leading-tight">

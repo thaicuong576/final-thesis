@@ -16,7 +16,8 @@ import {
   type MetricPresentation
 } from '@/features/equity-report';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
-import { getApiBaseUrl, normalizeAnalysisResponseToReport } from '@/features/analysis-session/useAnalysisSessionStream';
+import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { normalizeAnalysisResponseToReport } from '@/features/analysis-report';
 import { ReportErrorBoundary } from './ReportErrorBoundary';
 
 type ReportUnion = (AnalysisReport & { report_version?: string }) | AdaptiveReportResponse;
@@ -225,9 +226,8 @@ function ReportPageContent({
       const shortLabel =
         (typeof mRaw.shortLabel === 'string' && mRaw.shortLabel) ||
         (typeof mRaw.short_label === 'string' && mRaw.short_label) ||
-        (typeof m.acronym === 'string' && m.acronym) ||
         fallback?.shortLabel ||
-        m.id;
+        acronym;
       const unit =
         typeof mRaw.unit === 'string'
           ? mRaw.unit
@@ -242,8 +242,8 @@ function ReportPageContent({
           : (fallback?.decimals ?? 1);
       const group =
         (typeof mRaw.group === 'string' && mRaw.group) ||
-        m.topicId ||
         fallback?.group ||
+        m.topicId ||
         'general';
       const groupLabel =
         (typeof mRaw.groupLabel === 'string' && mRaw.groupLabel) ||

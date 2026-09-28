@@ -107,6 +107,76 @@ describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
     expect(screen.getByRole('button', { name: /Thử lại/i })).toBeInTheDocument();
   });
 
+  it('handles legacy SSE stream with only REPORT_READY without throwing disconnect error', async () => {
+    const stream = createMockStream([
+      `event: REPORT_READY\ndata: ${JSON.stringify({
+        reportId: 'rep-legacy-done',
+        status: 'completed'
+      })}\n\n`
+    ]);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: stream
+    } as unknown as Response);
+
+    const onViewReport = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <AnalysisSessionWorkspace
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích ROE của ACB' }}
+          onViewReport={onViewReport}
+        />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Mất kết nối/i)).not.toBeInTheDocument();
+  });
+
+  it('handles legacy SSE stream with only RUN_BLOCKED without throwing disconnect error', async () => {
+    const onBlocked = vi.fn();
+    const stream = createMockStream([
+      `event: RUN_BLOCKED\ndata: ${JSON.stringify({
+        status: 'error',
+        reason: 'unsupported_metric',
+        error: {
+          code: 'unsupported_metric',
+          message: 'Chỉ tiêu phân tích chưa được hỗ trợ.'
+        }
+      })}\n\n`
+    ]);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: stream
+    } as unknown as Response);
+
+    render(
+      <MemoryRouter>
+        <AnalysisSessionWorkspace
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích chỉ tiêu lạ' }}
+          onBlocked={onBlocked}
+        />
+      </MemoryRouter>
+    );
+
+    await vi.waitFor(() => {
+      expect(onBlocked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'unsupported_metric',
+          message: 'Chỉ tiêu phân tích chưa được hỗ trợ.'
+        })
+      );
+    });
+    expect(screen.queryByText(/Mất kết nối/i)).not.toBeInTheDocument();
+  });
+
   it('triggers onBackToComposer when clicking back button', async () => {
     const onBack = vi.fn();
     const user = userEvent.setup();

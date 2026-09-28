@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
-import { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '../src/shared/lib/apiUrl';
-import { getResolvedApiEndpoint } from '../src/features/analysis-session/useAnalysisSessionStream';
+import { DEFAULT_RENDER_BACKEND, getApiBaseUrl, getResolvedApiEndpoint } from '../src/shared/lib/apiUrl';
 
 describe('capabilityService API URL', () => {
   afterEach(() => {

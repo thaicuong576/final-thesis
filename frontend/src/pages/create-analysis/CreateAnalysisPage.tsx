@@ -5,6 +5,7 @@ import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { AnalysisSessionWorkspace } from '../../features/analysis-session/components/AnalysisSessionWorkspace';
 import type { TraceStep } from '../../features/analysis-session/model/types';
+import { DEFAULT_METRICS } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface CreateAnalysisPageProps {
@@ -47,7 +48,13 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
 
   const metricsStr =
     capabilities?.metrics && capabilities.metrics.length > 0
-      ? capabilities.metrics.map((m) => m.shortLabel || m.acronym || m.label).slice(0, 4).join(', ')
+      ? capabilities.metrics
+          .map((m) => {
+            const fallback = DEFAULT_METRICS[m.id];
+            return m.shortLabel || fallback?.shortLabel || m.acronym || m.label || m.id;
+          })
+          .slice(0, 4)
+          .join(', ')
       : 'Nợ xấu, Bao phủ, ROA, ROE';
 
   const handleAnalyze = useCallback(() => {
@@ -102,7 +109,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                   <button
                     type="button"
                     onClick={handleAnalyze}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-fill-primary text-on-primary font-semibold text-sm rounded shadow-sm hover:opacity-90 transition-opacity"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-text-inverse font-semibold text-sm rounded shadow-sm hover:bg-[#343430] active:translate-y-[1px] transition-all cursor-pointer"
                   >
                     <span>Phân tích</span>
                     <ArrowRight className="w-4 h-4" />
@@ -181,6 +188,11 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
               isLiveStream={isLiveStream}
               steps={fixtureSteps}
               onBackToComposer={() => {
+                setMode('ASK');
+                setSearchParams({});
+              }}
+              onBlocked={(info) => {
+                setErrorInfo(info);
                 setMode('ASK');
                 setSearchParams({});
               }}
@@ -268,6 +280,7 @@ function RecentReportsList() {
 function mapRunStatusText(status?: string): string {
   switch (status?.toLowerCase()) {
     case 'completed':
+    case 'success':
       return 'Hoàn tất';
     case 'accepted_with_limitations':
     case 'partial':
@@ -276,19 +289,19 @@ function mapRunStatusText(status?: string): string {
     case 'blocked':
       return 'Bị chặn';
     default:
-      return 'Hoàn tất';
+      return 'Không rõ trạng thái';
   }
 }
 
 function formatDateDisplay(isoString?: string): string {
-  if (!isoString) return '28/09';
+  if (!isoString) return '—';
   try {
     const d = new Date(isoString);
-    if (isNaN(d.getTime())) return '28/09';
+    if (isNaN(d.getTime())) return '—';
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     return `${day}/${month}`;
   } catch {
-    return '28/09';
+    return '—';
   }
 }

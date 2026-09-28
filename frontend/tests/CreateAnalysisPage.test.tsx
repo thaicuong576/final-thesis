@@ -181,4 +181,50 @@ describe('ER-6 AskPage (Lean Ask Screen)', () => {
     expect(await screen.findByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
     expect(screen.getByText(/Quá trình phân tích/)).toBeInTheDocument();
   });
+
+  it('handles legacy RUN_BLOCKED by returning to ask screen with error banner and preserved query', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/runs')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => []
+        } as Response);
+      }
+      if (url.includes('/api/analyze/stream')) {
+        const stream = createMockStream([
+          `event: RUN_BLOCKED\ndata: ${JSON.stringify({
+            status: 'error',
+            reason: 'unsupported_period',
+            error: {
+              code: 'unsupported_period',
+              message: 'Giai đoạn phân tích chưa được hỗ trợ.',
+              suggestions: ['Thử quý 4/2024']
+            }
+          })}\n\n`
+        ]);
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          body: stream
+        } as unknown as Response);
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({}) } as Response);
+    });
+
+    renderAskPage();
+
+    const textarea = await screen.findByRole('textbox', { name: 'Câu hỏi phân tích' });
+    await user.type(textarea, 'Tăng trưởng tín dụng quý 2/2020');
+
+    const submitBtn = screen.getByRole('button', { name: /Phân tích/i });
+    await user.click(submitBtn);
+
+    // Should return to Ask screen, preserving user query and showing error banner
+    expect(await screen.findByText('Giai đoạn phân tích chưa được hỗ trợ.')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Câu hỏi phân tích' })).toHaveValue('Tăng trưởng tín dụng quý 2/2020');
+    expect(screen.getByRole('button', { name: /Thử quý 4\/2024/i })).toBeInTheDocument();
+  });
 });

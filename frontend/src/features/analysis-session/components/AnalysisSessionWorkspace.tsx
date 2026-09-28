@@ -16,6 +16,7 @@ export interface AnalysisSessionWorkspaceProps {
   driverStep?: number;
   onBackToComposer?: () => void;
   onViewReport?: (reportId: string) => void;
+  onBlocked?: (info: { code?: string; message: string; suggestions?: string[] }) => void;
   apiEndpoint?: string;
 }
 
@@ -65,6 +66,7 @@ function AnalysisSessionWorkspaceContent({
   steps: propSteps,
   onBackToComposer,
   onViewReport,
+  onBlocked,
   apiEndpoint
 }: WorkspaceContentProps) {
   const activeRequest = streamRequest || request || null;
@@ -79,7 +81,9 @@ function AnalysisSessionWorkspaceContent({
     request: isLiveStream && activeRequest ? { query: activeRequest.query } : null,
     autoStart: isLiveStream && Boolean(activeRequest?.query),
     apiEndpoint,
-    initialSteps: propSteps
+    initialSteps: propSteps,
+    onReportReady: onViewReport,
+    onBlocked
   });
 
   const activeSteps = useMemo(() => {

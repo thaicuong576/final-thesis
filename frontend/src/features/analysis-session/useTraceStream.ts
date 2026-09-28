@@ -27,9 +27,23 @@ export interface UseTraceStreamReturn {
   retry: () => void;
 }
 
+export const ERROR_CODE_MESSAGES: Record<string, string> = {
+  unsupported_period: 'Giai đoạn phân tích chưa được hỗ trợ.',
+  unsupported_metric: 'Chỉ tiêu phân tích chưa được hỗ trợ.',
+  unsupported_entity: 'Ngân hàng được yêu cầu chưa nằm trong danh mục hỗ trợ.',
+  target_entity_required: 'Vui lòng nêu rõ ngân hàng cần phân tích.',
+  metric_required: 'Vui lòng chọn hoặc nêu ít nhất một chỉ tiêu phân tích.',
+  unsupported_macro_scope: 'Dữ liệu kinh tế vĩ mô chưa sẵn sàng cho kỳ phân tích này.',
+};
+
+export function mapErrorCodeToMessage(code?: string): string {
+  if (!code) return 'Hệ thống chưa trả lời được câu hỏi này.';
+  return ERROR_CODE_MESSAGES[code.toLowerCase()] || 'Hệ thống chưa trả lời được câu hỏi này.';
+}
+
 /**
- * Parses a single raw Server-Sent Event (SSE) block for TRACE_STEP events.
- * Ignores legacy events without throwing errors.
+ * Parses a single raw Server-Sent Event (SSE) block for TRACE_STEP, REPORT_READY, or RUN_BLOCKED events.
+ * Ignores legacy intermediate events without throwing errors.
  */
 export function parseTraceSseBlock(block: string): TraceStep | null {
   let eventType = '';
@@ -50,16 +64,59 @@ export function parseTraceSseBlock(block: string): TraceStep | null {
   try {
     const rawData = dataLines.join('\n');
     const parsed = JSON.parse(rawData) as Record<string, unknown>;
+    const resolvedType = eventType || (parsed.type as string) || '';
 
     // Case 1: event is TRACE_STEP
-    if (eventType === 'TRACE_STEP' || parsed.type === 'TRACE_STEP') {
+    if (resolvedType === 'TRACE_STEP') {
       const payload = (parsed.payload ?? parsed) as Record<string, unknown>;
       if (payload && typeof payload.step_id === 'string' && typeof payload.kind === 'string') {
         return payload as unknown as TraceStep;
       }
     }
 
-    // Case 2: parsed data directly matches TraceStep contract
+    // Case 2: event is REPORT_READY
+    if (resolvedType === 'REPORT_READY') {
+      const payload = (parsed.payload ?? parsed) as Record<string, unknown>;
+      const reportId = (payload.reportId ||
+        payload.report_id ||
+        parsed.reportId ||
+        parsed.report_id ||
+        (payload.report as Record<string, unknown>)?.report_id ||
+        '') as string;
+      return {
+        step_id: (parsed.eventId as string) || `step-report-ready-${Date.now()}`,
+        seq: (parsed.sequence as number) || 999,
+        t_ms: (parsed.occurredAtMs as number) || 0,
+        kind: 'report_ready',
+        actor: 'orchestrator',
+        recipient: null,
+        summary: 'Báo cáo sẵn sàng',
+        detail: { report_id: reportId }
+      };
+    }
+
+    // Case 3: event is RUN_BLOCKED
+    if (resolvedType === 'RUN_BLOCKED') {
+      const payload = (parsed.payload ?? parsed) as Record<string, unknown>;
+      const errorObj = (payload.error as Record<string, unknown>) || {};
+      const code = (errorObj.code || payload.reason || payload.code) as string | undefined;
+      const rawMsg = (errorObj.message || payload.message) as string | undefined;
+      const message = rawMsg || mapErrorCodeToMessage(code);
+      const suggestions = (errorObj.suggestions || payload.suggestions) as string[] | undefined;
+
+      return {
+        step_id: (parsed.eventId as string) || `step-blocked-${Date.now()}`,
+        seq: (parsed.sequence as number) || 999,
+        t_ms: (parsed.occurredAtMs as number) || 0,
+        kind: 'blocked',
+        actor: 'system',
+        recipient: null,
+        summary: 'Yêu cầu bị chặn',
+        detail: { code, message, suggestions }
+      };
+    }
+
+    // Case 4: parsed data directly matches TraceStep contract
     if (typeof parsed.step_id === 'string' && typeof parsed.kind === 'string' && typeof parsed.actor === 'string') {
       return parsed as unknown as TraceStep;
     }
@@ -217,7 +274,7 @@ export function useTraceStream({
         const hasReportReady = accumulatedSteps.some((s) => s.kind === 'report_ready');
         const hasBlocked = accumulatedSteps.some((s) => s.kind === 'blocked');
 
-        if (!hasReportReady && !hasBlocked && accumulatedSteps.length === 0) {
+        if (!hasReportReady && !hasBlocked) {
           throw new Error('Mất kết nối. Thử lại');
         }
 
@@ -227,8 +284,7 @@ export function useTraceStream({
         if (controller.signal.aborted) {
           return;
         }
-        if (accumulatedSteps.some((s) => s.kind === 'blocked')) {
-          setIsBlocked(true);
+        if (accumulatedSteps.some((s) => s.kind === 'blocked' || s.kind === 'report_ready')) {
           setIsComplete(true);
           setIsStreaming(false);
           return;

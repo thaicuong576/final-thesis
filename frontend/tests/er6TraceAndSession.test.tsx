@@ -1,10 +1,13 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TraceStep } from '../src/features/analysis-session/model/types';
 import { OrchestratorBoard } from '../src/features/analysis-session/components/OrchestratorBoard';
 import { ProcessTrace } from '../src/features/analysis-session/components/ProcessTrace';
 import { parseTraceSseBlock } from '../src/features/analysis-session/useTraceStream';
+import { ProcessLink } from '../src/features/equity-report/components/ProcessLink';
+import { EquityReportProvider } from '../src/features/equity-report/components/EquityReportContext';
+import type { AdaptiveReportResponse } from '../src/features/equity-report/model/types';
 import traceFixture from '../src/test/fixtures/er-trace-acb-2024q4.json';
 
 describe('ER-6 OrchestratorBoard', () => {
@@ -25,12 +28,14 @@ describe('ER-6 OrchestratorBoard', () => {
     expect(screen.queryByRole('region', { name: 'Macro' })).not.toBeInTheDocument();
   });
 
-  it('marks all participating agents as "Xong" at the end of the run', () => {
+  it('marks engaged agents as "Xong" and unengaged agents as "Không dùng đến" at the end of the run', () => {
     render(<OrchestratorBoard steps={steps} query={traceFixture.query} />);
 
     const doneBadges = screen.getAllByText('Xong');
-    // Orchestrator, Company, Sector, Phản biện = 4 "Xong" badges
-    expect(doneBadges.length).toBeGreaterThanOrEqual(4);
+    // Orchestrator, Company, Phản biện = 3 "Xong" badges
+    expect(doneBadges.length).toBeGreaterThanOrEqual(3);
+    // Sector was never assigned a task or stepped in, so stays unengaged
+    expect(screen.getAllByText('Không dùng đến').length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -104,7 +109,27 @@ describe('ER-6 useTraceStream parseTraceSseBlock', () => {
     expect(step?.actor).toBe('critic');
   });
 
-  it('silently ignores legacy events without throwing', () => {
+  it('parses legacy REPORT_READY event into report_ready step', () => {
+    const sseBlock = `event: REPORT_READY\ndata: {"reportId":"rep-legacy-123","status":"completed"}`;
+    const step = parseTraceSseBlock(sseBlock);
+
+    expect(step).not.toBeNull();
+    expect(step?.kind).toBe('report_ready');
+    expect(step?.detail?.report_id).toBe('rep-legacy-123');
+  });
+
+  it('parses legacy RUN_BLOCKED event with mapped Vietnamese message', () => {
+    const sseBlock = `event: RUN_BLOCKED\ndata: {"status":"error","reason":"unsupported_period","error":{"code":"unsupported_period","message":"Giai đoạn phân tích chưa được hỗ trợ.","suggestions":["Thử năm 2024"]}}`;
+    const step = parseTraceSseBlock(sseBlock);
+
+    expect(step).not.toBeNull();
+    expect(step?.kind).toBe('blocked');
+    expect(step?.detail?.code).toBe('unsupported_period');
+    expect(step?.detail?.message).toBe('Giai đoạn phân tích chưa được hỗ trợ.');
+    expect(step?.detail?.suggestions).toEqual(['Thử năm 2024']);
+  });
+
+  it('silently ignores unrelated legacy events without throwing', () => {
     const legacyBlock1 = `event: PLANNING_STARTED\ndata: {"type":"PLANNING_STARTED","payload":{"message":"Starting..."}}`;
     const legacyBlock2 = `event: ping\ndata: {}`;
     const emptyBlock = ``;
@@ -112,5 +137,83 @@ describe('ER-6 useTraceStream parseTraceSseBlock', () => {
     expect(parseTraceSseBlock(legacyBlock1)).toBeNull();
     expect(parseTraceSseBlock(legacyBlock2)).toBeNull();
     expect(parseTraceSseBlock(emptyBlock)).toBeNull();
+  });
+});
+
+describe('ER-6 ProcessLink', () => {
+  const dummyReport: AdaptiveReportResponse = {
+    report_id: 'rep-test-link',
+    report_version: 'adaptive_v1',
+    status: 'completed',
+    analysis_type: 'company_profile',
+    title: 'Hồ sơ ngân hàng ACB',
+    issuer: { ticker: 'ACB', name: 'Ngân hàng ACB' },
+    period: '2024_Q4',
+    blocks: [],
+    facts: [],
+    datasets: []
+  };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders initial label without hardcoded 3/2/38 numbers and shows trace in Sheet on click', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/runs/rep-test-link/trace')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            steps: traceFixture.steps,
+            duration_ms: 12000
+          })
+        } as Response);
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({}) } as Response);
+    });
+
+    render(
+      <EquityReportProvider report={dummyReport}>
+        <ProcessLink />
+      </EquityReportProvider>
+    );
+
+    // Initial label before trace loads or while loading
+    expect(screen.getByRole('button', { name: /Xem quá trình phân tích/i })).toBeInTheDocument();
+
+    // After fetch resolves, dynamic metadata is shown
+    expect(
+      await screen.findByRole('button', {
+        name: /Xem quá trình phân tích · 3 agent · 1 vòng phản biện/i
+      })
+    ).toBeInTheDocument();
+
+    // Clicking button opens Sheet
+    await user.click(screen.getByRole('button', { name: /Xem quá trình phân tích/i }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getAllByText('Quá trình phân tích').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('displays fallback message when trace API returns 404 or fails', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 404
+    } as Response);
+
+    render(
+      <EquityReportProvider report={dummyReport}>
+        <ProcessLink />
+      </EquityReportProvider>
+    );
+
+    // Click link to open sheet
+    await user.click(screen.getByRole('button', { name: /Xem quá trình phân tích/i }));
+
+    // Shows 404 fallback message
+    expect(await screen.findByText('Chưa có dữ liệu quá trình cho báo cáo này.')).toBeInTheDocument();
   });
 });

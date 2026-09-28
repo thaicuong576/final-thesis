@@ -983,6 +983,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertIn("1.6", allowed)
         self.assertIn("1.62", allowed)
         self.assertIn("1.621", allowed)
+        self.assertIn("3", allowed)
+        self.assertIn("4", allowed)
+        self.assertIn("5", allowed)
 
         # Half-up rounding case: 1.625 -> both 1.62 and 1.63 allowed
         assertion_half = claim_with_val.assertions[0].model_copy(update={"asserted_value": 1.625})

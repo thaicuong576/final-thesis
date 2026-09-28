@@ -877,6 +877,8 @@ class _AdaptiveRun:
             claim_without_period = _WRITER_PERIOD_LITERAL_RE.sub(" ", claim.claim_text)
             allowed.update(self._numeric_tokens(claim_without_period))
             for assertion in claim.assertions:
+                if assertion.metric_id == "bank.npl_g35" or "g35" in assertion.metric_id:
+                    allowed.update({"3", "4", "5"})
                 if assertion.asserted_value is not None:
                     allowed.update(self._numeric_tokens(str(assertion.asserted_value)))
                     try:

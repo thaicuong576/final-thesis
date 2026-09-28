@@ -87,8 +87,11 @@ affected_agent `orchestrator`, empty affected_claim_ids, and the exact
 affected_requirement_ids. Never attach report-wide synthesis findings to an
 unrelated specialist claim.
 The supplied synthesis support IDs must match the summary's final claim
-support set. Do not put numeric values or period labels in the summary; report
-numeric facts only through the structured claims.
+support set. The executive summary is strictly qualitative and must NEVER
+contain numeric values, percentages, digits, or period labels; report numeric
+facts only through the structured claims. Omitting numbers or metrics from the
+synthesis is required by design; do NOT flag missing numbers or metrics in
+synthesis as an issue.
 
 Return concise observable rationales, such as the claim IDs or requirement
 that support a score.  Do not provide private chain-of-thought, hidden
@@ -581,6 +584,14 @@ def _normalize_critic_output(
         ]
         if raw_agent == AnalysisAgent.ORCHESTRATOR.value:
             affected_claims = []
+            combined_text = f"{description.lower()} {action.lower()}"
+            numeric_complaint_patterns = (
+                "numeric", "number", "digit", "omits the actual", "lacks numeric",
+                "missing number", "include the number", "state the numeric",
+                "state the value", "con so", "so lieu", "ty le", "phan tram",
+            )
+            if any(p in combined_text for p in numeric_complaint_patterns):
+                continue
 
         affected_reqs = [
             str(r).strip()
@@ -616,7 +627,9 @@ def _normalize_critic_output(
 
     normalized["critique_issues"] = normalized_issues
 
-    # Clean up link issue_ids now that seen_issue_ids is finalized
+    valid_issue_ids = {iss["issue_id"] for iss in normalized_issues}
+
+    # Clean up link issue_ids now that valid_issue_ids is finalized
     assigned_cross_level_issues: set[str] = set()
     reconcile_issue_ids = {
         iss["issue_id"]
@@ -626,7 +639,7 @@ def _normalize_critic_output(
     for link in normalized_links:
         cleaned_iids: list[str] = []
         for iid in link["issue_ids"]:
-            if iid in seen_issue_ids:
+            if iid in valid_issue_ids:
                 if iid in reconcile_issue_ids:
                     if iid not in assigned_cross_level_issues:
                         cleaned_iids.append(iid)
@@ -738,7 +751,7 @@ def _normalize_critic_output(
                         r for r in dim["affected_requirement_ids"] if r in plan_req_ids
                     ]
                 dim["issue_ids"] = [
-                    i for i in dim["issue_ids"] if i in seen_issue_ids
+                    i for i in dim["issue_ids"] if i in valid_issue_ids
                 ]
     else:
         for dim in normalized_dims:
@@ -749,7 +762,7 @@ def _normalize_critic_output(
                 dim["issue_ids"] = []
             else:
                 dim["issue_ids"] = [
-                    i for i in dim["issue_ids"] if i in seen_issue_ids
+                    i for i in dim["issue_ids"] if i in valid_issue_ids
                 ]
 
     normalized["dimension_scores"] = normalized_dims

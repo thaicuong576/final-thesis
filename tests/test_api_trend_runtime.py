@@ -10,6 +10,14 @@ from unittest.mock import patch
 
 from pydantic import ValidationError
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_data.acceptance import validate_stage1_claims
 from thesis_data.dataset_contract import (
@@ -482,6 +490,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
             settings = Settings(
                 sqlite_db_path=str(base / "accepted.sqlite"),
                 analysis_runs_db_path=str(base / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             engine = AnalysisEngine(base / "accepted.sqlite", settings)
             request = AnalysisRequest(
@@ -532,6 +541,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                     app_env="test",
                     sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                     analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                    planner_mode="rules_only",
                 )
                 binding = ProviderBinding(provider, provider.dataset_ref, provider.catalog, "trend-fixture")
                 app = create_app(
@@ -622,6 +632,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
             with TestClient(app) as client, patch(
@@ -717,6 +728,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(settings, semantic_critic=critic, analysis_writer=writer)
             with TestClient(app) as client, patch(
@@ -778,6 +790,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 app_env="test",
                 sqlite_db_path=str(Path(directory) / "accepted.sqlite"),
                 analysis_runs_db_path=str(Path(directory) / "runs.sqlite"),
+                planner_mode="rules_only",
             )
             app = create_app(
                 settings,
@@ -868,7 +881,7 @@ class CompanyTrendRequestTests(unittest.TestCase):
                 target_ticker="MBB",
                 periods=periods,
             ),
-            settings=Settings(),
+            settings=Settings(planner_mode="rules_only"),
             semantic_critic=critic,
             analysis_writer=writer,
         )

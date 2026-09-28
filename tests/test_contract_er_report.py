@@ -5,6 +5,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import unittest
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from scripts.check_openapi_contract import check_contract
 from thesis_api.schemas import (

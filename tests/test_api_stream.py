@@ -9,6 +9,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_api.main import create_app
 from thesis_api.schemas import AnalysisResponse, AnalysisSessionEventDTO
@@ -39,6 +47,7 @@ class ApiStreamIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "analysis-runs.sqlite"),
             openai_api_key="test-key",
+            planner_mode="rules_only",
         )
         self.client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         self.addCleanup(self.client.close)

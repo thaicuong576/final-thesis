@@ -3,6 +3,14 @@
 from __future__ import annotations
 
 import unittest
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_api.messages_vi import get_error_message
 from thesis_api.query_understanding import resolve_query

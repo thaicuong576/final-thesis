@@ -8,6 +8,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_api.database import check_database_connection
 from thesis_api.main import create_app
@@ -31,6 +39,7 @@ class ThesisApiTests(unittest.TestCase):
             app_revision="test-commit-sha-12345",
             openai_api_key="sk-mock-openai-secret-key",
             sqlite_db_path=str(missing_database),
+            planner_mode="rules_only",
         )
         self.app = create_app(self.settings)
         self.client = TestClient(self.app)
@@ -68,6 +77,7 @@ class ThesisApiTests(unittest.TestCase):
             openai_api_key="test-key",
             openai_base_url="https://example.test/v1",
             openai_model="test-model",
+            planner_mode="rules_only",
         )
         app = create_app(settings)
         with patch(
@@ -94,7 +104,7 @@ class ThesisApiTests(unittest.TestCase):
             Path(self.temp_dir.name) / "missing-locator.sqlite",
             include_metric_locators=False,
         )
-        app = create_app(Settings(app_env="test", sqlite_db_path=str(database)))
+        app = create_app(Settings(app_env="test", sqlite_db_path=str(database), planner_mode="rules_only"))
         response = TestClient(app).get("/api/ready")
         self.assertEqual(response.status_code, 503)
         data = response.json()
@@ -104,7 +114,7 @@ class ThesisApiTests(unittest.TestCase):
         self.assertIn("not runnable", data.get("detail", "").casefold())
 
     def test_readiness_returns_503_when_database_url_unconfigured(self) -> None:
-        unconfigured_settings = Settings(database_url=None)
+        unconfigured_settings = Settings(database_url=None, planner_mode="rules_only")
         unconfigured_app = create_app(unconfigured_settings)
         client = TestClient(unconfigured_app)
 
@@ -135,7 +145,7 @@ class ThesisApiTests(unittest.TestCase):
         )
 
     def test_cors_custom_domain_allowed(self) -> None:
-        default_settings = Settings()
+        default_settings = Settings(planner_mode="rules_only")
         app = create_app(default_settings)
         client = TestClient(app)
         headers = {

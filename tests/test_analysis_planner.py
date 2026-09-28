@@ -5,6 +5,14 @@ from __future__ import annotations
 import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_api.analysis_planner import (
     PlanSpec,

@@ -10,6 +10,14 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 from thesis_data.dataset_contract import (
     AnalyticalLevel,
     CanonicalObservation,
@@ -654,6 +662,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             app_name="final-thesis-api-test",
             app_env="test",
             sqlite_db_path=str(self.db_path),
+            planner_mode="rules_only",
         )
         self.test_critic = _ExplicitOfflineAcceptingCritic()
         self.critic_factory_patch = patch(
@@ -674,6 +683,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(database),
             analysis_runs_db_path=str(database.with_name(database.stem + "-runs.sqlite")),
             openai_api_key=api_key,
+            planner_mode="rules_only",
         )
         return create_app(settings, analysis_writer=writer or _ExplicitOfflineAnalysisWriter())
 
@@ -1059,6 +1069,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "no-model-runs.sqlite"),
             openai_api_key=None,
+            planner_mode="rules_only",
         )))
         self.addCleanup(client.close)
         binding = _fixture_provider_binding(self.db_path, expose_locator=True)
@@ -1493,6 +1504,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(Path(self.directory.name) / "model-missing-runs.sqlite"),
             openai_api_key=None,
+            planner_mode="rules_only",
         )
         with patch(
             "thesis_api.service._load_provider",
@@ -1525,6 +1537,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                     sqlite_db_path=str(self.db_path),
                     analysis_runs_db_path=str(runs_path),
                     openai_api_key="test-key",
+                    planner_mode="rules_only",
                 )
                 with patch(
                     "thesis_api.service._load_provider",
@@ -1890,6 +1903,7 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
             sqlite_db_path=str(missing),
             analysis_runs_db_path=str(Path(self.directory.name) / "missing-database-runs.sqlite"),
             openai_api_key="test-key",
+            planner_mode="rules_only",
         )
         client = TestClient(create_app(settings, analysis_writer=_ExplicitOfflineAnalysisWriter()))
         result = client.post(

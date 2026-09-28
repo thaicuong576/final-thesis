@@ -2,7 +2,14 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { ReportPage } from '../src/pages/reports/ReportPage';
-import { type AdaptiveReportResponse } from '../src/features/equity-report';
+import {
+  type AdaptiveReportResponse,
+  type Dataset,
+  type Fact,
+  type ReportBlock,
+  type ChartType
+} from '../src/features/equity-report';
+import type { AnalysisReport } from '../src/features/analysis-report';
 import { RankedBar } from '../src/features/equity-report/charts/RankedBar';
 import { LineTrend } from '../src/features/equity-report/charts/LineTrend';
 import { RankHeatmap } from '../src/features/equity-report/charts/RankHeatmap';
@@ -25,11 +32,13 @@ import trendFixture from '../src/test/fixtures/er-trend-vpb-roe-2024.json';
 import h2hFixture from '../src/test/fixtures/er-h2h-acb-tcb-2024q4.json';
 import profileFixture from '../src/test/fixtures/er-profile-acb-2024q4.json';
 
-function renderReportInRouter(report: any) {
+type TestReportInput = AdaptiveReportResponse | AnalysisReport;
+
+function renderReportInRouter(report: TestReportInput) {
   return render(
     <MemoryRouter initialEntries={[`/reports/${report.report_id || 'test'}`]}>
       <Routes>
-        <Route path="/reports/:id" element={<ReportPage report={report} />} />
+        <Route path="/reports/:id" element={<ReportPage report={report as AdaptiveReportResponse} />} />
       </Routes>
     </MemoryRouter>
   );
@@ -38,7 +47,7 @@ function renderReportInRouter(report: any) {
 describe('ER-7 Adaptive Equity Research Reports', () => {
   describe('5 Fixtures rendering and block layout', () => {
     it('renders lookup fixture as AnswerCardLayout without Headline', () => {
-      const { container } = renderReportInRouter(lookupFixture);
+      const { container } = renderReportInRouter(lookupFixture as unknown as AdaptiveReportResponse);
 
       // Must NOT have headline h1
       expect(container.querySelector('h1')).toBeNull();
@@ -54,7 +63,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     });
 
     it('renders ranking fixture with Headline, RankedBar, KeyPoints, Callout', () => {
-      const { container } = renderReportInRouter(rankingFixture);
+      const { container } = renderReportInRouter(rankingFixture as unknown as AdaptiveReportResponse);
 
       // Headline h1 present
       expect(container.querySelector('h1')).toBeInTheDocument();
@@ -71,7 +80,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     });
 
     it('renders trend fixture with Headline, LineTrend, KeyPoints, Callout', () => {
-      const { container } = renderReportInRouter(trendFixture);
+      const { container } = renderReportInRouter(trendFixture as unknown as AdaptiveReportResponse);
 
       // Headline h1 present
       expect(container.querySelector('h1')).toBeInTheDocument();
@@ -84,7 +93,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     });
 
     it('renders head_to_head fixture with Headline, ComparisonTable, Callout', () => {
-      const { container } = renderReportInRouter(h2hFixture);
+      const { container } = renderReportInRouter(h2hFixture as unknown as AdaptiveReportResponse);
 
       // Headline h1 present
       expect(container.querySelector('h1')).toBeInTheDocument();
@@ -103,7 +112,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     });
 
     it('renders profile fixture with Headline, SignalsAside, Scatter, RankHeatmap, SmallMultiples, Callout', () => {
-      const { container } = renderReportInRouter(profileFixture);
+      const { container } = renderReportInRouter(profileFixture as unknown as AdaptiveReportResponse);
 
       // Headline h1 present
       expect(container.querySelector('h1')).toBeInTheDocument();
@@ -126,11 +135,11 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
 
   describe('Technical ID Leak Guard', () => {
     const fixtures = [
-      ['lookup', lookupFixture],
-      ['ranking', rankingFixture],
-      ['trend', trendFixture],
-      ['h2h', h2hFixture],
-      ['profile', profileFixture]
+      ['lookup', lookupFixture as unknown as AdaptiveReportResponse],
+      ['ranking', rankingFixture as unknown as AdaptiveReportResponse],
+      ['trend', trendFixture as unknown as AdaptiveReportResponse],
+      ['h2h', h2hFixture as unknown as AdaptiveReportResponse],
+      ['profile', profileFixture as unknown as AdaptiveReportResponse]
     ] as const;
 
     for (const [name, fixture] of fixtures) {
@@ -156,7 +165,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
 
   describe('Citations linking to SourceNotes', () => {
     it('superscript citation links point to valid #note-n elements', () => {
-      const { container } = renderReportInRouter(profileFixture);
+      const { container } = renderReportInRouter(profileFixture as unknown as AdaptiveReportResponse);
 
       const citationLinks = container.querySelectorAll('sup a[href^="#note-"]');
       expect(citationLinks.length).toBeGreaterThan(0);
@@ -174,7 +183,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     it('RankedBar starts from 0 and includes median reference line', () => {
       const { container } = render(
         <RankedBar
-          dataset={rankingFixture.datasets[0] as any}
+          dataset={rankingFixture.datasets[0] as unknown as Dataset}
           metrics={[]}
           highlight={['VCB']}
         />
@@ -198,19 +207,19 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
 
     it('LineTrend breaks at missing period without a connecting line across it', () => {
       // Create a dataset with 4 quarters where Q2 is missing
-      const datasetWithGap = {
+      const datasetWithGap: Dataset = {
         dataset_id: 'ds-test-gap',
-        shape: 'series' as const,
+        shape: 'series',
         title: 'Test gap',
         produced_by: { tool: 'trend', agent: 'company' },
         metric_ids: ['bank.roe'],
         periods: ['2024_Q1', '2024_Q2', '2024_Q3', '2024_Q4'],
         highlight_entity_ids: ['VPB'],
         rows: [
-          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q1', status: 'valid' as const, value: 10, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
-          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q2', status: 'missing' as const, value: null, observation_id: null, rank_better: null, rank_desc: null, missing_reason: 'chưa kiểm định' },
-          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q3', status: 'valid' as const, value: 15, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
-          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q4', status: 'valid' as const, value: 18, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null }
+          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q1', status: 'valid', value: 10, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q2', status: 'missing', value: null, observation_id: null, rank_better: null, rank_desc: null, missing_reason: 'chưa kiểm định' },
+          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q3', status: 'valid', value: 15, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null },
+          { entity_id: 'VPB', metric_id: 'bank.roe', period: '2024_Q4', status: 'valid', value: 18, observation_id: null, rank_better: null, rank_desc: null, missing_reason: null }
         ],
         reference_lines: [],
         allowed_charts: ['line_trend']
@@ -233,7 +242,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     it('RankHeatmap includes "#hạng" and a "Trung vị" row', () => {
       render(
         <RankHeatmap
-          dataset={profileFixture.datasets[1] as any}
+          dataset={profileFixture.datasets[1] as unknown as Dataset}
           metrics={[]}
           highlight={['ACB']}
         />
@@ -249,7 +258,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     it('Scatter includes aria-label on every point and tooltip title', () => {
       const { container } = render(
         <Scatter
-          dataset={profileFixture.datasets[0] as any}
+          dataset={profileFixture.datasets[0] as unknown as Dataset}
           metrics={[]}
           highlight={['ACB']}
         />
@@ -267,7 +276,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     it('ComparisonTable includes bold ▲ with aria-label="tốt hơn"', () => {
       render(
         <ComparisonTable
-          dataset={h2hFixture.datasets[0] as any}
+          dataset={h2hFixture.datasets[0] as unknown as Dataset}
           metrics={[]}
           highlight={['ACB', 'TCB']}
         />
@@ -290,12 +299,12 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
           kind: 'answer_card',
           note_label: 'Test',
           blocks: [
-            { type: 'unknown_future_block', data: 123 } as any,
-            lookupFixture.report_spec.blocks[0] as any
+            { type: 'unknown_future_block' } as unknown as ReportBlock,
+            lookupFixture.report_spec.blocks[0] as unknown as ReportBlock
           ]
         },
-        facts: lookupFixture.facts as any,
-        datasets: lookupFixture.datasets as any,
+        facts: lookupFixture.facts as unknown as Fact[],
+        datasets: lookupFixture.datasets as unknown as Dataset[],
         source_notes: []
       };
 
@@ -316,7 +325,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
             {
               type: 'figure',
               figure_no: 1,
-              chart: 'quantum_donut_chart' as any,
+              chart: 'quantum_donut_chart' as unknown as ChartType,
               dataset_id: 'ds-vcb-npl-peers-q4',
               title: 'Test Unknown Chart',
               takeaway: {
@@ -330,8 +339,8 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
             }
           ]
         },
-        facts: lookupFixture.facts as any,
-        datasets: lookupFixture.datasets as any,
+        facts: lookupFixture.facts as unknown as Fact[],
+        datasets: lookupFixture.datasets as unknown as Dataset[],
         source_notes: []
       };
 
@@ -343,7 +352,7 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
     });
 
     it('falls back to LegacyReport when report does not declare report_version', () => {
-      const legacyReport = {
+      const legacyReport: AnalysisReport = {
         report_id: 'rep-legacy-sample',
         status: 'completed',
         query: 'Báo cáo kiểu cũ',

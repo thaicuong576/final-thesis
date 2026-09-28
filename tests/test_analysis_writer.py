@@ -6,7 +6,11 @@ import json
 import unittest
 from types import SimpleNamespace
 
-from thesis_api.analysis_writer import AnalysisWriterError, OpenAIAnalysisWriter
+from thesis_api.analysis_writer import (
+    AnalysisWriterError,
+    OpenAIAnalysisWriter,
+    _clean_json_text,
+)
 
 
 class _FakeResponses:
@@ -125,6 +129,66 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
         writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=incomplete), model="test-model")
         with self.assertRaisesRegex(AnalysisWriterError, "analysis_writer_response_incomplete"):
             writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
+
+    def test_clean_json_text_helper(self) -> None:
+        self.assertEqual(_clean_json_text('{"a": 1}'), '{"a": 1}')
+        self.assertEqual(_clean_json_text('```json\n{"a": 1}\n```'), '{"a": 1}')
+        self.assertEqual(_clean_json_text('```\n{"a": 1}\n```'), '{"a": 1}')
+        self.assertEqual(_clean_json_text('```JSON\n{"a": 1}\n```'), '{"a": 1}')
+        self.assertEqual(_clean_json_text('  ```json\n{"a": 1}\n```  '), '{"a": 1}')
+        self.assertEqual(_clean_json_text('```json {"a": 1} ```'), '{"a": 1}')
+        self.assertEqual(
+            _clean_json_text('```json\n{"text": "contains ``` fence"}\n```'),
+            '{"text": "contains ``` fence"}',
+        )
+
+    def test_writer_accepts_fenced_json_responses(self) -> None:
+        claim_id = "claim-a"
+        claim = _claim(claim_id)
+        plan = {"plan_version": "plan-v1", "scope": {"periods": ["2024_Q4"]}}
+        specialist_payload = {
+            "claim_texts": [{
+                "claim_id": claim_id,
+                "prose": "Clean grounded prose.",
+                "supporting_claim_ids": [claim_id],
+            }],
+        }
+        synthesis_payload = {
+            "summary": "Clean synthesis summary.",
+            "supporting_claim_ids": [claim_id],
+        }
+
+        # Case 1: ```json ... ``` code fence
+        fenced_json_specialist = f"```json\n{json.dumps(specialist_payload)}\n```"
+        fenced_json_synthesis = f"```json\n{json.dumps(synthesis_payload)}\n```"
+        fake_json = _FakeResponses([fenced_json_specialist, fenced_json_synthesis])
+        writer_json = OpenAIAnalysisWriter(client=SimpleNamespace(responses=fake_json), model="test-model")
+
+        res_spec = writer_json.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
+        self.assertEqual(res_spec[claim_id]["prose"], "Clean grounded prose.")
+
+        res_synth = writer_json.synthesize(
+            plan=plan,
+            specialist_outputs={"company": [{"claim_id": claim_id, "prose": "Clean grounded prose."}]},
+            issues=[],
+        )
+        self.assertEqual(res_synth["summary"], "Clean synthesis summary.")
+
+        # Case 2: ``` ... ``` code fence without json tag
+        fenced_plain_specialist = f"```\n{json.dumps(specialist_payload)}\n```"
+        fenced_plain_synthesis = f"```\n{json.dumps(synthesis_payload)}\n```"
+        fake_plain = _FakeResponses([fenced_plain_specialist, fenced_plain_synthesis])
+        writer_plain = OpenAIAnalysisWriter(client=SimpleNamespace(responses=fake_plain), model="test-model")
+
+        res_spec_plain = writer_plain.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
+        self.assertEqual(res_spec_plain[claim_id]["prose"], "Clean grounded prose.")
+
+        res_synth_plain = writer_plain.synthesize(
+            plan=plan,
+            specialist_outputs={"company": [{"claim_id": claim_id, "prose": "Clean grounded prose."}]},
+            issues=[],
+        )
+        self.assertEqual(res_synth_plain["summary"], "Clean synthesis summary.")
 
 
 if __name__ == "__main__":

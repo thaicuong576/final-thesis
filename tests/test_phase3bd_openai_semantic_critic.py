@@ -839,6 +839,31 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
                         round_context=SemanticRoundContext(round_number=0),
                     )
 
+    def test_critic_accepts_fenced_json_responses(self):
+        plan = _company_plan()
+        client = FakeClient()
+        critic = OpenAISemanticCritic(client=client, config=_config())
+        result = _result(plan, critic.evaluator_version)
+        encoded = _encoded(result)
+
+        cases = (
+            f"```json\n{encoded}\n```",
+            f"```\n{encoded}\n```",
+            f"```JSON\n{encoded}\n```",
+            f"  ```json\n{encoded}\n```  ",
+        )
+        for output_text in cases:
+            with self.subTest(fence=output_text.splitlines()[0]):
+                client.responses.responses = [FakeResponse(output_text)]
+                eval_result = critic.evaluate(
+                    plan=plan,
+                    claims=(),
+                    stage1_report=_stage1(),
+                    round_context=SemanticRoundContext(round_number=0),
+                )
+                self.assertEqual(eval_result.contract_version, result.contract_version)
+                self.assertEqual(eval_result.evaluator_version, result.evaluator_version)
+
     def test_provider_exception_fails_closed_without_leaking_exception_details(self):
         client = FakeClient(exception=RuntimeError("secret db path /private/file"))
         critic = OpenAISemanticCritic(client=client, config=_config())

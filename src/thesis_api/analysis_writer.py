@@ -3,7 +3,18 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Mapping, Sequence
+
+
+def _clean_json_text(text: str) -> str:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        # Remove leading ```json or ```
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        # Remove trailing ```
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    return cleaned.strip()
 
 
 class AnalysisWriterError(ValueError):
@@ -141,8 +152,9 @@ class OpenAIAnalysisWriter:
         output_text = getattr(response, "output_text", None)
         if not isinstance(output_text, str) or not output_text.strip():
             raise AnalysisWriterError("analysis_writer_output_missing")
+        clean_text = _clean_json_text(output_text)
         try:
-            decoded = json.loads(output_text)
+            decoded = json.loads(clean_text)
         except (TypeError, ValueError) as exc:
             raise AnalysisWriterError("analysis_writer_json_invalid") from exc
         if not isinstance(decoded, dict):

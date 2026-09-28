@@ -651,3 +651,12 @@ When initializing `GoldSqliteDatasetProvider` with a verified `VerifiedGoldObser
 - Status: ACTIVE
 
 When an SSE stream terminates after emitting domain validation errors such as `RUN_BLOCKED` (e.g. `unsupported_period: Period 2024 is not an exact period in the accepted snapshot`), the stream consumer must recognize `RUN_BLOCKED` as an intentional, business-level terminal state rather than throwing an unhandled exception or reporting a network/server outage ("Luồng đã kết thúc nhưng API không gửi báo cáo"). Treating business rejection as a network connection error shows false-positive failure banners ("Lỗi kết nối Live SSE tới backend", "API lỗi", "Thử lại Live"), misleading users into retrying identical queries rather than modifying their inputs. The UI must cleanly transition into `BLOCKED` ("Cần điều chỉnh yêu cầu"), suppress network error alerts, and prominently highlight corrective actions (such as "← Chỉnh sửa câu hỏi" and exposing exact supported quarterly periods like `2024_Q1` to `2024_Q4`).
+
+## [LESSON-031] Markdown Code Fence Sanitization for Structured JSON LLM Endpoints
+
+- Date: 2026-09-28
+- Scope: `src/thesis_api/analysis_writer.py`, `src/thesis_data/openai_semantic_critic.py`
+- Status: ACTIVE
+
+Third-party OpenAI-compatible model endpoints (such as DeepSeek, OpenRouter, or local proxies) frequently wrap structured JSON output in markdown code fences (` ```json\n...\n``` ` or ` ```\n...\n``` `), even when requesting structured JSON schema mode. Calling `json.loads(output_text)` directly without stripping outer code fences triggers `json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)`, which bubbles up into writer/critic failures (`analysis_writer_json_invalid`, `openai_semantic_critic_json_invalid`) and causes unrecoverable `adaptive_runtime_failure`. A robust pre-parsing sanitizer `_clean_json_text` strips leading and trailing markdown backtick blocks while preserving internal code formatting inside JSON strings, preventing spurious decoding crashes across all OpenAI-compatible model providers.
+

@@ -32,7 +32,9 @@ numbered rules 15 (Linear dispatch), 16 (Codex subagent model rule) and 18
   worktree from the latest `main`, implements the task there, runs the full
   verification, pushes, opens the PR, waits for `gh pr checks` to pass, and
   ends its final message with the exact marker line given in the prompt
-  (e.g. `DONE-ER4`). One worker at a time; tasks run sequentially.
+  (e.g. `DONE-ER4`). Tasks run sequentially along the dependency chain; a
+  second worker may run in parallel only when its files do not overlap the
+  first (e.g. a frontend-only task beside a backend task).
 - **Task source**: specs live in `docs/plans/<plan-dir>/PR-<n>-*.md`. The worker
   prompt names the spec, the branch, the PR title
   (`feat(<api|ui|data|contracts>): [ER-<n>] <title>`), extra review notes, and

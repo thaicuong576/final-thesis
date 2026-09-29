@@ -4,37 +4,66 @@ export const mockCapabilities: AnalysisCapabilities = {
   snapshotId: 'capabilities-gold-2026-09-11T09:30:00+07:00',
   goldVersion: '0.9',
   entities: [
-    { id: 'acb', ticker: 'ACB', name: 'Ngân hàng Á Châu' },
-    { id: 'tcb', ticker: 'TCB', name: 'Ngân hàng Kỹ thương Việt Nam' },
-    { id: 'vpb', ticker: 'VPB', name: 'Ngân hàng Việt Nam Thịnh Vượng' },
-    { id: 'mbb', ticker: 'MBB', name: 'Ngân hàng Quân Đội' },
-    { id: 'vcb', ticker: 'VCB', name: 'Ngân hàng Ngoại thương Việt Nam' }
+    { id: 'acb', ticker: 'ACB', name: 'Ngân hàng Á Châu', type: 'company' },
+    { id: 'tcb', ticker: 'TCB', name: 'Ngân hàng Kỹ thương Việt Nam', type: 'company' },
+    { id: 'vpb', ticker: 'VPB', name: 'Ngân hàng Việt Nam Thịnh Vượng', type: 'company' },
+    { id: 'mbb', ticker: 'MBB', name: 'Ngân hàng Quân Đội', type: 'company' },
+    { id: 'vcb', ticker: 'VCB', name: 'Ngân hàng Ngoại thương Việt Nam', type: 'company' }
   ],
   periods: [
-    { id: '2024-q1', quarter: 1, year: 2024 },
-    { id: '2024-q2', quarter: 2, year: 2024 },
-    { id: '2024-q3', quarter: 3, year: 2024 },
-    { id: '2024-q4', quarter: 4, year: 2024 }
+    { id: '2024-q1', quarter: 1, year: 2024, label: 'Q1/2024' },
+    { id: '2024-q2', quarter: 2, year: 2024, label: 'Q2/2024' },
+    { id: '2024-q3', quarter: 3, year: 2024, label: 'Q3/2024' },
+    { id: '2024-q4', quarter: 4, year: 2024, label: 'Q4/2024' }
   ],
   metrics: [
-    { id: 'npl', acronym: 'NPL', label: 'Tỷ lệ nợ xấu', topicId: 'asset-quality' },
+    {
+      id: 'npl',
+      acronym: 'NPL',
+      label: 'Tỷ lệ nợ xấu',
+      shortLabel: 'Nợ xấu',
+      topicId: 'asset-quality',
+      unit: '%',
+      direction: 'lower_is_better',
+      decimals: 2,
+      group: 'asset_quality',
+      groupLabel: 'Chất lượng tài sản'
+    },
     {
       id: 'coverage',
       acronym: 'Coverage',
       label: 'Tỷ lệ bao phủ nợ xấu',
-      topicId: 'asset-quality'
+      shortLabel: 'Bao phủ nợ xấu',
+      topicId: 'asset-quality',
+      unit: '%',
+      direction: 'higher_is_better',
+      decimals: 2,
+      group: 'asset_quality',
+      groupLabel: 'Chất lượng tài sản'
     },
     {
       id: 'roa',
       acronym: 'ROA',
       label: 'Tỷ suất sinh lời trên tài sản',
-      topicId: 'profitability'
+      shortLabel: 'ROA',
+      topicId: 'profitability',
+      unit: '%',
+      direction: 'higher_is_better',
+      decimals: 2,
+      group: 'profitability',
+      groupLabel: 'Khả năng sinh lời'
     },
     {
       id: 'roe',
       acronym: 'ROE',
       label: 'Tỷ suất sinh lời trên vốn chủ sở hữu',
-      topicId: 'profitability'
+      shortLabel: 'ROE',
+      topicId: 'profitability',
+      unit: '%',
+      direction: 'higher_is_better',
+      decimals: 2,
+      group: 'profitability',
+      groupLabel: 'Khả năng sinh lời'
     }
   ],
   topics: [

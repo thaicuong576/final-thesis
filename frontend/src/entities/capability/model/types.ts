@@ -4,12 +4,18 @@ export interface Entity {
   id: string;
   ticker: string;
   name: string;
+  type?: string;
+  periods?: string[] | Period[];
+  coveredPeriods?: string[];
+  coverage?: Record<string, boolean | string>;
+  missingPeriods?: string[];
 }
 
 export interface Period {
   id: string;
   quarter: number;
   year: number;
+  label?: string;
 }
 
 export interface Metric {
@@ -37,6 +43,7 @@ export interface PeerUniverse {
   entityIds: string[];
   readonly: true;
   description: string;
+  executable?: boolean;
 }
 
 export interface MacroCapability {
@@ -44,6 +51,7 @@ export interface MacroCapability {
   minimumContractSatisfied: boolean;
   summary: string;
   details: string;
+  executable?: boolean;
 }
 
 export interface AnalysisCapabilities {
@@ -78,4 +86,6 @@ export interface AnalysisCapabilities {
   validationTimestamp?: string | null;
   source?: string | null;
   readiness?: string | null;
+  coverageMatrix?: Record<string, Record<string, boolean | string>> | Record<string, string[]>;
+  coverage?: Record<string, Record<string, boolean | string>> | Record<string, string[]>;
 }

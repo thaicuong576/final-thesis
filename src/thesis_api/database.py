@@ -63,10 +63,33 @@ def ensure_analysis_runs_table(db_path: Path) -> None:
                     report_json TEXT,
                     events_json TEXT,
                     model_used TEXT,
-                    latency_ms INTEGER
+                    latency_ms INTEGER,
+                    trace_json TEXT,
+                    error_code TEXT,
+                    duration_ms INTEGER,
+                    model_calls INTEGER,
+                    input_tokens INTEGER,
+                    output_tokens INTEGER,
+                    arm TEXT,
+                    question_type TEXT
                 );
                 """
             )
+            # Idempotently add columns if table was created by older schema
+            columns = {row[1] for row in conn.execute("PRAGMA table_info(analysis_runs)").fetchall()}
+            for col_name, col_type in (
+                ("trace_json", "TEXT"),
+                ("error_code", "TEXT"),
+                ("duration_ms", "INTEGER"),
+                ("model_calls", "INTEGER"),
+                ("input_tokens", "INTEGER"),
+                ("output_tokens", "INTEGER"),
+                ("arm", "TEXT"),
+                ("question_type", "TEXT"),
+            ):
+                if col_name not in columns:
+                    conn.execute(f"ALTER TABLE analysis_runs ADD COLUMN {col_name} {col_type};")
+
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_analysis_runs_created_at ON analysis_runs(created_at DESC);"
             )
@@ -94,6 +117,14 @@ def save_analysis_run(
     events_json: str | list[Any] | None = None,
     model_used: str | None = None,
     latency_ms: int | None = None,
+    trace_json: str | dict[str, Any] | None = None,
+    error_code: str | None = None,
+    duration_ms: int | None = None,
+    model_calls: int | None = None,
+    input_tokens: int | None = None,
+    output_tokens: int | None = None,
+    arm: str | None = None,
+    question_type: str | None = None,
 ) -> None:
     """Persist completed or in-flight analysis run into SQLite analysis_runs table."""
     ensure_analysis_runs_table(db_path)
@@ -113,6 +144,11 @@ def save_analysis_run(
         if isinstance(events_json, list)
         else (events_json or "[]")
     )
+    trace_str = (
+        json.dumps(trace_json, ensure_ascii=False)
+        if isinstance(trace_json, dict)
+        else trace_json
+    )
 
     try:
         conn = sqlite3.connect(db_path, timeout=10.0)
@@ -121,8 +157,10 @@ def save_analysis_run(
                 """
                 INSERT OR REPLACE INTO analysis_runs (
                     run_id, created_at, query, target_ticker, peer_tickers,
-                    period, status, report_json, events_json, model_used, latency_ms
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    period, status, report_json, events_json, model_used, latency_ms,
+                    trace_json, error_code, duration_ms, model_calls, input_tokens,
+                    output_tokens, arm, question_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id,
@@ -136,6 +174,14 @@ def save_analysis_run(
                     evts_str,
                     model_used,
                     latency_ms,
+                    trace_str,
+                    error_code,
+                    duration_ms,
+                    model_calls,
+                    input_tokens,
+                    output_tokens,
+                    arm,
+                    question_type,
                 ),
             )
             conn.commit()
@@ -180,6 +226,7 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
                         peers = json.loads(peers_raw)
                     except Exception:
                         peers = [p.strip() for p in peers_raw.split(",") if p.strip()]
+                row_keys = row.keys()
                 runs.append(
                     {
                         "run_id": row["run_id"],
@@ -191,6 +238,8 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
                         "status": row["status"],
                         "latency_ms": row["latency_ms"],
                         "model_used": row["model_used"],
+                        "arm": row["arm"] if "arm" in row_keys else None,
+                        "question_type": row["question_type"] if "question_type" in row_keys else None,
                     }
                 )
         finally:
@@ -243,6 +292,7 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
                 except Exception:
                     events_obj = []
 
+            row_keys = row.keys()
             return {
                 "run_id": row["run_id"],
                 "created_at": row["created_at"],
@@ -255,6 +305,8 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
                 "events": events_obj,
                 "model_used": row["model_used"],
                 "latency_ms": row["latency_ms"],
+                "arm": row["arm"] if "arm" in row_keys else None,
+                "question_type": row["question_type"] if "question_type" in row_keys else None,
             }
         finally:
             conn.close()

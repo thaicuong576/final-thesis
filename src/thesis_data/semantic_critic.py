@@ -12,7 +12,7 @@ from collections.abc import Mapping, Sequence
 import math
 import re
 import unicodedata
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -150,6 +150,9 @@ class SemanticRoundContext(BaseModel):
     synthesis_target_id: Literal["synthesis"] = "synthesis"
     synthesis_summary: str | None = Field(default=None, min_length=1)
     synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    narrative: tuple[Any, ...] = Field(default_factory=tuple)
+    report_spec: dict[str, Any] | None = None
+    cross_level_candidates: tuple[Any, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
     def validate_issue_context(self) -> "SemanticRoundContext":

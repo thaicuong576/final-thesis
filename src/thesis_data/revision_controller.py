@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 import hashlib
 import json
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -70,6 +70,9 @@ class RevisionRequest(BaseModel):
     current_claims: tuple[AtomicClaim, ...]
     current_synthesis_summary: str | None = Field(default=None, min_length=1)
     current_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    narrative: tuple[Any, ...] = Field(default_factory=tuple)
+    report_spec: dict[str, Any] | None = None
+    cross_level_candidates: tuple[Any, ...] = Field(default_factory=tuple)
     selected_issues: tuple[CritiqueIssue, ...] = Field(min_length=1)
     target_specialists: tuple[str, ...] = Field(default_factory=tuple)
     next_round_number: int = Field(ge=1)
@@ -87,9 +90,11 @@ class RevisionRequest(BaseModel):
             self.current_claims,
             self.current_synthesis_summary,
             self.current_synthesis_supporting_claim_ids,
+            narrative=self.narrative,
+            report_spec=self.report_spec,
         ):
             raise ValueError(
-                "current_candidate_hash does not match current_claims and synthesis_summary"
+                "current_candidate_hash does not match current candidate artifact"
             )
         issue_ids = [issue.issue_id for issue in self.selected_issues]
         if len(issue_ids) != len(set(issue_ids)):
@@ -111,6 +116,8 @@ class RevisionResult(BaseModel):
     revised_claims: tuple[AtomicClaim, ...]
     revised_synthesis_summary: str | None = Field(default=None, min_length=1)
     revised_synthesis_supporting_claim_ids: tuple[str, ...] | None = None
+    revised_narrative: tuple[Any, ...] | None = None
+    revised_report_spec: dict[str, Any] | None = None
     revised_agents: tuple[str, ...] = Field(default_factory=tuple)
     revised_claim_ids: dict[str, tuple[str, ...]] = Field(default_factory=dict)
     payload_version: str = Field(min_length=1)
@@ -272,6 +279,8 @@ def candidate_hash(
     claims: Sequence[AtomicClaim],
     synthesis_summary: str | None = None,
     synthesis_supporting_claim_ids: Sequence[str] = (),
+    narrative: Sequence[Any] = (),
+    report_spec: dict[str, Any] | None = None,
 ) -> str:
     """Return a stable SHA-256 fingerprint for one canonical candidate."""
 
@@ -287,7 +296,7 @@ def candidate_hash(
     claim_ids = [claim.claim_id for claim in normalized_claims]
     if len(claim_ids) != len(set(claim_ids)):
         raise ValueError("candidate claim IDs must be unique")
-    payload = {
+    payload: dict[str, Any] = {
         "plan_version": plan.plan_version,
         "dataset_id": plan.dataset_id,
         "dataset_snapshot_id": plan.dataset_snapshot_id,
@@ -301,6 +310,17 @@ def candidate_hash(
     if synthesis_summary is not None:
         payload["synthesis_summary"] = synthesis_summary
         payload["synthesis_supporting_claim_ids"] = list(normalized_supporting_ids)
+    if narrative:
+        payload["narrative"] = [
+            (
+                s.model_dump(mode="json")
+                if hasattr(s, "model_dump")
+                else (s.__dict__ if hasattr(s, "__dict__") else dict(s))
+            )
+            for s in narrative
+        ]
+    if report_spec is not None:
+        payload["report_spec"] = report_spec
     serialized = json.dumps(
         payload,
         ensure_ascii=False,
@@ -502,6 +522,9 @@ class RevisionWorkflowState(BaseModel):
     current_claims: tuple[AtomicClaim, ...]
     current_synthesis_summary: str | None = Field(default=None, min_length=1)
     current_synthesis_supporting_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    narrative: tuple[Any, ...] = Field(default_factory=tuple)
+    report_spec: dict[str, Any] | None = None
+    cross_level_candidates: tuple[Any, ...] = Field(default_factory=tuple)
     current_candidate_hash: str = Field(min_length=1)
     current_payload_version: str = Field(min_length=1)
     current_round_number: int = Field(ge=0)
@@ -533,6 +556,8 @@ class RevisionWorkflowState(BaseModel):
             self.current_claims,
             self.current_synthesis_summary,
             self.current_synthesis_supporting_claim_ids,
+            narrative=self.narrative,
+            report_spec=self.report_spec,
         ):
             raise ValueError(
                 "current_candidate_hash does not match current candidate artifact"

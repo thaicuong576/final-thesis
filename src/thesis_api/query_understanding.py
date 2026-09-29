@@ -275,6 +275,9 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
             and u_tok not in _IGNORED_UPPER_TOKENS
             and not re.fullmatch(r"\d+", u_tok)
             and not re.fullmatch(r"20\d{2}", u_tok)
+            and not re.fullmatch(r"20\d{2}_Q[1-4]", u_tok)
+            and not re.fullmatch(r"Q[1-4]", u_tok)
+            and u_tok not in explicit_periods
         ):
             if u_tok not in unknown_entity_tokens:
                 unknown_entity_tokens.append(u_tok)

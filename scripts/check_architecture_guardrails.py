@@ -28,6 +28,8 @@ APPLICATION_CORE_FILES = (
     ROOT / "src" / "thesis_data" / "semantic_critic.py",
     ROOT / "src" / "thesis_data" / "revision_controller.py",
     ROOT / "src" / "thesis_data" / "report_facts.py",
+    ROOT / "src" / "thesis_data" / "narrative_verification.py",
+    ROOT / "src" / "thesis_data" / "report_spec.py",
 )
 FORBIDDEN_CORE_TEXT = (
     "sqlite3",

@@ -67,52 +67,34 @@ class OpenAISemanticCriticError(SemanticEvaluationError):
         super().__init__(code)
 
 
-_CRITIC_INSTRUCTIONS = """You are a semantic reviewer of one supplied analytical candidate.
+_CRITIC_INSTRUCTIONS = """You are a semantic reviewer for a Vietnamese equity-research analytical report.
 Evaluate only the public, auditable context in the JSON input.
 
-Return exactly one JSON object matching the supplied strict schema.  Do not
-make an acceptance decision, choose a revision budget, activate an inactive
-agent, invent undeclared links, override Stage-1, or decide accepted
-missingness.  Use only the listed identifiers.  Every declared requirement
-must be classified exactly once, and every declared applicable link must have
-exactly one result.
+Hướng dẫn phản biện (tiếng Việt):
+1. Số liệu đã được code kiểm định độc lập qua Stage-1 và bộ kiểm tra câu; không kiểm lại phép tính số học.
+2. Kiểm tra trả lời đúng câu hỏi: khối đầu tiên (answer hoặc headline) có trả lời trực tiếp câu hỏi người dùng không. Nếu không, tạo issue incomplete_synthesis cho orchestrator (required_action=REVISE_CLAIM).
+3. Kiểm tra diễn giải: nhận định có nói quá, nói thiếu, hoặc khái quát thành "toàn ngành" trong khi chỉ là mẫu khảo sát không; có bỏ sót lưu ý quan trọng không. Nếu có, tạo issue unsupported_claim kèm affected_sentence_ids.
+4. Kiểm tra hình: hình không hỗ trợ luận điểm nào, hoặc trùng ý → tạo issue incomplete_synthesis cho orchestrator, kèm affected_block_index, required_action=REMOVE_CLAIM.
+5. Mỗi ứng viên mâu thuẫn (cross_level_candidates): xác nhận (confirmed) kèm 1–2 câu nhận định tiếng Việt có fact_ids, hoặc bác bỏ (dismissed) kèm lý do rõ ràng.
+6. Nếu có finding confirmed mà báo cáo không nhắc tới → tạo issue cross_level_contradiction cho orchestrator (required_action=RECONCILE_CROSS_LEVEL).
+7. Mỗi issue có description tiếng Việt, evidence_refs = fact_ids, required_action thuộc {REVISE_CLAIM, REMOVE_CLAIM, ADD_LIMITATION, RECONCILE_CROSS_LEVEL}.
 
-For every prior OPEN issue in prior_open_issues, return the same issue_id
-exactly once with status OPEN, RESOLVED, EXPLAINED, or UNRESOLVED.  Do not
-silently rename it.  New issues must use unique concise IDs.
-
-Review report_level_synthesis separately from the specialist claims. Its stable
-target ID is `synthesis`. If that prose needs revision, create an issue with
-affected_agent `orchestrator`, empty affected_claim_ids, and the exact
-affected_requirement_ids. Never attach report-wide synthesis findings to an
-unrelated specialist claim.
-The supplied synthesis support IDs must match the summary's final claim
-support set. The executive summary is strictly qualitative and must NEVER
-contain numeric values, percentages, digits, or period labels; report numeric
-facts only through the structured claims. Omitting numbers or metrics from the
-synthesis is required by design; do NOT flag missing numbers or metrics in
-synthesis as an issue.
-
-Return concise observable rationales, such as the claim IDs or requirement
-that support a score.  Do not provide private chain-of-thought, hidden
-reasoning, scratch work, or step-by-step internal deliberation.
+Return exactly one JSON object matching the supplied strict schema. Do not make an acceptance decision or override Stage-1.
+For every prior OPEN issue in prior_open_issues, return the same issue_id exactly once with status OPEN, RESOLVED, EXPLAINED, or UNRESOLVED.
 
 Your JSON output MUST have the following top-level keys and structure:
 - "contract_version": "structured-critic-result-v1"
 - "evaluator_version": "<evaluator_version>"
 - "dimension_scores": array of objects, one for each of the 6 frozen dimensions:
   ["groundedness", "cross_level_integration", "answer_coverage", "logical_soundness", "uncertainty_limitations", "analytical_usefulness"]
-  Each dimension object has:
-  {"dimension": "<name>", "applicability": "APPLICABLE", "score": 1.0, "rationale": "...", "supporting_claim_ids": [], "affected_requirement_ids": [], "issue_ids": []}
 - "critique_issues": array of objects (if any issues found)
   Each issue object has:
-  {"issue_id": "...", "issue_type": "...", "severity": "...", "affected_agent": "...", "description": "...", "required_action": "...", "resolution_status": "OPEN", "affected_requirement_ids": [], "affected_claim_ids": [], "evidence_refs": []}
+  {"issue_id": "...", "issue_type": "...", "severity": "...", "affected_agent": "...", "description": "...", "required_action": "...", "resolution_status": "OPEN", "affected_requirement_ids": [], "affected_claim_ids": [], "affected_sentence_ids": [], "affected_block_index": null, "evidence_refs": []}
+- "cross_level_findings": array of findings with status "confirmed" or "dismissed"
 - "fulfilled_requirement_ids": array of requirement ID strings
 - "partially_fulfilled_requirement_ids": array of requirement ID strings
 - "unfulfilled_requirement_ids": array of requirement ID strings
 - "applicable_link_results": array of link result objects
-  Each link object has:
-  {"link_id": "...", "score": 1.0, "rationale": "...", "supporting_claim_ids": [], "issue_ids": []}
 """
 
 
@@ -229,12 +211,59 @@ def _render_critic_payload(
     prior_issues = tuple(
         sorted(round_context.prior_issues, key=lambda issue: issue.issue_id)
     )
+    rendered_narrative = []
+    for s in round_context.narrative:
+        if isinstance(s, dict):
+            rendered_narrative.append(s)
+        elif hasattr(s, "model_dump"):
+            rendered_narrative.append(s.model_dump(mode="json"))
+        elif hasattr(s, "_asdict"):
+            rendered_narrative.append(s._asdict())
+        else:
+            rendered_narrative.append({
+                "sentence_id": getattr(s, "sentence_id", ""),
+                "text": getattr(s, "text", ""),
+                "fact_ids": list(getattr(s, "fact_ids", ())),
+                "author_role": getattr(s, "author_role", None),
+            })
+
+    rendered_spec = None
+    if round_context.report_spec:
+        blocks_summary = []
+        for b in round_context.report_spec.get("blocks", []):
+            block_info = {"type": b.get("type")}
+            if "title" in b:
+                block_info["title"] = b["title"]
+            if "chart" in b:
+                block_info["chart"] = b["chart"]
+            if "headline" in b:
+                block_info["headline"] = b["headline"]
+            blocks_summary.append(block_info)
+        rendered_spec = {
+            "kind": round_context.report_spec.get("kind"),
+            "blocks": blocks_summary,
+        }
+
+    rendered_cross_level_candidates = []
+    for cand in round_context.cross_level_candidates:
+        if isinstance(cand, dict):
+            rendered_cross_level_candidates.append(cand)
+        elif hasattr(cand, "model_dump"):
+            rendered_cross_level_candidates.append(cand.model_dump(mode="json"))
+        else:
+            rendered_cross_level_candidates.append(str(cand))
+
     return {
         "plan_version": plan.plan_version,
         "dataset_id": plan.dataset_id,
         "dataset_snapshot_id": plan.dataset_snapshot_id,
         "query_id": plan.query_id,
         "analysis_scope": plan.scope.model_dump(mode="json"),
+        "question": plan.normalized_question,
+        "question_type": getattr(plan, "question_type", None) or "company_profile",
+        "narrative": rendered_narrative,
+        "report_spec": rendered_spec,
+        "cross_level_candidates": rendered_cross_level_candidates,
         "report_level_synthesis": {
             "target_id": round_context.synthesis_target_id,
             "summary": round_context.synthesis_summary,
@@ -584,14 +613,18 @@ def _normalize_critic_output(
         ]
         if raw_agent == AnalysisAgent.ORCHESTRATOR.value:
             affected_claims = []
-            combined_text = f"{description.lower()} {action.lower()}"
-            numeric_complaint_patterns = (
-                "numeric", "number", "digit", "omits the actual", "lacks numeric",
-                "missing number", "include the number", "state the numeric",
-                "state the value", "con so", "so lieu", "ty le", "phan tram",
-            )
-            if any(p in combined_text for p in numeric_complaint_patterns):
-                continue
+        affected_sentence_ids = [
+            str(s).strip()
+            for s in item.get("affected_sentence_ids", [])
+            if str(s).strip()
+        ]
+        raw_block_idx = item.get("affected_block_index")
+        affected_block_index: int | None = None
+        if raw_block_idx is not None:
+            try:
+                affected_block_index = int(raw_block_idx)
+            except (ValueError, TypeError):
+                affected_block_index = None
 
         affected_reqs = [
             str(r).strip()
@@ -614,6 +647,8 @@ def _normalize_critic_output(
             "affected_agent": raw_agent,
             "affected_claim_ids": list(dict.fromkeys(affected_claims)),
             "affected_requirement_ids": list(dict.fromkeys(affected_reqs)),
+            "affected_sentence_ids": list(dict.fromkeys(affected_sentence_ids)),
+            "affected_block_index": affected_block_index,
             "description": description,
             "evidence_refs": list(dict.fromkeys(evidence_refs)),
             "required_action": action,

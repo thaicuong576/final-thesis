@@ -1209,6 +1209,8 @@ class AnalysisEngine:
             events_json=events,
             model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
             latency_ms=None,
+            arm=getattr(self.settings, "analysis_arm", "hierarchical_with_critique"),
+            question_type=getattr(report, "question_type", None) or getattr(plan, "question_type", None),
         )
 
     def get_capabilities(self) -> dict[str, Any]:

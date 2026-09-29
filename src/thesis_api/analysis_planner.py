@@ -73,8 +73,8 @@ _MODEL_PLAN_PROMPT = (
 
 def rules_plan(resolved: ResolvedQuery, catalog: DatasetCapabilityCatalog) -> PlanSpec:
     """Generate a deterministic plan based on the resolved query and domain rules."""
-    # 1. Unknown entity tokens with no valid entity
-    if resolved.unknown_entity_tokens and not resolved.entities:
+    # 1. Unknown entity tokens
+    if resolved.unknown_entity_tokens:
         labels = ", ".join(resolved.unknown_entity_tokens)
         raise AnalysisBlocked(
             "unsupported_entity",

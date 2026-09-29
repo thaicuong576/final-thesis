@@ -1,28 +1,135 @@
-"""Replaceable, prefetched-only narrative writer used by the adaptive runtime."""
+"""Analysis writer protocol and OpenAI adapter for Vietnamese banking reports."""
 
 from __future__ import annotations
 
 import json
 import re
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Protocol, Sequence
 
 
 def _clean_json_text(text: str) -> str:
     cleaned = text.strip()
     if cleaned.startswith("```"):
-        # Remove leading ```json or ```
         cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-        # Remove trailing ```
         cleaned = re.sub(r"\s*```$", "", cleaned)
     return cleaned.strip()
 
 
 class AnalysisWriterError(ValueError):
-    """Raised when the configured writer fails its narrow output contract."""
+    """Raised when the configured writer fails its contract or output is invalid."""
+
+
+QUESTION_TYPE_LABELS: dict[str, str] = {
+    "lookup": "tra cứu",
+    "company_profile": "hồ sơ doanh nghiệp",
+    "ranking": "xếp hạng",
+    "trend": "xu hướng",
+    "head_to_head": "so sánh trực diện",
+}
+
+FINDINGS_PROMPT_TEMPLATE = (
+    "Bạn là chuyên viên phân tích {role_label} trong một nhóm phân tích ngân hàng.\n"
+    "Câu hỏi: {question} (dạng: {question_type_label}).\n"
+    "Viết tối đa {max_sentences} câu nhận định tiếng Việt trả lời trực tiếp câu hỏi, chỉ dựa trên các fact được cung cấp. Ưu tiên insight quan trọng nhất trước.\n"
+    "Quy tắc:\n"
+    "1. Mỗi câu liệt kê fact_ids nó dựa vào, chỉ dùng fact_id có trong danh sách.\n"
+    "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
+    "3. Chỉ nói tăng/giảm/liên tục/thu hẹp khi có fact thay đổi; chỉ nói cao hơn/thấp hơn/nhỉnh hơn khi có fact chênh lệch; chỉ nói \"nhất/hạng\" khi có fact hạng.\n"
+    "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Được dùng \"hàm ý\" cho phép phân rã như ROE/ROA. Không khuyến nghị mua/bán.\n"
+    "5. Câu tối đa 30 từ, giọng báo cáo phân tích, dùng tên chỉ tiêu tiếng Việt, không dùng mã như bank.roe.\n"
+    "6. Nếu có \"ung_vien_mau_thuan\", được nêu dữ kiện liên quan nhưng không kết luận nguyên nhân.\n"
+    "Trả về JSON: {{\"sentences\":[{{\"text\":\"…\",\"fact_ids\":[\"…\"]}}]}}"
+)
+
+COMPOSE_REPORT_PROMPT_TEMPLATE = (
+    "Bạn là điều phối viên, dựng báo cáo phân tích kiểu equity research bằng tiếng Việt cho câu hỏi: {question} (dạng: {question_type_label}).\n"
+    "Bạn có: các câu nhận định đã được kiểm chứng (sentence_id), danh sách dataset có thể vẽ (dataset_id, allowed_charts), tín hiệu, phát hiện liên tầng.\n"
+    "Hãy chọn và sắp xếp các khối để trả lời câu hỏi rõ nhất, đưa kết luận lên đầu:\n"
+    "- Câu hỏi tra cứu: dùng kind \"answer_card\" với khối \"answer\" và tối đa 1 hình.\n"
+    "- Còn lại: kind \"note\", bắt đầu bằng \"headline\" (tối đa 16 từ, mở đầu bằng mã ngân hàng hoặc chủ đề và dấu hai chấm, là một nhận định).\n"
+    "- Mỗi hình chọn chart trong allowed_charts của dataset, có title ngắn và 1 câu takeaway kèm fact_ids.\n"
+    "- Chỉ đưa hình thật sự hỗ trợ một luận điểm; không đưa hình trùng ý.\n"
+    "- Ưu tiên dùng lại sentence_id. Chỉ viết câu mới khi thật cần, và câu mới phải kèm fact_ids.\n"
+    "- Phát hiện liên tầng đã xác nhận nên được đưa vào callout.\n"
+    "Quy tắc số, xu hướng, nguyên nhân, khuyến nghị: giống chuyên viên. Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
+    "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới)."
+)
+
+REWRITE_SENTENCE_PROMPT_TEMPLATE = (
+    "Bạn là chuyên viên phân tích {role_label} trong một nhóm phân tích ngân hàng.\n"
+    "Câu hỏi: {question}.\n"
+    "Câu nhận định gốc gặp vấn đề phản biện sau:\n"
+    "Vấn đề: {issue_description}\n"
+    "Yêu cầu xử lý: {required_action}\n"
+    "Hãy viết lại 1 câu nhận định tiếng Việt để khắc phục vấn đề trên, chỉ dùng các fact được cung cấp.\n"
+    "Quy tắc:\n"
+    "1. Liệt kê fact_ids câu dựa vào, chỉ dùng fact_id trong danh sách.\n"
+    "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
+    "3. Chỉ nói tăng/giảm khi có fact thay đổi; chỉ nói cao/thấp hơn khi có fact chênh lệch.\n"
+    "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Tối đa 30 từ.\n"
+    "Trả về JSON: {{\"text\":\"…\",\"fact_ids\":[\"…\"]}}"
+)
+
+
+def _normalize_facts(facts: Sequence[Any]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for f in facts:
+        if isinstance(f, dict):
+            fid = f.get("fact_id", "")
+            mota = f.get("mo_ta") or f.get("description") or ""
+            hienthi = f.get("hien_thi") or f.get("display_value") or str(f.get("value", ""))
+        else:
+            fid = getattr(f, "fact_id", "")
+            mota = getattr(f, "mo_ta", None) or getattr(f, "description", "")
+            hienthi = getattr(f, "hien_thi", None) or getattr(f, "display_value", "") or str(getattr(f, "value", ""))
+        normalized.append({
+            "fact_id": str(fid),
+            "mo_ta": str(mota),
+            "hien_thi": str(hienthi),
+        })
+    return normalized
+
+
+class AnalysisWriter(Protocol):
+    """Protocol for writer implementations providing specialist findings and report composition."""
+
+    def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        candidates: Sequence[Mapping[str, Any]] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]: ...
+
+    def compose_report(
+        self,
+        *,
+        question: str,
+        question_type: str,
+        sentences: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        signals: Sequence[Mapping[str, Any]] | None = None,
+        findings: Sequence[Mapping[str, Any]] | None = None,
+        facts: Sequence[Mapping[str, Any]] | None = None,
+    ) -> dict[str, Any]: ...
+
+    def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]: ...
 
 
 class OpenAIAnalysisWriter:
-    """OpenAI Responses adapter that can write prose but cannot retrieve facts."""
+    """OpenAI Responses / chat adapter providing specialist findings, composition, and sentence revision."""
 
     def __init__(self, *, client: Any, model: str) -> None:
         if client is None or not isinstance(model, str) or not model.strip():
@@ -30,140 +137,211 @@ class OpenAIAnalysisWriter:
         self.client = client
         self.model = model.strip()
 
-    def write_specialist(
+    def write_findings(
         self,
         *,
-        plan: Mapping[str, Any],
         role: str,
-        claims: Sequence[Mapping[str, Any]],
-        issues: Sequence[Mapping[str, Any]],
-    ) -> dict[str, dict[str, Any]]:
-        claim_ids = [str(item["claim_id"]) for item in claims]
-        result = self._request(
-            name="specialist_presentation",
-            instructions=(
-                "You are a specialist presentation writer. Use only the supplied frozen plan, accepted claims, "
-                "and observations. Write concise grounded prose for each exact claim_id. Do not change facts, "
-                "scope, uncertainty, limitations, or provenance. Do not add causal conclusions, external facts, "
-                "source IDs, or numerical values that are absent from the supplied claim. Address the selected "
-                "critique descriptions and required actions when present. Return every requested claim exactly once.\n\n"
-                "CRITICAL CONSTRAINTS FOR PROSE:\n"
-                "- NEVER mention any year (such as 2024), quarter (such as Q4, quý 4, fourth quarter), or period words in the 'prose' field. The period is bound at the report level; any period mention will cause an immediate validation failure.\n"
-                "- Write narrative focus solely on the entity, metric concept, and asserted value without period words.\n"
-                "- NUMERIC CONSTRAINTS FOR PROSE:\n"
-                "  * NEVER invent numbers, counts, rankings, differences, or quantities.\n"
-                "  * If you mention any numeric value from the claim, you MUST write the EXACT asserted value verbatim as provided (e.g. if the value is 1.6205, write '1.6205%', NEVER round to '1.62%' or '1.6%'). Any rounded or altered number risks immediate rejection.\n"
-                "  * When in doubt, describe the metric qualitatively without introducing additional digits.\n\n"
-                "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with the root key 'claim_texts'. "
-                "Schema: {\"claim_texts\": [{\"claim_id\": \"exact_claim_id\", \"prose\": \"grounded narrative with NO period words\", \"supporting_claim_ids\": [\"exact_claim_id\"]}]}"
-            ),
-            payload={"plan": plan, "role": role, "claims": list(claims), "selected_issues": list(issues)},
-            schema={
-                "type": "object",
-                "properties": {
-                    "claim_texts": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "claim_id": {"type": "string", "enum": claim_ids},
-                                "prose": {"type": "string"},
-                                "supporting_claim_ids": {
-                                    "type": "array",
-                                    "items": {"type": "string", "enum": claim_ids},
-                                },
-                            },
-                            "required": ["claim_id", "prose", "supporting_claim_ids"],
-                            "additionalProperties": False,
-                        },
-                    }
-                },
-                "required": ["claim_texts"],
-                "additionalProperties": False,
-            },
+        question: str,
+        question_type: str,
+        facts: Sequence[Any],
+        datasets_summary: Sequence[Any],
+        candidates: Sequence[Any] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]:
+        role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
+        q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
+        instructions = FINDINGS_PROMPT_TEMPLATE.format(
+            role_label=role_label,
+            question=question,
+            question_type_label=q_label,
+            max_sentences=max_sentences,
         )
-        values = result.get("claim_texts")
-        if not isinstance(values, list):
-            raise AnalysisWriterError("analysis_writer_specialist_output_invalid")
-        output: dict[str, dict[str, Any]] = {}
-        for item in values:
-            if not isinstance(item, dict) or set(item) != {"claim_id", "prose", "supporting_claim_ids"}:
-                raise AnalysisWriterError("analysis_writer_specialist_output_invalid")
-            claim_id, prose, support_ids = item["claim_id"], item["prose"], item["supporting_claim_ids"]
-            if claim_id in output or not isinstance(prose, str) or not isinstance(support_ids, list):
-                raise AnalysisWriterError("analysis_writer_specialist_output_invalid")
-            if support_ids != [claim_id]:
-                raise AnalysisWriterError("analysis_writer_specialist_support_scope_invalid")
-            output[claim_id] = {"prose": prose, "supporting_claim_ids": support_ids}
-        if set(output) != set(claim_ids):
-            raise AnalysisWriterError("analysis_writer_specialist_claim_set_invalid")
-        return output
+        norm_facts = _normalize_facts(facts)
+        payload = {
+            "question": question,
+            "question_type": question_type,
+            "role": role,
+            "facts": norm_facts,
+            "datasets_summary": list(datasets_summary),
+            "ung_vien_mau_thuan": list(candidates or []),
+            "max_sentences": max_sentences,
+        }
+        schema = {
+            "type": "object",
+            "properties": {
+                "sentences": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "text": {"type": "string"},
+                            "fact_ids": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
+                        },
+                        "required": ["text", "fact_ids"],
+                        "additionalProperties": False,
+                    },
+                }
+            },
+            "required": ["sentences"],
+            "additionalProperties": False,
+        }
+        decoded = self._request(
+            name="specialist_findings",
+            instructions=instructions,
+            payload=payload,
+            schema=schema,
+        )
+        sentences = decoded.get("sentences")
+        if not isinstance(sentences, list):
+            raise AnalysisWriterError("analysis_writer_findings_output_invalid")
+        return [s for s in sentences if isinstance(s, dict)]
 
-    def synthesize(
+    def compose_report(
         self,
         *,
-        plan: Mapping[str, Any],
-        specialist_outputs: Mapping[str, Sequence[Mapping[str, str]]],
-        issues: Sequence[Mapping[str, Any]],
+        question: str,
+        question_type: str,
+        sentences: Sequence[Any],
+        datasets_summary: Sequence[Any],
+        signals: Sequence[Any] | None = None,
+        findings: Sequence[Any] | None = None,
+        facts: Sequence[Any] | None = None,
     ) -> dict[str, Any]:
-        claim_ids = list(dict.fromkeys(
-            str(item["claim_id"])
-            for values in specialist_outputs.values()
-            for item in values
-        ))
-        result = self._request(
-            name="analysis_synthesis",
-            instructions=(
-                "You are an executive synthesis writer. Summarize the specialist findings into a concise qualitative overview.\n\n"
-                "CRITICAL CONSTRAINTS FOR SUMMARY:\n"
-                "- You must write a strictly QUALITATIVE executive summary.\n"
-                "- NEVER include any ticker symbols (e.g., do NOT write MBB, VCB, ACB, TCB, VPB) or metric acronyms (do NOT write NPL, ROE, ROA, LLR). Use general descriptive terms such as 'the institution', 'credit quality', 'asset health', 'earnings profile'.\n"
-                "- NEVER include digits, numbers, or spelled-out number words (e.g. do NOT write digits like 1.5, or words like 'one', 'two', 'three', 'four', 'five', 'half', 'percent', 'percentage', 'units'). State clearly that numbers belong exclusively in structured claims and specialist presentations, never in executive synthesis.\n"
-                "- If critique issues or feedback request adding numbers, figures, or metrics to the synthesis, you MUST refuse to add them and keep the synthesis strictly qualitative.\n"
-                "- NEVER write any years, quarters, dates, or period labels.\n"
-                "- NEVER include temporal change or trend words (do NOT write words like: improve, improved, improves, improving, deteriorate, deteriorated, deteriorates, deteriorating, increase, increased, increases, increasing, decrease, decreased, decreases, decreasing, trend, trending, momentum, rising, fell, falling, decline, declined, declines, declining, growth, grew, shrank, tăng, giảm, cải thiện, xấu đi, xu hướng, tăng trưởng, suy giảm). Describe only the static standing or condition, not changes over time.\n"
-                "- NEVER include causal explanation or attribution words (do NOT write words like: because, due to, driven by, caused by, cause, causes, leads to, resulted from, as a result, do, bởi, vì, nhờ, khiến, dẫn đến). State observations without attributing causal mechanisms.\n\n"
-                "CRITICAL OUTPUT FORMAT: You must output ONLY a valid JSON object with keys 'summary' and 'supporting_claim_ids'. "
-                "Schema: {\"summary\": \"qualitative executive overview\", \"supporting_claim_ids\": [\"claim_id_1\", ...]}"
-            ),
-            payload={"plan": plan, "specialist_outputs": specialist_outputs, "selected_issues": list(issues)},
-            schema={
-                "type": "object",
-                "properties": {
-                    "summary": {"type": "string"},
-                    "supporting_claim_ids": {
-                        "type": "array",
-                        "items": {"type": "string", "enum": claim_ids},
-                    },
-                },
-                "required": ["summary", "supporting_claim_ids"],
-                "additionalProperties": False,
-            },
+        q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
+        instructions = COMPOSE_REPORT_PROMPT_TEMPLATE.format(
+            question=question,
+            question_type_label=q_label,
         )
-        summary = result.get("summary")
-        support_ids = result.get("supporting_claim_ids")
-        if not isinstance(summary, str) or not summary.strip() or not isinstance(support_ids, list):
-            raise AnalysisWriterError("analysis_writer_synthesis_output_invalid")
-        if support_ids != claim_ids:
-            raise AnalysisWriterError("analysis_writer_synthesis_support_scope_invalid")
-        return {"summary": summary, "supporting_claim_ids": support_ids}
+        payload = {
+            "question": question,
+            "question_type": question_type,
+            "sentences": list(sentences),
+            "datasets_summary": list(datasets_summary),
+            "signals": list(signals or []),
+            "findings": list(findings or []),
+            "facts": _normalize_facts(facts or []),
+        }
+        decoded = self._request(
+            name="report_specification",
+            instructions=instructions,
+            payload=payload,
+            schema=None,
+        )
+        if not isinstance(decoded, dict):
+            raise AnalysisWriterError("analysis_writer_compose_output_invalid")
+        return decoded
 
-    def _request(self, *, name: str, instructions: str, payload: Mapping[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
+    def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Any],
+    ) -> dict[str, Any]:
+        role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
+        desc = issue.get("description", "")
+        action = issue.get("required_action", "")
+        instructions = REWRITE_SENTENCE_PROMPT_TEMPLATE.format(
+            role_label=role_label,
+            question=question,
+            issue_description=desc,
+            required_action=action,
+        )
+        norm_facts = _normalize_facts(facts)
+        payload = {
+            "question": question,
+            "original_sentence": dict(sentence),
+            "issue": dict(issue),
+            "facts": norm_facts,
+        }
+        schema = {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string"},
+                "fact_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+            },
+            "required": ["text", "fact_ids"],
+            "additionalProperties": False,
+        }
+        decoded = self._request(
+            name="rewritten_sentence",
+            instructions=instructions,
+            payload=payload,
+            schema=schema,
+        )
+        text = decoded.get("text")
+        fact_ids = decoded.get("fact_ids")
+        if not isinstance(text, str) or not isinstance(fact_ids, list):
+            raise AnalysisWriterError("analysis_writer_rewrite_output_invalid")
+        return {"text": text, "fact_ids": [str(fid) for fid in fact_ids]}
+
+    def _request(
+        self,
+        *,
+        name: str,
+        instructions: str,
+        payload: Mapping[str, Any],
+        schema: dict[str, Any] | None,
+    ) -> dict[str, Any]:
         try:
-            response = self.client.responses.create(
-                model=self.model,
-                instructions=instructions,
-                input=json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-                text={"format": {"type": "json_schema", "name": name, "strict": True, "schema": schema}},
-                max_output_tokens=2500,
-                store=False,
-            )
+            if hasattr(self.client, "responses"):
+                request_kwargs: dict[str, Any] = {
+                    "model": self.model,
+                    "instructions": instructions,
+                    "input": json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                    "max_output_tokens": 2500,
+                    "store": False,
+                }
+                if schema is not None:
+                    request_kwargs["text"] = {
+                        "format": {
+                            "type": "json_schema",
+                            "name": name,
+                            "strict": True,
+                            "schema": schema,
+                        }
+                    }
+                else:
+                    request_kwargs["text"] = {
+                        "format": {
+                            "type": "json_object",
+                        }
+                    }
+                response = self.client.responses.create(**request_kwargs)
+                output_text = getattr(response, "output_text", None)
+            else:
+                messages = [
+                    {"role": "system", "content": instructions},
+                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
+                ]
+                kwargs: dict[str, Any] = {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": 2500,
+                }
+                if schema is not None:
+                    kwargs["response_format"] = {
+                        "type": "json_schema",
+                        "json_schema": {"name": name, "schema": schema, "strict": True},
+                    }
+                else:
+                    kwargs["response_format"] = {"type": "json_object"}
+                response = self.client.chat.completions.create(**kwargs)
+                output_text = response.choices[0].message.content
         except Exception as exc:
             raise AnalysisWriterError("analysis_writer_request_failed") from exc
+
         status = getattr(response, "status", None)
         if status not in (None, "completed"):
             raise AnalysisWriterError("analysis_writer_response_incomplete")
-        output_text = getattr(response, "output_text", None)
         if not isinstance(output_text, str) or not output_text.strip():
             raise AnalysisWriterError("analysis_writer_output_missing")
         clean_text = _clean_json_text(output_text)

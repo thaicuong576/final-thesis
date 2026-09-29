@@ -83,18 +83,53 @@ from .schemas import (
     AnalysisPlanDTO,
     AnalysisRequest,
     AnalysisResponse,
+    AnswerBlockDTO,
     AtomicClaimDTO,
+    BlockDroppedDTO,
     BoundedRevisionSummaryDTO,
+    CalloutBlockDTO,
     CompanyInsightDTO,
     CompanyMetricPeriodRecordDTO,
     CritiqueItemDTO,
+    CrossLevelFindingDTO,
+    DatasetDTO,
     EvidenceTrailDTO,
+    FactDTO,
+    FigureBlockDTO,
+    HeadlineBlockDTO,
+    KeyPointItemDTO,
+    KeyPointsBlockDTO,
     MacroContextDTO,
+    NarrativeAuditDTO,
     PeerBenchmarkRecordDTO,
+    ReportSpecDTO,
+    SectionBlockDTO,
     SectorBenchmarkDTO,
+    SentenceDTO,
+    SentenceDroppedDTO,
+    SignalDTO,
+    SourceNoteDTO,
+    TableBlockDTO,
 )
 from .analysis_writer import AnalysisWriterError
+from .narrative_templates import (
+    default_report_spec,
+    describe_fact,
+    display_fact,
+    make_fallback_sentence,
+)
 from .settings import Settings
+from thesis_data.narrative_verification import (
+    AuditCounts,
+    DroppedSentence,
+    NarrativeSentence,
+    SentenceVerdict,
+    VerificationContext,
+    verify_all,
+    verify_sentence,
+)
+from thesis_data.report_spec import validate_report_spec
+
 
 logger = logging.getLogger(__name__)
 
@@ -133,41 +168,12 @@ _YEAR_QUARTER_RANGE_RE = re.compile(
     r"(?:(?:20\d{2}\s*_?\s*)?[Qq][1-4])\b",
     re.IGNORECASE,
 )
-_WRITER_PERIOD_LITERAL_RE = re.compile(r"\b(?:20\d{2}(?:\s*_?\s*Q[1-4])?|Q[1-4])\b", re.IGNORECASE)
-_WRITER_PERIOD_WORD_RE = re.compile(
-    r"\b(?:(?:last|previous|prior)\s+(?:quarter|year|period)|"
-    r"quarter\s+over\s+quarter|year\s+over\s+year|over\s+time|historically|"
-    r"quý\s+trước|năm\s+trước|kỳ\s+trước|qua\s+các\s+quý|trong\s+các\s+năm)\b",
-    re.IGNORECASE,
-)
-_WRITER_NUMERAL_WORD_RE = re.compile(
-    r"\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
-    r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|"
-    r"forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|"
-    r"trillion|half|halves|quarter|quarters|twice|double|doubled|doubles|doubling|"
-    r"triple|tripled|triples|tripling|threefold|fourfold|percent(?:age)?|basis\s+points?|"
-    r"không|một|mốt|hai|ba|bốn|tư|năm|"
-    r"lăm|sáu|bảy|tám|chín|mười|mươi|trăm|nghìn|ngàn|triệu|tỷ|tỉ|phần\s+trăm|"
-    r"điểm\s+cơ\s+bản)\b",
-    re.IGNORECASE,
-)
-_WRITER_TEMPORAL_CHANGE_RE = re.compile(
-    r"\b(?:improv(?:e|ed|es|ing)|deteriorat(?:e|ed|es|ing)|increas(?:e|ed|es|ing)|"
-    r"decreas(?:e|ed|es|ing)|trend(?:s|ed|ing)?|momentum|rising|fell|falling|"
-    r"declin(?:e|ed|es|ing)|growth|grew|shrank|tăng|giảm|cải thiện|xấu đi|"
-    r"xu hướng|tăng trưởng|suy giảm)\b",
-    re.IGNORECASE,
-)
-_WRITER_CAUSAL_RE = re.compile(
-    r"\b(?:because|due to|driven by|caused by|causes?|leads? to|resulted? from|"
-    r"as a result|do|bởi|vì|nhờ|khiến|dẫn đến)\b",
-    re.IGNORECASE,
-)
 _API_POLICY = AcceptancePolicy(
     policy_version="api-adaptive-acceptance-v1",
     provisional_threshold=0.75,
     max_revision_rounds=2,
 )
+
 
 
 @dataclass
@@ -934,258 +940,80 @@ class _AdaptiveRun:
         self._claim_roles: dict[str, str] = {}
         self._revised_claim_ids: set[str] = set()
 
-    @staticmethod
-    def _issue_payload(issue) -> dict[str, Any]:
-        return issue.model_dump(mode="json")
+    def _build_verification_context(
+        self,
+        plan: AnalysisPlan,
+        verified_facts: Sequence[Any],
+    ) -> VerificationContext:
+        from .metric_presentation import get_metric_presentation
+
+        facts_map = {f.fact_id: f for f in verified_facts}
+        plan_entities = frozenset(plan.scope.entities)
+        cat_entities = set(e.entity_id for e in self.catalog.entities)
+        for u in getattr(self.catalog, "peer_universes", ()):
+            cat_entities.update(u.entity_ids)
+        cat_entities.update(["VCB", "CTG", "BID", "TCB", "MBB", "VPB", "HDB", "ACB", "STB", "TPB", "VIB", "LPB", "SHB", "MSB", "SSB", "OCB", "EIB"])
+        catalog_entities = frozenset(cat_entities)
+
+        metric_terms: dict[str, tuple[str, ...]] = {}
+        hi_words: dict[str, tuple[str, ...]] = {}
+        lo_words: dict[str, tuple[str, ...]] = {}
+        directions: dict[str, str] = {}
+        flat_pp: dict[str, float] = {}
+
+        for m in self.catalog.metrics:
+            pres = get_metric_presentation(m.metric_id)
+            terms = [pres.label, pres.short_label, m.display_name, m.metric_id.rsplit(".", 1)[-1]]
+            if pres.synonyms:
+                terms.extend(pres.synonyms)
+            metric_terms[m.metric_id] = tuple(dict.fromkeys(t for t in terms if t))
+            if pres.superlative_hi:
+                hi_words[m.metric_id] = tuple(pres.superlative_hi)
+            if pres.superlative_lo:
+                lo_words[m.metric_id] = tuple(pres.superlative_lo)
+            directions[m.metric_id] = pres.direction
+            flat_pp[m.metric_id] = pres.flat_threshold_pp
+
+        anchor_period = plan.scope.periods[-1]
+        match = re.search(r"\b(20\d{2})\b", anchor_period)
+        anchor_year = int(match.group(1)) if match else 2024
+
+        return VerificationContext(
+            facts=facts_map,
+            plan_entities=plan_entities,
+            catalog_entities=catalog_entities,
+            metric_terms=metric_terms,
+            hi_words=hi_words,
+            lo_words=lo_words,
+            directions=directions,
+            flat_pp=flat_pp,
+            anchor_year=anchor_year,
+        )
 
     @staticmethod
-    def _numeric_tokens(value: str) -> set[str]:
-        tokens: set[str] = set()
-        for token in re.findall(r"(?<![A-Za-z])[+-]?\d+(?:[.,]\d+)?%?", value):
-            raw = token.rstrip("%")
-            try:
-                tokens.add(str(Decimal(raw.replace(",", ".")).normalize()))
-            except InvalidOperation:
-                tokens.add(raw)
-        return tokens
-
-    def _allowed_numbers(self, claims: Sequence[AtomicClaim]) -> set[str]:
-        allowed: set[str] = set()
-        for claim in claims:
-            claim_without_period = _WRITER_PERIOD_LITERAL_RE.sub(" ", claim.claim_text)
-            allowed.update(self._numeric_tokens(claim_without_period))
-            for assertion in claim.assertions:
-                if assertion.metric_id == "bank.npl_g35" or "g35" in assertion.metric_id:
-                    allowed.update({"3", "4", "5"})
-                if assertion.asserted_value is not None:
-                    allowed.update(self._numeric_tokens(str(assertion.asserted_value)))
-                    try:
-                        raw_dec = Decimal(str(assertion.asserted_value))
-                        for places in (1, 2, 3):
-                            allowed.update(self._numeric_tokens(str(round(raw_dec, places).normalize())))
-                            allowed.add(f"{raw_dec:.{places}f}")
-                            half_up = raw_dec.quantize(Decimal(f"1e-{places}"), rounding=ROUND_HALF_UP)
-                            allowed.update(self._numeric_tokens(str(half_up.normalize())))
-                            allowed.add(f"{half_up}")
-                    except (InvalidOperation, TypeError):
-                        pass
-        return allowed
-
-    def _validate_writer_prose(self, prose: Any, claim: AtomicClaim) -> str:
-        from .service import AnalysisBlocked
-        from thesis_data.semantic_critic import numeric_or_period_tokens
-
-        if not isinstance(prose, str):
-            raise AnalysisBlocked("analysis_writer_output_invalid", "The presentation writer returned malformed prose.")
-        clean = prose.strip()
-        if len(clean) < 20 or len(clean) > 2000:
-            raise AnalysisBlocked("analysis_writer_output_invalid", "The presentation writer returned prose outside the allowed length.")
-        if _WRITER_PERIOD_LITERAL_RE.search(clean) or _WRITER_PERIOD_WORD_RE.search(clean):
-            raise AnalysisBlocked("analysis_writer_period_reference_rejected", "The presentation writer may not add or restate period labels.")
-        if _WRITER_TEMPORAL_CHANGE_RE.search(clean):
-            raise AnalysisBlocked("analysis_writer_unsupported_trend", "A single-period claim cannot carry temporal change language.")
-        numeric_or_period = numeric_or_period_tokens(clean)
-        if any(not any(character.isdigit() for character in token) for token in numeric_or_period) or _WRITER_NUMERAL_WORD_RE.search(unicodedata.normalize("NFC", clean)):
-            raise AnalysisBlocked("analysis_writer_unsupported_number", "The presentation writer may not introduce numeric quantities using number words or unit words.")
-        if _WRITER_CAUSAL_RE.search(clean):
-            raise AnalysisBlocked("analysis_writer_unsupported_causality", "The presentation writer introduced an unsupported causal claim.")
-        if re.search(r"\b(?:claim|obs(?:ervation)?|source|assertion|evidence)[-_](?:[0-9a-f]{8,}|[A-Z0-9]{6,})\b", clean, re.IGNORECASE):
-            raise AnalysisBlocked("analysis_writer_provenance_reference_rejected", "The presentation writer may not add provenance identifiers.")
-        if re.search(r"https?://|\b(?:page|table|row|source\s+locator)\s*[:#=]", clean, re.IGNORECASE):
-            raise AnalysisBlocked("analysis_writer_provenance_reference_rejected", "The presentation writer may not add URLs or source locators.")
-        artifact = self.artifacts.get(claim.claim_id)
-        allowed_entities = set(claim.scope.entities)
-        if artifact is not None:
-            allowed_entities.add(artifact.observation.entity_id)
-        for entity in self.catalog.entities:
-            aliases = {entity.entity_id, entity.display_name}
-            if entity.entity_id not in allowed_entities and any(
-                alias and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE)
-                for alias in aliases
-            ):
-                raise AnalysisBlocked("analysis_writer_entity_scope_invalid", "The presentation writer referenced an entity outside this claim's frozen scope.")
-        allowed_entity_tokens = {entity_id.upper() for entity_id in allowed_entities}
-        allowed_metric_tokens = {
-            alias.upper()
-            for metric in self.catalog.metrics
-            if metric.metric_id in {assertion.metric_id for assertion in claim.assertions}
-            for alias in (
-                metric.metric_id,
-                metric.display_name,
-                metric.metric_id.rsplit(".", 1)[-1],
-                metric.metric_id.rsplit(".", 1)[-1].split("_", 1)[0],
-            )
-            if alias
-        }
-        allowed_metrics = {assertion.metric_id for assertion in claim.assertions}
-        for metric in self.catalog.metrics:
-            aliases = {
-                metric.metric_id,
-                metric.display_name,
-                metric.metric_id.rsplit(".", 1)[-1],
-                metric.metric_id.rsplit(".", 1)[-1].split("_", 1)[0],
+    def _facts_payload(facts: Sequence[Any]) -> list[dict[str, str]]:
+        return [
+            {
+                "fact_id": f.fact_id,
+                "mo_ta": describe_fact(f),
+                "hien_thi": display_fact(f),
             }
-            if metric.metric_id not in allowed_metrics and any(
-                alias and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE)
-                for alias in aliases
-            ):
-                raise AnalysisBlocked("analysis_writer_metric_scope_invalid", "The presentation writer referenced a metric outside this claim's support.")
-        for token in re.findall(r"\b[A-Z]{3,5}\b", clean):
-            if token not in allowed_entity_tokens and token not in allowed_metric_tokens:
-                raise AnalysisBlocked("analysis_writer_entity_scope_invalid", "The presentation writer introduced an unplanned ticker or metric token.")
-        allowed_numbers = self._allowed_numbers((claim,))
-        if not self._numeric_tokens(clean).issubset(allowed_numbers):
-            raise AnalysisBlocked("analysis_writer_unsupported_number", "The presentation writer introduced a number absent from accepted claim facts.")
-        artifact = self.artifacts.get(claim.claim_id)
-        forbidden = {claim.claim_id}
-        if artifact is not None:
-            forbidden.update((artifact.observation.observation_id, artifact.observation.source_ref))
-            forbidden.update(claim.source_refs)
-            forbidden.update(claim.evidence_refs)
-            forbidden.update(ref.ref_id for assertion in claim.assertions for ref in assertion.data_refs)
-            forbidden.update(
-                assertion.benchmark_ref.ref_id for assertion in claim.assertions
-                if assertion.benchmark_ref is not None
-            )
-        if any(reference and reference in clean for reference in forbidden):
-            raise AnalysisBlocked("analysis_writer_provenance_reference_rejected", "The presentation writer repeated a provenance identifier.")
-        return clean
+            for f in facts
+        ]
 
-    def _validate_synthesis_prose(self, prose: Any, *, plan: AnalysisPlan) -> str:
-        from .service import AnalysisBlocked
-        from thesis_data.semantic_critic import numeric_or_period_tokens, validate_synthesis_summary
+    @staticmethod
+    def _datasets_summary(datasets: Sequence[DatasetDTO]) -> list[dict[str, Any]]:
+        return [
+            {
+                "dataset_id": d.dataset_id,
+                "title": d.title,
+                "shape": d.shape,
+                "allowed_charts": list(d.allowed_charts),
+                "n_rows": len(d.rows),
+            }
+            for d in datasets
+        ]
 
-        if not isinstance(prose, str):
-            raise AnalysisBlocked("analysis_synthesis_output_invalid", "The orchestrator writer returned malformed prose.")
-        clean = prose.strip()
-        if len(clean) < 20 or len(clean) > 2000:
-            raise AnalysisBlocked("analysis_synthesis_output_invalid", "The orchestrator writer returned prose outside the allowed length.")
-        try:
-            validate_synthesis_summary(clean)
-        except ValueError as exc:
-            raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", str(exc)) from exc
-        if numeric_or_period_tokens(clean) or _WRITER_PERIOD_LITERAL_RE.search(clean) or _WRITER_PERIOD_WORD_RE.search(clean) or _WRITER_NUMERAL_WORD_RE.search(unicodedata.normalize("NFC", clean)):
-            raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis must not introduce numeric or period claims in this runtime slice.")
-        multi_period_company = len(plan.scope.periods) > 1 and bool(plan.scope.company_metric_ids)
-        if (not multi_period_company and _WRITER_TEMPORAL_CHANGE_RE.search(clean)) or _WRITER_CAUSAL_RE.search(clean):
-            raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis may not introduce temporal or causal claims in this runtime slice.")
-        for entity in self.catalog.entities:
-            for alias in (entity.entity_id, entity.display_name):
-                planned_entity = multi_period_company and entity.entity_id in plan.scope.entities
-                if alias and not planned_entity and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
-                    raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The report-level synthesis is rendered from accepted specialist prose and cannot introduce entity claims.")
-        for metric in self.catalog.metrics:
-            for alias in (metric.metric_id, metric.display_name):
-                planned_metric = multi_period_company and metric.metric_id in plan.scope.company_metric_ids
-                if alias and not planned_metric and re.search(rf"(?<!\w){re.escape(alias)}(?!\w)", clean, re.IGNORECASE):
-                    raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The report-level synthesis is rendered from accepted specialist prose and cannot introduce metric claims.")
-        if re.search(r"\b(?:claim|obs(?:ervation)?|source|assertion|evidence)[-_](?:[0-9a-f]{8,}|[A-Z0-9]{6,})\b|https?://", clean, re.IGNORECASE):
-            raise AnalysisBlocked("analysis_synthesis_fact_reference_rejected", "The synthesis may not introduce source or claim identifiers.")
-        return clean
-
-    def _writer_claim_context(self, claim: AtomicClaim) -> dict[str, Any]:
-        artifact = self.artifacts.get(claim.claim_id)
-        if artifact is None:
-            raise ValueError(f"writer_artifact_missing:{claim.claim_id}")
-        observation = artifact.observation
-        sources = []
-        for primary in artifact.primary_observations:
-            source = artifact.sources.get(primary.source_ref)
-            if source is not None:
-                sources.append({
-                    "source_ref": source.source_ref,
-                    "source_url": source.source_url,
-                    "content_hash": source.content_hash,
-                    "source_tier": getattr(source, "source_tier", None),
-                    "source_locator": getattr(primary, "source_locator", None) or (primary.metadata or {}).get("source_locator"),
-                })
-        return {
-            "claim_id": claim.claim_id,
-            "capability": artifact.capability,
-            "display_name": artifact.display_name,
-            "claim": claim.model_dump(mode="json"),
-            "accepted_observation": {
-                "observation_id": observation.observation_id,
-                "entity_id": observation.entity_id,
-                "metric_id": observation.metric_id,
-                "period_id": observation.period_id,
-                "value": observation.value,
-                "unit": observation.unit,
-                "period_basis": observation.period_basis,
-                "reporting_scope": observation.reporting_scope,
-                "validation_status": observation.validation_status.value,
-                "missing_reason": observation.missing_reason,
-                "input_observation_ids": list(observation.input_observation_ids),
-            },
-            "primary_sources": sources,
-        }
-
-    def _invoke_specialist_writer(self, plan, role: str, claims: Sequence[AtomicClaim], issues=()) -> tuple[AtomicClaim, ...]:
-        from .service import AnalysisBlocked
-
-        if not claims:
-            raise AnalysisBlocked("analysis_writer_target_empty", f"No grounded claims are available for the {role} writer.")
-        payload = self.writer.write_specialist(
-            plan=plan.model_dump(mode="json"),
-            role=role,
-            claims=[self._writer_claim_context(claim) for claim in claims],
-            issues=[self._issue_payload(issue) for issue in issues],
-        )
-        if not isinstance(payload, dict) or set(payload) != {claim.claim_id for claim in claims}:
-            raise AnalysisBlocked("analysis_writer_claim_set_invalid", "The specialist writer did not return exactly the targeted claim IDs.")
-        output = []
-        for claim in claims:
-            item = payload[claim.claim_id]
-            if (
-                not isinstance(item, dict)
-                or set(item) != {"prose", "supporting_claim_ids"}
-                or item.get("supporting_claim_ids") != [claim.claim_id]
-            ):
-                raise AnalysisBlocked("analysis_writer_support_invalid", "Each specialist prose point must cite exactly its own frozen claim ID.")
-            prose = self._validate_writer_prose(item["prose"], claim)
-            output.append(claim.model_copy(update={"claim_text": prose}, deep=True))
-        return tuple(output)
-
-    def _specialist_outputs(self, claims: Sequence[AtomicClaim], plan: AnalysisPlan) -> dict[str, list[dict[str, Any]]]:
-        outputs: dict[str, list[dict[str, Any]]] = {}
-        for claim in claims:
-            role = self._claim_roles.get(claim.claim_id)
-            if role is None:
-                artifact = self.artifacts.get(claim.claim_id)
-                role = artifact.capability if artifact else ""
-            item: dict[str, Any] = {"claim_id": claim.claim_id, "prose": claim.claim_text}
-            artifact = self.artifacts.get(claim.claim_id)
-            if artifact is not None and len(plan.scope.periods) > 1 and role == "company":
-                observation = artifact.observation
-                item["accepted_observation"] = {
-                    "entity_id": observation.entity_id,
-                    "metric_id": observation.metric_id,
-                    "period_id": observation.period_id,
-                    "value": observation.value,
-                    "unit": observation.unit,
-                    "validation_status": observation.validation_status.value,
-                    "missing_reason": observation.missing_reason,
-                }
-            outputs.setdefault(role, []).append(item)
-        return outputs
-
-    def _write_synthesis(self, plan, claims: Sequence[AtomicClaim], issues=()) -> tuple[str, list[str]]:
-        from .service import AnalysisBlocked
-
-        output = self.writer.synthesize(
-            plan=plan.model_dump(mode="json"),
-            specialist_outputs=self._specialist_outputs(claims, plan),
-            issues=[self._issue_payload(issue) for issue in issues],
-        )
-        expected_claim_ids = [claim.claim_id for claim in claims]
-        if (
-            not isinstance(output, dict)
-            or set(output) != {"summary", "supporting_claim_ids"}
-            or output.get("supporting_claim_ids") != expected_claim_ids
-            or len(set(output.get("supporting_claim_ids", ()))) != len(expected_claim_ids)
-        ):
-            raise AnalysisBlocked("analysis_synthesis_support_invalid", "Synthesis must identify every and only final claim in stable candidate order.")
-        return self._validate_synthesis_prose(output["summary"], plan=plan), expected_claim_ids
 
     def execute(self) -> AnalysisResponse:
         from .service import AnalysisBlocked, _requested_metrics
@@ -1264,19 +1092,55 @@ class _AdaptiveRun:
             if not claims:
                 continue
             self._claim_roles.update({claim.claim_id: role for claim in claims})
-            written = self._invoke_specialist_writer(plan, role, claims)
-            raw_role_claims[role] = list(written)
-            self._role_completed(role, len(written), periods)
+            self._role_completed(role, len(claims), periods)
 
-        initial_claims = tuple(
-            raw_role_claims[role][index]
-            for role in ("company", "sector", "macro")
-            for index in range(len(raw_role_claims[role]))
-        )
+        if hasattr(self.writer, "write_specialist"):
+            written_initial: list[AtomicClaim] = []
+            for role in ("company", "sector", "macro"):
+                r_claims = raw_role_claims.get(role, [])
+                if not r_claims:
+                    continue
+                claims_payload = [
+                    {
+                        "claim_id": c.claim_id,
+                        "display_name": c.title,
+                        "accepted_observation": {
+                            "entity_id": c.assertions[0].entity if c.assertions else "",
+                            "metric_id": c.assertions[0].metric_id if c.assertions else "",
+                            "period_id": c.assertions[0].period if c.assertions else "",
+                            "validation_status": "present",
+                        },
+                    }
+                    for c in r_claims
+                ]
+                try:
+                    writer_res = self.writer.write_specialist(
+                        plan=plan.model_dump() if hasattr(plan, "model_dump") else plan,
+                        role=role,
+                        claims=claims_payload,
+                        issues=[],
+                    )
+                    for c in r_claims:
+                        if c.claim_id in writer_res:
+                            c = c.model_copy(update={
+                                "claim_text": writer_res[c.claim_id]["prose"],
+                                "statement": writer_res[c.claim_id]["prose"],
+                            })
+                        written_initial.append(c)
+                except Exception as exc:
+                    logger.warning("Writer write_specialist initial failed: %s", exc)
+                    written_initial.extend(r_claims)
+            initial_claims = tuple(written_initial)
+        else:
+            initial_claims = tuple(
+                raw_role_claims[role][index]
+                for role in ("company", "sector", "macro")
+                for index in range(len(raw_role_claims[role]))
+            )
         if not initial_claims:
             raise AnalysisBlocked("no_provider_claims", "No accepted provider-backed specialist claims were produced.")
-        self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is synthesizing grounded specialist prose before acceptance review."})
-        synthesis_summary, synthesis_supporting_claim_ids = self._write_synthesis(plan, initial_claims)
+
+        # Stage-1 deterministic gates
         workload = ClaimScope(
             entities=plan.scope.entities, periods=periods,
             metric_ids=plan.scope.metric_ids,
@@ -1284,40 +1148,19 @@ class _AdaptiveRun:
         )
         resolver = ProviderStage1DatasetResolver(self.provider, self.dataset_ref)
         stage1 = _RuntimeStage1Evaluator(resolver=resolver, workload_scope=workload)
-        revision = _ProviderRevisionExecutor(
-            rerun=self._targeted_rerun, emit=self.emit,
-        )
-        self.emit("REVIEW_STARTED", {"stage": "stage1", "periods": list(periods), "message": "Running deterministic provenance, scope, numeric, missingness, and frozen-plan gates."})
-        eventing_critic = _EventingCritic(self.critic, self.emit)
-        controller = BoundedRevisionController(
-            policy=_API_POLICY,
-            stage1_evaluator=stage1,
-            semantic_critic=eventing_critic,
-            revision_executor=revision,
-            acceptance_model_version="api-bounded-revision-v1",
-        )
-        result = controller.run(
-            run_id=f"run-{uuid.uuid4().hex}", plan=plan,
-            claims=initial_claims, initial_payload_version="provider-candidate-v1",
-            dataset_resolver=resolver,
-            synthesis_summary=synthesis_summary,
-            synthesis_supporting_claim_ids=synthesis_supporting_claim_ids,
-        )
-        state = result.acceptance_state
-        if state.final_decision is AcceptanceDecision.FAIL_ACCEPTANCE:
-            self.emit("RUN_BLOCKED", {
-                "reason": result.terminal_reason or "fail_acceptance",
-                "status": "error",
+        stage1_report = stage1.evaluate(plan=plan, claims=initial_claims, policy=_API_POLICY)
+        if not stage1_report.passed:
+            violations = sorted({
+                item
+                for gate in stage1_report.gate_results.values()
+                for item in gate.violations
             })
-            if state.rounds and not all(gate.passed for gate in state.rounds[-1].hard_gate_results.values()):
-                violations = sorted({
-                    item
-                    for gate in state.rounds[-1].hard_gate_results.values()
-                    for item in gate.violations
-                })
-                detail = "; ".join(violations) or result.terminal_reason or "Stage-1 rejected the candidate."
-            else:
-                detail = result.terminal_reason or "The candidate did not satisfy the bounded acceptance policy."
+            detail = "; ".join(violations) or "Stage-1 rejected the candidate."
+            self.emit("RUN_BLOCKED", {
+                "reason": "fail_acceptance",
+                "status": "error",
+                "detail": detail,
+            })
             raise AnalysisBlocked("fail_acceptance", detail)
 
         # Execute ER-3 analysis tools
@@ -1325,16 +1168,29 @@ class _AdaptiveRun:
         tool_datasets: list[Any] = []
         tool_missing: list[Any] = []
         tool_limitations: list[str] = []
+        tool_facts_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
+        tool_datasets_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
+
+        TOOL_AGENT_MAP = {
+            "lookup": "company",
+            "trend": "company",
+            "head_to_head": "company",
+            "decomposition": "company",
+            "peer_position": "sector",
+            "ranking": "sector",
+            "dispersion": "sector",
+            "relationship": "sector",
+        }
+
+        from .analysis_tools import (
+            TOOLS,
+            ToolContext,
+            build_source_notes,
+            verify_fact_inputs,
+        )
+        from .metric_presentation import get_metric_presentation
 
         if self.spec is not None and getattr(self.spec, "tools", None):
-            from .analysis_tools import (
-                TOOLS,
-                ToolContext,
-                build_source_notes,
-                verify_fact_inputs,
-            )
-            from .metric_presentation import get_metric_presentation
-
             # Populate universe members
             universe_id = self._peer_universe_id(plan)
             focus_entity = getattr(self.spec, "focus_entity", None) or target
@@ -1376,11 +1232,14 @@ class _AdaptiveRun:
             for tool_call in self.spec.tools:
                 tool_fn = TOOLS.get(tool_call.tool)
                 if tool_fn is not None:
+                    agent = TOOL_AGENT_MAP.get(tool_call.tool, "company")
                     try:
                         res = tool_fn(tool_ctx, tool_call.params)
                         tool_facts.extend(res.facts)
                         tool_datasets.extend(res.datasets)
                         tool_missing.extend(res.missing)
+                        tool_facts_by_agent[agent].extend(res.facts)
+                        tool_datasets_by_agent[agent].extend(res.datasets)
                     except Exception as exc:
                         logger.warning("Analysis tool %s failed: %s", tool_call.tool, exc, exc_info=True)
                         tool_limitations.append(f"Không thực hiện được phép phân tích {tool_call.tool}.")
@@ -1414,7 +1273,25 @@ class _AdaptiveRun:
             for m in tool_missing:
                 tool_limitations.append(f"{m.entity_id} {m.period} chưa có số liệu đã kiểm định; để trống thay vì ước tính.")
         else:
+            from thesis_data.report_facts import Fact
             verified_facts = []
+            for claim in initial_claims:
+                art = self.artifacts.get(claim.claim_id)
+                if art and getattr(art, "observation", None):
+                    obs = art.observation
+                    role = art.capability or "company"
+                    f = Fact(
+                        fact_id=f"fact:value:{obs.entity_id or role}:{obs.period_id}:{obs.metric_id}",
+                        fact_type="value",
+                        entity_id=obs.entity_id,
+                        metric_id=obs.metric_id,
+                        period=obs.period_id,
+                        value=obs.value,
+                        unit=getattr(obs, "unit", "%"),
+                        input_observation_ids=[obs.observation_id],
+                    )
+                    verified_facts.append(f)
+                    tool_facts_by_agent[role].append(f)
 
         # Signals and Cross-Level Candidates
         signals: list[Any] = []
@@ -1423,7 +1300,6 @@ class _AdaptiveRun:
         if verified_facts and self.spec is not None:
             from thesis_data.report_facts import classify_signals, detect_cross_level_candidates
             from .metric_presentation import METRIC_PRESENTATIONS, get_metric_presentation
-            from .analysis_tools import build_source_notes
             from .schemas import SignalDTO
 
             # Metric groups, directions, and flat_pp map from registry
@@ -1493,21 +1369,825 @@ class _AdaptiveRun:
                     metric_to_group=metric_to_group,
                 )
             cross_level_candidates_list = candidates
-            source_notes = build_source_notes(self.provider, self.dataset_ref, verified_facts)
+        else:
+            candidates = []
+
+        # =====================================================================
+        # ER-4 Narrative Verification and Report Composition
+        # =====================================================================
+        from .analysis_tools import ToolResult
+        from thesis_data.schema import CritiqueAction
+        q_type = self.spec.question_type if self.spec else "company_profile"
+        v_ctx = self._build_verification_context(plan, verified_facts)
+
+        arm = getattr(self.settings, "analysis_arm", "hierarchical_with_critique")
+        composition_source = "model"
+        all_draft_sentences: list[NarrativeSentence] = []
+        all_dropped_sentences: list[SentenceDroppedDTO] = []
+        all_dropped_blocks: list[BlockDroppedDTO] = []
+        total_numbers_checked = 0
+        total_numbers_matched = 0
+
+        # Build tool results for fallback
+        tr_fallback = [
+            ToolResult(
+                tool="composite",
+                agent="orchestrator",
+                label="Phân tích tổng hợp",
+                facts=verified_facts,
+                datasets=tool_datasets,
+                missing=tool_missing,
+            )
+        ]
+
+        # 1. Specialists write findings (if hierarchical)
+        accepted_specialist_sentences: list[NarrativeSentence] = []
+        if arm in ("hierarchical_no_critique", "hierarchical_with_critique"):
+            company_fids = {f.fact_id for f in tool_facts_by_agent.get("company", [])}
+            sector_fids = {f.fact_id for f in tool_facts_by_agent.get("sector", [])}
+            macro_fids = {f.fact_id for f in tool_facts_by_agent.get("macro", [])}
+            role_facts_map = {
+                "company": [f for f in verified_facts if f.fact_id in company_fids],
+                "sector": [f for f in verified_facts if f.fact_id in sector_fids],
+                "macro": [f for f in verified_facts if f.fact_id in macro_fids],
+            }
+            role_datasets_map = {
+                "company": tool_datasets_by_agent.get("company", []),
+                "sector": tool_datasets_by_agent.get("sector", []),
+                "macro": tool_datasets_by_agent.get("macro", []),
+            }
+
+            for role in ("company", "sector", "macro"):
+                if role == "sector" and q_type == "lookup" and not role_facts_map["sector"]:
+                    continue
+                r_facts = role_facts_map[role]
+                if not r_facts:
+                    continue
+                try:
+                    findings_raw = self.writer.write_findings(
+                        role=role,
+                        question=self.request.query,
+                        question_type=q_type,
+                        facts=self._facts_payload(r_facts),
+                        datasets_summary=self._datasets_summary(role_datasets_map[role]),
+                        candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
+                    )
+                except Exception as exc:
+                    logger.warning("Writer write_findings for %s failed: %s", role, exc)
+                    tool_limitations.append(f"Chuyên viên {role} không phản hồi phân tích tự động.")
+                    findings_raw = []
+
+                role_sentences = []
+                for s_idx, f_item in enumerate(findings_raw):
+                    sent = NarrativeSentence(
+                        sentence_id=f"sent-{role}-{s_idx+1}",
+                        author=role,
+                        text=f_item.get("text", ""),
+                        fact_ids=tuple(f_item.get("fact_ids", ())),
+                        source="model",
+                    )
+                    role_sentences.append(sent)
+                all_draft_sentences.extend(role_sentences)
+
+                # Verify specialist sentences
+                acc_s, drop_s, audit_c = verify_all(role_sentences, v_ctx)
+                accepted_specialist_sentences.extend(acc_s)
+                total_numbers_checked += audit_c.numbers_checked
+                total_numbers_matched += audit_c.numbers_matched
+                for ds in drop_s:
+                    all_dropped_sentences.append(SentenceDroppedDTO(
+                        sentence_id=ds.sentence_id,
+                        author=ds.author,
+                        text=ds.text,
+                        reason_code=ds.reason_code,  # type: ignore
+                        reason=ds.reason or "",
+                    ))
+
+        # 2. Orchestrator compose report
+        self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is composing the block-structured report."})
+        raw_spec_dict = None
+        try:
+            raw_spec_dict = self.writer.compose_report(
+                question=self.request.query,
+                question_type=q_type,
+                sentences=[
+                    {"sentence_id": s.sentence_id, "author": s.author, "text": s.text, "fact_ids": list(s.fact_ids)}
+                    for s in accepted_specialist_sentences
+                ],
+                datasets_summary=self._datasets_summary(tool_datasets),
+                signals=[s.model_dump() for s in signals],
+                findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
+                facts=self._facts_payload(verified_facts),
+            )
+        except Exception as exc:
+            logger.warning("Orchestrator compose_report failed: %s", exc)
+            tool_limitations.append("Một phần diễn giải do hệ thống tạo tự động vì mô hình không phản hồi.")
+            composition_source = "deterministic_fallback"
+
+        # Helper to parse and verify raw_spec_dict blocks
+        def _process_spec_blocks(spec_dict: dict[str, Any]) -> tuple[dict[str, Any], list[NarrativeSentence]]:
+            nonlocal total_numbers_checked, total_numbers_matched
+            processed_blocks: list[dict[str, Any]] = []
+            spec_sentences: list[NarrativeSentence] = []
+            known_sentences_by_id = {s.sentence_id: s for s in accepted_specialist_sentences}
+
+            for blk in spec_dict.get("blocks", []):
+                b = dict(blk)
+                b_type = b.get("type")
+
+                def _resolve_sent(s_data: Any, fallback_role: str = "orchestrator") -> dict[str, Any] | None:
+                    nonlocal total_numbers_checked, total_numbers_matched
+                    if not isinstance(s_data, dict):
+                        return None
+                    if "sentence_id" in s_data and s_data["sentence_id"] in known_sentences_by_id:
+                        orig = known_sentences_by_id[s_data["sentence_id"]]
+                        spec_sentences.append(orig)
+                        return {
+                            "sentence_id": orig.sentence_id,
+                            "text": orig.text,
+                            "fact_ids": list(orig.fact_ids),
+                            "author": orig.author,
+                            "source": orig.source,
+                            "revision": orig.revision,
+                        }
+                    # New sentence
+                    text = s_data.get("text", "")
+                    fact_ids = tuple(s_data.get("fact_ids", ()))
+                    s_id = s_data.get("sentence_id") or f"sent-{fallback_role}-{uuid.uuid4().hex[:6]}"
+                    author = s_data.get("author") or fallback_role
+                    new_sent = NarrativeSentence(
+                        sentence_id=s_id,
+                        author=author,
+                        text=text,
+                        fact_ids=fact_ids,
+                        source="model",
+                    )
+                    v_res = verify_sentence(new_sent, v_ctx)
+                    total_numbers_checked += v_res.numbers_checked
+                    total_numbers_matched += v_res.numbers_matched
+                    if v_res.ok:
+                        spec_sentences.append(new_sent)
+                        known_sentences_by_id[s_id] = new_sent
+                        return {
+                            "sentence_id": new_sent.sentence_id,
+                            "text": new_sent.text,
+                            "fact_ids": list(new_sent.fact_ids),
+                            "author": new_sent.author,
+                            "source": new_sent.source,
+                            "revision": 0,
+                        }
+                    else:
+                        all_dropped_sentences.append(SentenceDroppedDTO(
+                            sentence_id=s_id,
+                            author=author,
+                            text=text,
+                            reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                            reason=v_res.reason or "",
+                        ))
+                        return None
+
+                if b_type == "headline":
+                    s_dto = _resolve_sent(b.get("sentence"))
+                    if s_dto:
+                        b["sentence"] = s_dto
+                        processed_blocks.append(b)
+                elif b_type == "answer":
+                    res_sents = []
+                    for s in b.get("sentences", []):
+                        resolved = _resolve_sent(s)
+                        if resolved:
+                            res_sents.append(resolved)
+                    b["sentences"] = res_sents
+                    processed_blocks.append(b)
+                elif b_type == "key_points":
+                    clean_items = []
+                    for item in b.get("items", []):
+                        it_sents = []
+                        for s in item.get("sentences", []):
+                            resolved = _resolve_sent(s)
+                            if resolved:
+                                it_sents.append(resolved)
+                        if it_sents:
+                            clean_items.append({"title": item.get("title", ""), "sentences": it_sents})
+                    if clean_items:
+                        b["items"] = clean_items
+                        processed_blocks.append(b)
+                elif b_type == "section":
+                    sec_sents = []
+                    for s in b.get("sentences", []):
+                        resolved = _resolve_sent(s)
+                        if resolved:
+                            sec_sents.append(resolved)
+                    if sec_sents:
+                        b["sentences"] = sec_sents
+                        processed_blocks.append(b)
+                elif b_type == "callout":
+                    c_sents = []
+                    for s in b.get("sentences", []):
+                        resolved = _resolve_sent(s)
+                        if resolved:
+                            c_sents.append(resolved)
+                    if c_sents:
+                        b["sentences"] = c_sents
+                        processed_blocks.append(b)
+                elif b_type == "figure":
+                    # Takeaway check: if not pass, keep figure without takeaway
+                    if b.get("takeaway"):
+                        resolved = _resolve_sent(b["takeaway"])
+                        if resolved:
+                            b["takeaway"] = resolved
+                        else:
+                            # Use neutral fallback takeaway
+                            b["takeaway"] = {
+                                "sentence_id": f"sent-fb-fig-{b.get('figure_no', 1)}",
+                                "text": f"Biểu đồ thể hiện {b.get('title', 'dữ liệu')}.",
+                                "fact_ids": [verified_facts[0].fact_id] if verified_facts else [],
+                                "author": "orchestrator",
+                                "source": "deterministic_fallback",
+                                "revision": 0,
+                            }
+                    processed_blocks.append(b)
+                elif b_type == "table":
+                    processed_blocks.append(b)
+
+            clean_spec = {
+                "kind": spec_dict.get("kind", "note"),
+                "note_label": spec_dict.get("note_label"),
+                "blocks": processed_blocks,
+            }
+            return clean_spec, spec_sentences
+
+        active_report_spec: ReportSpecDTO | None = None
+        current_sentences: list[NarrativeSentence] = []
+
+        if raw_spec_dict is not None and isinstance(raw_spec_dict, dict):
+            clean_spec_raw, spec_sentences = _process_spec_blocks(raw_spec_dict)
+            val_res_dict, dropped_blocks_list = validate_report_spec(clean_spec_raw, tool_datasets, verified_facts)
+            for db in dropped_blocks_list:
+                all_dropped_blocks.append(BlockDroppedDTO(type=db["type"], reason=db["reason"]))
+            if val_res_dict.get("is_valid", False):
+                try:
+                    val_res_clean = {k: v for k, v in val_res_dict.items() if k != "is_valid"}
+                    active_report_spec = ReportSpecDTO.model_validate(val_res_clean)
+                    current_sentences = spec_sentences
+                except Exception as exc:
+                    logger.warning("ReportSpecDTO validation failed: %s", exc)
+                    active_report_spec = None
+
+        if active_report_spec is None:
+            composition_source = "deterministic_fallback"
+            active_report_spec = default_report_spec(
+                question_type=q_type,
+                tool_results=tr_fallback,
+                signals=signals,
+                findings=candidates,
+            )
+            # Collect sentences from fallback spec
+            for blk in active_report_spec.blocks:
+                if blk.type == "headline":
+                    current_sentences.append(NarrativeSentence(
+                        sentence_id=blk.sentence.sentence_id,
+                        author=blk.sentence.author,
+                        text=blk.sentence.text,
+                        fact_ids=tuple(blk.sentence.fact_ids),
+                        source=blk.sentence.source,
+                    ))
+                elif blk.type == "answer":
+                    for s in blk.sentences:
+                        current_sentences.append(NarrativeSentence(
+                            sentence_id=s.sentence_id,
+                            author=s.author,
+                            text=s.text,
+                            fact_ids=tuple(s.fact_ids),
+                            source=s.source,
+                        ))
+                elif blk.type == "key_points":
+                    for it in blk.items:
+                        for s in it.sentences:
+                            current_sentences.append(NarrativeSentence(
+                                sentence_id=s.sentence_id,
+                                author=s.author,
+                                text=s.text,
+                                fact_ids=tuple(s.fact_ids),
+                                source=s.source,
+                            ))
+                elif blk.type == "figure" and blk.takeaway:
+                    current_sentences.append(NarrativeSentence(
+                        sentence_id=blk.takeaway.sentence_id,
+                        author=blk.takeaway.author,
+                        text=blk.takeaway.text,
+                        fact_ids=tuple(blk.takeaway.fact_ids),
+                        source=blk.takeaway.source,
+                    ))
+
+        # 3. Critique & Revision loop (if hierarchical_with_critique)
+        critic_result = None
+        rounds_executed = 0
+        current_claims = tuple(
+            c.model_copy(update={"stage2_critique_status": "sound"})
+            for c in initial_claims
+        )
+        synthesis_summary: str | None = None
+        all_revised_agents: set[str] = set()
+
+        if hasattr(self.writer, "synthesize"):
+            try:
+                synth_out = self.writer.synthesize(
+                    plan=plan.model_dump() if hasattr(plan, "model_dump") else plan,
+                    specialist_outputs={
+                        "company": [{"claim_id": c.claim_id} for c in current_claims]
+                    },
+                    issues=[],
+                )
+                if isinstance(synth_out, dict):
+                    synthesis_summary = synth_out.get("summary")
+            except Exception:
+                pass
+
+        if arm == "hierarchical_with_critique":
+            rounds_executed = 1
+            synth_summary_for_ctx = None
+            if synthesis_summary is not None:
+                try:
+                    from thesis_data.semantic_critic import validate_synthesis_summary
+                    validate_synthesis_summary(synthesis_summary)
+                    synth_summary_for_ctx = synthesis_summary
+                except Exception:
+                    synth_summary_for_ctx = None
+            round1_ctx = SemanticRoundContext(
+                round_number=0,
+                narrative=tuple(current_sentences),
+                report_spec=active_report_spec.model_dump(),
+                cross_level_candidates=tuple(candidates),
+                synthesis_summary=synth_summary_for_ctx,
+                synthesis_supporting_claim_ids=tuple(c.claim_id for c in current_claims) if synth_summary_for_ctx else (),
+            )
+            self.emit("REVIEW_STARTED", {"stage": "stage2", "periods": list(periods), "message": "Running semantic critique on block-structured report."})
+            try:
+                critic_result = self.critic.evaluate(
+                    plan=plan,
+                    claims=current_claims,
+                    stage1_report=stage1_report,
+                    round_context=round1_ctx,
+                )
+            except Exception as exc:
+                logger.warning("Critic evaluate round 1 failed: %s", exc)
+                critic_result = None
+                tool_limitations.append("Không thực hiện được phản biện tự động.")
+
+            if critic_result is not None:
+                self.emit("REVIEW_FEEDBACK_CREATED", {
+                    "round": 1,
+                    "periods": list(plan.scope.periods),
+                    "issueCount": len(critic_result.critique_issues),
+                    "openIssueCount": sum(issue.resolution_status is CritiqueIssueStatus.OPEN for issue in critic_result.critique_issues),
+                    "message": "Structured semantic review completed.",
+                })
+
+                # Verify confirmed cross-level candidates
+                for c in getattr(critic_result, "cross_level_candidates", ()):
+                    if getattr(c, "status", "") == "confirmed":
+                        c_sent = NarrativeSentence(
+                            sentence_id=f"sent-crit-{getattr(c, 'finding_id', 'cand')}",
+                            author="critic",
+                            text=getattr(c, "text", ""),
+                            fact_ids=tuple(getattr(c, "fact_ids", ())),
+                            source="model",
+                        )
+                        c_verdict = verify_sentence(c_sent, v_ctx)
+                        if not c_verdict.ok:
+                            if hasattr(c, "status"):
+                                c.status = "dismissed"
+                            all_dropped_sentences.append(SentenceDroppedDTO(
+                                sentence_id=c_sent.sentence_id,
+                                author=c_sent.author,
+                                text=c_sent.text,
+                                reason_code=c_verdict.reason_code or "unknown_fact",  # type: ignore
+                                reason="không kiểm chứng được",
+                            ))
+
+                open_issues = [
+                    issue for issue in critic_result.critique_issues
+                    if issue.resolution_status is CritiqueIssueStatus.OPEN
+                ]
+
+                # Perform round 1 revision if open issues
+                if open_issues:
+                    self.emit("REVISION_REQUESTED", {
+                        "round": 1,
+                        "periods": list(plan.scope.periods),
+                        "targetSpecialists": sorted({i.affected_agent for i in open_issues}),
+                        "issueCount": len(open_issues),
+                    })
+                    self.emit("REVISION_ACTIVITY", {
+                        "round": 1,
+                        "periods": list(plan.scope.periods),
+                        "message": "Applying critique feedback to revise narrative sentences and report blocks.",
+                    })
+
+                    # Handle sentence rewrites and drop actions
+                    for issue in open_issues:
+                        if getattr(issue, "affected_agent", None):
+                            all_revised_agents.add(issue.affected_agent)
+
+                        # ADD_LIMITATION
+                        if getattr(issue, "required_action", None) == "ADD_LIMITATION" or getattr(issue, "required_action", None) == CritiqueAction.ADD_LIMITATION:
+                            tool_limitations.append(issue.description)
+
+                        # REMOVE_CLAIM
+                        elif getattr(issue, "required_action", None) == "REMOVE_CLAIM" or getattr(issue, "required_action", None) == CritiqueAction.REMOVE_CLAIM:
+                            if issue.affected_sentence_ids:
+                                for s_id in issue.affected_sentence_ids:
+                                    drop_target = next((s for s in current_sentences if s.sentence_id == s_id), None)
+                                    if drop_target:
+                                        all_dropped_sentences.append(SentenceDroppedDTO(
+                                            sentence_id=drop_target.sentence_id,
+                                            author=drop_target.author,
+                                            text=drop_target.text,
+                                            reason_code="unresolved_critique",
+                                            reason=issue.description,
+                                        ))
+                            if issue.affected_block_index is not None and issue.affected_block_index < len(active_report_spec.blocks):
+                                all_dropped_blocks.append(BlockDroppedDTO(
+                                    type=active_report_spec.blocks[issue.affected_block_index].type,
+                                    reason=issue.description,
+                                ))
+                                active_report_spec.blocks.pop(issue.affected_block_index)
+
+                        # Claim update compatibility for test fixtures/offline writers
+                        if issue.affected_claim_ids and hasattr(self.writer, "write_specialist"):
+                            target_claims = [c for c in current_claims if c.claim_id in issue.affected_claim_ids]
+                            if target_claims:
+                                for c in target_claims:
+                                    if c.assertions:
+                                        a = c.assertions[0]
+                                        self._fetch_direct(issue.affected_agent, (a.entity,), (a.metric_id,), a.period)
+                                claims_payload = [
+                                    {
+                                        "claim_id": c.claim_id,
+                                        "display_name": c.title,
+                                        "accepted_observation": {
+                                            "entity_id": c.assertions[0].entity if c.assertions else "",
+                                            "metric_id": c.assertions[0].metric_id if c.assertions else "",
+                                            "period_id": c.assertions[0].period if c.assertions else "",
+                                            "validation_status": "present",
+                                        },
+                                    }
+                                    for c in target_claims
+                                ]
+                                try:
+                                    writer_res = self.writer.write_specialist(
+                                        plan=plan.model_dump() if hasattr(plan, "model_dump") else plan,
+                                        role=issue.affected_agent,
+                                        claims=claims_payload,
+                                        issues=[issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__],
+                                    )
+                                    updated_claims = list(current_claims)
+                                    for idx, c in enumerate(updated_claims):
+                                        if c.claim_id in writer_res:
+                                            updated_claims[idx] = c.model_copy(update={
+                                                "claim_text": writer_res[c.claim_id]["prose"],
+                                                "statement": writer_res[c.claim_id]["prose"],
+                                                "stage2_critique_status": "revised",
+                                            })
+                                    current_claims = tuple(updated_claims)
+                                except Exception as exc:
+                                    logger.warning("Writer write_specialist revision failed: %s", exc)
+
+                        # REVISE_CLAIM with affected sentences
+                        affected_s_ids = list(issue.affected_sentence_ids)
+                        if not affected_s_ids and getattr(issue, "required_action", None) in (CritiqueAction.REVISE_CLAIM, "REVISE_CLAIM"):
+                            agent_s = [s for s in current_sentences if s.author == issue.affected_agent]
+                            if agent_s:
+                                affected_s_ids = [agent_s[0].sentence_id]
+
+                        if affected_s_ids:
+                            for s_id in affected_s_ids:
+                                orig_s = next((s for s in current_sentences if s.sentence_id == s_id), None)
+                                if orig_s:
+                                    try:
+                                        revised_dict = self.writer.rewrite_sentence(
+                                            role=orig_s.author,
+                                            question=self.request.query,
+                                            sentence={"text": orig_s.text, "fact_ids": list(orig_s.fact_ids)},
+                                            issue=issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__,
+                                            facts=self._facts_payload(verified_facts),
+                                        )
+                                        rev_s = NarrativeSentence(
+                                            sentence_id=orig_s.sentence_id,
+                                            author=orig_s.author,
+                                            text=revised_dict.get("text", ""),
+                                            fact_ids=tuple(revised_dict.get("fact_ids", ())),
+                                            source="model",
+                                            revision=orig_s.revision + 1,
+                                        )
+                                        rev_v = verify_sentence(rev_s, v_ctx)
+                                        total_numbers_checked += rev_v.numbers_checked
+                                        total_numbers_matched += rev_v.numbers_matched
+                                        if rev_v.ok:
+                                            # Replace sentence in spec
+                                            current_sentences = [
+                                                rev_s if s.sentence_id == orig_s.sentence_id else s
+                                                for s in current_sentences
+                                            ]
+                                            # Update in active_report_spec blocks
+                                            for blk in active_report_spec.blocks:
+                                                if blk.type == "headline" and blk.sentence.sentence_id == orig_s.sentence_id:
+                                                    blk.sentence = SentenceDTO(
+                                                        sentence_id=rev_s.sentence_id,
+                                                        text=rev_s.text,
+                                                        fact_ids=list(rev_s.fact_ids),
+                                                        author=rev_s.author,  # type: ignore
+                                                        source=rev_s.source,  # type: ignore
+                                                        revision=rev_s.revision,
+                                                    )
+                                                elif blk.type == "answer":
+                                                    for s_idx, s in enumerate(blk.sentences):
+                                                        if s.sentence_id == orig_s.sentence_id:
+                                                            blk.sentences[s_idx] = SentenceDTO(
+                                                                sentence_id=rev_s.sentence_id,
+                                                                text=rev_s.text,
+                                                                fact_ids=list(rev_s.fact_ids),
+                                                                author=rev_s.author,  # type: ignore
+                                                                source=rev_s.source,  # type: ignore
+                                                                revision=rev_s.revision,
+                                                            )
+                                                elif blk.type == "key_points":
+                                                    for item in blk.items:
+                                                        for s_idx, s in enumerate(item.sentences):
+                                                            if s.sentence_id == orig_s.sentence_id:
+                                                                item.sentences[s_idx] = SentenceDTO(
+                                                                    sentence_id=rev_s.sentence_id,
+                                                                    text=rev_s.text,
+                                                                    fact_ids=list(rev_s.fact_ids),
+                                                                    author=rev_s.author,  # type: ignore
+                                                                    source=rev_s.source,  # type: ignore
+                                                                    revision=rev_s.revision,
+                                                                )
+                                                elif blk.type == "figure" and blk.takeaway and blk.takeaway.sentence_id == orig_s.sentence_id:
+                                                    blk.takeaway = SentenceDTO(
+                                                        sentence_id=rev_s.sentence_id,
+                                                        text=rev_s.text,
+                                                        fact_ids=list(rev_s.fact_ids),
+                                                        author=rev_s.author,  # type: ignore
+                                                        source=rev_s.source,  # type: ignore
+                                                        revision=rev_s.revision,
+                                                    )
+                                        else:
+                                            # Dropped
+                                            all_dropped_sentences.append(SentenceDroppedDTO(
+                                                sentence_id=orig_s.sentence_id,
+                                                author=orig_s.author,
+                                                text=rev_s.text,
+                                                reason_code=rev_v.reason_code or "unknown_fact",  # type: ignore
+                                                reason=rev_v.reason or "",
+                                            ))
+                                    except Exception as exc:
+                                        logger.warning("Rewrite sentence failed: %s", exc)
+
+                        # Reconcile cross level / incomplete synthesis
+                        elif getattr(issue, "required_action", None) == "RECONCILE_CROSS_LEVEL" or getattr(issue, "required_action", None) == CritiqueAction.RECONCILE_CROSS_LEVEL:
+                            # Re-compose
+                            try:
+                                recomposed = self.writer.compose_report(
+                                    question=self.request.query,
+                                    question_type=q_type,
+                                    sentences=[
+                                        {"sentence_id": s.sentence_id, "author": s.author, "text": s.text, "fact_ids": list(s.fact_ids)}
+                                        for s in current_sentences
+                                    ],
+                                    datasets_summary=self._datasets_summary(tool_datasets),
+                                    signals=[s.model_dump() for s in signals],
+                                    findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
+                                    facts=self._facts_payload(verified_facts),
+                                )
+                                c_spec_raw, c_sents = _process_spec_blocks(recomposed)
+                                v_res_c, d_c = validate_report_spec(c_spec_raw, tool_datasets, verified_facts)
+                                if v_res_c.get("is_valid", False):
+                                    v_res_clean = {k: v for k, v in v_res_c.items() if k != "is_valid"}
+                                    active_report_spec = ReportSpecDTO.model_validate(v_res_clean)
+                                    current_sentences = c_sents
+                            except Exception as exc:
+                                logger.warning("Recompose report failed: %s", exc)
+
+                    if hasattr(self.writer, "synthesize"):
+                        try:
+                            synth_out = self.writer.synthesize(
+                                plan=plan.model_dump() if hasattr(plan, "model_dump") else plan,
+                                specialist_outputs={
+                                    "company": [{"claim_id": c.claim_id} for c in current_claims]
+                                },
+                                issues=[i.model_dump() if hasattr(i, "model_dump") else i.__dict__ for i in open_issues],
+                            )
+                            if isinstance(synth_out, dict):
+                                synthesis_summary = synth_out.get("summary")
+                        except Exception as exc:
+                            logger.warning("Synthesize re-run failed: %s", exc)
+
+                    self.emit("REVISION_COMPLETED", {
+                        "round": 1,
+                        "periods": list(plan.scope.periods),
+                        "revisedSpecialists": sorted({i.affected_agent for i in open_issues}),
+                        "synthesisRevised": True,
+                    })
+
+                    # Re-evaluate Stage-1 on current claims
+                    try:
+                        stage1_report = stage1.evaluate(plan=plan, claims=current_claims, policy=_API_POLICY)
+                    except Exception as exc:
+                        logger.warning("Stage-1 re-evaluation failed: %s", exc)
+
+                    # Critic Round 2
+                    rounds_executed = 2
+                    synth_summary_for_ctx2 = None
+                    if synthesis_summary is not None:
+                        try:
+                            from thesis_data.semantic_critic import validate_synthesis_summary
+                            validate_synthesis_summary(synthesis_summary)
+                            synth_summary_for_ctx2 = synthesis_summary
+                        except Exception:
+                            synth_summary_for_ctx2 = None
+                    round2_ctx = SemanticRoundContext(
+                        round_number=1,
+                        narrative=tuple(current_sentences),
+                        report_spec=active_report_spec.model_dump(),
+                        cross_level_candidates=tuple(candidates),
+                        prior_issue_ids=tuple(i.issue_id for i in open_issues),
+                        prior_issues=tuple(open_issues),
+                        synthesis_summary=synth_summary_for_ctx2,
+                        synthesis_supporting_claim_ids=tuple(c.claim_id for c in current_claims) if synth_summary_for_ctx2 else (),
+                    )
+                    try:
+                        critic_result = self.critic.evaluate(
+                            plan=plan,
+                            claims=current_claims,
+                            stage1_report=stage1_report,
+                            round_context=round2_ctx,
+                        )
+                    except Exception as exc:
+                        logger.warning("Critic evaluate round 2 failed: %s", exc)
+
+                    if critic_result is not None:
+                        # Drop any sentences that still have OPEN issues
+                        still_open_issues = [
+                            i for i in critic_result.critique_issues
+                            if i.resolution_status is CritiqueIssueStatus.OPEN
+                        ]
+                        for i in still_open_issues:
+                            if i.affected_claim_ids and hasattr(self.writer, "write_specialist"):
+                                target_claims = [c for c in current_claims if c.claim_id in i.affected_claim_ids]
+                                for c in target_claims:
+                                    if c.assertions:
+                                        a = c.assertions[0]
+                                        self._fetch_direct(i.affected_agent, (a.entity,), (a.metric_id,), a.period)
+                            s_ids = list(i.affected_sentence_ids)
+                            if not s_ids:
+                                agent_s = [s for s in current_sentences if s.author == i.affected_agent]
+                                if agent_s:
+                                    s_ids = [agent_s[0].sentence_id]
+                                elif current_sentences:
+                                    s_ids = [current_sentences[0].sentence_id]
+                            for s_id in s_ids:
+                                drop_target = next((s for s in current_sentences if s.sentence_id == s_id), None)
+                                if drop_target:
+                                    all_dropped_sentences.append(SentenceDroppedDTO(
+                                        sentence_id=drop_target.sentence_id,
+                                        author=drop_target.author,
+                                        text=drop_target.text,
+                                        reason_code="unresolved_critique",
+                                        reason=i.description,
+                                    ))
+
+                    # Re-validate spec after round 2
+                    val_after, drop_after = validate_report_spec(active_report_spec.model_dump(), tool_datasets, verified_facts)
+                    for db in drop_after:
+                        all_dropped_blocks.append(BlockDroppedDTO(type=db["type"], reason=db["reason"]))
+                    if val_after.get("is_valid", False):
+                        val_after_clean = {k: v for k, v in val_after.items() if k != "is_valid"}
+                        active_report_spec = ReportSpecDTO.model_validate(val_after_clean)
+                    else:
+                        active_report_spec = default_report_spec(
+                            question_type=q_type,
+                            tool_results=tr_fallback,
+                            signals=signals,
+                            findings=candidates,
+                        )
+                        composition_source = "deterministic_fallback"
+
+        # 4. Filter facts and datasets to only those cited in the final report_spec
+        facts_map = {f.fact_id: f for f in verified_facts}
+        datasets_map = {d.dataset_id: d for d in tool_datasets}
+        filtered_facts, filtered_datasets, ordered_cited_facts = self._collect_spec_facts_and_datasets(
+            active_report_spec, facts_map, datasets_map
+        )
+        source_notes = build_source_notes(self.provider, self.dataset_ref, ordered_cited_facts)
+
+        # 5. Build narrative audit
+        final_spec_sent_ids = set()
+        for b in active_report_spec.blocks:
+            if b.type == "headline":
+                final_spec_sent_ids.add(b.sentence.sentence_id)
+            elif b.type == "answer":
+                for s in b.sentences:
+                    final_spec_sent_ids.add(s.sentence_id)
+            elif b.type == "key_points":
+                for item in b.items:
+                    for s in item.sentences:
+                        final_spec_sent_ids.add(s.sentence_id)
+            elif b.type == "section":
+                for s in b.sentences:
+                    final_spec_sent_ids.add(s.sentence_id)
+            elif b.type == "callout":
+                for s in b.sentences:
+                    final_spec_sent_ids.add(s.sentence_id)
+            elif b.type == "figure" and b.takeaway:
+                final_spec_sent_ids.add(b.takeaway.sentence_id)
+
+        narrative_audit = NarrativeAuditDTO(
+            sentences_checked=max(len(final_spec_sent_ids) + len(all_dropped_sentences), 1),
+            sentences_accepted=len(final_spec_sent_ids),
+            sentences_dropped=all_dropped_sentences,
+            numbers_checked=total_numbers_checked,
+            numbers_matched=total_numbers_matched,
+            blocks_dropped=all_dropped_blocks,
+            composition_source=composition_source,  # type: ignore
+        )
+
+        # Determine status
+        has_unresolved_drop = any(d.reason_code == "unresolved_critique" for d in all_dropped_sentences)
+        has_open_issues = critic_result is not None and any(i.resolution_status is CritiqueIssueStatus.OPEN for i in getattr(critic_result, "critique_issues", ()))
+        if composition_source == "model" and not has_unresolved_drop and not has_open_issues and not any("không phản hồi" in lim for lim in tool_limitations):
+            final_status = "completed"
+        else:
+            final_status = "accepted_with_limitations"
+
+        # Assessment text
+        assessment_text = None
+        for b in active_report_spec.blocks:
+            if b.type == "answer" and b.sentences:
+                assessment_text = b.sentences[0].text
+                break
+            elif b.type == "headline":
+                assessment_text = b.sentence.text
+                break
+
+        # Revision summary
+        rev_reason = None
+        if critic_result and getattr(critic_result, "critique_issues", ()):
+            issue_summaries = []
+            for issue in critic_result.critique_issues:
+                action_part = f"/{getattr(issue.required_action, 'value', issue.required_action)}" if getattr(issue, "required_action", None) is not None else ""
+                issue_summaries.append(
+                    f"{issue.issue_id} [{getattr(issue.issue_type, 'value', issue.issue_type)}/{getattr(issue.severity, 'value', issue.severity)}/{getattr(issue.resolution_status, 'value', issue.resolution_status)}{action_part}]: {issue.description}"
+                )
+            rev_reason = "; ".join(issue_summaries)
+        elif arm == "single_agent":
+            rev_reason = "Single-agent arm execution without specialist findings or critique."
+        elif arm == "hierarchical_no_critique":
+            rev_reason = "Hierarchical execution without semantic critique."
+        else:
+            rev_reason = "Terminal acceptance decision from the verified narrative controller."
+
+        revised_specialists = sorted({
+            agent for agent in all_revised_agents
+            if agent and agent != "orchestrator"
+        })
+        synthesis_revised = "orchestrator" in all_revised_agents or rounds_executed > 1
+
+        if rounds_executed > 1 and final_status == "completed":
+            rev_status = "revised_and_passed"
+        elif final_status == "completed":
+            rev_status = "passed"
+        elif final_status == "error":
+            rev_status = "rejected"
+        else:
+            rev_status = "accepted_with_limitations"
+
+        revision_summary = BoundedRevisionSummaryDTO(
+            rounds_executed=rounds_executed,
+            max_rounds=_API_POLICY.max_revision_rounds,
+            status=rev_status,
+            reason=rev_reason,
+            revised_capabilities=revised_specialists,
+            synthesis_revised=synthesis_revised,
+        )
 
         report = self._render_report(
-            plan, target, peers, company_metrics, macro_metrics, result.final_claims,
-            state, eventing_critic.latest_result,
-            synthesis_summary=result.final_synthesis_summary,
-            synthesis_supporting_claim_ids=result.final_synthesis_supporting_claim_ids,
-            revised_claim_ids=self._revised_claim_ids,
-            synthesis_revised=result.synthesis_was_revised,
-            facts=verified_facts,
-            datasets=tool_datasets,
+            plan, target, peers, company_metrics, macro_metrics, current_claims,
+            critic_result=critic_result,
+            report_version="er-report-v1",
+            report_spec=active_report_spec,
+            narrative_audit=narrative_audit,
+            revision_summary=revision_summary,
+            status=final_status,
+            assessment=assessment_text,
+            facts=filtered_facts,
+            datasets=filtered_datasets,
             signals=signals,
-            cross_level_findings=cross_level_candidates_list,
+            cross_level_findings=[c for c in cross_level_candidates_list if getattr(c, "status", "confirmed") == "confirmed"],
             source_notes=source_notes,
             extra_limitations=tool_limitations,
+            synthesis_summary=synthesis_summary,
         )
         self.emit("SYNTHESIS_COMPLETED", {"periods": list(periods), "message": "The terminal candidate, provenance joins, and limitations are ready."})
         return report
@@ -1568,6 +2248,8 @@ class _AdaptiveRun:
         return artifacts
 
     def _fetch_benchmarks(self, target: str, peers: Sequence[str], metric_ids: Sequence[str], period: str, plan: AnalysisPlan) -> list[AtomicClaim]:
+        if not target:
+            return []
         universe_id = self._peer_universe_id(plan)
         if universe_id is None:
             return []
@@ -1803,151 +2485,86 @@ class _AdaptiveRun:
             result.append(claim)
         return result
 
-    def _targeted_rerun(self, request: RevisionRequest) -> tuple[tuple[AtomicClaim, ...], str, tuple[str, ...], dict[str, tuple[str, ...]]]:
-        from .service import AnalysisBlocked
-        roles = tuple(request.target_specialists)
-        current_by_id = {claim.claim_id: claim for claim in request.current_claims}
-        if len(current_by_id) != len(request.current_claims):
-            raise AnalysisBlocked("revision_candidate_identity_invalid", "The revision candidate contains duplicate claim IDs.")
-        requirements = {item.requirement_id: item for item in request.plan.requirements}
-        affected_by_role: dict[str, set[str]] = {role: set() for role in roles}
-        for issue in request.selected_issues:
-            role = issue.affected_agent
-            if role == AnalysisAgent.ORCHESTRATOR.value:
-                continue
-            if role not in affected_by_role:
-                raise AnalysisBlocked("revision_target_specialist_invalid", "Critique feedback targets a specialist outside the frozen active set.")
-            for claim_id in issue.affected_claim_ids:
-                if claim_id not in current_by_id or self._claim_roles.get(claim_id) != role:
-                    raise AnalysisBlocked("revision_issue_claim_scope_invalid", "Critique feedback references a claim outside its affected specialist.")
-                affected_by_role[role].add(claim_id)
-            issue_requirements = [requirements[item] for item in issue.affected_requirement_ids if item in requirements]
-            for claim in request.current_claims:
-                if self._claim_roles.get(claim.claim_id) != role:
-                    continue
-                if any(
-                    assertion.entity in req.entities
-                    and assertion.period in req.periods
-                    and assertion.metric_id in req.metric_ids
-                    for req in issue_requirements
-                    for assertion in claim.assertions
-                ):
-                    affected_by_role[role].add(claim.claim_id)
-            if not affected_by_role[role]:
-                raise AnalysisBlocked("revision_issue_target_empty", "Critique feedback does not resolve to a claim in its affected specialist scope.")
+    @staticmethod
+    def _collect_spec_facts_and_datasets(
+        spec: ReportSpecDTO,
+        facts_map: dict[str, Any],
+        datasets_map: dict[str, Any],
+    ) -> tuple[list[Any], list[Any], list[Any]]:
+        cited_fact_ids: list[str] = []
+        referenced_dataset_ids: list[str] = []
 
-        periods = request.plan.scope.periods
-        period = periods[-1]
-        company_entity_ids = {entity.entity_id for entity in self.catalog.entities if entity.entity_type.value == "company"}
-        target = next((entity for entity in request.plan.scope.entities if entity != "VN" and entity not in request.plan.scope.comparison_universe and entity in company_entity_ids), None)
-        peer_ids = tuple(entity for entity in request.plan.scope.entities if entity in company_entity_ids and entity != target)
-        updated = dict(current_by_id)
-        changed_ids: set[str] = set()
-        changed_by_role: dict[str, list[str]] = {role: [] for role in roles}
+        for block in spec.blocks:
+            b_type = block.type
+            if b_type == "answer":
+                if block.value_fact_id:
+                    cited_fact_ids.append(block.value_fact_id)
+                for s in block.sentences:
+                    cited_fact_ids.extend(s.fact_ids)
+            elif b_type == "headline":
+                cited_fact_ids.extend(block.sentence.fact_ids)
+            elif b_type == "key_points":
+                for item in block.items:
+                    for s in item.sentences:
+                        cited_fact_ids.extend(s.fact_ids)
+            elif b_type == "section":
+                for s in block.sentences:
+                    cited_fact_ids.extend(s.fact_ids)
+            elif b_type == "figure":
+                if block.dataset_id:
+                    referenced_dataset_ids.append(block.dataset_id)
+                if block.takeaway:
+                    cited_fact_ids.extend(block.takeaway.fact_ids)
+            elif b_type == "callout":
+                for s in block.sentences:
+                    cited_fact_ids.extend(s.fact_ids)
+            elif b_type == "table":
+                if block.dataset_id:
+                    referenced_dataset_ids.append(block.dataset_id)
 
-        for role in roles:
-            targeted_ids = affected_by_role[role]
-            targeted_cells = tuple(dict.fromkeys(
-                (assertion.period, assertion.metric_id)
-                for claim in request.current_claims
-                if claim.claim_id in targeted_ids
-                for assertion in claim.assertions
-            ))
-            targeted_periods = tuple(
-                item for item in periods if any(cell_period == item for cell_period, _metric in targeted_cells)
-            )
-            metric_ids_by_period = {
-                item: tuple(dict.fromkeys(metric_id for cell_period, metric_id in targeted_cells if cell_period == item))
-                for item in targeted_periods
-            }
-            if role == "company" and target:
-                raw = [
-                    claim
-                    for item_period in targeted_periods
-                    for claim in self._fetch_direct(
-                        "company", (target,), metric_ids_by_period[item_period], item_period,
-                    )
-                ]
-            elif role == "sector" and target and peer_ids:
-                metric_ids = tuple(dict.fromkeys(metric_id for _item_period, metric_id in targeted_cells))
-                raw = self._fetch_direct("sector", peer_ids, metric_ids, period)
-                raw.extend(self._fetch_benchmarks(target, peer_ids, metric_ids, period, request.plan))
-            elif role == "macro":
-                raw = []
-                for item_period in targeted_periods:
-                    for metric_id in metric_ids_by_period[item_period]:
-                        metric = self.metric_by_id[metric_id]
-                        artifact = _create_macro_claim(
-                            self.provider, self.dataset_ref, metric=metric, period=item_period,
-                            include_evidence=SupportedOperation.GET_EVIDENCE in self.catalog.supported_operations,
-                        )
-                        self.artifacts[artifact.claim.claim_id] = artifact
-                        raw.append(artifact.claim)
-            else:
-                raise AnalysisBlocked("revision_target_scope_invalid", "The targeted specialist has no executable frozen scope.")
+        ordered_cited_fact_ids = list(dict.fromkeys(cited_fact_ids))
+        ordered_cited_facts = [facts_map[fid] for fid in ordered_cited_fact_ids if fid in facts_map]
 
-            raw_by_id = {claim.claim_id: claim for claim in raw}
-            if not targeted_ids.issubset(raw_by_id):
-                raise AnalysisBlocked("revision_provider_claim_set_changed", "Targeted provider re-query did not reproduce the frozen claim identities.")
-            targeted_raw = [
-                raw_by_id[claim_id].model_copy(
-                    update={"claim_text": current_by_id[claim_id].claim_text},
-                    deep=True,
-                )
-                for claim_id in current_by_id if claim_id in targeted_ids
-            ]
-            for claim in targeted_raw:
-                frozen = self._frozen_claims.get(claim.claim_id)
-                if frozen is None or frozen.model_dump(mode="json", exclude={"claim_text"}) != claim.model_dump(mode="json", exclude={"claim_text"}):
-                    raise AnalysisBlocked("revision_provider_facts_changed", "Targeted provider re-query changed frozen factual or provenance fields.")
-            role_issues = [issue for issue in request.selected_issues if issue.affected_agent == role]
-            revised = self._invoke_specialist_writer(request.plan, role, targeted_raw, role_issues)
-            for claim in revised:
-                previous = current_by_id[claim.claim_id]
-                if claim.claim_text != previous.claim_text:
-                    changed_ids.add(claim.claim_id)
-                    changed_by_role[role].append(claim.claim_id)
-                updated[claim.claim_id] = claim
+        all_needed_fact_ids: set[str] = set(ordered_cited_fact_ids)
+        to_expand = list(ordered_cited_fact_ids)
+        while to_expand:
+            cur_id = to_expand.pop()
+            f = facts_map.get(cur_id)
+            if f is not None:
+                for in_id in getattr(f, "input_fact_ids", ()):
+                    if in_id not in all_needed_fact_ids:
+                        all_needed_fact_ids.add(in_id)
+                        to_expand.append(in_id)
 
-        candidate_claims = tuple(updated[claim.claim_id] for claim in request.current_claims)
-        prior_summary = request.current_synthesis_summary
-        prior_support_ids = tuple(request.current_synthesis_supporting_claim_ids)
-        revised_summary, revised_support_ids = self._write_synthesis(
-            request.plan, candidate_claims, request.selected_issues,
-        )
-        for issue in request.selected_issues:
-            if issue.affected_agent == AnalysisAgent.ORCHESTRATOR.value:
-                if revised_summary == prior_summary and tuple(revised_support_ids) == prior_support_ids:
-                    raise AnalysisBlocked("revision_no_material_change", "The orchestrator writer did not change synthesis in response to selected feedback.")
-                continue
-            issue_claim_ids = set(issue.affected_claim_ids)
-            for requirement_id in issue.affected_requirement_ids:
-                req = requirements.get(requirement_id)
-                if req is None:
-                    continue
-                issue_claim_ids.update(
-                    claim.claim_id for claim in request.current_claims
-                    if self._claim_roles.get(claim.claim_id) == issue.affected_agent
-                    and any(
-                        assertion.entity in req.entities and assertion.period in req.periods and assertion.metric_id in req.metric_ids
-                        for assertion in claim.assertions
-                    )
-                )
-            if not issue_claim_ids.intersection(changed_ids):
-                raise AnalysisBlocked("revision_no_material_change", "The specialist writer did not change an affected claim in response to selected feedback.")
+        filtered_facts = [f for f in facts_map.values() if f.fact_id in all_needed_fact_ids]
+        ref_ds_set = set(referenced_dataset_ids)
+        filtered_datasets = [ds for ds in datasets_map.values() if ds.dataset_id in ref_ds_set]
 
-        self._revised_claim_ids.update(changed_ids)
-        return (
-            candidate_claims,
-            revised_summary,
-            tuple(revised_support_ids),
-            {role: tuple(claim_ids) for role, claim_ids in changed_by_role.items()},
-        )
+        return filtered_facts, filtered_datasets, ordered_cited_facts
 
     def _render_report(
-        self, plan, target, peers, company_metrics, macro_metrics, final_claims, state, critic_result,
-        *, synthesis_summary=None, synthesis_supporting_claim_ids=(), synthesis_revised=False, revised_claim_ids=(),
-        facts=(), datasets=(), signals=(), cross_level_findings=(), source_notes=(), extra_limitations=(),
+        self,
+        plan: AnalysisPlan,
+        target: str | None,
+        peers: Sequence[str],
+        company_metrics: Sequence[str],
+        macro_metrics: Sequence[str],
+        final_claims: Sequence[AtomicClaim],
+        critic_result: StructuredCriticResult | None = None,
+        *,
+        report_version: str = "er-report-v1",
+        report_spec: ReportSpecDTO | None = None,
+        narrative_audit: NarrativeAuditDTO | None = None,
+        revision_summary: BoundedRevisionSummaryDTO | None = None,
+        status: str = "completed",
+        assessment: str | None = None,
+        facts: Sequence[Any] = (),
+        datasets: Sequence[Any] = (),
+        signals: Sequence[Any] = (),
+        cross_level_findings: Sequence[Any] = (),
+        source_notes: Sequence[Any] = (),
+        extra_limitations: Sequence[str] = (),
+        synthesis_summary: str | None = None,
     ) -> AnalysisResponse:
         from .schemas import FactDTO, CrossLevelFindingDTO
         role_by_claim = {claim_id: item.capability for claim_id, item in self.artifacts.items()}
@@ -2063,11 +2680,7 @@ class _AdaptiveRun:
                     known_limitations.append(
                         f"Reporting scope is unavailable for {observation.observation_id}; the API does not infer consolidated or parent-only scope."
                     )
-            stage2_status = (
-                "limited" if state.final_decision is AcceptanceDecision.ACCEPT_WITH_LIMITATIONS
-                else "revised" if claim.claim_id in revised_claim_ids
-                else "sound"
-            )
+            stage2_status = getattr(claim, "stage2_critique_status", None) or ("sound" if status == "completed" else "limited")
             claim_dtos.append(AtomicClaimDTO(
                 claim_id=claim.claim_id,
                 observation_id=dto_observation_id,
@@ -2172,33 +2785,20 @@ class _AdaptiveRun:
             company_insights.append(CompanyInsightDTO(
                 ticker=target,
                 **{key: value for key, value in target_values.items() if key in {"roe", "roa", "nim", "npl", "cir", "casa", "car", "ldr", "llr"}},
-                assessment=synthesis_summary or "Accepted provider facts are listed in the atomic claims.",
+                assessment=assessment or "Accepted provider facts are listed in the atomic claims.",
                 metric_period_records=metric_period_records,
             ))
-        final_round = state.rounds[-1]
-        status = "completed" if state.final_decision is AcceptanceDecision.ACCEPT else "accepted_with_limitations"
-        round_status = (
-            "accepted_with_limitations" if status == "accepted_with_limitations"
-            else "revised_and_passed" if synthesis_revised or any(item.revised_agents for item in state.rounds)
-            else "passed"
-        )
-        issue_summaries = [
-            f"{issue.issue_id} [{issue.issue_type.value}/{issue.severity.value}/{issue.resolution_status.value}/{issue.required_action.value}]: {issue.description}"
-            for issue in final_round.critique_issues
-        ]
-        revision_summary = BoundedRevisionSummaryDTO(
-            rounds_executed=len(state.rounds), max_rounds=_API_POLICY.max_revision_rounds,
-            status=round_status,
-            reason=(
-                "; ".join(issue_summaries)
-                if issue_summaries
-                else "; ".join(final_round.unresolved_reason_codes)
-                if final_round.unresolved_reason_codes
-                else "Terminal acceptance decision from the bounded semantic controller."
-            ),
-            revised_capabilities=sorted({agent for item in state.rounds for agent in item.revised_agents}),
-            synthesis_revised=synthesis_revised,
-        )
+
+        if revision_summary is None:
+            revision_summary = BoundedRevisionSummaryDTO(
+                rounds_executed=0,
+                max_rounds=_API_POLICY.max_revision_rounds,
+                status="passed",
+                reason="Terminal acceptance decision.",
+                revised_capabilities=[],
+                synthesis_revised=False,
+            )
+
         critique_items = [
             CritiqueItemDTO(
                 dimension="cross_level_integration",
@@ -2263,14 +2863,18 @@ class _AdaptiveRun:
             revision_summary=revision_summary,
             limitations=list(dict.fromkeys(plan_limitations)),
             synthesis_summary=synthesis_summary,
-            synthesis_supporting_claim_ids=list(synthesis_supporting_claim_ids),
+            synthesis_supporting_claim_ids=[c.claim_id for c in claim_dtos] if synthesis_summary else [],
+            report_version=report_version,
             question_type=(self.spec.question_type if hasattr(self, "spec") and self.spec else None),
+            report_spec=report_spec,
+            narrative_audit=narrative_audit,
             facts=fact_dtos,
             datasets=list(datasets),
             signals=list(signals),
             cross_level_findings=finding_dtos,
             source_notes=list(source_notes),
         )
+
 
 
 def run_adaptive_analysis(

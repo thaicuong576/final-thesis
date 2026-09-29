@@ -22,7 +22,7 @@ export const capabilityService: CapabilityService = {
       !Array.isArray(raw?.entities) ||
       !Array.isArray(raw.periods) ||
       !Array.isArray(raw.metrics) ||
-      !raw.macro ||
+      (raw.macro !== undefined && raw.macro !== null && typeof raw.macro !== 'object') ||
       (raw.implemented_capabilities !== undefined && !Array.isArray(raw.implemented_capabilities)) ||
       (raw.supported_operations !== undefined && !Array.isArray(raw.supported_operations)) ||
       (raw.analysis_available !== undefined && typeof raw.analysis_available !== 'boolean') ||
@@ -37,7 +37,12 @@ export const capabilityService: CapabilityService = {
       entities: raw.entities as AnalysisCapabilities['entities'],
       periods: raw.periods as AnalysisCapabilities['periods'],
       metrics: raw.metrics as AnalysisCapabilities['metrics'],
-      macro: raw.macro as AnalysisCapabilities['macro'],
+      macro: (raw.macro ?? {
+        status: 'UNAVAILABLE',
+        minimumContractSatisfied: false,
+        summary: 'Chưa có thông tin vĩ mô',
+        details: 'API chưa công bố năng lực dữ liệu vĩ mô.'
+      }) as AnalysisCapabilities['macro'],
       snapshotId: raw.snapshotId ?? null,
       datasetId: raw.datasetId ?? null,
       datasetSnapshotId: raw.datasetSnapshotId ?? raw.dataset_snapshot_id ?? null,

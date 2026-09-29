@@ -4,12 +4,14 @@ export interface Entity {
   id: string;
   ticker: string;
   name: string;
+  type?: string;
 }
 
 export interface Period {
   id: string;
   quarter: number;
   year: number;
+  label?: string;
 }
 
 export interface Metric {
@@ -37,6 +39,7 @@ export interface PeerUniverse {
   entityIds: string[];
   readonly: true;
   description: string;
+  executable?: boolean;
 }
 
 export interface MacroCapability {
@@ -44,6 +47,7 @@ export interface MacroCapability {
   minimumContractSatisfied: boolean;
   summary: string;
   details: string;
+  executable?: boolean;
 }
 
 export interface AnalysisCapabilities {

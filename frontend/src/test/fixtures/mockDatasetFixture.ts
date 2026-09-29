@@ -1,6 +1,4 @@
-import type { AnalysisDataset } from '../model/types';
-
-export const mockAnalysisDataset: AnalysisDataset = {
+export const mockAnalysisDatasetFixture = {
   summary: {
     name: 'Ngân hàng Việt Nam 2024',
     readiness: 'READY',
@@ -42,7 +40,3 @@ export const mockAnalysisDataset: AnalysisDataset = {
     }
   ]
 };
-
-export async function getMockAnalysisDataset(): Promise<AnalysisDataset> {
-  return mockAnalysisDataset;
-}

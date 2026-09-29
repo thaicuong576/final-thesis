@@ -42,14 +42,14 @@ describe('DataPage catalog and readiness', () => {
     expect(screen.getByText(/Mã catalog:/)).toBeInTheDocument();
     expect(screen.getByText(/Snapshot đã kiểm định: chưa công bố/)).toBeInTheDocument();
     expect(screen.getByText('Ngân hàng trong catalog')).toBeInTheDocument();
-    expect(screen.getByText(/ACB · TCB · VPB · MBB · VCB/)).toBeInTheDocument();
+    expect(screen.getByText(/ACB \(Ngân hàng Á Châu\)/)).toBeInTheDocument();
     expect(screen.getAllByText(/Trạng thái kho dữ liệu: disconnected/).length).toBeGreaterThan(0);
     expect(screen.getByText('API chưa xác nhận phân tích nhóm tham chiếu có thể chạy.')).toBeInTheDocument();
     expect(screen.getByText('API chưa xác nhận năng lực phân tích vĩ mô có thể chạy.')).toBeInTheDocument();
     expect(screen.getByText(/Nguồn, phiên bản dữ liệu và thời điểm kiểm định chưa được xác nhận/)).toBeInTheDocument();
     expect(screen.queryByText(mockCapabilities.source!)).not.toBeInTheDocument();
     expect(screen.queryByText(mockCapabilities.macro.summary)).not.toBeInTheDocument();
-    expect(screen.queryByText(mockCapabilities.peerUniverse!.label)).not.toBeInTheDocument();
+    expect(screen.queryByText('5 ngân hàng: acb, tcb, vpb, mbb, vcb')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Thêm nguồn dữ liệu|Kết nối nguồn mới/ })).not.toBeInTheDocument();
   });
 
@@ -63,7 +63,7 @@ describe('DataPage catalog and readiness', () => {
 
     expect(await screen.findByText('27')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText(/B0 · B1 · B2/)).toBeInTheDocument();
+    expect(screen.getByText(/B0 \(Bank 0\) · B1 \(Bank 1\)/)).toBeInTheDocument();
     expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
   });
 
@@ -79,7 +79,7 @@ describe('DataPage catalog and readiness', () => {
 
     expect(await screen.findByText('Snapshot đã kiểm định: provider-snapshot-42')).toBeInTheDocument();
     expect(screen.getByText('Có')).toBeInTheDocument();
-    expect(screen.getByText('company')).toBeInTheDocument();
+    expect(screen.getByText('Doanh nghiệp')).toBeInTheDocument();
   });
 
   it('uses the API sector capability to mark the catalog peer universe as runnable', async () => {
@@ -92,7 +92,7 @@ describe('DataPage catalog and readiness', () => {
 
     renderDataPage();
 
-    expect(await screen.findByText(mockCapabilities.peerUniverse!.label)).toBeInTheDocument();
+    expect(await screen.findByText('5 ngân hàng: acb, tcb, vpb, mbb, vcb')).toBeInTheDocument();
     expect(screen.getByText(mockCapabilities.peerUniverse!.description)).toBeInTheDocument();
   });
 
@@ -114,7 +114,7 @@ describe('DataPage catalog and readiness', () => {
     expect(percentUnits.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('renders structured enterprise list with ticker, full name, and entity classification', async () => {
+  it('renders enterprise list in catalog overview without separate redundant enterprise table', async () => {
     vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
       analysis_available: true,
       dataset_snapshot_id: 'gold-v5-snap',
@@ -123,28 +123,31 @@ describe('DataPage catalog and readiness', () => {
 
     renderDataPage();
 
-    expect(await screen.findByRole('heading', { name: /Danh sách doanh nghiệp/ })).toBeInTheDocument();
-    expect(screen.getAllByText('Ngân hàng Á Châu').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Ngân hàng Kỹ thương Việt Nam').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Ngân hàng Ngoại thương Việt Nam').length).toBeGreaterThanOrEqual(1);
-    const entityTypes = screen.getAllByText('Ngân hàng niêm yết');
-    expect(entityTypes.length).toBe(5);
+    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
+    expect(screen.getByText(/ACB \(Ngân hàng Á Châu\)/)).toBeInTheDocument();
+    expect(screen.getByText(/TCB \(Ngân hàng Kỹ thương Việt Nam\)/)).toBeInTheDocument();
+    expect(screen.getByText(/VCB \(Ngân hàng Ngoại thương Việt Nam\)/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Danh sách doanh nghiệp/ })).not.toBeInTheDocument();
   });
 
-  it('renders realistic staging capabilities fixture with 5 enterprises, 4 metrics with units, 4 periods, peer universe, and neutral scope cells', async () => {
+  it('renders realistic staging capabilities fixture with friendly labels, single action button, and neutral note', async () => {
     vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(stagingCapabilitiesFixture);
 
     renderDataPage();
 
-    // 5 doanh nghiệp
-    expect(await screen.findByRole('heading', { name: /Danh sách doanh nghiệp \(5\)/ })).toBeInTheDocument();
-    expect(screen.getAllByText('ACB').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('TCB').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('VPB').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('MBB').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('VCB').length).toBeGreaterThanOrEqual(1);
+    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
 
-    // 4 chỉ tiêu có đơn vị
+    // Single "Tạo phân tích" button at top header only
+    const createAnalysisLinks = screen.getAllByRole('link', { name: /Tạo phân tích/i });
+    expect(createAnalysisLinks.length).toBe(1);
+
+    // 5 enterprises formatted cleanly (name === ticker, so no redundant parens)
+    expect(screen.getByText('ACB · TCB · VPB · MBB · VCB')).toBeInTheDocument();
+
+    // 4 metrics with clean symbols (LLR, NPL, ROA, ROE instead of LLR_COVERAGE, NPL_G35)
+    expect(screen.getByText('NPL · LLR · ROA · ROE')).toBeInTheDocument();
+
+    // 4 metrics in table
     expect(screen.getByRole('heading', { name: /Chỉ tiêu tài chính \(4\)/ })).toBeInTheDocument();
     expect(screen.getByText('Tỷ lệ nợ xấu (nhóm 3–5)')).toBeInTheDocument();
     expect(screen.getByText('Tỷ lệ bao phủ nợ xấu')).toBeInTheDocument();
@@ -153,26 +156,28 @@ describe('DataPage catalog and readiness', () => {
     const percentUnits = screen.getAllByText('%');
     expect(percentUnits.length).toBeGreaterThanOrEqual(4);
 
-    // 4 kỳ
+    // Friendly periods format: Q1–Q4/2024
     expect(screen.getByText('Q1–Q4/2024')).toBeInTheDocument();
-    expect(screen.getByText('Q1 2024')).toBeInTheDocument();
-    expect(screen.getByText('Q2 2024')).toBeInTheDocument();
-    expect(screen.getByText('Q3 2024')).toBeInTheDocument();
-    expect(screen.getByText('Q4 2024')).toBeInTheDocument();
 
-    // Nhóm so sánh
-    expect(screen.getByText('Snapshot peer group (5 companies)')).toBeInTheDocument();
+    // Peer group formatted in Vietnamese: "5 ngân hàng: ACB, TCB, VPB, MBB, VCB"
+    expect(screen.getByText('5 ngân hàng: ACB, TCB, VPB, MBB, VCB')).toBeInTheDocument();
     expect(screen.getByText('Nhóm 5 ngân hàng niêm yết được kiểm định trong snapshot Gold.')).toBeInTheDocument();
 
-    // Ghi chú trung tính
+    // Capabilities formatted in Vietnamese: "Doanh nghiệp · Nhóm ngành"
+    expect(screen.getByText('Doanh nghiệp · Nhóm ngành')).toBeInTheDocument();
+
+    // Neutral disclaimer inside catalog card
     expect(screen.getByText(/Ô thiếu số liệu đã kiểm định sẽ được ghi rõ trong từng báo cáo/)).toBeInTheDocument();
 
-    // KHÔNG có chuỗi "Đã kiểm định" hay "chưa có số liệu đã kiểm định" gắn với từng ô
+    // NO separate scope matrix or enterprise tables
+    expect(screen.queryByRole('heading', { name: /Phạm vi dữ liệu/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Danh sách doanh nghiệp/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Trong phạm vi')).not.toBeInTheDocument();
     expect(screen.queryByText('Đã kiểm định')).not.toBeInTheDocument();
     expect(screen.queryByText('chưa có số liệu đã kiểm định')).not.toBeInTheDocument();
   });
 
-  it('only displays entity name when distinct from ticker', async () => {
+  it('only displays entity name in catalog when distinct from ticker', async () => {
     vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
       analysis_available: true,
       dataset_snapshot_id: 'gold-v5-snap',
@@ -185,11 +190,29 @@ describe('DataPage catalog and readiness', () => {
 
     renderDataPage();
 
-    expect(await screen.findByRole('heading', { name: /Danh sách doanh nghiệp \(2\)/ })).toBeInTheDocument();
-    // Distinct name is rendered (in scope matrix and entity list table)
-    expect(screen.getAllByText('Ngân hàng Quân Đội').length).toBe(2);
-    // Non-distinct name displays fallback dash in enterprise table
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
+    // Non-distinct entity renders only ticker; distinct entity renders ticker with name in parens
+    expect(screen.getByText('ACB · MBB (Ngân hàng Quân Đội)')).toBeInTheDocument();
+  });
+
+  it('ensures responsive classes to prevent horizontal page overflow at 375px', async () => {
+    const { container } = renderDataPage();
+
+    await screen.findByRole('heading', { name: 'Catalog năng lực API' });
+
+    // Root wrapper has overflow-x-hidden and max-w-full
+    const rootWrapper = container.querySelector('.overflow-x-hidden');
+    expect(rootWrapper).toBeInTheDocument();
+    expect(rootWrapper).toHaveClass('w-full', 'max-w-full', 'min-w-0');
+
+    // Table container has overflow-x-auto
+    const tableWrapper = container.querySelector('.overflow-x-auto');
+    expect(tableWrapper).toBeInTheDocument();
+    expect(tableWrapper).toHaveClass('w-full', 'max-w-full', 'min-w-0');
+
+    // Snapshot ID has break-all to prevent pushing layout
+    const snapshotText = screen.getByText(/Mã catalog:/);
+    expect(snapshotText).toHaveClass('break-all');
   });
 
   it('renders error state with retry button and does not fall back to mock data or display fake numbers when API fails', async () => {
@@ -208,6 +231,7 @@ describe('DataPage catalog and readiness', () => {
     expect(screen.queryByText('Chỉ tiêu trong catalog')).not.toBeInTheDocument();
     expect(screen.queryByText('Ma trận độ phủ doanh nghiệp × kỳ')).not.toBeInTheDocument();
     expect(screen.queryByText('Phạm vi dữ liệu: Doanh nghiệp × Kỳ')).not.toBeInTheDocument();
+    expect(screen.queryByText('Danh sách doanh nghiệp')).not.toBeInTheDocument();
     expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
   });
 

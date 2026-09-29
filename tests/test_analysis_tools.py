@@ -20,6 +20,7 @@ from thesis_data.dataset_contract import (
     DatasetSource,
     PeerUniverse,
     QualityStatus,
+    SourceTier,
     SupportedOperation,
 )
 from thesis_api.analysis_planner import plan_question, build_analysis_plan
@@ -72,7 +73,7 @@ class _MockProvider:
                 self.sources[src_id] = DatasetSource(
                     source_ref=src_id,
                     source_type="regulatory_filing",
-                    source_tier="primary_regulatory_filing",
+                    source_tier=SourceTier.PRIMARY,
                     source_url=f"https://data.example.com/{ent}/{p}",
                     publisher="Mock Publisher",
                     retrieved_at="2024-12-31T00:00:00Z",
@@ -211,6 +212,9 @@ class _MockProvider:
 
     def get_observation(self, dataset_ref: DatasetRef, observation_id: str) -> CanonicalObservation | None:
         return self.obs_by_id.get(observation_id)
+
+    def resolve_observation(self, dataset_ref: DatasetRef, observation_id: str) -> CanonicalObservation | None:
+        return self.get_observation(dataset_ref, observation_id)
 
     def get_source(self, dataset_ref: DatasetRef, source_ref: str) -> DatasetSource | None:
         return self.sources.get(source_ref)
@@ -477,6 +481,39 @@ class TestAnalysisToolsUnit(unittest.TestCase):
         res_rank = run_ranking_tool(ctx_no_univ, {"metric": "bank.npl_g35", "period": "2024_Q4"})
         self.assertEqual(len(res_rank.facts), 0)
         self.assertTrue(any(m.reason == "UNIVERSE_UNAVAILABLE" for m in res_rank.missing))
+
+    def test_company_profile_peer_position_and_trend_facts_are_unique_by_fact_id(self) -> None:
+        """Verify that running company_profile with peer_position + trend produces deduplicated unique fact_ids."""
+        from thesis_api.adaptive_runtime import _AdaptiveRun
+        from thesis_api.schemas import AnalysisRequest
+        from tests.test_api_analyze import (
+            _ExplicitOfflineAcceptingCritic,
+            _ExplicitOfflineAnalysisWriter,
+        )
+
+        req = AnalysisRequest(query="Sức khỏe tài chính của E1 so với các ngân hàng cùng nhóm, quý 4/2024")
+        settings = Settings(planner_mode="rules_only")
+        run = _AdaptiveRun(
+            provider=self.provider,
+            dataset_ref=self.provider.dataset_ref,
+            catalog=self.catalog,
+            request=req,
+            settings=settings,
+            critic=_ExplicitOfflineAcceptingCritic(),
+            writer=_ExplicitOfflineAnalysisWriter(injected_text="Valid explanation within accepted scope."),
+            emit=lambda *_: None,
+        )
+        resp = run.execute()
+        self.assertEqual(resp.status, "completed")
+        self.assertEqual(resp.question_type, "company_profile")
+        # Ensure planned tools include both peer_position and trend
+        planned_tools = [t["tool"] if isinstance(t, dict) else t.tool for t in resp.analysis_plan.tools]
+        self.assertIn("peer_position", planned_tools)
+        self.assertIn("trend", planned_tools)
+        # Check fact uniqueness
+        fact_ids = [f.fact_id for f in resp.facts]
+        self.assertGreater(len(fact_ids), 0)
+        self.assertEqual(len(set(fact_ids)), len(resp.facts))
 
 
 class TestGoldFixtureFactVerification(unittest.TestCase):

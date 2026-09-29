@@ -329,6 +329,38 @@ class TestReportFactsCore(unittest.TestCase):
         cand_no_ext = detect_cross_level_candidates(facts_no_ext, [], metric_to_group={"m1": "g1", "m2": "g2"})
         self.assertFalse(any(c.kind == "cross_metric_extreme" for c in cand_no_ext))
 
+        # Consolidate multiple extremes into exactly 1 candidate per entity across >= 2 groups
+        facts_multi_extreme = [
+            Fact(fact_id="r1", fact_type="peer_rank", entity_id="VPB", metric_id="m1", rank_better=5, denominator=5),
+            Fact(fact_id="r2", fact_type="peer_rank", entity_id="VPB", metric_id="m2", rank_better=5, denominator=5),
+            Fact(fact_id="r3", fact_type="peer_rank", entity_id="VPB", metric_id="m3", rank_better=5, denominator=5),
+        ]
+        cand_multi = detect_cross_level_candidates(
+            facts_multi_extreme, [], metric_to_group={"m1": "g1", "m2": "g2", "m3": "g3"}
+        )
+        extreme_cands = [c for c in cand_multi if c.kind == "cross_metric_extreme"]
+        self.assertEqual(len(extreme_cands), 1)
+        self.assertEqual(extreme_cands[0].pattern, "consistent")
+        self.assertEqual(extreme_cands[0].fact_ids, ["r1", "r2", "r3"])
+
+    def test_get_flat_pp_exact_and_short_id_only(self) -> None:
+        """Verify _get_flat_pp resolves only exact id, short id, or default (no fuzzy substring match)."""
+        from thesis_data.report_facts import _get_flat_pp
+
+        flat_map = {
+            "bank.npl_g35": 0.05,
+            "llr_coverage": 1.0,
+        }
+        # Exact match
+        self.assertEqual(_get_flat_pp(flat_map, "bank.npl_g35"), 0.05)
+        # Short id match
+        self.assertEqual(_get_flat_pp(flat_map, "bank.llr_coverage"), 1.0)
+        # Fuzzy match should NOT work (e.g. 'npl' in 'bank.npl_g35' or vice versa if not exact/short)
+        sub_map = {"npl": 0.02}
+        self.assertEqual(_get_flat_pp(sub_map, "bank.npl_g35", default=0.05), 0.05)
+        # Scalar fallback
+        self.assertEqual(_get_flat_pp(0.12, "any.metric"), 0.12)
+
     def test_counter_trend_per_metric_threshold_and_last_consecutive_period(self) -> None:
         """Verify counter_trend uses per-metric threshold and only inspects the last consecutive period."""
         flat_pp_map = {

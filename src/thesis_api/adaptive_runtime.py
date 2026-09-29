@@ -1337,11 +1337,16 @@ class _AdaptiveRun:
 
             # Populate universe members
             universe_id = self._peer_universe_id(plan)
-            if not universe_id and self.catalog.peer_universes and (
-                (self.spec and self.spec.question_type in ("ranking", "company_profile", "peer_position"))
-                or len(self.catalog.peer_universes) == 1
+            focus_entity = getattr(self.spec, "focus_entity", None) or target
+            candidate_universes = [
+                u for u in self.catalog.peer_universes
+                if not focus_entity or focus_entity in u.entity_ids
+            ]
+            if not universe_id and candidate_universes and (
+                (self.spec and self.spec.question_type in ("ranking", "company_profile"))
+                or len(candidate_universes) == 1
             ):
-                universe_id = self.catalog.peer_universes[0].peer_universe_id
+                universe_id = candidate_universes[0].peer_universe_id
 
             universe_members: tuple[str, ...] = ()
             if universe_id:
@@ -1379,6 +1384,25 @@ class _AdaptiveRun:
                     except Exception as exc:
                         logger.warning("Analysis tool %s failed: %s", tool_call.tool, exc, exc_info=True)
                         tool_limitations.append(f"Không thực hiện được phép phân tích {tool_call.tool}.")
+
+            # Dedupe tool_facts immediately after running tools (preserving first occurrence order)
+            deduped_tool_facts: list[Any] = []
+            seen_fact_ids: dict[str, Any] = {}
+            for f in tool_facts:
+                fid = f.fact_id
+                if fid not in seen_fact_ids:
+                    seen_fact_ids[fid] = f
+                    deduped_tool_facts.append(f)
+                else:
+                    prev_f = seen_fact_ids[fid]
+                    if prev_f.value != f.value:
+                        logger.warning(
+                            "Duplicate fact_id %s has conflicting values: %s != %s. Keeping first occurrence.",
+                            fid,
+                            prev_f.value,
+                            f.value,
+                        )
+            tool_facts = deduped_tool_facts
 
             # Verify fact inputs
             verified_facts, dropped_facts, verify_lims = verify_fact_inputs(
@@ -1420,6 +1444,17 @@ class _AdaptiveRun:
                 metric_to_group[m_id] = grp
                 if m_id not in flat_pp_map:
                     flat_pp_map[m_id] = pres.flat_threshold_pp
+
+            for f in verified_facts:
+                if f.metric_id and f.metric_id not in metric_to_group:
+                    pres = get_metric_presentation(f.metric_id)
+                    grp = pres.group or "other"
+                    metric_groups.setdefault(grp, []).append(f.metric_id)
+                    group_labels[grp] = pres.group_label or grp
+                    directions[f.metric_id] = pres.direction
+                    metric_to_group[f.metric_id] = grp
+                    if f.metric_id not in flat_pp_map:
+                        flat_pp_map[f.metric_id] = pres.flat_threshold_pp
 
             universe_id = self._peer_universe_id(plan)
             # Signals for company_profile or trend with universe
@@ -2174,6 +2209,17 @@ class _AdaptiveRun:
             )
             for link_result in (critic_result.applicable_link_results if critic_result is not None else ())
         ]
+        unique_facts = []
+        seen_fact_ids = set()
+        for f in facts:
+            fid = getattr(f, "fact_id", None)
+            if fid:
+                if fid not in seen_fact_ids:
+                    seen_fact_ids.add(fid)
+                    unique_facts.append(f)
+            else:
+                unique_facts.append(f)
+
         fact_dtos = [
             FactDTO(
                 fact_id=f.fact_id,
@@ -2194,7 +2240,7 @@ class _AdaptiveRun:
                 input_fact_ids=f.input_fact_ids,
             )
             if not isinstance(f, FactDTO) else f
-            for f in facts
+            for f in unique_facts
         ]
         finding_dtos = [
             CrossLevelFindingDTO(

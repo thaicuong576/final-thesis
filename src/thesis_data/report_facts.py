@@ -401,9 +401,6 @@ def _get_flat_pp(flat_pp: Mapping[str, float] | float, metric_id: str, default: 
     short_id = metric_id.rsplit(".", 1)[-1]
     if short_id in flat_pp:
         return float(flat_pp[short_id])
-    for k, v in flat_pp.items():
-        if k in metric_id or metric_id in k:
-            return float(v)
     return default
 
 
@@ -655,31 +652,22 @@ def detect_cross_level_candidates(
 
     m2g = metric_to_group or {}
     for entity, extreme_ranks in ranks_by_entity.items():
-        if len(extreme_ranks) >= 2:
-            seen_pairs: set[tuple[str, str]] = set()
-            for i in range(len(extreme_ranks)):
-                for j in range(i + 1, len(extreme_ranks)):
-                    r1, r2 = extreme_ranks[i], extreme_ranks[j]
-                    g1 = m2g.get(r1.metric_id, r1.metric_id)
-                    g2 = m2g.get(r2.metric_id, r2.metric_id)
-                    if g1 != g2:
-                        pair_key = (min(r1.metric_id, r2.metric_id), max(r1.metric_id, r2.metric_id))
-                        if pair_key in seen_pairs:
-                            continue
-                        seen_pairs.add(pair_key)
-                        both_top = (r1.rank_better == 1 and r2.rank_better == 1)
-                        both_bottom = (r1.rank_better == r1.denominator and r2.rank_better == r2.denominator)
-                        pattern = "consistent" if (both_top or both_bottom) else "tradeoff"
-                        candidates.append(
-                            CrossLevelCandidate(
-                                finding_id=f"f-extreme-{cid}",
-                                kind="cross_metric_extreme",
-                                severity="notice",
-                                text="Entity exhibits extreme peer rank positions across different analytical dimensions.",
-                                fact_ids=[r1.fact_id, r2.fact_id],
-                                pattern=pattern,
-                            )
-                        )
-                        cid += 1
+        groups = {m2g.get(r.metric_id, r.metric_id) for r in extreme_ranks}
+        if len(groups) >= 2:
+            all_top = all(r.rank_better == 1 for r in extreme_ranks)
+            all_bottom = all(r.rank_better == r.denominator for r in extreme_ranks)
+            pattern = "consistent" if (all_top or all_bottom) else "tradeoff"
+            cand_fact_ids = list(dict.fromkeys(r.fact_id for r in extreme_ranks))
+            candidates.append(
+                CrossLevelCandidate(
+                    finding_id=f"f-extreme-{cid}",
+                    kind="cross_metric_extreme",
+                    severity="notice",
+                    text="Entity exhibits extreme peer rank positions across different analytical dimensions.",
+                    fact_ids=cand_fact_ids,
+                    pattern=pattern,
+                )
+            )
+            cid += 1
 
     return candidates

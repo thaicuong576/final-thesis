@@ -37,6 +37,18 @@ export default {
           disabled: 'var(--text-disabled)',
           inverse: 'var(--text-inverse)',
         },
+        text: {
+          DEFAULT: 'var(--text-primary)',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+          disabled: 'var(--text-disabled)',
+          muted: 'var(--text-secondary)',
+          accent: 'var(--accent)',
+          warning: 'var(--warning)',
+          inverse: 'var(--text-inverse)',
+        },
+        'text-inverse': 'var(--text-inverse)',
         amber: {
           DEFAULT: 'var(--accent)',
           hover: 'var(--accent-hover)',

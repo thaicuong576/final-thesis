@@ -128,7 +128,11 @@ describe('ER-6 AskPage (Lean Ask Screen)', () => {
     // 2. Textarea and analyze button
     const textarea = screen.getByRole('textbox', { name: 'Câu hỏi phân tích' });
     expect(textarea).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Phân tích/i })).toBeInTheDocument();
+    const analyzeBtn = screen.getByRole('button', { name: /Phân tích/i });
+    expect(analyzeBtn).toBeInTheDocument();
+    // High-contrast text token on dark background
+    expect(analyzeBtn.className).toContain('bg-ink');
+    expect(analyzeBtn.className).toMatch(/text-(ink-inverse|\[var\(--text-inverse\)\]|text-inverse)/);
 
     // 3. Availability summary line
     expect(screen.getByText(/Dữ liệu hiện có: ACB, MBB, TCB, VCB, VPB · Q1–Q4\/2024 · Nợ xấu, Bao phủ, ROA, ROE/)).toBeInTheDocument();
@@ -139,6 +143,14 @@ describe('ER-6 AskPage (Lean Ask Screen)', () => {
     expect(screen.queryByText(/Phạm vi dữ liệu API công bố/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/snapshot-2024q4/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Mẫu minh họa/i)).not.toBeInTheDocument();
+  });
+
+  it('renders analyze button with valid high-contrast text color token', async () => {
+    renderAskPage();
+    const analyzeBtn = await screen.findByRole('button', { name: /Phân tích/i });
+    expect(analyzeBtn).toBeInTheDocument();
+    expect(analyzeBtn.className).toContain('bg-ink');
+    expect(analyzeBtn.className).toMatch(/text-(ink-inverse|\[var\(--text-inverse\)\]|text-inverse)/);
   });
 
   it('renders backend suggested questions and populates textarea on click without submitting', async () => {

@@ -129,6 +129,17 @@ describe('ER-6 useTraceStream parseTraceSseBlock', () => {
     expect(step?.detail?.suggestions).toEqual(['Thử năm 2024']);
   });
 
+  it('parses legacy RUN_BLOCKED event with colon-separated reason ("unsupported_period: Period 2023_Q4 is not ...")', () => {
+    const sseBlock = `event: RUN_BLOCKED\ndata: {"status":"error","reason":"unsupported_period: Period 2023_Q4 is not ..."}`;
+    const step = parseTraceSseBlock(sseBlock);
+
+    expect(step).not.toBeNull();
+    expect(step?.kind).toBe('blocked');
+    expect(step?.detail?.code).toBe('unsupported_period');
+    expect(step?.detail?.message).toBe('Giai đoạn phân tích chưa được hỗ trợ.');
+    expect(step?.detail?.message).not.toBe('Hệ thống chưa trả lời được câu hỏi này.');
+  });
+
   it('silently ignores unrelated legacy events without throwing', () => {
     const legacyBlock1 = `event: PLANNING_STARTED\ndata: {"type":"PLANNING_STARTED","payload":{"message":"Starting..."}}`;
     const legacyBlock2 = `event: ping\ndata: {}`;

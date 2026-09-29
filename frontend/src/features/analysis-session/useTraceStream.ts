@@ -38,7 +38,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
 
 export function mapErrorCodeToMessage(code?: string): string {
   if (!code) return 'Hệ thống chưa trả lời được câu hỏi này.';
-  return ERROR_CODE_MESSAGES[code.toLowerCase()] || 'Hệ thống chưa trả lời được câu hỏi này.';
+  const cleanCode = code.split(':')[0].trim().toLowerCase();
+  return ERROR_CODE_MESSAGES[cleanCode] || 'Hệ thống chưa trả lời được câu hỏi này.';
 }
 
 /**
@@ -99,7 +100,8 @@ export function parseTraceSseBlock(block: string): TraceStep | null {
     if (resolvedType === 'RUN_BLOCKED') {
       const payload = (parsed.payload ?? parsed) as Record<string, unknown>;
       const errorObj = (payload.error as Record<string, unknown>) || {};
-      const code = (errorObj.code || payload.reason || payload.code) as string | undefined;
+      const rawCode = (errorObj.code || payload.reason || payload.code) as string | undefined;
+      const code = rawCode ? rawCode.split(':')[0].trim() : undefined;
       const rawMsg = (errorObj.message || payload.message) as string | undefined;
       const message = rawMsg || mapErrorCodeToMessage(code);
       const suggestions = (errorObj.suggestions || payload.suggestions) as string[] | undefined;

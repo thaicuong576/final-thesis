@@ -109,7 +109,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                   <button
                     type="button"
                     onClick={handleAnalyze}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-text-inverse font-semibold text-sm rounded shadow-sm hover:bg-[#343430] active:translate-y-[1px] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-ink-inverse font-semibold text-sm rounded shadow-sm hover:bg-[#343430] active:translate-y-[1px] transition-all cursor-pointer"
                   >
                     <span>Phân tích</span>
                     <ArrowRight className="w-4 h-4" />

@@ -360,6 +360,37 @@ class TestAnalysisPlanner(unittest.TestCase):
         self.assertEqual(plan_res_unconf.planner_source, "rules")
         self.assertIn("model_unconfigured", plan_res_unconf.fallback_reasons)
 
+    def test_model_plan_empty_periods_normalized_for_lookup(self) -> None:
+        """Model output with periods=[] for a lookup question normalizes to [anchor_period] and passes validation."""
+        fake_client = MagicMock()
+        fake_client.responses.create.return_value = SimpleNamespace(
+            output_text='{"question_type":"lookup","focus_entity":"BANK_A","entities":["BANK_A"],"metrics":["bank.npl_g35"],"anchor_period":"2024_Q4","periods":[],"tools":[{"tool":"lookup","params":{"entities":["BANK_A"],"metrics":["bank.npl_g35"],"period":"2024_Q4"}}],"rationale":"Tra cứu nợ xấu"}'
+        )
+        spec, source, fallbacks, resolved = plan_question(
+            "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?",
+            self.catalog,
+            settings=SimpleNamespace(planner_mode="model_with_fallback", openai_api_key="sk-test", openai_model="gpt-4o-mini"),
+            client=fake_client,
+        )
+        self.assertEqual(source, "model")
+        self.assertEqual(fallbacks, [])
+        self.assertEqual(spec.periods, ("2024_Q4",))
+        self.assertEqual(spec.anchor_period, "2024_Q4")
+
+        # Directly testing validate_plan allows explicit_periods in anchor_period even if periods is empty
+        spec_empty = PlanSpec(
+            question_type="lookup",
+            focus_entity="BANK_A",
+            entities=("BANK_A",),
+            metrics=("bank.npl_g35",),
+            anchor_period="2024_Q4",
+            periods=(),
+            tools=(ToolCallSpec(tool="lookup", params={"entities": ["BANK_A"], "metrics": ["bank.npl_g35"], "period": "2024_Q4"}),),
+            rationale="Tra cứu",
+        )
+        errors = validate_plan(spec_empty, resolved, self.catalog)
+        self.assertEqual(errors, [])
+
     def test_build_analysis_plan_ranking_requirements_and_context_periods(self) -> None:
         # Ranking has requirement for all 5 entities
         res = resolve_query("Ngân hàng nào có đệm dự phòng dày nhất quý 4/2024?", self.catalog)

@@ -63,6 +63,7 @@ _MODEL_PLAN_PROMPT = (
     "Ràng buộc:\n"
     '- Chỉ dùng ngân hàng, kỳ, chỉ tiêu có trong "catalog".\n'
     '- Nếu "da_nhan_dien" đã có ngân hàng/kỳ/chỉ tiêu tường minh thì phải giữ nguyên, không thay, không bỏ.\n'
+    "- periods phải chứa mọi kỳ cần dùng, tối thiểu là anchor_period.\n"
     "- Được thêm công cụ bổ trợ nếu giúp trả lời sâu hơn (ví dụ decomposition khi hỏi về sinh lời), không thêm công cụ vô ích.\n"
     "- Không lập kế hoạch cho dữ liệu không có (vĩ mô, định giá).\n"
     'Trả về JSON: {"question_type":"…","focus_entity":…,"entities":[…],"metrics":[…],"anchor_period":"…","periods":[…],'
@@ -371,7 +372,8 @@ def validate_plan(
         if spec.focus_entity and spec.focus_entity != resolved.entities[0]:
             errors.append("Spec altered the explicit focus entity.")
     if resolved.explicit_periods:
-        if not set(resolved.explicit_periods).issubset(set(spec.periods)):
+        all_spec_periods = set(spec.periods) | ({spec.anchor_period} if spec.anchor_period else set())
+        if not set(resolved.explicit_periods).issubset(all_spec_periods):
             errors.append("Spec dropped explicit periods resolved from query.")
     if resolved.explicit_metrics:
         if not set(resolved.explicit_metrics).issubset(set(spec.metrics)):
@@ -557,13 +559,18 @@ def model_plan(
                 clean_params = {}
             tool_specs.append(ToolCallSpec(tool=item.get("tool", ""), params=clean_params))
 
+        anchor_val = data.get("anchor_period") or resolved.anchor_period
+        periods_val = list(data.get("periods", []))
+        if not periods_val and anchor_val:
+            periods_val = [anchor_val]
+
         return PlanSpec(
             question_type=data.get("question_type", ""),
             focus_entity=data.get("focus_entity"),
             entities=tuple(data.get("entities", ())),
             metrics=tuple(data.get("metrics", ())),
-            anchor_period=data.get("anchor_period", resolved.anchor_period),
-            periods=tuple(data.get("periods", ())),
+            anchor_period=anchor_val,
+            periods=tuple(periods_val),
             tools=tuple(tool_specs),
             rationale=data.get("rationale", ""),
         )
@@ -595,6 +602,18 @@ def plan_question(
             model_name = getattr(settings, "openai_model", "deepseek-v4-pro-0813")
             proposed = model_plan(question, resolved, catalog, client=client, model=model_name)
             if proposed is not None:
+                if not proposed.periods and proposed.anchor_period:
+                    proposed = PlanSpec(
+                        question_type=proposed.question_type,
+                        focus_entity=proposed.focus_entity,
+                        entities=proposed.entities,
+                        metrics=proposed.metrics,
+                        anchor_period=proposed.anchor_period,
+                        periods=(proposed.anchor_period,),
+                        tools=proposed.tools,
+                        rationale=proposed.rationale,
+                        limitations=proposed.limitations,
+                    )
                 errors = validate_plan(proposed, resolved, catalog)
                 if not errors:
                     return proposed, "model", [], resolved

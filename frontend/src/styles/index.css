@@ -28,6 +28,12 @@
   --text-tertiary: #85857e;
   --text-disabled: #a6a69f;
   --text-inverse: #f8f8f4;
+  --text-accent-strong: #8a5a00;
+  --text-warning-strong: #8a5a00;
+  --text-success-strong: #1b6d41;
+  --text-accent: var(--text-accent-strong);
+  --text-warning: var(--text-warning-strong);
+  --text-success: var(--text-success-strong);
 
   /* Borders */
   --border-subtle: #deded7;

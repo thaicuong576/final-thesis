@@ -1,50 +1,65 @@
-# Task Manifest: [THES-23] [ER-2] Question-type planner with tool plan and Vietnamese resolver
+# Task Manifest: ER-6 Lean Ask Screen, Orchestrator Session and Process Trace
 
 ## Metadata
-- **Branch:** `feat/er-2-question-planner`
-- **Worktree:** `D:\eddie-projects\personal-projects\final-thesis\.worktrees\feat-er-2-question-planner`
-- **Linear Issue:** `THES-23`
-- **Spec:** `docs/plans/2026-09-28-er-report/PR-2-query-understanding.md`
-- **Assigned Worker Role:** `worker-api`
-- **Mode:** `/ponytail` (simplest, shortest, most minimal solution that completely satisfies spec)
+- Branch: `feat/er-6-ui-ask-session`
+- Role: `worker-ui`
+- Spec: `docs/plans/2026-09-28-er-report/PR-6-ui-ask-session-trace.md`
+- Base: `55a7a51 feat(ui): [ER-7] block-rendered equity-research report (#92)`
 
-## Objectives & Scope
-1. `src/thesis_api/metric_presentation.py`:
-   - `MetricPresentation` dataclass
-   - Registries for bank metrics: `bank.npl_g35`, `bank.llr_coverage`, `bank.roa`, `bank.roe`
-   - Future metric definitions (nim, casa, car, cir, ldr)
-   - Topic synonym mappings (asset_quality, provisioning, profitability, comprehensive)
-   - Derived formula: `derived.roe_over_roa`
-   - Default scatter pairs: `[("bank.npl_g35","bank.llr_coverage"), ("bank.roe","bank.npl_g35")]`
-   - Fallback for unknown metrics
-   - `get_capabilities` extensions (label, shortLabel, unit, direction, decimals, group, groupLabel, suggestedQuestions, questionTypes)
-2. `src/thesis_api/analysis_tools_catalog.py`:
-   - Catalog of tools, agents, parameters, and defaults (lookup, peer_position, ranking, trend, head_to_head, decomposition, dispersion, relationship)
-3. `src/thesis_api/query_understanding.py`:
-   - `ResolvedQuery` dataclass
-   - `resolve_query(query: str, catalog) -> ResolvedQuery`: deterministic normalization, period resolution (ranges, quarter, year_only, latest default), metric & topic resolution, entity matching & unknown tokens, flags (lookup, superlative, comparison, trend, macro, why, relationship)
-4. `src/thesis_api/analysis_planner.py`:
-   - `rules_plan(resolved, catalog) -> PlanSpec`
-   - `model_plan(...)` with structured output & prompt
-   - `validate_plan(...)`
-   - `plan_question(...)` with fallback to rules
-   - `build_analysis_plan(spec, catalog, dataset_ref) -> AnalysisPlan`
-5. `src/thesis_api/messages_vi.py`:
-   - Friendly Vietnamese error messages with placeholders
-   - `suggestions_for(catalog) -> list[str]` (generated from catalog, no hardcoded tickers)
-   - `_error_report` populates `ErrorInfoDTO`
-6. Updates to `src/thesis_api/service.py` & `src/thesis_api/adaptive_runtime.py`:
-   - Replace old path for queries without explicit `periods`
-   - Clean up unused legacy helpers or redirect them
-7. Tests:
-   - `tests/test_query_understanding.py`
-   - `tests/test_analysis_planner.py`
-   - Update `tests/test_api_analyze.py`, `tests/test_api_stream.py`
+## Scope of Work
+1. **Screen A (Ask / `/analysis`)**:
+   - Lean ask screen:
+     - Title: "Bạn muốn phân tích gì?" (24px/700).
+     - Auto-expanding `textarea` (3 rows) with placeholder from `capabilities.suggestedQuestions[0]`, primary "Phân tích" button at bottom right. Enter submits, Shift+Enter new line. Remove Ctrl+Enter hint.
+     - Secondary text (13px `--text-secondary`): "Dữ liệu hiện có: {entities} · {Q1–Q4/2024} · {shortLabel các chỉ tiêu}", from `/api/capabilities`, with link "Chi tiết" to `/data`.
+     - "Thử hỏi": chips from `capabilities.suggestedQuestions`. Hidden if empty. Clicking fills the textarea without submitting.
+     - "Báo cáo gần đây": max 5 items from `/api/runs?limit=5` with question, date, and text status: "Hoàn tất", "Có giới hạn", "Bị chặn". Click opens report, or trace if blocked.
+     - Error banner below textarea for `RUN_BLOCKED` or `status = "error"` with `error.message` and clickable `error.suggestions`. Keep user input intact.
+     - Remove obsolete UI components: `ActiveDatasetCard`, `ActiveDatasetContextCard`, `DatasetSelectorSheet`, bank/quarter chips, `RequestInterpretationCard`, `ScopeMismatchAlert`, `ScopeAdjustmentDrawer`, old `SuggestedQuestions`, sample mockup links, "API: ..." labels, snapshot IDs.
+     - `streamRequest.ts`: remove all client-side blocking; request only `{ query }`. Remove/deprecate client `intentParser.ts` for sending.
 
-## Verification Gates
-1. `$env:PYTHONPATH="src"; $env:PYTHONUTF8="1"`
-2. `python scripts/check_openapi_contract.py`
-3. `python scripts/check_architecture_guardrails.py`
-4. `python -m unittest discover -s tests -q`
-5. `cd frontend; npm run lint; npm test -- --run; npm run build`
-6. `gh pr checks <PR_NUMBER>`
+2. **Screen B (Session / `/session`)**:
+   - `OrchestratorBoard`:
+     - Top card: Orchestrator ("Điều phối viên"), full width.
+     - Child agent cards: ONLY agents in `plan.detail.agents` with `decision = "run"`, plus "Phản biện" if arm has critic. DO NOT render skipped agents (e.g. Macro).
+     - Connect Orchestrator to child cards via 1px SVG line `--border-default`.
+     - Under each child card name: assigned analysis tasks (tool labels in plan). Orchestrator shows "Dạng câu hỏi: {nhãn}".
+     - Status labels in text + color: Chờ / Đang làm / Xong / Đang sửa. Summary from latest step for that actor.
+     - State transitions:
+       - `assign` -> "Đang làm"
+       - `tool_result` / `draft` -> "Xong"
+       - `critique_issue` -> "Đang sửa"
+       - `revision` -> "Xong"
+       - Orchestrator -> "Xong" when `report_ready`.
+     - Right corner: `mm:ss` elapsed timer based on latest step `t_ms`.
+     - On `report_ready`: primary button "Mở báo cáo", auto-redirects after 1.5s if no interaction (respects `prefers-reduced-motion`).
+     - SSE disconnect: "Mất kết nối. Thử lại" with retry button. No fake events.
+     - Remove unused legacy session components (list in PR).
+
+3. **Screen C (`ProcessTrace`)**:
+   - Props: `steps: TraceStep[]`, `live: boolean`.
+   - Header: "Quá trình phân tích", meta "{n} agent · {m} vòng phản biện · {thời lượng}", "Mở tất cả" / "Thu gọn".
+   - Filter chips: "Tất cả" + each actor present in steps with color dot.
+   - Rows: `mm:ss` · color dot · "{Actor} → {Recipient}" (500) · summary · chevron. Expandable with `aria-expanded`, keyboard accessible.
+   - Default expanded: `critique_issue` and `revision`. Auto-scroll on `live` only if user is at bottom.
+   - Render content by `kind`:
+     - `plan`: question type, rationale, tools table, agent decisions table.
+     - `assign`: blockquote with task.
+     - `tool_result`: tool name, facts table (Content | Value | Source), datasets created, missing cells.
+     - `draft`: draft sentences.
+     - `compose`: report blocks in order.
+     - `verify`: "{matched}/{checked} số khớp dữ liệu gốc", rejected sentences + reasons.
+     - `critique_issue`: table Type | Severity | Requirement, quoted flagged sentence, evidence.
+     - `revision`: old sentence strikethrough `--danger`, new sentence `--success`, with text labels "Trước" / "Sau".
+     - `cross_level_finding`: Level | Signal table.
+     - `blocked`: Vietnamese error message.
+   - No raw technical IDs (fact_id, observation_id).
+
+4. **Additional Review Fixes from PR #92**:
+   - `SmallMultiples`: use `useChartWidth` for 1:1 scaling, stack to 1 column when container < 480px. Text in SVG >= 11px on 375px.
+   - `ReportPage`: `capabilityMetrics`: extract all presentation fields from capabilities (`shortLabel`, `unit`, `direction`, `decimals`, `group`, `groupLabel`), field-by-field fallback to `DEFAULT_METRICS`. Ignore label if it matches metric id. For metrics not in registry: default `direction: "neutral"`, `unit` from capabilities.
+   - Remove `docs/images/er-report-preview/*.png` from git repository.
+
+5. **Verification**:
+   - Lint, test (vitest + python unittest + guards), build.
+   - Capture 1280px & 375px screenshots across screens.

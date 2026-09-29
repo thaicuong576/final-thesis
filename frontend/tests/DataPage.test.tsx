@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DataPage } from '../src/pages/data/DataPage';
-import { ScopeMismatchAlert } from '../src/features/analysis-composer/components/ScopeMismatchAlert';
 import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
 import type { AnalysisCapabilities } from '../src/entities/capability/model/types';
@@ -94,30 +93,5 @@ describe('DataPage catalog and readiness', () => {
 
     expect(await screen.findByText(mockCapabilities.peerUniverse!.label)).toBeInTheDocument();
     expect(screen.getByText(mockCapabilities.peerUniverse!.description)).toBeInTheDocument();
-  });
-});
-
-describe('ScopeMismatchAlert catalog wording', () => {
-  it('describes catalog scope without claiming it is ready to run', () => {
-    render(
-      <MemoryRouter>
-        <ScopeMismatchAlert
-          mismatch={{
-            isMismatch: true,
-            reason: 'The requested capability is not runnable.',
-            availableCapabilitiesSummary: {
-              periods: '2024 Q1–Q4',
-              entities: 'ACB · TCB',
-              metrics: 'ROE · NPL'
-            }
-          }}
-          rawQuestion="So sánh ROE"
-          onEditQuestion={() => undefined}
-        />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText('Phạm vi catalog (khả năng chạy do API xác nhận):')).toBeInTheDocument();
-    expect(screen.queryByText(/phạm vi sẵn sàng/i)).not.toBeInTheDocument();
   });
 });

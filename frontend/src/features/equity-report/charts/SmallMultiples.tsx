@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { useChartWidth } from './useChartWidth';
 
 export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const width = useChartWidth(containerRef, 560);
+
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
   const targetEntity = highlightSet.size > 0 ? Array.from(highlightSet)[0] : 'ACB';
 
   const metricIds = dataset.metric_ids || [];
   const periods = dataset.periods || ['2024_Q1', '2024_Q2', '2024_Q3', '2024_Q4'];
   const rows = dataset.rows || [];
+
+  const isSingleCol = width < 480;
+  const numCols = isSingleCol ? 1 : width >= 720 ? 4 : 2;
+  const gap = 12;
+  const cardWidth = Math.max(160, Math.floor((width - (numCols - 1) * gap) / numCols));
+  const chartW = Math.max(140, cardWidth - 16);
+  const chartH = 110;
 
   // Group all entities
   const allEntities = Array.from(new Set(rows.map((r) => r.entity_id)));
@@ -27,8 +38,8 @@ export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlig
   const missingNotes: string[] = [];
 
   return (
-    <div className={`my-2 ${className}`}>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div ref={containerRef} className={`w-full max-w-[640px] my-2 ${className}`}>
+      <div className={`grid gap-3 ${isSingleCol ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-4'}`}>
         {metricIds.map((mId) => {
           const metricMeta = getMetricPresentation(mId, metrics);
           const mTree = dataTree.get(mId) || new Map();
@@ -60,14 +71,12 @@ export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlig
             ? formatMetricValue(targetLastRow.value, metricMeta)
             : '—';
 
-          const chartW = 160;
-          const chartH = 96;
-          const leftM = 28;
+          const leftM = 36;
           const rightM = 10;
-          const topM = 10;
-          const bottomM = 18;
-          const plotW = chartW - leftM - rightM;
-          const plotH = chartH - topM - bottomM;
+          const topM = 12;
+          const bottomM = 22;
+          const plotW = Math.max(20, chartW - leftM - rightM);
+          const plotH = Math.max(20, chartH - topM - bottomM);
 
           const scaleX = (idx: number) => {
             if (periods.length <= 1) return leftM + plotW / 2;
@@ -85,15 +94,16 @@ export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlig
                 <span className="text-text-secondary font-medium truncate">
                   {metricMeta.shortLabel} {metricMeta.unit ? `(${metricMeta.unit})` : ''}
                 </span>
-                <span className="font-semibold text-text-accent font-mono ml-1">{targetLastVal}</span>
+                <span className="font-semibold text-text-accent font-sans tabular-nums ml-1">{targetLastVal}</span>
               </div>
 
               <svg
                 viewBox={`0 0 ${chartW} ${chartH}`}
-                width="100%"
+                width={chartW}
+                height={chartH}
                 role="img"
                 aria-label={`Diễn biến ${metricMeta.shortLabel} qua các quý`}
-                className="overflow-visible font-sans"
+                className="overflow-visible font-sans max-w-full"
               >
                 {/* 3 Y Ticks */}
                 {ticks.map((t) => {
@@ -110,9 +120,9 @@ export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlig
                       />
                       <text
                         x={leftM - 4}
-                        y={y + 3}
+                        y={y + 4}
                         textAnchor="end"
-                        fontSize="9"
+                        fontSize="11"
                         fill="var(--text-muted, #85857e)"
                       >
                         {t}
@@ -129,9 +139,9 @@ export const SmallMultiples: React.FC<ChartProps> = ({ dataset, metrics, highlig
                     <text
                       key={p}
                       x={x}
-                      y={chartH - 2}
+                      y={chartH - 4}
                       textAnchor="middle"
-                      fontSize="9"
+                      fontSize="11"
                       fill="var(--text-muted, #85857e)"
                     >
                       {shortPeriod}

@@ -1,4 +1,5 @@
 export * from './model/types';
+export * from './model/normalizer';
 export * from './mock/mockReports';
 export * from './components/ReportHeaderBar';
 export * from './components/AnalysisPlanBanner';

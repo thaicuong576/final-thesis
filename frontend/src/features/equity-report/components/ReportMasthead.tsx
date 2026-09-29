@@ -24,9 +24,16 @@ export const ReportMasthead: React.FC = () => {
 
   // Format date
   const rawDate = (report as { created_at?: string }).created_at;
-  const dateStr = rawDate
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' }).format(new Date(rawDate))
-    : '28/09/2026';
+  const dateStr = (() => {
+    if (!rawDate) return '—';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' }).format(d);
+    } catch {
+      return '—';
+    }
+  })();
 
   // Period label: answer_card displays anchor period (e.g. "Quý 4/2024"), not period range
   const periodLabel = (() => {

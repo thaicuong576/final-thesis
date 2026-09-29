@@ -5,10 +5,6 @@ export interface Entity {
   ticker: string;
   name: string;
   type?: string;
-  periods?: string[] | Period[];
-  coveredPeriods?: string[];
-  coverage?: Record<string, boolean | string>;
-  missingPeriods?: string[];
 }
 
 export interface Period {
@@ -86,6 +82,4 @@ export interface AnalysisCapabilities {
   validationTimestamp?: string | null;
   source?: string | null;
   readiness?: string | null;
-  coverageMatrix?: Record<string, Record<string, boolean | string>> | Record<string, string[]>;
-  coverage?: Record<string, Record<string, boolean | string>> | Record<string, string[]>;
 }

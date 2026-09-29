@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DataPage } from '../src/pages/data/DataPage';
 import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
+import { stagingCapabilitiesFixture } from '../src/test/fixtures/stagingCapabilitiesFixture';
 import type { AnalysisCapabilities } from '../src/entities/capability/model/types';
 
 function renderDataPage() {
@@ -130,44 +131,65 @@ describe('DataPage catalog and readiness', () => {
     expect(entityTypes.length).toBe(5);
   });
 
-  it('renders coverage matrix and explicitly marks missing cells as "chưa có số liệu đã kiểm định"', async () => {
+  it('renders realistic staging capabilities fixture with 5 enterprises, 4 metrics with units, 4 periods, peer universe, and neutral scope cells', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(stagingCapabilitiesFixture);
+
+    renderDataPage();
+
+    // 5 doanh nghiệp
+    expect(await screen.findByRole('heading', { name: /Danh sách doanh nghiệp \(5\)/ })).toBeInTheDocument();
+    expect(screen.getAllByText('ACB').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('TCB').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('VPB').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('MBB').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('VCB').length).toBeGreaterThanOrEqual(1);
+
+    // 4 chỉ tiêu có đơn vị
+    expect(screen.getByRole('heading', { name: /Chỉ tiêu tài chính \(4\)/ })).toBeInTheDocument();
+    expect(screen.getByText('Tỷ lệ nợ xấu (nhóm 3–5)')).toBeInTheDocument();
+    expect(screen.getByText('Tỷ lệ bao phủ nợ xấu')).toBeInTheDocument();
+    expect(screen.getByText('Tỷ suất sinh lời trên tổng tài sản')).toBeInTheDocument();
+    expect(screen.getByText('Tỷ suất sinh lời trên vốn chủ sở hữu')).toBeInTheDocument();
+    const percentUnits = screen.getAllByText('%');
+    expect(percentUnits.length).toBeGreaterThanOrEqual(4);
+
+    // 4 kỳ
+    expect(screen.getByText('Q1–Q4/2024')).toBeInTheDocument();
+    expect(screen.getByText('Q1 2024')).toBeInTheDocument();
+    expect(screen.getByText('Q2 2024')).toBeInTheDocument();
+    expect(screen.getByText('Q3 2024')).toBeInTheDocument();
+    expect(screen.getByText('Q4 2024')).toBeInTheDocument();
+
+    // Nhóm so sánh
+    expect(screen.getByText('Snapshot peer group (5 companies)')).toBeInTheDocument();
+    expect(screen.getByText('Nhóm 5 ngân hàng niêm yết được kiểm định trong snapshot Gold.')).toBeInTheDocument();
+
+    // Ghi chú trung tính
+    expect(screen.getByText(/Ô thiếu số liệu đã kiểm định sẽ được ghi rõ trong từng báo cáo/)).toBeInTheDocument();
+
+    // KHÔNG có chuỗi "Đã kiểm định" hay "chưa có số liệu đã kiểm định" gắn với từng ô
+    expect(screen.queryByText('Đã kiểm định')).not.toBeInTheDocument();
+    expect(screen.queryByText('chưa có số liệu đã kiểm định')).not.toBeInTheDocument();
+  });
+
+  it('only displays entity name when distinct from ticker', async () => {
     vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
       analysis_available: true,
       dataset_snapshot_id: 'gold-v5-snap',
       database_status: 'connected',
       entities: [
-        {
-          id: 'acb',
-          ticker: 'ACB',
-          name: 'Ngân hàng Á Châu',
-          periods: ['2024-q1', '2024-q2', '2024-q3', '2024-q4']
-        },
-        {
-          id: 'tcb',
-          ticker: 'TCB',
-          name: 'Ngân hàng Kỹ thương Việt Nam',
-          periods: ['2024-q1', '2024-q2'] // q3 and q4 missing
-        }
-      ],
-      periods: [
-        { id: '2024-q1', quarter: 1, year: 2024, label: 'Q1/2024' },
-        { id: '2024-q2', quarter: 2, year: 2024, label: 'Q2/2024' },
-        { id: '2024-q3', quarter: 3, year: 2024, label: 'Q3/2024' },
-        { id: '2024-q4', quarter: 4, year: 2024, label: 'Q4/2024' }
+        { id: 'ACB', ticker: 'ACB', name: 'ACB', type: 'company' },
+        { id: 'MBB', ticker: 'MBB', name: 'Ngân hàng Quân Đội', type: 'company' }
       ]
     }));
 
     renderDataPage();
 
-    expect(await screen.findByRole('heading', { name: 'Ma trận độ phủ doanh nghiệp × kỳ' })).toBeInTheDocument();
-    // Covered cells show 'Đã kiểm định'
-    const validCells = screen.getAllByText('Đã kiểm định');
-    // ACB has 4, TCB has 2 -> 6 cells covered
-    expect(validCells.length).toBe(6);
-
-    // Missing cells (TCB in Q3 and Q4) must clearly state 'chưa có số liệu đã kiểm định'
-    const missingCells = screen.getAllByText('chưa có số liệu đã kiểm định');
-    expect(missingCells.length).toBe(2);
+    expect(await screen.findByRole('heading', { name: /Danh sách doanh nghiệp \(2\)/ })).toBeInTheDocument();
+    // Distinct name is rendered (in scope matrix and entity list table)
+    expect(screen.getAllByText('Ngân hàng Quân Đội').length).toBe(2);
+    // Non-distinct name displays fallback dash in enterprise table
+    expect(screen.getByText('—')).toBeInTheDocument();
   });
 
   it('renders error state with retry button and does not fall back to mock data or display fake numbers when API fails', async () => {
@@ -185,6 +207,7 @@ describe('DataPage catalog and readiness', () => {
     expect(screen.queryByText('Ngân hàng trong catalog')).not.toBeInTheDocument();
     expect(screen.queryByText('Chỉ tiêu trong catalog')).not.toBeInTheDocument();
     expect(screen.queryByText('Ma trận độ phủ doanh nghiệp × kỳ')).not.toBeInTheDocument();
+    expect(screen.queryByText('Phạm vi dữ liệu: Doanh nghiệp × Kỳ')).not.toBeInTheDocument();
     expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
   });
 

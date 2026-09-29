@@ -1,96 +1,22 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowRight, Check, Database, FileText, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, Database, FileText, Loader2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { formatPeriodsSignature } from '@/features/analysis-composer/model/intentParser';
-import type { AnalysisCapabilities, Entity, Period } from '@/entities/capability/model/types';
-
-function getCellCoverageStatus(
-  capabilities: AnalysisCapabilities,
-  entity: Entity,
-  period: Period
-): { isCovered: boolean; label: string } {
-  if (
-    capabilities.analysis_available === false &&
-    !entity.periods &&
-    !entity.coverage &&
-    !capabilities.coverageMatrix &&
-    !capabilities.coverage
-  ) {
-    return {
-      isCovered: false,
-      label: 'chưa có số liệu đã kiểm định'
-    };
-  }
-
-  const matrix = capabilities.coverageMatrix ?? capabilities.coverage;
-  if (matrix) {
-    const entityCoverage = matrix[entity.ticker] ?? matrix[entity.id];
-    if (Array.isArray(entityCoverage)) {
-      const isCovered = entityCoverage.includes(period.id);
-      return {
-        isCovered,
-        label: isCovered ? 'Đã kiểm định' : 'chưa có số liệu đã kiểm định'
-      };
-    }
-    if (entityCoverage && typeof entityCoverage === 'object') {
-      const val = entityCoverage[period.id];
-      const isCovered = val === true || val === 'valid';
-      return {
-        isCovered,
-        label: isCovered ? 'Đã kiểm định' : 'chưa có số liệu đã kiểm định'
-      };
-    }
-  }
-
-  const entityPeriods = entity.periods ?? entity.coveredPeriods;
-  if (Array.isArray(entityPeriods)) {
-    const periodIds = entityPeriods.map((p) => (typeof p === 'string' ? p : (p as Period).id));
-    const isCovered = periodIds.includes(period.id);
-    return {
-      isCovered,
-      label: isCovered ? 'Đã kiểm định' : 'chưa có số liệu đã kiểm định'
-    };
-  }
-
-  if (Array.isArray(entity.missingPeriods)) {
-    if (entity.missingPeriods.includes(period.id)) {
-      return {
-        isCovered: false,
-        label: 'chưa có số liệu đã kiểm định'
-      };
-    }
-  }
-
-  if (entity.coverage && typeof entity.coverage === 'object') {
-    const val = entity.coverage[period.id];
-    const isCovered = val === true || val === 'valid';
-    return {
-      isCovered,
-      label: isCovered ? 'Đã kiểm định' : 'chưa có số liệu đã kiểm định'
-    };
-  }
-
-  if (capabilities.analysis_available === true) {
-    return {
-      isCovered: true,
-      label: 'Đã kiểm định'
-    };
-  }
-
-  return {
-    isCovered: false,
-    label: 'chưa có số liệu đã kiểm định'
-  };
-}
 
 function getDirectionLabel(direction?: string): string {
   if (direction === 'higher_is_better') return 'Càng cao càng tốt';
   if (direction === 'lower_is_better') return 'Càng thấp càng tốt';
   if (direction === 'neutral') return 'Trung tính';
   return 'Theo dõi';
+}
+
+function isDistinctName(name?: string, ticker?: string): boolean {
+  if (!name || !name.trim()) return false;
+  if (!ticker || !ticker.trim()) return true;
+  return name.trim().toUpperCase() !== ticker.trim().toUpperCase();
 }
 
 export function DataPage() {
@@ -119,7 +45,7 @@ export function DataPage() {
     capabilities!.metrics.length === 0 &&
     capabilities!.periods.length === 0;
 
-  const hasCoverageInfo = Boolean(capabilities && capabilities.entities.length > 0 && capabilities.periods.length > 0);
+  const hasScopeMatrix = Boolean(capabilities && capabilities.entities.length > 0 && capabilities.periods.length > 0);
 
   return (
     <WorkspaceShell activeSection="data" context={<span className="text-xs font-bold text-ink">DỮ LIỆU PHÂN TÍCH</span>}>
@@ -276,16 +202,16 @@ export function DataPage() {
                 </div>
               </section>
 
-              {/* Section 2: Ma trận độ phủ doanh nghiệp × kỳ */}
-              <section className="rounded-md border border-line bg-card p-5 sm:p-6" aria-labelledby="coverage-heading">
+              {/* Section 2: Phạm vi dữ liệu: Doanh nghiệp × Kỳ */}
+              <section className="rounded-md border border-line bg-card p-5 sm:p-6" aria-labelledby="scope-heading">
                 <div className="border-b border-line pb-3">
-                  <h2 id="coverage-heading" className="text-base font-bold text-ink">Ma trận độ phủ doanh nghiệp × kỳ</h2>
+                  <h2 id="scope-heading" className="text-base font-bold text-ink">Phạm vi dữ liệu: Doanh nghiệp × Kỳ</h2>
                   <p className="mt-1 text-xs text-ink-secondary">
-                    Độ phủ dữ liệu thực tế theo từng doanh nghiệp và kỳ báo cáo. Các ô thiếu được ghi nhận tường minh, không suy diễn hoặc nội suy.
+                    Phạm vi các doanh nghiệp và kỳ dữ liệu được catalog công bố. Ô thiếu số liệu đã kiểm định sẽ được ghi rõ trong từng báo cáo.
                   </p>
                 </div>
 
-                {hasCoverageInfo ? (
+                {hasScopeMatrix ? (
                   <div className="mt-4 overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0">
                     <table className="w-full min-w-[500px] border-collapse text-left text-xs sm:text-sm">
                       <thead>
@@ -299,36 +225,31 @@ export function DataPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-line">
-                        {capabilities.entities.map((entity) => (
-                          <tr key={entity.id || entity.ticker} className="hover:bg-surface-hover/50">
-                            <td className="py-2.5 px-3">
-                              <span className="font-semibold text-ink">{entity.ticker}</span>
-                              {entity.name && <span className="block text-xs text-ink-secondary">{entity.name}</span>}
-                            </td>
-                            {capabilities.periods.map((period) => {
-                              const status = getCellCoverageStatus(capabilities, entity, period);
-                              return (
+                        {capabilities.entities.map((entity) => {
+                          const hasDistinctName = isDistinctName(entity.name, entity.ticker);
+                          return (
+                            <tr key={entity.id || entity.ticker} className="hover:bg-surface-hover/50">
+                              <td className="py-2.5 px-3">
+                                <span className="font-semibold text-ink">{entity.ticker}</span>
+                                {hasDistinctName && (
+                                  <span className="block text-xs text-ink-secondary">{entity.name}</span>
+                                )}
+                              </td>
+                              {capabilities.periods.map((period) => (
                                 <td key={period.id} className="py-2.5 px-3 text-center">
-                                  {status.isCovered ? (
-                                    <span className="inline-flex items-center gap-1 rounded bg-ready-soft px-2 py-0.5 text-xs font-medium text-text-success border border-ready/20">
-                                      <Check className="size-3" aria-hidden="true" />
-                                      <span>{status.label}</span>
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center rounded border border-line bg-surface-secondary px-2 py-0.5 text-xs text-ink-secondary">
-                                      {status.label}
-                                    </span>
-                                  )}
+                                  <span className="inline-flex items-center rounded border border-line bg-surface-secondary px-2 py-0.5 text-xs text-ink-secondary">
+                                    Trong phạm vi
+                                  </span>
                                 </td>
-                              );
-                            })}
-                          </tr>
-                        ))}
+                              ))}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <p className="mt-4 text-xs text-ink-secondary">API chưa cung cấp đủ thông tin doanh nghiệp và kỳ để lập ma trận độ phủ.</p>
+                  <p className="mt-4 text-xs text-ink-secondary">API chưa cung cấp đủ thông tin doanh nghiệp và kỳ để lập phạm vi dữ liệu.</p>
                 )}
               </section>
 
@@ -349,14 +270,19 @@ export function DataPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
-                      {capabilities.entities.map((entity) => (
-                        <tr key={entity.id || entity.ticker} className="hover:bg-surface-hover/50">
-                          <td className="py-2.5 px-3 font-bold text-ink">{entity.ticker}</td>
-                          <td className="py-2.5 px-3 text-ink">{entity.name || '—'}</td>
-                          <td className="py-2.5 px-3 text-ink-secondary">{entity.type === 'company' ? 'Ngân hàng niêm yết' : (entity.type || 'Doanh nghiệp')}</td>
-                          <td className="py-2.5 px-3 font-mono text-xs text-ink-secondary">{entity.id}</td>
-                        </tr>
-                      ))}
+                      {capabilities.entities.map((entity) => {
+                        const hasDistinctName = isDistinctName(entity.name, entity.ticker);
+                        return (
+                          <tr key={entity.id || entity.ticker} className="hover:bg-surface-hover/50">
+                            <td className="py-2.5 px-3 font-bold text-ink">{entity.ticker}</td>
+                            <td className="py-2.5 px-3 text-ink">{hasDistinctName ? entity.name : '—'}</td>
+                            <td className="py-2.5 px-3 text-ink-secondary">
+                              {entity.type === 'company' ? 'Ngân hàng niêm yết' : (entity.type || 'Doanh nghiệp')}
+                            </td>
+                            <td className="py-2.5 px-3 font-mono text-xs text-ink-secondary">{entity.id}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

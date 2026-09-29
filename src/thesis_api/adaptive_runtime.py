@@ -541,7 +541,8 @@ def _plan_request(
 
         planner_client = client
         if planner_client is None and settings is not None:
-            if getattr(settings, "openai_api_key", None) and getattr(settings, "openai_api_key", "").strip():
+            planner_mode = getattr(settings, "planner_mode", "model_with_fallback")
+            if planner_mode == "model_with_fallback" and getattr(settings, "openai_api_key", None) and getattr(settings, "openai_api_key", "").strip():
                 try:
                     from .llm import get_llm_client
 
@@ -1318,6 +1319,138 @@ class _AdaptiveRun:
                 detail = result.terminal_reason or "The candidate did not satisfy the bounded acceptance policy."
             raise AnalysisBlocked("fail_acceptance", detail)
 
+        # Execute ER-3 analysis tools
+        tool_facts: list[Any] = []
+        tool_datasets: list[Any] = []
+        tool_missing: list[Any] = []
+        tool_limitations: list[str] = []
+
+        if self.spec is not None and getattr(self.spec, "tools", None):
+            from .analysis_tools import (
+                TOOLS,
+                ToolContext,
+                build_source_notes,
+                verify_fact_inputs,
+            )
+            from .metric_presentation import get_metric_presentation
+
+            # Populate universe members
+            universe_id = self._peer_universe_id(plan)
+            universe_members: tuple[str, ...] = ()
+            if universe_id:
+                for univ in self.catalog.peer_universes:
+                    if univ.peer_universe_id == universe_id:
+                        universe_members = tuple(univ.entity_ids)
+                        break
+            if not universe_members:
+                universe_members = tuple(peers + ((target,) if target else ()))
+            if not universe_members:
+                universe_members = tuple(
+                    e.entity_id for e in self.catalog.entities if e.entity_type.value == "company"
+                )
+
+            tool_ctx = ToolContext(
+                provider=self.provider,
+                dataset_ref=self.dataset_ref,
+                catalog=self.catalog,
+                universe_id=universe_id or "sector:bank",
+                universe_members=universe_members,
+                presentation=get_metric_presentation,
+                cache={},
+            )
+
+            # Pre-populate cache from initial artifacts
+            for artifact in self.artifacts.values():
+                obs = getattr(artifact, "observation", None)
+                if obs is not None:
+                    tool_ctx.cache[(obs.entity_id, obs.period_id, obs.metric_id)] = obs
+
+            for tool_call in self.spec.tools:
+                tool_fn = TOOLS.get(tool_call.tool)
+                if tool_fn is not None:
+                    try:
+                        res = tool_fn(tool_ctx, tool_call.params)
+                        tool_facts.extend(res.facts)
+                        tool_datasets.extend(res.datasets)
+                        tool_missing.extend(res.missing)
+                    except Exception as exc:
+                        logger.warning("Analysis tool %s failed: %s", tool_call.tool, exc, exc_info=True)
+                        tool_limitations.append(f"Không thực hiện được phép phân tích {tool_call.tool}.")
+
+            # Verify fact inputs
+            verified_facts, dropped_facts, verify_lims = verify_fact_inputs(
+                self.provider, self.dataset_ref, tool_facts
+            )
+            tool_limitations.extend(verify_lims)
+
+            # Missing cells limitations
+            for m in tool_missing:
+                tool_limitations.append(f"{m.entity_id} {m.period} chưa có số liệu đã kiểm định; để trống thay vì ước tính.")
+        else:
+            verified_facts = []
+
+        # Signals and Cross-Level Candidates
+        signals: list[Any] = []
+        cross_level_candidates_list: list[Any] = []
+        source_notes: list[Any] = []
+        if verified_facts and self.spec is not None:
+            from thesis_data.report_facts import classify_signals, detect_cross_level_candidates
+            from .metric_presentation import get_metric_presentation
+            from .analysis_tools import build_source_notes
+            from .schemas import SignalDTO
+
+            # Metric groups & directions
+            metric_groups: dict[str, list[str]] = {}
+            group_labels: dict[str, str] = {}
+            directions: dict[str, str] = {}
+            metric_to_group: dict[str, str] = {}
+            for m_id in plan.scope.company_metric_ids:
+                pres = get_metric_presentation(m_id)
+                grp = pres.group or "other"
+                metric_groups.setdefault(grp, []).append(m_id)
+                group_labels[grp] = pres.group_label or grp
+                directions[m_id] = pres.direction
+                metric_to_group[m_id] = grp
+
+            universe_id = self._peer_universe_id(plan)
+            # Signals for company_profile or trend with universe
+            if self.spec.question_type == "company_profile" or (self.spec.question_type == "trend" and universe_id):
+                sig_results = classify_signals(
+                    target=target or "",
+                    facts=verified_facts,
+                    metric_groups=metric_groups,
+                    directions=directions,
+                    flat_pp=0.05,
+                    group_labels=group_labels,
+                )
+                for sr in sig_results:
+                    signals.append(
+                        SignalDTO(
+                            group=sr.group,
+                            label=sr.label,
+                            verdict=sr.verdict,  # type: ignore
+                            metric_ids=sr.metric_ids,
+                            fact_ids=sr.fact_ids,
+                        )
+                    )
+                candidates = detect_cross_level_candidates(
+                    facts=verified_facts,
+                    signals=sig_results,
+                    flat_pp=0.05,
+                    directions=directions,
+                    metric_to_group=metric_to_group,
+                )
+            else:
+                candidates = detect_cross_level_candidates(
+                    facts=verified_facts,
+                    signals=[],
+                    flat_pp=0.05,
+                    directions=directions,
+                    metric_to_group=metric_to_group,
+                )
+            cross_level_candidates_list = candidates
+            source_notes = build_source_notes(self.provider, self.dataset_ref, verified_facts)
+
         report = self._render_report(
             plan, target, peers, company_metrics, macro_metrics, result.final_claims,
             state, eventing_critic.latest_result,
@@ -1325,6 +1458,12 @@ class _AdaptiveRun:
             synthesis_supporting_claim_ids=result.final_synthesis_supporting_claim_ids,
             revised_claim_ids=self._revised_claim_ids,
             synthesis_revised=result.synthesis_was_revised,
+            facts=verified_facts,
+            datasets=tool_datasets,
+            signals=signals,
+            cross_level_findings=cross_level_candidates_list,
+            source_notes=source_notes,
+            extra_limitations=tool_limitations,
         )
         self.emit("SYNTHESIS_COMPLETED", {"periods": list(periods), "message": "The terminal candidate, provenance joins, and limitations are ready."})
         return report
@@ -1761,7 +1900,12 @@ class _AdaptiveRun:
             {role: tuple(claim_ids) for role, claim_ids in changed_by_role.items()},
         )
 
-    def _render_report(self, plan, target, peers, company_metrics, macro_metrics, final_claims, state, critic_result, *, synthesis_summary=None, synthesis_supporting_claim_ids=(), synthesis_revised=False, revised_claim_ids=()) -> AnalysisResponse:
+    def _render_report(
+        self, plan, target, peers, company_metrics, macro_metrics, final_claims, state, critic_result,
+        *, synthesis_summary=None, synthesis_supporting_claim_ids=(), synthesis_revised=False, revised_claim_ids=(),
+        facts=(), datasets=(), signals=(), cross_level_findings=(), source_notes=(), extra_limitations=(),
+    ) -> AnalysisResponse:
+        from .schemas import FactDTO, CrossLevelFindingDTO
         role_by_claim = {claim_id: item.capability for claim_id, item in self.artifacts.items()}
         known_limitations: list[str] = []
         claim_dtos: list[AtomicClaimDTO] = []
@@ -1928,7 +2072,7 @@ class _AdaptiveRun:
             "peer_comparison" if link.link_type is ApplicableLinkType.COMPANY_TO_PEER_BENCHMARK else "macro_transmission"
             for link in plan.applicable_links
         ]
-        plan_limitations = list(dict.fromkeys(known_limitations))
+        plan_limitations = list(dict.fromkeys(known_limitations + list(extra_limitations)))
         plan_dto = AnalysisPlanDTO(
             plan_id=f"plan-{hashlib.sha256(plan.query_id.encode()).hexdigest()[:12]}",
             query=self.request.query, target_ticker=target, peer_tickers=list(peers),
@@ -2021,6 +2165,40 @@ class _AdaptiveRun:
             )
             for link_result in (critic_result.applicable_link_results if critic_result is not None else ())
         ]
+        fact_dtos = [
+            FactDTO(
+                fact_id=f.fact_id,
+                fact_type=f.fact_type,  # type: ignore
+                entity_id=f.entity_id,
+                other_entity_id=f.other_entity_id,
+                universe_id=f.universe_id,
+                metric_id=f.metric_id,
+                period=f.period,
+                from_period=f.from_period,
+                value=f.value,
+                unit=f.unit,
+                rank_better=f.rank_better,
+                rank_desc=f.rank_desc,
+                denominator=f.denominator,
+                formula_version=f.formula_version,
+                input_observation_ids=f.input_observation_ids,
+                input_fact_ids=f.input_fact_ids,
+            )
+            if not isinstance(f, FactDTO) else f
+            for f in facts
+        ]
+        finding_dtos = [
+            CrossLevelFindingDTO(
+                finding_id=c.finding_id,
+                kind=c.kind,  # type: ignore
+                severity=c.severity,  # type: ignore
+                text=c.text,
+                fact_ids=c.fact_ids,
+                status=getattr(c, "status", "confirmed"),
+            )
+            if not isinstance(c, CrossLevelFindingDTO) else c
+            for c in cross_level_findings
+        ]
         return AnalysisResponse(
             report_id=f"report-{uuid.uuid4().hex}", status=status,
             analysis_plan=plan_dto, macro_context=macro_context,
@@ -2031,6 +2209,12 @@ class _AdaptiveRun:
             limitations=list(dict.fromkeys(plan_limitations)),
             synthesis_summary=synthesis_summary,
             synthesis_supporting_claim_ids=list(synthesis_supporting_claim_ids),
+            question_type=(self.spec.question_type if hasattr(self, "spec") and self.spec else None),
+            facts=fact_dtos,
+            datasets=list(datasets),
+            signals=list(signals),
+            cross_level_findings=finding_dtos,
+            source_notes=list(source_notes),
         )
 
 

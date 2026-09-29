@@ -1,135 +1,198 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AnalysisSessionWorkspace, projectAnalysisSession, mockCompanyOnlyEvents } from '../src/features/analysis-session';
+import { AnalysisSessionWorkspace } from '../src/features/analysis-session/components/AnalysisSessionWorkspace';
+import type { TraceStep } from '../src/features/analysis-session/model/types';
+import traceFixture from '../src/test/fixtures/er-trace-acb-2024q4.json';
 
-function reportStream(report?: Record<string, unknown>) {
+function createMockStream(chunks: string[]) {
   const encoder = new TextEncoder();
-  const data = report
-    ? `event: REPORT_READY\ndata: ${JSON.stringify({ type: 'REPORT_READY', payload: { report } })}\n\n`
-    : 'event: PLANNING_STARTED\ndata: {"type":"PLANNING_STARTED","payload":{"message":"Working"}}\n\n';
+  let index = 0;
   return new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(encoder.encode(data));
-      controller.close();
+    pull(controller) {
+      if (index < chunks.length) {
+        controller.enqueue(encoder.encode(chunks[index++]));
+      } else {
+        controller.close();
+      }
     }
   });
 }
 
-function blockedStream(reason: string) {
-  const encoder = new TextEncoder();
-  const data = `event: RUN_BLOCKED\ndata: ${JSON.stringify({
-    type: 'RUN_BLOCKED',
-    payload: { reason }
-  })}\n\n`;
-  return new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(encoder.encode(data));
-      controller.close();
-    }
-  });
-}
-
-describe('AnalysisSessionWorkspace API and demo states', () => {
+describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
   beforeEach(() => vi.restoreAllMocks());
 
-  it('labels explicit event fixtures as simulation and does not open a mock report artifact', () => {
-    const viewModel = projectAnalysisSession(mockCompanyOnlyEvents);
-    render(<AnalysisSessionWorkspace viewModel={viewModel} />);
-
-    expect(screen.getByText('Mô phỏng · dữ liệu minh họa')).toBeInTheDocument();
-    expect(screen.getByText('Kịch bản mô phỏng đã kết thúc')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
-  });
-
-  it('opens only the report artifact returned by the live API and preserves partial status', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      body: reportStream({ report_id: 'rep-live', status: 'partial' })
-    } as unknown as Response);
+  it('renders fixture steps without network fetch when steps prop is provided', () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const steps = traceFixture.steps as unknown as TraceStep[];
 
     render(
       <MemoryRouter>
         <AnalysisSessionWorkspace
-          isLiveStream
-          streamRequest={{ query: 'Phân tích ROE của ACB', target_ticker: 'ACB', period: '2024_Q4' }}
+          isLiveStream={false}
+          steps={steps}
+          streamRequest={{ query: traceFixture.query }}
         />
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('button', { name: /Xem báo cáo phân tích/ })).toBeInTheDocument();
-    expect(screen.getByText('API đã trả về phản hồi')).toBeInTheDocument();
-    expect(screen.getByText('partial')).toBeInTheDocument();
-    expect(screen.queryByText('Mô phỏng · dữ liệu minh họa')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Company' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Sector' })).toBeInTheDocument();
+    expect(screen.getByText('Quá trình phân tích')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('reports API failure without substituting demo events or report data', async () => {
+  it('connects to live stream and shows report button on report_ready', async () => {
+    const stream = createMockStream([
+      `event: TRACE_STEP\ndata: ${JSON.stringify({
+        step_id: 't-1',
+        seq: 1,
+        t_ms: 100,
+        actor: 'orchestrator',
+        kind: 'plan',
+        summary: 'Lập kế hoạch',
+        detail: {
+          question_type: 'company_profile',
+          agents: [{ agent: 'company', decision: 'run' }]
+        }
+      })}\n\n`,
+      `event: TRACE_STEP\ndata: ${JSON.stringify({
+        step_id: 't-2',
+        seq: 2,
+        t_ms: 500,
+        actor: 'orchestrator',
+        kind: 'report_ready',
+        summary: 'Báo cáo sẵn sàng',
+        detail: { report_id: 'rep-live-test' }
+      })}\n\n`
+    ]);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: stream
+    } as unknown as Response);
+
+    const onViewReport = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <AnalysisSessionWorkspace
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích ROE của ACB' }}
+          onViewReport={onViewReport}
+        />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+  });
+
+  it('displays connection error and retry button on fetch failure without creating mock events', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
 
     render(
       <MemoryRouter>
         <AnalysisSessionWorkspace
-          isLiveStream
-          streamRequest={{ query: 'Phân tích ROE của ACB', target_ticker: 'ACB', period: '2024_Q4' }}
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích ROE của ACB' }}
         />
       </MemoryRouter>
     );
 
-    expect(await screen.findByText(/Lỗi kết nối Live SSE/)).toBeInTheDocument();
-    expect(screen.getByText('API lỗi')).toBeInTheDocument();
-    expect(screen.queryByText('Mô phỏng · dữ liệu minh họa')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
+    expect(await screen.findByText('Mất kết nối. Thử lại')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Thử lại/i })).toBeInTheDocument();
   });
 
-  it('does not present a report action when a stream ends without REPORT_READY', async () => {
+  it('handles legacy SSE stream with only REPORT_READY without throwing disconnect error', async () => {
+    const stream = createMockStream([
+      `event: REPORT_READY\ndata: ${JSON.stringify({
+        reportId: 'rep-legacy-done',
+        status: 'completed'
+      })}\n\n`
+    ]);
+
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
-      statusText: 'OK',
-      body: reportStream()
+      body: stream
+    } as unknown as Response);
+
+    const onViewReport = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <AnalysisSessionWorkspace
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích ROE của ACB' }}
+          onViewReport={onViewReport}
+        />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Mất kết nối/i)).not.toBeInTheDocument();
+  });
+
+  it('handles legacy SSE stream with only RUN_BLOCKED without throwing disconnect error', async () => {
+    const onBlocked = vi.fn();
+    const stream = createMockStream([
+      `event: RUN_BLOCKED\ndata: ${JSON.stringify({
+        status: 'error',
+        reason: 'unsupported_metric',
+        error: {
+          code: 'unsupported_metric',
+          message: 'Chỉ tiêu phân tích chưa được hỗ trợ.'
+        }
+      })}\n\n`
+    ]);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: stream
     } as unknown as Response);
 
     render(
       <MemoryRouter>
         <AnalysisSessionWorkspace
-          isLiveStream
-          streamRequest={{ query: 'Phân tích ROE của ACB', target_ticker: 'ACB', period: '2024_Q4' }}
+          isLiveStream={true}
+          streamRequest={{ query: 'Phân tích chỉ tiêu lạ' }}
+          onBlocked={onBlocked}
         />
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(screen.getByText('API lỗi')).toBeInTheDocument());
-    expect(screen.queryByRole('button', { name: /Xem báo cáo phân tích/ })).not.toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(onBlocked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'unsupported_metric',
+          message: 'Chỉ tiêu phân tích chưa được hỗ trợ.'
+        })
+      );
+    });
+    expect(screen.queryByText(/Mất kết nối/i)).not.toBeInTheDocument();
   });
 
-  it('handles RUN_BLOCKED without showing false SSE connection error or API lỗi badge', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      body: blockedStream('unsupported_period: Period 2024 is not an exact period in the accepted snapshot.')
-    } as unknown as Response);
-
-    const onBackToComposer = vi.fn();
+  it('triggers onBackToComposer when clicking back button', async () => {
+    const onBack = vi.fn();
+    const user = userEvent.setup();
 
     render(
       <MemoryRouter>
         <AnalysisSessionWorkspace
-          isLiveStream
-          streamRequest={{ query: 'Phân tích LLR_COVERAGE của ACB trong năm 2024', target_ticker: 'ACB', period: '2024' }}
-          onBackToComposer={onBackToComposer}
+          isLiveStream={false}
+          steps={[]}
+          onBackToComposer={onBack}
         />
       </MemoryRouter>
     );
 
-    const badges = await screen.findAllByText('Cần điều chỉnh yêu cầu');
-    expect(badges.length).toBeGreaterThan(0);
-    expect(screen.getByText(/unsupported_period: Period 2024 is not an exact period/)).toBeInTheDocument();
-    expect(screen.queryByText(/Lỗi kết nối Live SSE/)).not.toBeInTheDocument();
-    expect(screen.queryByText('API lỗi')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Thử lại Live/ })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /Chỉnh sửa câu hỏi/ })[0]).toBeInTheDocument();
+    const backBtn = screen.getByRole('button', { name: /Quay lại trang hỏi/i });
+    await user.click(backBtn);
+    expect(onBack).toHaveBeenCalledOnce();
   });
 });

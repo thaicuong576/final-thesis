@@ -17,3 +17,9 @@ export function getApiBaseUrl(): string {
   }
   return '';
 }
+
+export function getResolvedApiEndpoint(customEndpoint?: string): string {
+  if (customEndpoint) return customEndpoint;
+  const base = getApiBaseUrl();
+  return base ? `${base}/api/analyze/stream` : '/api/analyze/stream';
+}

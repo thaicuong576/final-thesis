@@ -56,6 +56,7 @@ Mockup chuẩn: [`mockups.html`](mockups.html) (mở bằng trình duyệt). Mà
 | ER-5 | [PR-5-run-trace.md](PR-5-run-trace.md) | Lưu và phát trace từng bước, lưu run thất bại, đếm token | ER-4 |
 | ER-6 | [PR-6-ui-ask-session-trace.md](PR-6-ui-ask-session-trace.md) | Màn hỏi tối giản, màn điều phối, màn quá trình | ER-1 (fixture), ER-5 (nối thật) |
 | ER-7 | [PR-7-ui-report.md](PR-7-ui-report.md) | Trình render report theo khối + 8 loại hình | ER-1 (fixture), ER-4 (nối thật) |
+| ER-8 | [PR-8-evaluation.md](PR-8-evaluation.md) | Protocol v2, harness A/B/C, chấm tất định, gói chấm mù, phân tích | ER-4, ER-5 |
 
 Có thể làm song song: sau khi ER-1 merge, nhánh backend (ER-2 → ER-5) và nhánh frontend (ER-7, ER-6) chạy song song. Frontend dùng fixture JSON theo contract, đặt trong `frontend/src/test/fixtures/`.
 

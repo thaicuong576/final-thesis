@@ -482,10 +482,36 @@ def _resolve_periods(request: AnalysisRequest, catalog: DatasetCapabilityCatalog
     return periods
 
 
+class _PlanResult(tuple):
+    def __new__(
+        cls,
+        plan,
+        target,
+        periods,
+        metrics,
+        peers,
+        macro_metrics,
+        spec=None,
+        resolved=None,
+        planner_source=None,
+        fallback_reasons=None,
+    ):
+        instance = super().__new__(
+            cls, (plan, target, periods, metrics, peers, macro_metrics)
+        )
+        instance.spec = spec
+        instance.resolved = resolved
+        instance.planner_source = planner_source
+        instance.fallback_reasons = list(fallback_reasons or [])
+        return instance
+
+
 def _plan_request(
     request: AnalysisRequest,
     dataset_ref: DatasetRef,
     catalog: DatasetCapabilityCatalog,
+    settings: Any = None,
+    client: Any = None,
 ) -> tuple[AnalysisPlan, str | None, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     """Capability-validate and freeze the complete ordered plan."""
 
@@ -497,6 +523,56 @@ def _plan_request(
         _resolve_target,
         _provider_macro_available,
     )
+
+    if not getattr(request, "_periods_explicit", False) and not (
+        _has_macro_request(request) and _provider_macro_available(catalog)
+    ):
+        if request.period is not None:
+            catalog_period_set = {p.period_id.casefold() for p in catalog.periods}
+            if request.period.casefold() not in catalog_period_set:
+                from .service import AnalysisBlocked
+
+                raise AnalysisBlocked(
+                    "unsupported_period",
+                    f"Period {request.period} is not an exact period in the accepted snapshot.",
+                )
+
+        from .analysis_planner import plan_question, build_analysis_plan
+
+        planner_client = client
+        if planner_client is None and settings is not None:
+            if getattr(settings, "openai_api_key", None) and getattr(settings, "openai_api_key", "").strip():
+                try:
+                    from .llm import get_llm_client
+
+                    planner_client = get_llm_client(settings)
+                except Exception:
+                    planner_client = None
+
+        spec, planner_source, fallback_reasons, resolved = plan_question(
+            request.query, catalog, settings=settings, client=planner_client
+        )
+        plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = (
+            build_analysis_plan(
+                spec,
+                catalog,
+                dataset_ref,
+                query_text=request.query,
+                peer_tickers=request.peer_tickers,
+            )
+        )
+        return _PlanResult(
+            plan,
+            target,
+            periods,
+            company_metric_ids,
+            peer_ids,
+            macro_metric_ids,
+            spec=spec,
+            resolved=resolved,
+            planner_source=planner_source,
+            fallback_reasons=fallback_reasons,
+        )
 
     macro_requested = _has_macro_request(request)
     comparison_requested = _is_comparison_requested(request)
@@ -736,7 +812,7 @@ def _plan_request(
         requested_outputs=("structured_facts", "comparison" if peer_universe_id else "limitations", "evidence_trace"),
         causal_claim_policy=CausalClaimPolicy.ASSOCIATION_ONLY if links else CausalClaimPolicy.NO_CAUSAL_INFERENCE,
     )
-    return plan, target, periods, tuple(company_metric_ids), tuple(peer_ids), tuple(macro_metric_ids)
+    return _PlanResult(plan, target, periods, tuple(company_metric_ids), tuple(peer_ids), tuple(macro_metric_ids))
 
 
 def _explicit_missing_claim(
@@ -839,7 +915,7 @@ def _create_macro_claim(
 
 
 class _AdaptiveRun:
-    def __init__(self, *, provider, dataset_ref, catalog, request, settings, critic, writer, emit):
+    def __init__(self, *, provider, dataset_ref, catalog, request, settings, critic, writer, emit, client=None):
         self.provider = provider
         self.dataset_ref = dataset_ref
         self.catalog = catalog
@@ -848,6 +924,7 @@ class _AdaptiveRun:
         self.critic = critic
         self.writer = writer
         self.emit = emit
+        self.client = client
         self.metric_by_id = {item.metric_id: item for item in catalog.metrics}
         self.artifacts: dict[str, ClaimArtifact] = {}
         self.benchmark_request_metadata: dict[str, dict[str, Any]] = {}
@@ -1112,9 +1189,18 @@ class _AdaptiveRun:
     def execute(self) -> AnalysisResponse:
         from .service import AnalysisBlocked, _requested_metrics
 
-        plan, target, periods, company_metrics, peers, macro_metrics = _plan_request(
-            self.request, self.dataset_ref, self.catalog
+        plan_result = _plan_request(
+            self.request,
+            self.dataset_ref,
+            self.catalog,
+            settings=self.settings,
+            client=self.client,
         )
+        plan, target, periods, company_metrics, peers, macro_metrics = plan_result
+        self.spec = getattr(plan_result, "spec", None)
+        self.resolved = getattr(plan_result, "resolved", None)
+        self.planner_source = getattr(plan_result, "planner_source", None)
+        self.fallback_reasons = getattr(plan_result, "fallback_reasons", [])
         period = periods[-1]
         operations = set(self.catalog.supported_operations)
         required_ops = {SupportedOperation.GET_METRIC, SupportedOperation.RESOLVE_OBSERVATION, SupportedOperation.GET_SOURCE}
@@ -1124,13 +1210,21 @@ class _AdaptiveRun:
             raise AnalysisBlocked("peer_benchmark_unavailable", "The accepted provider cannot resolve peer benchmarks.")
 
         # Plan and capability validation are complete before any role retrieves observations.
-        self.emit("PLAN_CREATED", {
+        plan_created_payload = {
             "requiredSpecialists": self._active_roles(plan),
             "period": period,
             "periods": list(periods),
             "planSummary": "Frozen provider-bound plan with exact ordered period scope and accepted snapshot identity.",
             "message": f"Bound to accepted snapshot {self.dataset_ref.dataset_snapshot_id}.",
-        })
+        }
+        if self.spec is not None:
+            plan_created_payload["questionType"] = self.spec.question_type
+            plan_created_payload["plannerSource"] = self.planner_source
+            plan_created_payload["plannerFallbackReasons"] = list(self.fallback_reasons)
+            plan_created_payload["rationaleVi"] = self.spec.rationale
+            plan_created_payload["tools"] = [{"tool": t.tool, "params": t.params} for t in self.spec.tools]
+            plan_created_payload["contextPeriods"] = list(self.resolved.context_periods if self.resolved else ())
+        self.emit("PLAN_CREATED", plan_created_payload)
         company_role_claims: list[AtomicClaim] = []
         peer_role_claims: list[AtomicClaim] = []
         macro_role_claims: list[AtomicClaim] = []
@@ -1840,10 +1934,16 @@ class _AdaptiveRun:
             query=self.request.query, target_ticker=target, peer_tickers=list(peers),
             period=plan.scope.periods[-1], periods=list(plan.scope.periods), required_capabilities=capabilities,
             applicable_links=links, dataset_snapshot_id=plan.dataset_snapshot_id,
-            rationale="Frozen query-adaptive plan created before provider specialist retrieval.",
+            rationale=(self.spec.rationale if hasattr(self, "spec") and self.spec else "Frozen query-adaptive plan created before provider specialist retrieval."),
             known_limitations=plan_limitations,
             plan_version=plan.plan_version,
             requirements=[item.model_dump(mode="json") for item in plan.requirements],
+            question_type=self.spec.question_type if hasattr(self, "spec") and self.spec else None,
+            planner_source=self.planner_source if hasattr(self, "planner_source") else None,
+            planner_fallback_reasons=list(self.fallback_reasons) if hasattr(self, "fallback_reasons") and self.fallback_reasons else [],
+            rationale_vi=self.spec.rationale if hasattr(self, "spec") and self.spec else None,
+            tools=[{"tool": t.tool, "params": t.params} for t in self.spec.tools] if hasattr(self, "spec") and self.spec else [],
+            context_periods=list(self.resolved.context_periods) if hasattr(self, "resolved") and self.resolved else [],
         )
         if macro_values:
             macro_context = MacroContextDTO(**macro_values)
@@ -1944,6 +2044,7 @@ def run_adaptive_analysis(
     semantic_critic,
     analysis_writer,
     emit: Callable[[str, dict[str, Any]], None] | None = None,
+    client: Any = None,
 ) -> AnalysisResponse:
     """Run a frozen-plan provider execution and bounded acceptance workflow."""
 
@@ -1956,9 +2057,10 @@ def run_adaptive_analysis(
             request=request, settings=settings, critic=semantic_critic,
             writer=analysis_writer,
             emit=emit_event,
+            client=client,
         ).execute()
     except AnalysisBlocked as exc:
-        return _error_report(exc.code, exc.detail, request)
+        return _error_report(exc.code, exc.detail, request, catalog=catalog)
     except Exception as exc:
         logger.warning("Adaptive runtime failed: %s", type(exc).__name__, exc_info=True)
-        return _error_report("adaptive_runtime_failure", "The accepted provider or bounded semantic runtime could not satisfy this request.", request)
+        return _error_report("adaptive_runtime_failure", "The accepted provider or bounded semantic runtime could not satisfy this request.", request, catalog=catalog)

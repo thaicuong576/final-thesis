@@ -5,6 +5,14 @@ from __future__ import annotations
 import os
 import unittest
 from unittest.mock import MagicMock, patch
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 import openai
 

@@ -1,4 +1,4 @@
-﻿"""Integration tests for analysis_runs persistence and API endpoints."""
+"""Integration tests for analysis_runs persistence and API endpoints."""
 
 from __future__ import annotations
 
@@ -9,6 +9,14 @@ import hashlib
 from pathlib import Path
 from unittest.mock import patch
 from fastapi.testclient import TestClient
+try:
+    from socket_guard import install_socket_guard
+except ImportError:
+    from tests.socket_guard import install_socket_guard
+
+
+def setUpModule() -> None:
+    install_socket_guard()
 
 from thesis_api.main import create_app
 from thesis_api.settings import Settings
@@ -36,6 +44,7 @@ class AnalysisRunsApiTests(unittest.TestCase):
             sqlite_db_path=str(self.db_path),
             analysis_runs_db_path=str(self.runs_path),
             openai_api_key="test-key",
+            planner_mode="rules_only",
         )
         self.app = create_app(self.settings, analysis_writer=_ExplicitOfflineAnalysisWriter())
         self.client = TestClient(self.app)

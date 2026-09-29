@@ -5,6 +5,7 @@ import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { AnalysisSessionWorkspace } from '../../features/analysis-session/components/AnalysisSessionWorkspace';
 import type { TraceStep } from '../../features/analysis-session/model/types';
+import { mapErrorCodeToMessage } from '../../features/analysis-session/useTraceStream';
 import { DEFAULT_METRICS } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
@@ -187,12 +188,16 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
               streamRequest={{ query: question }}
               isLiveStream={isLiveStream}
               steps={fixtureSteps}
+              capabilities={capabilities}
               onBackToComposer={() => {
                 setMode('ASK');
                 setSearchParams({});
               }}
               onBlocked={(info) => {
-                setErrorInfo(info);
+                const message = info.code
+                  ? mapErrorCodeToMessage(info.code, capabilities)
+                  : info.message;
+                setErrorInfo({ ...info, message: message || info.message });
                 setMode('ASK');
                 setSearchParams({});
               }}

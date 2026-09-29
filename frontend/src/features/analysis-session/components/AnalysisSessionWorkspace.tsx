@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate, useLocation, useSearchParams, useInRouterContext } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import type { TraceStep } from '../model/types';
+import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { useTraceStream } from '../useTraceStream';
 import { OrchestratorBoard } from './OrchestratorBoard';
 import { ProcessTrace } from './ProcessTrace';
@@ -14,6 +15,7 @@ export interface AnalysisSessionWorkspaceProps {
   events?: unknown[]; // Backward compatibility with previous test props
   driverMode?: string;
   driverStep?: number;
+  capabilities?: AnalysisCapabilities | null;
   onBackToComposer?: () => void;
   onViewReport?: (reportId: string) => void;
   onBlocked?: (info: { code?: string; message: string; suggestions?: string[] }) => void;
@@ -64,6 +66,7 @@ function AnalysisSessionWorkspaceContent({
   request,
   isLiveStream = true,
   steps: propSteps,
+  capabilities,
   onBackToComposer,
   onViewReport,
   onBlocked,
@@ -81,6 +84,7 @@ function AnalysisSessionWorkspaceContent({
     request: isLiveStream && activeRequest ? { query: activeRequest.query } : null,
     autoStart: isLiveStream && Boolean(activeRequest?.query),
     apiEndpoint,
+    capabilities,
     initialSteps: propSteps,
     onReportReady: onViewReport,
     onBlocked

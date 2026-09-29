@@ -8,6 +8,7 @@ import { parseTraceSseBlock } from '../src/features/analysis-session/useTraceStr
 import { ProcessLink } from '../src/features/equity-report/components/ProcessLink';
 import { EquityReportProvider } from '../src/features/equity-report/components/EquityReportContext';
 import type { AdaptiveReportResponse } from '../src/features/equity-report/model/types';
+import type { AnalysisCapabilities } from '../src/entities/capability/model/types';
 import traceFixture from '../src/test/fixtures/er-trace-acb-2024q4.json';
 
 describe('ER-6 OrchestratorBoard', () => {
@@ -125,7 +126,7 @@ describe('ER-6 useTraceStream parseTraceSseBlock', () => {
     expect(step).not.toBeNull();
     expect(step?.kind).toBe('blocked');
     expect(step?.detail?.code).toBe('unsupported_period');
-    expect(step?.detail?.message).toBe('Giai đoạn phân tích chưa được hỗ trợ.');
+    expect(step?.detail?.message).toBe('Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Q1–Q4/2024.');
     expect(step?.detail?.suggestions).toEqual(['Thử năm 2024']);
   });
 
@@ -136,8 +137,37 @@ describe('ER-6 useTraceStream parseTraceSseBlock', () => {
     expect(step).not.toBeNull();
     expect(step?.kind).toBe('blocked');
     expect(step?.detail?.code).toBe('unsupported_period');
-    expect(step?.detail?.message).toBe('Giai đoạn phân tích chưa được hỗ trợ.');
+    expect(step?.detail?.message).toBe('Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Q1–Q4/2024.');
     expect(step?.detail?.message).not.toBe('Hệ thống chưa trả lời được câu hỏi này.');
+  });
+
+  it('formats unsupported_metric and unsupported_entity messages using capabilities when provided', () => {
+    const caps = {
+      entities: [
+        { id: 'ACB', ticker: 'ACB', name: 'Ngân hàng ACB' },
+        { id: 'MBB', ticker: 'MBB', name: 'Ngân hàng MB' }
+      ],
+      periods: [
+        { id: '2024_Q1', quarter: 1, year: 2024 },
+        { id: '2024_Q4', quarter: 4, year: 2024 }
+      ],
+      metrics: [
+        { id: 'bank.npl', acronym: 'NPL', label: 'Tỷ lệ nợ xấu', shortLabel: 'Nợ xấu', topicId: 'c' },
+        { id: 'bank.roe', acronym: 'ROE', label: 'ROE', shortLabel: 'ROE', topicId: 'c' }
+      ]
+    } as unknown as AnalysisCapabilities;
+
+    const blockPeriod = `event: RUN_BLOCKED\ndata: {"status":"error","reason":"unsupported_period"}`;
+    const stepPeriod = parseTraceSseBlock(blockPeriod, caps);
+    expect(stepPeriod?.detail?.message).toBe('Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Q1–Q4/2024.');
+
+    const blockMetric = `event: RUN_BLOCKED\ndata: {"status":"error","reason":"unsupported_metric"}`;
+    const stepMetric = parseTraceSseBlock(blockMetric, caps);
+    expect(stepMetric?.detail?.message).toBe('Chỉ tiêu bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Nợ xấu, ROE.');
+
+    const blockEntity = `event: RUN_BLOCKED\ndata: {"status":"error","reason":"unsupported_entity"}`;
+    const stepEntity = parseTraceSseBlock(blockEntity, caps);
+    expect(stepEntity?.detail?.message).toBe('Ngân hàng bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: ACB, MBB.');
   });
 
   it('silently ignores unrelated legacy events without throwing', () => {

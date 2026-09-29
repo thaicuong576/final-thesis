@@ -235,7 +235,7 @@ describe('ER-6 AskPage (Lean Ask Screen)', () => {
     await user.click(submitBtn);
 
     // Should return to Ask screen, preserving user query and showing error banner
-    expect(await screen.findByText('Giai đoạn phân tích chưa được hỗ trợ.')).toBeInTheDocument();
+    expect(await screen.findByText('Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Q1–Q4/2024.')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Câu hỏi phân tích' })).toHaveValue('Tăng trưởng tín dụng quý 2/2020');
     expect(screen.getByRole('button', { name: /Thử quý 4\/2024/i })).toBeInTheDocument();
   });

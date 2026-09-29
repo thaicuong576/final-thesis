@@ -28,7 +28,7 @@ const STATE_CLASSES: Record<AgentState, { card: string; badge: string }> = {
   },
   run: {
     card: 'border-accent bg-surface-primary',
-    badge: 'bg-accent/20 text-accent font-semibold'
+    badge: 'bg-accent/20 text-text-accent font-semibold'
   },
   done: {
     card: 'border-line bg-surface-primary',

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TraceStep } from './model/types';
+import type { AnalysisCapabilities } from '../../entities/capability/model/types';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface UseTraceStreamOptions {
   request?: { query: string } | null;
   autoStart?: boolean;
   apiEndpoint?: string;
+  capabilities?: AnalysisCapabilities | null;
   initialSteps?: TraceStep[];
   onStep?: (step: TraceStep) => void;
   onReportReady?: (reportId: string) => void;
@@ -27,26 +29,87 @@ export interface UseTraceStreamReturn {
   retry: () => void;
 }
 
+export function formatCapabilitiesPeriods(capabilities?: AnalysisCapabilities | null): string {
+  if (!capabilities?.periods || capabilities.periods.length === 0) {
+    return 'Q1–Q4/2024';
+  }
+  const years = Array.from(new Set(capabilities.periods.map((p) => p.year).filter(Boolean)));
+  if (years.length === 1) {
+    const quarters = capabilities.periods
+      .filter((p) => p.year === years[0])
+      .map((p) => p.quarter)
+      .sort((a, b) => a - b);
+    if (quarters.length > 1) {
+      return `Q${quarters[0]}–Q${quarters[quarters.length - 1]}/${years[0]}`;
+    }
+    return `Q${quarters[0]}/${years[0]}`;
+  }
+  const sorted = [...capabilities.periods].sort((a, b) => a.year - b.year || a.quarter - b.quarter);
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  return `Q${first.quarter}/${first.year}–Q${last.quarter}/${last.year}`;
+}
+
+export function formatCapabilitiesMetrics(capabilities?: AnalysisCapabilities | null): string {
+  if (capabilities?.metrics && capabilities.metrics.length > 0) {
+    return capabilities.metrics
+      .map((m) => m.shortLabel || m.acronym || m.label || m.id)
+      .join(', ');
+  }
+  return 'Nợ xấu, Bao phủ, ROA, ROE';
+}
+
+export function formatCapabilitiesEntities(capabilities?: AnalysisCapabilities | null): string {
+  if (capabilities?.entities && capabilities.entities.length > 0) {
+    return capabilities.entities
+      .map((e) => e.ticker || e.name || e.id)
+      .join(', ');
+  }
+  return 'ACB, MBB, TCB, VCB, VPB';
+}
+
 export const ERROR_CODE_MESSAGES: Record<string, string> = {
-  unsupported_period: 'Giai đoạn phân tích chưa được hỗ trợ.',
-  unsupported_metric: 'Chỉ tiêu phân tích chưa được hỗ trợ.',
-  unsupported_entity: 'Ngân hàng được yêu cầu chưa nằm trong danh mục hỗ trợ.',
+  unsupported_period: 'Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Q1–Q4/2024.',
+  unsupported_metric: 'Chỉ tiêu bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: Nợ xấu, Bao phủ, ROA, ROE.',
+  unsupported_entity: 'Ngân hàng bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: ACB, MBB, TCB, VCB, VPB.',
   target_entity_required: 'Vui lòng nêu rõ ngân hàng cần phân tích.',
   metric_required: 'Vui lòng chọn hoặc nêu ít nhất một chỉ tiêu phân tích.',
   unsupported_macro_scope: 'Dữ liệu kinh tế vĩ mô chưa sẵn sàng cho kỳ phân tích này.',
 };
 
-export function mapErrorCodeToMessage(code?: string): string {
+export function mapErrorCodeToMessage(
+  code?: string,
+  capabilities?: AnalysisCapabilities | null
+): string {
   if (!code) return 'Hệ thống chưa trả lời được câu hỏi này.';
   const cleanCode = code.split(':')[0].trim().toLowerCase();
-  return ERROR_CODE_MESSAGES[cleanCode] || 'Hệ thống chưa trả lời được câu hỏi này.';
+
+  switch (cleanCode) {
+    case 'unsupported_period':
+      return `Kỳ bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: ${formatCapabilitiesPeriods(capabilities)}.`;
+    case 'unsupported_metric':
+      return `Chỉ tiêu bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: ${formatCapabilitiesMetrics(capabilities)}.`;
+    case 'unsupported_entity':
+      return `Ngân hàng bạn hỏi chưa có trong dữ liệu. Dữ liệu hiện có: ${formatCapabilitiesEntities(capabilities)}.`;
+    case 'target_entity_required':
+      return 'Vui lòng nêu rõ ngân hàng cần phân tích.';
+    case 'metric_required':
+      return 'Vui lòng chọn hoặc nêu ít nhất một chỉ tiêu phân tích.';
+    case 'unsupported_macro_scope':
+      return 'Dữ liệu kinh tế vĩ mô chưa sẵn sàng cho kỳ phân tích này.';
+    default:
+      return ERROR_CODE_MESSAGES[cleanCode] || 'Hệ thống chưa trả lời được câu hỏi này.';
+  }
 }
 
 /**
  * Parses a single raw Server-Sent Event (SSE) block for TRACE_STEP, REPORT_READY, or RUN_BLOCKED events.
  * Ignores legacy intermediate events without throwing errors.
  */
-export function parseTraceSseBlock(block: string): TraceStep | null {
+export function parseTraceSseBlock(
+  block: string,
+  capabilities?: AnalysisCapabilities | null
+): TraceStep | null {
   let eventType = '';
   const dataLines: string[] = [];
 
@@ -103,7 +166,14 @@ export function parseTraceSseBlock(block: string): TraceStep | null {
       const rawCode = (errorObj.code || payload.reason || payload.code) as string | undefined;
       const code = rawCode ? rawCode.split(':')[0].trim() : undefined;
       const rawMsg = (errorObj.message || payload.message) as string | undefined;
-      const message = rawMsg || mapErrorCodeToMessage(code);
+      const isLegacyOrCode =
+        !rawMsg ||
+        rawMsg === 'Giai đoạn phân tích chưa được hỗ trợ.' ||
+        rawMsg.startsWith('unsupported_');
+      const message =
+        code && isLegacyOrCode
+          ? mapErrorCodeToMessage(code, capabilities)
+          : rawMsg || mapErrorCodeToMessage(code, capabilities);
       const suggestions = (errorObj.suggestions || payload.suggestions) as string[] | undefined;
 
       return {
@@ -133,6 +203,7 @@ export function useTraceStream({
   request,
   autoStart = true,
   apiEndpoint,
+  capabilities,
   initialSteps,
   onStep,
   onReportReady,
@@ -220,7 +291,7 @@ export function useTraceStream({
 
           for (const block of parts) {
             if (!block.trim()) continue;
-            const parsedStep = parseTraceSseBlock(block);
+            const parsedStep = parseTraceSseBlock(block, capabilities);
             if (parsedStep) {
               accumulatedSteps.push(parsedStep);
               setSteps([...accumulatedSteps]);
@@ -235,7 +306,9 @@ export function useTraceStream({
               } else if (parsedStep.kind === 'blocked') {
                 const info = {
                   code: parsedStep.detail?.code as string | undefined,
-                  message: (parsedStep.detail?.message as string) || 'Yêu cầu bị chặn.',
+                  message:
+                    (parsedStep.detail?.message as string) ||
+                    mapErrorCodeToMessage(parsedStep.detail?.code as string, capabilities),
                   suggestions: parsedStep.detail?.suggestions as string[] | undefined
                 };
                 setIsBlocked(true);
@@ -248,7 +321,7 @@ export function useTraceStream({
 
         // Residual buffer
         if (buffer.trim()) {
-          const parsedStep = parseTraceSseBlock(buffer);
+          const parsedStep = parseTraceSseBlock(buffer, capabilities);
           if (parsedStep) {
             accumulatedSteps.push(parsedStep);
             setSteps([...accumulatedSteps]);
@@ -263,7 +336,9 @@ export function useTraceStream({
             } else if (parsedStep.kind === 'blocked') {
               const info = {
                 code: parsedStep.detail?.code as string | undefined,
-                message: (parsedStep.detail?.message as string) || 'Yêu cầu bị chặn.',
+                message:
+                  (parsedStep.detail?.message as string) ||
+                  mapErrorCodeToMessage(parsedStep.detail?.code as string, capabilities),
                 suggestions: parsedStep.detail?.suggestions as string[] | undefined
               };
               setIsBlocked(true);
@@ -298,7 +373,7 @@ export function useTraceStream({
         onError?.(errorObj);
       }
     },
-    [query, getEndpoint, onStep, onReportReady, onBlocked, onError]
+    [query, getEndpoint, capabilities, onStep, onReportReady, onBlocked, onError]
   );
 
   const cancelStream = useCallback(() => {

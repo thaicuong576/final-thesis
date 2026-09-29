@@ -10,6 +10,51 @@
   3. **Auto-Dispatching Workers**: Automatically splitting tasks, executing `scripts/worker-start.*` to spin up isolated Git Worktrees (`.worktrees/feat-<domain>-<task-name>`), and creating `TASK.md` manifests inside the worktrees.
 - **WORKER ACTIVATION**: Specialized worker roles (`worker-data`, `worker-api`, `worker-ui`, `auditor`) ONLY activate when the session context is physically inside a child worktree (`.worktrees/*`).
 
+## Orchestration mode — Claude orchestrator + agy workers via Herdr (2026-09-29, supersedes rules 15, 16 and 18 below)
+
+This section is the current operating model. Where it conflicts with the
+numbered rules 15 (Linear dispatch), 16 (Codex subagent model rule) and 18
+(Linear tracking), this section wins. Linear is no longer used.
+
+- **Orchestrator**: a Claude Code session running at the repository root inside
+  a Herdr pane (`HERDR_ENV=1`). It plans, writes worker prompts, reviews PRs,
+  merges, and cleans up. It never edits `src/` or `frontend/` at root. It MAY
+  read implementation files and run read-only verification (tests, scripts on
+  a temp copy of the Gold SQLite) in a PR's worktree, because review requires it.
+- **Workers**: Antigravity CLI (`agy`) sessions started by the orchestrator in a
+  sibling Herdr pane whose cwd is the repository root:
+  ```bash
+  herdr pane split --current --direction right --cwd "$PWD" --no-focus
+  herdr agent start er<n> --kind agy --pane <pane_id> -- --dangerously-skip-permissions
+  herdr agent prompt er<n> "<task prompt>"
+  ```
+  The worker itself runs `scripts/worker-start.* <branch>` to create its
+  worktree from the latest `main`, implements the task there, runs the full
+  verification, pushes, opens the PR, waits for `gh pr checks` to pass, and
+  ends its final message with the exact marker line given in the prompt
+  (e.g. `DONE-ER4`). One worker at a time; tasks run sequentially.
+- **Task source**: specs live in `docs/plans/<plan-dir>/PR-<n>-*.md`. The worker
+  prompt names the spec, the branch, the PR title
+  (`feat(<api|ui|data|contracts>): [ER-<n>] <title>`), extra review notes, and
+  the done marker. Workers must never create GitHub releases, tags or test
+  comments.
+- **Monitoring without polling**: the orchestrator starts one background shell
+  watcher that loops on `herdr agent read <name> --source detection` every
+  ~60 s and exits when it sees the done marker, a permission/question dialog,
+  or an error. The watcher's exit wakes the orchestrator; no model-side polling.
+  (Herdr may report an agy approval dialog as `idle`, so match text, not state.)
+- **Review loop**: after the marker, the orchestrator reviews the diff against
+  the spec and the invariants, reruns critical checks on real Gold data (temp
+  copy, `mode=ro`, scope authority configured), and either sends a numbered fix
+  list to the same worker (same branch, new done marker) or approves.
+- **Merge authority**: the user has authorized the orchestrator to squash-merge
+  a PR once its review passes and all CI checks are green, then immediately run
+  `scripts/sync-and-cleanup.* <branch>` + `git remote prune origin`, close the
+  worker pane, and dispatch the next task from fresh `main`.
+- **Escalate to the user** only for: scope/methodology changes, conflicts with
+  `docs/ARCHITECTURAL-GUARDRAILS.md`, secrets, production deploy/env changes,
+  or a worker failing the same review item twice.
+
 ## Purpose
 
 This project implements and evaluates a hierarchical multi-agent system for Vietnamese listed banking and securities sector analysis.
@@ -77,7 +122,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 14. **Foundational Mandate & Spec Zero (`.agent/foundation/`)**:
     - The 4 core documents in `.agent/foundation/` (`01-project-charter.md`, `02-domain-invariants.md`, `03-system-architecture.md`, `04-definition-of-done.md`) are the supreme architectural and domain invariants.
     - All role prompts (`lead.md`, `worker-data.md`, `worker-api.md`, `worker-ui.md`, `auditor.md`) are strictly anchored to these foundations. Any conflict must be resolved in favor of Foundation.
-15. **Lead Dispatch Reflex & Linear Worktree Auto-Dispatch**:
+15. **Lead Dispatch Reflex & Linear Worktree Auto-Dispatch** (superseded by "Orchestration mode" above; Linear is no longer used):
     - The Lead Architect / Dispatcher MUST NEVER directly edit application code under `src/` or `frontend/` in the root workspace.
     - **Zero-Delay UI/Bug Dispatch (1-Turn Mandate)**: Khi có feedback UI/bug: Dispatch ngay cho Worker trong 1 turn, TUYỆT ĐỐI KHÔNG nán lại đọc file code hay tự mình inspect mã nguồn ứng dụng ở root.
     - **Mandatory Screenshot & Image Forwarding**: Bất kỳ khi nào người dùng có đính kèm ảnh: Bắt buộc chuyển toàn bộ image path vào prompt khởi tạo của worker ngay từ đầu.
@@ -86,7 +131,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
       2. Automatically run `scripts/worker-start.* feat/THES-X-<task-name>` to spin up an isolated Git Worktree (`.worktrees/feat-THES-X-<task-name>`).
       3. Write `TASK.md` manifest inside the child worktree referencing the Linear issue, role, contracts, scope, and verification criteria.
       4. Mandate worker to name PRs starting with `feat(<domain>): [THES-X] <title>` to enable automatic two-way GitHub-Linear synchronization and auto-closure on merge.
-16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)**:
+16. **Subagent Telemetry & Monitoring Rate-Limit (Minimum 3-Minute Interval)** (Codex model rule superseded by "Orchestration mode" above):
     - **Codex-only model rule (user mandate, 2026-09-24):** Every newly spawned Codex subagent must explicitly set `model: gpt-6-luna` and `reasoning_effort: xhigh` (extra high). Do not inherit the root/current model. Because model overrides require a limited history fork, set `fork_turns` to `none` or a positive turn count and include all necessary task context in the spawn message. `followup_task` does not change an existing subagent's model; create a new subagent with these settings for subsequent work.
     - The Lead Orchestrator must NEVER tight-poll, loop status checks, or spam telemetry commands (e.g. `Get-Content transcript.jsonl`) to monitor running subagents.
     - Rely primarily on the runtime's native **Reactive Wakeup** mechanism (stop tool calls to allow background notification resumption).
@@ -94,7 +139,7 @@ Do not treat chat history, model memory, or an unrecorded assumption as project 
 17. **Mandatory Post-Merge Worktree Cleanup & Pure Lineage**:
     - Once a Pull Request is merged into `main`, the Lead Orchestrator MUST immediately execute `scripts/sync-and-cleanup.*` to remove the merged child worktree and delete the local feature branch, followed by pruning stale remote refs via `git remote prune origin`.
     - Every subsequent feature or bugfix task MUST start on a freshly created Git Worktree branched from the latest `main` HEAD (`scripts/worker-start.*`). Reusing, reviving, or continuing work inside a stale or merged branch/worktree is strictly forbidden.
-18. **Linear Issue Tracking & GitHub Integration**:
+18. **Linear Issue Tracking & GitHub Integration** (superseded; Linear is no longer used):
     - Every feature, refactoring, or bugfix task must be tracked via an issue in team `THES` on Linear (`https://linear.app/eddiephung`).
     - Worktrees and branch names must be bound to the Linear ticket key (`feat/THES-X-...`).
     - Pull Request titles and descriptions must cite the ticket (`[THES-X]`) for real-time bidirectional status tracking and automated workflow state transitions.

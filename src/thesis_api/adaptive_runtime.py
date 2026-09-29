@@ -1234,10 +1234,11 @@ class _AdaptiveRun:
             self._role_started("company", target, period, periods)
             for company_period in periods:
                 company_role_claims.extend(self._fetch_direct("company", (target,), company_metrics, company_period))
-        if peers:
+        clean_peers = tuple(p for p in peers if p != target) if target else tuple(peers)
+        if clean_peers:
             self._role_started("sector", self._peer_universe_id(plan), period, periods)
-            peer_role_claims.extend(self._fetch_direct("sector", peers, company_metrics, period))
-            peer_role_claims.extend(self._fetch_benchmarks(target, peers, company_metrics, period, plan))
+            peer_role_claims.extend(self._fetch_direct("sector", clean_peers, company_metrics, period))
+            peer_role_claims.extend(self._fetch_benchmarks(target, clean_peers, company_metrics, period, plan))
         if macro_metrics:
             self._role_started("macro", "VN", period, periods)
             for metric_id in macro_metrics:
@@ -1336,24 +1337,26 @@ class _AdaptiveRun:
 
             # Populate universe members
             universe_id = self._peer_universe_id(plan)
+            if not universe_id and self.catalog.peer_universes and (
+                (self.spec and self.spec.question_type in ("ranking", "company_profile", "peer_position"))
+                or len(self.catalog.peer_universes) == 1
+            ):
+                universe_id = self.catalog.peer_universes[0].peer_universe_id
+
             universe_members: tuple[str, ...] = ()
             if universe_id:
                 for univ in self.catalog.peer_universes:
                     if univ.peer_universe_id == universe_id:
                         universe_members = tuple(univ.entity_ids)
                         break
-            if not universe_members:
+            if not universe_members and peers:
                 universe_members = tuple(peers + ((target,) if target else ()))
-            if not universe_members:
-                universe_members = tuple(
-                    e.entity_id for e in self.catalog.entities if e.entity_type.value == "company"
-                )
 
             tool_ctx = ToolContext(
                 provider=self.provider,
                 dataset_ref=self.dataset_ref,
                 catalog=self.catalog,
-                universe_id=universe_id or "sector:bank",
+                universe_id=universe_id,
                 universe_members=universe_members,
                 presentation=get_metric_presentation,
                 cache={},
@@ -1395,15 +1398,19 @@ class _AdaptiveRun:
         source_notes: list[Any] = []
         if verified_facts and self.spec is not None:
             from thesis_data.report_facts import classify_signals, detect_cross_level_candidates
-            from .metric_presentation import get_metric_presentation
+            from .metric_presentation import METRIC_PRESENTATIONS, get_metric_presentation
             from .analysis_tools import build_source_notes
             from .schemas import SignalDTO
 
-            # Metric groups & directions
+            # Metric groups, directions, and flat_pp map from registry
             metric_groups: dict[str, list[str]] = {}
             group_labels: dict[str, str] = {}
             directions: dict[str, str] = {}
             metric_to_group: dict[str, str] = {}
+            flat_pp_map: dict[str, float] = {
+                m_id: pres.flat_threshold_pp
+                for m_id, pres in METRIC_PRESENTATIONS.items()
+            }
             for m_id in plan.scope.company_metric_ids:
                 pres = get_metric_presentation(m_id)
                 grp = pres.group or "other"
@@ -1411,6 +1418,8 @@ class _AdaptiveRun:
                 group_labels[grp] = pres.group_label or grp
                 directions[m_id] = pres.direction
                 metric_to_group[m_id] = grp
+                if m_id not in flat_pp_map:
+                    flat_pp_map[m_id] = pres.flat_threshold_pp
 
             universe_id = self._peer_universe_id(plan)
             # Signals for company_profile or trend with universe
@@ -1420,7 +1429,7 @@ class _AdaptiveRun:
                     facts=verified_facts,
                     metric_groups=metric_groups,
                     directions=directions,
-                    flat_pp=0.05,
+                    flat_pp=flat_pp_map,
                     group_labels=group_labels,
                 )
                 for sr in sig_results:
@@ -1436,7 +1445,7 @@ class _AdaptiveRun:
                 candidates = detect_cross_level_candidates(
                     facts=verified_facts,
                     signals=sig_results,
-                    flat_pp=0.05,
+                    flat_pp=flat_pp_map,
                     directions=directions,
                     metric_to_group=metric_to_group,
                 )
@@ -1444,7 +1453,7 @@ class _AdaptiveRun:
                 candidates = detect_cross_level_candidates(
                     facts=verified_facts,
                     signals=[],
-                    flat_pp=0.05,
+                    flat_pp=flat_pp_map,
                     directions=directions,
                     metric_to_group=metric_to_group,
                 )
@@ -1529,9 +1538,9 @@ class _AdaptiveRun:
             return []
         result: list[AtomicClaim] = []
         target_observations = {
-            self.artifacts[claim_id].observation.metric_id: self.artifacts[claim_id].observation
-            for claim_id, artifact in self.artifacts.items()
-            if artifact.capability == "company" and artifact.observation.entity_id == target
+            artifact.observation.metric_id: artifact.observation
+            for artifact in self.artifacts.values()
+            if artifact.observation.entity_id == target and artifact.observation.period_id == period
         }
         for metric_id in metric_ids:
             valid_peers = [

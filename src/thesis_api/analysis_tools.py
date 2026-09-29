@@ -201,7 +201,7 @@ def run_lookup_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
     missing: list[MissingCell] = []
     rows: list[DatasetRowDTO] = []
 
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
 
     for entity in entities:
         if not entity:
@@ -239,7 +239,7 @@ def run_lookup_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
 
             # Peer context: median & rank if universe available
             med_fact: Fact | None = None
-            if len(ctx.universe_members) >= 2:
+            if universe_id and len(ctx.universe_members) >= 2:
                 _, valid_obs = _get_universe_obs(ctx, period, metric)
                 med_fact = _safe_peer_median(ctx, universe_id, period, metric, valid_obs)
                 if med_fact:
@@ -297,12 +297,23 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
     target = params.get("entity") or params.get("target") or ""
     period = params.get("period") or ""
     metrics = params.get("metrics") or []
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
 
     facts: list[Fact] = []
     missing: list[MissingCell] = []
     peer_table_rows: list[DatasetRowDTO] = []
     reference_lines: list[ReferenceLineDTO] = []
+
+    if not universe_id or len(ctx.universe_members) < 2:
+        for metric in metrics:
+            missing.append(MissingCell(entity_id=target, period=period, metric_id=metric, reason="UNIVERSE_UNAVAILABLE"))
+            target_obs = get_cached_obs(ctx, target, period, metric)
+            if target_obs and target_obs.validation_status is QualityStatus.VALID and target_obs.value is not None:
+                vf = value_fact(target_obs)
+                if vf:
+                    facts.append(vf)
+        label = f"Vị thế so với nhóm · {target} (không có universe)"
+        return ToolResult(tool="peer_position", agent="sector", label=label, facts=facts, datasets=[], missing=missing)
 
     for metric in metrics:
         _, valid_obs = _get_universe_obs(ctx, period, metric)
@@ -418,12 +429,18 @@ def run_ranking_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
     period = params.get("period") or ""
     context_metrics = params.get("context_metrics") or []
     highlights = params.get("highlight_entity_ids") or ([params.get("highlight_entity")] if params.get("highlight_entity") else [])
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
 
     facts: list[Fact] = []
     missing: list[MissingCell] = []
     ranked_rows: list[DatasetRowDTO] = []
     reference_lines: list[ReferenceLineDTO] = []
+
+    if not universe_id or len(ctx.universe_members) < 2:
+        pres = ctx.presentation(metric)
+        missing.append(MissingCell(entity_id="", period=period, metric_id=metric, reason="UNIVERSE_UNAVAILABLE"))
+        label = f"Xếp hạng {pres.label} (không có universe)"
+        return ToolResult(tool="ranking", agent="sector", label=label, facts=[], datasets=[], missing=missing)
 
     # 1. Primary metric
     _, valid_obs = _get_universe_obs(ctx, period, metric)
@@ -528,7 +545,7 @@ def run_trend_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
     target = params.get("entity") or params.get("target") or ""
     periods = params.get("periods") or []
     metrics = params.get("metrics") or []
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
 
     facts: list[Fact] = []
     missing: list[MissingCell] = []
@@ -586,7 +603,7 @@ def run_trend_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
             facts.append(delta_fact(valid_target_obs[0], valid_target_obs[-1]))
 
         # 4. Peer medians and median deltas
-        if len(ctx.universe_members) >= 2:
+        if universe_id and len(ctx.universe_members) >= 2:
             med_facts_by_period: dict[str, Fact] = {}
             for p in periods:
                 _, valid_obs = _get_universe_obs(ctx, p, metric)
@@ -665,7 +682,7 @@ def run_head_to_head_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
         entities = [params.get("target")] + list(params.get("peers") or [])
     period = params.get("period") or ""
     metrics = params.get("metrics") or []
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
 
     facts: list[Fact] = []
     missing: list[MissingCell] = []
@@ -726,7 +743,7 @@ def run_head_to_head_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             facts.append(lead_count_fact(other, first, rev_gaps, directions, flat_pp=0.0, period=period))
 
     # 3. Median if universe available
-    if len(ctx.universe_members) >= 2:
+    if universe_id and len(ctx.universe_members) >= 2:
         for metric in metrics:
             _, valid_obs = _get_universe_obs(ctx, period, metric)
             mf = _safe_peer_median(ctx, universe_id, period, metric, valid_obs)
@@ -796,8 +813,8 @@ def run_decomposition_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             )
 
     reference_lines: list[ReferenceLineDTO] = []
-    if len(ctx.universe_members) >= 2:
-        universe_id = ctx.universe_id or "sector:bank"
+    if ctx.universe_id and len(ctx.universe_members) >= 2:
+        universe_id = ctx.universe_id
         all_ratios: list[Fact] = []
         for member in ctx.universe_members:
             dr = next((f for f in facts if f.entity_id == member and f.fact_type == "derived_ratio"), None)
@@ -864,7 +881,18 @@ def run_dispersion_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
     """Execute dispersion tool: distribution spread and outlier detection."""
     metric = params.get("metric") or ""
     period = params.get("period") or ""
-    universe_id = ctx.universe_id or "sector:bank"
+    universe_id = ctx.universe_id
+    if not universe_id or len(ctx.universe_members) < 2:
+        pres = ctx.presentation(metric)
+        return ToolResult(
+            tool="dispersion",
+            agent="sector",
+            label=f"Độ phân tán {pres.label} (không có universe)",
+            facts=[],
+            datasets=[],
+            missing=[MissingCell(entity_id="", period=period, metric_id=metric, reason="UNIVERSE_UNAVAILABLE")],
+        )
+
     facts: list[Fact] = []
     missing: list[MissingCell] = []
     rows: list[DatasetRowDTO] = []
@@ -919,6 +947,7 @@ def run_relationship_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
     """Execute relationship tool: paired correlation scatter."""
     metrics = params.get("metrics") or []
     period = params.get("period") or ""
+    universe_id = ctx.universe_id
     facts: list[Fact] = []
     missing: list[MissingCell] = []
     rows: list[DatasetRowDTO] = []
@@ -926,8 +955,9 @@ def run_relationship_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
     for m in metrics:
         _, valid_obs = _get_universe_obs(ctx, period, m)
         pres = ctx.presentation(m)
-        rf_list = rank_facts(valid_obs, ctx.universe_id or "sector:bank", pres.direction)
-        facts.extend(rf_list)
+        if universe_id and len(ctx.universe_members) >= 2:
+            rf_list = rank_facts(valid_obs, universe_id, pres.direction)
+            facts.extend(rf_list)
         for obs in valid_obs:
             vf = value_fact(obs)
             if vf:

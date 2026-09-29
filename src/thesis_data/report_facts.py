@@ -392,12 +392,67 @@ def derived_ratio_fact(
     )
 
 
+def _get_flat_pp(flat_pp: Mapping[str, float] | float, metric_id: str, default: float = 0.05) -> float:
+    """Resolve flat threshold in percentage points for a given metric."""
+    if isinstance(flat_pp, (int, float)):
+        return float(flat_pp)
+    if metric_id in flat_pp:
+        return float(flat_pp[metric_id])
+    short_id = metric_id.rsplit(".", 1)[-1]
+    if short_id in flat_pp:
+        return float(flat_pp[short_id])
+    for k, v in flat_pp.items():
+        if k in metric_id or metric_id in k:
+            return float(v)
+    return default
+
+
+def _is_consecutive_period(p_from: str, p_to: str) -> bool:
+    """Check if p_to is chronologically the immediately consecutive period after p_from."""
+    if "_Q" in p_from and "_Q" in p_to:
+        try:
+            y1, q1 = p_from.split("_Q")
+            y2, q2 = p_to.split("_Q")
+            return (int(y2) * 4 + int(q2)) == (int(y1) * 4 + int(q1) + 1)
+        except Exception:
+            pass
+    if p_from.startswith("Q") and p_to.startswith("Q") and p_from[1:].isdigit() and p_to[1:].isdigit():
+        try:
+            return int(p_to[1:]) == int(p_from[1:]) + 1
+        except Exception:
+            pass
+    if p_from.isdigit() and p_to.isdigit():
+        try:
+            return int(p_to) == int(p_from) + 1
+        except Exception:
+            pass
+    return False
+
+
+def _period_key(p: str) -> tuple[int, int]:
+    """Tuple sort key for period string."""
+    if "_Q" in p:
+        try:
+            y, q = p.split("_Q")
+            return (int(y), int(q))
+        except Exception:
+            pass
+    if p.startswith("Q") and p[1:].isdigit():
+        try:
+            return (0, int(p[1:]))
+        except Exception:
+            pass
+    if p.isdigit():
+        return (int(p), 0)
+    return (0, 0)
+
+
 def lead_count_fact(
     a: str,
     b: str,
     metric_pairs: Sequence[tuple[str, Fact | None]],
     directions: Mapping[str, str],
-    flat_pp: float = 0.0,
+    flat_pp: Mapping[str, float] | float = 0.0,
     period: str = "",
 ) -> Fact:
     """Compute number of metrics where entity a outperforms entity b."""
@@ -412,11 +467,12 @@ def lead_count_fact(
         input_obs_ids.extend(gap_fact.input_observation_ids)  # type: ignore
         gap = float(gap_fact.value)  # type: ignore
         direction = directions.get(m, "higher_is_better")
+        m_flat = _get_flat_pp(flat_pp, m, default=0.0)
         if direction == "higher_is_better":
-            if gap > flat_pp:
+            if gap > m_flat:
                 leads += 1
         elif direction == "lower_is_better":
-            if -gap > flat_pp:
+            if -gap > m_flat:
                 leads += 1
     fact_id = f"fact:lead_count:{a}:vs:{b}:{period}"
     return Fact(
@@ -440,7 +496,7 @@ def classify_signals(
     facts: Sequence[Fact],
     metric_groups: Mapping[str, Sequence[str]],
     directions: Mapping[str, str],
-    flat_pp: float = 0.05,
+    flat_pp: Mapping[str, float] | float = 0.05,
     group_labels: Mapping[str, str] | None = None,
 ) -> list[SignalResult]:
     """Classify target entity standing across financial dimensions."""
@@ -485,9 +541,10 @@ def classify_signals(
             else:
                 adj_gap = 0.0
 
-            if adj_gap > flat_pp:
+            m_flat = _get_flat_pp(flat_pp, m, default=0.05)
+            if adj_gap > m_flat:
                 better_count += 1
-            elif adj_gap < -flat_pp:
+            elif adj_gap < -m_flat:
                 worse_count += 1
             else:
                 in_line_count += 1
@@ -519,7 +576,7 @@ def classify_signals(
 def detect_cross_level_candidates(
     facts: Sequence[Fact],
     signals: Sequence[SignalResult],
-    flat_pp: float = 0.05,
+    flat_pp: Mapping[str, float] | float = 0.05,
     directions: Mapping[str, str] | None = None,
     metric_to_group: Mapping[str, str] | None = None,
 ) -> list[CrossLevelCandidate]:
@@ -548,7 +605,7 @@ def detect_cross_level_candidates(
         )
         cid += 1
 
-    # 2. Counter-trend (entity delta vs median delta move in opposite directions)
+    # 2. Counter-trend: xét cặp kỳ liên tiếp CUỐI CÙNG có đủ delta và median_delta
     delta_facts: dict[tuple[str, str, str, str], Fact] = {}
     median_delta_facts: dict[tuple[str, str, str], Fact] = {}
     for f in facts:
@@ -557,23 +614,37 @@ def detect_cross_level_candidates(
         elif f.fact_type == "median_delta" and f.from_period and f.value is not None:
             median_delta_facts[(f.from_period, f.period, f.metric_id)] = f
 
+    # Group valid consecutive pairs by (entity, metric)
+    consecutive_pairs_by_entity_metric: dict[tuple[str, str], list[tuple[str, str, Fact, Fact]]] = {}
     for (entity, from_p, to_p, metric), d_fact in delta_facts.items():
+        if not _is_consecutive_period(from_p, to_p):
+            continue
         m_fact = median_delta_facts.get((from_p, to_p, metric))
         if m_fact is not None and m_fact.value is not None and d_fact.value is not None:
-            d_val = float(d_fact.value)
-            m_val = float(m_fact.value)
-            if (d_val * m_val < 0) and abs(d_val) > flat_pp and abs(m_val) > flat_pp:
-                candidates.append(
-                    CrossLevelCandidate(
-                        finding_id=f"f-counter-trend-{cid}",
-                        kind="counter_trend",
-                        severity="warning",
-                        text="Target entity metric trend opposes peer median trajectory.",
-                        fact_ids=[d_fact.fact_id, m_fact.fact_id],
-                        pattern="counter_trend",
-                    )
+            consecutive_pairs_by_entity_metric.setdefault((entity, metric), []).append(
+                (from_p, to_p, d_fact, m_fact)
+            )
+
+    for (entity, metric), pairs in consecutive_pairs_by_entity_metric.items():
+        sorted_pairs = sorted(pairs, key=lambda item: (_period_key(item[0]), _period_key(item[1])))
+        from_p, to_p, d_fact, m_fact = sorted_pairs[-1]
+
+        d_val = float(d_fact.value)  # type: ignore
+        m_val = float(m_fact.value)  # type: ignore
+        threshold = _get_flat_pp(flat_pp, metric, default=0.05)
+
+        if (d_val * m_val < 0) and abs(d_val) > threshold and abs(m_val) > threshold:
+            candidates.append(
+                CrossLevelCandidate(
+                    finding_id=f"f-counter-trend-{cid}",
+                    kind="counter_trend",
+                    severity="warning",
+                    text="Target entity metric trend opposes peer median trajectory.",
+                    fact_ids=[d_fact.fact_id, m_fact.fact_id],
+                    pattern="counter_trend",
                 )
-                cid += 1
+            )
+            cid += 1
 
     # 3. Cross-metric extreme (entity occupies rank 1 or rank denominator across >= 2 metrics in different groups)
     ranks_by_entity: dict[str, list[Fact]] = {}

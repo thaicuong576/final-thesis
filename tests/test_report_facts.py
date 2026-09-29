@@ -329,6 +329,46 @@ class TestReportFactsCore(unittest.TestCase):
         cand_no_ext = detect_cross_level_candidates(facts_no_ext, [], metric_to_group={"m1": "g1", "m2": "g2"})
         self.assertFalse(any(c.kind == "cross_metric_extreme" for c in cand_no_ext))
 
+    def test_counter_trend_per_metric_threshold_and_last_consecutive_period(self) -> None:
+        """Verify counter_trend uses per-metric threshold and only inspects the last consecutive period."""
+        flat_pp_map = {
+            "bank.npl_g35": 0.05,
+            "bank.llr_coverage": 1.0,
+            "bank.roa": 0.05,
+            "bank.roe": 0.5,
+        }
+
+        # Case ACB ROE: delta Q3->Q4 is +0.05 pp vs median delta -0.94 pp.
+        # Although signs are opposite, delta (+0.05 pp) does NOT exceed flat_threshold (0.5 pp) -> NO counter_trend.
+        facts_roe = [
+            Fact(fact_id="d_roe", fact_type="delta", entity_id="ACB", from_period="2024_Q3", period="2024_Q4", metric_id="bank.roe", value=0.05),
+            Fact(fact_id="md_roe", fact_type="median_delta", universe_id="sector:bank", from_period="2024_Q3", period="2024_Q4", metric_id="bank.roe", value=-0.94),
+        ]
+        cand_roe = detect_cross_level_candidates(facts_roe, [], flat_pp=flat_pp_map)
+        self.assertFalse(any(c.kind == "counter_trend" for c in cand_roe))
+
+        # Case ACB Coverage: delta Q3->Q4 is -2.51 pp vs median delta +13.18 pp.
+        # Both exceed flat_threshold (1.0 pp) and signs are opposite -> CÓ counter_trend.
+        facts_cov = [
+            Fact(fact_id="d_cov", fact_type="delta", entity_id="ACB", from_period="2024_Q3", period="2024_Q4", metric_id="bank.llr_coverage", value=-2.51),
+            Fact(fact_id="md_cov", fact_type="median_delta", universe_id="sector:bank", from_period="2024_Q3", period="2024_Q4", metric_id="bank.llr_coverage", value=13.18),
+        ]
+        cand_cov = detect_cross_level_candidates(facts_cov, [], flat_pp=flat_pp_map)
+        self.assertTrue(any(c.kind == "counter_trend" for c in cand_cov))
+
+        # Case earlier period had counter-trend but last consecutive period did NOT:
+        # Q2->Q3 had counter-trend, but last consecutive period Q3->Q4 moves together -> NO counter_trend.
+        facts_multi_period = [
+            # Q2->Q3: opposite directions exceeding threshold
+            Fact(fact_id="d_cov_old", fact_type="delta", entity_id="ACB", from_period="2024_Q2", period="2024_Q3", metric_id="bank.llr_coverage", value=-5.0),
+            Fact(fact_id="md_cov_old", fact_type="median_delta", universe_id="sector:bank", from_period="2024_Q2", period="2024_Q3", metric_id="bank.llr_coverage", value=8.0),
+            # Q3->Q4 (last period): both increase
+            Fact(fact_id="d_cov_new", fact_type="delta", entity_id="ACB", from_period="2024_Q3", period="2024_Q4", metric_id="bank.llr_coverage", value=3.0),
+            Fact(fact_id="md_cov_new", fact_type="median_delta", universe_id="sector:bank", from_period="2024_Q3", period="2024_Q4", metric_id="bank.llr_coverage", value=4.0),
+        ]
+        cand_multi = detect_cross_level_candidates(facts_multi_period, [], flat_pp=flat_pp_map)
+        self.assertFalse(any(c.kind == "counter_trend" for c in cand_multi))
+
 
 if __name__ == "__main__":
     unittest.main()

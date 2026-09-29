@@ -450,6 +450,34 @@ class TestAnalysisToolsUnit(unittest.TestCase):
             else:
                 TOOLS["custom_broken"] = original_tool
 
+    def test_tools_without_universe_record_missing_and_no_peer_facts(self) -> None:
+        """When universe_id is None, peer-dependent facts are omitted or recorded as missing."""
+        ctx_no_univ = ToolContext(
+            provider=self.provider,
+            dataset_ref=self.provider.dataset_ref,
+            catalog=self.catalog,
+            universe_id=None,
+            universe_members=(),
+            presentation=get_metric_presentation,
+            cache={},
+        )
+        # 1. Lookup: only company value facts, no median or rank facts
+        res_lookup = run_lookup_tool(ctx_no_univ, {"entity": "E1", "period": "2024_Q4", "metric": "bank.npl_g35"})
+        fact_types = {f.fact_type for f in res_lookup.facts}
+        self.assertIn("value", fact_types)
+        self.assertNotIn("peer_median", fact_types)
+        self.assertNotIn("peer_rank", fact_types)
+
+        # 2. Peer position: no universe -> missing cell UNIVERSE_UNAVAILABLE, no peer facts
+        res_peer = run_peer_position_tool(ctx_no_univ, {"target": "E1", "period": "2024_Q4", "metrics": ["bank.npl_g35"]})
+        self.assertTrue(any(m.reason == "UNIVERSE_UNAVAILABLE" for m in res_peer.missing))
+        self.assertFalse(any(f.fact_type in ("peer_median", "peer_rank", "gap_to_median") for f in res_peer.facts))
+
+        # 3. Ranking: no universe -> missing cell UNIVERSE_UNAVAILABLE, empty facts
+        res_rank = run_ranking_tool(ctx_no_univ, {"metric": "bank.npl_g35", "period": "2024_Q4"})
+        self.assertEqual(len(res_rank.facts), 0)
+        self.assertTrue(any(m.reason == "UNIVERSE_UNAVAILABLE" for m in res_rank.missing))
+
 
 class TestGoldFixtureFactVerification(unittest.TestCase):
     """Independent verification: compare ER-3 computed facts against frontend/src/test/fixtures."""

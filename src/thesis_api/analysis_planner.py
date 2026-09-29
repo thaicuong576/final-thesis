@@ -700,9 +700,9 @@ def build_analysis_plan(
             if spec.question_type == "head_to_head":
                 peer_ids = tuple(e for e in spec.entities if e != spec.focus_entity)
             elif peer_tickers:
-                peer_ids = tuple(t.strip().upper() for t in peer_tickers if t.strip())
+                peer_ids = tuple(t.strip().upper() for t in peer_tickers if t.strip() and t.strip().upper() != spec.focus_entity)
             else:
-                peer_ids = tuple(universe.entity_ids)
+                peer_ids = tuple(e for e in universe.entity_ids if e != spec.focus_entity) if spec.focus_entity else tuple(universe.entity_ids)
 
     entities_list: list[str] = []
     if spec.focus_entity:

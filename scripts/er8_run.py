@@ -33,8 +33,18 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
+# Pre-load environment variables from .env before importing thesis_api/settings
+env_path = ROOT / ".env"
+if not env_path.exists():
+    root_candidate = ROOT.parent.parent / ".env"
+    if root_candidate.exists():
+        env_path = root_candidate
+if env_path.exists():
+    load_dotenv(env_path)
+
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
@@ -63,8 +73,18 @@ def canonical_lf_utf8_sha256(content: str | bytes) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
-def find_gold_path(explicit_path: Path | None = None) -> Path:
+def _relpath_str(p: Path) -> str:
+    """Return path relative to repo root using POSIX forward slashes, or as_posix() if outside."""
+    try:
+        return p.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return p.as_posix()
+
+
+def find_gold_path(explicit_path: Path | None = None, *, verify_hash: bool = True) -> Path:
     if explicit_path and explicit_path.exists():
+        if not verify_hash:
+            return explicit_path
         raw_hash = hashlib.sha256(explicit_path.read_bytes()).hexdigest().lower()
         if raw_hash == GOLD_RAW_BYTES_SHA256:
             return explicit_path
@@ -76,6 +96,42 @@ def find_gold_path(explicit_path: Path | None = None) -> Path:
             if raw_hash == GOLD_RAW_BYTES_SHA256:
                 return candidate
     raise FileNotFoundError("Could not find verified Gold v5 SQLite database matching expected hash.")
+
+
+def find_gold_path_or_none(explicit_path: Path | None = None, *, verify_hash: bool = True) -> Path | None:
+    try:
+        return find_gold_path(explicit_path, verify_hash=verify_hash)
+    except (FileNotFoundError, ValueError):
+        return None
+
+
+def check_live_model_preflight(model: str | None = None) -> None:
+    """Pre-flight check: send a minimal request to the model before running evaluation.
+
+    If it fails, abort with a clear error message instead of failing all 36 runs.
+    """
+    settings = Settings()
+    if not settings.openai_api_key or not settings.openai_api_key.strip():
+        raise SystemExit(
+            "ERROR: OPENAI_API_KEY is not set or empty in environment / .env. "
+            "Cannot run real model evaluation."
+        )
+    eff_model = model or settings.openai_model
+    logger.info("Running preflight check against model '%s' (base_url=%s)...", eff_model, settings.openai_base_url)
+    try:
+        from thesis_api.llm import get_llm_client
+        client = get_llm_client(settings)
+        client.chat.completions.create(
+            model=eff_model,
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=5,
+        )
+        logger.info("Preflight check succeeded. Model '%s' is responsive.", eff_model)
+    except Exception as exc:
+        raise SystemExit(
+            f"ERROR: Live model preflight check failed for model '{eff_model}' (base_url={settings.openai_base_url}): {exc}\n"
+            f"Aborting evaluation run before starting runs."
+        ) from exc
 
 
 class _DummyChatCompletions:
@@ -346,12 +402,16 @@ def run_evaluation(
     output_dir: Path | None = None,
     model: str | None = None,
 ) -> dict[str, Any]:
-    output_dir = output_dir or (ROOT / "experiments" / "er8")
+    if output_dir is None:
+        output_dir = (ROOT / "experiments" / "er8" / "dry-run") if dry_run else (ROOT / "experiments" / "er8")
     output_dir.mkdir(parents=True, exist_ok=True)
     runs_dir = output_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
 
-    verified_gold = find_gold_path(gold_path)
+    if not dry_run:
+        check_live_model_preflight(model=model)
+
+    verified_gold = find_gold_path(gold_path, verify_hash=not dry_run or (gold_path is None))
     authority_path = authority_path or (ROOT / "data" / "evaluation" / "gold-v5-reporting-scope-authority-v1.json")
     questions_path = questions_path or (ROOT / "data" / "evaluation" / "er8-questions-v2.jsonl")
     task_specs_path = task_specs_path or (ROOT / "data" / "evaluation" / "er8-task-specs-v2.json")
@@ -415,7 +475,7 @@ def run_evaluation(
             arm = plan_item["arm"]
             rep = plan_item["rep"]
 
-            run_id = f"er8-{tid}-{arm}-r{rep}-{uuid.uuid4().hex[:8]}"
+            run_id = f"er8-{tid}-{arm}-r{rep}"
 
             if budget_exceeded or accumulated_tokens >= max_tokens:
                 budget_exceeded = True
@@ -599,11 +659,11 @@ def run_evaluation(
         "dry_run": dry_run,
         "model": model or ("offline-stub" if dry_run else "live-model"),
         "gold_snapshot_bytes_sha256": GOLD_RAW_BYTES_SHA256,
-        "questions_file": str(questions_path.as_posix()),
+        "questions_file": _relpath_str(questions_path),
         "questions_canonical_lf_utf8_sha256": questions_hash,
-        "task_specs_file": str(task_specs_path.as_posix()),
+        "task_specs_file": _relpath_str(task_specs_path),
         "task_specs_canonical_lf_utf8_sha256": specs_hash,
-        "expected_coverage_file": str(expected_coverage_path.as_posix()),
+        "expected_coverage_file": _relpath_str(expected_coverage_path),
         "expected_coverage_canonical_lf_utf8_sha256": cov_hash,
         "total_planned_runs": len(planned_runs),
         "total_executed_runs": len(run_records),

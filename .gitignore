@@ -48,3 +48,6 @@ __pycache__/
 
 # Generated thesis Word output (rebuild with scripts/build_thesis_docx.py)
 docs/thesis-v2/build/
+
+# ER-8 Evaluation dry-run output
+experiments/er8/dry-run/

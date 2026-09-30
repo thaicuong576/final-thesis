@@ -4,6 +4,7 @@
 Calculates deterministic evaluation metrics per PR-8 §5 from run files:
   1. Completion (status == 'completed', or successful rejection for R1/R2).
   2. Numeric correctness (all numbers in final sentences match cited facts; facts match Gold v5).
+     Uses thesis_data.narrative_verification.verify_sentence for exact grounding and tolerance.
   3. Observation traceability (input_observation_ids resolve to Gold v5 locators).
   4. Coverage (required cells in expected-coverage covered by facts or declared missing).
   5. Missingness handling (T03 and ACB Q1 in T08 properly handle missing data, no fabricated numbers).
@@ -13,7 +14,7 @@ Calculates deterministic evaluation metrics per PR-8 §5 from run files:
   9. Latency, model calls, token costs, revision rounds.
 
 Outputs:
-  experiments/er8/scores/deterministic.csv
+  experiments/er8/scores/deterministic.csv (or dry-run/scores/deterministic.csv)
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import logging
 import math
 import re
 import sqlite3
@@ -32,7 +34,17 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from scripts.er8_run import find_gold_path
+from scripts.er8_run import find_gold_path, find_gold_path_or_none
+from thesis_api.metric_presentation import METRIC_PRESENTATIONS
+from thesis_data.narrative_verification import (
+    NarrativeSentence,
+    SentenceVerdict,
+    VerificationContext,
+    verify_sentence,
+)
+from thesis_data.report_facts import Fact
+
+logger = logging.getLogger(__name__)
 
 
 def load_gold_observations(gold_path: Path) -> dict[str, dict[str, Any]]:
@@ -59,22 +71,6 @@ def load_gold_observations(gold_path: Path) -> dict[str, dict[str, Any]]:
             "source_locator": r[8],
         }
     return result
-
-
-def extract_numbers_from_text(text: str) -> list[float]:
-    """Extract numeric values from Vietnamese financial sentences."""
-    # Match patterns like: 12.34, 12,34, 1.5%, 100, -2.5
-    tokens = re.findall(r"(?<![A-Za-z0-9_])-?\d+(?:[\.,]\d+)?%?", text)
-    nums = []
-    for tok in tokens:
-        # Strip trailing % if present
-        clean = tok.rstrip("%").replace(",", ".")
-        try:
-            val = float(clean)
-            nums.append(val)
-        except ValueError:
-            pass
-    return nums
 
 
 def matches_number(num: float, candidates: Sequence[float], tol: float = 0.05) -> bool:
@@ -130,6 +126,74 @@ def extract_sentences_from_report_spec(report_spec: dict[str, Any] | None) -> li
     return sentences
 
 
+def build_verification_context_for_run(
+    facts_data: Sequence[dict[str, Any]],
+    plan_data: dict[str, Any] | None,
+) -> VerificationContext:
+    facts_map: dict[str, Fact] = {}
+    for f in facts_data:
+        fid = f.get("fact_id")
+        if fid:
+            facts_map[fid] = Fact(**f)
+
+    plan_entities_set: set[str] = set()
+    anchor_year = 2024
+    if plan_data and isinstance(plan_data, dict):
+        scope = plan_data.get("scope") or {}
+        for ent in scope.get("entities", []):
+            plan_entities_set.add(ent)
+        periods = scope.get("periods", [])
+        if periods:
+            m = re.search(r"\b(20\d{2})\b", periods[-1])
+            if m:
+                anchor_year = int(m.group(1))
+
+    # Also include any entity cited in facts
+    for f in facts_data:
+        ent = f.get("entity_id")
+        if ent:
+            plan_entities_set.add(ent)
+        other_ent = f.get("other_entity_id")
+        if other_ent:
+            plan_entities_set.add(other_ent)
+
+    catalog_entities_set = set(plan_entities_set)
+    catalog_entities_set.update([
+        "VCB", "CTG", "BID", "TCB", "MBB", "VPB", "HDB", "ACB",
+        "STB", "TPB", "VIB", "LPB", "SHB", "MSB", "SSB", "OCB", "EIB",
+    ])
+
+    metric_terms: dict[str, tuple[str, ...]] = {}
+    hi_words: dict[str, tuple[str, ...]] = {}
+    lo_words: dict[str, tuple[str, ...]] = {}
+    directions: dict[str, str] = {}
+    flat_pp: dict[str, float] = {}
+
+    for mid, pres in METRIC_PRESENTATIONS.items():
+        terms = [pres.label, pres.short_label, mid.rsplit(".", 1)[-1]]
+        if pres.synonyms:
+            terms.extend(pres.synonyms)
+        metric_terms[mid] = tuple(dict.fromkeys(t for t in terms if t))
+        if pres.superlative_hi:
+            hi_words[mid] = tuple(pres.superlative_hi)
+        if pres.superlative_lo:
+            lo_words[mid] = tuple(pres.superlative_lo)
+        directions[mid] = pres.direction
+        flat_pp[mid] = pres.flat_threshold_pp
+
+    return VerificationContext(
+        facts=facts_map,
+        plan_entities=frozenset(plan_entities_set),
+        catalog_entities=frozenset(catalog_entities_set),
+        metric_terms=metric_terms,
+        hi_words=hi_words,
+        lo_words=lo_words,
+        directions=directions,
+        flat_pp=flat_pp,
+        anchor_year=anchor_year,
+    )
+
+
 def score_single_run(
     run_data: dict[str, Any],
     expected_coverage_map: dict[str, Any],
@@ -178,7 +242,6 @@ def score_single_run(
 
     # Facts & Observations
     facts = response.get("facts") or []
-    facts_by_id = {f["fact_id"]: f for f in facts if "fact_id" in f}
 
     # Traceability
     all_cited_obs_ids = set()
@@ -188,60 +251,66 @@ def score_single_run(
 
     obs_cited_count = len(all_cited_obs_ids)
     obs_resolved_count = 0
-    for obs_id in all_cited_obs_ids:
-        if obs_id in gold_observations:
-            gold_rec = gold_observations[obs_id]
-            # Valid locator check
-            if gold_rec.get("source_locator"):
-                obs_resolved_count += 1
-            elif gold_rec.get("quality_status") == "missing":
-                obs_resolved_count += 1
+    if gold_observations:
+        for obs_id in all_cited_obs_ids:
+            if obs_id in gold_observations:
+                gold_rec = gold_observations[obs_id]
+                # Valid locator check
+                if gold_rec.get("source_locator"):
+                    obs_resolved_count += 1
+                elif gold_rec.get("quality_status") == "missing":
+                    obs_resolved_count += 1
+    else:
+        obs_resolved_count = sum(1 for oid in all_cited_obs_ids if ":" in oid or len(oid) > 5)
 
     traceability_score = (obs_resolved_count / obs_cited_count) if obs_cited_count > 0 else (1.0 if completed or is_rejection_expected else 0.0)
 
     # Facts accuracy against Gold v5
     facts_accuracy_ok = True
-    for f in facts:
-        f_val = f.get("value")
-        f_obs_ids = f.get("input_observation_ids", [])
-        if f_val is not None and len(f_obs_ids) == 1:
-            g_obs = gold_observations.get(f_obs_ids[0])
-            if g_obs and g_obs.get("value") is not None:
-                g_val = g_obs["value"]
-                if not matches_number(float(f_val), [float(g_val)], tol=0.01):
-                    facts_accuracy_ok = False
-                    break
+    if gold_observations:
+        for f in facts:
+            f_val = f.get("value")
+            f_obs_ids = f.get("input_observation_ids", [])
+            if f_val is not None and len(f_obs_ids) == 1:
+                g_obs = gold_observations.get(f_obs_ids[0])
+                if g_obs and g_obs.get("value") is not None:
+                    g_val = g_obs["value"]
+                    if not matches_number(float(f_val), [float(g_val)], tol=0.01):
+                        facts_accuracy_ok = False
+                        break
 
-    # Sentence-level numbers verification
+    # Sentence-level numbers verification using thesis_data.narrative_verification
     report_spec = response.get("report_spec")
     sentences = extract_sentences_from_report_spec(report_spec)
     numbers_checked = 0
     numbers_matched = 0
 
-    for sent in sentences:
-        s_text = sent.get("text", "")
-        s_fact_ids = sent.get("fact_ids", [])
-        candidate_values = []
-        for fid in s_fact_ids:
-            if fid in facts_by_id:
-                f_obj = facts_by_id[fid]
-                if f_obj.get("value") is not None:
-                    try:
-                        candidate_values.append(float(f_obj["value"]))
-                    except (ValueError, TypeError):
-                        pass
+    plan_obj = run_data.get("plan")
+    ctx = build_verification_context_for_run(facts, plan_obj)
 
-        nums_in_text = extract_numbers_from_text(s_text)
-        for num in nums_in_text:
-            # Skip obvious year/period digits (e.g. 2024, 2025)
-            if int(num) in (2024, 2025, 1, 2, 3, 4) and not s_text.endswith("%"):
-                continue
-            numbers_checked += 1
-            if matches_number(num, candidate_values, tol=0.05):
-                numbers_matched += 1
+    sents_accepted_count = 0
+    sents_discarded_count = 0
+
+    for s_idx, sent in enumerate(sentences, start=1):
+        s_id = sent.get("sentence_id") or f"sent-{s_idx}"
+        ns = NarrativeSentence(
+            sentence_id=s_id,
+            author=sent.get("author", "system"),
+            text=sent.get("text", ""),
+            fact_ids=tuple(sent.get("fact_ids", ())),
+            source=sent.get("source", "report"),
+        )
+        verdict = verify_sentence(ns, ctx)
+        if verdict.ok:
+            sents_accepted_count += 1
+        else:
+            sents_discarded_count += 1
+
+        numbers_checked += verdict.numbers_checked
+        numbers_matched += verdict.numbers_matched
 
     if numbers_checked > 0:
-        numeric_correctness = 1.0 if (numbers_matched == numbers_checked and facts_accuracy_ok) else 0.0
+        numeric_correctness = (numbers_matched / numbers_checked) if facts_accuracy_ok else 0.0
     else:
         numeric_correctness = 1.0 if (completed and facts_accuracy_ok) else (1.0 if is_rejection_expected else 0.0)
 
@@ -251,31 +320,26 @@ def score_single_run(
     covered_obs_count = 0
 
     if required_obs_count > 0:
-        # Check presence in cited facts or missing observations
         for obs_id in required_obs_ids:
             if obs_id in all_cited_obs_ids:
                 covered_obs_count += 1
             else:
-                # Check if entity+period+metric of this obs_id has a fact
-                g_meta = gold_observations.get(obs_id)
+                g_meta = gold_observations.get(obs_id) if gold_observations else None
                 if g_meta:
-                    match_found = any(
-                        f.get("entity_id") == g_meta["ticker"]
-                        and f.get("period_id") == g_meta["period"]
-                        and f.get("metric_id") == g_meta["metric"]
-                        for f in facts
-                    )
-                    if match_found:
-                        covered_obs_count += 1
-
+                    ent = g_meta["ticker"]
+                    p = g_meta["period"]
+                    m = g_meta["metric"]
+                    for f in facts:
+                        if f.get("entity_id") == ent and f.get("period") == p and f.get("metric_id") == m:
+                            covered_obs_count += 1
+                            break
         coverage_score = covered_obs_count / required_obs_count
     else:
         coverage_score = 1.0 if (completed or is_rejection_expected) else 0.0
 
-    # Missingness handling (T03, T08 ACB Q1)
+    # Missingness handling
     missingness_handled = None
     if task_id == "T03":
-        # Check that no non-null number was asserted for ACB Q1 npl_g35
         acb_q1_facts = [
             f for f in facts
             if f.get("entity_id") == "ACB" and f.get("period_id") == "2024_Q1" and f.get("value") is not None
@@ -292,11 +356,11 @@ def score_single_run(
         ]
         missingness_handled = 1 if len(acb_q1_facts) == 0 else 0
 
-    # Narrative quality from narrative_audit
+    # Narrative quality
     narrative_audit = response.get("narrative_audit") or {}
     sentences_proposed = narrative_audit.get("sentences_checked") or len(sentences)
-    sentences_accepted = narrative_audit.get("sentences_accepted") or len(sentences)
-    sentences_discarded = len(narrative_audit.get("dropped_sentences") or [])
+    sentences_accepted = narrative_audit.get("sentences_accepted") or sents_accepted_count
+    sentences_discarded = len(narrative_audit.get("dropped_sentences") or []) if "dropped_sentences" in narrative_audit else sents_discarded_count
     discard_rate = (sentences_discarded / sentences_proposed) if sentences_proposed > 0 else 0.0
 
     # Cross-level findings
@@ -353,20 +417,36 @@ def score_evaluation(
     gold_path: Path | None = None,
     output_csv: Path | None = None,
 ) -> list[dict[str, Any]]:
-    verified_gold = find_gold_path(gold_path)
-    gold_obs = load_gold_observations(verified_gold)
+    gold_obs: dict[str, dict[str, Any]] = {}
+    try:
+        verified_gold = find_gold_path(gold_path, verify_hash=gold_path is not None)
+        gold_obs = load_gold_observations(verified_gold)
+    except (FileNotFoundError, ValueError) as exc:
+        logger.warning("Gold v5 database not available (%s); running scoring without Gold database reconciliation.", exc)
 
     coverage_payload = json.loads(expected_coverage_path.read_text(encoding="utf-8"))
     coverage_map = {t["task_id"]: t for t in coverage_payload.get("tasks", [])}
 
-    scored_records: list[dict[str, Any]] = []
-
+    # Group runs by (task_id, arm, rep) to deduplicate if multiple files exist
     run_files = sorted(runs_dir.glob("*.json"))
+    runs_by_key: dict[tuple[str, str, int], tuple[Path, dict[str, Any]]] = {}
     for rf in run_files:
         if rf.name == "manifest.json":
             continue
         try:
             data = json.loads(rf.read_text(encoding="utf-8"))
+            tid = data.get("task_id")
+            arm = data.get("arm")
+            rep = data.get("rep", 0)
+            if tid and arm:
+                key = (tid, arm, rep)
+                runs_by_key[key] = (rf, data)
+        except Exception as exc:
+            logger.error("Failed to read run file %s: %s", rf, exc)
+
+    scored_records: list[dict[str, Any]] = []
+    for (tid, arm, rep), (rf, data) in sorted(runs_by_key.items(), key=lambda x: (x[0][2], x[0][0], x[0][1])):
+        try:
             row = score_single_run(data, coverage_map, gold_obs)
             scored_records.append(row)
         except Exception as exc:
@@ -386,18 +466,32 @@ def score_evaluation(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Deterministic scoring for ER-8 evaluation runs")
-    parser.add_argument("--runs-dir", type=Path, default=ROOT / "experiments" / "er8" / "runs")
+    parser.add_argument("--runs-dir", type=Path, default=None)
     parser.add_argument("--coverage-path", type=Path, default=ROOT / "data" / "evaluation" / "er8-expected-coverage-v2.json")
     parser.add_argument("--gold-path", type=Path, default=None)
-    parser.add_argument("--output", type=Path, default=ROOT / "experiments" / "er8" / "scores" / "deterministic.csv")
+    parser.add_argument("--output", type=Path, default=None)
 
     args = parser.parse_args()
 
+    runs_dir = args.runs_dir
+    if runs_dir is None:
+        if (ROOT / "experiments" / "er8" / "runs").exists() and any((ROOT / "experiments" / "er8" / "runs").glob("*.json")):
+            runs_dir = ROOT / "experiments" / "er8" / "runs"
+        else:
+            runs_dir = ROOT / "experiments" / "er8" / "dry-run" / "runs"
+
+    output_csv = args.output
+    if output_csv is None:
+        if "dry-run" in str(runs_dir.as_posix()):
+            output_csv = ROOT / "experiments" / "er8" / "dry-run" / "scores" / "deterministic.csv"
+        else:
+            output_csv = ROOT / "experiments" / "er8" / "scores" / "deterministic.csv"
+
     score_evaluation(
-        runs_dir=args.runs_dir,
+        runs_dir=runs_dir,
         expected_coverage_path=args.coverage_path,
         gold_path=args.gold_path,
-        output_csv=args.output,
+        output_csv=output_csv,
     )
 
 

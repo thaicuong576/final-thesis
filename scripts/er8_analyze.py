@@ -410,16 +410,37 @@ Các đồ thị phân tích đã được xuất tại thư mục `experiments/
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Analyze ER-8 evaluation results")
-    parser.add_argument("--scores-csv", type=Path, default=ROOT / "experiments" / "er8" / "scores" / "deterministic.csv")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "experiments" / "er8" / "analysis")
-    parser.add_argument("--results-md", type=Path, default=ROOT / "experiments" / "er8" / "RESULTS.md")
+    parser.add_argument("--scores-csv", type=Path, default=None)
+    parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--results-md", type=Path, default=None)
 
     args = parser.parse_args()
 
+    scores_csv = args.scores_csv
+    if scores_csv is None:
+        if (ROOT / "experiments" / "er8" / "scores" / "deterministic.csv").exists():
+            scores_csv = ROOT / "experiments" / "er8" / "scores" / "deterministic.csv"
+        else:
+            scores_csv = ROOT / "experiments" / "er8" / "dry-run" / "scores" / "deterministic.csv"
+
+    output_dir = args.output_dir
+    if output_dir is None:
+        if "dry-run" in str(scores_csv.as_posix()):
+            output_dir = ROOT / "experiments" / "er8" / "dry-run" / "analysis"
+        else:
+            output_dir = ROOT / "experiments" / "er8" / "analysis"
+
+    results_md = args.results_md
+    if results_md is None:
+        if "dry-run" in str(scores_csv.as_posix()):
+            results_md = ROOT / "experiments" / "er8" / "dry-run" / "RESULTS.md"
+        else:
+            results_md = ROOT / "experiments" / "er8" / "RESULTS.md"
+
     analyze_evaluation(
-        scores_csv=args.scores_csv,
-        output_dir=args.output_dir,
-        results_md=args.results_md,
+        scores_csv=scores_csv,
+        output_dir=output_dir,
+        results_md=results_md,
     )
 
 

@@ -180,6 +180,21 @@ METRIC_PRESENTATIONS: dict[str, MetricPresentation] = {
         superlative_hi=("cao",),
         superlative_lo=("thấp",),
     ),
+    "derived.roe_over_roa": MetricPresentation(
+        metric_id="derived.roe_over_roa",
+        label="ROE/ROA",
+        short_label="ROE/ROA",
+        unit="lần",
+        direction="neutral",
+        decimals=2,
+        delta_decimals=2,
+        flat_threshold_pp=0.5,
+        group="profitability",
+        group_label="Sinh lời & Đòn bẩy",
+        synonyms=("roe/roa", "đòn bẩy vốn", "roe trên roa"),
+        superlative_hi=("cao",),
+        superlative_lo=("thấp",),
+    ),
 }
 
 TOPIC_GROUPS: dict[str, tuple[str, ...]] = {
@@ -231,7 +246,12 @@ def get_metric_presentation(metric_id: str, display_name: str | None = None) -> 
 
             return replace(orig, metric_id=metric_id)
         return orig
-    label = display_name or metric_id
+    if display_name:
+        label = display_name
+    elif metric_id.startswith("bank.") or metric_id.startswith("derived."):
+        label = metric_id.split(".", 1)[-1].replace("_", " ")
+    else:
+        label = metric_id
     return MetricPresentation(
         metric_id=metric_id,
         label=label,
@@ -247,3 +267,18 @@ def get_metric_presentation(metric_id: str, display_name: str | None = None) -> 
         superlative_hi=("cao",),
         superlative_lo=("thấp",),
     )
+
+
+def format_metric_display_name(metric_id: str, lowercase: bool = False) -> str:
+    """Return natural Vietnamese name for metric, respecting acronyms (ROE, ROA, NIM)."""
+    pres = get_metric_presentation(metric_id)
+    if metric_id == "bank.llr_coverage":
+        return "tỷ lệ bao phủ nợ xấu" if lowercase else "Tỷ lệ bao phủ nợ xấu"
+    if metric_id == "bank.npl_g35":
+        return "tỷ lệ nợ xấu" if lowercase else "Tỷ lệ nợ xấu"
+    if metric_id in ("bank.roe", "bank.roa", "bank.nim", "bank.casa", "bank.car", "bank.cir", "bank.ldr", "derived.roe_over_roa"):
+        return pres.short_label
+    clean = pres.short_label
+    if clean.startswith("bank.") or clean.startswith("derived."):
+        clean = clean.split(".", 1)[-1].replace("_", " ")
+    return clean.lower() if lowercase else clean

@@ -41,7 +41,7 @@ class NarrativeVerificationTestCase(unittest.TestCase):
                 entity_id="ACB",
                 metric_id="bank.roe",
                 period="2024_Q4",
-                value=21.7459,
+                value=21.75,
                 unit="%",
             ),
             "f_acb_roe_rank_q4": Fact(
@@ -84,6 +84,15 @@ class NarrativeVerificationTestCase(unittest.TestCase):
                 metric_id="bank.llr_coverage",
                 period="2024_Q4",
                 value=76.5591,
+                unit="%",
+            ),
+            "f_acb_llr_prec_q4": Fact(
+                fact_id="f_acb_llr_prec_q4",
+                fact_type="value",
+                entity_id="ACB",
+                metric_id="bank.llr_coverage",
+                period="2024_Q4",
+                value=76.6379,
                 unit="%",
             ),
             "f_acb_llr_delta_q3_q4": Fact(
@@ -259,6 +268,42 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         verdict = verify_sentence(s, self.ctx)
         self.assertFalse(verdict.ok)
         self.assertEqual(verdict.reason_code, "number_mismatch")
+
+    def test_review_r1_tolerance_precision_76_6379(self) -> None:
+        """Review R1 test: fact 76.6379 -> '76,6%' ok, '76,64%' ok, '76,60%' number_mismatch."""
+        # 1. '76,6%' (d=1, tolerance=0.05, |76.6 - 76.6379| = 0.0379 <= 0.05) -> OK
+        s1 = NarrativeSentence(
+            sentence_id="s_prec_1",
+            author="company",
+            text="Tỷ lệ bao phủ nợ xấu của ACB đạt 76,6% trong quý 4.",
+            fact_ids=("f_acb_llr_prec_q4",),
+            source="model",
+        )
+        v1 = verify_sentence(s1, self.ctx)
+        self.assertTrue(v1.ok, f"Expected ok for 76,6%, got: {v1.reason_code}: {v1.reason}")
+
+        # 2. '76,64%' (d=2, tolerance=0.005, |76.64 - 76.6379| = 0.0021 <= 0.005) -> OK
+        s2 = NarrativeSentence(
+            sentence_id="s_prec_2",
+            author="company",
+            text="Tỷ lệ bao phủ nợ xấu của ACB đạt 76,64% trong quý 4.",
+            fact_ids=("f_acb_llr_prec_q4",),
+            source="model",
+        )
+        v2 = verify_sentence(s2, self.ctx)
+        self.assertTrue(v2.ok, f"Expected ok for 76,64%, got: {v2.reason_code}: {v2.reason}")
+
+        # 3. '76,60%' (d=2, tolerance=0.005, |76.60 - 76.6379| = 0.0379 > 0.005) -> number_mismatch
+        s3 = NarrativeSentence(
+            sentence_id="s_prec_3",
+            author="company",
+            text="Tỷ lệ bao phủ nợ xấu của ACB đạt 76,60% trong quý 4.",
+            fact_ids=("f_acb_llr_prec_q4",),
+            source="model",
+        )
+        v3 = verify_sentence(s3, self.ctx)
+        self.assertFalse(v3.ok, "Expected mismatch for 76,60% against 76.6379")
+        self.assertEqual(v3.reason_code, "number_mismatch")
 
     def test_2_1_case_4_wrong_metric_cited_mismatch(self) -> None:
         """ROE 1,51% (trích cả fact NPL) -> number_mismatch."""

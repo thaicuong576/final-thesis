@@ -811,6 +811,101 @@ class ApiERReportTests(unittest.TestCase):
         self.assertEqual(len(w_crit.compose_report_calls), 1)
         self.assertGreater(c_crit.calls, 0)  # Critic called
 
+    def test_11_9_fallback_pure_b1_to_b5_quality_and_verification(self) -> None:
+        """Scenario 9 (Review R1 Item C): Pure fallback when writer raises for B1-B5.
+
+        Verifies:
+        - All sentences in final report_spec pass verify_sentence.
+        - numbers_checked == numbers_matched > 0.
+        - B5 answer block contains numeric value.
+        - No 'của  ', no 'bank.' / 'derived.', no English prose.
+        - B1 headline is derived from signals.
+        - Figure takeaways across all figures are non-duplicate.
+        """
+        questions = [
+            ("B1", "Sức khỏe tài chính của ACB so với các ngân hàng cùng nhóm, quý 4/2024", "company_profile"),
+            ("B2", "Ngân hàng nào có đệm dự phòng dày nhất quý 4/2024?", "ranking"),
+            ("B3", "ROE của VPB thay đổi thế nào trong năm 2024?", "trend"),
+            ("B4", "So sánh ACB và TCB quý 4/2024", "head_to_head"),
+            ("B5", "Tỷ lệ nợ xấu của VCB quý 4/2024 là bao nhiêu?", "lookup"),
+        ]
+
+        writer_fail = _TestOfflineWriter(should_raise=True)
+
+        for q_id, query, expected_qtype in questions:
+            with self.subTest(question_id=q_id, query=query):
+                report = self._run_query(query, writer=writer_fail)
+                self.assertEqual(report.status, "accepted_with_limitations")
+                self.assertEqual(report.question_type, expected_qtype)
+                self.assertIsNotNone(report.report_spec)
+                self.assertEqual(report.report_spec.composition_source, "deterministic_fallback")
+                self.assertEqual(report.narrative_audit.composition_source, "deterministic_fallback")
+
+                # Audit verification: numbers checked > 0 and 100% matched
+                audit = report.narrative_audit
+                self.assertIsNotNone(audit)
+                self.assertGreater(audit.numbers_checked, 0, f"{q_id} should check numbers in fallback sentences")
+                self.assertEqual(audit.numbers_checked, audit.numbers_matched)
+                self.assertEqual(len(audit.sentences_dropped), 0, f"{q_id} fallback sentences should not be dropped")
+
+                # Extract all sentences from report_spec
+                spec_sentences: list[Any] = []
+                takeaway_texts: list[str] = []
+                for b in report.report_spec.blocks:
+                    if b.type == "headline":
+                        spec_sentences.append(b.sentence)
+                    elif b.type == "answer":
+                        spec_sentences.extend(b.sentences)
+                    elif b.type == "key_points":
+                        for it in b.items:
+                            spec_sentences.extend(it.sentences)
+                    elif b.type == "section":
+                        spec_sentences.extend(b.sentences)
+                    elif b.type == "callout":
+                        spec_sentences.extend(b.sentences)
+                    elif b.type == "figure" and b.takeaway:
+                        spec_sentences.append(b.takeaway)
+                        takeaway_texts.append(b.takeaway.text)
+
+                self.assertGreater(len(spec_sentences), 0)
+
+                # Figure takeaways must be distinct (no duplicates)
+                if len(takeaway_texts) > 1:
+                    self.assertEqual(len(takeaway_texts), len(set(takeaway_texts)), f"{q_id} figure takeaways must not duplicate")
+
+                # Check text cleanliness for all sentences
+                for s in spec_sentences:
+                    self.assertNotIn("của  ", s.text, f"{q_id} sentence has double space 'của  ': {s.text}")
+                    self.assertNotIn("bank.", s.text, f"{q_id} sentence leaks technical prefix 'bank.': {s.text}")
+                    self.assertNotIn("derived.", s.text, f"{q_id} sentence leaks technical prefix 'derived.': {s.text}")
+
+                # No English limitation strings
+                for lim in report.limitations:
+                    self.assertNotIn("Claims without a reviewed", lim)
+
+                # B1 headline based on signals
+                if q_id == "B1":
+                    hl_block = next((b for b in report.report_spec.blocks if b.type == "headline"), None)
+                    self.assertIsNotNone(hl_block)
+                    self.assertTrue(
+                        "sinh lời" in hl_block.sentence.text.lower() and "dự phòng" in hl_block.sentence.text.lower(),
+                        f"B1 headline should incorporate signals, got: {hl_block.sentence.text}",
+                    )
+
+                # B5 answer must contain numeric value
+                if q_id == "B5":
+                    ans_block = next((b for b in report.report_spec.blocks if b.type == "answer"), None)
+                    self.assertIsNotNone(ans_block)
+                    ans_texts = " ".join(s.text for s in ans_block.sentences)
+                    self.assertTrue(
+                        "0,96%" in ans_texts or "0,97%" in ans_texts or "0,96" in ans_texts,
+                        f"B5 answer sentences should contain NPL numeric value, got: {ans_texts}",
+                    )
+                    self.assertTrue(
+                        "thấp nhất" in ans_texts.lower() or "hạng 1" in ans_texts.lower(),
+                        f"B5 answer should convey best/lowest rank for lower_is_better, got: {ans_texts}",
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()

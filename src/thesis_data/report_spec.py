@@ -253,6 +253,7 @@ def validate_report_spec(
     result_spec = {
         "kind": kind,
         "note_label": spec.get("note_label"),
+        "composition_source": spec.get("composition_source"),
         "blocks": clean_blocks,
         "is_valid": is_valid,
     }

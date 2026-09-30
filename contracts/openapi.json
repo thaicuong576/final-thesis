@@ -1773,6 +1773,10 @@
         "properties": {
           "kind": { "type": "string", "enum": ["answer_card", "note"] },
           "note_label": { "type": ["string", "null"] },
+          "composition_source": {
+            "type": ["string", "null"],
+            "enum": ["model", "deterministic_fallback", null]
+          },
           "blocks": { "type": "array", "items": { "$ref": "#/components/schemas/ReportBlock" } }
         }
       },

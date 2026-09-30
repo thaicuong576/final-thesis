@@ -419,6 +419,11 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         re.compile(r"(?<!\w)(dẫn đầu|đứng cuối|nhóm đầu|nhóm cuối)(?!\w)"),
     ]
 
+    # Mask spread range descriptions like "cao nhất – thấp nhất" or "cao nhất - thấp nhất"
+    spread_range_pat = re.compile(r"(?<!\w)(?:chênh\s+lệch\s+)?cao\s+nhất\s*[-–—]\s*thấp\s+nhất(?!\w)")
+    for sm in spread_range_pat.finditer("".join(working_chars)):
+        mask_span(sm.start(), sm.end())
+
     for r_pat in rank_patterns:
         for m in r_pat.finditer("".join(working_chars)):
             matched_span = m.group(0)
@@ -600,12 +605,18 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
 
         # Context detection in 6 words preceding the number
         preceding_text = norm_text[: m.start()]
-        preceding_words = preceding_text.split()[-6:] if preceding_text.split() else []
-        preceding_snippet = " ".join(preceding_words)
+        preceding_words = preceding_text.split() if preceding_text.split() else []
+        last_6_words = preceding_words[-6:] if len(preceding_words) >= 6 else preceding_words
+        preceding_snippet = " ".join(last_6_words)
+        extended_snippet = " ".join(preceding_words[-10:]) if len(preceding_words) >= 10 else " ".join(preceding_words)
 
         associated_metric: str | None = None
-        for term, mid in metric_name_to_id.items():
+        sorted_terms = sorted(metric_name_to_id.items(), key=lambda it: len(it[0]), reverse=True)
+        for term, mid in sorted_terms:
             if term in preceding_snippet:
+                associated_metric = mid
+                break
+            elif term in extended_snippet and any(w in last_6_words for w in term.split()):
                 associated_metric = mid
                 break
 
@@ -637,37 +648,34 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                 continue
             f_val = float(f.value)
 
-            # Candidate values to compare against: exact raw, 2-decimal rounded, and 1-decimal rounded
-            comp_candidates = [f_val, round(f_val, 2), round(f_val, 1)]
-
-            # Target comparison value based on unit category
+            # Target comparison value based on unit category (strictly raw fact value per PR-4 §2 Rule 9)
             if unit_cat == "pp":
                 if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread"):
-                    comp_vals = [abs(v) for v in comp_candidates]
+                    comp_val = abs(f_val)
                 else:
-                    if any(abs(abs(v) - val_parsed) <= tolerance for v in comp_candidates):
+                    if abs(abs(f_val) - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
             elif unit_cat == "pct":
                 if f.fact_type in ("value", "peer_median"):
-                    comp_vals = comp_candidates
+                    comp_val = f_val
                 else:
-                    if any(abs(v - val_parsed) <= tolerance for v in comp_candidates):
+                    if abs(f_val - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
             elif unit_cat == "ratio":
                 if f.fact_type in ("ratio_to_median", "derived_ratio"):
-                    comp_vals = comp_candidates
+                    comp_val = f_val
                 else:
-                    if any(abs(v - val_parsed) <= tolerance for v in comp_candidates):
+                    if abs(f_val - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
             else:
                 # Any unit
-                comp_vals = [abs(v) for v in comp_candidates] if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread") else comp_candidates
+                comp_val = abs(f_val) if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread") else f_val
 
-            # Tolerance check
-            if not any(abs(cv - val_parsed) <= tolerance for cv in comp_vals):
+            # Tolerance check: strictly compare against raw value v with 0.5 * 10^-d + 1e-9
+            if abs(comp_val - val_parsed) > tolerance:
                 continue
 
             # Metric check if metric was explicitly associated in preceding 6 words
@@ -683,9 +691,14 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
 
             # Entity check if entity was explicitly associated
             if associated_entity and f.fact_type not in ("peer_median", "spread"):
-                f_ent_norm = _normalize(f.entity_id or "")
-                if f_ent_norm and f_ent_norm != associated_entity:
-                    continue
+                if f.fact_type in ("pairwise_gap", "lead_count"):
+                    f_ents = {_normalize(f.entity_id or ""), _normalize(f.other_entity_id or "")}
+                    if associated_entity not in f_ents:
+                        continue
+                else:
+                    f_ent_norm = _normalize(f.entity_id or "")
+                    if f_ent_norm and f_ent_norm != associated_entity:
+                        continue
 
             found_fact = True
             break

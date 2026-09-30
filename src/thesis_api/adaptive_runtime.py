@@ -1333,6 +1333,7 @@ class _AdaptiveRun:
                         flat_pp_map[f.metric_id] = pres.flat_threshold_pp
 
             universe_id = self._peer_universe_id(plan)
+            anchor_p = periods[-1] if periods else None
             # Signals for company_profile or trend with universe
             if self.spec.question_type == "company_profile" or (self.spec.question_type == "trend" and universe_id):
                 sig_results = classify_signals(
@@ -1342,6 +1343,7 @@ class _AdaptiveRun:
                     directions=directions,
                     flat_pp=flat_pp_map,
                     group_labels=group_labels,
+                    anchor_period=anchor_p,
                 )
                 for sr in sig_results:
                     signals.append(
@@ -1385,8 +1387,8 @@ class _AdaptiveRun:
         all_draft_sentences: list[NarrativeSentence] = []
         all_dropped_sentences: list[SentenceDroppedDTO] = []
         all_dropped_blocks: list[BlockDroppedDTO] = []
-        total_numbers_checked = 0
-        total_numbers_matched = 0
+        early_dropped_numbers_checked = 0
+        early_dropped_numbers_matched = 0
 
         # Build tool results for fallback
         tr_fallback = [
@@ -1450,18 +1452,20 @@ class _AdaptiveRun:
                 all_draft_sentences.extend(role_sentences)
 
                 # Verify specialist sentences
-                acc_s, drop_s, audit_c = verify_all(role_sentences, v_ctx)
-                accepted_specialist_sentences.extend(acc_s)
-                total_numbers_checked += audit_c.numbers_checked
-                total_numbers_matched += audit_c.numbers_matched
-                for ds in drop_s:
-                    all_dropped_sentences.append(SentenceDroppedDTO(
-                        sentence_id=ds.sentence_id,
-                        author=ds.author,
-                        text=ds.text,
-                        reason_code=ds.reason_code,  # type: ignore
-                        reason=ds.reason or "",
-                    ))
+                for sent in role_sentences:
+                    v_res = verify_sentence(sent, v_ctx)
+                    if v_res.ok:
+                        accepted_specialist_sentences.append(sent)
+                    else:
+                        all_dropped_sentences.append(SentenceDroppedDTO(
+                            sentence_id=sent.sentence_id,
+                            author=sent.author,
+                            text=sent.text,
+                            reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                            reason=v_res.reason or "",
+                        ))
+                        early_dropped_numbers_checked += v_res.numbers_checked
+                        early_dropped_numbers_matched += v_res.numbers_matched
 
         # 2. Orchestrator compose report
         self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is composing the block-structured report."})
@@ -1486,7 +1490,7 @@ class _AdaptiveRun:
 
         # Helper to parse and verify raw_spec_dict blocks
         def _process_spec_blocks(spec_dict: dict[str, Any]) -> tuple[dict[str, Any], list[NarrativeSentence]]:
-            nonlocal total_numbers_checked, total_numbers_matched
+            nonlocal early_dropped_numbers_checked, early_dropped_numbers_matched
             processed_blocks: list[dict[str, Any]] = []
             spec_sentences: list[NarrativeSentence] = []
             known_sentences_by_id = {s.sentence_id: s for s in accepted_specialist_sentences}
@@ -1496,7 +1500,7 @@ class _AdaptiveRun:
                 b_type = b.get("type")
 
                 def _resolve_sent(s_data: Any, fallback_role: str = "orchestrator") -> dict[str, Any] | None:
-                    nonlocal total_numbers_checked, total_numbers_matched
+                    nonlocal early_dropped_numbers_checked, early_dropped_numbers_matched
                     if not isinstance(s_data, dict):
                         return None
                     if "sentence_id" in s_data and s_data["sentence_id"] in known_sentences_by_id:
@@ -1523,8 +1527,6 @@ class _AdaptiveRun:
                         source="model",
                     )
                     v_res = verify_sentence(new_sent, v_ctx)
-                    total_numbers_checked += v_res.numbers_checked
-                    total_numbers_matched += v_res.numbers_matched
                     if v_res.ok:
                         spec_sentences.append(new_sent)
                         known_sentences_by_id[s_id] = new_sent
@@ -1544,6 +1546,8 @@ class _AdaptiveRun:
                             reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                             reason=v_res.reason or "",
                         ))
+                        early_dropped_numbers_checked += v_res.numbers_checked
+                        early_dropped_numbers_matched += v_res.numbers_matched
                         return None
 
                 if b_type == "headline":
@@ -1765,6 +1769,8 @@ class _AdaptiveRun:
                                 reason_code=c_verdict.reason_code or "unknown_fact",  # type: ignore
                                 reason="không kiểm chứng được",
                             ))
+                            early_dropped_numbers_checked += c_verdict.numbers_checked
+                            early_dropped_numbers_matched += c_verdict.numbers_matched
 
                 open_issues = [
                     issue for issue in critic_result.critique_issues
@@ -1882,8 +1888,6 @@ class _AdaptiveRun:
                                             revision=orig_s.revision + 1,
                                         )
                                         rev_v = verify_sentence(rev_s, v_ctx)
-                                        total_numbers_checked += rev_v.numbers_checked
-                                        total_numbers_matched += rev_v.numbers_matched
                                         if rev_v.ok:
                                             # Replace sentence in spec
                                             current_sentences = [
@@ -1942,6 +1946,8 @@ class _AdaptiveRun:
                                                 reason_code=rev_v.reason_code or "unknown_fact",  # type: ignore
                                                 reason=rev_v.reason or "",
                                             ))
+                                            early_dropped_numbers_checked += rev_v.numbers_checked
+                                            early_dropped_numbers_matched += rev_v.numbers_matched
                                     except Exception as exc:
                                         logger.warning("Rewrite sentence failed: %s", exc)
 
@@ -2072,7 +2078,228 @@ class _AdaptiveRun:
                             signals=signals,
                             findings=candidates,
                         )
-                        composition_source = "deterministic_fallback"
+        # Helper to verify every sentence in a ReportSpecDTO
+        def _sweep_report_spec(spec: ReportSpecDTO) -> tuple[ReportSpecDTO, int, int]:
+            sweep_chk = 0
+            sweep_mat = 0
+            verified_blks: list[Any] = []
+
+            for blk in spec.blocks:
+                if blk.type == "headline":
+                    n_sent = NarrativeSentence(
+                        sentence_id=blk.sentence.sentence_id,
+                        author=blk.sentence.author,
+                        text=blk.sentence.text,
+                        fact_ids=tuple(blk.sentence.fact_ids),
+                        source=blk.sentence.source,
+                        revision=blk.sentence.revision,
+                    )
+                    v_res = verify_sentence(n_sent, v_ctx)
+                    sweep_chk += v_res.numbers_checked
+                    sweep_mat += v_res.numbers_matched
+                    if v_res.ok:
+                        verified_blks.append(blk)
+                    else:
+                        all_dropped_sentences.append(
+                            SentenceDroppedDTO(
+                                sentence_id=blk.sentence.sentence_id,
+                                author=blk.sentence.author,
+                                text=blk.sentence.text,
+                                reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                reason=v_res.reason or "",
+                            )
+                        )
+                        safe_hl = SentenceDTO(
+                            sentence_id="sent-fb-hl-safe",
+                            text="Báo cáo phân tích tài chính.",
+                            fact_ids=[],
+                            author="orchestrator",
+                            source="deterministic_fallback",
+                            revision=0,
+                        )
+                        blk.sentence = safe_hl
+                        verified_blks.append(blk)
+
+                elif blk.type == "answer":
+                    val_sents = []
+                    for s in blk.sentences:
+                        n_sent = NarrativeSentence(
+                            sentence_id=s.sentence_id,
+                            author=s.author,
+                            text=s.text,
+                            fact_ids=tuple(s.fact_ids),
+                            source=s.source,
+                            revision=s.revision,
+                        )
+                        v_res = verify_sentence(n_sent, v_ctx)
+                        sweep_chk += v_res.numbers_checked
+                        sweep_mat += v_res.numbers_matched
+                        if v_res.ok:
+                            val_sents.append(s)
+                        else:
+                            all_dropped_sentences.append(
+                                SentenceDroppedDTO(
+                                    sentence_id=s.sentence_id,
+                                    author=s.author,
+                                    text=s.text,
+                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                    reason=v_res.reason or "",
+                                )
+                            )
+                    blk.sentences = val_sents
+                    verified_blks.append(blk)
+
+                elif blk.type == "key_points":
+                    val_items = []
+                    for item in blk.items:
+                        it_sents = []
+                        for s in item.sentences:
+                            n_sent = NarrativeSentence(
+                                sentence_id=s.sentence_id,
+                                author=s.author,
+                                text=s.text,
+                                fact_ids=tuple(s.fact_ids),
+                                source=s.source,
+                                revision=s.revision,
+                            )
+                            v_res = verify_sentence(n_sent, v_ctx)
+                            sweep_chk += v_res.numbers_checked
+                            sweep_mat += v_res.numbers_matched
+                            if v_res.ok:
+                                it_sents.append(s)
+                            else:
+                                all_dropped_sentences.append(
+                                    SentenceDroppedDTO(
+                                        sentence_id=s.sentence_id,
+                                        author=s.author,
+                                        text=s.text,
+                                        reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                        reason=v_res.reason or "",
+                                    )
+                                )
+                        if it_sents:
+                            item.sentences = it_sents
+                            val_items.append(item)
+                    if val_items:
+                        blk.items = val_items
+                        verified_blks.append(blk)
+                    else:
+                        all_dropped_blocks.append(BlockDroppedDTO(type="key_points", reason="Tất cả câu nhận định không qua kiểm chứng."))
+
+                elif blk.type == "section":
+                    sec_sents = []
+                    for s in blk.sentences:
+                        n_sent = NarrativeSentence(
+                            sentence_id=s.sentence_id,
+                            author=s.author,
+                            text=s.text,
+                            fact_ids=tuple(s.fact_ids),
+                            source=s.source,
+                            revision=s.revision,
+                        )
+                        v_res = verify_sentence(n_sent, v_ctx)
+                        sweep_chk += v_res.numbers_checked
+                        sweep_mat += v_res.numbers_matched
+                        if v_res.ok:
+                            sec_sents.append(s)
+                        else:
+                            all_dropped_sentences.append(
+                                SentenceDroppedDTO(
+                                    sentence_id=s.sentence_id,
+                                    author=s.author,
+                                    text=s.text,
+                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                    reason=v_res.reason or "",
+                                )
+                            )
+                    if sec_sents:
+                        blk.sentences = sec_sents
+                        verified_blks.append(blk)
+                    else:
+                        all_dropped_blocks.append(BlockDroppedDTO(type="section", reason="Tất cả câu trong phần không qua kiểm chứng."))
+
+                elif blk.type == "callout":
+                    c_sents = []
+                    for s in blk.sentences:
+                        n_sent = NarrativeSentence(
+                            sentence_id=s.sentence_id,
+                            author=s.author,
+                            text=s.text,
+                            fact_ids=tuple(s.fact_ids),
+                            source=s.source,
+                            revision=s.revision,
+                        )
+                        v_res = verify_sentence(n_sent, v_ctx)
+                        sweep_chk += v_res.numbers_checked
+                        sweep_mat += v_res.numbers_matched
+                        if v_res.ok:
+                            c_sents.append(s)
+                        else:
+                            all_dropped_sentences.append(
+                                SentenceDroppedDTO(
+                                    sentence_id=s.sentence_id,
+                                    author=s.author,
+                                    text=s.text,
+                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                    reason=v_res.reason or "",
+                                )
+                            )
+                    if c_sents:
+                        blk.sentences = c_sents
+                        verified_blks.append(blk)
+                    else:
+                        all_dropped_blocks.append(BlockDroppedDTO(type="callout", reason="Câu trong callout không qua kiểm chứng."))
+
+                elif blk.type == "figure":
+                    if blk.takeaway:
+                        n_sent = NarrativeSentence(
+                            sentence_id=blk.takeaway.sentence_id,
+                            author=blk.takeaway.author,
+                            text=blk.takeaway.text,
+                            fact_ids=tuple(blk.takeaway.fact_ids),
+                            source=blk.takeaway.source,
+                            revision=blk.takeaway.revision,
+                        )
+                        v_res = verify_sentence(n_sent, v_ctx)
+                        sweep_chk += v_res.numbers_checked
+                        sweep_mat += v_res.numbers_matched
+                        if not v_res.ok:
+                            all_dropped_sentences.append(
+                                SentenceDroppedDTO(
+                                    sentence_id=blk.takeaway.sentence_id,
+                                    author=blk.takeaway.author,
+                                    text=blk.takeaway.text,
+                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
+                                    reason=v_res.reason or "",
+                                )
+                            )
+                            blk.takeaway = None
+                    verified_blks.append(blk)
+
+                elif blk.type == "table":
+                    verified_blks.append(blk)
+
+            spec.blocks = verified_blks
+            return spec, sweep_chk, sweep_mat
+
+        # Execute final verification sweep on active_report_spec
+        active_report_spec, sweep_chk, sweep_mat = _sweep_report_spec(active_report_spec)
+        val_final, drop_final = validate_report_spec(active_report_spec.model_dump(), tool_datasets, verified_facts)
+        for db in drop_final:
+            all_dropped_blocks.append(BlockDroppedDTO(type=db["type"], reason=db["reason"]))
+        if not val_final.get("is_valid", False):
+            active_report_spec = default_report_spec(
+                question_type=q_type,
+                tool_results=tr_fallback,
+                signals=signals,
+                findings=candidates,
+            )
+            composition_source = "deterministic_fallback"
+            active_report_spec, sweep_chk, sweep_mat = _sweep_report_spec(active_report_spec)
+
+        active_report_spec.composition_source = composition_source
+        total_numbers_checked = sweep_chk + early_dropped_numbers_checked
+        total_numbers_matched = sweep_mat + early_dropped_numbers_matched
 
         # 4. Filter facts and datasets to only those cited in the final report_spec
         facts_map = {f.fact_id: f for f in verified_facts}
@@ -2673,7 +2900,7 @@ class _AdaptiveRun:
                 known_limitations.append(claim.limitation)
             elif not claim.evidence_refs:
                 known_limitations.append(
-                    "Claims without a reviewed metric-specific document snippet rely on the accepted observation's primary source locator and source hash."
+                    "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
                 )
             if not (getattr(observation, "reporting_scope", None) or "").strip():
                 if role == "company":

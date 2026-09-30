@@ -703,6 +703,7 @@ class ReportSpecDTO(BaseModel):
 
     kind: Literal["answer_card", "note"]
     note_label: Optional[str] = None
+    composition_source: Optional[Literal["model", "deterministic_fallback"]] = None
     blocks: List[ReportBlockDTO] = Field(default_factory=list)
 
 

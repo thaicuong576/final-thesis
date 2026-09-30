@@ -63,8 +63,11 @@ from thesis_data.user_upload import (
 class _ScopeTestProvider(_LocatorTestProvider):
     def _observation(self, observation):
         obs = super()._observation(observation)
-        if obs is not None and not getattr(obs, "reporting_scope", None):
-            obs.reporting_scope = "consolidated"
+        if obs is not None:
+            if not getattr(obs, "reporting_scope", None):
+                obs.reporting_scope = "consolidated"
+            if obs.metric_id in ("bank.roa", "bank.roe"):
+                obs.period_basis = "ttm"
         return obs
 
     def get_peer_benchmark(self, dataset_ref, peer_universe_id, period_id, metric_ids, peer_entity_ids=None):
@@ -104,8 +107,8 @@ class _ScopeTestProvider(_LocatorTestProvider):
                         metric_id=metric_id,
                         value=float(obs.value),
                         unit=obs.unit,
-                        period_basis="point_in_time",
-                        reporting_scope="consolidated",
+                        period_basis=obs.period_basis or "point_in_time",
+                        reporting_scope=obs.reporting_scope or "consolidated",
                         validation_status=QualityStatus.VALID,
                         derivation_method="peer_median_v1",
                         input_observation_ids=(obs.observation_id,),
@@ -472,3 +475,159 @@ class NewBankUploadTests(unittest.TestCase):
             or "2024_q4" in str(err).lower()
             or "không có số liệu" in str(err).lower()
         )
+
+    def test_company_profile_for_uploaded_bank_against_gold_peer_group(self) -> None:
+        """Verify that company_profile for CTG produces accepted analysis with peer median of 5 Gold banks and CTG position."""
+        valid_csv = generate_ctg_sample_csv()
+        upload_resp = self.client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("ctg-2024q4.csv", io.BytesIO(valid_csv.encode("utf-8")), "text/csv")},
+            data={"entity_id": "CTG", "display_name": "VietinBank"},
+        )
+        self.assertEqual(upload_resp.status_code, 200)
+        upload_id = upload_resp.json()["upload_id"]
+
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=_scope_fixture_provider_binding,
+        ):
+            resp = self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Sức khỏe tài chính của CTG so với các ngân hàng cùng nhóm, quý 4/2024",
+                    "target_ticker": "CTG",
+                    "period": "2024_Q4",
+                    "upload_id": upload_id,
+                },
+            )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("status"), "completed")
+        self.assertTrue(
+            any("Số liệu CTG do người dùng cung cấp" in lim for lim in data.get("limitations", [])),
+            "Expected user upload limitation banner in limitations",
+        )
+        facts = data.get("facts", [])
+        ctg_facts = [f for f in facts if f.get("entity_id") == "CTG"]
+        self.assertTrue(len(ctg_facts) > 0, "Expected CTG facts to be generated")
+
+    def test_head_to_head_between_uploaded_bank_and_gold_bank(self) -> None:
+        """Verify that head_to_head between CTG and ACB produces accepted comparison."""
+        valid_csv = generate_ctg_sample_csv()
+        upload_resp = self.client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("ctg-2024q4.csv", io.BytesIO(valid_csv.encode("utf-8")), "text/csv")},
+            data={"entity_id": "CTG", "display_name": "VietinBank"},
+        )
+        self.assertEqual(upload_resp.status_code, 200)
+        upload_id = upload_resp.json()["upload_id"]
+
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=_scope_fixture_provider_binding,
+        ):
+            resp = self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "So sánh CTG và ACB quý 4/2024",
+                    "target_ticker": "CTG",
+                    "peer_tickers": ["ACB"],
+                    "period": "2024_Q4",
+                    "upload_id": upload_id,
+                },
+            )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("status"), "completed")
+        self.assertTrue(
+            any("Số liệu CTG do người dùng cung cấp" in lim for lim in data.get("limitations", [])),
+            "Expected user upload limitation banner in limitations",
+        )
+        facts = data.get("facts", [])
+        ctg_facts = [f for f in facts if f.get("entity_id") == "CTG"]
+        acb_facts = [f for f in facts if f.get("entity_id") == "ACB" or f.get("other_entity_id") == "ACB"]
+        self.assertTrue(len(ctg_facts) > 0, "Expected CTG facts")
+        self.assertTrue(len(acb_facts) > 0, "Expected ACB facts")
+
+    def test_e2e_real_gold_v5_company_profile_and_head_to_head(self) -> None:
+        """Run end-to-end on a temporary copy of real Gold v5 when available."""
+        cand_gold, cand_auth = None, None
+        for p in [
+            Path("data/processed/gold-bank-2025-expanded-v5-evidence.sqlite"),
+            REPO_ROOT.parent.parent / "data/processed/gold-bank-2025-expanded-v5-evidence.sqlite",
+            Path(r"D:\eddie-projects\personal-projects\final-thesis\data\processed\gold-bank-2025-expanded-v5-evidence.sqlite"),
+        ]:
+            if p.exists() and p.stat().st_size > 1000:
+                a = Path("data/evaluation/gold-v5-reporting-scope-authority-v1.json")
+                if not a.exists():
+                    a = REPO_ROOT.parent.parent / "data/evaluation/gold-v5-reporting-scope-authority-v1.json"
+                if a.exists():
+                    cand_gold, cand_auth = p, a
+                    break
+        if not cand_gold or not cand_auth:
+            self.skipTest("Real Gold v5 database not available in this environment")
+
+        import shutil
+        test_gold = self.dir_path / "real-gold-v5-copy.sqlite"
+        shutil.copyfile(cand_gold, test_gold)
+
+        real_settings = Settings(
+            app_env="test",
+            sqlite_db_path=str(test_gold),
+            gold_scope_authority_path=str(cand_auth),
+            analysis_runs_db_path=str(self.dir_path / "real-gold-runs.sqlite"),
+            user_uploads_dir=str(self.uploads_dir),
+            planner_mode="rules_only",
+            openai_api_key="test-key",
+        )
+        real_client = TestClient(create_app(real_settings, analysis_writer=self.writer, semantic_critic=self.test_critic))
+        self.addCleanup(real_client.close)
+
+        valid_csv = generate_ctg_sample_csv()
+        upload_resp = real_client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("ctg-2024q4.csv", io.BytesIO(valid_csv.encode("utf-8")), "text/csv")},
+            data={"entity_id": "CTG", "display_name": "VietinBank"},
+        )
+        upload_id = upload_resp.json()["upload_id"]
+
+        # 1. Head to head
+        h2h_resp = real_client.post(
+            "/api/analyze",
+            json={
+                "query": "So sánh CTG và ACB quý 4/2024",
+                "target_ticker": "CTG",
+                "peer_tickers": ["ACB"],
+                "period": "2024_Q4",
+                "upload_id": upload_id,
+            },
+        )
+        self.assertEqual(h2h_resp.status_code, 200)
+        h2h_data = h2h_resp.json()
+        self.assertEqual(h2h_data.get("status"), "completed")
+        self.assertTrue(any("Số liệu CTG do người dùng cung cấp" in lim for lim in h2h_data.get("limitations", [])))
+
+        # 2. Company profile
+        prof_resp = real_client.post(
+            "/api/analyze",
+            json={
+                "query": "Sức khỏe tài chính của CTG so với các ngân hàng cùng nhóm, quý 4/2024",
+                "target_ticker": "CTG",
+                "period": "2024_Q4",
+                "upload_id": upload_id,
+            },
+        )
+        self.assertEqual(prof_resp.status_code, 200)
+        prof_data = prof_resp.json()
+        self.assertEqual(prof_data.get("status"), "completed")
+        self.assertTrue(any("Số liệu CTG do người dùng cung cấp" in lim for lim in prof_data.get("limitations", [])))
+        # Verify median denominator is exactly 5 (the 5 Gold banks)
+        medians = [f for f in prof_data.get("facts", []) if f.get("fact_type") == "peer_median"]
+        self.assertTrue(len(medians) > 0)
+        for m in medians:
+            self.assertEqual(m.get("denominator"), 5)
+        # Verify CTG has rank fact vs group
+        ranks = [f for f in prof_data.get("facts", []) if f.get("fact_type") == "peer_rank" and f.get("entity_id") == "CTG"]
+        self.assertTrue(len(ranks) > 0)
+        for r in ranks:
+            self.assertEqual(r.get("denominator"), 5)

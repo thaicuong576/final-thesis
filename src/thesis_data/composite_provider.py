@@ -38,6 +38,13 @@ class CompositeDatasetProvider:
             dataset_id=self._base_ref.dataset_id,
             dataset_snapshot_id=f"{self._base_ref.dataset_snapshot_id}+upload-{self._upload_ref.dataset_snapshot_id}",
         )
+        try:
+            base_caps = base_provider.get_capabilities(self._base_ref)
+            self._base_metric_units = {
+                m.metric_id: m.default_unit for m in base_caps.metrics if m.default_unit
+            }
+        except Exception:
+            self._base_metric_units = {}
 
     @property
     def base_ref(self) -> DatasetRef:
@@ -63,17 +70,29 @@ class CompositeDatasetProvider:
     def _wrap_obs(self, obs: CanonicalObservation | None) -> CanonicalObservation | None:
         if obs is None:
             return None
+        aligned_unit = obs.unit
+        base_unit = self._base_metric_units.get(obs.metric_id)
+        if base_unit:
+            if (obs.unit in ("%", "percent") and base_unit in ("%", "percent")) or obs.unit == base_unit:
+                aligned_unit = base_unit
+            elif obs.entity_id == self._uploaded_entity_id:
+                aligned_unit = base_unit
+
+        updates: dict[str, Any] = {
+            "dataset_id": self._composite_ref.dataset_id,
+            "dataset_snapshot_id": self._composite_ref.dataset_snapshot_id,
+        }
+        if aligned_unit != obs.unit:
+            updates["unit"] = aligned_unit
+
         if hasattr(obs, "model_copy"):
-            return obs.model_copy(
-                update={
-                    "dataset_id": self._composite_ref.dataset_id,
-                    "dataset_snapshot_id": self._composite_ref.dataset_snapshot_id,
-                }
-            )
+            return obs.model_copy(update=updates)
         import copy
         obs_copy = copy.copy(obs)
         obs_copy.dataset_id = self._composite_ref.dataset_id
         obs_copy.dataset_snapshot_id = self._composite_ref.dataset_snapshot_id
+        if aligned_unit != obs.unit:
+            obs_copy.unit = aligned_unit
         return obs_copy
 
     def get_capabilities(self, dataset_ref: DatasetRef) -> DatasetCapabilityCatalog:

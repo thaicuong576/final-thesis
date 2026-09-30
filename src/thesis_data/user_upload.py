@@ -436,8 +436,13 @@ def validate_and_parse_upload_csv(
 
         # Unit validation
         is_ratio = metric_id in PRIMARY_RATIO_METRICS
-        expected_unit = "percent" if is_ratio else "billion_vnd"
-        if unit not in (expected_unit, "%" if is_ratio else None):
+        expected_unit = "%" if is_ratio else "billion_vnd"
+        if is_ratio and unit in ("%", "percent"):
+            normalized_unit = "%"
+        elif not is_ratio and unit == expected_unit:
+            normalized_unit = expected_unit
+        else:
+            normalized_unit = unit
             row_issues.append(
                 UploadRowIssue(
                     row=idx,
@@ -503,7 +508,7 @@ def validate_and_parse_upload_csv(
                 "period_id": period_id,
                 "value": val_num,
                 "value_decimal": Decimal(val_str) if val_num is not None else None,
-                "unit": "percent" if is_ratio else "billion_vnd",
+                "unit": normalized_unit,
                 "period_basis": period_basis or ("ttm" if metric_id in ("bank.roa", "bank.roe") else ("point_in_time" if is_ratio else "point_in_time")),
                 "reporting_scope": reporting_scope,
                 "source_locator": source_locator,
@@ -967,7 +972,7 @@ def _build_upload_candidate(
             ("bank.input.npl_group_5_balance", target_period),
             ("bank.input.gross_customer_loans", target_period),
         ),
-        default_unit="percent",
+        default_unit="%",
         period_basis="point_in_time",
     )
 
@@ -980,7 +985,7 @@ def _build_upload_candidate(
             ("bank.input.loan_loss_provisions", target_period),
             ("bank.input.npl_g35_balance", target_period),
         ),
-        default_unit="percent",
+        default_unit="%",
         period_basis="point_in_time",
     )
 
@@ -995,7 +1000,7 @@ def _build_upload_candidate(
             ("bank.input.total_assets", target_period),
             ("bank.input.total_assets", prior_period),
         ),
-        default_unit="percent",
+        default_unit="%",
         period_basis="ttm",
     )
 
@@ -1010,7 +1015,7 @@ def _build_upload_candidate(
             ("bank.input.parent_attributable_equity", target_period),
             ("bank.input.parent_attributable_equity", prior_period),
         ),
-        default_unit="percent",
+        default_unit="%",
         period_basis="ttm",
     )
 
@@ -1018,7 +1023,7 @@ def _build_upload_candidate(
     all_metrics = sorted({obs.metric_id for obs in observations})
     metrics_list: list[DatasetMetric] = []
     for m in all_metrics:
-        unit = "percent" if m in PRIMARY_RATIO_METRICS else "billion_vnd"
+        unit = "%" if m in PRIMARY_RATIO_METRICS else "billion_vnd"
         metrics_list.append(
             DatasetMetric(
                 metric_id=m,
@@ -1271,10 +1276,10 @@ def generate_template_csv() -> str:
         ["", "", "bank.input.total_equity", "", "billion_vnd", "2023_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
         ["", "", "bank.input.non_controlling_interests", "", "billion_vnd", "2024_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
         ["", "", "bank.input.non_controlling_interests", "", "billion_vnd", "2023_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
-        ["", "", "bank.npl_g35", "", "percent", "2024_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
-        ["", "", "bank.llr_coverage", "", "percent", "2024_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
-        ["", "", "bank.roa", "", "percent", "2024_Q4", "ttm", "consolidated", "tr. ...", "https://...", ""],
-        ["", "", "bank.roe", "", "percent", "2024_Q4", "ttm", "consolidated", "tr. ...", "https://...", ""],
+        ["", "", "bank.npl_g35", "", "%", "2024_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
+        ["", "", "bank.llr_coverage", "", "%", "2024_Q4", "point_in_time", "consolidated", "tr. ...", "https://...", ""],
+        ["", "", "bank.roa", "", "%", "2024_Q4", "ttm", "consolidated", "tr. ...", "https://...", ""],
+        ["", "", "bank.roe", "", "%", "2024_Q4", "ttm", "consolidated", "tr. ...", "https://...", ""],
     ]
     output = io.StringIO()
     writer = csv.writer(output)
@@ -1319,10 +1324,10 @@ def generate_ctg_sample_csv() -> str:
         ["ctg-input-nci-2023q4", "CTG", "bank.input.non_controlling_interests", "861.22", "billion_vnd", "2023_Q4", "point_in_time", "consolidated", "pdf_page=8; printed_page=6; section=Consolidated balance sheet", url, sha],
         ["ctg-input-parent-equity-2024q4", "CTG", "bank.input.parent_attributable_equity", "147533.979", "billion_vnd", "2024_Q4", "point_in_time", "consolidated", "pdf_page=8; printed_page=6; section=Consolidated balance sheet", url, sha],
         ["ctg-input-parent-equity-2023q4", "CTG", "bank.input.parent_attributable_equity", "125010.6", "billion_vnd", "2023_Q4", "point_in_time", "consolidated", "pdf_page=8; printed_page=6; section=Consolidated balance sheet", url, sha],
-        ["ctg-bank-npl-g35-2024q4", "CTG", "bank.npl_g35", "1.219", "percent", "2024_Q4", "point_in_time", "consolidated", "pdf_page=38; printed_page=36; section=Note 10", url, sha],
-        ["ctg-bank-llr-coverage-2024q4", "CTG", "bank.llr_coverage", "174.6762", "percent", "2024_Q4", "point_in_time", "consolidated", "pdf_page=39; printed_page=37; section=Note 11", url, sha],
-        ["ctg-bank-roa-2024q4", "CTG", "bank.roa", "1.1536", "percent", "2024_Q4", "ttm", "consolidated", "pdf_page=10; printed_page=8; section=Consolidated income statement", url, sha],
-        ["ctg-bank-roe-2024q4", "CTG", "bank.roe", "18.6012", "percent", "2024_Q4", "ttm", "consolidated", "pdf_page=10; printed_page=8; section=Consolidated income statement", url, sha],
+        ["ctg-bank-npl-g35-2024q4", "CTG", "bank.npl_g35", "1.219", "%", "2024_Q4", "point_in_time", "consolidated", "pdf_page=38; printed_page=36; section=Note 10", url, sha],
+        ["ctg-bank-llr-coverage-2024q4", "CTG", "bank.llr_coverage", "174.6762", "%", "2024_Q4", "point_in_time", "consolidated", "pdf_page=39; printed_page=37; section=Note 11", url, sha],
+        ["ctg-bank-roa-2024q4", "CTG", "bank.roa", "1.1536", "%", "2024_Q4", "ttm", "consolidated", "pdf_page=10; printed_page=8; section=Consolidated income statement", url, sha],
+        ["ctg-bank-roe-2024q4", "CTG", "bank.roe", "18.6012", "%", "2024_Q4", "ttm", "consolidated", "pdf_page=10; printed_page=8; section=Consolidated income statement", url, sha],
     ]
     output = io.StringIO()
     writer = csv.writer(output)

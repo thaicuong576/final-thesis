@@ -396,6 +396,31 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             missing.append(MissingCell(entity_id=target, period=period, metric_id=metric, reason="DATA_UNAVAILABLE"))
 
         target_rf = rf_by_entity.get(target)
+        if not target_rf and target_obs and target_obs.validation_status is QualityStatus.VALID and target_obs.value is not None and valid_obs:
+            t_val = float(target_obs.value)
+            t_rank_desc = 1 + sum(1 for other in valid_obs if float(other.value) > t_val)
+            if pres.direction == "lower_is_better":
+                t_rank_better = 1 + sum(1 for other in valid_obs if float(other.value) < t_val)
+            elif pres.direction == "higher_is_better":
+                t_rank_better = t_rank_desc
+            else:
+                t_rank_better = None
+            fact_val = float(t_rank_better if t_rank_better is not None else t_rank_desc)
+            target_rf = Fact(
+                fact_id=f"fact:peer_rank:{target}:{universe_id}:{period}:{metric}",
+                fact_type="peer_rank",
+                entity_id=target,
+                universe_id=universe_id,
+                metric_id=metric,
+                period=period,
+                value=fact_val,
+                unit="rank",
+                rank_better=t_rank_better,
+                rank_desc=t_rank_desc,
+                denominator=len(valid_obs),
+                formula_version=FORMULA["peer_rank"],
+                input_observation_ids=[target_obs.observation_id] + [o.observation_id for o in valid_obs],
+            )
         if target_rf:
             facts.append(target_rf)
 
@@ -406,6 +431,20 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             rtm_f = ratio_to_median_fact(target_val_fact, med_fact)
             if rtm_f:
                 facts.append(rtm_f)
+
+        if target and target not in ctx.universe_members and target_obs and target_obs.validation_status is QualityStatus.VALID and target_obs.value is not None:
+            peer_table_rows.append(
+                DatasetRowDTO(
+                    entity_id=target,
+                    metric_id=metric,
+                    period=period,
+                    status="valid",
+                    value=float(target_obs.value),
+                    observation_id=target_obs.observation_id,
+                    rank_better=target_rf.rank_better if target_rf else None,
+                    rank_desc=target_rf.rank_desc if target_rf else None,
+                )
+            )
 
         for member in ctx.universe_members:
             obs = get_cached_obs(ctx, member, period, metric)

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEquityReport } from './useEquityReport';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export const SourceNotes: React.FC = () => {
   const { report, sourceNotes, datasets } = useEquityReport();
@@ -32,12 +33,12 @@ export const SourceNotes: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-text-primary hover:underline font-medium"
                 >
-                  {note.title}
+                  {formatDisplayText(note.title)}
                 </a>
               ) : (
-                <span className="font-medium text-text-primary">{note.title}</span>
+                <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
               )}
-              {note.locator && <span> · {note.locator}</span>}
+              {note.locator && <span> · {formatDisplayText(note.locator)}</span>}
             </div>
           ))}
         </div>
@@ -50,10 +51,18 @@ export const SourceNotes: React.FC = () => {
           {showSampleDisclaimer && ` Mẫu ${peerCount} ngân hàng, không đại diện toàn ngành.`} Không phải khuyến nghị đầu tư.
         </div>
         {limitations.length > 0 && (
-          <div className="mt-1">
-            {limitations.map((lim, idx) => (
-              <div key={idx}>· {lim}</div>
-            ))}
+          <div className="mt-2.5 pt-2 border-t border-line/60">
+            <div className="font-semibold text-text-secondary mb-1">
+              Giới hạn phạm vi &amp; dữ liệu:
+            </div>
+            <ul className="space-y-1 list-none pl-0">
+              {limitations.map((lim, idx) => (
+                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                  <span className="text-text-muted shrink-0">·</span>
+                  <span>{formatDisplayText(lim)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

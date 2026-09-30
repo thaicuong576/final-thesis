@@ -3,6 +3,7 @@ import type { FigureBlock } from '../model/types';
 import { useEquityReport } from './useEquityReport';
 import { CHARTS, DataTable } from '../charts';
 import { SentenceView } from './SentenceView';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export const Figure: React.FC<{ block: FigureBlock }> = ({ block }) => {
   const { datasets, metrics, highlight } = useEquityReport();
@@ -24,10 +25,10 @@ export const Figure: React.FC<{ block: FigureBlock }> = ({ block }) => {
   const ChartComponent = CHARTS[block.chart] || DataTable;
 
   return (
-    <figure className="my-5 p-0 font-sans break-inside-avoid">
+    <figure className="my-5 p-0 font-sans break-inside-avoid max-w-full overflow-hidden">
       {/* Caption */}
       <figcaption className="text-xs text-text-secondary mb-2">
-        <b className="font-semibold text-text-primary">Hình {block.figure_no}.</b> {block.title}
+        <b className="font-semibold text-text-primary">Hình {block.figure_no}.</b> {formatDisplayText(block.title)}
       </figcaption>
 
       {/* Chart Body or Table View */}

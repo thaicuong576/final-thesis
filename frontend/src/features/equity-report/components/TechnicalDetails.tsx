@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useEquityReport } from './useEquityReport';
+import { formatDisplayText, formatDecimalVi } from '@/shared/lib/formatting';
 
 export const TechnicalDetails: React.FC = () => {
   const { report, facts } = useEquityReport();
@@ -8,6 +9,7 @@ export const TechnicalDetails: React.FC = () => {
   const audit = report.narrative_audit;
   const droppedSentences = audit?.sentences_dropped || [];
   const droppedBlocks = audit?.blocks_dropped || [];
+  const findings = report.cross_level_findings || [];
 
   return (
     <div className="mt-4 pt-2 text-xs text-text-muted font-sans print:hidden">
@@ -58,7 +60,7 @@ export const TechnicalDetails: React.FC = () => {
                       <div key={idx} className="p-2 bg-surface-primary border border-warning/40 rounded text-text-secondary">
                         <div className="text-text-primary line-through">{s.text}</div>
                         <div className="text-text-muted mt-0.5">
-                          ID: {s.sentence_id} · Tác giả: {s.author} · Lý do: {s.reason} ({s.reason_code})
+                          Tác giả: {s.author === 'company' ? 'Chuyên viên Doanh nghiệp' : s.author === 'sector' ? 'Chuyên viên Ngành' : s.author || 'Hệ thống'} · Lý do: {formatDisplayText(s.reason)}
                         </div>
                       </div>
                     ))}
@@ -74,12 +76,32 @@ export const TechnicalDetails: React.FC = () => {
                   <div className="space-y-1">
                     {droppedBlocks.map((b, idx) => (
                       <div key={idx} className="p-1.5 bg-surface-primary border border-line rounded">
-                        Loại: {b.type} · Lý do: {b.reason}
+                        Khối: {formatDisplayText(b.type)} · Lý do: {formatDisplayText(b.reason)}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Cross Level Findings */}
+          {findings.length > 0 && (
+            <div>
+              <div className="font-semibold text-text-primary mb-1.5 font-sans text-xs">
+                Phát hiện liên tầng (Cross-level Findings: {findings.length})
+              </div>
+              <div className="space-y-1.5">
+                {findings.map((f, idx) => (
+                  <div key={idx} className="p-2 bg-surface-primary border border-line rounded text-text-secondary">
+                    <div className="font-medium text-text-primary font-sans">{formatDisplayText(f.text)}</div>
+                    <div className="text-text-muted mt-0.5">
+                      Phân loại: {f.kind === 'counter_trend' ? 'Xu hướng ngược chiều' : f.kind === 'divergent_signals' ? 'Tín hiệu phân hóa' : formatDisplayText(f.kind)}
+                      {' · '}Trạng thái: {f.status === 'confirmed' ? 'Đã xác nhận' : f.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -103,12 +125,12 @@ export const TechnicalDetails: React.FC = () => {
                   <tbody className="divide-y divide-line">
                     {facts.map((f) => (
                       <tr key={f.fact_id} className="hover:bg-surface-secondary/50">
-                        <td className="p-1.5 font-bold text-text-primary">{f.fact_id}</td>
-                        <td className="p-1.5">{f.metric_id}</td>
-                        <td className="p-1.5 font-medium">{String(f.value)}</td>
-                        <td className="p-1.5 text-text-secondary">{f.formula_version}</td>
-                        <td className="p-1.5 text-text-muted max-w-xs truncate" title={f.input_observation_ids?.join(', ')}>
-                          {f.input_observation_ids?.join(', ') || '—'}
+                        <td className="p-1.5 font-bold text-text-primary">{formatDisplayText(f.fact_id)}</td>
+                        <td className="p-1.5">{formatDisplayText(f.metric_id)}</td>
+                        <td className="p-1.5 font-medium">{formatDecimalVi(f.value)}</td>
+                        <td className="p-1.5 text-text-secondary">{formatDisplayText(f.formula_version)}</td>
+                        <td className="p-1.5 text-text-muted max-w-xs truncate" title={f.input_observation_ids?.map((id) => formatDisplayText(id)).join(', ')}>
+                          {f.input_observation_ids?.map((id) => formatDisplayText(id)).join(', ') || '—'}
                         </td>
                       </tr>
                     ))}

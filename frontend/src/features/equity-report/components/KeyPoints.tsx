@@ -1,6 +1,7 @@
 import React from 'react';
 import type { KeyPointsBlock } from '../model/types';
 import { SentenceView } from './SentenceView';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export const KeyPoints: React.FC<{ block: KeyPointsBlock }> = ({ block }) => {
   const items = block.items || [];
@@ -11,7 +12,7 @@ export const KeyPoints: React.FC<{ block: KeyPointsBlock }> = ({ block }) => {
         <p key={idx} className="m-0">
           {item.title && (
             <span className="font-semibold text-text-primary mr-1">
-              {item.title.endsWith('.') ? item.title : `${item.title}.`}
+              {formatDisplayText(item.title.endsWith('.') ? item.title : `${item.title}.`)}
             </span>
           )}
           {item.sentences?.map((sentence, sIdx) => (

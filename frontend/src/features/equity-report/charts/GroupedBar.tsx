@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
-import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { fmtPeriod, niceTicks, formatDecimalVi } from '@/shared/lib/formatting';
 import { useChartWidth } from './useChartWidth';
 
 export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
@@ -82,7 +82,7 @@ export const GroupedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight =
                 fontSize="11"
                 fill="var(--text-muted, #85857e)"
               >
-                {t}
+                {formatDecimalVi(t)}
               </text>
             </g>
           );

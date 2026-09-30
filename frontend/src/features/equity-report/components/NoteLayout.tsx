@@ -32,7 +32,7 @@ export const NoteLayout: React.FC = () => {
   }
 
   return (
-    <article className="max-w-[860px] mx-auto p-6 sm:p-8 bg-surface-primary border border-line rounded-lg font-sans shadow-sm">
+    <article className="w-full max-w-[860px] mx-auto p-4 sm:p-8 bg-surface-primary border border-line rounded-lg font-sans shadow-sm overflow-hidden">
       <ReportMasthead />
 
       {isProfile ? (

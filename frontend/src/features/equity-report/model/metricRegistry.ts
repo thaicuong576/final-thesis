@@ -26,7 +26,7 @@ export const DEFAULT_METRICS: Record<string, MetricPresentation> = {
   },
   'bank.npl_g35': {
     id: 'bank.npl_g35',
-    acronym: 'NPL_G35',
+    acronym: 'NPL',
     label: 'Tỷ lệ nợ xấu (nhóm 3–5)',
     shortLabel: 'Nợ xấu',
     unit: '%',

@@ -406,8 +406,27 @@ function ReportPageContent({
             <span className="font-semibold text-ink">{scopeLabel}</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
-            <span>{isDemo ? 'Mẫu minh họa' : activeReport.status ? `API: ${activeReport.status}` : 'API chưa công bố trạng thái'}</span>
+            {isDemo ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
+                <span>Mẫu minh họa</span>
+              </>
+            ) : activeReport.status === 'accepted_with_limitations' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
+                <span className="text-amber-800 font-medium">Chấp nhận có giới hạn</span>
+              </>
+            ) : activeReport.status === 'completed' || activeReport.status === 'accepted' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                <span>Đã kiểm định</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
+                <span>{activeReport.status ? `API: ${activeReport.status}` : 'API chưa công bố trạng thái'}</span>
+              </>
+            )}
           </div>
         </div>
       }

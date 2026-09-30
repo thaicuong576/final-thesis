@@ -11,7 +11,7 @@ export const AnswerCardLayout: React.FC = () => {
   const query = (report as { query?: string }).query;
 
   return (
-    <article className="max-w-[720px] mx-auto p-5 sm:p-7 bg-surface-primary border border-line rounded-lg font-sans shadow-sm">
+    <article className="w-full max-w-[720px] mx-auto p-4 sm:p-7 bg-surface-primary border border-line rounded-lg font-sans shadow-sm overflow-hidden">
       <ReportMasthead />
 
       {query && (

@@ -172,3 +172,73 @@ export function niceTicks(min: number, max: number, count = 3): number[] {
   return ticks;
 }
 
+/**
+ * Formats a number with Vietnamese locale (comma decimal separator, dot thousands separator).
+ */
+export function formatDecimalVi(
+  val: number | string | null | undefined,
+  decimals?: number
+): string {
+  if (val === null || val === undefined || val === '' || isNaN(Number(val))) {
+    return '—';
+  }
+  const num = Number(val);
+  const options: Intl.NumberFormatOptions = {
+    useGrouping: true
+  };
+  if (decimals !== undefined) {
+    options.minimumFractionDigits = decimals;
+    options.maximumFractionDigits = decimals;
+  }
+  return new Intl.NumberFormat('vi-VN', options).format(num);
+}
+
+/**
+ * Sanitizes and formats text displayed to users:
+ * - Translates periods from machine format ("2024_Q4") to human format ("Q4/2024")
+ * - Replaces raw metric identifiers (LLR_COVERAGE, NPL_G35, bank.*) with Vietnamese labels
+ * - Cleans up internal technical reason codes (DATA_UNAVAILABLE -> Chưa có số liệu)
+ */
+export function formatDisplayText(text: string | null | undefined): string {
+  if (!text) return '';
+  let s = String(text);
+
+  // 1. Format range periods: 2024_Q1_to_2024_Q4 -> Q1–Q4/2024
+  s = s.replace(/(\d{4})_Q([1-4])_to_(\d{4})_Q([1-4])/gi, (_, y1, q1, y2, q2) => {
+    if (y1 === y2) return `Q${q1}–Q${q2}/${y1}`;
+    return `Q${q1}/${y1}–Q${q2}/${y2}`;
+  });
+
+  // 2. Format quarter periods: 2024_Q4 -> Q4/2024, Q4_2024 -> Q4/2024, 2024_Q -> Q/2024
+  s = s.replace(/(\d{4})_Q([0-9]+)/gi, 'Q$2/$1');
+  s = s.replace(/Q([0-9]+)_(\d{4})/gi, 'Q$1/$2');
+  s = s.replace(/(\d{4})_Q/gi, 'Q/$1');
+
+  // 3. Format specific known metric acronyms & keys
+  s = s.replace(/bank\.llr_coverage/gi, 'Bao phủ nợ xấu');
+  s = s.replace(/LLR_COVERAGE/gi, 'Bao phủ nợ xấu');
+  s = s.replace(/llr_coverage/gi, 'Bao phủ nợ xấu');
+
+  s = s.replace(/bank\.npl_g35/gi, 'Tỷ lệ nợ xấu');
+  s = s.replace(/NPL_G35/gi, 'Tỷ lệ nợ xấu');
+  s = s.replace(/npl_g35/gi, 'Tỷ lệ nợ xấu');
+
+  s = s.replace(/bank\.roe/gi, 'ROE');
+  s = s.replace(/bank\.roa/gi, 'ROA');
+  s = s.replace(/bank\.nim/gi, 'NIM');
+  s = s.replace(/bank\.casa/gi, 'CASA');
+  s = s.replace(/bank\.cir/gi, 'CIR');
+  s = s.replace(/bank\.car/gi, 'CAR');
+  s = s.replace(/bank\.ldr/gi, 'LDR');
+  s = s.replace(/derived\.roe_over_roa/gi, 'ROE/ROA');
+
+  // 4. Any remaining bank.* patterns
+  s = s.replace(/bank\.([a-z0-9_]+)/gi, (_, key: string) => key.toUpperCase());
+  s = s.replace(/bank\./gi, '');
+
+  // 5. Missing reason code & technical reason codes
+  s = s.replace(/\bDATA_UNAVAILABLE\b/g, 'Chưa có số liệu đã kiểm định');
+
+  return s;
+}
+

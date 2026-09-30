@@ -15,7 +15,7 @@ export const AdaptiveReport: React.FC<AdaptiveReportProps> = ({ report, metrics,
 
   return (
     <EquityReportProvider report={report} metrics={metrics}>
-      <div className={`w-full max-w-full overflow-x-hidden py-4 sm:py-6 px-3 sm:px-6 lg:px-8 bg-workspace text-text-primary ${className}`}>
+      <div className={`w-full max-w-full overflow-x-hidden py-4 sm:py-6 px-3 sm:px-6 lg:px-8 text-text-primary ${className}`}>
         {isAnswerCard ? <AnswerCardLayout /> : <NoteLayout />}
       </div>
     </EquityReportProvider>

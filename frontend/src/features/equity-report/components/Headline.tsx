@@ -4,7 +4,7 @@ import { SentenceView } from './SentenceView';
 
 export const Headline: React.FC<{ block: HeadlineBlock }> = ({ block }) => {
   return (
-    <h1 className="text-[26px] md:text-[28px] font-bold text-text-primary leading-[1.25] tracking-[-0.015em] my-3">
+    <h1 className="font-display mt-1 mb-3 text-[28px] font-bold leading-[1.18] text-balance text-text-primary md:text-[34px]">
       <SentenceView sentence={block.sentence} />
     </h1>
   );

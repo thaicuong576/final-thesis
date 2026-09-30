@@ -29,25 +29,25 @@ interface WorkspaceShellProps {
 export function WorkspaceShell({ activeSection, context, children }: WorkspaceShellProps) {
   return (
     <SidebarProvider defaultOpen className="min-h-screen bg-workspace text-ink">
-      <Sidebar collapsible="icon" className="border-r border-border-subtle bg-surface-secondary print:hidden">
-        <SidebarHeader className="min-h-[64px] justify-center px-4 py-3 bg-surface-secondary group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-3">
+      <Sidebar collapsible="icon" className="border-r-0 bg-sidebar text-sidebar-foreground print:hidden">
+        <SidebarHeader className="min-h-[68px] justify-center border-b border-sidebar-border px-4 py-3 bg-sidebar group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-3">
           <Link to="/analysis" className="group flex items-center gap-3 text-ink group-data-[collapsible=icon]:justify-center">
             <span
-              className="grid size-8 shrink-0 place-items-center rounded-lg bg-ink text-amber transition-colors group-hover:bg-[#3a3a36]"
+              className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber text-ink transition-colors group-hover:bg-amber-hover"
               aria-hidden="true"
             >
               <BarChart3 className="size-[18px] stroke-[2.2]" />
             </span>
             <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
-              <span className="truncate text-[15px] font-semibold leading-tight tracking-[-0.01em] text-ink">
+              <span className="truncate text-[15px] font-semibold leading-tight text-white">
                 Phân tích tài chính
               </span>
-              <span className="truncate text-xs text-ink-tertiary">Ngân hàng niêm yết Việt Nam</span>
+              <span className="truncate text-xs text-[#9c978c]">Ngân hàng niêm yết Việt Nam</span>
             </div>
           </Link>
         </SidebarHeader>
 
-        <SidebarContent className="bg-surface-secondary">
+        <SidebarContent className="bg-sidebar">
           <SidebarGroup className="p-3 pt-3 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-3">
             <SidebarMenu className="gap-1">
               <WorkspaceNavItem to="/analysis" label="Phân tích mới" icon={MessageSquareText} active={activeSection === 'analysis'} />
@@ -55,19 +55,26 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
               <WorkspaceNavItem to="/data" label="Dữ liệu" icon={Database} active={activeSection === 'data'} />
             </SidebarMenu>
           </SidebarGroup>
+          <div className="mx-3 mt-auto mb-3 rounded-xl bg-sidebar-accent p-3 text-xs text-[#aaa497] group-data-[collapsible=icon]:hidden">
+            <p className="m-0 flex items-center gap-2 font-semibold text-[#f1ece2]">
+              <span className="size-1.5 rounded-full bg-[#4cc38a]" aria-hidden="true" />
+              Gold v5 · đã đối chiếu BCTC
+            </p>
+            <p className="mt-1.5 mb-0 leading-relaxed">5 ngân hàng · Q1–Q4/2024 · 4 chỉ tiêu. Mỗi con số dẫn về trang báo cáo tài chính gốc.</p>
+          </div>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-border-subtle bg-surface-secondary p-0">
+        <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-0">
           <div className="flex items-center gap-3 px-4 py-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
             <span
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-surface-selected text-[11px] font-semibold text-ink"
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-white"
               title="Phùng Thái Cường"
             >
               PC
             </span>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-[13px] font-medium text-ink">Phùng Thái Cường</p>
-              <p className="truncate text-xs text-ink-tertiary">Chuyên viên phân tích</p>
+              <p className="truncate text-[13px] font-medium text-white">Phùng Thái Cường</p>
+              <p className="truncate text-xs text-[#8f8a7f]">Chuyên viên phân tích</p>
             </div>
           </div>
         </SidebarFooter>
@@ -76,7 +83,7 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
       </Sidebar>
 
       <SidebarInset className="min-h-screen bg-workspace">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border-subtle bg-surface-primary/95 px-4 backdrop-blur-sm sm:px-6 print:hidden">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border-subtle bg-surface-primary/90 px-4 backdrop-blur-sm sm:px-6 print:hidden">
           <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1 text-ink-secondary" />
           <Separator orientation="vertical" className="h-5 bg-border-subtle" />
           <div className="min-w-0 flex-1">
@@ -84,7 +91,7 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
           </div>
         </header>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="paper-grid min-w-0 flex-1">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
@@ -101,11 +108,11 @@ function WorkspaceNavItem({ to, label, icon: Icon, active }: { to: string; label
         isActive={isCurrent}
         tooltip={label}
         size="default"
-        className="h-10 px-3 text-[14px] font-medium text-ink-secondary transition-colors hover:bg-surface-hover hover:text-ink data-[active=true]:bg-surface-primary data-[active=true]:font-semibold data-[active=true]:text-ink data-[active=true]:shadow-[0_1px_2px_rgba(32,32,30,0.08)] data-[active=true]:ring-1 data-[active=true]:ring-border-subtle group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center"
+        className="h-10 px-3 text-[14px] font-medium text-[#bdb7ab] transition-colors hover:bg-sidebar-accent hover:text-white data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-white data-[active=true]:shadow-[inset_2px_0_0_var(--accent)] group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center"
       >
         <NavLink to={to} aria-current={isCurrent ? 'page' : undefined} title={label}>
           <Icon
-            className={`size-[18px] shrink-0 stroke-[1.8] ${isCurrent ? 'text-amber-active' : ''}`}
+            className={`size-[18px] shrink-0 stroke-[1.8] ${isCurrent ? 'text-amber' : ''}`}
             aria-hidden="true"
           />
           <span className="truncate group-data-[collapsible=icon]:hidden">{label}</span>

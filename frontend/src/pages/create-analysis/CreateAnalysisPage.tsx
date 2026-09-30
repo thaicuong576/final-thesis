@@ -85,11 +85,11 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
 
   return (
     <WorkspaceShell activeSection="analysis">
-      <div className="min-h-[calc(100vh-56px)] bg-workspace px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-56px)] px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[780px]">
           {mode === 'ASK' ? (
             <div className="pt-[6vh] sm:pt-[9vh]">
-              <h1 className="m-0 text-[30px] font-bold leading-[1.15] tracking-[-0.025em] text-text-primary sm:text-[34px]">
+              <h1 className="font-display m-0 text-[36px] font-bold leading-[1.1] text-balance text-text-primary sm:text-[44px]">
                 Bạn muốn phân tích gì?
               </h1>
               <p className="mt-3 mb-0 max-w-[62ch] text-[15px] leading-relaxed text-text-secondary">

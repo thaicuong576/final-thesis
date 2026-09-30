@@ -348,8 +348,8 @@ def _format_table(table, rows: list[list[str]]) -> None:
             pf.line_spacing = 1.0
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER if is_header else WD_ALIGN_PARAGRAPH.LEFT
             for run in para.runs:
-                code = run.font.name == "Consolas"
-                _set_all_fonts(run, "Consolas" if code else "Times New Roman", 11 if code else 12)
+                # Tables are Times New Roman throughout, including inline code spans.
+                _set_all_fonts(run, "Times New Roman", 12)
                 if is_header:
                     run.font.bold = True
             if is_header:

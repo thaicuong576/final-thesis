@@ -6,7 +6,7 @@ Chương này trình bày kiến trúc phần mềm, nguyên tắc phân ranh gi
 
 ## 4.1. Kiến trúc phân tầng và nguyên tắc ranh giới hệ thống
 
-### 4.1.1. Phân tách rành mạch giữa Tầng Lõi (Core) và Tầng Ứng dụng (Application)
+### 4.1.1. Tách tầng lõi xử lý dữ liệu và tầng ứng dụng
 
 Hệ thống phân tách giữa logic tính toán tài chính cốt lõi và hạ tầng ứng dụng tham chiếu (Hình 4.1). Cách làm này bảo đảm việc thay đổi giao diện hay công nghệ máy chủ không làm thay đổi các phép tính kinh tế cốt lõi:
 
@@ -77,7 +77,7 @@ Hệ thống tách rời hai cơ sở dữ liệu vật lý để tránh việc 
 
 ---
 
-## 4.2. Luồng xử lý một lượt phân tích (End-to-End Analysis Workflow)
+## 4.2. Luồng xử lý một lượt phân tích
 
 Quy trình xử lý một yêu cầu phân tích từ câu hỏi tiếng Việt tự nhiên đến khi tạo thành báo cáo phân tích cổ phiếu (Equity Research Report) gồm tám bước tuần tự có kiểm soát (Hình 4.2).
 
@@ -159,21 +159,21 @@ Mọi phép tính toán số học tài chính đều do chương trình máy t�
 Khả năng truy vết của số liệu đã tính sẵn:
 Mỗi con số được lưu cùng nguồn và công thức tính. Công cụ tạo ra các dữ kiện tài chính có gắn kèm phiên bản công thức và mã quan sát đầu vào, cho phép truy ngược về từng dòng trong cơ sở dữ liệu. Công cụ cũng chuẩn bị sẵn các cấu trúc tập dữ liệu để vẽ biểu đồ ở bước sau.
 
-*Bảng 4.1: Danh mục 11 loại Fact nguyên tử và phiên bản công thức toán học.*
+*Bảng 4.1: Mười một loại số liệu do chương trình tính sẵn.*
 
-| Loại dữ kiện | Mã phiên bản công thức | Ý nghĩa kinh tế và Công thức tính toán |
+| Loại số liệu | Ý nghĩa | Cách tính |
 |---|---|---|
-| Giá trị quan sát | fact-value-v1 | Giá trị chỉ tiêu quan sát được tại kỳ phân tích ($V(e,m,p)$). |
-| Trung vị nhóm | peer-median-v1 | Trung vị thống kê của nhóm so sánh trên các quan sát hợp lệ ($M(m,p) = \text{median}(V(i,m,p))$). |
-| Thứ hạng cạnh tranh | peer-rank-competition-v1 | Thứ hạng của ngân hàng theo chiều chất lượng tốt hơn ($R(\text{tốt})$) và theo giá trị giảm dần ($R(\text{giảm})$) trên tổng số thành viên hợp lệ $D$. |
-| Chênh lệch so với trung vị | gap-to-median-pp-v1 | Mức chênh lệch điểm phần trăm so với trung vị nhóm ($\Delta(\text{trung vị}) = V(e,m,p) - M(m,p)$). |
-| Biến động chuỗi thời gian | delta-pp-v1 | Mức thay đổi điểm phần trăm qua các quý liên tiếp ($\Delta(p1 \to p2) = V(e,m,p2) - V(e,m,p1)$). |
-| Biến động trung vị nhóm | median-delta-pp-v1 | Mức thay đổi điểm phần trăm của trung vị nhóm qua thời gian ($\Delta M = M(m,p2) - M(m,p1)$). |
-| Chênh lệch đối đầu | pairwise-gap-pp-v1 | Khoảng cách chênh lệch điểm phần trăm giữa hai ngân hàng ($\Delta(e1 - e2) = V(e1) - V(e2)$). |
-| Biên độ phân tán | spread-pp-v1 | Mức chênh lệch giữa ngân hàng cao nhất và thấp nhất trong nhóm. |
-| Tỷ số so với trung vị | ratio-to-median-v1 | Tỷ số tương đối giữa giá trị của ngân hàng và trung vị nhóm ($V / M$, đơn vị: lần). |
-| Tỷ số dẫn xuất | derived-ratio-v1 | Tỷ số nội tại giữa hai chỉ tiêu, ví dụ tỷ số giữa ROE và ROA phản ánh hệ số nhân đòn bẩy tài chính. |
-| Số lượng dẫn trước | lead-count-v1 | Số lượng chỉ tiêu mà ngân hàng vượt trội so với đối thủ ($N/M$ chỉ tiêu). |
+| Giá trị quan sát | Giá trị của một chỉ tiêu tại một kỳ | Lấy trực tiếp từ bộ dữ liệu đã kiểm chứng |
+| Trung vị nhóm | Mức giữa của nhóm năm ngân hàng | Trung vị các giá trị hợp lệ trong nhóm |
+| Thứ hạng | Vị trí của ngân hàng trong nhóm | Xếp theo chiều tốt của chỉ tiêu (với nợ xấu, thấp hơn là tốt hơn) |
+| Chênh lệch so với trung vị | Ngân hàng cao hay thấp hơn mức giữa của nhóm | Giá trị của ngân hàng trừ trung vị nhóm |
+| Biến động theo kỳ | Chỉ tiêu tăng hay giảm giữa hai kỳ | Giá trị kỳ sau trừ giá trị kỳ trước |
+| Biến động của trung vị | Mức giữa của nhóm tăng hay giảm | Trung vị kỳ sau trừ trung vị kỳ trước |
+| Chênh lệch giữa hai ngân hàng | Khoảng cách trực tiếp giữa hai ngân hàng | Giá trị ngân hàng thứ nhất trừ ngân hàng thứ hai |
+| Biên độ phân tán | Khoảng cách giữa ngân hàng cao nhất và thấp nhất | Giá trị lớn nhất trừ giá trị nhỏ nhất |
+| Tỷ số so với trung vị | Ngân hàng gấp bao nhiêu lần mức giữa | Giá trị của ngân hàng chia trung vị |
+| Tỷ số giữa hai chỉ tiêu | Ví dụ ROE chia ROA, cho biết mức sử dụng đòn bẩy | Chỉ tiêu thứ nhất chia chỉ tiêu thứ hai |
+| Số chỉ tiêu dẫn trước | Ngân hàng tốt hơn đối thủ ở bao nhiêu chỉ tiêu | Đếm các chỉ tiêu có chênh lệch theo chiều tốt |
 
 ### 4.2.4. Bước 4: Tín hiệu và Ứng viên mâu thuẫn liên tầng
 
@@ -216,9 +216,7 @@ Toàn bộ các câu nhận định đều phải qua bộ kiểm tra câu văn 
 6. Quy tắc 6 - Số đếm chỉ tiêu: cụm từ đếm số lượng (ví dụ "2 trên 4 chỉ tiêu") phải khớp đúng số chỉ tiêu dẫn trước.
 7. Quy tắc 7 - Thứ hạng cạnh tranh: từ chỉ thứ bậc (như "hạng nhất", "dẫn đầu", "thấp nhất") phải có dữ kiện xếp hạng đi kèm và khớp đúng chiều đánh giá.
 8. Quy tắc 8 - Quy mô nhóm thực thể: số lượng ngân hàng (ví dụ "5 ngân hàng") phải khớp với số thành viên hợp lệ trong nhóm so sánh.
-9. Quy tắc 9 - Khớp con số và dung sai hiển thị: mọi số thực kèm đơn vị đo lường (như phần trăm, điểm phần trăm, lần) đều được đối chiếu với dữ kiện gốc. Dung sai chấp nhận tính theo công thức:
-$$\text{Dung sai} = 0{,}5 \times 10^{-d} + 10^{-9}$$
-trong đó $d$ là số chữ số thập phân hiển thị. Con số cũng phải gắn kết với tên chỉ tiêu và tên ngân hàng trong phạm vi sáu từ lân cận.
+9. Quy tắc 9 - Khớp con số và dung sai hiển thị: mọi số thực kèm đơn vị đo lường (như phần trăm, điểm phần trăm, lần) đều được đối chiếu với dữ kiện gốc. Sai lệch cho phép bằng một nửa đơn vị của chữ số cuối cùng được viết ra: ví dụ câu viết "1,51%" thì giá trị gốc phải nằm trong khoảng 1,505% đến 1,515%; viết "1,5%" thì khoảng cho phép là 1,45% đến 1,55%. Con số cũng phải gắn kết với tên chỉ tiêu và tên ngân hàng trong phạm vi sáu từ lân cận.
 10. Quy tắc 10 - Chiều xu hướng thời gian: từ chỉ xu hướng ("tăng", "giảm", "đi ngang", "cải thiện", "xấu đi") phải có dữ kiện biến động chuỗi thời gian chứng minh và vượt ngưỡng đi ngang mặc định là 0,05 điểm phần trăm.
 11. Quy tắc 11 - Chiều so sánh tương đối: từ so sánh ("cao hơn", "thấp hơn", "vượt", "tốt hơn", "kém hơn") phải có dữ kiện chênh lệch chứng minh và dấu chênh lệch phải khớp với tính chất chỉ tiêu.
 
@@ -344,7 +342,9 @@ Khi yêu cầu phân tích không thể thực hiện, hệ thống đưa ra th�
 
 ---
 
-## 4.4. Thiết kế giao diện tác nghiệp tham chiếu
+## 4.4. Thiết kế giao diện
+
+Mục này mô tả các màn hình chính; ảnh chụp từng màn hình theo đúng thứ tự sử dụng được trình bày ở mục 4.7.
 
 Giao diện người dùng là ứng dụng trang đơn xây dựng bằng React, Vite và TailwindCSS. Thiết kế dùng phông chữ phi chân phương (IBM Plex Sans), tông màu nhấn hổ phách cho ngân hàng mục tiêu, màu xám trung tính cho nhóm so sánh, bố cục trang tập trung vào tính dễ đọc của số liệu tài chính. Giao diện gồm bốn màn hình chính:
 
@@ -358,8 +358,8 @@ Giao diện người dùng là ứng dụng trang đơn xây dựng bằng React
 - Hiển thị tóm tắt kế hoạch phân tích, các chỉ tiêu liên quan và lý do lựa chọn của điều phối viên.
 
 ### 4.4.3. Màn hình Dòng thời gian tiến trình
-- Nhận dữ liệu truyền dòng thời gian thực từ máy chủ qua cơ chế truyền sự kiện từ máy chủ (Server-Sent Events - SSE).
-- Thể hiện dòng thời gian của các bước: Lập kế hoạch $\to$ Tính toán công cụ $\to$ Nhận định chuyên viên $\to$ Kiểm định câu văn $\to$ Lắp ráp báo cáo $\to$ Phản biện ngữ nghĩa và sửa đổi.
+- Nhận dữ liệu truyền dòng thời gian thực từ máy chủ qua cơ chế máy chủ chủ động gửi từng bước về trình duyệt ngay khi xảy ra.
+- Thể hiện dòng thời gian của các bước: Lập kế hoạch → Tính toán công cụ → Nhận định chuyên viên → Kiểm định câu văn → Lắp ráp báo cáo → Phản biện ngữ nghĩa và sửa đổi.
 - Cho phép người dùng mở rộng từng bước để xem chi tiết các con số đã tính, các câu bị loại kèm lý do và ý kiến của tác tử phản biện.
 
 ### 4.4.4. Màn hình Báo cáo phân tích chuyên sâu

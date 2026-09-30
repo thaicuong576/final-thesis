@@ -25,7 +25,7 @@ Quy trình nghiên cứu gồm sáu bước kế tiếp nhau (Hình 3.1):
    - Tầng ứng dụng: nhận câu hỏi tiếng Việt của người dùng, lập kế hoạch phân tích, điều phối các tác tử và hiển thị kết quả trên giao diện web.
 4. Kiểm tra kỹ thuật: Hệ thống trải qua 781 trường hợp kiểm thử tự động, cùng các bài kiểm tra ranh giới kiến trúc và chuẩn giao tiếp phần mềm trước khi chạy thực nghiệm.
 5. Thực nghiệm đối chiếu: Hệ thống được thử nghiệm trên ba cấu hình A, B và C với cùng một kế hoạch phân tích được cố định trước khi chạy, thực hiện trên 12 câu hỏi chuẩn và bộ dữ liệu Gold v5.
-6. Đánh giá kết quả: Kết quả được chấm tự động theo quy tắc cố định, đo lường độ chính xác của số liệu, khả năng dẫn nguồn, độ bao phủ chỉ tiêu, khả năng từ chối câu hỏi ngoài phạm vi và tài nguyên sử dụng (thời gian xử lý, số lượt gọi mô hình, lượng mã thông báo).
+6. Đánh giá kết quả: Kết quả được chấm tự động theo quy tắc cố định, đo lường độ chính xác của số liệu, khả năng dẫn nguồn, độ bao phủ chỉ tiêu, khả năng từ chối câu hỏi ngoài phạm vi và tài nguyên sử dụng (thời gian xử lý, số lượt gọi mô hình, lượng token).
 
 ```mermaid
 flowchart TD
@@ -50,7 +50,7 @@ flowchart TD
 Phương pháp nghiên cứu được thiết kế để trả lời trực tiếp ba câu hỏi nghiên cứu:
 
 - Câu hỏi RQ1 (Thiết kế hệ thống và khả năng dẫn nguồn): Được giải quyết qua kiến trúc phân tầng ở Chương 4. Hệ thống chứng minh luồng dữ liệu đi liền mạch từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt đoạn chuỗi dẫn chứng.
-- Câu hỏi RQ2 (Hiệu quả chia việc cho nhiều tác tử): Được giải quyết bằng cách so sánh Cấu hình B (đa tác tử không phản biện) với Cấu hình A (tác tử đơn). Với cùng kế hoạch và dữ liệu, thực nghiệm đo lường xem việc chia riêng chuyên viên doanh nghiệp và ngành có giúp báo cáo chính xác, đầy đủ hơn không, đồng thời ghi nhận sự đánh đổi về thời gian và lượng mã thông báo.
+- Câu hỏi RQ2 (Hiệu quả chia việc cho nhiều tác tử): Được giải quyết bằng cách so sánh Cấu hình B (đa tác tử không phản biện) với Cấu hình A (tác tử đơn). Với cùng kế hoạch và dữ liệu, thực nghiệm đo lường xem việc chia riêng chuyên viên doanh nghiệp và ngành có giúp báo cáo chính xác, đầy đủ hơn không, đồng thời ghi nhận sự đánh đổi về thời gian và lượng token.
 - Câu hỏi RQ3 (Vai trò của phản biện ngữ nghĩa và sửa đổi có mục tiêu): Được giải quyết bằng cách so sánh Cấu hình C (đa tác tử có phản biện) với Cấu hình B. Thử nghiệm làm rõ việc bổ sung tác tử phản biện cùng tối đa hai vòng sửa có giúp loại bỏ nhận định thổi phồng, phát hiện mâu thuẫn và bám sát câu hỏi hay không.
 
 Nghiên cứu giữ góc nhìn khách quan: không mặc định hệ thống nhiều tác tử luôn tốt hơn một tác tử, cũng không cho rằng phản biện luôn có lợi trong mọi trường hợp. Mọi kết luận đều dựa trên số liệu thực nghiệm.
@@ -227,7 +227,7 @@ flowchart TD
 2. Dữ liệu đầu vào giống nhau: Do kế hoạch cố định, công cụ tính toán sẽ sinh ra tập số liệu và biểu đồ giống hệt nhau cho cả ba cấu hình trước khi viết nhận định.
 3. Dùng cùng thiết lập mô hình: Toàn bộ tác tử trong cả ba cấu hình sử dụng cùng một phiên bản mô hình và cùng thiết lập.
 4. Dùng chung bộ kiểm tra câu văn: Các câu nhận định do tác tử tạo ra đều qua cùng bộ quy tắc lọc bỏ câu sai số hoặc khuyến nghị đầu tư trái quy định.
-5. Ghi nhật ký độc lập: Mỗi lượt chạy có mã định danh riêng và lưu lại đầy đủ thời gian xử lý, số lượt gọi và lượng mã thông báo. Nếu gặp lỗi mạng hoặc bị từ chối do ngoài phạm vi dữ liệu, lượt chạy đó vẫn được tính vào kết quả đánh giá chứ không bị bỏ qua.
+5. Ghi nhật ký độc lập: Mỗi lượt chạy có mã định danh riêng và lưu lại đầy đủ thời gian xử lý, số lượt gọi và lượng token. Nếu gặp lỗi mạng hoặc bị từ chối do ngoài phạm vi dữ liệu, lượt chạy đó vẫn được tính vào kết quả đánh giá chứ không bị bỏ qua.
 
 ### 3.3.3. Bộ nhiệm vụ thực nghiệm chuẩn hóa (12 câu hỏi)
 
@@ -258,7 +258,7 @@ Bộ nhiệm vụ thực nghiệm phiên bản 2 gồm 12 câu hỏi tiếng Vi�
 
 | Nhóm chỉ số | Chỉ số cụ thể | Phương pháp đo lường theo quy tắc |
 |---|---|---|
-| 1. Độ tin cậy nghiệp vụ | Tỷ lệ hoàn thành nhiệm vụ | Tỷ lệ lượt chạy kết thúc thành công với trạng thái hoàn thành trên tổng số lượt chạy được giao. |
+| 1. Độ tin cậy nghiệp vụ | Tỷ lệ hoàn thành nhiệm vụ | Tách thành hai mức: trả lời được (báo cáo hợp lệ, có thể kèm ghi chú giới hạn) và hoàn thành trọn vẹn (không có ghi chú giới hạn nào), tính trên tổng số lượt chạy. |
 | | Đúng dữ kiện số | Kiểm tra các con số trong câu văn báo cáo: mọi số đều phải khớp với số liệu do chương trình tính và khớp với dữ liệu chuẩn Gold v5. |
 | | Khả năng truy vết nguồn gốc | Tỷ lệ các số liệu giải mã thành công về bản ghi gốc trong cơ sở dữ liệu kèm mã tài liệu và vị trí nguồn chính xác. |
 | | Độ bao phủ chỉ tiêu | Tỷ lệ đáp ứng đầy đủ các ô dữ liệu bắt buộc theo yêu cầu câu hỏi khi so sánh với ma trận kỳ vọng. |
@@ -266,7 +266,7 @@ Bộ nhiệm vụ thực nghiệm phiên bản 2 gồm 12 câu hỏi tiếng Vi�
 | | Từ chối ngoài phạm vi | Đo lường trên nhiệm vụ R1 và R2: hệ thống chặn yêu cầu trước khi gọi tác tử và ghi nhận đúng trạng thái từ chối phân tích. |
 | 3. Chất lượng trình bày | Tỷ lệ câu văn hợp lệ | Tỷ lệ câu văn vượt qua bộ kiểm tra câu trên tổng số câu do các tác tử viết ra. |
 | | Tích hợp liên tầng | Tỷ lệ các phát hiện mâu thuẫn (như tín hiệu phân kỳ hoặc xu hướng ngược chiều) được đưa vào phần ghi chú nổi bật của báo cáo. |
-| 4. Tài nguyên vận hành | Thời gian và lượng mã thông báo | Thời gian phản hồi trung bình tính bằng giây, tổng số lượt gọi mô hình, lượng mã thông báo đầu vào và đầu ra, cùng số vòng sửa đổi thực tế. |
+| 4. Tài nguyên vận hành | Thời gian và lượng token | Thời gian phản hồi trung bình tính bằng giây, tổng số lượt gọi mô hình, lượng token đầu vào và đầu ra, cùng số vòng sửa đổi thực tế. |
 
 Các điều chỉnh phương pháp thực tế:
 - Cố định kế hoạch theo quy tắc: Cả ba cấu hình đều dùng chung kế hoạch do thuật toán tạo ra để loại trừ sai số ngẫu nhiên từ khâu lập kế hoạch, tập trung so sánh năng lực viết nhận định và phản biện.

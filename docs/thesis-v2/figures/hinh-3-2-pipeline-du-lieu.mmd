@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph DataPipeline ["Pipeline Bốn Trạng Thái Dữ Liệu và Cổng Kiểm Soát"]
+        direction TB
+        
+        Raw["<b>1. Nguồn thô (Raw Evidence)</b><br/>• Báo cáo tài chính PDF, CSV công bố<br/>• Bất biến, gắn SHA-256 byte gốc<br/>• Lưu trữ độc lập, chưa kiểm chứng"]
+        
+        Candidate["<b>2. Dữ liệu ứng viên (Candidate)</b><br/>• Trích xuất qua parser hoặc OCR<br/>• Khớp schema sơ bộ nhưng chưa đối soát<br/>• Chưa đủ điều kiện đưa vào phân tích"]
+        
+        Operational["<b>3. Snapshot vận hành (Operational Snapshot)</b><br/>• Đối soát từng ô với filing chính thức<br/>• Locator chính xác (trang, bảng, thuyết minh)<br/>• Metric dẫn xuất tính lại bằng formula_version<br/>• Lưu calculation receipt tường minh<br/><i>Ví dụ: Ca kiểm thử mở rộng CTG FY2024 Q4</i>"]
+        
+        Gold["<b>4. Gold Benchmark</b><br/>• Snapshot được kiểm soát toàn diện<br/>• Khóa thẩm quyền phạm vi (Authority Sidecar)<br/>• 5 ngân hàng × 4 quý 2024 × 4 chỉ tiêu<br/>• 80 ô mục tiêu (76 hợp lệ, 4 ô ACB Q1 thiếu)<br/>• SHA-256: 1b1b5c09...ce73"]
+        
+        Raw -->|"Trích xuất cấu trúc / OCR sơ bộ"| Candidate
+        Candidate -->|"Đối soát nguồn chính + Tính lại số dẫn xuất"| Operational
+        Operational -->|"Cổng promotion độc lập + Authority sidecar"| Gold
+    end

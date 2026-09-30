@@ -1,0 +1,23 @@
+flowchart TD
+    UserQ(["<b>1. Câu hỏi tiếng Việt tự nhiên</b><br/><i>Ví dụ: 'So sánh nợ xấu và bao phủ nợ xấu của ACB và TCB quý 4/2024'</i>"])
+    
+    QU["<b>2. Hiểu câu hỏi (query_understanding.py)</b><br/>• Chuẩn hóa Unicode NFC, casefold<br/>• Bóc tách thực thể (ACB, TCB), kỳ (2024_Q4), chỉ tiêu (NPL, LLR)<br/>• Xác định cờ phân tích: head_to_head, comparison"]
+    
+    Plan["<b>3. Phân loại & Đóng băng Kế hoạch (analysis_planner.py)</b><br/>• Phân loại 1 trong 5 dạng: lookup, company_profile, ranking, trend, head_to_head<br/>• LLM đề xuất plan → Code kiểm tra hợp lệ (validate_plan)<br/>• Fallback kế hoạch theo luật (rules_plan) nếu lỗi mạng / đề xuất sai<br/>• <b>Đóng băng AnalysisPlan trước khi gọi dữ liệu</b>"]
+    
+    Tools["<b>4. Công cụ Phân tích Tất định (analysis_tools.py & report_facts.py)</b><br/>• Chạy công cụ: head_to_head, peer_position...<br/>• Tính toán 11 loại Fact nguyên tử (value, peer_median, delta, pairwise_gap, lead_count...)<br/>• Mỗi Fact gắn chặt formula_version và input_observation_ids<br/>• Chuẩn bị các cấu trúc Dataset cho biểu đồ"]
+    
+    Signals["<b>5. Tín hiệu & Mâu thuẫn Liên tầng (report_facts.py)</b><br/>• Phân loại tín hiệu (above_peers, in_line, below_peers...)<br/>• Phát hiện ứng viên mâu thuẫn (divergent_signals, counter_trend, cross_metric_extreme)"]
+    
+    Writers["<b>6. Chuyên viên Viết Nhận định (analysis_writer.py)</b><br/>• Tác tử Company & Sector viết câu nhận định súc tích (≤30 từ)<br/>• <b>Mỗi câu bắt buộc trích dẫn fact_ids</b><br/>• Chép đúng chuỗi hiển thị 'hien_thi', không tự tính, không bịa số"]
+    
+    Verifier["<b>7. Bộ Kiểm tra Câu văn Xác định luận (narrative_verification.py)</b><br/>• Quét 11 quy tắc: kiểm tra fact_ids, cấm từ nguyên nhân, cấm khuyến nghị đầu tư,<br/>  khớp kỳ, khớp số lượng, khớp thứ hạng, kiểm tra số với tolerance, chiều xu hướng, chiều so sánh<br/>• <b>Nguyên tắc 'Kiểm, không cấm':</b> Câu sai bị loại riêng rẽ vào DroppedSentence,<br/>  không hủy cả lượt chạy"]
+    
+    Assemble["<b>8. Lắp ráp & Kiểm định ReportSpec (report_spec.py & analysis_writer.py)</b><br/>• Lắp ráp các khối: headline, key_points, section, figure (8 loại biểu đồ), callout, table<br/>• Kiểm tra tương thích dataset - chart type và ngân sách khối (tối đa 12 khối)<br/>• Tự động hạ cấp biểu đồ hoặc fallback sang cấu trúc mẫu mặc định"]
+    
+    Critic["<b>9. Phản biện Ngữ nghĩa & Sửa đổi có Mục tiêu (semantic_critic.py & revision_controller.py)</b><br/>• Semantic Critic phát hiện câu nói quá, mâu thuẫn liên tầng, chưa trả lời đúng trọng tâm<br/>• Tối đa 2 vòng sửa đổi (Revision) nhắm đúng câu/khối lỗi<br/>• Câu sau sửa đổi bắt buộc chạy lại qua Bộ kiểm tra câu văn"]
+    
+    Output(["<b>10. Xuất Báo cáo & Lưu vết Toàn diện (service.py & main.py)</b><br/>• Trả về ReportSpec hoàn chỉnh qua REST hoặc truyền dòng SSE<br/>• Lưu vết chi tiết từng bước TraceStep vào SQLite (ANALYSIS_RUNS_DB_PATH)<br/>• Ghi nhận cả lượt chạy thành công và lượt chạy bị chặn/thất bại"])
+
+    UserQ --> QU --> Plan --> Tools --> Signals --> Writers --> Verifier --> Assemble --> Critic --> Output
+    Critic -.->|"Phát hiện lỗi (≤ 2 vòng)"| Writers

@@ -2,7 +2,7 @@
 """Deterministic scoring for ER-8 evaluation runs.
 
 Calculates deterministic evaluation metrics per PR-8 §5 from run files:
-  1. Completion (status == 'completed', or successful rejection for R1/R2).
+  1. Completion (answered: status 'completed' or 'accepted_with_limitations'; clean_completion counts only 'completed'; R1/R2 succeed by rejection).
   2. Numeric correctness (all numbers in final sentences match cited facts; facts match Gold v5).
      Uses thesis_data.narrative_verification.verify_sentence for exact grounding and tolerance.
   3. Observation traceability (input_observation_ids resolve to Gold v5 locators).
@@ -226,7 +226,11 @@ def score_single_run(
     limitations = response.get("limitations") or []
 
     # 1. Completion & Protocol Success
-    completed = 1 if status == "completed" and resp_status == "completed" else 0
+    # "completed" = the run produced an answered report (clean or with stated limitations);
+    # "clean_completion" = the runtime accepted it without any limitation.
+    answered_statuses = ("completed", "accepted_with_limitations")
+    completed = 1 if status in answered_statuses and resp_status in answered_statuses else 0
+    clean_completion = 1 if status == "completed" and resp_status == "completed" else 0
     if is_rejection_expected:
         # Success means properly rejected with expected error code
         code_matched = (
@@ -370,9 +374,9 @@ def score_single_run(
         if isinstance(blk, dict) and blk.get("type") == "callout":
             cross_level_findings_count += 1
 
-    # Revision rounds from trace
+    # Revision rounds as executed by the runtime (the trace has no separate "revise" kind)
     trace = run_data.get("trace") or []
-    revision_rounds = sum(1 for step in trace if step.get("kind") == "revise")
+    revision_rounds = int(((response.get("revision_summary") or {}).get("rounds_executed")) or 0)
 
     return {
         "run_id": run_id,
@@ -384,6 +388,7 @@ def score_single_run(
         "plan_hash": plan_hash,
         "plan_hash_valid": 1 if plan_hash_valid else 0,
         "completed": completed,
+        "clean_completion": clean_completion,
         "protocol_success": protocol_success,
         "numeric_correctness": round(numeric_correctness, 4),
         "numbers_checked": numbers_checked,

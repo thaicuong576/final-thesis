@@ -1,0 +1,17 @@
+flowchart TD
+    subgraph DSR_Process ["Quy trình Nghiên cứu theo Định hướng Design Science (DSR)"]
+        direction TB
+        S1["<b>Bước 1. Xác định vấn đề thực tiễn</b><br/>• Báo cáo tài chính ngân hàng phức tạp, nhạy ngữ cảnh<br/>• Rủi ro hallucination và tự bịa số của mô hình ngôn ngữ<br/>• Chi phí phối hợp và độ trễ khi dùng hệ đa tác tử"]
+        
+        S2["<b>Bước 2. Chuyển vấn đề thành yêu cầu thiết kế</b><br/>• Nguyên tắc: 'Code tính số, mô hình ngôn ngữ diễn giải'<br/>• Hợp đồng dữ liệu có nguồn gốc (provenance, locator)<br/>• Bộ kiểm tra xác định luận và phản biện có giới hạn"]
+        
+        S3["<b>Bước 3. Xây dựng Artifact</b><br/>• Tầng lõi thuật toán: thesis_data (fact, verifier, spec)<br/>• Tầng ứng dụng phân tích: thesis_api (planner, writer, runtime)<br/>• Ứng dụng tham chiếu: web UI với 4 màn hình tác nghiệp"]
+        
+        S4["<b>Bước 4. Kiểm chứng kỹ thuật (Verification)</b><br/>• 781 kiểm thử đơn vị tự động (tests/)<br/>• Kiểm soát ranh giới kiến trúc (check_architecture_guardrails)<br/>• Xác thực hợp đồng OpenAPI 3.1.0 (check_openapi_contract)"]
+        
+        S5["<b>Bước 5. Thực nghiệm đối chiếu (Experiment)</b><br/>• 3 cấu hình A/B/C với kế hoạch đóng băng dùng chung<br/>• 12 câu hỏi chuẩn hóa (T01–T10 phân tích, R1–R2 kiểm soát)<br/>• Snapshot Gold v5 bất biến (80 ô mục tiêu)"]
+        
+        S6["<b>Bước 6. Đánh giá kết quả (Evaluation)</b><br/>• Chấm điểm tất định: tỷ lệ hoàn thành, đúng số, truy vết nguồn<br/>• Độ bao phủ, xử lý thiếu dữ liệu, từ chối ngoài phạm vi<br/>• Đo lường chi phí: thời gian, lượt gọi API, token và chi phí USD"]
+    end
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6

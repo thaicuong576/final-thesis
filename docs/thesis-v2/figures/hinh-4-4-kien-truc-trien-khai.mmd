@@ -1,0 +1,31 @@
+flowchart LR
+    subgraph Client ["Client (Trình duyệt Người dùng)"]
+        Browser["Người dùng / Giảng viên / Chuyên viên<br/>Truy cập: https://fin-ai.eddiephung.me"]
+    end
+
+    subgraph Vercel_Platform ["Vercel Edge Platform"]
+        FrontendHost["Vercel Production Deployment<br/>• Next.js / Vite React Static & Client SPA<br/>• Tên miền: fin-ai.eddiephung.me<br/>• Quản lý Session State & Kết nối SSE"]
+    end
+
+    subgraph Render_Platform ["Render Cloud Platform (Frankfurt / Singapore)"]
+        direction TB
+        APIService["Render Web Service (FastAPI Container)<br/>• Python 3.11 + Uvicorn<br/>• Khởi động tự động (Lifespan)<br/>• Thăm dò sức khỏe: /api/health, /api/ready<br/>• Phân tích: /api/analyze, /api/analyze/stream"]
+        
+        LocalFS["Hệ thống tệp cục bộ (Ephemeral Local FS)<br/>• SQLITE_DB_PATH: finance_master_v2.sqlite<br/>• ANALYSIS_RUNS_DB_PATH: analysis_runs.sqlite"]
+        APIService <--> LocalFS
+    end
+
+    subgraph Supabase_Platform ["Supabase Storage (Private Bucket)"]
+        SnapshotStore[("Private Storage Bucket<br/>• Lưu trữ Gold SQLite Snapshot bất biến<br/>• Kiểm tra SHA-256 byte khi tải<br/>• Service-Role Key được bảo mật trên Render")]
+    end
+
+    subgraph OpenAI_Platform ["OpenAI API Platform"]
+        LLMModels["Mô hình Ngôn ngữ Lớn<br/>• Lập kế hoạch (Planner)<br/>• Chuyên viên viết nhận định (Writer)<br/>• Phản biện ngữ nghĩa (Critic)"]
+    end
+
+    Browser <-->|"HTTPS (UI / REST)"| FrontendHost
+    FrontendHost <-->|"REST API & SSE Stream"| APIService
+    
+    APIService -.->|"1. Khởi động: Tải & Kiểm tra Hash"| SnapshotStore
+    SnapshotStore -.->|"2. Hydrate snapshot vào local FS"| LocalFS
+    APIService <-->|"Gọi suy luận (temperature=0.0)"| LLMModels

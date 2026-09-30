@@ -56,43 +56,38 @@ export const ReportMasthead: React.FC = () => {
   // Badges: ranking has NO entity badge; head_to_head has 2-3 badges; others show focus entities
   const showBadges = qType !== 'ranking' && highlight.length > 0;
 
-  return (
-    <header className="border-t-2 border-text-primary pt-3 mb-5 font-sans">
-      <div className="flex justify-between items-baseline text-[13px] text-text-secondary">
-        <span className="font-semibold text-text-primary">{noteLabel}</span>
-        <span className="text-text-tertiary tabular-nums">{dateStr}</span>
-      </div>
+  const statusLabel =
+    report.status === 'accepted_with_limitations'
+      ? 'Chấp nhận có giới hạn'
+      : report.status === 'completed' || report.status === 'accepted'
+        ? 'Đã kiểm định'
+        : null;
 
-      <div className="flex items-center gap-2.5 mt-3">
-        {showBadges && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {highlight.map((code: string) => (
-              <span
-                key={code}
-                className="text-xs font-semibold px-2 py-0.5 border border-border-strong rounded font-mono tracking-wide text-text-primary bg-surface-primary"
-              >
+  return (
+    <header className="-mx-5 -mt-6 mb-6 bg-ink px-5 py-3.5 font-sans text-[#efe9dd] sm:-mx-10 sm:-mt-9 sm:px-10">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[13px]">
+        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+          <span className="font-semibold uppercase text-white">{noteLabel}</span>
+          {showBadges &&
+            highlight.map((code: string) => (
+              <span key={code} className="rounded bg-amber px-1.5 py-px font-mono text-xs font-semibold text-ink">
                 {code}
               </span>
             ))}
-          </div>
-        )}
-        {periodLabel && (
-          <span className="text-[13px] text-text-secondary font-medium">
-            {periodLabel}
-          </span>
-        )}
-        {report.status === 'accepted_with_limitations' && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-warning-soft text-text-warning border border-warning/30">
-            <span className="size-1.5 rounded-full bg-warning" aria-hidden="true" />
-            Chấp nhận có giới hạn
-          </span>
-        )}
-        {(report.status === 'completed' || report.status === 'accepted') && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-ready-soft text-text-success border border-ready/30">
-            <span className="size-1.5 rounded-full bg-ready" aria-hidden="true" />
-            Đã kiểm định
-          </span>
-        )}
+          {periodLabel && <span>{periodLabel}</span>}
+        </div>
+        <div className="flex items-center gap-3">
+          {statusLabel && (
+            <span className="inline-flex items-center gap-1.5 text-xs">
+              <span
+                className={`size-1.5 rounded-full ${report.status === 'accepted_with_limitations' ? 'bg-amber' : 'bg-[#4cc38a]'}`}
+                aria-hidden="true"
+              />
+              {statusLabel}
+            </span>
+          )}
+          <span className="tabular-nums text-[#b3ada0]">{dateStr}</span>
+        </div>
       </div>
     </header>
   );

@@ -278,7 +278,7 @@ function ReportPageContent({
         activeSection="reports"
         context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Đang tải' }]} />}
       >
-        <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-[calc(100vh-80px)] py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[720px] p-8 border border-line bg-card rounded-lg text-center space-y-4">
             <div className="inline-flex items-center justify-center size-10 rounded-full bg-amber-soft border border-amber-border/50 text-amber-border animate-spin mx-auto">
               <RotateCw className="size-5" />
@@ -301,7 +301,7 @@ function ReportPageContent({
         activeSection="reports"
         context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Lỗi tải báo cáo' }]} />}
       >
-        <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-[calc(100vh-80px)] py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[640px] p-8 border border-line bg-card rounded-lg text-center space-y-4 shadow-sm">
             <div className="inline-flex items-center justify-center size-12 rounded-full bg-surface-secondary border border-border text-danger mx-auto">
               <FileQuestion className="size-6 text-[#c84b3f]" />
@@ -337,7 +337,7 @@ function ReportPageContent({
         activeSection="reports"
         context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Không tìm thấy' }]} />}
       >
-        <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-[calc(100vh-80px)] py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[640px] p-8 border border-line bg-card rounded-lg text-center space-y-4 shadow-sm">
             <div className="inline-flex items-center justify-center size-12 rounded-full bg-surface-secondary border border-border text-ink-secondary mx-auto">
               <FileQuestion className="size-6" />

@@ -9,6 +9,32 @@ from typing import Any, Mapping, Protocol, Sequence
 from thesis_data.report_spec import normalize_report_spec_dict
 
 
+_INLINE_FACT_REF_RE = re.compile(
+    r"\s*[\(\[]\s*(?:fact_ids?\s*[:=]\s*)?fact:[^\)\]]*[\)\]]"  # "(fact:...)", "[fact:..., fact:...]"
+    r"|\s*fact:[A-Za-z0-9_.:\-]+",  # bare "fact:delta:VPB:..." tokens
+)
+
+
+def _strip_inline_fact_refs(value: Any) -> Any:
+    """Remove fact identifiers the model sometimes inlines into prose.
+
+    Citations belong in ``fact_ids``; an identifier inside ``text`` would be shown to
+    the reader verbatim, so every ``text`` string in the decoded output is cleaned.
+    """
+    if isinstance(value, dict):
+        out = {}
+        for key, item in value.items():
+            if key == "text" and isinstance(item, str):
+                cleaned = _INLINE_FACT_REF_RE.sub("", item)
+                out[key] = re.sub(r"\s+([.,;:])", r"", cleaned).strip()
+            else:
+                out[key] = _strip_inline_fact_refs(item)
+        return out
+    if isinstance(value, list):
+        return [_strip_inline_fact_refs(item) for item in value]
+    return value
+
+
 def _clean_json_text(text: str) -> str:
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -549,4 +575,4 @@ class OpenAIAnalysisWriter:
             raise AnalysisWriterError("analysis_writer_json_invalid") from exc
         if not isinstance(decoded, dict):
             raise AnalysisWriterError("analysis_writer_output_invalid")
-        return decoded
+        return _strip_inline_fact_refs(decoded)

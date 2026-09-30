@@ -419,3 +419,48 @@ class TestAnalysisPlanner(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ModelPlanFreezeFallbackTests(unittest.TestCase):
+    """A model spec that cannot be frozen into an AnalysisPlan must fall back to rules."""
+
+    def test_unfreezable_model_plan_falls_back_to_rules_plan(self) -> None:
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from pydantic import BaseModel, ValidationError, conlist
+
+        import thesis_api.adaptive_runtime as ar
+
+        class _Strict(BaseModel):
+            items: conlist(int, min_length=1)
+
+        try:
+            _Strict(items=[])
+        except ValidationError as exc:
+            freeze_error = exc
+
+        calls = {"plan_question": [], "build": 0}
+        model_spec, rules_spec = SimpleNamespace(name="model"), SimpleNamespace(name="rules")
+
+        def fake_plan_question(query, catalog, settings=None, client=None):
+            calls["plan_question"].append(client)
+            if client is not None:
+                return model_spec, "model", [], None
+            return rules_spec, "rules", ["rules_reason"], None
+
+        def fake_build(spec, catalog, dataset_ref, query_text=None, peer_tickers=None):
+            calls["build"] += 1
+            if spec is model_spec:
+                raise freeze_error
+            return ("plan", "ACB", ("2024_Q4",), ("bank.roe",), (), ())
+
+        import thesis_api.analysis_planner as ap
+
+        request = SimpleNamespace(query="ROE của ACB quý 4/2024", peer_tickers=None, period=None, macro=None)
+        with patch.object(ap, "plan_question", fake_plan_question),                 patch.object(ap, "build_analysis_plan", fake_build),                 patch.object(ar, "_has_macro_request", lambda req: False):
+            result = ar._plan_request(request, dataset_ref=None, catalog=SimpleNamespace(periods=[]), settings=None, client=object())
+        self.assertIs(result.spec, rules_spec)
+        self.assertEqual(result.planner_source, "rules")
+        self.assertIn("model_plan_not_freezable", result.fallback_reasons)
+        self.assertEqual(calls["build"], 2)

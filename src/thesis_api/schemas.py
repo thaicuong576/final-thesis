@@ -65,6 +65,11 @@ class AnalysisRequest(BaseModel):
         description="Exact ordered period scope for a Company trend; the legacy period is normalized to the final anchor.",
         examples=[["2024_Q1", "2024_Q2", "2024_Q3", "2024_Q4"]],
     )
+    upload_id: Optional[str] = Field(
+        default=None,
+        description="Optional uploaded dataset identifier for user-supplied bank analysis",
+        examples=["ctg_upload_123"],
+    )
 
     @field_validator("period")
     @classmethod
@@ -995,4 +1000,45 @@ class AnalysisResponse(BaseModel):
 
 
 AnalysisResponseDTO = AnalysisResponse
+
+
+class UploadRowIssueDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    row: int = Field(..., description="1-indexed row number in the uploaded CSV (0 for file-level)")
+    field: str = Field(..., description="Field name where the issue was detected")
+    message_vi: str = Field(..., description="Vietnamese explanation of the issue")
+
+
+class UploadMetricItemDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    metric_id: str = Field(..., description="Canonical metric ID")
+    computed_value: float = Field(..., description="Value deterministically recomputed from inputs")
+    reported_value: Optional[float] = Field(default=None, description="Reported value from filing if present")
+    status: Literal["matched", "computed", "mismatched"] = Field(..., description="Reconciliation status")
+
+
+class UploadResponseDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    upload_id: str = Field(..., description="Unique upload identifier")
+    entity_id: str = Field(..., description="Bank ticker / entity ID")
+    display_name: str = Field(..., description="Bank display name")
+    status: Literal["accepted", "rejected"] = Field(..., description="Overall upload validation status")
+    period_id: str = Field(..., description="Target analysis period (e.g. 2024_Q4)")
+    metrics: List[UploadMetricItemDTO] = Field(default_factory=list, description="Recomputed ratios")
+    row_issues: List[UploadRowIssueDTO] = Field(default_factory=list, description="List of validation errors")
+    limitations_vi: str = Field(..., description="Vietnamese limitations and provenance note")
+    created_at: Optional[str] = Field(default=None, description="ISO timestamp of upload")
+
+
+class UploadSummaryDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    upload_id: str = Field(..., description="Unique upload identifier")
+    entity_id: str = Field(..., description="Bank ticker / entity ID")
+    display_name: str = Field(..., description="Bank display name")
+    status: Literal["accepted", "rejected"] = Field(..., description="Overall upload validation status")
+    period_id: str = Field(..., description="Target analysis period")
+    created_at: str = Field(..., description="ISO timestamp of upload")
+    row_issues_count: int = Field(..., description="Number of issues found in upload")
+    metrics_count: int = Field(..., description="Number of recomputed metrics")
+
 

@@ -703,3 +703,14 @@ Writing run history must obey strict safety boundaries:
 2. **Lifespan Integration**:
    - Called in `main.py` lifespan after snapshot hydration; exceptions are logged as warnings and never prevent app startup or readiness probe.
 
+---
+
+## [LESSON-034] Benchmark Observation Identity and Run Persistence Preservation in Composite Providers
+
+- Date: 2026-10-01
+- Scope: `src/thesis_data/composite_provider.py`, `src/thesis_api/service.py`
+- Status: ACTIVE
+
+1. **Benchmark Observation ID Binding**: In multi-provider or composite dataset architectures (such as `CompositeDatasetProvider`), synthesized benchmark observations returned by base providers embed `dataset_id` and `dataset_snapshot_id`. When consumed through a composite dataset reference, the runtime checks `benchmark.observation_id == peer_benchmark_observation_id(composite_ref, ...)`. The composite provider's `get_peer_benchmark` must explicitly regenerate `observation_id` with `peer_benchmark_observation_id` bound to `composite_ref` and `requested_peer_entity_ids`.
+2. **AnalysisEngine Method Integrity**: Reusable wrappers or delegation must not override `AnalysisEngine.analyze` with internal `_analyze`, as `analyze` encapsulates mandatory operational run persistence (`persist_run`) and trace persistence to `analysis_runs.sqlite`. Bypassing it breaks run-trace endpoints and persistent history.
+

@@ -1215,6 +1215,37 @@ class _AdaptiveRun:
             recipient="system",
         )
 
+        uploaded_entities = {
+            e.entity_id for e in self.catalog.entities
+            if e.attributes and e.attributes.get("user_supplied")
+        }
+        clean_peers = tuple(p for p in peers if p != target) if target else tuple(peers)
+        involved_uploaded = [e for e in ([target] if target else []) + list(clean_peers) if e in uploaded_entities]
+        self._involved_uploaded = involved_uploaded
+        if involved_uploaded:
+            up_ent = involved_uploaded[0]
+            if q_type_str not in {"lookup", "company_profile", "head_to_head"}:
+                raise AnalysisBlocked(
+                    "upload_question_type_unsupported",
+                    f"Dữ liệu tải lên của {up_ent} chỉ hỗ trợ các dạng câu hỏi: tra cứu chỉ tiêu (lookup), hồ sơ ngân hàng (company_profile), và so sánh trực tiếp với 1 ngân hàng Gold (head_to_head).",
+                )
+            if q_type_str == "head_to_head" and len(clean_peers) != 1:
+                raise AnalysisBlocked(
+                    "upload_question_type_unsupported",
+                    f"Dữ liệu tải lên của {up_ent} chỉ hỗ trợ so sánh trực tiếp (head_to_head) với đúng 1 ngân hàng Gold.",
+                )
+            up_obs = self.provider.get_entity_metrics(
+                self.dataset_ref,
+                up_ent,
+                (period,),
+                company_metrics or ("bank.npl_g35", "bank.roa", "bank.roe", "bank.llr_coverage"),
+            )
+            if not up_obs:
+                raise AnalysisBlocked(
+                    "upload_period_mismatch",
+                    f"Dữ liệu tải lên của {up_ent} không có số liệu cho kỳ {period}.",
+                )
+
         company_role_claims: list[AtomicClaim] = []
         peer_role_claims: list[AtomicClaim] = []
         macro_role_claims: list[AtomicClaim] = []
@@ -3657,6 +3688,11 @@ class _AdaptiveRun:
             for link in plan.applicable_links
         ]
         plan_limitations = clean_reader_facing_limitations(list(dict.fromkeys(known_limitations + list(extra_limitations))))
+        if getattr(self, "_involved_uploaded", None):
+            for up_ent in self._involved_uploaded:
+                upload_label = f"Số liệu {up_ent} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
+                if upload_label not in plan_limitations:
+                    plan_limitations.insert(0, upload_label)
         plan_dto = AnalysisPlanDTO(
             plan_id=f"plan-{hashlib.sha256(plan.query_id.encode()).hexdigest()[:12]}",
             query=self.request.query, target_ticker=target, peer_tickers=list(peers),

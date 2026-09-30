@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircle } from 'lucide-react';
 import { useEquityReport } from './useEquityReport';
 import { fmtPeriod, fmtPeriodRange } from '@/shared/lib/formatting';
 import type { QuestionType } from '../model/types';
@@ -89,6 +90,21 @@ export const ReportMasthead: React.FC = () => {
           <span className="tabular-nums text-[#b3ada0]">{dateStr}</span>
         </div>
       </div>
+
+      {(() => {
+        const rawLim = (report as { limitations?: unknown }).limitations;
+        const limList: string[] = Array.isArray(rawLim) ? rawLim : [];
+        const userUploadLimitation = limList.find(
+          (lim) => typeof lim === 'string' && (lim.includes('do người dùng cung cấp') || lim.startsWith('Số liệu '))
+        );
+        if (!userUploadLimitation) return null;
+        return (
+          <div className="mt-3 flex items-start gap-2 rounded border border-amber/40 bg-amber/15 p-2.5 text-xs text-[#f4ebd9]">
+            <AlertCircle className="size-4 text-amber shrink-0 mt-0.5" aria-hidden="true" />
+            <span className="leading-relaxed">{userUploadLimitation}</span>
+          </div>
+        );
+      })()}
     </header>
   );
 };

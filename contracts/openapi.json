@@ -282,6 +282,156 @@
           }
         }
       }
+    },
+    "/api/onboarding/uploads": {
+      "post": {
+        "summary": "Upload and validate a new bank CSV file",
+        "description": "Parse, validate, and operationalize a user-supplied bank CSV.",
+        "operationId": "uploadBankCsv",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV file containing bank financial statements"
+                  },
+                  "entity_id": {
+                    "type": "string",
+                    "description": "Optional 3-letter ticker"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "Optional bank display name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result and recomputed ratios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List user-supplied bank uploads",
+        "description": "List all previously uploaded bank files and their status.",
+        "operationId": "listUploads",
+        "responses": {
+          "200": {
+            "description": "List of user-supplied bank uploads",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UploadSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/uploads/{upload_id}": {
+      "get": {
+        "summary": "Get details of a specific bank upload",
+        "description": "Retrieve full validation results and metrics for a specific upload.",
+        "operationId": "getUploadDetail",
+        "parameters": [
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upload details and validation report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Upload not found"
+          }
+        }
+      }
+    },
+    "/api/onboarding/template.csv": {
+      "get": {
+        "summary": "Download CSV template for bank financial statements",
+        "description": "Download blank CSV template with required input headers and metrics.",
+        "operationId": "downloadTemplate",
+        "responses": {
+          "200": {
+            "description": "Blank CSV template",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/samples/{name}.csv": {
+      "get": {
+        "summary": "Download sample CSV for demonstration",
+        "description": "Download CTG sample CSV (valid 'ctg-2024q4' or error 'ctg-2024q4-loi').",
+        "operationId": "downloadSample",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sample CSV file",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sample not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -334,6 +484,11 @@
               "2024_Q3",
               "2024_Q4"
             ]
+          },
+          "upload_id": {
+            "type": "string",
+            "description": "Optional uploaded dataset identifier for user-supplied bank analysis",
+            "example": "up-4c1ec500c607"
           }
         },
         "example": {
@@ -2030,6 +2185,152 @@
           "output_tokens": { "type": ["integer", "null"] },
           "arm": { "type": ["string", "null"] },
           "question_type": { "type": ["string", "null"] }
+        }
+      },
+      "UploadRowIssue": {
+        "type": "object",
+        "required": [
+          "row",
+          "field",
+          "message_vi"
+        ],
+        "properties": {
+          "row": {
+            "type": "integer",
+            "description": "1-indexed row number in the CSV"
+          },
+          "field": {
+            "type": "string",
+            "description": "Field name where issue occurred"
+          },
+          "message_vi": {
+            "type": "string",
+            "description": "Vietnamese explanation"
+          }
+        }
+      },
+      "UploadMetricItem": {
+        "type": "object",
+        "required": [
+          "metric_id",
+          "computed_value",
+          "status"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string"
+          },
+          "computed_value": {
+            "type": "number"
+          },
+          "reported_value": {
+            "type": "number",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "matched",
+              "computed",
+              "mismatched"
+            ]
+          }
+        }
+      },
+      "UploadResponse": {
+        "type": "object",
+        "required": [
+          "upload_id",
+          "entity_id",
+          "display_name",
+          "status",
+          "period_id",
+          "metrics",
+          "row_issues",
+          "limitations_vi"
+        ],
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ]
+          },
+          "period_id": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UploadMetricItem"
+            }
+          },
+          "row_issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UploadRowIssue"
+            }
+          },
+          "limitations_vi": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UploadSummary": {
+        "type": "object",
+        "required": [
+          "upload_id",
+          "entity_id",
+          "display_name",
+          "status",
+          "period_id",
+          "created_at",
+          "row_issues_count",
+          "metrics_count"
+        ],
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ]
+          },
+          "period_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "row_issues_count": {
+            "type": "integer"
+          },
+          "metrics_count": {
+            "type": "integer"
+          }
         }
       }
     }

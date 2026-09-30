@@ -4,7 +4,7 @@ import type { AnalysisCapabilities } from '../../entities/capability/model/types
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
 export interface UseTraceStreamOptions {
-  request?: { query: string } | null;
+  request?: { query: string; upload_id?: string } | null;
   autoStart?: boolean;
   apiEndpoint?: string;
   capabilities?: AnalysisCapabilities | null;
@@ -24,7 +24,7 @@ export interface UseTraceStreamReturn {
   isDisconnected: boolean;
   error: Error | null;
   reportId: string | null;
-  startStream: (req?: { query: string }) => Promise<void>;
+  startStream: (req?: { query: string; upload_id?: string }) => Promise<void>;
   cancelStream: () => void;
   retry: () => void;
 }
@@ -229,8 +229,9 @@ export function useTraceStream({
   }, [apiEndpoint]);
 
   const startStream = useCallback(
-    async (requestOverride?: { query: string }) => {
+    async (requestOverride?: { query: string; upload_id?: string }) => {
       const targetQuery = requestOverride?.query?.trim() ?? query;
+      const targetUploadId = requestOverride?.upload_id ?? request?.upload_id;
 
       if (!targetQuery) {
         const err = new Error('Chưa có câu hỏi được xác nhận để gửi tới API.');
@@ -259,13 +260,17 @@ export function useTraceStream({
       const accumulatedSteps: TraceStep[] = [];
 
       try {
+        const payload: Record<string, unknown> = { query: targetQuery };
+        if (targetUploadId) {
+          payload.upload_id = targetUploadId;
+        }
         const response = await fetch(getEndpoint(), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'text/event-stream'
           },
-          body: JSON.stringify({ query: targetQuery }),
+          body: JSON.stringify(payload),
           signal: controller.signal
         });
 
@@ -373,7 +378,7 @@ export function useTraceStream({
         onError?.(errorObj);
       }
     },
-    [query, getEndpoint, capabilities, onStep, onReportReady, onBlocked, onError]
+    [query, request?.upload_id, getEndpoint, capabilities, onStep, onReportReady, onBlocked, onError]
   );
 
   const cancelStream = useCallback(() => {

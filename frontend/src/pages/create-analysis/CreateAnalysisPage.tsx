@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, CircleAlert } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CircleAlert, X } from 'lucide-react';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { AnalysisSessionWorkspace } from '../../features/analysis-session/components/AnalysisSessionWorkspace';
@@ -24,6 +24,20 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
   const [errorInfo, setErrorInfo] = useState<{ message: string; suggestions?: string[] } | null>(null);
   const fixtureSteps = initialSteps;
   const [isLiveStream, setIsLiveStream] = useState<boolean>(true);
+
+  const uploadId = searchParams.get('upload_id') || searchParams.get('upload');
+  const uploadEntity = searchParams.get('entity') || 'CTG';
+  const uploadPeriodRaw = searchParams.get('period') || '2024_Q4';
+  const uploadPeriodDisplay = uploadPeriodRaw.replace('2024_Q4', 'Q4/2024').replace('_', ' ');
+
+  const handleClearUpload = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('upload_id');
+    next.delete('upload');
+    next.delete('entity');
+    next.delete('period');
+    setSearchParams(next);
+  };
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -62,10 +76,14 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
     const trimmed = question.trim();
     if (!trimmed) return;
     setErrorInfo(null);
-    setSearchParams({ q: trimmed });
+    const newParams: Record<string, string> = { q: trimmed };
+    if (uploadId) newParams.upload_id = uploadId;
+    if (searchParams.get('entity')) newParams.entity = searchParams.get('entity')!;
+    if (searchParams.get('period')) newParams.period = searchParams.get('period')!;
+    setSearchParams(newParams);
     setIsLiveStream(true);
     setMode('SESSION');
-  }, [question, setSearchParams]);
+  }, [question, uploadId, searchParams, setSearchParams]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -97,7 +115,26 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 con số trong báo cáo đều dẫn về trang báo cáo tài chính gốc.
               </p>
 
-              <div className="mt-7 rounded-2xl border border-border-default bg-surface-primary shadow-[0_1px_2px_rgba(32,32,30,0.05),0_12px_32px_-16px_rgba(32,32,30,0.18)] transition-[border-color,box-shadow] focus-within:border-border-focus focus-within:shadow-[0_0_0_4px_var(--accent-soft),0_12px_32px_-16px_rgba(32,32,30,0.18)]">
+              {/* Upload Active Chip */}
+              {uploadId && (
+                <div className="mt-6 mb-2 inline-flex items-center gap-2 rounded-full border border-amber-border bg-amber-soft px-3 py-1.5 text-xs font-medium text-ink">
+                  <span className="size-2 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+                  <span>
+                    Đang dùng thêm dữ liệu tải lên: <strong>{uploadEntity}</strong> ({uploadPeriodDisplay})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearUpload}
+                    className="ml-1 rounded-full p-0.5 text-ink-secondary hover:bg-amber-border/30 hover:text-ink cursor-pointer"
+                    title="Bỏ chọn dữ liệu tải lên"
+                    aria-label="Bỏ chọn dữ liệu tải lên"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-4 rounded-2xl border border-border-default bg-surface-primary shadow-[0_1px_2px_rgba(32,32,30,0.05),0_12px_32px_-16px_rgba(32,32,30,0.18)] transition-[border-color,box-shadow] focus-within:border-border-focus focus-within:shadow-[0_0_0_4px_var(--accent-soft),0_12px_32px_-16px_rgba(32,32,30,0.18)]">
                 <textarea
                   ref={textareaRef}
                   value={question}
@@ -167,13 +204,17 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 </Link>
               </p>
 
-              {capabilities?.suggestedQuestions && capabilities.suggestedQuestions.length > 0 && (
-                <section className="mt-12" aria-labelledby="suggest-heading">
-                  <h2 id="suggest-heading" className="m-0 text-[15px] font-semibold text-text-primary">
-                    Thử hỏi
+              {uploadId ? (
+                <section className="mt-12" aria-labelledby="suggest-upload-heading">
+                  <h2 id="suggest-upload-heading" className="m-0 text-[15px] font-semibold text-text-primary">
+                    Gợi ý cho {uploadEntity}
                   </h2>
                   <ul className="mt-3 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
-                    {capabilities.suggestedQuestions.map((sug, idx) => (
+                    {[
+                      `Tỷ lệ nợ xấu của ${uploadEntity} quý 4/2024 là bao nhiêu?`,
+                      `Hồ sơ tài chính của ${uploadEntity} trong năm 2024`,
+                      `So sánh nợ xấu giữa ${uploadEntity} và ACB trong quý 4/2024`,
+                    ].map((sug, idx) => (
                       <li key={idx}>
                         <button
                           type="button"
@@ -186,7 +227,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                           className="group flex h-full w-full items-start gap-3 rounded-xl border border-border-subtle bg-surface-primary px-4 py-3 text-left transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
                         >
                           <span className="min-w-0 flex-1">
-                            <span className="block text-xs font-medium text-text-tertiary">{questionKind(sug)}</span>
+                            <span className="block text-xs font-medium text-text-tertiary">Dữ liệu tải lên</span>
                             <span className="mt-0.5 block text-[14px] leading-snug text-text-primary">{sug}</span>
                           </span>
                           <ArrowUpRight
@@ -198,19 +239,56 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                     ))}
                   </ul>
                 </section>
+              ) : (
+                capabilities?.suggestedQuestions && capabilities.suggestedQuestions.length > 0 && (
+                  <section className="mt-12" aria-labelledby="suggest-heading">
+                    <h2 id="suggest-heading" className="m-0 text-[15px] font-semibold text-text-primary">
+                      Thử hỏi
+                    </h2>
+                    <ul className="mt-3 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
+                      {capabilities.suggestedQuestions.map((sug, idx) => (
+                        <li key={idx}>
+                          <button
+                            type="button"
+                            aria-label={sug}
+                            onClick={() => {
+                              setQuestion(sug);
+                              setErrorInfo(null);
+                              if (textareaRef.current) textareaRef.current.focus();
+                            }}
+                            className="group flex h-full w-full items-start gap-3 rounded-xl border border-border-subtle bg-surface-primary px-4 py-3 text-left transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-xs font-medium text-text-tertiary">{questionKind(sug)}</span>
+                              <span className="mt-0.5 block text-[14px] leading-snug text-text-primary">{sug}</span>
+                            </span>
+                            <ArrowUpRight
+                              className="mt-0.5 size-4 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )
               )}
 
               <RecentReportsList />
             </div>
           ) : (
             <AnalysisSessionWorkspace
-              streamRequest={{ query: question }}
+              streamRequest={{ query: question, upload_id: uploadId || undefined }}
               isLiveStream={isLiveStream}
               steps={fixtureSteps}
               capabilities={capabilities}
               onBackToComposer={() => {
                 setMode('ASK');
-                setSearchParams({});
+                const resetParams: Record<string, string> = {};
+                if (uploadId) resetParams.upload_id = uploadId;
+                if (searchParams.get('entity')) resetParams.entity = searchParams.get('entity')!;
+                if (searchParams.get('period')) resetParams.period = searchParams.get('period')!;
+                setSearchParams(resetParams);
               }}
               onBlocked={(info) => {
                 const message = info.code

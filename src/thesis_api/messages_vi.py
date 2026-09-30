@@ -20,6 +20,10 @@ MESSAGES: dict[str, str] = {
     "accepted_snapshot_unavailable": "Không tìm thấy snapshot dữ liệu hợp lệ đã được phê duyệt.",
     "target_entity_required": "Cần cung cấp ít nhất một ngân hàng có trong danh mục hỗ trợ.",
     "exact_period_required": "Cần cung cấp kỳ phân tích hợp lệ được hỗ trợ bởi hệ thống.",
+    "upload_not_found": "Tệp tải lên không tồn tại hoặc đã bị xóa.",
+    "upload_unaccepted": "Tệp tải lên chưa được chấp nhận hoặc có lỗi xác thực.",
+    "upload_question_type_unsupported": "Dữ liệu tải lên chỉ hỗ trợ các dạng câu hỏi: tra cứu chỉ tiêu (lookup), hồ sơ ngân hàng (company_profile), và so sánh trực tiếp với 1 ngân hàng Gold (head_to_head).",
+    "upload_period_mismatch": "Dữ liệu ngân hàng tải lên chỉ có số liệu cho kỳ được tải, không hỗ trợ kỳ khác.",
 }
 
 

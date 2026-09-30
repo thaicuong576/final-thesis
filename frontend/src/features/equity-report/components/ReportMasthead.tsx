@@ -99,8 +99,8 @@ export const ReportMasthead: React.FC = () => {
         );
         if (!userUploadLimitation) return null;
         return (
-          <div className="mt-3 flex items-start gap-2 rounded border border-amber-border/70 bg-amber-soft/40 p-2.5 text-xs text-ink">
-            <AlertCircle className="size-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="mt-3 flex items-start gap-2 rounded border border-amber/40 bg-amber/15 p-2.5 text-xs text-[#f4ebd9]">
+            <AlertCircle className="size-4 text-amber shrink-0 mt-0.5" aria-hidden="true" />
             <span className="leading-relaxed">{userUploadLimitation}</span>
           </div>
         );

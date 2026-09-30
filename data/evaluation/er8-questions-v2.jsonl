@@ -1,0 +1,12 @@
+{"task_id": "T01", "question_text": "Sức khỏe tài chính của MBB trong quý 4/2024 so với các ngân hàng cùng nhóm."}
+{"task_id": "T02", "question_text": "Đánh giá chất lượng tài sản và khả năng sinh lời của VCB trong quý 4/2024."}
+{"task_id": "T03", "question_text": "Tỷ lệ nợ xấu của ACB trong quý 1/2024 là bao nhiêu?"}
+{"task_id": "T04", "question_text": "Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của TCB diễn biến thế nào trong năm 2024?"}
+{"task_id": "T05", "question_text": "ROA và ROE của MBB thay đổi thế nào qua các quý năm 2024?"}
+{"task_id": "T06", "question_text": "Ngân hàng nào có tỷ lệ nợ xấu thấp nhất trong quý 4/2024?"}
+{"task_id": "T07", "question_text": "Xếp hạng ROE các ngân hàng trong quý 4/2024."}
+{"task_id": "T08", "question_text": "ACB đánh đổi chất lượng tài sản và khả năng sinh lời thế nào trong năm 2024 so với các ngân hàng cùng nhóm?"}
+{"task_id": "T09", "question_text": "So sánh ACB và TCB trong quý 4/2024."}
+{"task_id": "T10", "question_text": "VCB hay VPB tốt hơn về chất lượng tài sản trong quý 4/2024?"}
+{"task_id": "R1", "question_text": "Tỷ lệ nợ xấu của VCB trong quý 1/2025 là bao nhiêu?"}
+{"task_id": "R2", "question_text": "Phân tích tình hình tài chính của CTG trong quý 4/2024."}

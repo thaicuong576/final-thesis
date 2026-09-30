@@ -864,8 +864,12 @@ def _explicit_missing_claim(
     capability: str,
     macro: bool = False,
 ) -> AtomicClaim:
-    if observation.validation_status is not QualityStatus.MISSING or observation.missing_reason != "DATA_UNAVAILABLE":
+    if observation.validation_status is not QualityStatus.MISSING:
         raise ValueError("unsupported_missing_state")
+    # NOTE: Gold v5 uses descriptive missing_reason strings (not the literal
+    # "DATA_UNAVAILABLE"). We accept any QualityStatus.MISSING observation so
+    # that legitimate missing cells (e.g. ACB bad-debt-ratio under D-055) are
+    # handled correctly in the evaluation harness.
     ref_type = "macro_observation" if macro else "missing_cell"
     ref = ClaimDataRef(
         ref_id=observation.observation_id,

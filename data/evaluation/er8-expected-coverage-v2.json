@@ -1,0 +1,1000 @@
+{
+  "manifest_id": "er8-expected-coverage-v2",
+  "status": "frozen_protocol_v2_expected_coverage",
+  "dataset_id": "gold-bank-2025-expanded-v5-evidence",
+  "snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+  "snapshot_sha256_raw_file_bytes": "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73",
+  "question_set_hash_mode": "canonical_lf_utf8_sha256",
+  "question_set_canonical_lf_utf8_sha256": "62dab818f7e9628c12ee12cd679231a66e1051a253958835d5ae4cac91d7582f",
+  "task_specs_canonical_lf_utf8_sha256": "34ab2e0630403129150f0ede2bb8f8a4a7fa64b5180db1c9b6c27791ee52144b",
+  "peer_scope_label": "bounded five-bank case study; do not generalize to the whole sector",
+  "coverage_source": "read-only Gold v5 SQLite observations (mode=ro)",
+  "tasks": [
+    {
+      "task_id": "T01",
+      "question_sha256_utf8": "406edd7176bfc136f6f4c528c331fa788138fc3b2a723a2456dc21e91a38fc08",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "company_profile",
+        "target_entity_ids": [
+          "MBB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 5,
+          "bank.npl_g35": 5,
+          "bank.roa": 5,
+          "bank.roe": 5
+        },
+        "expected_observations": {
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 92.2484,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:29,32;printed_pages:21,24;sections:note_5_customer_loans|note_6_credit_risk_provision;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.6205,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:29;printed_page:21;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.2135,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 22.0939,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T02",
+      "question_sha256_utf8": "18eea63ff7a44cc7e0c9a47ab0691b065885169fbbebd6d5a9fb252738a2f288",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "company_profile",
+        "target_entity_ids": [
+          "VCB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 5,
+          "bank.npl_g35": 5,
+          "bank.roa": 5,
+          "bank.roe": 5
+        },
+        "expected_observations": {
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 223.311,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:31,32;printed_pages:30,31;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 0.9636,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:31;printed_page:30;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 1.7249,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 18.5965,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T03",
+      "question_sha256_utf8": "6bc85863b1d876441f6c29a1e6d2e4410df86b6906f51800a80e974b889ec73d",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "lookup",
+        "target_entity_ids": [
+          "ACB"
+        ],
+        "period_ids": [
+          "2024_Q1"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "valid_count": 0,
+        "missing_count": 1,
+        "required_observation_count": 1,
+        "required_observation_ids": [
+          "missing:ACB:2024_Q1:bank.npl_g35"
+        ],
+        "missing_observation_ids": [
+          "missing:ACB:2024_Q1:bank.npl_g35"
+        ],
+        "peer_denominators": {},
+        "expected_observations": {
+          "missing:ACB:2024_Q1:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.npl_g35",
+            "value": null,
+            "unit": null,
+            "quality_status": "missing",
+            "source_locator": null
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T04",
+      "question_sha256_utf8": "12e63bf978d7003fc1c965b831feb5a30b5d539ee984ba38c8ec73f621d852ab",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "TCB"
+        ],
+        "period_ids": [
+          "2024_Q1",
+          "2024_Q2",
+          "2024_Q3",
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35",
+          "bank.llr_coverage"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {},
+        "expected_observations": {
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.npl_g35",
+            "value": 1.17,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.llr_coverage": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.llr_coverage",
+            "value": 105.9,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.28,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q2:bank.llr_coverage": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 101.0,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.npl_g35",
+            "value": 1.35,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q3:bank.llr_coverage": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.llr_coverage",
+            "value": 103.4,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.17,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 113.8,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T05",
+      "question_sha256_utf8": "17b76a02ed7922935096fb06e7b99d36c72cb353140cf5fd7d18ea7a18f97733",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "MBB"
+        ],
+        "period_ids": [
+          "2024_Q1",
+          "2024_Q2",
+          "2024_Q3",
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roa",
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roa",
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roa",
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {},
+        "expected_observations": {
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roa": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roa",
+            "value": 2.2185,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roe",
+            "value": 21.2468,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roa": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roa",
+            "value": 2.2334,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q2-consolidated:2024_Q2:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roe",
+            "value": 22.1053,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roa": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roa",
+            "value": 2.1902,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q3-consolidated:2024_Q3:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roe",
+            "value": 21.4929,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.2135,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 22.0939,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T06",
+      "question_sha256_utf8": "d7b86b85d16598052bc54ab63101534753e4afc74eb78203ad1c42b6505578c4",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "ranking",
+        "target_entity_ids": [
+          "ACB",
+          "MBB",
+          "TCB",
+          "VCB",
+          "VPB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "valid_count": 5,
+        "missing_count": 0,
+        "required_observation_count": 5,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.npl_g35": 5
+        },
+        "expected_observations": {
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.5122,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.6205,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:29;printed_page:21;section:note_5_customer_loans;row:loan_quality;denominator:dư_nợ_cho_vay;groups:3|4|5;extraction:visual_transcription"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.17,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 0.9636,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:31;printed_page:30;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription"
+          },
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35": {
+            "entity_id": "VPB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 4.1956,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T07",
+      "question_sha256_utf8": "7864a01efce70e6fa0d4e01e591d51447459c016d7d5c7b76ccec363497c5091",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "ranking",
+        "target_entity_ids": [
+          "ACB",
+          "MBB",
+          "TCB",
+          "VCB",
+          "VPB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "valid_count": 5,
+        "missing_count": 0,
+        "required_observation_count": 5,
+        "required_observation_ids": [
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.roe": 5
+        },
+        "expected_observations": {
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 21.7459,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity"
+          },
+          "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "MBB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 22.0939,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3,4,6;sections:consolidated_balance_sheet|consolidated_income_statement;extraction:visual_transcription"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 15.5,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 18.5965,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:4,5,7,8;sections:consolidated_balance_sheet|consolidated_income_statement;prior_fy_basis:Q4_2024_restated_comparative_for_common_beginning_basis;extraction:visual_transcription"
+          },
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity": {
+            "entity_id": "VPB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 11.4117,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:fy2024_parent_profit_over_average_parent_attributable_equity"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T08",
+      "question_sha256_utf8": "ec3f52f389e8232e7a143c4a91f226a90f3f3b72de1b5ff0643a7c3e1653e406",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "ACB"
+        ],
+        "period_ids": [
+          "2024_Q1",
+          "2024_Q2",
+          "2024_Q3",
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 12,
+        "missing_count": 4,
+        "required_observation_count": 16,
+        "required_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe",
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.npl_g35",
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roa:ttm_derived",
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roe:ttm_derived",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roa:ttm_derived",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roe:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived"
+        ],
+        "missing_observation_ids": [
+          "missing:ACB:2024_Q1:bank.llr_coverage",
+          "missing:ACB:2024_Q1:bank.npl_g35",
+          "missing:ACB:2024_Q1:bank.roa",
+          "missing:ACB:2024_Q1:bank.roe"
+        ],
+        "peer_denominators": {
+          "bank.llr_coverage": 5,
+          "bank.npl_g35": 5,
+          "bank.roa": 5,
+          "bank.roe": 5
+        },
+        "expected_observations": {
+          "missing:ACB:2024_Q1:bank.llr_coverage": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.llr_coverage",
+            "value": null,
+            "unit": null,
+            "quality_status": "missing",
+            "source_locator": null
+          },
+          "missing:ACB:2024_Q1:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.npl_g35",
+            "value": null,
+            "unit": null,
+            "quality_status": "missing",
+            "source_locator": null
+          },
+          "missing:ACB:2024_Q1:bank.roa": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roa",
+            "value": null,
+            "unit": null,
+            "quality_status": "missing",
+            "source_locator": null
+          },
+          "missing:ACB:2024_Q1:bank.roe": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q1",
+            "metric_id": "bank.roe",
+            "value": null,
+            "unit": null,
+            "quality_status": "missing",
+            "source_locator": null
+          },
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 76.3505,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;ocr_engine:rapidocr_onnxruntime"
+          },
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.4968,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;ocr_engine:rapidocr_onnxruntime"
+          },
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roa:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roa",
+            "value": 2.206,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check"
+          },
+          "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roe:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q2",
+            "metric_id": "bank.roe",
+            "value": 22.529,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:ttm_consolidated_pat/average_total_equity"
+          },
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.llr_coverage",
+            "value": 79.0721,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check"
+          },
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.npl_g35",
+            "value": 1.5121,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check"
+          },
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roa:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roa",
+            "value": 2.1723,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check"
+          },
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roe:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q3",
+            "metric_id": "bank.roe",
+            "value": 21.695,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:ttm_consolidated_pat/average_total_equity"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 76.5591,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.5122,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.1215,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 21.7459,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T09",
+      "question_sha256_utf8": "326bc90e50a2343ee7982b10c85a5727d961e58c0a47f6db2cbbd044f9110cd8",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "head_to_head",
+        "target_entity_ids": [
+          "ACB",
+          "TCB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 2,
+          "bank.npl_g35": 2,
+          "bank.roa": 2,
+          "bank.roe": 2
+        },
+        "expected_observations": {
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 76.5591,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.5122,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.1215,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check"
+          },
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived": {
+            "entity_id": "ACB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 21.7459,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 113.8,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.17,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.4,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24"
+          },
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe": {
+            "entity_id": "TCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.roe",
+            "value": 15.5,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T10",
+      "question_sha256_utf8": "a8248e54ca41d91f98a5fe05ef2142fdcc6782eefab2c2d11de32ad9c27d14e0",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "head_to_head",
+        "target_entity_ids": [
+          "VCB",
+          "VPB"
+        ],
+        "period_ids": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 2,
+          "bank.npl_g35": 2
+        },
+        "expected_observations": {
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 223.311,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:31,32;printed_pages:30,31;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription"
+          },
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35": {
+            "entity_id": "VCB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 0.9636,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_pages:31;printed_page:30;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription"
+          },
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage": {
+            "entity_id": "VPB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 56.1749,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:46;printed_page:44;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100"
+          },
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35": {
+            "entity_id": "VPB",
+            "period_id": "2024_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 4.1956,
+            "unit": "%",
+            "quality_status": "valid",
+            "source_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "R1",
+      "question_sha256_utf8": "f95f45f21efee01fc5a97d259eacd1f063feca35654fa1cdd54136a32355c0e9",
+      "expected_coverage": {
+        "is_rejection": true,
+        "expected_error_code": "unsupported_period",
+        "valid_count": 0,
+        "missing_count": 0,
+        "required_observation_count": 0,
+        "required_observation_ids": [],
+        "missing_observation_ids": [],
+        "expected_observations": {}
+      }
+    },
+    {
+      "task_id": "R2",
+      "question_sha256_utf8": "119028b82607099150d02ea2f9745145244b92ce31dcee8a3ff70add3571b4b3",
+      "expected_coverage": {
+        "is_rejection": true,
+        "expected_error_code": "unsupported_entity",
+        "valid_count": 0,
+        "missing_count": 0,
+        "required_observation_count": 0,
+        "required_observation_ids": [],
+        "missing_observation_ids": [],
+        "expected_observations": {}
+      }
+    }
+  ]
+}

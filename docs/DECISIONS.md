@@ -1519,3 +1519,40 @@ Research arms A, B, and C share the same query classification, frozen plan, anal
 9. Does it help the financial-analyst workflow? Yes; enables natural Vietnamese query understanding, equity-research note generation, and transparent auditability.
 10. Is it thesis scope that is not necessary? No; this directly fulfills the query-adaptive multi-agent research objective with verifiable factual grounding.
 
+
+## D-076: Đóng băng giao thức đánh giá V2 trước lần chạy đầu tiên (ER-8)
+
+Status: Accepted — 2026-09-30
+
+### Quyết định
+
+Trước khi thực hiện bất kỳ lần chạy chấm điểm thật nào, toàn bộ bộ tham số đánh giá
+phải được khóa và xác nhận bằng hash (`canonical_lf_utf8_sha256`):
+
+| Artifact | Hash |
+|----------|------|
+| `data/evaluation/er8-questions-v2.jsonl` | `62dab818f7e9628c12ee12cd679231a66e1051a253958835d5ae4cac91d7582f` |
+| `data/evaluation/er8-task-specs-v2.json` | `34ab2e0630403129150f0ede2bb8f8a4a7fa64b5180db1c9b6c27791ee52144b` |
+| `data/evaluation/er8-expected-coverage-v2.json` | `d8e7662ccc15bec5fe5d012eb6aa9f98e5cd8de1621069566b9f39f1d2498ddd` |
+
+### Cấu hình chạy cố định
+
+- `planner_mode=rules_only` → plan tất định, giống nhau giữa 3 arm.
+- Seed: `42`; Reps: `1`; Max tokens: `3 000 000`.
+- Arms: `A=single_agent`, `B=hierarchical`, `C=hierarchical_critic`.
+- 36 run (12 câu × 3 arm); run thất bại vẫn ở mẫu số.
+
+### Phạm vi và hạn chế đã ghi nhận
+
+- **PR này chỉ khóa harness; chưa chạy model thật.**
+- Không có chấm mù hoặc chấm người trong phiên bản này (thiếu thời gian).
+- Mẫu nhỏ (12 câu, 1 lần lặp) — kết quả bootstrap là thăm dò.
+- 1 người phát triển — không phân ly giữa thiết kế câu hỏi và đánh giá.
+
+### Lý do
+
+Đóng băng trước lần chạy đầu tiên ngăn ngừa điều chỉnh câu hỏi/rubric sau khi đã thấy
+kết quả (p-hacking). Phù hợp với nguyên tắc 7 của AGENTS.md (không thay đổi phương pháp
+đánh giá mà không ghi chép) và với `docs/EVALUATION-PROTOCOL-V2.md`.
+
+Tham chiếu: `docs/EVALUATION-FREEZE-READINESS-2026-09-30.md`, PR-8 §8.

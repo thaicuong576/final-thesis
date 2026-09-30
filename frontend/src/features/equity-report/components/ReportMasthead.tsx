@@ -4,13 +4,13 @@ import { fmtPeriod, fmtPeriodRange } from '@/shared/lib/formatting';
 import type { QuestionType } from '../model/types';
 
 const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
-  lookup: 'Tra cứu nhanh · Ngân hàng',
-  company_profile: 'Ghi chú doanh nghiệp · Ngân hàng',
-  ranking: 'Ghi chú sàng lọc · Ngân hàng',
-  trend: 'Ghi chú xu hướng · Ngân hàng',
-  head_to_head: 'Ghi chú so sánh · Ngân hàng',
-  sector_theme: 'Ghi chú toàn ngành · Ngân hàng',
-  relationship: 'Ghi chú quan hệ · Ngân hàng'
+  lookup: 'Tra cứu',
+  company_profile: 'Hồ sơ doanh nghiệp',
+  ranking: 'Xếp hạng nhóm',
+  trend: 'Diễn biến xu hướng',
+  head_to_head: 'So sánh trực tiếp',
+  sector_theme: 'Phân tích toàn ngành',
+  relationship: 'Tương quan chỉ tiêu'
 };
 
 export const ReportMasthead: React.FC = () => {

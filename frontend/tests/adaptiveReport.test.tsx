@@ -502,6 +502,29 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       const { container: rankingContainer } = renderReportInRouter(rankingFixture as unknown as AdaptiveReportResponse);
       expect(rankingContainer.textContent).toContain('không đại diện toàn ngành');
     });
+
+    it('SourceNotes displays humanized locator and omits formula and equity_scope', () => {
+      const reportWithRawLocator: AdaptiveReportResponse = {
+        ...(lookupFixture as unknown as AdaptiveReportResponse),
+        report_id: 'rep-raw-locator-test',
+        source_notes: [
+          {
+            note_no: 1,
+            source_id: 'src-vpb-q1-2024',
+            title: 'VPB · BCTC hợp nhất Q1/2024',
+            url: 'https://example.com/bctc.pdf',
+            locator: 'pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:prior_fy_parent_profit-prior_ytd_parent_profit',
+            fact_ids: []
+          }
+        ]
+      };
+
+      const { container } = renderReportInRouter(reportWithRawLocator);
+      expect(container.textContent).toContain('tr. 6, 8');
+      expect(container.textContent).not.toContain('equity_scope');
+      expect(container.textContent).not.toContain('formula:');
+      expect(container.textContent).not.toContain('pdf_pages:');
+    });
   });
 });
 

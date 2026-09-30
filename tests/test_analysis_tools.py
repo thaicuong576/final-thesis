@@ -376,6 +376,21 @@ class TestAnalysisToolsUnit(unittest.TestCase):
         raw3 = "printed_pages:2_and_3_and_7;section:note_5"
         self.assertEqual(humanize_locator(raw3), "tr. 2, 3, 7 · note 5")
 
+        # 4. Task D: VPB ROE example: pdf_pages:6,8 with formula and equity_scope
+        raw4 = (
+            "pdf_pages:6,8;equity_scope:total_equity_minus_nci;"
+            "formula:prior_fy_parent_profit-prior_ytd_parent_profit+current_ytd_parent_profit_over_average_parent_attributable_equity"
+        )
+        self.assertEqual(humanize_locator(raw4), "tr. 6, 8")
+
+        # 5. Task D: English sections preserved without key=value syntax
+        raw5 = "statement:consolidated_balance_sheet;pdf_pages:6"
+        self.assertEqual(humanize_locator(raw5), "tr. 6 · consolidated balance sheet")
+
+        # 6. Task D: Machine-only keys return empty string (never raw key=value)
+        raw6 = "formula:some_formula_v1;equity_scope:total_equity"
+        self.assertEqual(humanize_locator(raw6), "")
+
     def test_verify_fact_inputs_cascades_dependent_facts(self) -> None:
         # Valid observation and fact
         f1 = Fact(

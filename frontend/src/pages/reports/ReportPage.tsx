@@ -380,6 +380,16 @@ function ReportPageContent({
   const legacyReport = activeReport as AnalysisReport;
   const adaptiveReport = activeReport as AdaptiveReportResponse;
 
+  const QUESTION_TYPE_BREADCRUMB: Record<string, string> = {
+    lookup: 'Tra cứu',
+    company_profile: 'Hồ sơ doanh nghiệp',
+    ranking: 'Xếp hạng',
+    trend: 'Xu hướng',
+    head_to_head: 'So sánh trực tiếp',
+    sector_theme: 'Toàn ngành',
+    relationship: 'Tương quan',
+  };
+
   const peerText =
     legacyReport.peer_tickers && legacyReport.peer_tickers.length > 0
       ? ` & ${legacyReport.peer_tickers.join(', ')}`
@@ -388,8 +398,13 @@ function ReportPageContent({
     [legacyReport.target_ticker, peerText ? peerText.trim() : '', legacyReport.period]
       .filter(Boolean)
       .join(' · ') ||
-    (isAdaptive ? adaptiveReport.report_spec?.note_label : '') ||
-    'Phạm vi chưa được API công bố';
+    (isAdaptive
+      ? adaptiveReport.report_spec?.note_label ||
+        QUESTION_TYPE_BREADCRUMB[(adaptiveReport as { question_type?: string }).question_type || ''] ||
+        'Báo cáo phân tích'
+      : QUESTION_TYPE_BREADCRUMB[(legacyReport as { question_type?: string }).question_type || ''] ||
+        (legacyReport as unknown as { report_spec?: { note_label?: string } }).report_spec?.note_label ||
+        'Báo cáo phân tích');
 
   const isDemo = SAMPLE_REPORTS.some(
     (sample) => (sample.slug === id || sample.id === id) && sample.report.report_id === activeReport.report_id

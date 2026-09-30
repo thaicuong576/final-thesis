@@ -74,8 +74,13 @@ class NarrativeLexicon:
         "kéo theo",
         "gây ra",
         "nhờ vào",
+        "nhờ có",
         "do đó",
         "vì vậy",
+        "là nguyên nhân",
+        "góp phần",
+        "giúp cho",
+        "giúp",
         "bởi",
         "nhờ",
         "khiến",
@@ -85,7 +90,13 @@ class NarrativeLexicon:
         "because",
         "due to",
     )
-    causal_exclusions: tuple[str, ...] = ("lý do", "tự do", "do dự")
+    causal_exclusions: tuple[str, ...] = (
+        "lý do",
+        "tự do",
+        "do dự",
+        "trợ giúp",
+        "giúp đỡ",
+    )
     investment_words: tuple[str, ...] = (
         "định giá hấp dẫn",
         "giá mục tiêu",

@@ -209,5 +209,64 @@ class TestQueryUnderstanding(unittest.TestCase):
         self.assertEqual(resolved.entities, ("BANK_C", "BANK_A", "BANK_B"))
 
 
+class TestMetricPhraseResolution(unittest.TestCase):
+    """Tests for Fix A: longest-phrase-first metric synonym matching.
+
+    Ensures "bao phủ nợ xấu" is not polluted by the shorter "nợ xấu" synonym.
+    """
+
+    def setUp(self) -> None:
+        self.catalog = _make_mock_catalog()
+
+    def test_ranking_llr_coverage_not_npl(self) -> None:
+        """'Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 4/2024?' → llr_coverage only."""
+        resolved = resolve_query(
+            "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 4/2024?", self.catalog
+        )
+        self.assertIn("bank.llr_coverage", resolved.explicit_metrics)
+        self.assertNotIn("bank.npl_g35", resolved.explicit_metrics)
+        self.assertIn("superlative", resolved.flags)
+
+    def test_llr_coverage_acb_lookup_only_llr(self) -> None:
+        """'Tỷ lệ bao phủ nợ xấu của ACB quý 4/2024' → only llr_coverage (lookup intent)."""
+        resolved = resolve_query(
+            "Tỷ lệ bao phủ nợ xấu của BANK_A quý 4/2024", self.catalog
+        )
+        self.assertIn("bank.llr_coverage", resolved.explicit_metrics)
+        self.assertNotIn("bank.npl_g35", resolved.explicit_metrics)
+
+    def test_npl_only_lookup(self) -> None:
+        """'Tỷ lệ nợ xấu của VCB quý 4/2024 là bao nhiêu?' → only npl_g35."""
+        resolved = resolve_query(
+            "Tỷ lệ nợ xấu của BANK_A quý 4/2024 là bao nhiêu?", self.catalog
+        )
+        self.assertIn("bank.npl_g35", resolved.explicit_metrics)
+        self.assertNotIn("bank.llr_coverage", resolved.explicit_metrics)
+        self.assertIn("lookup", resolved.flags)
+
+    def test_both_npl_and_llr(self) -> None:
+        """'Nợ xấu và bao phủ nợ xấu của TCB năm 2024' → both metrics."""
+        resolved = resolve_query(
+            "Nợ xấu và bao phủ nợ xấu của BANK_A năm 2024", self.catalog
+        )
+        self.assertIn("bank.npl_g35", resolved.explicit_metrics)
+        self.assertIn("bank.llr_coverage", resolved.explicit_metrics)
+
+    def test_dem_du_phong_maps_to_llr(self) -> None:
+        """'đệm dự phòng' → llr_coverage."""
+        resolved = resolve_query("đệm dự phòng của BANK_A quý 4/2024", self.catalog)
+        self.assertEqual(resolved.explicit_metrics, ("bank.llr_coverage",))
+
+    def test_no_double_match_bao_phu_no_xau(self) -> None:
+        """'bao phủ nợ xấu' must NOT produce both llr_coverage and npl_g35."""
+        resolved = resolve_query("bao phủ nợ xấu của BANK_A quý 4/2024", self.catalog)
+        self.assertIn("bank.llr_coverage", resolved.explicit_metrics)
+        self.assertNotIn(
+            "bank.npl_g35",
+            resolved.explicit_metrics,
+            msg="nợ xấu sub-phrase inside bao phủ nợ xấu must not yield npl_g35",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

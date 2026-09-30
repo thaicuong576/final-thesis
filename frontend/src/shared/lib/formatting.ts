@@ -247,3 +247,72 @@ export function formatDisplayText(
   return s;
 }
 
+/**
+ * Humanizes structured machine locator strings into clean, user-friendly labels.
+ * E.g. 'pdf_pages:6,8;equity_scope:total_equity_minus_nci;formula:...' -> 'tr. 6, 8'
+ */
+export function humanizeLocator(raw?: string | null): string {
+  if (!raw) return '';
+  const text = String(raw).trim();
+  if (!text) return '';
+
+  const parts = text.split(';').map((p) => p.trim()).filter(Boolean);
+  const kv: Record<string, string> = {};
+  for (const part of parts) {
+    const idx = part.indexOf(':');
+    const eqIdx = part.indexOf('=');
+    const splitIdx = idx !== -1 ? idx : eqIdx;
+    if (splitIdx !== -1) {
+      const k = part.slice(0, splitIdx).trim();
+      const v = part.slice(splitIdx + 1).trim();
+      kv[k] = v;
+    }
+  }
+
+  const formatPages = (val: string) =>
+    val
+      .replace(/_and_/g, ', ')
+      .replace(/\|/g, ', ')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(', ');
+
+  const tokens: string[] = [];
+
+  // 1. Page
+  if (kv.printed_page) {
+    tokens.push(`tr. ${formatPages(kv.printed_page)}`);
+  } else if (kv.printed_pages) {
+    tokens.push(`tr. ${formatPages(kv.printed_pages)}`);
+  } else if (kv.page) {
+    tokens.push(`tr. ${formatPages(kv.page)}`);
+  } else if (kv.pages) {
+    tokens.push(`tr. ${formatPages(kv.pages)}`);
+  } else if (kv.pdf_page) {
+    tokens.push(`tr. ${formatPages(kv.pdf_page)}`);
+  } else if (kv.pdf_pages) {
+    tokens.push(`tr. ${formatPages(kv.pdf_pages)}`);
+  }
+
+  // 2. Section / Statement / Table / Note
+  const sec = kv.section || kv.sections;
+  if (sec) {
+    tokens.push(sec.replace(/_/g, ' ').split('|').map((s) => s.trim()).join(' · '));
+  } else if (kv.statement || kv.statements) {
+    const stmt = kv.statement || kv.statements || '';
+    tokens.push(stmt.replace(/_/g, ' ').split('|').map((s) => s.trim()).join(' · '));
+  } else if (kv.table || kv.tables) {
+    const tbl = kv.table || kv.tables || '';
+    tokens.push(tbl.replace(/_/g, ' ').split('|').map((s) => s.trim()).join(' · '));
+  } else if (kv.note || kv.notes) {
+    const note = kv.note || kv.notes || '';
+    tokens.push(note.replace(/_/g, ' ').split('|').map((s) => s.trim()).join(' · '));
+  }
+
+  if (tokens.length > 0) return tokens.join(' · ');
+  if (Object.keys(kv).length > 0) return '';
+  return text;
+}
+
+

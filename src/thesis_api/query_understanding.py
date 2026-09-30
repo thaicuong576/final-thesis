@@ -289,35 +289,74 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
     catalog_metric_ids = {m.metric_id: m for m in catalog_metrics}
 
     explicit_metrics_list: list[str] = []
-    # Check all presentations in METRIC_PRESENTATIONS
-    for metric_id, pres in METRIC_PRESENTATIONS.items():
-        matched = False
-        # Match acronym
-        acronym = metric_id.rsplit(".", 1)[-1].upper()
-        if re.search(rf"(?<![A-Za-z0-9_]){re.escape(acronym)}(?![A-Za-z0-9_])", query, re.I):
-            matched = True
-        # Match synonyms
-        if not matched:
-            for syn in pres.synonyms:
-                syn_norm = normalize_text(syn)
-                syn_no_accents = strip_accents(syn_norm)
-                if syn_norm in norm or syn_no_accents in norm_no_accents:
-                    matched = True
-                    break
-        if matched:
-            resolved_id = metric_id
-            if resolved_id not in catalog_metric_ids:
-                if resolved_id == "bank.llr_coverage" and "bank.llr" in catalog_metric_ids:
-                    resolved_id = "bank.llr"
-                elif resolved_id == "bank.npl_g35" and "bank.npl" in catalog_metric_ids:
-                    resolved_id = "bank.npl"
+
+    # --- Longest-phrase-first synonym matching ---
+    # Build a flat list of (metric_id, pres, synonym_norm, synonym_no_accents, syn_len)
+    # sorted by synonym length descending so longer phrases are matched first.
+    # For acronym matches the "phrase" is the acronym itself.
+    _candidate_syns: list[tuple[str, object, str, str, int, bool]] = []
+    for _metric_id, _pres in METRIC_PRESENTATIONS.items():
+        _acronym = _metric_id.rsplit(".", 1)[-1].upper()
+        _acronym_norm = normalize_text(_acronym)
+        _candidate_syns.append(
+            (_metric_id, _pres, _acronym_norm, strip_accents(_acronym_norm), len(_acronym_norm), True)
+        )
+        for _syn in _pres.synonyms:
+            _syn_norm = normalize_text(_syn)
+            _syn_no_acc = strip_accents(_syn_norm)
+            _candidate_syns.append(
+                (_metric_id, _pres, _syn_norm, _syn_no_acc, len(_syn_norm), False)
+            )
+    # Sort by synonym length descending — longest phrase wins
+    _candidate_syns.sort(key=lambda x: -x[4])
+
+    # Work on mutable "remaining" text — replace matched spans with blank spaces
+    _remaining_norm = norm
+    _remaining_no_accents = norm_no_accents
+
+    _matched_metric_ids: set[str] = set()
+
+    for _metric_id, _pres, _syn_norm, _syn_no_acc, _syn_len, _is_acronym in _candidate_syns:
+        if _metric_id in _matched_metric_ids:
+            # Already matched this metric; skip additional synonyms for it
+            continue
+
+        _matched = False
+        if _is_acronym:
+            # Acronym: word-boundary match against the *original* query (case-insensitive)
+            if re.search(
+                rf"(?<![A-Za-z0-9_]){re.escape(_syn_norm)}(?![A-Za-z0-9_])",
+                _remaining_no_accents,
+                re.I,
+            ):
+                _matched = True
+        else:
+            if _syn_norm in _remaining_norm or _syn_no_acc in _remaining_no_accents:
+                _matched = True
+
+        if _matched:
+            # Resolve catalog id
+            _resolved_id = _metric_id
+            if _resolved_id not in catalog_metric_ids:
+                if _resolved_id == "bank.llr_coverage" and "bank.llr" in catalog_metric_ids:
+                    _resolved_id = "bank.llr"
+                elif _resolved_id == "bank.npl_g35" and "bank.npl" in catalog_metric_ids:
+                    _resolved_id = "bank.npl"
                 else:
                     raise AnalysisBlocked(
                         "unsupported_metric",
-                        f"The accepted snapshot does not declare requested metric: {pres.label}.",
+                        f"The accepted snapshot does not declare requested metric: {_pres.label}.",  # type: ignore[attr-defined]
                     )
-            if resolved_id not in explicit_metrics_list:
-                explicit_metrics_list.append(resolved_id)
+            if _resolved_id not in explicit_metrics_list:
+                explicit_metrics_list.append(_resolved_id)
+            # Mark metric as matched so shorter sub-phrases for the same metric are skipped
+            _matched_metric_ids.add(_metric_id)
+            # Consume matched span from remaining text so shorter sub-phrases cannot re-match
+            _blank = " " * _syn_len
+            if _syn_norm in _remaining_norm:
+                _remaining_norm = _remaining_norm.replace(_syn_norm, _blank, 1)
+            if _syn_no_acc in _remaining_no_accents:
+                _remaining_no_accents = _remaining_no_accents.replace(_syn_no_acc, _blank, 1)
 
     topic_metrics_list: list[str] = []
     for topic_phrase, groups in TOPIC_GROUPS.items():

@@ -16,6 +16,7 @@ from .database import (
     get_analysis_run_trace,
     list_analysis_runs,
 )
+from .run_history_storage import hydrate_run_history
 from .schemas import AnalysisRequest, AnalysisResponse, RunTraceDTO
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
@@ -38,12 +39,19 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
-        """Hydrate an explicitly configured private snapshot before serving traffic."""
+        """Hydrate an explicitly configured private snapshot and run history before serving traffic."""
         try:
             ensure_snapshot_from_settings(current_settings)
         except SnapshotBootstrapError:
             logger.exception("Accepted snapshot bootstrap failed; refusing application startup.")
             raise
+
+        try:
+            runs_path = current_settings.get_analysis_runs_path(dataset_path=sqlite_path)
+            hydrate_run_history(runs_path, current_settings)
+        except Exception as exc:
+            logger.warning("Remote run history hydration warning: %s", exc)
+
         yield
 
     engine = AnalysisEngine(
@@ -158,6 +166,15 @@ def create_app(
     )
     def get_runs(limit: int = 20) -> list[dict[str, Any]]:
         """Retrieve recent analysis runs ordered by created_at DESC."""
+        return list_analysis_runs(analysis_runs_path(), limit=limit)
+
+    @app.get(
+        "/api/analysis-runs",
+        summary="Alias for /api/runs",
+        include_in_schema=False,
+    )
+    def get_analysis_runs_alias(limit: int = 20) -> list[dict[str, Any]]:
+        """Retrieve recent analysis runs ordered by created_at DESC (alias)."""
         return list_analysis_runs(analysis_runs_path(), limit=limit)
 
     @app.get(

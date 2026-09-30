@@ -66,6 +66,7 @@ from thesis_data.dataset_provider import peer_benchmark_observation_id
 
 from .database import ensure_analysis_runs_table, save_analysis_run
 from .llm import LLMConfigurationError
+from .run_history_storage import schedule_remote_run_persist
 from .settings import get_settings
 from .schemas import (
     AnalysisPlanDTO,
@@ -1315,6 +1316,13 @@ class AnalysisEngine:
             "steps": steps_dump,
         }
 
+        model_used = (
+            self.settings.openai_model
+            if self.settings.openai_api_key
+            else "provider-backed-review-unconfigured"
+        )
+        report_payload = report.model_dump(mode="json", exclude_none=True)
+
         save_analysis_run(
             db_path=self._runs_store_path(),
             run_id=report.report_id,
@@ -1324,13 +1332,9 @@ class AnalysisEngine:
             peer_tickers=peer_tickers,
             period=period,
             status=report.status,
-            report_json=report.model_dump(mode="json", exclude_none=True),
+            report_json=report_payload,
             events_json=events,
-            model_used=(
-                self.settings.openai_model
-                if self.settings.openai_api_key
-                else "provider-backed-review-unconfigured"
-            ),
+            model_used=model_used,
             latency_ms=duration_ms,
             trace_json=trace_dto,
             error_code=error_code,
@@ -1340,6 +1344,31 @@ class AnalysisEngine:
             output_tokens=output_tokens,
             arm=arm,
             question_type=question_type,
+        )
+
+        schedule_remote_run_persist(
+            {
+                "run_id": report.report_id,
+                "created_at": trace_dto["created_at"],
+                "query": request.query,
+                "target_ticker": target_ticker,
+                "peer_tickers": peer_tickers,
+                "period": period,
+                "status": report.status,
+                "report_json": report_payload,
+                "events_json": events,
+                "model_used": model_used,
+                "latency_ms": duration_ms,
+                "trace_json": trace_dto,
+                "error_code": error_code,
+                "duration_ms": duration_ms,
+                "model_calls": model_calls,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "arm": arm,
+                "question_type": question_type,
+            },
+            self.settings,
         )
 
     def get_capabilities(self) -> dict[str, Any]:

@@ -676,3 +676,30 @@ The semantic critic adapter (`OpenAISemanticCritic`) must normalize decoded mode
 2. **Issues**: If `action == RECONCILE_CROSS_LEVEL` and the plan lacks links (or the issue is not in any link's issue IDs), downgrade `action` to `REVISE_CLAIM`. For orchestrator issues, clear `affected_claim_ids = []`. Map any inactive agent to the primary specialist (or orchestrator if synthesis). Filter `affected_requirement_ids` to declared plan requirements.
 3. **Dimensions**: Enforce dimension applicabilities against `expected_dimension_applicability(plan)`. For `NOT_APPLICABLE` dimensions, set `score = None` and clear claims, requirements, and issue IDs.
 
+---
+
+## [LESSON-033] Free Render Run History Storage Hydration and Non-Blocking Remote Persistence
+
+- Date: 2026-10-01
+- Scope: `src/thesis_api/run_history_storage.py`, `src/thesis_api/service.py`, `src/thesis_api/main.py`, Render Staging Deployment
+- Status: ACTIVE
+
+### 1. Context & Symptom
+On Render free-tier hosting, instances spin down after ~15 minutes of inactivity and local ephemeral storage resets upon every wake or redeployment. Storing analysis run records solely in local SQLite (`ANALYSIS_RUNS_DB_PATH=/tmp/analysis_runs.sqlite`) causes the Report Library (`GET /api/runs`, `/api/analysis-runs`) and trace links to become completely empty after server sleep or deploy.
+
+### 2. Root Cause & Architectural Invariants
+Render Free provides no persistent disk volume. However, the private Supabase Storage bucket (`SUPABASE_STORAGE_BUCKET`) and credentials (`SUPABASE_SERVICE_ROLE_KEY`) are already provisioned and configured for analytical snapshot hydration (`snapshot_bootstrap.py`).
+Writing run history must obey strict safety boundaries:
+1. It must NEVER write into or modify `SQLITE_DB_PATH` (the Gold analytical snapshot).
+2. It must NEVER overwrite the analytical snapshot object (`SUPABASE_STORAGE_OBJECT`) in Supabase Storage.
+3. Missing or incomplete remote configuration must fall back to local-only SQLite without failing application startup or breaking `/api/ready`.
+4. Remote upload must be non-blocking in the background so that analysis HTTP latency is not impacted. Remote upload errors must log a sanitized warning (never leaking keys) and never fail the user's analysis request.
+
+### 3. Permanent Solution
+1. **Module `run_history_storage.py`**:
+   - `schedule_remote_run_persist(record, settings)`: Asynchronously uploads the serialized run record (`run_id`, `created_at`, `query`, `target_ticker`, `peer_tickers`, `period`, `status`, `report_json`, `events_json`, `trace_json`, metrics, arm, question_type) as a JSON object to `<prefix>/<run_id>.json` (default prefix: `run-history/`) with `x-upsert: true`.
+   - `hydrate_run_history(db_path, settings, limit=500)`: On application startup (`lifespan`), lists objects under the prefix, compares with locally existing `run_id`s in SQLite, downloads missing records, and idempotently inserts them into `analysis_runs` SQLite table.
+   - Refuses `.sqlite` objects and paths matching `SUPABASE_STORAGE_OBJECT`, and refuses hydration into `SQLITE_DB_PATH`.
+2. **Lifespan Integration**:
+   - Called in `main.py` lifespan after snapshot hydration; exceptions are logged as warnings and never prevent app startup or readiness probe.
+

@@ -1097,6 +1097,49 @@ class AnalysisEngine:
             return _load_provider(self.db_path, scope_authority_path=Path(authority_path))
         return _load_provider(self.db_path)
 
+    def _attach_fallback_trace(
+        self,
+        report: AnalysisResponse,
+        request: AnalysisRequest,
+    ) -> AnalysisResponse:
+        if getattr(report, "_trace_steps", None):
+            return report
+        from .schemas import RunTraceStepDTO
+        from .summaries_vi import summary_blocked
+
+        code = (
+            report.error.code
+            if getattr(report, "error", None) and report.error.code
+            else (report.limitations[0].split(":")[0].strip() if report.limitations else "analysis_blocked")
+        )
+        msg = (
+            report.error.message
+            if getattr(report, "error", None) and report.error.message
+            else (report.limitations[0] if report.limitations else "Yêu cầu bị từ chối.")
+        )
+        suggestions = report.error.suggestions if getattr(report, "error", None) else []
+        summary = summary_blocked(code, msg)
+        detail = {
+            "code": code,
+            "message": msg,
+            "suggestions": suggestions,
+        }
+        step = RunTraceStepDTO(
+            step_id="t-1",
+            seq=1,
+            actor="system",
+            kind="blocked",
+            summary=summary,
+            detail=detail,
+            t_ms=0,
+        )
+        report._trace_steps = [step]
+        report._duration_ms = 0
+        report._tracker = None
+        report._arm = getattr(self.settings, "analysis_arm", "hierarchical_with_critique")
+        report._question_type = None
+        return report
+
     def _analyze(
         self,
         request: AnalysisRequest,
@@ -1108,15 +1151,21 @@ class AnalysisEngine:
             try:
                 self._runs_store_path()
             except (OSError, ValueError):
-                return _error_report(
-                    "analysis_runs_store_invalid",
-                    "The operational analysis history store must resolve to a writable path separate from the accepted dataset.",
+                return self._attach_fallback_trace(
+                    _error_report(
+                        "analysis_runs_store_invalid",
+                        "The operational analysis history store must resolve to a writable path separate from the accepted dataset.",
+                        request,
+                    ),
                     request,
                 )
             if not self._model_runtime_configured() and not (self._semantic_critic is not None and self._analysis_writer is not None):
-                return _error_report(
-                    "semantic_provider_unconfigured",
-                    "A configured OpenAI-compatible specialist writer and semantic reviewer are required before retrieval.",
+                return self._attach_fallback_trace(
+                    _error_report(
+                        "semantic_provider_unconfigured",
+                        "A configured OpenAI-compatible specialist writer and semantic reviewer are required before retrieval.",
+                        request,
+                    ),
                     request,
                 )
             binding = self._binding()
@@ -1129,11 +1178,14 @@ class AnalysisEngine:
                 try:
                     semantic_critic = build_openai_semantic_critic(self.settings)
                 except (ValueError, LLMConfigurationError) as exc:
-                    return _error_report(
-                        "semantic_provider_unconfigured",
-                        "A configured OpenAI-compatible semantic reviewer is required before specialist execution.",
+                    return self._attach_fallback_trace(
+                        _error_report(
+                            "semantic_provider_unconfigured",
+                            "A configured OpenAI-compatible semantic reviewer is required before specialist execution.",
+                            request,
+                            catalog=catalog,
+                        ),
                         request,
-                        catalog=catalog,
                     )
             if analysis_writer is None:
                 from .adaptive_runtime import build_openai_analysis_writer
@@ -1141,11 +1193,14 @@ class AnalysisEngine:
                 try:
                     analysis_writer = build_openai_analysis_writer(self.settings)
                 except (ValueError, LLMConfigurationError) as exc:
-                    return _error_report(
-                        "analysis_writer_unconfigured",
-                        "A configured OpenAI-compatible specialist writer is required before specialist execution.",
+                    return self._attach_fallback_trace(
+                        _error_report(
+                            "analysis_writer_unconfigured",
+                            "A configured OpenAI-compatible specialist writer is required before specialist execution.",
+                            request,
+                            catalog=catalog,
+                        ),
                         request,
-                        catalog=catalog,
                     )
             from .adaptive_runtime import run_adaptive_analysis
 
@@ -1161,10 +1216,10 @@ class AnalysisEngine:
                 client=self._planner_client,
             )
         except AnalysisBlocked as exc:
-            return _error_report(exc.code, exc.detail, request, catalog=catalog)
+            return self._attach_fallback_trace(_error_report(exc.code, exc.detail, request, catalog=catalog), request)
         except (DatasetProviderError, sqlite3.Error, OSError, ValueError) as exc:
             logger.warning("Analysis provider failed: %s", type(exc).__name__)
-            return _error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request, catalog=catalog)
+            return self._attach_fallback_trace(_error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request, catalog=catalog), request)
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         report = self._analyze(request)
@@ -1185,6 +1240,11 @@ class AnalysisEngine:
                     request,
                     catalog=catalog,
                 )
+        else:
+            try:
+                self.persist_run(request, report, events=[])
+            except Exception as exc:
+                logger.warning("Error analysis report could not be persisted: %s", type(exc).__name__)
         return report
 
     def persist_run(
@@ -1194,23 +1254,92 @@ class AnalysisEngine:
         events: list[dict[str, Any]],
     ) -> None:
         plan = report.analysis_plan
-        if plan is None or report.status == "error":
-            return
+        target_ticker = (
+            (plan.target_ticker if plan and plan.target_ticker else None)
+            or request.target_ticker
+            or ""
+        )
+        peer_tickers = (
+            (plan.peer_tickers if plan and plan.peer_tickers else None)
+            or (request.peer_tickers if hasattr(request, "peer_tickers") else None)
+            or []
+        )
+        period = (
+            (plan.period if plan and plan.period else None)
+            or request.period
+            or (request.periods[0] if request.periods else "")
+            or ""
+        )
+
+        trace_steps = getattr(report, "_trace_steps", []) or []
+        steps_dump = [
+            s.model_dump(mode="json", exclude_none=False) if hasattr(s, "model_dump") else s
+            for s in trace_steps
+        ]
+
+        duration_ms = getattr(report, "_duration_ms", None)
+        arm = getattr(report, "_arm", None) or getattr(self.settings, "analysis_arm", "hierarchical_with_critique")
+        question_type = (
+            getattr(report, "_question_type", None)
+            or (getattr(report, "question_type", None) if hasattr(report, "question_type") else None)
+            or (getattr(plan, "question_type", None) if plan else None)
+        )
+
+        tracker = getattr(report, "_tracker", None)
+        if tracker is not None:
+            model_calls = tracker.model_calls
+            input_tokens = tracker.total_input_tokens
+            output_tokens = tracker.total_output_tokens
+        else:
+            model_calls = None
+            input_tokens = None
+            output_tokens = None
+
+        error_code = None
+        if report.status == "error":
+            if getattr(report, "error", None) and report.error.code:
+                error_code = report.error.code
+            elif report.limitations:
+                error_code = report.limitations[0].split(":")[0].strip()
+            else:
+                error_code = "analysis_blocked"
+
+        trace_dto = {
+            "run_id": report.report_id,
+            "status": report.status,
+            "query": request.query,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "duration_ms": duration_ms or 0,
+            "arm": arm,
+            "question_type": question_type,
+            "steps": steps_dump,
+        }
+
         save_analysis_run(
             db_path=self._runs_store_path(),
             run_id=report.report_id,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=trace_dto["created_at"],
             query=request.query,
-            target_ticker=plan.target_ticker or "",
-            peer_tickers=plan.peer_tickers,
-            period=plan.period or "",
+            target_ticker=target_ticker,
+            peer_tickers=peer_tickers,
+            period=period,
             status=report.status,
             report_json=report.model_dump(mode="json", exclude_none=True),
             events_json=events,
-            model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
-            latency_ms=None,
-            arm=getattr(self.settings, "analysis_arm", "hierarchical_with_critique"),
-            question_type=getattr(report, "question_type", None) or getattr(plan, "question_type", None),
+            model_used=(
+                self.settings.openai_model
+                if self.settings.openai_api_key
+                else "provider-backed-review-unconfigured"
+            ),
+            latency_ms=duration_ms,
+            trace_json=trace_dto,
+            error_code=error_code,
+            duration_ms=duration_ms,
+            model_calls=model_calls,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            arm=arm,
+            question_type=question_type,
         )
 
     def get_capabilities(self) -> dict[str, Any]:
@@ -1322,9 +1451,47 @@ def stream_analysis_query(
         try:
             report = engine._analyze(req, event_sink=emit)
             if report.status == "error":
-                if not events or events[-1].get("type") != "RUN_BLOCKED":
-                    reason = report.limitations[0] if report.limitations else "analysis_blocked"
-                    emit("RUN_BLOCKED", {"reason": reason, "reportId": report.report_id, "status": report.status})
+                # Ensure any trace steps on report are emitted if not yet emitted
+                emitted_step_ids = {
+                    e.get("payload", {}).get("step_id")
+                    for e in events
+                    if e.get("type") == "TRACE_STEP"
+                }
+                trace_steps = getattr(report, "_trace_steps", []) or []
+                for s in trace_steps:
+                    s_dict = s.model_dump(mode="json") if hasattr(s, "model_dump") else s
+                    if s_dict.get("step_id") not in emitted_step_ids:
+                        emit("TRACE_STEP", s_dict)
+
+                code = (
+                    report.error.code
+                    if getattr(report, "error", None) and report.error.code
+                    else (report.limitations[0].split(":")[0].strip() if report.limitations else "analysis_blocked")
+                )
+                message = (
+                    report.error.message
+                    if getattr(report, "error", None) and report.error.message
+                    else (report.limitations[0] if report.limitations else "Yêu cầu bị từ chối.")
+                )
+                suggestions = (
+                    report.error.suggestions
+                    if getattr(report, "error", None) and report.error.suggestions
+                    else []
+                )
+                emit("RUN_BLOCKED", {
+                    "reason": f"{code}: {message}",
+                    "error": {
+                        "code": code,
+                        "message": message,
+                        "suggestions": suggestions,
+                    },
+                    "reportId": report.report_id,
+                    "status": report.status,
+                })
+                try:
+                    engine.persist_run(req, report, events)
+                except Exception as exc:
+                    logger.warning("Error run persistence failed in stream: %s", type(exc).__name__)
             else:
                 ready_event = emit("REPORT_READY", {
                     "reportId": report.report_id,
@@ -1340,12 +1507,28 @@ def stream_analysis_query(
                     # and is never exposed to the client on failure.
                     events.pop()
                     sequence -= 1
-                    emit("RUN_BLOCKED", {"reason": "analysis_run_persistence_failed", "status": "error"})
+                    emit("RUN_BLOCKED", {
+                        "reason": "analysis_run_persistence_failed",
+                        "error": {
+                            "code": "analysis_run_persistence_failed",
+                            "message": "Không thể lưu kết quả phân tích vào cơ sở dữ liệu.",
+                            "suggestions": [],
+                        },
+                        "status": "error",
+                    })
                     return
                 pending.put(ready_event)
         except Exception as exc:
             logger.warning("SSE analysis failed: %s", type(exc).__name__)
-            emit("RUN_BLOCKED", {"reason": "adaptive_runtime_failure", "status": "error"})
+            emit("RUN_BLOCKED", {
+                "reason": "adaptive_runtime_failure",
+                "error": {
+                    "code": "adaptive_runtime_failure",
+                    "message": "Hệ thống gặp lỗi trong quá trình thực hiện phân tích.",
+                    "suggestions": [],
+                },
+                "status": "error",
+            })
         finally:
             pending.put(None)
 

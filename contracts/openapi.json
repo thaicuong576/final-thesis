@@ -1285,6 +1285,7 @@
               "REVISION_COMPLETED",
               "SYNTHESIS_STARTED",
               "SYNTHESIS_COMPLETED",
+              "TRACE_STEP",
               "REPORT_READY",
               "RUN_BLOCKED"
             ]
@@ -1948,6 +1949,7 @@
           "created_at": { "type": "string" },
           "duration_ms": { "type": "integer" },
           "arm": { "type": ["string", "null"] },
+          "question_type": { "type": ["string", "null"] },
           "steps": { "type": "array", "items": { "$ref": "#/components/schemas/TraceStep" } }
         }
       },

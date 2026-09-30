@@ -1083,7 +1083,11 @@ def build_source_notes(
 
     for obs_id, f_ids in obs_to_facts.items():
         try:
-            obs = provider.get_observation(dataset_ref, obs_id) if hasattr(provider, "get_observation") else None
+            obs = (
+                provider.resolve_observation(dataset_ref, obs_id)
+                if hasattr(provider, "resolve_observation")
+                else (provider.get_observation(dataset_ref, obs_id) if hasattr(provider, "get_observation") else None)
+            )
             if obs is None:
                 continue
             src_ref = obs.source_ref

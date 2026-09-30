@@ -1,4 +1,6 @@
 import type { Period } from '../../entities/capability/model/types';
+import type { MetricPresentation } from '@/features/equity-report/model/types';
+import { DEFAULT_METRICS } from './defaultMetrics';
 
 export function formatPeriodLabel(period: Period) {
   return `Q${period.quarter}/${period.year}`;
@@ -170,5 +172,78 @@ export function niceTicks(min: number, max: number, count = 3): number[] {
     ticks.push(Number(v.toFixed(6)));
   }
   return ticks;
+}
+
+/**
+ * Formats a number with Vietnamese locale (comma decimal separator, dot thousands separator).
+ */
+export function formatDecimalVi(
+  val: number | string | null | undefined,
+  decimals?: number
+): string {
+  if (val === null || val === undefined || val === '' || isNaN(Number(val))) {
+    return '—';
+  }
+  const num = Number(val);
+  const options: Intl.NumberFormatOptions = {
+    useGrouping: true
+  };
+  if (decimals !== undefined) {
+    options.minimumFractionDigits = decimals;
+    options.maximumFractionDigits = decimals;
+  }
+  return new Intl.NumberFormat('vi-VN', options).format(num);
+}
+
+/**
+ * Sanitizes and formats text displayed to users:
+ * - Translates periods from machine format ("2024_Q4") to human format ("Q4/2024")
+ * - Translates period ranges ("2024_Q1_to_2024_Q4") to human format ("Q1–Q4/2024")
+ * - Maps metric identifiers from metricRegistry / capabilities (e.g. bank.llr_coverage, LLR_COVERAGE)
+ * - Translates technical missing reason codes (DATA_UNAVAILABLE -> Chưa có số liệu đã kiểm định)
+ * Unmapped tokens are preserved as-is.
+ */
+export function formatDisplayText(
+  text: string | null | undefined,
+  metrics?: MetricPresentation[]
+): string {
+  if (!text) return '';
+  let s = String(text);
+
+  // 1. Format range periods: 2024_Q1_to_2024_Q4 -> Q1–Q4/2024
+  s = s.replace(/(\d{4})_Q([1-4])_to_(\d{4})_Q([1-4])/gi, (_, y1, q1, y2, q2) => {
+    if (y1 === y2) return `Q${q1}–Q${q2}/${y1}`;
+    return `Q${q1}/${y1}–Q${q2}/${y2}`;
+  });
+
+  // 2. Format quarter periods: 2024_Q4 -> Q4/2024, Q4_2024 -> Q4/2024, 2024_Q -> Q/2024
+  s = s.replace(/(\d{4})_Q([0-9]+)/gi, 'Q$2/$1');
+  s = s.replace(/Q([0-9]+)_(\d{4})/gi, 'Q$1/$2');
+  s = s.replace(/(\d{4})_Q/gi, 'Q/$1');
+
+  // 3. Map metric identifiers from metricRegistry / capabilities
+  const metricList = metrics && metrics.length > 0 ? metrics : Object.values(DEFAULT_METRICS);
+  for (const m of metricList) {
+    if (!m) continue;
+    const replacement = m.shortLabel || m.label || m.acronym;
+    if (!replacement) continue;
+
+    // Replace m.id (e.g. 'bank.npl_g35', 'bank.llr_coverage')
+    if (m.id) {
+      const escapedId = m.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(new RegExp(`\\b${escapedId}\\b`, 'gi'), replacement);
+    }
+
+    // Replace technical acronym (e.g. 'LLR_COVERAGE', 'NPL_G35') if different from replacement
+    if (m.acronym && m.acronym.toLowerCase() !== replacement.toLowerCase()) {
+      const escapedAcronym = m.acronym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(new RegExp(`\\b${escapedAcronym}\\b`, 'gi'), replacement);
+    }
+  }
+
+  // 4. Missing reason code & technical reason codes
+  s = s.replace(/\bDATA_UNAVAILABLE\b/g, 'Chưa có số liệu đã kiểm định');
+
+  return s;
 }
 

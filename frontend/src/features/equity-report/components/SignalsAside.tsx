@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Signal, SignalVerdict } from '../model/types';
 import { useEquityReport } from './useEquityReport';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 interface VerdictConfig {
   label: string;
@@ -62,7 +63,7 @@ export const SignalsAside: React.FC<{ signals: Signal[] }> = ({ signals }) => {
           const config = VERDICT_CONFIGS[sig.verdict] || VERDICT_CONFIGS.insufficient_data;
           return (
             <div key={idx} className="flex justify-between items-center py-1.5">
-              <span className="text-text-secondary">{sig.label}</span>
+              <span className="text-text-secondary">{formatDisplayText(sig.label)}</span>
               <span className={`inline-flex items-center gap-1 ${config.colorClass}`}>
                 <span className="text-xs" aria-hidden="true">{config.icon}</span>
                 <span>{config.label}</span>

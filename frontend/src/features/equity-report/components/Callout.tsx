@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CalloutBlock } from '../model/types';
 import { SentenceView } from './SentenceView';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export const Callout: React.FC<{ block: CalloutBlock }> = ({ block }) => {
   const isWarning = block.tone === 'warning';
@@ -15,7 +16,7 @@ export const Callout: React.FC<{ block: CalloutBlock }> = ({ block }) => {
     >
       {block.title && (
         <div className="text-xs font-semibold text-text-primary mb-1">
-          {block.title}
+          {formatDisplayText(block.title)}
         </div>
       )}
       {block.sentences && block.sentences.length > 0 && (

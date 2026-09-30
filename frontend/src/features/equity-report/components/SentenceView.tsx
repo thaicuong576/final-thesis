@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Sentence } from '../model/types';
 import { useEquityReport } from './useEquityReport';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export interface SentenceViewProps {
   sentence: Sentence;
@@ -13,7 +14,7 @@ export const SentenceView: React.FC<SentenceViewProps> = ({ sentence, className 
 
   return (
     <span className={className}>
-      {sentence.text}
+      {formatDisplayText(sentence.text)}
       {noteNumbers.length > 0 && (
         <sup>
           {noteNumbers.map((no, idx) => (

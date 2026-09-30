@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
-import { fmtPeriod, niceTicks } from '@/shared/lib/formatting';
+import { fmtPeriod, niceTicks, formatDecimalVi } from '@/shared/lib/formatting';
 import { useChartWidth } from './useChartWidth';
 
 export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
@@ -10,8 +10,10 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
 
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
 
-  const metricXId = dataset.metric_ids?.[0] || 'bank.npl_g35';
-  const metricYId = dataset.metric_ids?.[1] || 'bank.llr_coverage';
+  const rawMetricIds = dataset.metric_ids || [];
+  const metricXId = rawMetricIds[0] || '';
+  const metricYId = rawMetricIds[1] || rawMetricIds[0] || '';
+
   const metricX = getMetricPresentation(metricXId, metrics);
   const metricY = getMetricPresentation(metricYId, metrics);
 
@@ -30,13 +32,13 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
     if (r.metric_id === metricYId) cur.y = Number(r.value);
   }
 
-  // Medians from refLines or data
+  // Medians strictly from refLines (never compute on frontend)
   const medianXRef = refLines.find((r) => r.metric_id === metricXId && r.kind === 'median');
   const medianYRef = refLines.find((r) => r.metric_id === metricYId && r.kind === 'median');
   const medianX = medianXRef ? Number(medianXRef.value) : null;
   const medianY = medianYRef ? Number(medianYRef.value) : null;
 
-  // Scale ranges strictly from data (including medians), +8% padding each side, no negative truncation if data >= 0
+  // Scale ranges strictly from data (including medians from refLines), +8% padding each side, no negative truncation if data >= 0
   const xValues = Array.from(entityMap.values()).map((p) => p.x);
   if (medianX !== null && !isNaN(medianX)) xValues.push(medianX);
   const yValues = Array.from(entityMap.values()).map((p) => p.y);
@@ -127,7 +129,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
                 fontSize="11"
                 fill="var(--text-muted, #85857e)"
               >
-                {t}
+                {formatDecimalVi(t)}
               </text>
             </g>
           );
@@ -145,7 +147,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
               fontSize="11"
               fill="var(--text-muted, #85857e)"
             >
-              {t}%
+              {formatDecimalVi(t)}%
             </text>
           );
         })}
@@ -178,7 +180,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
 
         {/* Axis descriptive labels */}
         <text x={leftM} y={topM - 10} fontSize="11" fill="var(--text-muted, #85857e)">
-          {metricY.shortLabel} ({metricY.unit}) ↑ dày hơn
+          {metricY.shortLabel} ({metricY.unit}) ↑ cao hơn
         </text>
         <text
           x={leftM + plotW}
@@ -187,17 +189,19 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
           fontSize="11"
           fill="var(--text-muted, #85857e)"
         >
-          {metricX.shortLabel} → cao hơn
+          {metricX.shortLabel} ({metricX.unit}) → cao hơn
         </text>
-        <text
-          x={leftM + plotW}
-          y={topM - 10}
-          textAnchor="end"
-          fontSize="11"
-          fill="var(--text-muted, #85857e)"
-        >
-          đường đứt: trung vị
-        </text>
+        {(medianX !== null || medianY !== null) && (
+          <text
+            x={leftM + plotW}
+            y={topM - 10}
+            textAnchor="end"
+            fontSize="11"
+            fill="var(--text-muted, #85857e)"
+          >
+            đường đứt: trung vị
+          </text>
+        )}
 
         {/* Scatter Points */}
         {Array.from(entityMap.entries()).map(([entity, pt]) => {

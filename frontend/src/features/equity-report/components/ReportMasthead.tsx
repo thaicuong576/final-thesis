@@ -81,6 +81,18 @@ export const ReportMasthead: React.FC = () => {
             {periodLabel}
           </span>
         )}
+        {report.status === 'accepted_with_limitations' && (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/80">
+            <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+            Chấp nhận có giới hạn
+          </span>
+        )}
+        {(report.status === 'completed' || report.status === 'accepted') && (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+            Đã kiểm định
+          </span>
+        )}
       </div>
     </header>
   );

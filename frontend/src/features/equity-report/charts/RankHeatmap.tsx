@@ -73,7 +73,7 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
 
   return (
     <div className={`my-2 overflow-x-auto ${className}`}>
-      <table className="w-full border-collapse text-xs table-fixed font-sans" role="table">
+      <table className="w-full min-w-[420px] border-collapse text-xs table-fixed font-sans" role="table">
         <thead>
           <tr className="border-b border-line text-text-muted">
             <th className="py-2 px-2 text-left font-semibold w-[22%]"></th>

@@ -7,6 +7,7 @@ import { ProcessLink } from './ProcessLink';
 import { SourceNotes } from './SourceNotes';
 import { TechnicalDetails } from './TechnicalDetails';
 import { normalizeBlocks } from '../model/normalizeBlocks';
+import { KpiBand } from './KpiBand';
 
 export const NoteLayout: React.FC = () => {
   const { report, datasets } = useEquityReport();
@@ -17,17 +18,19 @@ export const NoteLayout: React.FC = () => {
   // Company profile: the headline spans the page, then the opening prose (everything before the
   // first figure or table) sits beside the peer-signal panel. Figures below get the full width,
   // so wide charts such as the rank heatmap are never squeezed next to the panel.
-  const headline = isProfile && blocks[0]?.type === 'headline' ? blocks[0] : null;
+  const showKpis = report.question_type === 'company_profile' || report.question_type === 'trend';
+  const headline = (isProfile || showKpis) && blocks[0]?.type === 'headline' ? blocks[0] : null;
   const body = headline ? blocks.slice(1) : blocks;
   const firstVisual = body.findIndex((b) => b.type === 'figure' || b.type === 'table');
   const lead = isProfile ? (firstVisual === -1 ? body : body.slice(0, firstVisual)) : [];
   const rest = isProfile ? (firstVisual === -1 ? [] : body.slice(firstVisual)) : body;
 
   return (
-    <article className="report-sheet w-full max-w-[880px] mx-auto px-5 py-6 sm:px-10 sm:py-9 bg-surface-primary border border-border-subtle rounded-xl font-sans shadow-[0_1px_2px_rgba(32,32,30,0.04),0_8px_24px_-12px_rgba(32,32,30,0.12)]">
+    <article className="report-sheet mx-auto w-full max-w-[920px] overflow-hidden rounded-2xl border border-border-subtle bg-surface-primary px-5 py-6 font-sans shadow-[0_1px_2px_rgba(29,28,26,0.04),0_24px_50px_-30px_rgba(60,45,20,0.4)] sm:px-10 sm:py-9">
       <ReportMasthead />
 
       {headline && <BlockRenderer block={headline} />}
+      {showKpis && <KpiBand />}
 
       {isProfile && (
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-x-8 gap-y-5 items-start mt-2">

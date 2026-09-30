@@ -104,7 +104,7 @@ export function ReportsListPage() {
       <div className="mx-auto w-full max-w-[1040px] px-4 py-8 sm:px-8 sm:py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="m-0 text-[28px] font-bold leading-tight tracking-[-0.02em] text-ink">Thư viện báo cáo</h1>
+            <h1 className="font-display m-0 text-[34px] font-bold leading-tight text-ink">Thư viện báo cáo</h1>
             <p className="mt-2 mb-0 max-w-[60ch] text-[15px] leading-relaxed text-ink-secondary">
               Mọi lượt phân tích đều được lưu lại, kể cả lượt bị từ chối. Mở lại một báo cáo để xem số liệu, nguồn và quá
               trình các tác tử đã làm.

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { TraceStep } from '../model/types';
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { useTraceStream } from '../useTraceStream';
-import { OrchestratorBoard } from './OrchestratorBoard';
+import { AgentStage } from './AgentStage';
 import { ProcessTrace } from './ProcessTrace';
 
 export interface AnalysisSessionWorkspaceProps {
@@ -98,14 +98,14 @@ function AnalysisSessionWorkspaceContent({
   const query = activeRequest?.query || '';
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto py-2">
+    <div className="mx-auto max-w-[1180px] space-y-5 py-2">
       {/* Navigation / back link */}
       {onBackToComposer && (
         <div>
           <button
             type="button"
             onClick={onBackToComposer}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-text-secondary transition-colors hover:text-text-primary"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Quay lại trang hỏi</span>
@@ -114,9 +114,10 @@ function AnalysisSessionWorkspaceContent({
       )}
 
       {/* Screen B: Orchestrator & child agents board */}
-      <OrchestratorBoard
+      <AgentStage
         steps={activeSteps}
         query={query}
+        live={isStreaming || (isLiveStream && !propSteps?.length)}
         reportId={reportId}
         isDisconnected={isDisconnected}
         onOpenReport={onViewReport}

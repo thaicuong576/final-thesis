@@ -87,7 +87,7 @@ export function DataPage() {
 
   return (
     <WorkspaceShell activeSection="data" context={<PageCrumbs items={[{ label: 'Dữ liệu' }]} />}>
-      <div className="min-h-[calc(100vh-80px)] w-full max-w-full min-w-0 overflow-x-hidden bg-workspace px-4 py-6 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-80px)] w-full max-w-full min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-6">
           <header className="border-b border-line pb-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

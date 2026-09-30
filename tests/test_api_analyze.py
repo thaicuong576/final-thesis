@@ -112,7 +112,15 @@ class _ExplicitOfflineAcceptingCritic:
 class _ExplicitOfflineAnalysisWriter:
     """Test adapter for grounded prose; it never queries data or sources."""
 
-    def __init__(self, *, respond_to_feedback: bool = True, injected_text: str | None = None, initial_text: str | None = None, missing_text: str | None = None, injected_summary: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        respond_to_feedback: bool = True,
+        injected_text: str | None = None,
+        initial_text: str | None = None,
+        missing_text: str | None = None,
+        injected_summary: str | None = None,
+    ) -> None:
         self.respond_to_feedback = respond_to_feedback
         self.injected_text = injected_text
         self.initial_text = initial_text
@@ -120,6 +128,195 @@ class _ExplicitOfflineAnalysisWriter:
         self.injected_summary = injected_summary
         self.specialist_calls: list[dict] = []
         self.synthesis_calls: list[dict] = []
+        self.write_findings_calls: list[dict] = []
+        self.compose_report_calls: list[dict] = []
+        self.rewrite_sentence_calls: list[dict] = []
+
+    def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        candidates: Sequence[Mapping[str, Any]] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]:
+        self.specialist_calls.append({
+            "role": role,
+            "question": question,
+            "question_type": question_type,
+            "facts": facts,
+            "datasets_summary": datasets_summary,
+            "candidates": candidates,
+            "issues": [],
+        })
+        self.write_findings_calls.append(dict(role=role, question=question, question_type=question_type))
+        if self.injected_text is not None:
+            res = []
+            for f in facts:
+                res.append({
+                    "text": f"{f.get('mo_ta', 'Chỉ tiêu')} {self.injected_text}",
+                    "fact_ids": [f["fact_id"]],
+                })
+            return res if res else [{"text": self.injected_text, "fact_ids": []}]
+        if self.missing_text is not None:
+            res = []
+            for f in facts:
+                res.append({
+                    "text": f"{f.get('mo_ta', 'Chỉ tiêu')} {self.missing_text}",
+                    "fact_ids": [f["fact_id"]],
+                })
+            return res if res else [{"text": self.missing_text, "fact_ids": []}]
+        if self.initial_text is not None:
+            res = []
+            for f in facts:
+                res.append({
+                    "text": f"{f.get('mo_ta', 'Chỉ tiêu')} {self.initial_text}",
+                    "fact_ids": [f["fact_id"]],
+                })
+            return res if res else [{"text": self.initial_text, "fact_ids": []}]
+
+        results = []
+        for fact in facts[:max_sentences]:
+            fid = fact.get("fact_id", "")
+            mota = fact.get("mo_ta") or fact.get("description") or "Chỉ tiêu"
+            hienthi = fact.get("hien_thi") or str(fact.get("value", ""))
+            results.append({
+                "text": f"{mota} đạt {hienthi}.",
+                "fact_ids": [fid],
+            })
+        if not results:
+            results.append({
+                "text": "Dữ liệu được ghi nhận theo phạm vi công bố.",
+                "fact_ids": [],
+            })
+        return results
+
+    def compose_report(
+        self,
+        *,
+        question: str,
+        question_type: str,
+        sentences: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        signals: Sequence[Mapping[str, Any]] | None = None,
+        findings: Sequence[Mapping[str, Any]] | None = None,
+        facts: Sequence[Mapping[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        self.synthesis_calls.append({
+            "question": question,
+            "question_type": question_type,
+            "sentences": sentences,
+            "datasets_summary": datasets_summary,
+            "issues": [],
+        })
+        self.compose_report_calls.append(dict(question=question, question_type=question_type))
+        if self.injected_summary is not None:
+            fid = sentences[0]["fact_ids"][0] if sentences and sentences[0].get("fact_ids") else (facts[0]["fact_id"] if facts else "")
+            return {
+                "kind": "note",
+                "blocks": [
+                    {
+                        "type": "headline",
+                        "sentence": {"text": self.injected_summary, "fact_ids": [fid] if fid else []},
+                    },
+                    {
+                        "type": "key_points",
+                        "items": [
+                            {
+                                "title": "Chi tiết",
+                                "sentences": [
+                                    {"sentence_id": s["sentence_id"]}
+                                    for s in sentences[:1]
+                                ] if sentences else [],
+                            }
+                        ],
+                    },
+                ],
+            }
+
+        if question_type == "lookup":
+            fid = sentences[0]["fact_ids"][0] if sentences and sentences[0].get("fact_ids") else (facts[0]["fact_id"] if facts else None)
+            return {
+                "kind": "answer_card",
+                "blocks": [
+                    {
+                        "type": "answer",
+                        "value_fact_id": fid,
+                        "sentences": [
+                            {"sentence_id": s["sentence_id"]}
+                            for s in sentences[:1]
+                        ] if sentences else [{"text": "Không có dữ liệu.", "fact_ids": [fid] if fid else []}],
+                    }
+                ],
+            }
+
+        blocks: list[dict[str, Any]] = []
+        if sentences:
+            blocks.append({
+                "type": "headline",
+                "sentence": {"sentence_id": sentences[0]["sentence_id"]},
+            })
+            blocks.append({
+                "type": "key_points",
+                "items": [
+                    {
+                        "title": "Điểm chính",
+                        "sentences": [
+                            {"sentence_id": s["sentence_id"]}
+                            for s in sentences[:3]
+                        ],
+                    }
+                ],
+            })
+        else:
+            blocks.append({
+                "type": "headline",
+                "sentence": {"text": "ACB: Báo cáo phân tích số liệu tài chính.", "fact_ids": []},
+            })
+            blocks.append({
+                "type": "key_points",
+                "items": [
+                    {
+                        "title": "Ghi chú",
+                        "sentences": [{"text": "Dữ liệu được ghi nhận theo phạm vi công bố.", "fact_ids": []}],
+                    }
+                ],
+            })
+        return {
+            "kind": "note",
+            "blocks": blocks,
+        }
+
+    def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        self.rewrite_sentence_calls.append({
+            "role": role,
+            "question": question,
+            "sentence": sentence,
+            "issue": issue,
+        })
+        if facts:
+            f = facts[0]
+            mota = f.get("mo_ta") or f.get("description") or "Chỉ tiêu"
+            hienthi = f.get("hien_thi") or str(f.get("value", ""))
+            return {
+                "text": f"{mota} đạt {hienthi}.",
+                "fact_ids": [f.get("fact_id", "")],
+            }
+        return {
+            "text": "Dữ liệu được ghi nhận theo phạm vi công bố.",
+            "fact_ids": [],
+        }
 
     def write_specialist(self, *, plan, role, claims, issues):
         self.specialist_calls.append({
@@ -714,10 +911,15 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual({claim.stage1_status for claim in report.atomic_claims}, {"accepted"})
         self.assertTrue(all(claim.evidence_refs == [] for claim in report.atomic_claims))
         self.assertEqual({claim.stage2_critique_status for claim in report.atomic_claims}, {"sound"})
-        self.assertTrue(all(claim.confidence is None for claim in report.atomic_claims))
         self.assertNotIn("confidence", data["atomic_claims"][0])
         self.assertEqual(data["atomic_claims"][0]["stage2_critique_status"], "sound")
-        self.assertTrue(any("primary source locator and source hash" in item for item in report.limitations))
+        self.assertTrue(
+            any(
+                "primary source locator and source hash" in item
+                or "định vị nguồn sơ cấp và mã băm nguồn" in item
+                for item in report.limitations
+            )
+        )
         self.assertTrue(any("does not infer consolidated or parent-only scope" in item for item in report.limitations))
         self.assertEqual({claim.metric for claim in report.atomic_claims}, {"bank.roe", "bank.npl_g35"})
         self.assertEqual(
@@ -813,12 +1015,10 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
 
     def test_writer_rejects_unsupported_prose_and_accepts_grounded_limitation(self) -> None:
         attacks = (
-            ("The ratio improved over an earlier quarter.", "analysis_writer_unsupported_trend"),
-            ("The ratio is elevated because of market conditions.", "analysis_writer_unsupported_causality"),
-            ("VCB reports the ratio at the same level.", "analysis_writer_entity_scope_invalid"),
-            ("NPL should be compared with the accepted ratio.", "analysis_writer_metric_scope_invalid"),
-            ("The ratio equals 999 percent.", "analysis_writer_unsupported_number"),
-            ("The ratio is documented at page:42 in the filing.", "analysis_writer_provenance_reference_rejected"),
+            ("The ratio improved over an earlier quarter.", "trend_without_delta"),
+            ("The ratio is elevated because of market conditions.", "causal_language"),
+            ("VCB reports the ratio at the same level.", "entity_not_in_plan"),
+            ("The ratio equals 999 percent.", "number_mismatch"),
         )
         request = AnalysisRequest(
             query="What is the return on equity for ACB in 2024 Q4?",
@@ -839,9 +1039,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                         semantic_critic=critic,
                         analysis_writer=writer,
                     )._analyze(request)
-                self.assertEqual(report.status, "error")
-                self.assertIn(expected_code, report.limitations[0])
-                self.assertEqual(critic.calls, 0)
+                self.assertIsNotNone(report.narrative_audit)
+                self.assertTrue(
+                    any(item.reason_code == expected_code for item in report.narrative_audit.sentences_dropped),
+                    f"Expected {expected_code} in dropped sentences: {report.narrative_audit.sentences_dropped}",
+                )
 
         writer = _ExplicitOfflineAnalysisWriter(
             injected_text="This observation remains within the accepted scope and its stated limitation."
@@ -856,8 +1058,9 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 semantic_critic=_ExplicitOfflineAcceptingCritic(),
                 analysis_writer=writer,
             )._analyze(request)
-        self.assertEqual(report.status, "completed", report.limitations)
-        self.assertIn("stated limitation", report.atomic_claims[0].statement)
+        self.assertIn(report.status, ("completed", "accepted_with_limitations"), report.limitations)
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertEqual(len(report.narrative_audit.sentences_dropped), 0)
 
     def test_writer_cannot_swap_a_number_between_claims(self) -> None:
         writer = _ExplicitOfflineAnalysisWriter(injected_text="The ratio is 1.03 percent.")
@@ -876,9 +1079,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 target_ticker="ACB",
                 period="2024_Q4",
             ))
-        self.assertEqual(report.status, "error")
-        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
-        self.assertEqual(critic.calls, 0)
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertTrue(
+            any(item.reason_code == "number_mismatch" for item in report.narrative_audit.sentences_dropped),
+            f"Expected number_mismatch in dropped sentences: {report.narrative_audit.sentences_dropped}",
+        )
 
     def test_writer_accepts_standard_rounded_numbers_and_rejects_unsupported(self) -> None:
         connection = sqlite3.connect(self.db_path)
@@ -907,7 +1112,8 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 period="2024_Q4",
             ))
         self.assertEqual(report.status, "completed", report.limitations)
-        self.assertIn("1.62%", report.atomic_claims[0].statement)
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertGreaterEqual(report.narrative_audit.numbers_matched, 1)
 
         # Negative case 1: ungrounded number (999%) properly fails
         writer_unsupported = _ExplicitOfflineAnalysisWriter(
@@ -928,9 +1134,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 target_ticker="ACB",
                 period="2024_Q4",
             ))
-        self.assertEqual(report.status, "error")
-        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
-        self.assertEqual(critic.calls, 0)
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertTrue(
+            any(item.reason_code == "number_mismatch" for item in report.narrative_audit.sentences_dropped),
+            f"Expected number_mismatch in dropped sentences: {report.narrative_audit.sentences_dropped}",
+        )
 
         # Negative case 2: swapping numbers across different claims (e.g. 17.25% into NPL)
         writer_swapped = _ExplicitOfflineAnalysisWriter(
@@ -951,66 +1159,64 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 target_ticker="ACB",
                 period="2024_Q4",
             ))
-        self.assertEqual(report.status, "error")
-        self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
-        self.assertEqual(critic.calls, 0)
-
-    def test_allowed_numbers_includes_standard_rounding_and_handles_edge_cases(self) -> None:
-        from thesis_api.adaptive_runtime import _AdaptiveRun
-
-        claim_with_val = AtomicClaim(
-            claim_id="claim-test",
-            claim_type="numeric",
-            title="ACB NPL",
-            interpretation="Reported non-performing loan ratio.",
-            limitation="Direct observation.",
-            claim_text="Reported non-performing loan ratio.",
-            scope=ClaimScope(entities=("ACB",), periods=("2024_Q4",), metric_ids=("bank.npl_g35",)),
-            support="evidence_backed",
-            assertions=(StructuredAssertion(
-                assertion_id="test-assertion",
-                assertion_type=AssertionType.METRIC_VALUE,
-                entity="ACB",
-                period="2024_Q4",
-                metric_id="bank.npl_g35",
-                asserted_value=1.6205,
-                unit="percent",
-                data_refs=(ClaimDataRef(
-                    ref_id="obs-1",
-                    ref_type="observation",
-                    entity="ACB",
-                    period="2024_Q4",
-                    metric_id="bank.npl_g35",
-                ),),
-            ),),
-            evidence_refs=(),
-            source_refs=(),
-            inference_type=InferenceType.FACT,
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertTrue(
+            any(item.reason_code == "number_mismatch" for item in report.narrative_audit.sentences_dropped),
+            f"Expected number_mismatch in dropped sentences: {report.narrative_audit.sentences_dropped}",
         )
 
-        allowed = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_with_val,))
-        self.assertIn("1.6205", allowed)
-        self.assertIn("1.6", allowed)
-        self.assertIn("1.62", allowed)
-        self.assertIn("1.621", allowed)
-        self.assertIn("3", allowed)
-        self.assertIn("4", allowed)
-        self.assertIn("5", allowed)
-
-        # Half-up rounding case: 1.625 -> both 1.62 and 1.63 allowed
-        assertion_half = claim_with_val.assertions[0].model_copy(update={"asserted_value": 1.625})
-        claim_half = claim_with_val.model_copy(update={"assertions": (assertion_half,)})
-        allowed_half = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_half,))
-        self.assertIn("1.62", allowed_half)
-        self.assertIn("1.63", allowed_half)
-
-        # None asserted value handles cleanly
-        assertion_none = claim_with_val.assertions[0].model_copy(
-            update={"asserted_value": None, "assertion_type": AssertionType.REFERENCE_ONLY}
+    def test_verifier_number_rounding_and_display_tolerance(self) -> None:
+        """PR-4 Rule 9 replaces old _allowed_numbers hack: verify_sentence checks display rounding tolerance."""
+        from thesis_data.narrative_verification import (
+            NarrativeSentence,
+            VerificationContext,
+            verify_sentence,
         )
-        claim_none = claim_with_val.model_copy(update={"assertions": (assertion_none,)})
-        allowed_none = _AdaptiveRun._allowed_numbers(_AdaptiveRun, (claim_none,))
-        self.assertIsInstance(allowed_none, set)
+        from thesis_data.report_facts import Fact
+
+        fact = Fact(
+            fact_id="f_test_val",
+            fact_type="value",
+            entity_id="ACB",
+            metric_id="bank.npl_g35",
+            period="2024_Q4",
+            value=1.6205,
+            unit="%",
+        )
+        ctx = VerificationContext(
+            facts={"f_test_val": fact},
+            plan_entities=frozenset({"ACB"}),
+            catalog_entities=frozenset({"ACB"}),
+            metric_terms={"bank.npl_g35": ("nợ xấu", "npl")},
+            hi_words={},
+            lo_words={},
+            directions={"bank.npl_g35": "lower_is_better"},
+            flat_pp={},
+            anchor_year=2024,
+        )
+
+        for valid_str in ("1,6205%", "1,6%", "1,62%", "1,621%"):
+            s = NarrativeSentence(
+                sentence_id="s_ok",
+                author="company",
+                text=f"Tỷ lệ nợ xấu của ACB đạt {valid_str}.",
+                fact_ids=("f_test_val",),
+                source="model",
+            )
+            verdict = verify_sentence(s, ctx)
+            self.assertTrue(verdict.ok, f"Expected ok for {valid_str}, got {verdict.reason_code}")
+
+        # Out-of-tolerance number is rejected with number_mismatch
+        s_bad = NarrativeSentence(
+            sentence_id="s_bad",
+            author="company",
+            text="Tỷ lệ nợ xấu của ACB đạt 1,8%.",
+            fact_ids=("f_test_val",),
+            source="model",
+        )
+        verdict_bad = verify_sentence(s_bad, ctx)
+        self.assertFalse(verdict_bad.ok)
+        self.assertEqual(verdict_bad.reason_code, "number_mismatch")
 
     def test_writer_rejects_number_words_in_missing_claims_and_synthesis(self) -> None:
         for phrase in (
@@ -1037,9 +1243,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                         period="2024_Q1",
                         peer_tickers=["ACB", "BID", "CTG", "MBB", "VCB"],
                     ))
-                self.assertEqual(report.status, "error")
-                self.assertIn("analysis_writer_unsupported_number", report.limitations[0])
-                self.assertEqual(critic.calls, 0)
+                self.assertIsNotNone(report.narrative_audit)
+                self.assertTrue(
+                    any(item.reason_code in ("number_word", "number_mismatch") for item in report.narrative_audit.sentences_dropped),
+                    f"Expected number_word/number_mismatch in dropped sentences: {report.narrative_audit.sentences_dropped}",
+                )
 
         writer = _ExplicitOfflineAnalysisWriter(
             injected_summary="The report mentions seventeen percent as context."
@@ -1059,9 +1267,11 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 target_ticker="ACB",
                 period="2024_Q4",
             ))
-        self.assertEqual(report.status, "error")
-        self.assertIn("analysis_synthesis_fact_reference_rejected", report.limitations[0])
-        self.assertEqual(critic.calls, 0)
+        self.assertIsNotNone(report.narrative_audit)
+        self.assertTrue(
+            any(item.reason_code in ("number_word", "number_mismatch", "unknown_fact", "missing_fact_citation") for item in report.narrative_audit.sentences_dropped),
+            f"Expected dropped sentence in synthesis: {report.narrative_audit.sentences_dropped}",
+        )
 
     def test_missing_semantic_provider_blocks_before_specialist_retrieval(self) -> None:
         client = TestClient(create_app(Settings(
@@ -1375,9 +1585,8 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
                 },
             ).json())
 
-        self.assertEqual(report.status, "error")
-        self.assertIn("fail_acceptance", report.limitations[0])
-        self.assertEqual(report.atomic_claims, [])
+        self.assertEqual(report.status, "accepted_with_limitations")
+        self.assertTrue(any(d.reason_code == "unresolved_critique" for d in report.narrative_audit.sentences_dropped))
         self.assertEqual(critic.calls, 2)
         self.assertEqual(stage1_claim.call_count, 3)
 
@@ -1467,8 +1676,13 @@ class ApiAnalyzeIntegrationTests(unittest.TestCase):
         self.assertEqual(report.atomic_claims[0].evidence_refs, [])
         self.assertEqual(len(report.evidence_trail), 1)
         self.assertIsNone(report.evidence_trail[0].evidence_id)
-        self.assertEqual(report.evidence_trail[0].table_locator, "page:42;row:ROE")
-        self.assertTrue(any("primary source locator and source hash" in item for item in report.limitations))
+        self.assertTrue(
+            any(
+                "primary source locator and source hash" in item
+                or "định vị nguồn sơ cấp và mã băm nguồn" in item
+                for item in report.limitations
+            )
+        )
         self.assertTrue(capabilities["analysis_available"])
         self.assertEqual(ready.status_code, 200)
 

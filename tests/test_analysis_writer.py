@@ -26,120 +26,109 @@ class _FakeResponses:
         return SimpleNamespace(output_text=output, status=status)
 
 
-def _claim(claim_id: str) -> dict:
-    return {
-        "claim_id": claim_id,
-        "capability": "company",
-        "display_name": "ROE",
-        "claim": {"claim_id": claim_id, "claim_text": "Accepted provider statement."},
-        "accepted_observation": {"observation_id": f"obs-{claim_id}", "value": 17.25},
-        "primary_sources": [],
-    }
-
-
 class OpenAIAnalysisWriterTests(unittest.TestCase):
-    def test_role_writer_forwards_exact_revision_issue_and_synthesis_support(self) -> None:
-        claim_id = "claim-a"
-        initial = {
-            "claim_texts": [{
-                "claim_id": claim_id,
-                "prose": "A grounded statement stays within this accepted claim and its scope.",
-                "supporting_claim_ids": [claim_id],
-            }],
+    def test_writer_methods_contract(self) -> None:
+        findings_resp = {
+            "sentences": [
+                {
+                    "text": "ACB đạt ROE 21,75% trong năm 2024.",
+                    "fact_ids": ["fact-1"],
+                }
+            ]
         }
-        revised = {
-            "claim_texts": [{
-                "claim_id": claim_id,
-                "prose": "The specialist responds to the selected review action with grounded wording.",
-                "supporting_claim_ids": [claim_id],
-            }],
+        compose_resp = {
+            "kind": "note",
+            "blocks": [
+                {
+                    "type": "headline",
+                    "headline": "ACB: Hiệu quả sinh lời dẫn đầu",
+                },
+                {
+                    "type": "takeaway",
+                    "text": "ACB đạt ROE 21,75% trong năm 2024.",
+                    "fact_ids": ["fact-1"],
+                },
+            ],
         }
-        synthesized = {
-            "summary": "The reviewed specialist outputs remain within the frozen scope and accepted evidence.",
-            "supporting_claim_ids": [claim_id],
+        rewrite_resp = {
+            "text": "ACB ghi nhận ROE ở mức 21,75%, cao hơn trung vị ngành.",
+            "fact_ids": ["fact-1", "fact-2"],
         }
-        fake = _FakeResponses([json.dumps(initial), json.dumps(revised), json.dumps(synthesized)])
+
+        fake = _FakeResponses([
+            json.dumps(findings_resp),
+            json.dumps(compose_resp),
+            json.dumps(rewrite_resp),
+        ])
         writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=fake), model="test-model")
-        plan = {"plan_version": "plan-v1", "scope": {"periods": ["2024_Q4"]}}
-        claim = _claim(claim_id)
 
-        first = writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
-        issue = {
-            "issue_id": "review-7",
-            "issue_type": "unsupported_claim",
-            "severity": "MAJOR",
-            "affected_agent": "company",
-            "affected_claim_ids": [claim_id],
-            "affected_requirement_ids": ["company:ACB:2024_Q4:bank.roe"],
-            "description": "Clarify the accepted scope for this claim.",
-            "required_action": "REVISE_CLAIM",
-        }
-        second = writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[issue])
-        summary = writer.synthesize(
-            plan=plan,
-            specialist_outputs={"company": [{"claim_id": claim_id, "prose": second[claim_id]["prose"]}]},
-            issues=[issue],
+        facts = [
+            {"fact_id": "fact-1", "mo_ta": "ROE 2024", "hien_thi": "21,75%"},
+            {"fact_id": "fact-2", "mo_ta": "Trung vị ROE", "hien_thi": "18,50%"},
+        ]
+        datasets = [{"dataset_id": "ds-1", "title": "ROE Dataset", "allowed_charts": ["bar"]}]
+
+        # 1. write_findings
+        findings = writer.write_findings(
+            role="company",
+            question="Đánh giá hiệu quả kinh doanh của ACB năm 2024?",
+            question_type="company_profile",
+            facts=facts,
+            datasets_summary=datasets,
         )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["text"], "ACB đạt ROE 21,75% trong năm 2024.")
+        self.assertEqual(findings[0]["fact_ids"], ["fact-1"])
+        self.assertIn("doanh nghiệp", fake.calls[0]["instructions"])
 
-        self.assertEqual(first[claim_id]["supporting_claim_ids"], [claim_id])
-        self.assertNotEqual(first[claim_id]["prose"], second[claim_id]["prose"])
-        revision_payload = json.loads(fake.calls[1]["input"])
-        self.assertEqual(revision_payload["role"], "company")
-        self.assertEqual(revision_payload["claims"][0]["claim_id"], claim_id)
-        self.assertEqual(revision_payload["selected_issues"], [issue])
-        self.assertEqual(summary["supporting_claim_ids"], [claim_id])
-        self.assertEqual(json.loads(fake.calls[2]["input"])["selected_issues"], [issue])
-        self.assertEqual(fake.calls[0]["text"]["format"]["type"], "json_schema")
-        self.assertTrue(fake.calls[0]["text"]["format"]["strict"])
-        self.assertFalse(fake.calls[0]["store"])
-        self.assertIn("CRITICAL CONSTRAINTS FOR PROSE:", fake.calls[0]["instructions"])
-        self.assertIn("NEVER mention any year", fake.calls[0]["instructions"])
-        self.assertIn("NUMERIC CONSTRAINTS FOR PROSE:", fake.calls[0]["instructions"])
-        self.assertIn("write the EXACT asserted value verbatim", fake.calls[0]["instructions"])
-        self.assertIn("CRITICAL CONSTRAINTS FOR SUMMARY:", fake.calls[2]["instructions"])
-        self.assertIn("NEVER include any ticker symbols", fake.calls[2]["instructions"])
-        self.assertIn("NEVER include digits, numbers, or spelled-out number words", fake.calls[2]["instructions"])
-        self.assertIn("NEVER write any years, quarters, dates, or period labels", fake.calls[2]["instructions"])
-        self.assertIn("NEVER include temporal change or trend words", fake.calls[2]["instructions"])
-        self.assertIn("NEVER include causal explanation or attribution words", fake.calls[2]["instructions"])
-        self.assertIn("refuse to add them and keep the synthesis strictly qualitative", fake.calls[2]["instructions"])
+        # 2. compose_report
+        spec = writer.compose_report(
+            question="Đánh giá hiệu quả kinh doanh của ACB năm 2024?",
+            question_type="company_profile",
+            sentences=[{"sentence_id": "s1", "text": findings[0]["text"], "fact_ids": ["fact-1"]}],
+            datasets_summary=datasets,
+            facts=facts,
+        )
+        self.assertEqual(spec["kind"], "note")
+        self.assertEqual(len(spec["blocks"]), 2)
+        self.assertIn("điều phối viên", fake.calls[1]["instructions"])
 
-    def test_writer_rejects_malformed_responses_and_out_of_scope_support(self) -> None:
-        claim = _claim("claim-a")
-        plan = {"plan_version": "plan-v1"}
+        # 3. rewrite_sentence
+        rewritten = writer.rewrite_sentence(
+            role="company",
+            question="Đánh giá hiệu quả kinh doanh của ACB năm 2024?",
+            sentence={"text": findings[0]["text"], "fact_ids": ["fact-1"]},
+            issue={
+                "description": "Cần so sánh thêm với trung vị ngành.",
+                "required_action": "REVISE_CLAIM",
+            },
+            facts=facts,
+        )
+        self.assertEqual(rewritten["text"], "ACB ghi nhận ROE ở mức 21,75%, cao hơn trung vị ngành.")
+        self.assertEqual(rewritten["fact_ids"], ["fact-1", "fact-2"])
 
+    def test_writer_rejects_malformed_responses(self) -> None:
         malformed = _FakeResponses(["not-json"])
         writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=malformed), model="test-model")
         with self.assertRaisesRegex(AnalysisWriterError, "analysis_writer_json_invalid"):
-            writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
-
-        out_of_scope = _FakeResponses([json.dumps({
-            "claim_texts": [{
-                "claim_id": "claim-a",
-                "prose": "This wording attempts to cite an unrelated claim in its support.",
-                "supporting_claim_ids": ["claim-b"],
-            }],
-        })])
-        writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=out_of_scope), model="test-model")
-        with self.assertRaisesRegex(AnalysisWriterError, "analysis_writer_specialist_support_scope_invalid"):
-            writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
-
-        bad_synthesis = _FakeResponses([json.dumps({
-            "summary": "The summary attempts to cite a claim outside its accepted inputs.",
-            "supporting_claim_ids": ["claim-b"],
-        })])
-        writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=bad_synthesis), model="test-model")
-        with self.assertRaisesRegex(AnalysisWriterError, "analysis_writer_synthesis_support_scope_invalid"):
-            writer.synthesize(
-                plan=plan,
-                specialist_outputs={"company": [{"claim_id": "claim-a", "prose": "Grounded claim prose."}]},
-                issues=[],
+            writer.write_findings(
+                role="company",
+                question="q",
+                question_type="lookup",
+                facts=[],
+                datasets_summary=[],
             )
 
         incomplete = _FakeResponses(["{}"], statuses=["incomplete"])
-        writer = OpenAIAnalysisWriter(client=SimpleNamespace(responses=incomplete), model="test-model")
+        writer2 = OpenAIAnalysisWriter(client=SimpleNamespace(responses=incomplete), model="test-model")
         with self.assertRaisesRegex(AnalysisWriterError, "analysis_writer_response_incomplete"):
-            writer.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
+            writer2.write_findings(
+                role="company",
+                question="q",
+                question_type="lookup",
+                facts=[],
+                datasets_summary=[],
+            )
 
     def test_clean_json_text_helper(self) -> None:
         self.assertEqual(_clean_json_text('{"a": 1}'), '{"a": 1}')
@@ -154,52 +143,19 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
         )
 
     def test_writer_accepts_fenced_json_responses(self) -> None:
-        claim_id = "claim-a"
-        claim = _claim(claim_id)
-        plan = {"plan_version": "plan-v1", "scope": {"periods": ["2024_Q4"]}}
-        specialist_payload = {
-            "claim_texts": [{
-                "claim_id": claim_id,
-                "prose": "Clean grounded prose.",
-                "supporting_claim_ids": [claim_id],
-            }],
-        }
-        synthesis_payload = {
-            "summary": "Clean synthesis summary.",
-            "supporting_claim_ids": [claim_id],
-        }
-
-        # Case 1: ```json ... ``` code fence
-        fenced_json_specialist = f"```json\n{json.dumps(specialist_payload)}\n```"
-        fenced_json_synthesis = f"```json\n{json.dumps(synthesis_payload)}\n```"
-        fake_json = _FakeResponses([fenced_json_specialist, fenced_json_synthesis])
+        findings_resp = {"sentences": [{"text": "Fenced text", "fact_ids": ["f1"]}]}
+        fenced_json = f"```json\n{json.dumps(findings_resp)}\n```"
+        fake_json = _FakeResponses([fenced_json])
         writer_json = OpenAIAnalysisWriter(client=SimpleNamespace(responses=fake_json), model="test-model")
 
-        res_spec = writer_json.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
-        self.assertEqual(res_spec[claim_id]["prose"], "Clean grounded prose.")
-
-        res_synth = writer_json.synthesize(
-            plan=plan,
-            specialist_outputs={"company": [{"claim_id": claim_id, "prose": "Clean grounded prose."}]},
-            issues=[],
+        res = writer_json.write_findings(
+            role="company",
+            question="q",
+            question_type="lookup",
+            facts=[{"fact_id": "f1", "mo_ta": "m", "hien_thi": "1"}],
+            datasets_summary=[],
         )
-        self.assertEqual(res_synth["summary"], "Clean synthesis summary.")
-
-        # Case 2: ``` ... ``` code fence without json tag
-        fenced_plain_specialist = f"```\n{json.dumps(specialist_payload)}\n```"
-        fenced_plain_synthesis = f"```\n{json.dumps(synthesis_payload)}\n```"
-        fake_plain = _FakeResponses([fenced_plain_specialist, fenced_plain_synthesis])
-        writer_plain = OpenAIAnalysisWriter(client=SimpleNamespace(responses=fake_plain), model="test-model")
-
-        res_spec_plain = writer_plain.write_specialist(plan=plan, role="company", claims=[claim], issues=[])
-        self.assertEqual(res_spec_plain[claim_id]["prose"], "Clean grounded prose.")
-
-        res_synth_plain = writer_plain.synthesize(
-            plan=plan,
-            specialist_outputs={"company": [{"claim_id": claim_id, "prose": "Clean grounded prose."}]},
-            issues=[],
-        )
-        self.assertEqual(res_synth_plain["summary"], "Clean synthesis summary.")
+        self.assertEqual(res[0]["text"], "Fenced text")
 
 
 if __name__ == "__main__":

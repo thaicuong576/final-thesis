@@ -495,16 +495,23 @@ def classify_signals(
     directions: Mapping[str, str],
     flat_pp: Mapping[str, float] | float = 0.05,
     group_labels: Mapping[str, str] | None = None,
+    anchor_period: str | None = None,
 ) -> list[SignalResult]:
     """Classify target entity standing across financial dimensions."""
+    if not anchor_period:
+        target_periods = [f.period for f in facts if f.entity_id == target and f.period]
+        anchor_period = max(target_periods) if target_periods else None
+
     gaps_by_metric: dict[str, Fact] = {}
     ranks_by_metric: dict[str, Fact] = {}
     for f in facts:
         if f.entity_id == target:
             if f.fact_type == "gap_to_median":
-                gaps_by_metric[f.metric_id] = f
+                if f.metric_id not in gaps_by_metric or (anchor_period and f.period == anchor_period):
+                    gaps_by_metric[f.metric_id] = f
             elif f.fact_type == "peer_rank":
-                ranks_by_metric[f.metric_id] = f
+                if f.metric_id not in ranks_by_metric or (anchor_period and f.period == anchor_period):
+                    ranks_by_metric[f.metric_id] = f
 
     results: list[SignalResult] = []
     labels = group_labels or {}
@@ -595,7 +602,7 @@ def detect_cross_level_candidates(
                 finding_id=f"f-divergent-{cid}",
                 kind="divergent_signals",
                 severity="notice",
-                text="Performance signals diverge across evaluated financial dimensions.",
+                text="Tín hiệu tài chính có sự phân hóa trái chiều giữa các nhóm chỉ tiêu.",
                 fact_ids=list(dict.fromkeys(f_ids)),
                 pattern="divergent",
             )
@@ -636,7 +643,7 @@ def detect_cross_level_candidates(
                     finding_id=f"f-counter-trend-{cid}",
                     kind="counter_trend",
                     severity="warning",
-                    text="Target entity metric trend opposes peer median trajectory.",
+                    text="Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
                     fact_ids=[d_fact.fact_id, m_fact.fact_id],
                     pattern="counter_trend",
                 )
@@ -663,7 +670,7 @@ def detect_cross_level_candidates(
                     finding_id=f"f-extreme-{cid}",
                     kind="cross_metric_extreme",
                     severity="notice",
-                    text="Entity exhibits extreme peer rank positions across different analytical dimensions.",
+                    text="Doanh nghiệp ghi nhận vị thế phân cực trên các chỉ tiêu đánh giá.",
                     fact_ids=cand_fact_ids,
                     pattern=pattern,
                 )

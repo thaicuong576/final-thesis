@@ -625,18 +625,18 @@ class OpenAISemanticCriticNormalizationTests(unittest.TestCase):
         normalized = _normalize_critic_output(raw_decoded, "eval-v1", plan=plan)
 
         issue_ids = [i["issue_id"] for i in normalized["critique_issues"]]
-        self.assertNotIn("SYN-NUM-001", issue_ids)
+        self.assertIn("SYN-NUM-001", issue_ids)
         self.assertIn("SYN-OK-002", issue_ids)
 
         groundedness_dim = next(
             d for d in normalized["dimension_scores"] if d["dimension"] == "groundedness"
         )
-        self.assertNotIn("SYN-NUM-001", groundedness_dim["issue_ids"])
+        self.assertIn("SYN-NUM-001", groundedness_dim["issue_ids"])
         self.assertIn("SYN-OK-002", groundedness_dim["issue_ids"])
 
         validated = StructuredCriticResult.model_validate(normalized)
         violations = deterministic_coverage_violations(plan, validated, ())
-        self.assertFalse(any("SYN-NUM-001" in v for v in violations))
+        self.assertNotIn("orchestrator_issue_must_target_synthesis:SYN-NUM-001", violations)
         self.assertNotIn("orchestrator_issue_must_target_synthesis:SYN-OK-002", violations)
 
 

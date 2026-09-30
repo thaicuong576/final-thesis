@@ -1609,6 +1609,52 @@ class Phase3BBRevisionControllerTests(unittest.TestCase):
             result.acceptance_state.rounds[1].candidate_hash,
         )
 
+    def test_revision_supports_affected_sentence_ids_and_revised_report_spec(self):
+        plan = _company_plan()
+        claim = _company_claim()
+        issue = CritiqueIssue(
+            issue_id="ISSUE-SENT-1",
+            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+            severity=CritiqueSeverity.MAJOR,
+            affected_agent=AnalysisAgent.COMPANY.value,
+            affected_sentence_ids=("s1",),
+            affected_block_index=1,
+            description="Sentence needs revision.",
+            evidence_refs=("fact-1",),
+            required_action=CritiqueAction.REVISE_CLAIM,
+        )
+        resolved_issue = issue.model_copy(
+            update={"resolution_status": CritiqueIssueStatus.RESOLVED}
+        )
+        revised_claim = claim.model_copy(
+            update={"interpretation": claim.interpretation + " Clarified."}
+        )
+        spec = {"kind": "note", "blocks": [{"type": "headline", "headline": "ACB: test"}]}
+        controller, _, _, _, _, _ = _controller(
+            plan=plan,
+            critic_results=[
+                _result(plan, issues=(issue,)),
+                _result(plan, fulfilled=("R1",), issues=(resolved_issue,)),
+            ],
+            revision_results=[
+                RevisionResult(
+                    revised_claims=(revised_claim,),
+                    revised_narrative=(),
+                    revised_report_spec=spec,
+                    revised_agents=("company",),
+                    revised_claim_ids={"company": (claim.claim_id,)},
+                    payload_version="payload-revised",
+                )
+            ],
+        )
+        result = controller.run(
+            run_id="narrative-spec-rev",
+            plan=plan,
+            claims=(claim,),
+            initial_payload_version="payload-v1",
+        )
+        self.assertEqual(result.acceptance_state.final_decision, AcceptanceDecision.ACCEPT)
+
     def test_core_controller_does_not_reference_workflow_frameworks(self):
         source = Path(__file__).parents[1] / "src" / "thesis_data" / "revision_controller.py"
         text = source.read_text(encoding="utf-8").lower()

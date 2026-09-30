@@ -896,7 +896,7 @@ def _plan(
             "Macro and sector analysis are not executed by this API path.",
             "Semantic critique and bounded revision were not run.",
         ] + ([] if metric_specific_evidence else [
-            "Claims without a reviewed metric-specific document snippet use the accepted observation's primary source locator and source hash."
+            "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
         ]) + ([] if reporting_scope_known else [
             "The accepted observation does not declare reporting scope; the API does not infer consolidated or parent-only scope."
         ]),
@@ -1209,6 +1209,8 @@ class AnalysisEngine:
             events_json=events,
             model_used=(self.settings.openai_model if self.settings.openai_api_key else "provider-backed-review-unconfigured"),
             latency_ms=None,
+            arm=getattr(self.settings, "analysis_arm", "hierarchical_with_critique"),
+            question_type=getattr(report, "question_type", None) or getattr(plan, "question_type", None),
         )
 
     def get_capabilities(self) -> dict[str, Any]:

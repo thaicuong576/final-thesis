@@ -185,6 +185,101 @@ class _TrendWriter:
         self.specialist_calls: list[str] = []
         self.claim_calls: list[dict] = []
         self.synthesis_calls: list[dict] = []
+        self.compose_report_calls: list[dict] = []
+
+    def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        candidates: Sequence[Mapping[str, Any]] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]:
+        results = []
+        for fact in facts[:max_sentences]:
+            fid = fact.get("fact_id", "")
+            mota = fact.get("mo_ta") or fact.get("description") or "Chỉ tiêu"
+            hienthi = fact.get("hien_thi") or str(fact.get("value", ""))
+            results.append({
+                "text": f"{mota} đạt {hienthi}.",
+                "fact_ids": [fid],
+            })
+        if not results:
+            results.append({
+                "text": "Dữ liệu được ghi nhận theo phạm vi công bố.",
+                "fact_ids": [],
+            })
+        return results
+
+    def compose_report(
+        self,
+        *,
+        question: str,
+        question_type: str,
+        sentences: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        signals: Sequence[Mapping[str, Any]] | None = None,
+        findings: Sequence[Mapping[str, Any]] | None = None,
+        facts: Sequence[Mapping[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        self.compose_report_calls.append({
+            "question": question,
+            "question_type": question_type,
+            "sentences": sentences,
+        })
+        blocks: list[dict[str, Any]] = []
+        if sentences:
+            blocks.append({
+                "type": "headline",
+                "sentence": {"sentence_id": sentences[0]["sentence_id"]},
+            })
+            if len(sentences) > 1:
+                blocks.append({
+                    "type": "key_points",
+                    "items": [
+                        {
+                            "title": "Điểm chính",
+                            "sentences": [
+                                {"sentence_id": s["sentence_id"]}
+                                for s in sentences[1:3]
+                            ],
+                        }
+                    ],
+                })
+        else:
+            blocks.append({
+                "type": "headline",
+                "sentence": {"text": "MBB: Báo cáo xu hướng các chỉ tiêu tài chính.", "fact_ids": []},
+            })
+        return {
+            "kind": "note",
+            "blocks": blocks,
+        }
+
+    def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        if facts:
+            f = facts[0]
+            mota = f.get("mo_ta") or f.get("description") or "Chỉ tiêu"
+            hienthi = f.get("hien_thi") or str(f.get("value", ""))
+            return {
+                "text": f"{mota} đạt {hienthi}.",
+                "fact_ids": [f.get("fact_id", "")],
+            }
+        return {
+            "text": "Dữ liệu được ghi nhận theo phạm vi công bố.",
+            "fact_ids": [],
+        }
 
     def write_specialist(self, *, role, plan, claims, issues, **_kwargs):
         self.specialist_calls.append(role)
@@ -193,7 +288,7 @@ class _TrendWriter:
             "claim_ids": [item["claim_id"] for item in claims],
             "issues": issues,
             "periods": [item["accepted_observation"]["period_id"] for item in claims],
-            "plan_periods": plan["scope"]["periods"],
+            "plan_periods": list(plan["scope"]["periods"]),
         })
         result = {}
         for item in claims:
@@ -219,7 +314,7 @@ class _TrendWriter:
     def synthesize(self, *, plan, specialist_outputs, issues, **_kwargs):
         claim_ids = [item["claim_id"] for rows in specialist_outputs.values() for item in rows]
         self.synthesis_calls.append({
-            "periods": plan["scope"]["periods"],
+            "periods": list(plan["scope"]["periods"]),
             "claim_ids": claim_ids,
             "issues": issues,
         })
@@ -744,9 +839,8 @@ class CompanyTrendRequestTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200, response.text)
         report = AnalysisResponse.model_validate(response.json())
-        self.assertEqual(report.status, "error")
-        self.assertIn("fail_acceptance", report.limitations[0])
-        self.assertEqual(report.atomic_claims, [])
+        self.assertEqual(report.status, "accepted_with_limitations")
+        self.assertTrue(any(d.reason_code == "unresolved_critique" for d in report.narrative_audit.sentences_dropped))
         self.assertEqual(len(critic.calls), 2)
         self.assertEqual(critic.calls[-1]["issue"].resolution_status, CritiqueIssueStatus.OPEN)
         self.assertEqual(stage1_count, 2)

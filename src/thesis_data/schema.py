@@ -620,6 +620,8 @@ class CritiqueIssue(BaseModel):
     severity: CritiqueSeverity
     affected_agent: str = Field(min_length=1)
     affected_claim_ids: tuple[str, ...] = Field(default_factory=tuple)
+    affected_sentence_ids: tuple[str, ...] = Field(default_factory=tuple)
+    affected_block_index: int | None = None
     affected_requirement_ids: tuple[str, ...] = Field(default_factory=tuple)
     description: str = Field(min_length=1)
     evidence_refs: tuple[str, ...] = Field(default_factory=tuple)

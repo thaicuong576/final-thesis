@@ -17,9 +17,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from docx import Document
-from docx.oxml.ns import qn
-from docx.shared import Cm, Pt
+try:  # thesis Word tooling is optional; the product CI does not install it
+    from docx import Document
+    from docx.oxml.ns import qn
+    from docx.shared import Cm, Pt
+    import matplotlib  # noqa: F401
+    import networkx  # noqa: F401
+except ImportError as exc:  # pragma: no cover - depends on the environment
+    raise unittest.SkipTest(f"thesis docx tooling not installed: {exc}")
 
 import build_thesis_docx as bld
 import thesis_diagrams as diagrams

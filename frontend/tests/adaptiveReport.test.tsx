@@ -22,7 +22,8 @@ import {
   fmtRank,
   fmtPeriod,
   fmtPeriodRange,
-  niceTicks
+  niceTicks,
+  cleanReaderLimitations
 } from '../src/shared/lib/formatting';
 
 // Import the 5 ER fixtures
@@ -524,6 +525,57 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       expect(container.textContent).not.toContain('equity_scope');
       expect(container.textContent).not.toContain('formula:');
       expect(container.textContent).not.toContain('pdf_pages:');
+    });
+  });
+
+  describe('Reader-Facing Limitations & Profile Layout (Task FIXUI)', () => {
+    it('cleanReaderLimitations transforms peer median single-obs critic issue into neutral Vietnamese', () => {
+      const dirty = [
+        "Câu sent-company-7 nêu 'ROE của ACB cao hơn trung vị ngành 18,6%'. Tuy nhiên, trung vị ngành (peer median) quý 4/2024 chỉ dựa trên 1 quan sát. Cần bổ sung lưu ý..."
+      ];
+      const cleaned = cleanReaderLimitations(dirty);
+      expect(cleaned).toHaveLength(1);
+      expect(cleaned[0]).toBe(
+        'Trung vị ngành cho ROE quý 4/2024 chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo.'
+      );
+      expect(cleaned[0]).not.toContain('sent-company-7');
+      expect(cleaned[0]).not.toContain('Cần bổ sung');
+    });
+
+    it('cleanReaderLimitations aggregates other unhandled critic issues', () => {
+      const dirty = [
+        "Góp ý phản biện chưa xử lý (mức nhẹ): Câu sent-3 cần diễn đạt thận trọng hơn về NIM.",
+        "Khuyến nghị block 2 cần kiểm tra lại nguồn số liệu."
+      ];
+      const cleaned = cleanReaderLimitations(dirty);
+      expect(cleaned).toHaveLength(1);
+      expect(cleaned[0]).toBe('Bộ phản biện còn 2 lưu ý chưa xử lý; xem quá trình phân tích.');
+    });
+
+    it('SourceNotes does not leak sent-* or writer instructions in limitations', () => {
+      const reportWithDirtyLimitation: AdaptiveReportResponse = {
+        ...(h2hFixture as unknown as AdaptiveReportResponse),
+        report_id: 'rep-dirty-limitation-test',
+        limitations: [
+          "Dữ liệu giới hạn ở 27 ngân hàng niêm yết.",
+          "Câu sent-company-7 nêu 'ROE của ACB cao hơn trung vị ngành 18,6%'. Tuy nhiên, trung vị ngành (peer median) quý 4/2024 chỉ dựa trên 1 quan sát. Cần bổ sung lưu ý..."
+        ]
+      };
+
+      const { container } = renderReportInRouter(reportWithDirtyLimitation);
+      expect(container.textContent).toContain('Dữ liệu giới hạn ở 27 ngân hàng niêm yết.');
+      expect(container.textContent).toContain('Trung vị ngành cho ROE quý 4/2024 chỉ dựa trên 1 quan sát');
+      expect(container.textContent).not.toContain('sent-company-7');
+      expect(container.textContent).not.toContain('Cần bổ sung');
+      expect(container.textContent).not.toContain('peer median');
+    });
+
+    it('profile layout renders SignalsAside with float-right container to prevent whitespace gap', () => {
+      const { container } = renderReportInRouter(profileFixture as unknown as AdaptiveReportResponse);
+      const asideWrapper = container.querySelector('.md\\:float-right');
+      expect(asideWrapper).not.toBeNull();
+      expect(asideWrapper?.classList.contains('md:w-[280px]')).toBe(true);
+      expect(container.querySelector('.clear-both')).not.toBeNull();
     });
   });
 });

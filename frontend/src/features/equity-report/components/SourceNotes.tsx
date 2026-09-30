@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEquityReport } from './useEquityReport';
-import { formatDisplayText, humanizeLocator } from '@/shared/lib/formatting';
+import { cleanReaderLimitations, formatDisplayText, humanizeLocator } from '@/shared/lib/formatting';
 
 export const SourceNotes: React.FC = () => {
   const { report, sourceNotes, datasets } = useEquityReport();
@@ -16,7 +16,7 @@ export const SourceNotes: React.FC = () => {
   const showSampleDisclaimer = (qType === 'company_profile' || qType === 'ranking') && allEntities.size >= 3;
   const peerCount = allEntities.size || 5;
 
-  const limitations = (report.limitations as string[] | undefined) || [];
+  const limitations = cleanReaderLimitations((report.limitations as string[] | undefined) || []);
 
   return (
     <footer className="border-t border-line mt-6 pt-3 text-[11px] leading-[1.8] text-text-muted font-sans">

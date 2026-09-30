@@ -1,5 +1,6 @@
 import { AlertCircle, CheckCircle2, Info, Layers, Network } from 'lucide-react';
 import type { AnalysisPlan, BoundedRevisionSummary } from '../model/types';
+import { cleanReaderLimitations } from '@/shared/lib/formatting';
 
 interface AnalysisPlanBannerProps {
   plan: AnalysisPlan;
@@ -24,7 +25,7 @@ export function AnalysisPlanBanner({
   revisionSummary,
   limitations
 }: AnalysisPlanBannerProps) {
-  const allLimitations = [...(plan.known_limitations || []), ...(limitations || [])];
+  const allLimitations = cleanReaderLimitations([...(plan.known_limitations || []), ...(limitations || [])]);
   const limitationsReported = Array.isArray(plan.known_limitations) || Array.isArray(limitations);
 
   return (

@@ -6,6 +6,7 @@ without invoking language models or prompt templates.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from typing import Any
 
@@ -209,3 +210,147 @@ def summary_blocked(
     if code_or_message:
         return code_or_message
     return "Yêu cầu bị chặn"
+
+
+def _extract_metric_name(text: str) -> str | None:
+    t_lower = text.lower()
+    if re.search(r"\broe\b", text, re.IGNORECASE):
+        return "ROE"
+    if re.search(r"\broa\b", text, re.IGNORECASE):
+        return "ROA"
+    if re.search(r"\b(?:tỷ lệ nợ xấu|nợ xấu|npl)\b", t_lower):
+        return "tỷ lệ nợ xấu"
+    if re.search(r"\b(?:tỷ lệ bao phủ nợ xấu|bao phủ nợ xấu|đệm bao phủ|đệm dự phòng|llr)\b", t_lower):
+        return "tỷ lệ bao phủ nợ xấu"
+    if re.search(r"\bcasa\b", t_lower):
+        return "tỷ lệ CASA"
+    if re.search(r"\bnim\b", text, re.IGNORECASE):
+        return "NIM"
+    if re.search(r"\bcir\b", text, re.IGNORECASE):
+        return "tỷ lệ CIR"
+    if re.search(r"\bldr\b", text, re.IGNORECASE):
+        return "tỷ lệ LDR"
+    return None
+
+
+def _extract_period_name(text: str) -> str | None:
+    m = re.search(r"\b(?:quý\s*([1-4])[/_](\d{4})|Q([1-4])[/_](\d{4})|(\d{4})[/_]Q([1-4]))\b", text, re.IGNORECASE)
+    if m:
+        q = m.group(1) or m.group(3) or m.group(6)
+        y = m.group(2) or m.group(4) or m.group(5)
+        return f"quý {q}/{y}"
+    return None
+
+
+def _format_single_critic_limitation(desc: str) -> str | None:
+    if not desc or not desc.strip():
+        return None
+    raw = desc.strip()
+
+    # Pattern 1: Single observation peer median / sample size limitation
+    is_peer_median = bool(re.search(r"(?:trung vị ngành|trung vị|peer median|peer_median)", raw, re.IGNORECASE))
+    is_single_obs = bool(re.search(r"(?:1 quan sát|một quan sát|chỉ có 1|chỉ có một|mẫu chỉ có 1|mẫu chỉ có một|đúng giá trị của|duy nhất)", raw, re.IGNORECASE))
+
+    if is_peer_median and is_single_obs:
+        metric = _extract_metric_name(raw)
+        period = _extract_period_name(raw)
+        if metric and period:
+            return f"Trung vị ngành cho {metric} {period} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo."
+        if metric:
+            return f"Trung vị ngành cho {metric} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo."
+        if period:
+            return f"Trung vị ngành {period} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo."
+        return "Trung vị ngành chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo."
+
+    if is_peer_median and re.search(r"(?:cỡ mẫu|mẫu so sánh|số lượng quan sát hạn chế)", raw, re.IGNORECASE):
+        return "Mẫu so sánh trung vị ngành có số lượng quan sát hạn chế, nên so sánh mang tính tham khảo."
+
+    # Pattern 2: Internal technical identifiers or writer directives
+    has_internal_id = bool(re.search(r"\b(?:sent-[a-zA-Z0-9_-]+|fact:[a-zA-Z0-9_:-]+|block[ _-]?\d+)\b", raw, re.IGNORECASE))
+    has_writer_command = bool(re.search(r"\b(?:cần bổ sung|cần điều chỉnh|cần diễn đạt|cần kiểm tra|cần lưu ý|đề nghị|khuyến nghị)\b", raw, re.IGNORECASE))
+    has_english_code = bool(re.search(r"\b(?:peer[ _]median|lead_count|observation_id|reporting_scope|unresolved_critique|delta_pp)\b", raw, re.IGNORECASE))
+
+    if has_internal_id or has_writer_command or has_english_code:
+        return None
+
+    # Pattern 3: Clean Vietnamese limitation (strip any critic prefix if present)
+    cleaned = re.sub(r"^(?:góp ý phản biện(?: chưa xử lý)?(?:\s*\([^)]*\))?\s*:\s*|phản biện\s*:\s*)", "", raw, flags=re.IGNORECASE).strip()
+    if cleaned and len(cleaned) <= 160:
+        return cleaned[0].upper() + cleaned[1:] if len(cleaned) > 1 else cleaned.upper()
+
+    return None
+
+
+def format_critic_limitations(issues: Sequence[Any]) -> list[str]:
+    """Convert critique issues into reader-facing Vietnamese limitations."""
+    results: list[str] = []
+    unhandled_count = 0
+    seen: set[str] = set()
+
+    for item in issues:
+        desc = getattr(item, "description", None) or str(item)
+        if not desc or not desc.strip():
+            continue
+        formatted = _format_single_critic_limitation(desc)
+        if formatted:
+            if formatted not in seen:
+                seen.add(formatted)
+                results.append(formatted)
+        else:
+            unhandled_count += 1
+
+    if unhandled_count > 0:
+        msg = (
+            "Bộ phản biện còn 1 lưu ý chưa xử lý; xem quá trình phân tích."
+            if unhandled_count == 1
+            else f"Bộ phản biện còn {unhandled_count} lưu ý chưa xử lý; xem quá trình phân tích."
+        )
+        if msg not in seen:
+            results.append(msg)
+
+    return results
+
+
+def clean_reader_facing_limitations(limitations: Sequence[str]) -> list[str]:
+    """Sanitize limitation items to ensure no internal IDs or raw writer instructions leak."""
+    results: list[str] = []
+    unhandled_count = 0
+    seen: set[str] = set()
+
+    for item in limitations:
+        if not item or not item.strip():
+            continue
+        raw = item.strip()
+
+        has_internal_id = bool(re.search(r"\b(?:sent-[a-zA-Z0-9_-]+|block[ _-]?\d+)\b", raw, re.IGNORECASE))
+        has_writer_command = bool(re.search(r"\b(?:cần bổ sung|cần điều chỉnh|cần diễn đạt|cần kiểm tra|đề nghị|khuyến nghị)\b", raw, re.IGNORECASE))
+        is_critic_prefix = bool(re.search(r"^góp ý phản biện", raw, re.IGNORECASE))
+
+        if has_internal_id or has_writer_command or is_critic_prefix:
+            formatted = _format_single_critic_limitation(raw)
+            if formatted:
+                if formatted not in seen:
+                    seen.add(formatted)
+                    results.append(formatted)
+            else:
+                unhandled_count += 1
+            continue
+
+        if "fact:" in raw:
+            raw = re.sub(r"fact:[a-zA-Z0-9_.:-]+", "chỉ tiêu", raw)
+
+        if raw not in seen:
+            seen.add(raw)
+            results.append(raw)
+
+    if unhandled_count > 0:
+        msg = (
+            "Bộ phản biện còn 1 lưu ý chưa xử lý; xem quá trình phân tích."
+            if unhandled_count == 1
+            else f"Bộ phản biện còn {unhandled_count} lưu ý chưa xử lý; xem quá trình phân tích."
+        )
+        if msg not in seen:
+            results.append(msg)
+
+    return results
+

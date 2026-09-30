@@ -1,0 +1,2120 @@
+{
+  "run_id": "er8-T08-hierarchical_with_critique-r0-9ae44bce",
+  "task_id": "T08",
+  "arm": "hierarchical_with_critique",
+  "rep": 0,
+  "order": 11,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-baa8771aaa5c",
+    "query": "ACB đánh đổi chất lượng tài sản và khả năng sinh lời thế nào trong năm 2024 so với các ngân hàng cùng nhóm?",
+    "target_ticker": "ACB",
+    "peer_tickers": [],
+    "period": "2024_Q4",
+    "periods": [
+      "2024_Q4"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "rationale": "Kế hoạch phân tích dạng trend cho ACB với 2 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận.",
+      "ACB 2024_Q1 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+    ],
+    "question_type": "trend",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng trend cho ACB với 2 công cụ.",
+    "tools": [
+      {
+        "tool": "trend",
+        "params": {
+          "entity": "ACB",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "periods": [
+            "2024_Q1",
+            "2024_Q2",
+            "2024_Q3",
+            "2024_Q4"
+          ]
+        }
+      },
+      {
+        "tool": "peer_position",
+        "params": {
+          "entity": "ACB",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "period": "2024_Q4"
+        }
+      }
+    ],
+    "context_periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "2c64c854bc23da186557f44bbaa2b7c6572a4a08d5c03f9e0c67614e0b053470",
+  "model": "offline-stub",
+  "duration_ms": 531,
+  "model_calls": 4,
+  "tokens": {
+    "input_tokens": 1350,
+    "output_tokens": 330,
+    "total_tokens": 1680
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-b13afb95cf9a4501bc075ed46054950a",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-baa8771aaa5c",
+      "query": "ACB đánh đổi chất lượng tài sản và khả năng sinh lời thế nào trong năm 2024 so với các ngân hàng cùng nhóm?",
+      "target_ticker": "ACB",
+      "peer_tickers": [],
+      "period": "2024_Q4",
+      "periods": [
+        "2024_Q4"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+      "rationale": "Kế hoạch phân tích dạng trend cho ACB với 2 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận.",
+        "ACB 2024_Q1 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+      ],
+      "question_type": "trend",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng trend cho ACB với 2 công cụ.",
+      "tools": [
+        {
+          "tool": "trend",
+          "params": {
+            "entity": "ACB",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "periods": [
+              "2024_Q1",
+              "2024_Q2",
+              "2024_Q3",
+              "2024_Q4"
+            ]
+          }
+        },
+        {
+          "tool": "peer_position",
+          "params": {
+            "entity": "ACB",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "period": "2024_Q4"
+          }
+        }
+      ],
+      "context_periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "ACB",
+        "roe": 21.7459,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 2/2024 đạt 76,4%.",
+        "metric_period_records": [],
+        "roa": 2.1215
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.llr_coverage=76.5591 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.npl_g35=1.5122 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.roa",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.roa=2.1215 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.roe",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.roe=21.7459 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 76.5591,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 1.5122,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.roa",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 2.1215,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.roe",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 21.7459,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 1,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Terminal acceptance decision from the verified narrative controller.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận.",
+      "ACB 2024_Q1 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "trend",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-company-1",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 2/2024 đạt 76,4%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q2:bank.llr_coverage"
+            ],
+            "author": "company",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "small_multiples",
+          "dataset_id": "ds-series-multi-acb",
+          "title": "Diễn biến các chỉ tiêu tài chính · ACB",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-7a1e5d",
+            "text": "Diễn biến các chỉ tiêu tài chính · ACB thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q2:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 2,
+          "chart": "rank_heatmap",
+          "dataset_id": "ds-peer-position-acb-2024q4",
+          "title": "Vị thế nhóm · ACB 2024_Q4",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-47c040",
+            "text": "Vị thế nhóm · ACB 2024_Q4 thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q2:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "key_points",
+          "items": [
+            {
+              "title": "Nhận định chính",
+              "sentences": [
+                {
+                  "sentence_id": "sent-company-2",
+                  "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 3/2024 đạt 79,1%.",
+                  "fact_ids": [
+                    "fact:value:ACB:2024_Q3:bank.llr_coverage"
+                  ],
+                  "author": "company",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-company-3",
+                  "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt 76,6%.",
+                  "fact_ids": [
+                    "fact:value:ACB:2024_Q4:bank.llr_coverage"
+                  ],
+                  "author": "company",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-company-4",
+                  "text": "Mức thay đổi tỷ lệ bao phủ nợ xấu của ACB từ quý 2/2024 đến quý 3/2024 đạt +2,7 điểm %.",
+                  "fact_ids": [
+                    "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage"
+                  ],
+                  "author": "company",
+                  "source": "model",
+                  "revision": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "notice",
+          "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+          "finding_id": null,
+          "sentences": [
+            {
+              "sentence_id": "sent-orchestrator-bfffed",
+              "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng. được ghi nhận từ dữ liệu.",
+              "fact_ids": [
+                "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
+              ],
+              "author": "orchestrator",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-series-multi-acb",
+        "shape": "series_multi",
+        "title": "Diễn biến các chỉ tiêu tài chính · ACB",
+        "produced_by": {
+          "tool": "trend",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2024_Q1",
+          "2024_Q2",
+          "2024_Q3",
+          "2024_Q4"
+        ],
+        "highlight_entity_ids": [
+          "ACB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q1",
+            "status": "missing",
+            "value": null,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q2",
+            "status": "valid",
+            "value": 76.3505,
+            "observation_id": "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q3",
+            "status": "valid",
+            "value": 79.0721,
+            "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 76.5591,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q1",
+            "status": "missing",
+            "value": null,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q2",
+            "status": "valid",
+            "value": 1.4968,
+            "observation_id": "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q3",
+            "status": "valid",
+            "value": 1.5121,
+            "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.5122,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q1",
+            "status": "missing",
+            "value": null,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q2",
+            "status": "valid",
+            "value": 2.206,
+            "observation_id": "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roa:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q3",
+            "status": "valid",
+            "value": 2.1723,
+            "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roa:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.1215,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q1",
+            "status": "missing",
+            "value": null,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q2",
+            "status": "valid",
+            "value": 22.529,
+            "observation_id": "official-ACB-2024-Q2-consolidated:2024_Q2:bank.roe:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q3",
+            "status": "valid",
+            "value": 21.695,
+            "observation_id": "official-ACB-2024-Q3-consolidated:2024_Q3:bank.roe:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 21.7459,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "small_multiples"
+        ]
+      },
+      {
+        "dataset_id": "ds-peer-position-acb-2024q4",
+        "shape": "peer_table",
+        "title": "Vị thế nhóm · ACB 2024_Q4",
+        "produced_by": {
+          "tool": "peer_position",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "highlight_entity_ids": [
+          "ACB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 76.5591,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 92.2484,
+            "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 113.8,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 223.311,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 56.1749,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.5122,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.6205,
+            "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+            "rank_better": 4,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.17,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+            "rank_better": 2,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 0.9636,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+            "rank_better": 1,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 4.1956,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+            "rank_better": 5,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.1215,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.2135,
+            "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roa",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.4,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.7249,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roa",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.8361,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roa",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 21.7459,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 22.0939,
+            "observation_id": "expansion:official-MBB-2024-Q4-consolidated:2024_Q4:bank.roe:parent_attributable_equity",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 15.5,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 18.5965,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.roe:parent_attributable_equity",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 11.4117,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.roe:parent_attributable_equity",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "value": 92.2484,
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "value": 1.5122,
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "value": 2.1215,
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roa"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "value": 18.5965,
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roe"
+          }
+        ],
+        "allowed_charts": [
+          "rank_heatmap",
+          "comparison_table"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:value:ACB:2024_Q2:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q2",
+        "from_period": null,
+        "value": 76.3505,
+        "unit": "%",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:ACB:2024_Q3:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q3",
+        "from_period": null,
+        "value": 79.0721,
+        "unit": "%",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:ACB:2024_Q4:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "from_period": null,
+        "value": 76.5591,
+        "unit": "%",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage",
+        "fact_type": "delta",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q3",
+        "from_period": "2024_Q2",
+        "value": 2.7216000000000093,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q2-consolidated-alternate:2024_Q2:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage",
+        "fact_type": "delta",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "from_period": "2024_Q3",
+        "value": -2.5130000000000052,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q3-consolidated:2024_Q3:bank.llr_coverage:aligned_non_margin_variant",
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [
+      {
+        "finding_id": "f-counter-trend-1",
+        "kind": "counter_trend",
+        "severity": "warning",
+        "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+        "fact_ids": [
+          "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage",
+          "fact:median_delta:sector:bank:2024_Q3_to_2024_Q4:bank.llr_coverage"
+        ],
+        "status": "confirmed"
+      }
+    ],
+    "narrative_audit": {
+      "sentences_checked": 7,
+      "sentences_accepted": 7,
+      "sentences_dropped": [],
+      "numbers_checked": 4,
+      "numbers_matched": 4,
+      "blocks_dropped": [],
+      "composition_source": "model"
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "official-ACB-2024-Q2-consolidated-alternate",
+        "title": "ACB · BCTC hợp nhất Q2/2024",
+        "url": "https://acb.com.vn/acbwebsite/files/FS%20ACB%20Hop%20nhat%20QII.2024.pdf",
+        "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:value:ACB:2024_Q2:bank.llr_coverage",
+          "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "official-ACB-2024-Q3-consolidated",
+        "title": "ACB · BCTC hợp nhất Q3/2024",
+        "url": "https://acb.com.vn/acbwebsite/files/20240930-ACB-BCTC%20Q3.2024_HN.pdf",
+        "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:value:ACB:2024_Q3:bank.llr_coverage",
+          "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage",
+          "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "title": "ACB · BCTC hợp nhất Q4/2024",
+        "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:value:ACB:2024_Q4:bank.llr_coverage",
+          "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Diễn biến. Gọi Doanh nghiệp với 2 phép phân tích",
+      "detail": {
+        "question_type": "trend",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng trend cho ACB với 2 công cụ.",
+        "entities": [
+          "ACB"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "anchor_period": "2024_Q4",
+        "periods": [
+          "2024_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "trend",
+            "agent": "company",
+            "label": "diễn biến chuỗi thời gian"
+          },
+          {
+            "tool": "peer_position",
+            "agent": "sector",
+            "label": "vị thế nhóm ngành"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 78,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: diễn biến chuỗi thời gian",
+      "detail": {
+        "task": "trend",
+        "tools": [
+          "diễn biến chuỗi thời gian"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 421,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 68 số liệu có nguồn từ phép phân tích diễn biến chuỗi thời gian",
+      "detail": {
+        "tool": "trend",
+        "label": "diễn biến chuỗi thời gian",
+        "facts": [
+          {
+            "fact_id": "fact:value:ACB:2024_Q2:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 2/2024",
+            "display_value": "76,4%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q3:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 3/2024",
+            "display_value": "79,1%",
+            "source_note_no": 2
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "76,6%",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của ACB từ quý 2/2024 đến quý 3/2024",
+            "display_value": "+2,7 điểm %",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của ACB từ quý 3/2024 đến quý 4/2024",
+            "display_value": "-2,5 điểm %",
+            "source_note_no": 2
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của ACB từ quý 2/2024 đến quý 4/2024",
+            "display_value": "+0,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 4 ngân hàng trong quý 1/2024",
+            "display_value": "93,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q2:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 2/2024",
+            "display_value": "101,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q2:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của ACB so với trung vị nhóm trong quý 2/2024",
+            "display_value": "-24,6 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q3:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 3/2024",
+            "display_value": "79,1%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q3:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của ACB so với trung vị nhóm trong quý 3/2024",
+            "display_value": "0,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "92,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "-15,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q1_to_2024_Q2:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 1/2024 đến quý 2/2024",
+            "display_value": "+8,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q2_to_2024_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 2/2024 đến quý 3/2024",
+            "display_value": "-21,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q3_to_2024_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 3/2024 đến quý 4/2024",
+            "display_value": "+13,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 4/5 về tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "hạng 4/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 2/2024",
+            "display_value": "1,50%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q3:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 3/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của ACB từ quý 2/2024 đến quý 3/2024",
+            "display_value": "+0,02 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của ACB từ quý 3/2024 đến quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của ACB từ quý 2/2024 đến quý 4/2024",
+            "display_value": "+0,02 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 4 ngân hàng trong quý 1/2024",
+            "display_value": "1,85%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 2/2024",
+            "display_value": "1,50%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q2:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của ACB so với trung vị nhóm trong quý 2/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q3:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 3/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q3:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của ACB so với trung vị nhóm trong quý 3/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q1_to_2024_Q2:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 1/2024 đến quý 2/2024",
+            "display_value": "-0,36 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q2_to_2024_Q3:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 2/2024 đến quý 3/2024",
+            "display_value": "+0,02 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q3_to_2024_Q4:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 3/2024 đến quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Xếp hạng 3/5 về tỷ lệ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "hạng 3/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q2:bank.roa",
+            "label": "ROA của ACB trong quý 2/2024",
+            "display_value": "2,21%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q3:bank.roa",
+            "label": "ROA của ACB trong quý 3/2024",
+            "display_value": "2,17%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roa",
+            "label": "ROA của ACB trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.roa",
+            "label": "Mức thay đổi ROA của ACB từ quý 2/2024 đến quý 3/2024",
+            "display_value": "-0,03 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của ACB từ quý 3/2024 đến quý 4/2024",
+            "display_value": "-0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của ACB từ quý 2/2024 đến quý 4/2024",
+            "display_value": "-0,08 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.roa",
+            "label": "Trung vị ROA nhóm 4 ngân hàng trong quý 1/2024",
+            "display_value": "2,01%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q2:bank.roa",
+            "label": "Trung vị ROA nhóm 5 ngân hàng trong quý 2/2024",
+            "display_value": "2,21%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q2:bank.roa",
+            "label": "Chênh lệch ROA của ACB so với trung vị nhóm trong quý 2/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q3:bank.roa",
+            "label": "Trung vị ROA nhóm 5 ngân hàng trong quý 3/2024",
+            "display_value": "2,17%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q3:bank.roa",
+            "label": "Chênh lệch ROA của ACB so với trung vị nhóm trong quý 3/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roa",
+            "label": "Chênh lệch ROA của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q1_to_2024_Q2:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 1/2024 đến quý 2/2024",
+            "display_value": "+0,19 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q2_to_2024_Q3:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 2/2024 đến quý 3/2024",
+            "display_value": "-0,03 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q3_to_2024_Q4:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 3/2024 đến quý 4/2024",
+            "display_value": "-0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roa",
+            "label": "Xếp hạng 3/5 về ROA của ACB trong quý 4/2024",
+            "display_value": "hạng 3/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q2:bank.roe",
+            "label": "ROE của ACB trong quý 2/2024",
+            "display_value": "22,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q3:bank.roe",
+            "label": "ROE của ACB trong quý 3/2024",
+            "display_value": "21,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roe",
+            "label": "ROE của ACB trong quý 4/2024",
+            "display_value": "21,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.roe",
+            "label": "Mức thay đổi ROE của ACB từ quý 2/2024 đến quý 3/2024",
+            "display_value": "-0,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q3_to_2024_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của ACB từ quý 3/2024 đến quý 4/2024",
+            "display_value": "+0,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:ACB:2024_Q2_to_2024_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của ACB từ quý 2/2024 đến quý 4/2024",
+            "display_value": "-0,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.roe",
+            "label": "Trung vị ROE nhóm 4 ngân hàng trong quý 1/2024",
+            "display_value": "17,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q2:bank.roe",
+            "label": "Trung vị ROE nhóm 5 ngân hàng trong quý 2/2024",
+            "display_value": "19,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q2:bank.roe",
+            "label": "Chênh lệch ROE của ACB so với trung vị nhóm trong quý 2/2024",
+            "display_value": "+3,3 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q3:bank.roe",
+            "label": "Trung vị ROE nhóm 5 ngân hàng trong quý 3/2024",
+            "display_value": "19,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q3:bank.roe",
+            "label": "Chênh lệch ROE của ACB so với trung vị nhóm trong quý 3/2024",
+            "display_value": "+2,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "18,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "Chênh lệch ROE của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "+3,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q1_to_2024_Q2:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 1/2024 đến quý 2/2024",
+            "display_value": "+1,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q2_to_2024_Q3:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 2/2024 đến quý 3/2024",
+            "display_value": "+0,3 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2024_Q3_to_2024_Q4:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 3/2024 đến quý 4/2024",
+            "display_value": "-0,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "Xếp hạng 2/5 về ROE của ACB trong quý 4/2024",
+            "display_value": "hạng 2/5",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-series-multi-acb",
+            "title": "Diễn biến các chỉ tiêu tài chính · ACB"
+          }
+        ],
+        "missing": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q1",
+            "reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q1",
+            "reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q1",
+            "reason": "DATA_UNAVAILABLE"
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q1",
+            "reason": "DATA_UNAVAILABLE"
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 421,
+      "actor": "orchestrator",
+      "recipient": "sector",
+      "kind": "assign",
+      "summary": "Giao việc: vị thế nhóm ngành",
+      "detail": {
+        "task": "peer_position",
+        "tools": [
+          "vị thế nhóm ngành"
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 483,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 20 số liệu có nguồn từ phép phân tích vị thế nhóm ngành",
+      "detail": {
+        "tool": "peer_position",
+        "label": "vị thế nhóm ngành",
+        "facts": [
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "92,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "76,6%",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 4/5 về tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "hạng 4/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "-15,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ tỷ lệ bao phủ nợ xấu của ACB gấp 0,8 lần trung vị trong quý 4/2024",
+            "display_value": "0,8 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Xếp hạng 3/5 về tỷ lệ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "hạng 3/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:ACB:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ tỷ lệ nợ xấu của ACB gấp 1,0 lần trung vị trong quý 4/2024",
+            "display_value": "1,0 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roa",
+            "label": "ROA của ACB trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roa",
+            "label": "Xếp hạng 3/5 về ROA của ACB trong quý 4/2024",
+            "display_value": "hạng 3/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roa",
+            "label": "Chênh lệch ROA của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "0,00 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:ACB:sector:bank:2024_Q4:bank.roa",
+            "label": "Tỷ lệ ROA của ACB gấp 1,0 lần trung vị trong quý 4/2024",
+            "display_value": "1,0 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "18,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roe",
+            "label": "ROE của ACB trong quý 4/2024",
+            "display_value": "21,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "Xếp hạng 2/5 về ROE của ACB trong quý 4/2024",
+            "display_value": "hạng 2/5",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "Chênh lệch ROE của ACB so với trung vị nhóm trong quý 4/2024",
+            "display_value": "+3,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:ACB:sector:bank:2024_Q4:bank.roe",
+            "label": "Tỷ lệ ROE của ACB gấp 1,2 lần trung vị trong quý 4/2024",
+            "display_value": "1,2 lần",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-peer-position-acb-2024q4",
+            "title": "Vị thế nhóm · ACB 2024_Q4"
+          },
+          {
+            "dataset_id": "ds-paired-acb-2024q4",
+            "title": "Tương quan LLR_COVERAGE và NPL_G35 · 2024_Q4"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 483,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 4 nhận định nháp",
+      "detail": {
+        "sentences": [
+          {
+            "sentence_id": "sent-company-1",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 2/2024 đạt 76,4%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q2:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-2",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 3/2024 đạt 79,1%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q3:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-3",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt 76,6%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-4",
+            "text": "Mức thay đổi tỷ lệ bao phủ nợ xấu của ACB từ quý 2/2024 đến quý 3/2024 đạt +2,7 điểm %.",
+            "fact_ids": [
+              "fact:delta:ACB:2024_Q2_to_2024_Q3:bank.llr_coverage"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 483,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "4/4 số khớp dữ liệu gốc; tất cả câu đều đạt",
+      "detail": {
+        "sentences_checked": 4,
+        "numbers_checked": 4,
+        "numbers_matched": 4,
+        "dropped": []
+      }
+    },
+    {
+      "step_id": "t-8",
+      "seq": 8,
+      "t_ms": 483,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 4 nhận định nháp",
+      "detail": {
+        "sentences": [
+          {
+            "sentence_id": "sent-sector-1",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt 76,6%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-2",
+            "text": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 4/2024 đạt 92,2%.",
+            "fact_ids": [
+              "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-3",
+            "text": "Chênh lệch tỷ lệ bao phủ nợ xấu của ACB so với trung vị nhóm trong quý 4/2024 đạt -15,7 điểm %.",
+            "fact_ids": [
+              "fact:gap_to_median:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-4",
+            "text": "Xếp hạng 4/5 về tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt hạng 4/5.",
+            "fact_ids": [
+              "fact:peer_rank:ACB:sector:bank:2024_Q4:bank.llr_coverage"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-9",
+      "seq": 9,
+      "t_ms": 483,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "3/3 số khớp dữ liệu gốc; tất cả câu đều đạt",
+      "detail": {
+        "sentences_checked": 4,
+        "numbers_checked": 3,
+        "numbers_matched": 3,
+        "dropped": []
+      }
+    },
+    {
+      "step_id": "t-10",
+      "seq": 10,
+      "t_ms": 483,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 2 hình, 1 luận điểm, 1 lưu ý",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "figure",
+            "title": "Diễn biến các chỉ tiêu tài chính · ACB"
+          },
+          {
+            "type": "figure",
+            "title": "Vị thế nhóm · ACB 2024_Q4"
+          },
+          {
+            "type": "key_points",
+            "title": "Nhận định chính"
+          },
+          {
+            "type": "callout",
+            "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng."
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-11",
+      "seq": 11,
+      "t_ms": 483,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "assign",
+      "summary": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+      "detail": {
+        "task": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+        "tools": [
+          "semantic_critique"
+        ]
+      }
+    },
+    {
+      "step_id": "t-12",
+      "seq": 12,
+      "t_ms": 483,
+      "actor": "critic",
+      "recipient": "orchestrator",
+      "kind": "accept",
+      "summary": "Vòng 1: chấp nhận, không còn vấn đề mở",
+      "detail": {
+        "round": 1,
+        "open_issues": 0
+      }
+    },
+    {
+      "step_id": "t-13",
+      "seq": 13,
+      "t_ms": 500,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-b13afb95cf9a4501bc075ed46054950a",
+        "duration_ms": 500,
+        "model_calls": 4
+      }
+    }
+  ]
+}

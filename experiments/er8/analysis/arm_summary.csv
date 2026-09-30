@@ -1,0 +1,4 @@
+arm,label,total_runs,mean_completed,mean_protocol_success,mean_numeric_correctness,mean_traceability_score,mean_coverage_score,mean_discard_rate,mean_cross_level_findings_count,mean_duration_ms,mean_model_calls,mean_total_tokens,mean_revision_rounds
+single_agent,Arm A (Single-Agent),1,1.0,1.0,0.0,1.0,0.5,0.0,1.0,1875.0,0.0,0.0,0.0
+hierarchical_no_critique,Arm B (Hierarchical không phản biện),1,1.0,1.0,0.0,1.0,0.5,0.0,1.0,1469.0,0.0,0.0,0.0
+hierarchical_with_critique,Arm C (Hierarchical có phản biện),1,1.0,1.0,0.0,1.0,0.5,0.0,1.0,1421.0,0.0,0.0,0.0

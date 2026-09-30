@@ -1,0 +1,1593 @@
+{
+  "run_id": "er8-T09-single_agent-r0-b53f5589",
+  "task_id": "T09",
+  "arm": "single_agent",
+  "rep": 0,
+  "order": 26,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-7d34db7b6498",
+    "query": "So sánh ACB và TCB trong quý 4/2024.",
+    "target_ticker": "ACB",
+    "peer_tickers": [
+      "ACB",
+      "TCB"
+    ],
+    "period": "2024_Q4",
+    "periods": [
+      "2024_Q4"
+    ],
+    "required_capabilities": [
+      "sector"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "rationale": "Kế hoạch phân tích dạng head_to_head cho ACB, TCB với 2 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "head_to_head",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho ACB, TCB với 2 công cụ.",
+    "tools": [
+      {
+        "tool": "head_to_head",
+        "params": {
+          "entities": [
+            "ACB",
+            "TCB"
+          ],
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "period": "2024_Q4"
+        }
+      },
+      {
+        "tool": "decomposition",
+        "params": {
+          "entities": [
+            "ACB",
+            "TCB"
+          ],
+          "period": "2024_Q4",
+          "formula": "derived.roe_over_roa"
+        }
+      }
+    ],
+    "context_periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:TCB:2024_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for TCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2024_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for TCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2024_Q4:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for TCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2024_Q4:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for TCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2024_Q4:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for ACB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "6842e2d319023b1ccc57d6878cc4268d6ffde37070267c955ca5b797cc0f6dee",
+  "model": "offline-stub",
+  "duration_ms": 438,
+  "model_calls": 1,
+  "tokens": {
+    "input_tokens": 300,
+    "output_tokens": 80,
+    "total_tokens": 380
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-b220716da6884e1596d97b4339508452",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-7d34db7b6498",
+      "query": "So sánh ACB và TCB trong quý 4/2024.",
+      "target_ticker": "ACB",
+      "peer_tickers": [
+        "ACB",
+        "TCB"
+      ],
+      "period": "2024_Q4",
+      "periods": [
+        "2024_Q4"
+      ],
+      "required_capabilities": [
+        "sector"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+      "rationale": "Kế hoạch phân tích dạng head_to_head cho ACB, TCB với 2 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "head_to_head",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho ACB, TCB với 2 công cụ.",
+      "tools": [
+        {
+          "tool": "head_to_head",
+          "params": {
+            "entities": [
+              "ACB",
+              "TCB"
+            ],
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "period": "2024_Q4"
+          }
+        },
+        {
+          "tool": "decomposition",
+          "params": {
+            "entities": [
+              "ACB",
+              "TCB"
+            ],
+            "period": "2024_Q4",
+            "formula": "derived.roe_over_roa"
+          }
+        }
+      ],
+      "context_periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:TCB:2024_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for TCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2024_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for TCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2024_Q4:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for TCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2024_Q4:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for TCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2024_Q4:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for ACB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": {
+      "sector": "Accepted peer universe",
+      "peer_median_roe": 15.5,
+      "peer_median_nim": null,
+      "peer_median_npl": null,
+      "peer_median_cir": null,
+      "peer_median_casa": null,
+      "peer_median_car": null,
+      "peer_median_ldr": null,
+      "benchmarks": [
+        {
+          "metric_id": "bank.llr_coverage",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-ed1c333388e6df7f",
+          "value": 113.8,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.npl_g35",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-ed1c333388e6df7f",
+          "value": 1.17,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.roa",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roa:scope-ed1c333388e6df7f",
+          "value": 2.4,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "ttm",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.roe",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roe:scope-ed1c333388e6df7f",
+          "value": 15.5,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "ttm",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe"
+          ],
+          "missing_members": []
+        }
+      ],
+      "peer_median_llr_coverage": 113.8,
+      "peer_median_npl_g35": 1.17,
+      "peer_median_roa": 2.4,
+      "peer_universe_id": "sector:bank",
+      "aggregation_method": "peer_median_v1",
+      "requested_peer_entity_ids": [
+        "TCB"
+      ],
+      "eligible_peer_entity_ids": [
+        "TCB"
+      ],
+      "requested_denominator": 1,
+      "eligible_denominator": 1,
+      "missing_members": []
+    },
+    "company_insights": [
+      {
+        "ticker": "ACB",
+        "roe": 21.7459,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt 76,6%.",
+        "metric_period_records": [],
+        "roa": 2.1215
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.llr_coverage=76.5591 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.npl_g35=1.5122 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.roa",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.roa=2.1215 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.roe",
+        "period": "2024_Q4",
+        "statement": "ACB has provider-backed bank.roe=21.7459 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "TCB",
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "TCB has provider-backed bank.llr_coverage=113.8 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "TCB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "TCB has provider-backed bank.npl_g35=1.17 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "TCB",
+        "metric": "bank.roa",
+        "period": "2024_Q4",
+        "statement": "TCB has provider-backed bank.roa=2.4 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "TCB",
+        "metric": "bank.roe",
+        "period": "2024_Q4",
+        "statement": "TCB has provider-backed bank.roe=15.5 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.llr_coverage for sector:bank is 113.8 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.npl_g35 for sector:bank is 1.17 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roa:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.roa",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.roa for sector:bank is 2.4 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roe:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.roe",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.roe for sector:bank is 15.5 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 76.5591,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_page:17;printed_page:15;section:5.Dự phòng rủi ro cho vay khách hàng;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 1.5122,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_page:17;printed_page:15;section:Phân tích chất lượng nợ cho vay;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.roa",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 2.1215,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_pages:3_and_1;printed_pages:3_and_1;sections:Báo cáo kết quả hoạt động hợp nhất|Tổng tài sản;extraction:visual_check",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "source_url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "metric": "bank.roe",
+        "ticker": "ACB",
+        "period": "2024_Q4",
+        "value": 21.7459,
+        "source_doc": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "table_locator": "pdf_pages:2_and_3_and_9;printed_pages:2_and_3_and_7;sections:consolidated_equity|consolidated_income_statement|subsidiaries;formula:fy2024_consolidated_pat/average_total_equity",
+        "provenance_hash": "sha256:d82d1487c377594fd3d476f11bd7ed7a100dfb9e1436f9ffd080705a2d4c2f0b"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 113.8,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 1.17,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.roa",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 2.4,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.roe",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 15.5,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 113.8,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:Coverage ratio;columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 1.17,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:NPL;columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.roa",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 2.4,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:ROA (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "source_url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "metric": "bank.roe",
+        "ticker": "TCB",
+        "period": "2024_Q4",
+        "value": 15.5,
+        "source_doc": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "table_locator": "page:30;table:4Q24 financial highlights;row:ROE (LTM);columns:1Q24,2Q24,3Q24,4Q24",
+        "provenance_hash": "sha256:186fb78b2efda1b3671ce6ac102b1037b38b9b92b177e765b05f4ede51805ee6"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Single-agent arm execution without specialist findings or critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "head_to_head",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-orchestrator-7aca20",
+            "text": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024 đạt 76,6%.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "comparison_table",
+          "dataset_id": "ds-h2h-acb-tcb-2024q4",
+          "title": "So sánh đối đầu · ACB vs TCB (2024_Q4)",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-162a98",
+            "text": "So sánh đối đầu · ACB vs TCB (2024_Q4) thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 2,
+          "chart": "kpi_strip",
+          "dataset_id": "ds-decomp-acb-2024q4",
+          "title": "Phân rã đòn bẩy ROE/ROA · 2024_Q4",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-f87437",
+            "text": "Phân rã đòn bẩy ROE/ROA · 2024_Q4 thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:ACB:2024_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-h2h-acb-tcb-2024q4",
+        "shape": "comparison_table",
+        "title": "So sánh đối đầu · ACB vs TCB (2024_Q4)",
+        "produced_by": {
+          "tool": "head_to_head",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "highlight_entity_ids": [
+          "ACB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 76.5591,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.5122,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.1215,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roa:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 21.7459,
+            "observation_id": "official-ACB-2024-Q4-consolidated:2024_Q4:bank.roe:ttm_derived",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 113.8,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.llr_coverage",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 1.17,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 2.4,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roa",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roe",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 15.5,
+            "observation_id": "official-TCB-2024-FY-results-presentation:2024_Q4:bank.roe",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "comparison_table",
+          "grouped_bar"
+        ]
+      },
+      {
+        "dataset_id": "ds-decomp-acb-2024q4",
+        "shape": "kpi",
+        "title": "Phân rã đòn bẩy ROE/ROA · 2024_Q4",
+        "produced_by": {
+          "tool": "decomposition",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "derived.roe_over_roa"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "highlight_entity_ids": [
+          "ACB",
+          "TCB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "derived.roe_over_roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 10.25024746641527,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "derived.roe_over_roa",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 6.458333333333334,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "derived.roe_over_roa",
+            "period": "2024_Q4",
+            "value": 9.981432121075223,
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:derived.roe_over_roa"
+          }
+        ],
+        "allowed_charts": [
+          "kpi_strip"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:value:ACB:2024_Q4:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "ACB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "from_period": null,
+        "value": 76.5591,
+        "unit": "%",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "official-ACB-2024-Q4-consolidated:2024_Q4:bank.llr_coverage:aligned_non_margin_variant"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 3,
+      "sentences_accepted": 3,
+      "sentences_dropped": [],
+      "numbers_checked": 1,
+      "numbers_matched": 1,
+      "blocks_dropped": [],
+      "composition_source": "model"
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "official-ACB-2024-Q4-consolidated",
+        "title": "ACB · BCTC hợp nhất Q4/2024",
+        "url": "https://acb.com.vn/acbwebsite/files/20250121%20-%20ACB%20-%20BCTC%20hop%20nhat%20Quy%2004%20nam%202024.pdf",
+        "locator": "tr. 15 · 5.Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:value:ACB:2024_Q4:bank.llr_coverage"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Đối đầu. Gọi Nhóm ngành với 2 phép phân tích",
+      "detail": {
+        "question_type": "head_to_head",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng head_to_head cho ACB, TCB với 2 công cụ.",
+        "entities": [
+          "ACB",
+          "TCB",
+          "sector:bank"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "anchor_period": "2024_Q4",
+        "periods": [
+          "2024_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "head_to_head",
+            "agent": "company",
+            "label": "so sánh đối đầu"
+          },
+          {
+            "tool": "decomposition",
+            "agent": "company",
+            "label": "phân rã chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "sector",
+            "decision": "run",
+            "reason": "Chuyên viên Nhóm ngành"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 360,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: so sánh đối đầu · phân rã chỉ tiêu",
+      "detail": {
+        "task": "head_to_head, decomposition",
+        "tools": [
+          "so sánh đối đầu",
+          "phân rã chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 421,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 22 số liệu có nguồn từ phép phân tích so sánh đối đầu",
+      "detail": {
+        "tool": "head_to_head",
+        "label": "so sánh đối đầu",
+        "facts": [
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "76,6%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roa",
+            "label": "ROA của ACB trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2024_Q4:bank.roe",
+            "label": "ROE của ACB trong quý 4/2024",
+            "display_value": "21,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:TCB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của TCB trong quý 4/2024",
+            "display_value": "113,8%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:TCB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của TCB trong quý 4/2024",
+            "display_value": "1,17%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:TCB:2024_Q4:bank.roa",
+            "label": "ROA của TCB trong quý 4/2024",
+            "display_value": "2,40%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:TCB:2024_Q4:bank.roe",
+            "label": "ROE của TCB trong quý 4/2024",
+            "display_value": "15,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa ACB và TCB trong quý 4/2024",
+            "display_value": "-37,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:ACB:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa TCB và ACB trong quý 4/2024",
+            "display_value": "+37,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa ACB và TCB trong quý 4/2024",
+            "display_value": "+0,34 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:ACB:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa TCB và ACB trong quý 4/2024",
+            "display_value": "-0,34 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roa",
+            "label": "Chênh lệch ROA giữa ACB và TCB trong quý 4/2024",
+            "display_value": "-0,28 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:ACB:2024_Q4:bank.roa",
+            "label": "Chênh lệch ROA giữa TCB và ACB trong quý 4/2024",
+            "display_value": "+0,28 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:ACB:vs:TCB:2024_Q4:bank.roe",
+            "label": "Chênh lệch ROE giữa ACB và TCB trong quý 4/2024",
+            "display_value": "+6,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:ACB:2024_Q4:bank.roe",
+            "label": "Chênh lệch ROE giữa TCB và ACB trong quý 4/2024",
+            "display_value": "-6,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:lead_count:ACB:vs:TCB:2024_Q4",
+            "label": "Số chỉ tiêu vượt trội của ACB so với TCB trong quý 4/2024",
+            "display_value": "1/4 chỉ tiêu",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:lead_count:TCB:vs:ACB:2024_Q4",
+            "label": "Số chỉ tiêu vượt trội của TCB so với ACB trong quý 4/2024",
+            "display_value": "3/4 chỉ tiêu",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "92,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "2,12%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "18,6%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-h2h-acb-tcb-2024q4",
+            "title": "So sánh đối đầu · ACB vs TCB (2024_Q4)"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 421,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 3 số liệu có nguồn từ phép phân tích phân rã chỉ tiêu",
+      "detail": {
+        "tool": "decomposition",
+        "label": "phân rã chỉ tiêu",
+        "facts": [
+          {
+            "fact_id": "fact:derived_ratio:ACB:2024_Q4:derived.roe_over_roa",
+            "label": "Tỷ lệ ROE/ROA của ACB trong quý 4/2024",
+            "display_value": "10,25 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:derived_ratio:TCB:2024_Q4:derived.roe_over_roa",
+            "label": "Tỷ lệ ROE/ROA của TCB trong quý 4/2024",
+            "display_value": "6,46 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:derived.roe_over_roa",
+            "label": "Trung vị ROE/ROA nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "9,98%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-decomp-acb-2024q4",
+            "title": "Phân rã đòn bẩy ROE/ROA · 2024_Q4"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 421,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 2 hình",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "figure",
+            "title": "So sánh đối đầu · ACB vs TCB (2024_Q4)"
+          },
+          {
+            "type": "figure",
+            "title": "Phân rã đòn bẩy ROE/ROA · 2024_Q4"
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 438,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-b220716da6884e1596d97b4339508452",
+        "duration_ms": 438,
+        "model_calls": 1
+      }
+    }
+  ]
+}

@@ -381,9 +381,16 @@ class TestER8EvaluationHarness(unittest.TestCase):
 
         self.assertTrue((analysis_dir / "arm_summary.csv").exists())
         self.assertTrue((analysis_dir / "pairwise_diffs.csv").exists())
-        self.assertTrue((analysis_dir / "figure_er8_completion_accuracy.png").exists())
-        self.assertTrue((analysis_dir / "figure_er8_cost_latency.png").exists())
-        self.assertTrue((analysis_dir / "figure_er8_pairwise_diff.png").exists())
+        try:
+            import matplotlib  # noqa: F401
+            has_matplotlib = True
+        except ImportError:
+            has_matplotlib = False
+
+        if has_matplotlib:
+            self.assertTrue((analysis_dir / "figure_er8_completion_accuracy.png").exists())
+            self.assertTrue((analysis_dir / "figure_er8_cost_latency.png").exists())
+            self.assertTrue((analysis_dir / "figure_er8_pairwise_diff.png").exists())
         self.assertTrue(results_md.exists())
 
         md_text = results_md.read_text(encoding="utf-8")

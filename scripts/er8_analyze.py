@@ -23,9 +23,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    HAS_MATPLOTLIB = True
+except ImportError:
+    matplotlib = None
+    plt = None
+    HAS_MATPLOTLIB = False
 
 
 def read_scores_csv(path: Path) -> list[dict[str, Any]]:
@@ -198,7 +204,11 @@ def analyze_evaluation(
         writer.writerows(pairwise_results)
     print(f"Written: {pairwise_csv}")
 
-    # 3. Generate PNG figures with matplotlib
+    # 3. Generate PNG figures with matplotlib (if available)
+    if not HAS_MATPLOTLIB or plt is None:
+        print("Note: matplotlib not installed; skipping PNG figure generation.")
+        return
+
     plt.rcParams.update({"font.sans-serif": "DejaVu Sans", "figure.autolayout": True})
 
     # Figure 1: Completion and Accuracy by Arm

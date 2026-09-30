@@ -136,8 +136,34 @@ class OpenAIAnalysisWriter:
             raise AnalysisWriterError("analysis_writer_configuration_invalid")
         self.client = client
         self.model = model.strip()
+        self._current_role: str = "orchestrator"
 
     def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Any],
+        datasets_summary: Sequence[Any],
+        candidates: Sequence[Any] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]:
+        self._current_role = role
+        try:
+            return self._write_findings_internal(
+                role=role,
+                question=question,
+                question_type=question_type,
+                facts=facts,
+                datasets_summary=datasets_summary,
+                candidates=candidates,
+                max_sentences=max_sentences,
+            )
+        finally:
+            self._current_role = "orchestrator"
+
+    def _write_findings_internal(
         self,
         *,
         role: str,
@@ -235,6 +261,27 @@ class OpenAIAnalysisWriter:
         return decoded
 
     def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Any],
+    ) -> dict[str, Any]:
+        self._current_role = role
+        try:
+            return self._rewrite_sentence_internal(
+                role=role,
+                question=question,
+                sentence=sentence,
+                issue=issue,
+                facts=facts,
+            )
+        finally:
+            self._current_role = "orchestrator"
+
+    def _rewrite_sentence_internal(
         self,
         *,
         role: str,

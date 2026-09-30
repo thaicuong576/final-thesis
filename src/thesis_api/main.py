@@ -13,9 +13,10 @@ from fastapi.responses import StreamingResponse
 from .database import (
     get_analysis_report,
     get_analysis_run,
+    get_analysis_run_trace,
     list_analysis_runs,
 )
-from .schemas import AnalysisRequest, AnalysisResponse
+from .schemas import AnalysisRequest, AnalysisResponse, RunTraceDTO
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
@@ -172,6 +173,22 @@ def create_app(
                 detail=f"Analysis run {run_id} not found",
             )
         return run_record
+
+    @app.get(
+        "/api/runs/{run_id}/trace",
+        response_model=RunTraceDTO,
+        response_model_exclude_none=True,
+        summary="Retrieve structured execution trace for an analysis run",
+    )
+    def get_run_trace(run_id: str) -> RunTraceDTO:
+        """Retrieve chronological, structured trace steps recorded during execution of run_id."""
+        trace = get_analysis_run_trace(analysis_runs_path(), run_id)
+        if not trace:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Analysis run trace for {run_id} not found",
+            )
+        return RunTraceDTO.model_validate(trace)
 
     @app.get(
         "/api/reports/{report_id}",

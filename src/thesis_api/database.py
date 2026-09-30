@@ -211,7 +211,7 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
             cur.execute(
                 """
                 SELECT run_id, created_at, query, target_ticker, peer_tickers,
-                       period, status, latency_ms, model_used
+                       period, status, latency_ms, model_used, error_code, duration_ms, arm, question_type
                 FROM analysis_runs
                 ORDER BY created_at DESC
                 LIMIT ?
@@ -238,6 +238,8 @@ def list_analysis_runs(db_path: Path, limit: int = 20) -> list[dict[str, Any]]:
                         "status": row["status"],
                         "latency_ms": row["latency_ms"],
                         "model_used": row["model_used"],
+                        "error_code": row["error_code"] if "error_code" in row_keys else None,
+                        "duration_ms": row["duration_ms"] if "duration_ms" in row_keys else None,
                         "arm": row["arm"] if "arm" in row_keys else None,
                         "question_type": row["question_type"] if "question_type" in row_keys else None,
                     }
@@ -293,6 +295,13 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
                     events_obj = []
 
             row_keys = row.keys()
+            trace_obj: dict[str, Any] | None = None
+            if "trace_json" in row_keys and row["trace_json"]:
+                try:
+                    trace_obj = json.loads(row["trace_json"])
+                except Exception:
+                    trace_obj = None
+
             return {
                 "run_id": row["run_id"],
                 "created_at": row["created_at"],
@@ -302,9 +311,17 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
                 "period": row["period"],
                 "status": row["status"],
                 "report": report_obj,
+                "report_json": report_obj,
                 "events": events_obj,
+                "events_json": events_obj,
                 "model_used": row["model_used"],
                 "latency_ms": row["latency_ms"],
+                "trace_json": trace_obj,
+                "error_code": row["error_code"] if "error_code" in row_keys else None,
+                "duration_ms": row["duration_ms"] if "duration_ms" in row_keys else None,
+                "model_calls": row["model_calls"] if "model_calls" in row_keys else None,
+                "input_tokens": row["input_tokens"] if "input_tokens" in row_keys else None,
+                "output_tokens": row["output_tokens"] if "output_tokens" in row_keys else None,
                 "arm": row["arm"] if "arm" in row_keys else None,
                 "question_type": row["question_type"] if "question_type" in row_keys else None,
             }
@@ -312,6 +329,83 @@ def get_analysis_run(db_path: Path, run_id: str) -> dict[str, Any] | None:
             conn.close()
     except Exception as exc:
         logger.warning("Failed to get analysis run %s: %s", run_id, exc)
+        return None
+
+
+def get_analysis_run_trace(db_path: Path, run_id: str) -> dict[str, Any] | None:
+    """Retrieve structured execution trace for an analysis run."""
+    if not db_path.exists():
+        return None
+
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            table = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'analysis_runs'"
+            ).fetchone()
+            if table is None:
+                return None
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM analysis_runs WHERE run_id = ? LIMIT 1", (run_id,))
+            row = cur.fetchone()
+            if not row:
+                return None
+            row_keys = row.keys()
+            trace_raw = row["trace_json"] if "trace_json" in row_keys else None
+            if not trace_raw:
+                return None
+
+            try:
+                trace_data = json.loads(trace_raw)
+            except Exception:
+                return None
+
+            if isinstance(trace_data, dict) and "steps" in trace_data:
+                if not trace_data.get("run_id"):
+                    trace_data["run_id"] = row["run_id"]
+                if not trace_data.get("status"):
+                    trace_data["status"] = row["status"]
+                if not trace_data.get("query"):
+                    trace_data["query"] = row["query"]
+                if not trace_data.get("created_at"):
+                    trace_data["created_at"] = row["created_at"]
+                if trace_data.get("duration_ms") is None:
+                    trace_data["duration_ms"] = (
+                        row["duration_ms"]
+                        if ("duration_ms" in row_keys and row["duration_ms"] is not None)
+                        else 0
+                    )
+                if "arm" not in trace_data:
+                    trace_data["arm"] = row["arm"] if "arm" in row_keys else None
+                if "question_type" not in trace_data:
+                    trace_data["question_type"] = (
+                        row["question_type"] if "question_type" in row_keys else None
+                    )
+                return trace_data
+
+            if isinstance(trace_data, list):
+                return {
+                    "run_id": row["run_id"],
+                    "status": row["status"],
+                    "query": row["query"],
+                    "created_at": row["created_at"],
+                    "duration_ms": (
+                        row["duration_ms"]
+                        if ("duration_ms" in row_keys and row["duration_ms"] is not None)
+                        else 0
+                    ),
+                    "arm": row["arm"] if "arm" in row_keys else None,
+                    "question_type": (
+                        row["question_type"] if "question_type" in row_keys else None
+                    ),
+                    "steps": trace_data,
+                }
+            return None
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.warning("Failed to get analysis run trace %s: %s", run_id, exc)
         return None
 
 

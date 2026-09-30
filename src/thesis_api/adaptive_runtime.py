@@ -79,6 +79,8 @@ from thesis_data.semantic_evaluation import (
     expected_dimension_applicability,
 )
 
+import time
+
 from .schemas import (
     AnalysisPlanDTO,
     AnalysisRequest,
@@ -110,6 +112,28 @@ from .schemas import (
     SignalDTO,
     SourceNoteDTO,
     TableBlockDTO,
+    TraceActor,
+    TraceKind,
+    TraceStepDTO,
+    RunTraceDTO,
+    QuestionType,
+)
+from .cost_tracker import LLMUsageTracker, wrap_llm_client
+from .summaries_vi import (
+    AGENT_LABELS_VI,
+    TOOL_LABELS_VI,
+    summary_accept,
+    summary_assign,
+    summary_blocked,
+    summary_compose,
+    summary_critique_issue,
+    summary_cross_level_finding,
+    summary_draft,
+    summary_plan,
+    summary_report_ready,
+    summary_revision,
+    summary_tool_result,
+    summary_verify,
 )
 from .analysis_writer import AnalysisWriterError
 from .narrative_templates import (
@@ -128,6 +152,17 @@ from thesis_data.narrative_verification import (
     verify_all,
     verify_sentence,
 )
+
+TOOL_AGENT_MAP: dict[str, str] = {
+    "lookup": "company",
+    "trend": "company",
+    "head_to_head": "company",
+    "decomposition": "company",
+    "peer_position": "sector",
+    "ranking": "sector",
+    "dispersion": "sector",
+    "relationship": "sector",
+}
 from thesis_data.report_spec import validate_report_spec
 
 
@@ -922,16 +957,46 @@ def _create_macro_claim(
 
 
 class _AdaptiveRun:
-    def __init__(self, *, provider, dataset_ref, catalog, request, settings, critic, writer, emit, client=None):
+    def __init__(
+        self,
+        *,
+        provider,
+        dataset_ref,
+        catalog,
+        request,
+        settings,
+        critic,
+        writer,
+        emit,
+        client=None,
+        tracker: LLMUsageTracker | None = None,
+    ):
         self.provider = provider
         self.dataset_ref = dataset_ref
         self.catalog = catalog
         self.request = request
         self.settings = settings
-        self.critic = critic
+        self.tracker = tracker or LLMUsageTracker()
+        self._started_at = time.monotonic()
+        self.trace_steps: list[TraceStepDTO] = []
+        self._seq = 1
+
+        self.client = wrap_llm_client(client, self.tracker, default_role="orchestrator")
+        if hasattr(writer, "client"):
+            writer.client = wrap_llm_client(
+                writer.client,
+                self.tracker,
+                default_role="company",
+                role_getter=lambda: getattr(writer, "_current_role", "company") or "company",
+            )
         self.writer = writer
+        if hasattr(critic, "_client"):
+            critic._client = wrap_llm_client(critic._client, self.tracker, default_role="critic")
+        elif hasattr(critic, "client"):
+            critic.client = wrap_llm_client(critic.client, self.tracker, default_role="critic")
+        self.critic = critic
+
         self.emit = emit
-        self.client = client
         self.metric_by_id = {item.metric_id: item for item in catalog.metrics}
         self.artifacts: dict[str, ClaimArtifact] = {}
         self.benchmark_request_metadata: dict[str, dict[str, Any]] = {}
@@ -939,6 +1004,30 @@ class _AdaptiveRun:
         self._frozen_claims: dict[str, AtomicClaim] = {}
         self._claim_roles: dict[str, str] = {}
         self._revised_claim_ids: set[str] = set()
+
+    def _trace(
+        self,
+        kind: TraceKind,
+        actor: TraceActor,
+        summary: str,
+        detail: dict[str, Any],
+        recipient: TraceActor | None = None,
+    ) -> TraceStepDTO:
+        t_ms = max(0, int((time.monotonic() - self._started_at) * 1000))
+        step = TraceStepDTO(
+            step_id=f"t-{self._seq}",
+            seq=self._seq,
+            t_ms=t_ms,
+            actor=actor,
+            recipient=recipient,
+            kind=kind,
+            summary=summary,
+            detail=detail,
+        )
+        self._seq += 1
+        self.trace_steps.append(step)
+        self.emit("TRACE_STEP", step.model_dump(mode="json"))
+        return step
 
     def _build_verification_context(
         self,
@@ -1052,8 +1141,49 @@ class _AdaptiveRun:
             plan_created_payload["plannerFallbackReasons"] = list(self.fallback_reasons)
             plan_created_payload["rationaleVi"] = self.spec.rationale
             plan_created_payload["tools"] = [{"tool": t.tool, "params": t.params} for t in self.spec.tools]
-            plan_created_payload["contextPeriods"] = list(self.resolved.context_periods if self.resolved else ())
         self.emit("PLAN_CREATED", plan_created_payload)
+
+        # Trace plan step
+        active_specialists = self._active_roles(plan)
+        q_type_str = self.spec.question_type if self.spec else (getattr(plan, "question_type", None) or "lookup")
+        plan_tools_detail = [
+            {
+                "tool": t.tool,
+                "agent": TOOL_AGENT_MAP.get(t.tool, "company"),
+                "label": TOOL_LABELS_VI.get(t.tool, t.tool),
+            }
+            for t in (self.spec.tools if self.spec and getattr(self.spec, "tools", None) else [])
+        ]
+        self._trace(
+            kind="plan",
+            actor="orchestrator",
+            summary=summary_plan(
+                question_type=q_type_str,
+                tools=plan_tools_detail,
+                active_agents=active_specialists,
+            ),
+            detail={
+                "question_type": q_type_str,
+                "planner_source": self.planner_source or "rules",
+                "rationale": getattr(self.spec, "rationale", "") if self.spec else "",
+                "entities": list(plan.scope.entities),
+                "metric_ids": list(plan.scope.metric_ids),
+                "anchor_period": period,
+                "periods": list(periods),
+                "tools": plan_tools_detail,
+                "agents": [
+                    {
+                        "agent": a,
+                        "decision": "run" if a in active_specialists else "skip",
+                        "reason": f"Chuyên viên {AGENT_LABELS_VI.get(a, a)}" if a in active_specialists else "Không yêu cầu trong kế hoạch",
+                    }
+                    for a in ["company", "sector", "macro"]
+                ],
+                "defaults_applied": list(getattr(self.spec, "defaults_applied", [])) if self.spec else [],
+            },
+            recipient="system",
+        )
+
         company_role_claims: list[AtomicClaim] = []
         peer_role_claims: list[AtomicClaim] = []
         macro_role_claims: list[AtomicClaim] = []
@@ -1171,17 +1301,6 @@ class _AdaptiveRun:
         tool_facts_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
         tool_datasets_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
 
-        TOOL_AGENT_MAP = {
-            "lookup": "company",
-            "trend": "company",
-            "head_to_head": "company",
-            "decomposition": "company",
-            "peer_position": "sector",
-            "ranking": "sector",
-            "dispersion": "sector",
-            "relationship": "sector",
-        }
-
         from .analysis_tools import (
             TOOLS,
             ToolContext,
@@ -1229,20 +1348,70 @@ class _AdaptiveRun:
                 if obs is not None:
                     tool_ctx.cache[(obs.entity_id, obs.period_id, obs.metric_id)] = obs
 
-            for tool_call in self.spec.tools:
-                tool_fn = TOOLS.get(tool_call.tool)
-                if tool_fn is not None:
-                    agent = TOOL_AGENT_MAP.get(tool_call.tool, "company")
-                    try:
-                        res = tool_fn(tool_ctx, tool_call.params)
-                        tool_facts.extend(res.facts)
-                        tool_datasets.extend(res.datasets)
-                        tool_missing.extend(res.missing)
-                        tool_facts_by_agent[agent].extend(res.facts)
-                        tool_datasets_by_agent[agent].extend(res.datasets)
-                    except Exception as exc:
-                        logger.warning("Analysis tool %s failed: %s", tool_call.tool, exc, exc_info=True)
-                        tool_limitations.append(f"Không thực hiện được phép phân tích {tool_call.tool}.")
+            agent_order: list[str] = []
+            for t in self.spec.tools:
+                ag = TOOL_AGENT_MAP.get(t.tool, "company")
+                if ag not in agent_order:
+                    agent_order.append(ag)
+
+            for ag in agent_order:
+                ag_tools = [t for t in self.spec.tools if TOOL_AGENT_MAP.get(t.tool, "company") == ag]
+                tool_labels = [TOOL_LABELS_VI.get(t.tool, t.tool) for t in ag_tools]
+                task_str = ", ".join(t.tool for t in ag_tools)
+                self._trace(
+                    kind="assign",
+                    actor="orchestrator",
+                    summary=summary_assign(recipient=ag, tools=tool_labels),
+                    detail={"task": task_str, "tools": tool_labels},
+                    recipient=ag,  # type: ignore
+                )
+                for tool_call in ag_tools:
+                    tool_fn = TOOLS.get(tool_call.tool)
+                    if tool_fn is not None:
+                        try:
+                            res = tool_fn(tool_ctx, tool_call.params)
+                            tool_facts.extend(res.facts)
+                            tool_datasets.extend(res.datasets)
+                            tool_missing.extend(res.missing)
+                            tool_facts_by_agent[ag].extend(res.facts)
+                            tool_datasets_by_agent[ag].extend(res.datasets)
+
+                            t_label = TOOL_LABELS_VI.get(tool_call.tool, tool_call.tool)
+                            self._trace(
+                                kind="tool_result",
+                                actor=ag,  # type: ignore
+                                summary=summary_tool_result(t_label, len(res.facts)),
+                                detail={
+                                    "tool": tool_call.tool,
+                                    "label": t_label,
+                                    "facts": [
+                                        {
+                                            "fact_id": f.fact_id,
+                                            "label": getattr(f, "label", "") or describe_fact(f),
+                                            "display_value": display_fact(f),
+                                            "source_note_no": None,
+                                        }
+                                        for f in res.facts
+                                    ],
+                                    "datasets": [
+                                        {"dataset_id": d.dataset_id, "title": d.title}
+                                        for d in res.datasets
+                                    ],
+                                    "missing": [
+                                        {
+                                            "entity_id": m.entity_id,
+                                            "metric_id": m.metric_id,
+                                            "period": m.period,
+                                            "reason": getattr(m, "reason", "") or f"{m.entity_id} {m.period} chưa có số liệu đã kiểm định; để trống thay vì ước tính.",
+                                        }
+                                        for m in res.missing
+                                    ],
+                                },
+                                recipient="orchestrator",
+                            )
+                        except Exception as exc:
+                            logger.warning("Analysis tool %s failed: %s", tool_call.tool, exc, exc_info=True)
+                            tool_limitations.append(f"Không thực hiện được phép phân tích {tool_call.tool}.")
 
             # Dedupe tool_facts immediately after running tools (preserving first occurrence order)
             deduped_tool_facts: list[Any] = []
@@ -1451,21 +1620,73 @@ class _AdaptiveRun:
                     role_sentences.append(sent)
                 all_draft_sentences.extend(role_sentences)
 
+                # Emit draft step for this role
+                if role_sentences:
+                    self._trace(
+                        kind="draft",
+                        actor=role,  # type: ignore
+                        summary=summary_draft(role, len(role_sentences)),
+                        detail={
+                            "sentences": [
+                                {
+                                    "sentence_id": s.sentence_id,
+                                    "text": s.text,
+                                    "fact_ids": list(s.fact_ids),
+                                }
+                                for s in role_sentences
+                            ]
+                        },
+                        recipient="orchestrator",
+                    )
+
                 # Verify specialist sentences
+                role_dropped: list[SentenceDroppedDTO] = []
+                role_numbers_checked = 0
+                role_numbers_matched = 0
                 for sent in role_sentences:
                     v_res = verify_sentence(sent, v_ctx)
+                    role_numbers_checked += v_res.numbers_checked
+                    role_numbers_matched += v_res.numbers_matched
                     if v_res.ok:
                         accepted_specialist_sentences.append(sent)
                     else:
-                        all_dropped_sentences.append(SentenceDroppedDTO(
+                        drop_dto = SentenceDroppedDTO(
                             sentence_id=sent.sentence_id,
                             author=sent.author,
                             text=sent.text,
                             reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                             reason=v_res.reason or "",
-                        ))
+                        )
+                        all_dropped_sentences.append(drop_dto)
+                        role_dropped.append(drop_dto)
                         early_dropped_numbers_checked += v_res.numbers_checked
                         early_dropped_numbers_matched += v_res.numbers_matched
+
+                if role_sentences:
+                    self._trace(
+                        kind="verify",
+                        actor="verifier",
+                        summary=summary_verify(
+                            numbers_matched=role_numbers_matched,
+                            numbers_checked=role_numbers_checked,
+                            dropped_count=len(role_dropped),
+                        ),
+                        detail={
+                            "sentences_checked": len(role_sentences),
+                            "numbers_checked": role_numbers_checked,
+                            "numbers_matched": role_numbers_matched,
+                            "dropped": [
+                                {
+                                    "sentence_id": d.sentence_id,
+                                    "text": d.text,
+                                    "reason_code": d.reason_code,
+                                    "reason": d.reason,
+                                }
+                                for d in role_dropped
+                            ],
+                        },
+                        recipient="orchestrator",
+                    )
 
         # 2. Orchestrator compose report
         self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is composing the block-structured report."})
@@ -1684,6 +1905,32 @@ class _AdaptiveRun:
                         source=blk.takeaway.source,
                     ))
 
+        # Trace compose step
+        blocks_detail = []
+        for blk in active_report_spec.blocks:
+            blk_title = getattr(blk, "title", "")
+            if not blk_title and blk.type == "key_points" and getattr(blk, "items", None):
+                blk_title = blk.items[0].title if blk.items else ""
+            blocks_detail.append({
+                "type": blk.type,
+                "title": blk_title or f"Khối {blk.type}",
+            })
+        self._trace(
+            kind="compose",
+            actor="orchestrator",
+            summary=summary_compose(
+                kind=active_report_spec.kind,
+                blocks=active_report_spec.blocks,
+                composition_source=composition_source,
+            ),
+            detail={
+                "kind": active_report_spec.kind,
+                "blocks": blocks_detail,
+                "composition_source": composition_source,
+            },
+            recipient="critic" if arm == "hierarchical_with_critique" else "system",
+        )
+
         # 3. Critique & Revision loop (if hierarchical_with_critique)
         critic_result = None
         rounds_executed = 0
@@ -1710,6 +1957,18 @@ class _AdaptiveRun:
 
         if arm == "hierarchical_with_critique":
             rounds_executed = 1
+
+            # Trace assign to critic (round 1)
+            self._trace(
+                kind="assign",
+                actor="orchestrator",
+                summary=summary_assign("critic", round_no=1),
+                detail={
+                    "task": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+                    "tools": ["semantic_critique"],
+                },
+                recipient="critic",
+            )
             synth_summary_for_ctx = None
             if synthesis_summary is not None:
                 try:
@@ -1748,6 +2007,35 @@ class _AdaptiveRun:
                     "message": "Structured semantic review completed.",
                 })
 
+                # Trace critique issues
+                for issue in critic_result.critique_issues:
+                    target_s_id = (
+                        getattr(issue, "target_sentence_id", None)
+                        or (issue.affected_sentence_ids[0] if getattr(issue, "affected_sentence_ids", None) else None)
+                    )
+                    issue_detail = {
+                        "issue_id": issue.issue_id,
+                        "round": 1,
+                        "issue_type": issue.issue_type.value if hasattr(issue.issue_type, "value") else str(issue.issue_type),
+                        "severity": issue.severity.value if hasattr(issue.severity, "value") else str(issue.severity),
+                        "target_sentence_id": target_s_id,
+                        "target_text": getattr(issue, "target_text", "") or "",
+                        "evidence": getattr(issue, "evidence", "") or "",
+                        "evidence_fact_ids": list(getattr(issue, "evidence_fact_ids", ())),
+                        "required_action": issue.required_action.value if hasattr(issue.required_action, "value") else str(issue.required_action),
+                    }
+                    self._trace(
+                        kind="critique_issue",
+                        actor="critic",
+                        summary=summary_critique_issue(
+                            description=issue.description,
+                            issue_type=issue_detail["issue_type"],
+                            required_action=issue_detail["required_action"],
+                        ),
+                        detail=issue_detail,
+                        recipient=issue.affected_agent if issue.affected_agent in ("company", "sector", "macro") else "orchestrator",  # type: ignore
+                    )
+
                 # Verify confirmed cross-level candidates
                 for c in getattr(critic_result, "cross_level_candidates", ()):
                     if getattr(c, "status", "") == "confirmed":
@@ -1771,6 +2059,19 @@ class _AdaptiveRun:
                             ))
                             early_dropped_numbers_checked += c_verdict.numbers_checked
                             early_dropped_numbers_matched += c_verdict.numbers_matched
+                        else:
+                            self._trace(
+                                kind="cross_level_finding",
+                                actor="critic",
+                                summary=summary_cross_level_finding(count=1),
+                                detail={
+                                    "finding_id": getattr(c, "finding_id", "cand"),
+                                    "kind": getattr(c, "kind", "divergent_signals"),
+                                    "text": getattr(c, "text", ""),
+                                    "fact_ids": list(getattr(c, "fact_ids", ())),
+                                },
+                                recipient="orchestrator",
+                            )
 
                 open_issues = [
                     issue for issue in critic_result.critique_issues
@@ -1888,6 +2189,19 @@ class _AdaptiveRun:
                                             revision=orig_s.revision + 1,
                                         )
                                         rev_v = verify_sentence(rev_s, v_ctx)
+                                        self._trace(
+                                            kind="revision",
+                                            actor=orig_s.author,  # type: ignore
+                                            summary=summary_revision(round_no=1, author=orig_s.author),
+                                            detail={
+                                                "round": 1,
+                                                "sentence_id": orig_s.sentence_id,
+                                                "before": orig_s.text,
+                                                "after": rev_s.text,
+                                                "verified": rev_v.ok,
+                                            },
+                                            recipient="verifier",
+                                        )
                                         if rev_v.ok:
                                             # Replace sentence in spec
                                             current_sentences = [
@@ -2023,6 +2337,17 @@ class _AdaptiveRun:
                         synthesis_summary=synth_summary_for_ctx2,
                         synthesis_supporting_claim_ids=tuple(c.claim_id for c in current_claims) if synth_summary_for_ctx2 else (),
                     )
+                    # Trace assign to critic (round 2)
+                    self._trace(
+                        kind="assign",
+                        actor="orchestrator",
+                        summary=summary_assign("critic", round_no=2),
+                        detail={
+                            "task": "Gửi bản nháp để kiểm tra chéo (vòng 2)",
+                            "tools": ["semantic_critique"],
+                        },
+                        recipient="critic",
+                    )
                     try:
                         critic_result = self.critic.evaluate(
                             plan=plan,
@@ -2078,6 +2403,22 @@ class _AdaptiveRun:
                             signals=signals,
                             findings=candidates,
                         )
+
+            open_count = (
+                sum(i.resolution_status is CritiqueIssueStatus.OPEN for i in getattr(critic_result, "critique_issues", ()))
+                if critic_result
+                else 0
+            )
+            self._trace(
+                kind="accept",
+                actor="critic",
+                summary=summary_accept(round_no=rounds_executed, open_issues=open_count),
+                detail={
+                    "round": rounds_executed,
+                    "open_issues": open_count,
+                },
+                recipient="orchestrator",
+            )
         # Helper to verify every sentence in a ReportSpecDTO
         def _sweep_report_spec(spec: ReportSpecDTO) -> tuple[ReportSpecDTO, int, int]:
             sweep_chk = 0
@@ -2309,6 +2650,20 @@ class _AdaptiveRun:
         )
         source_notes = build_source_notes(self.provider, self.dataset_ref, ordered_cited_facts)
 
+        # Backfill source_note_no into tool_result trace steps
+        fact_to_note_no: dict[str, int] = {}
+        for sn in source_notes:
+            for fid in sn.fact_ids:
+                if fid not in fact_to_note_no:
+                    fact_to_note_no[fid] = sn.note_no
+
+        for step in self.trace_steps:
+            if step.kind == "tool_result" and "facts" in step.detail:
+                for f_dict in step.detail["facts"]:
+                    fid = f_dict.get("fact_id")
+                    if fid in fact_to_note_no:
+                        f_dict["source_note_no"] = fact_to_note_no[fid]
+
         # 5. Build narrative audit
         final_spec_sent_ids = set()
         for b in active_report_spec.blocks:
@@ -2417,6 +2772,26 @@ class _AdaptiveRun:
             synthesis_summary=synthesis_summary,
         )
         self.emit("SYNTHESIS_COMPLETED", {"periods": list(periods), "message": "The terminal candidate, provenance joins, and limitations are ready."})
+
+        # Trace report_ready step
+        duration_ms = max(0, int((time.monotonic() - self._started_at) * 1000))
+        model_calls = self.tracker.model_calls
+        self._trace(
+            kind="report_ready",
+            actor="orchestrator",
+            summary=summary_report_ready(),
+            detail={
+                "report_id": report.report_id,
+                "duration_ms": duration_ms,
+                "model_calls": model_calls,
+            },
+            recipient="system",
+        )
+        report._trace_steps = self.trace_steps
+        report._duration_ms = duration_ms
+        report._tracker = self.tracker
+        report._arm = arm
+        report._question_type = q_type
         return report
 
     def _active_roles(self, plan: AnalysisPlan) -> list[str]:
@@ -3115,22 +3490,61 @@ def run_adaptive_analysis(
     analysis_writer,
     emit: Callable[[str, dict[str, Any]], None] | None = None,
     client: Any = None,
+    tracker: LLMUsageTracker | None = None,
 ) -> AnalysisResponse:
     """Run a frozen-plan provider execution and bounded acceptance workflow."""
 
     from .service import AnalysisBlocked, _error_report
+    from .messages_vi import get_error_message
 
     emit_event = emit or (lambda _event, _payload: None)
+    usage_tracker = tracker or LLMUsageTracker()
+    runner = _AdaptiveRun(
+        provider=provider,
+        dataset_ref=dataset_ref,
+        catalog=catalog,
+        request=request,
+        settings=settings,
+        critic=semantic_critic,
+        writer=analysis_writer,
+        emit=emit_event,
+        client=client,
+        tracker=usage_tracker,
+    )
     try:
-        return _AdaptiveRun(
-            provider=provider, dataset_ref=dataset_ref, catalog=catalog,
-            request=request, settings=settings, critic=semantic_critic,
-            writer=analysis_writer,
-            emit=emit_event,
-            client=client,
-        ).execute()
+        return runner.execute()
     except AnalysisBlocked as exc:
-        return _error_report(exc.code, exc.detail, request, catalog=catalog)
+        msg = get_error_message(exc.code, catalog=catalog, default=exc.detail)
+        if not any(s.kind == "blocked" for s in runner.trace_steps):
+            runner._trace(
+                kind="blocked",
+                actor="system",
+                summary=msg,
+                detail={"code": exc.code, "message": msg},
+                recipient="system",
+            )
+        report = _error_report(exc.code, exc.detail, request, catalog=catalog)
+        report._trace_steps = runner.trace_steps
+        report._duration_ms = max(0, int((time.monotonic() - runner._started_at) * 1000))
+        report._tracker = usage_tracker
+        report._arm = getattr(settings, "analysis_arm", "hierarchical_with_critique")
+        report._question_type = getattr(runner, "spec", None) and runner.spec.question_type or getattr(report, "question_type", None)
+        return report
     except Exception as exc:
         logger.warning("Adaptive runtime failed: %s", type(exc).__name__, exc_info=True)
-        return _error_report("adaptive_runtime_failure", "The accepted provider or bounded semantic runtime could not satisfy this request.", request, catalog=catalog)
+        msg = "Lỗi hệ thống khi xử lý phân tích thích ứng."
+        if not any(s.kind == "blocked" for s in runner.trace_steps):
+            runner._trace(
+                kind="blocked",
+                actor="system",
+                summary=msg,
+                detail={"code": "adaptive_runtime_failure", "message": msg},
+                recipient="system",
+            )
+        report = _error_report("adaptive_runtime_failure", "The accepted provider or bounded semantic runtime could not satisfy this request.", request, catalog=catalog)
+        report._trace_steps = runner.trace_steps
+        report._duration_ms = max(0, int((time.monotonic() - runner._started_at) * 1000))
+        report._tracker = usage_tracker
+        report._arm = getattr(settings, "analysis_arm", "hierarchical_with_critique")
+        report._question_type = getattr(runner, "spec", None) and runner.spec.question_type or getattr(report, "question_type", None)
+        return report

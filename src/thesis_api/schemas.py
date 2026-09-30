@@ -827,6 +827,9 @@ class TraceStepDTO(BaseModel):
     detail: dict[str, Any] = Field(default_factory=dict)
 
 
+RunTraceStepDTO = TraceStepDTO
+
+
 class RunTraceDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -836,6 +839,7 @@ class RunTraceDTO(BaseModel):
     created_at: str
     duration_ms: int
     arm: Optional[str] = None
+    question_type: Optional[str] = None
     steps: List[TraceStepDTO] = Field(default_factory=list)
 
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEquityReport } from './useEquityReport';
-import { formatDisplayText } from '@/shared/lib/formatting';
+import { formatDisplayText, humanizeLocator } from '@/shared/lib/formatting';
 
 export const SourceNotes: React.FC = () => {
   const { report, sourceNotes, datasets } = useEquityReport();
@@ -23,24 +23,29 @@ export const SourceNotes: React.FC = () => {
       {/* Source Notes List */}
       {sourceNotes && sourceNotes.length > 0 && (
         <div className="space-y-1 mb-3">
-          {sourceNotes.map((note) => (
-            <div id={`note-${note.note_no}`} key={note.note_no} className="scroll-mt-4">
-              <span>{note.note_no} · </span>
-              {note.url ? (
-                <a
-                  href={note.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-text-primary hover:underline font-medium"
-                >
-                  {formatDisplayText(note.title)}
-                </a>
-              ) : (
-                <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
-              )}
-              {note.locator && <span> · {formatDisplayText(note.locator)}</span>}
-            </div>
-          ))}
+          {sourceNotes.map((note) => {
+            const displayLocator = humanizeLocator(note.locator);
+            return (
+              <div id={`note-${note.note_no}`} key={note.note_no} className="scroll-mt-4">
+                <span>{note.note_no} · </span>
+                {note.url ? (
+                  <a
+                    href={note.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-text-primary hover:underline font-medium"
+                  >
+                    {formatDisplayText(note.title)}
+                  </a>
+                ) : (
+                  <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
+                )}
+                {displayLocator && (
+                  <span title={note.locator || undefined}> · {formatDisplayText(displayLocator)}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

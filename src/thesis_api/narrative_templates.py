@@ -112,7 +112,9 @@ def describe_fact(fact: Fact) -> str:
     if f_type == "spread":
         return f"Chênh lệch cao nhất – thấp nhất về {m_name_lower} {denom_str} trong {p_vi}"
     if f_type == "ratio_to_median":
-        return f"Tỷ lệ {m_name_lower} của {ent} gấp {fmt(fact.value, 1)} lần trung vị trong {p_vi}"
+        _rv = fact.value or 0.0
+        _rw = "gấp" if _rv >= 1.0 else "bằng"
+        return f"Tỷ lệ {m_name_lower} của {ent} {_rw} {fmt(_rv, 1)} lần trung vị trong {p_vi}"
     if f_type == "derived_ratio":
         return f"Tỷ lệ {m_name_norm} của {ent} trong {p_vi}"
     if f_type == "lead_count":
@@ -159,7 +161,12 @@ def make_fallback_sentence(
     elif f_type == "spread":
         text = f"Chênh lệch cao nhất – thấp nhất về {m_name_lower} của {denom_str} là {disp} trong {p_vi}."
     elif f_type == "ratio_to_median":
-        text = f"{m_name_upper} của {ent} gấp {fmt(fact.value, 1, show_sign=False)} lần trung vị nhóm trong {p_vi}."
+        _ratio_val = fact.value or 0.0
+        _ratio_str = fmt(_ratio_val, 1, show_sign=False)
+        if _ratio_val >= 1.0:
+            text = f"{m_name_upper} của {ent} gấp {_ratio_str} lần trung vị nhóm trong {p_vi}."
+        else:
+            text = f"{m_name_upper} của {ent} bằng {_ratio_str} lần trung vị nhóm trong {p_vi}."
     elif f_type == "delta":
         val = fact.value or 0.0
         flat = pres.flat_threshold_pp
@@ -478,8 +485,10 @@ def default_report_spec(
 
             if val_f and ratio_f:
                 val_str = display_fact(val_f)
-                ratio_val = fmt(ratio_f.value, 1, show_sign=False)
-                hl_text = f"{ent} có {m_name_lower} {superlative}, đạt {val_str}, gấp {ratio_val} lần trung vị nhóm trong {p_vi}."
+                _rv = ratio_f.value or 0.0
+                _ratio_word = "gấp" if _rv >= 1.0 else "bằng"
+                ratio_val = fmt(_rv, 1, show_sign=False)
+                hl_text = f"{ent} có {m_name_lower} {superlative}, đạt {val_str}, {_ratio_word} {ratio_val} lần trung vị nhóm trong {p_vi}."
                 hl_sent = SentenceDTO(
                     sentence_id="sent-fb-hl",
                     text=hl_text,

@@ -512,7 +512,7 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         s_ok = NarrativeSentence(
             sentence_id="s13b",
             author="company",
-            text="Lý do chính giúp ROE đạt 21,7% là sự ổn định của bảng cân đối.",
+            text="Lý do chính để ROE đạt 21,7% là sự ổn định của bảng cân đối.",
             fact_ids=("f_acb_roe_q4",),
             source="model",
         )
@@ -755,6 +755,63 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         )
         verdict = verify_sentence(s, ctx)
         self.assertTrue(verdict.ok, f"Expected ok for vượt trội + lead_count: {verdict.reason_code}: {verdict.reason}")
+
+    def test_task_e_causal_language_giup_acb_tcb(self) -> None:
+        """Task E: 'Đòn bẩy tài chính của ACB cao hơn giúp ROE vượt trội dù ROA thấp hơn' -> causal_language."""
+        s = NarrativeSentence(
+            sentence_id="s_causal_acb_tcb",
+            author="company",
+            text="Đòn bẩy tài chính của ACB cao hơn giúp ROE vượt trội dù ROA thấp hơn.",
+            fact_ids=("f_acb_roe_q4",),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertFalse(verdict.ok)
+        self.assertEqual(verdict.reason_code, "causal_language")
+        self.assertIn("giúp", verdict.reason)
+
+    def test_task_e_causal_language_new_words(self) -> None:
+        """Task E: 'giúp cho', 'nhờ có', 'là nguyên nhân', 'góp phần' -> causal_language."""
+        cases = [
+            ("Chi phí hoạt động giảm giúp cho ROE đạt 21,7%.", "giúp cho"),
+            ("Nhờ có chất lượng tài sản tốt, ROE đạt 21,7%.", "nhờ có"),
+            ("Đòn bẩy cao là nguyên nhân khiến ROE tăng.", "là nguyên nhân"),
+            ("Tỷ lệ CASA cao góp phần nâng ROE lên 21,7%.", "góp phần"),
+        ]
+        for phrase, word in cases:
+            with self.subTest(phrase=phrase, word=word):
+                s = NarrativeSentence(
+                    sentence_id="s_causal_new",
+                    author="company",
+                    text=phrase,
+                    fact_ids=("f_acb_roe_q4",),
+                    source="model",
+                )
+                verdict = verify_sentence(s, self.ctx)
+                self.assertFalse(verdict.ok, f"Expected causal rejection for: {phrase}")
+                self.assertEqual(verdict.reason_code, "causal_language")
+
+    def test_task_e_causal_exclusions_tro_giup_giup_do(self) -> None:
+        """Task E: Exclusions 'trợ giúp', 'giúp đỡ' should NOT trigger causal_language."""
+        s1 = NarrativeSentence(
+            sentence_id="s_exc_1",
+            author="company",
+            text="Gói trợ giúp tín dụng hỗ trợ ngân hàng duy trì ROE ở mức 21,7%.",
+            fact_ids=("f_acb_roe_q4",),
+            source="model",
+        )
+        verdict1 = verify_sentence(s1, self.ctx)
+        self.assertNotEqual(verdict1.reason_code, "causal_language")
+
+        s2 = NarrativeSentence(
+            sentence_id="s_exc_2",
+            author="company",
+            text="Hoạt động giúp đỡ cộng đồng không ảnh hưởng ROE đạt 21,7%.",
+            fact_ids=("f_acb_roe_q4",),
+            source="model",
+        )
+        verdict2 = verify_sentence(s2, self.ctx)
+        self.assertNotEqual(verdict2.reason_code, "causal_language")
 
 
 if __name__ == "__main__":

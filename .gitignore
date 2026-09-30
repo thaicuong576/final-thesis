@@ -45,3 +45,6 @@ __pycache__/
 # SQLite WAL temporary files
 *.sqlite-wal
 *.sqlite-shm
+
+# Generated thesis Word output (rebuild with scripts/build_thesis_docx.py)
+docs/thesis-v2/build/

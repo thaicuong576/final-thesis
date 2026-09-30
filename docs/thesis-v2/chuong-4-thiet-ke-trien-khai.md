@@ -1,6 +1,6 @@
 # CHƯƠNG 4. THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
-Chương này trình bày kiến trúc phần mềm, nguyên tắc phân ranh giới, quy trình xử lý phân tích thích ứng theo câu hỏi, giải pháp kiểm tra nhận định, giao diện tác nghiệp và hạ tầng triển khai thực tế. Toàn bộ thiết kế bám sát các quyết định kiến trúc từ D-063 đến D-075 và các ranh giới bảo vệ hệ thống đã đề ra, nhằm bảo đảm kết quả phân tích có độ tin cậy cao, giải thích rõ ràng và truy vết được nguồn gốc dữ liệu.
+Chương này trình bày kiến trúc phần mềm, nguyên tắc phân ranh giới, quy trình xử lý phân tích thích ứng theo câu hỏi, giải pháp kiểm tra nhận định, giao diện tác nghiệp và hạ tầng triển khai thực tế. Toàn bộ thiết kế bám sát các quyết định thiết kế đã được ghi lại trong quá trình phát triển, nhằm bảo đảm kết quả phân tích có độ tin cậy cao, giải thích rõ ràng và truy vết được nguồn gốc dữ liệu.
 
 ---
 

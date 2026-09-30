@@ -289,23 +289,76 @@ def _add_md_table(doc: Document, table_lines: list[str]) -> None:
             continue
     _apply_table_borders(table)
 
+    _format_table(table, rows)
+
+
+def _set_all_fonts(run, name: str = "Times New Roman", size_pt: float = 12) -> None:
+    """Force a font on every script slot so Word never falls back to the style font."""
+    run.font.name = name
+    run.font.size = Pt(size_pt)
+    rpr = run._r.get_or_add_rPr()
+    rfonts = rpr.find(qn("w:rFonts"))
+    if rfonts is None:
+        rfonts = OxmlElement("w:rFonts")
+        rpr.insert(0, rfonts)
+    for attr in ("w:ascii", "w:hAnsi", "w:eastAsia", "w:cs"):
+        rfonts.set(qn(attr), name)
+
+
+def _format_table(table, rows: list[list[str]]) -> None:
+    """Academic table layout: TNR 12, single spacing, bold shaded header repeated on each page."""
+    from docx.enum.table import WD_TABLE_ALIGNMENT
+    from docx.shared import Pt as _Pt
+
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tblPr = table._tbl.tblPr
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        tblW = OxmlElement("w:tblW")
+        tblPr.append(tblW)
+    tblW.set(qn("w:type"), "pct")
+    tblW.set(qn("w:w"), "5000")  # 100% of the text width
+    cell_mar = OxmlElement("w:tblCellMar")
+    for side, val in (("top", "40"), ("bottom", "40"), ("left", "80"), ("right", "80")):
+        el = OxmlElement(f"w:{side}")
+        el.set(qn("w:w"), val)
+        el.set(qn("w:type"), "dxa")
+        cell_mar.append(el)
+    for existing in tblPr.findall(qn("w:tblCellMar")):
+        tblPr.remove(existing)
+    tblPr.append(cell_mar)
+
     for row_i, row_cells in enumerate(rows):
         tr = table.rows[row_i]
+        is_header = row_i == 0
+        if is_header:
+            trPr = tr._tr.get_or_add_trPr()
+            hdr = OxmlElement("w:tblHeader")
+            hdr.set(qn("w:val"), "true")
+            trPr.append(hdr)
         for col_i, cell_text in enumerate(row_cells):
             cell = tr.cells[col_i]
             para = cell.paragraphs[0]
-            is_header = (row_i == 0)
-            cell_text = _clean_html(cell_text)
-            _add_inline_runs(para, cell_text, base_size=11)
-            if is_header:
-                for run in para.runs:
-                    run.font.bold = True
-            # No first-line indent in table cells
-            _clear_indent(para)
-            # Font size 11 pt
+            _add_inline_runs(para, _clean_html(cell_text), base_size=12)
+            pf = para.paragraph_format
+            pf.first_line_indent = _Pt(0)
+            pf.left_indent = _Pt(0)
+            pf.space_before = _Pt(2)
+            pf.space_after = _Pt(2)
+            pf.line_spacing = 1.0
+            para.alignment = WD_ALIGN_PARAGRAPH.CENTER if is_header else WD_ALIGN_PARAGRAPH.LEFT
             for run in para.runs:
-                if run.font.size is None:
-                    run.font.size = Pt(11)
+                code = run.font.name == "Consolas"
+                _set_all_fonts(run, "Consolas" if code else "Times New Roman", 11 if code else 12)
+                if is_header:
+                    run.font.bold = True
+            if is_header:
+                tcPr = cell._tc.get_or_add_tcPr()
+                shd = OxmlElement("w:shd")
+                shd.set(qn("w:val"), "clear")
+                shd.set(qn("w:color"), "auto")
+                shd.set(qn("w:fill"), "E7E6E6")
+                tcPr.append(shd)
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +371,16 @@ def _add_image(doc: Document, img_path: Path) -> None:
     _clear_indent(para)
     try:
         run = para.add_run()
-        run.add_picture(str(img_path), width=Cm(15))
+        width_cm = 15.0
+        try:  # keep tall screenshots within the page: fit a 15 x 20 cm box
+            from PIL import Image as _Image
+
+            with _Image.open(img_path) as _im:
+                w_px, h_px = _im.size
+            width_cm = min(15.0, 20.0 * w_px / h_px)
+        except Exception:  # noqa: BLE001 - PIL is optional; fall back to full width
+            pass
+        run.add_picture(str(img_path), width=Cm(width_cm))
     except Exception as e:
         print(f"  [image] WARNING: Could not insert image {img_path}: {e}")
         run = para.add_run(f"[Image: {img_path.name}]")
@@ -874,6 +936,11 @@ def build(template_path: str, out_path: str) -> None:
         convert_markdown_to_doc(doc, ch4_text, figures_dir=figures_dir, pngs=pngs)
     else:
         print(f"[build] WARNING: {ch4_path.name} not found, skipping")
+
+    # ---- 7b. Product walkthrough section (part of chapter 4, no page break) ----
+    for extra in sorted(thesis_v2.glob("chuong-4b-*.md")):
+        print(f"[build] Adding {extra.name}...")
+        convert_markdown_to_doc(doc, extra.read_text(encoding="utf-8"), figures_dir=figures_dir, pngs=pngs)
 
     # ---- 8. Chapters 5-6 (optional) ----
     for ch_glob_pattern in ["chuong-5-*.md", "chuong-6-*.md"]:

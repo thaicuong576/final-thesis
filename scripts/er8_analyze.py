@@ -161,6 +161,7 @@ def analyze_evaluation(
         ("B - A", "hierarchical_no_critique", "single_agent"),
         ("C - A", "hierarchical_with_critique", "single_agent"),
     ]
+    pairs = [dp[0] for dp in diff_pairs]
 
     pairwise_results = []
     diff_metrics = [
@@ -205,127 +206,126 @@ def analyze_evaluation(
     print(f"Written: {pairwise_csv}")
 
     # 3. Generate PNG figures with matplotlib (if available)
-    if not HAS_MATPLOTLIB or plt is None:
+    if HAS_MATPLOTLIB and plt is not None:
+        plt.rcParams.update({"font.sans-serif": "DejaVu Sans", "figure.autolayout": True})
+
+        # Figure 1: Completion and Accuracy by Arm
+        fig, ax = plt.subplots(figsize=(8, 5), dpi=300)
+        x = range(len(arms))
+        width = 0.35
+        completion_rates = [d["mean_protocol_success"] * 100 for d in arm_summary_data]
+        accuracy_rates = [d["mean_numeric_correctness"] * 100 for d in arm_summary_data]
+
+        b1 = ax.bar([i - width / 2 for i in x], completion_rates, width, label="Thành công (%)", color="#2b5c8f")
+        b2 = ax.bar([i + width / 2 for i in x], accuracy_rates, width, label="Đúng số (%)", color="#2a9d8f")
+
+        ax.set_ylabel("Tỷ lệ (%)")
+        ax.set_title("ER-8: Tỷ lệ hoàn thành & Tính đúng số giữa 3 Arm")
+        ax.set_xticks(x)
+        ax.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
+        ax.set_ylim(0, 110)
+        ax.legend(loc="upper right")
+        ax.grid(axis="y", linestyle="--", alpha=0.5)
+
+        for bar in b1 + b2:
+            h = bar.get_height()
+            ax.annotate(f"{h:.1f}%",
+                        xy=(bar.get_x() + bar.get_width() / 2, h),
+                        xytext=(0, 3), textcoords="offset points",
+                        ha="center", va="bottom", fontsize=8)
+
+        fig1_path = output_dir / "figure_er8_completion_accuracy.png"
+        plt.savefig(fig1_path)
+        plt.close()
+        print(f"Written: {fig1_path}")
+
+        # Figure 2: Cost and Latency
+        fig, ax1 = plt.subplots(figsize=(8, 5), dpi=300)
+        ax2 = ax1.twinx()
+
+        tokens = [d["mean_total_tokens"] for d in arm_summary_data]
+        durations = [d["mean_duration_ms"] / 1000.0 for d in arm_summary_data]
+
+        b1 = ax1.bar([i - width / 2 for i in x], tokens, width, label="Tokens (Input+Output)", color="#e76f51")
+        b2 = ax2.bar([i + width / 2 for i in x], durations, width, label="Độ trễ (giây)", color="#e9c46a")
+
+        ax1.set_ylabel("Tokens tiêu thụ")
+        ax2.set_ylabel("Thời gian trung bình (giây)")
+        ax1.set_title("ER-8: Chi phí Tokens & Độ trễ thực thi theo Arm")
+        ax1.set_xticks(x)
+        ax1.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
+        ax1.grid(axis="y", linestyle="--", alpha=0.5)
+
+        # Combined legend
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+
+        fig2_path = output_dir / "figure_er8_cost_latency.png"
+        plt.savefig(fig2_path)
+        plt.close()
+        print(f"Written: {fig2_path}")
+
+        # Figure 3: Paired differences with 95% Bootstrap CI
+        fig, ax = plt.subplots(figsize=(9, 6), dpi=300)
+        selected_metrics = ["protocol_success", "numeric_correctness", "coverage_score", "cross_level_findings_count"]
+        metric_labels = {
+            "protocol_success": "Thành công",
+            "numeric_correctness": "Đúng số",
+            "coverage_score": "Độ phủ",
+            "cross_level_findings_count": "Liên kết tầng",
+        }
+
+        pairs = ["C - B", "B - A", "C - A"]
+        colors = {"C - B": "#264653", "B - A": "#2a9d8f", "C - A": "#e76f51"}
+
+        y_pos = 0
+        y_ticks = []
+        y_labels = []
+
+        for m in selected_metrics:
+            for p in pairs:
+                item = next((item for item in pairwise_results if item["pair"] == p and item["metric"] == m), None)
+                if item:
+                    m_diff = item["mean_diff"]
+                    ci_l = item["ci_95_lower"]
+                    ci_u = item["ci_95_upper"]
+                    err_l = m_diff - ci_l
+                    err_u = ci_u - m_diff
+
+                    ax.errorbar(
+                        m_diff,
+                        y_pos,
+                        xerr=[[err_l], [err_u]],
+                        fmt="o",
+                        color=colors[p],
+                        capsize=4,
+                        label=p if y_pos < 3 else "",
+                    )
+                    y_ticks.append(y_pos)
+                    y_labels.append(f"{metric_labels[m]} ({p})")
+                    y_pos += 1
+            y_pos += 0.5  # gap between metric groups
+
+        ax.axvline(0, color="gray", linestyle="--", alpha=0.7)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_labels, fontsize=8)
+        ax.set_xlabel("Chênh lệch trung bình theo cặp (Kèm 95% Bootstrap CI)")
+        ax.set_title("ER-8: So sánh cặp Arm A/B/C với Khoảng tin cậy Bootstrap")
+        ax.grid(axis="x", linestyle="--", alpha=0.5)
+
+        # Unique legend entries
+        handles, labels = ax.get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        if by_label:
+            ax.legend(by_label.values(), by_label.keys(), loc="lower right")
+
+        fig3_path = output_dir / "figure_er8_pairwise_diff.png"
+        plt.savefig(fig3_path)
+        plt.close()
+        print(f"Written: {fig3_path}")
+    else:
         print("Note: matplotlib not installed; skipping PNG figure generation.")
-        return
-
-    plt.rcParams.update({"font.sans-serif": "DejaVu Sans", "figure.autolayout": True})
-
-    # Figure 1: Completion and Accuracy by Arm
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=300)
-    x = range(len(arms))
-    width = 0.35
-    completion_rates = [d["mean_protocol_success"] * 100 for d in arm_summary_data]
-    accuracy_rates = [d["mean_numeric_correctness"] * 100 for d in arm_summary_data]
-
-    b1 = ax.bar([i - width / 2 for i in x], completion_rates, width, label="Thành công (%)", color="#2b5c8f")
-    b2 = ax.bar([i + width / 2 for i in x], accuracy_rates, width, label="Đúng số (%)", color="#2a9d8f")
-
-    ax.set_ylabel("Tỷ lệ (%)")
-    ax.set_title("ER-8: Tỷ lệ hoàn thành & Tính đúng số giữa 3 Arm")
-    ax.set_xticks(x)
-    ax.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
-    ax.set_ylim(0, 110)
-    ax.legend(loc="upper right")
-    ax.grid(axis="y", linestyle="--", alpha=0.5)
-
-    for bar in b1 + b2:
-        h = bar.get_height()
-        ax.annotate(f"{h:.1f}%",
-                    xy=(bar.get_x() + bar.get_width() / 2, h),
-                    xytext=(0, 3), textcoords="offset points",
-                    ha="center", va="bottom", fontsize=8)
-
-    fig1_path = output_dir / "figure_er8_completion_accuracy.png"
-    plt.savefig(fig1_path)
-    plt.close()
-    print(f"Written: {fig1_path}")
-
-    # Figure 2: Cost and Latency
-    fig, ax1 = plt.subplots(figsize=(8, 5), dpi=300)
-    ax2 = ax1.twinx()
-
-    tokens = [d["mean_total_tokens"] for d in arm_summary_data]
-    durations = [d["mean_duration_ms"] / 1000.0 for d in arm_summary_data]
-
-    b1 = ax1.bar([i - width / 2 for i in x], tokens, width, label="Tokens (Input+Output)", color="#e76f51")
-    b2 = ax2.bar([i + width / 2 for i in x], durations, width, label="Độ trễ (giây)", color="#e9c46a")
-
-    ax1.set_ylabel("Tokens tiêu thụ")
-    ax2.set_ylabel("Thời gian trung bình (giây)")
-    ax1.set_title("ER-8: Chi phí Tokens & Độ trễ thực thi theo Arm")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
-    ax1.grid(axis="y", linestyle="--", alpha=0.5)
-
-    # Combined legend
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
-
-    fig2_path = output_dir / "figure_er8_cost_latency.png"
-    plt.savefig(fig2_path)
-    plt.close()
-    print(f"Written: {fig2_path}")
-
-    # Figure 3: Paired differences with 95% Bootstrap CI
-    fig, ax = plt.subplots(figsize=(9, 6), dpi=300)
-    selected_metrics = ["protocol_success", "numeric_correctness", "coverage_score", "cross_level_findings_count"]
-    metric_labels = {
-        "protocol_success": "Thành công",
-        "numeric_correctness": "Đúng số",
-        "coverage_score": "Độ phủ",
-        "cross_level_findings_count": "Liên kết tầng",
-    }
-
-    pairs = ["C - B", "B - A", "C - A"]
-    colors = {"C - B": "#264653", "B - A": "#2a9d8f", "C - A": "#e76f51"}
-
-    y_pos = 0
-    y_ticks = []
-    y_labels = []
-
-    for m in selected_metrics:
-        for p in pairs:
-            item = next((item for item in pairwise_results if item["pair"] == p and item["metric"] == m), None)
-            if item:
-                m_diff = item["mean_diff"]
-                ci_l = item["ci_95_lower"]
-                ci_u = item["ci_95_upper"]
-                err_l = m_diff - ci_l
-                err_u = ci_u - m_diff
-
-                ax.errorbar(
-                    m_diff,
-                    y_pos,
-                    xerr=[[err_l], [err_u]],
-                    fmt="o",
-                    color=colors[p],
-                    capsize=4,
-                    label=p if y_pos < 3 else "",
-                )
-                y_ticks.append(y_pos)
-                y_labels.append(f"{metric_labels[m]} ({p})")
-                y_pos += 1
-        y_pos += 0.5  # gap between metric groups
-
-    ax.axvline(0, color="gray", linestyle="--", alpha=0.7)
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels(y_labels, fontsize=8)
-    ax.set_xlabel("Chênh lệch trung bình theo cặp (Kèm 95% Bootstrap CI)")
-    ax.set_title("ER-8: So sánh cặp Arm A/B/C với Khoảng tin cậy Bootstrap")
-    ax.grid(axis="x", linestyle="--", alpha=0.5)
-
-    # Unique legend entries
-    handles, labels = ax.get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    if by_label:
-        ax.legend(by_label.values(), by_label.keys(), loc="lower right")
-
-    fig3_path = output_dir / "figure_er8_pairwise_diff.png"
-    plt.savefig(fig3_path)
-    plt.close()
-    print(f"Written: {fig3_path}")
 
     # 4. Generate experiments/er8/RESULTS.md in Vietnamese
     results_content = f"""# Báo cáo Đánh giá Thực nghiệm A/B/C (ER-8)

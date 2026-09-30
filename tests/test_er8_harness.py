@@ -32,7 +32,7 @@ def setUpModule() -> None:
     install_socket_guard()
 
 
-from scripts.er8_analyze import analyze_evaluation, bootstrap_ci
+from scripts.er8_analyze import HAS_MATPLOTLIB, analyze_evaluation, bootstrap_ci
 from scripts.er8_run import (
     canonical_lf_utf8_sha256,
     find_gold_path,
@@ -413,8 +413,8 @@ class TestER8EvaluationHarness(unittest.TestCase):
             self.assertEqual(s["correct_rejection"], 1)
             self.assertEqual(s["protocol_success"], 1)
 
-    def test_10_analyzer_produces_tables_figures_and_markdown(self) -> None:
-        """Analyzer computes bootstrap CIs and produces CSVs, PNG figures, and RESULTS.md."""
+    def test_10_analyzer_produces_tables_and_markdown(self) -> None:
+        """Analyzer computes bootstrap CIs and produces CSVs and RESULTS.md."""
         manifest = run_evaluation(
             dry_run=True,
             reps=1,
@@ -442,16 +442,6 @@ class TestER8EvaluationHarness(unittest.TestCase):
 
         self.assertTrue((analysis_dir / "arm_summary.csv").exists())
         self.assertTrue((analysis_dir / "pairwise_diffs.csv").exists())
-        try:
-            import matplotlib  # noqa: F401
-            has_matplotlib = True
-        except ImportError:
-            has_matplotlib = False
-
-        if has_matplotlib:
-            self.assertTrue((analysis_dir / "figure_er8_completion_accuracy.png").exists())
-            self.assertTrue((analysis_dir / "figure_er8_cost_latency.png").exists())
-            self.assertTrue((analysis_dir / "figure_er8_pairwise_diff.png").exists())
         self.assertTrue(results_md.exists())
 
         md_text = results_md.read_text(encoding="utf-8")
@@ -459,6 +449,38 @@ class TestER8EvaluationHarness(unittest.TestCase):
         self.assertIn("Arm A", md_text)
         self.assertIn("Arm B", md_text)
         self.assertIn("Arm C", md_text)
+
+    @unittest.skipUnless(HAS_MATPLOTLIB, "matplotlib not installed; skipping PNG figures check")
+    def test_10b_analyzer_produces_figures(self) -> None:
+        """Analyzer produces PNG figures when matplotlib is installed."""
+        manifest = run_evaluation(
+            dry_run=True,
+            reps=1,
+            only_tasks=["T01"],
+            gold_path=self.gold_path,
+            output_dir=self.output_dir,
+        )
+
+        scores_csv = self.output_dir / "scores" / "deterministic.csv"
+        score_evaluation(
+            runs_dir=self.output_dir / "runs",
+            expected_coverage_path=self.expected_coverage_path,
+            gold_path=self.gold_path,
+            output_csv=scores_csv,
+        )
+
+        analysis_dir = self.output_dir / "analysis"
+        results_md = self.output_dir / "RESULTS.md"
+
+        analyze_evaluation(
+            scores_csv=scores_csv,
+            output_dir=analysis_dir,
+            results_md=results_md,
+        )
+
+        self.assertTrue((analysis_dir / "figure_er8_completion_accuracy.png").exists())
+        self.assertTrue((analysis_dir / "figure_er8_cost_latency.png").exists())
+        self.assertTrue((analysis_dir / "figure_er8_pairwise_diff.png").exists())
 
     def test_11_explicit_missing_claim_accepts_descriptive_missing_reason(self) -> None:
         """Missing cell with descriptive missing_reason (Gold v5 format) generates valid claim and does not raise."""

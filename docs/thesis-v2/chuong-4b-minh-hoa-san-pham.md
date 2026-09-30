@@ -72,7 +72,7 @@ Với câu hỏi xếp hạng, báo cáo dùng biểu đồ thanh xếp theo th�
 
 ![](docs/thesis-v2/screenshots/10-xep-hang.png)
 
-Hình 4.14: Báo cáo xếp hạng giữa năm ngân hàng
+Hình 4.14: Báo cáo xếp hạng cho câu hỏi "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 4/2024?"
 
 ### 4.7.7. Khi câu hỏi nằm ngoài phạm vi dữ liệu
 

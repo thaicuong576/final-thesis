@@ -1,45 +1,15 @@
 flowchart TD
-    SentenceIn(["<b>Câu nhận định ứng viên</b><br/><i>(text, fact_ids, author)</i>"])
+    In(["Câu nhận định ứng viên<br/>(text, fact_ids, tác giả)"])
 
-    subgraph VerifierPipeline ["Bộ Kiểm tra Câu văn Xác định luận (narrative_verification.py)"]
-        direction TB
-
-        R1{"<b>Luật 1: Trích dẫn Fact</b><br/>• fact_ids rỗng?<br/>• fact_id không tồn tại?"}
-        R2{"<b>Luật 2: Từ ngữ nguyên nhân</b><br/>Chứa từ cấm: vì, do, dẫn đến, nhờ,<br/>kéo theo, gây ra, khiến...?"}
-        R3{"<b>Luật 3: Khuyến nghị đầu tư</b><br/>Chứa từ cấm: mua, bán, nắm giữ,<br/>giá mục tiêu, định giá hấp dẫn...?"}
-        R4{"<b>Luật 4: Thực thể trong kế hoạch</b><br/>Xuất hiện ngân hàng ngoài phạm vi plan?"}
-        R5{"<b>Luật 5: Khớp kỳ báo cáo</b><br/>Kỳ trong câu (quý/năm) có trong fact_ids?"}
-        R6{"<b>Luật 6: Khớp số đếm chỉ tiêu</b><br/>Số đếm N/M chỉ tiêu có khớp lead_count?"}
-        R7{"<b>Luật 7: Khớp thứ hạng</b><br/>Thứ hạng (hạng N, nhất, nhì...) có khớp peer_rank?"}
-        R8{"<b>Luật 8: Khớp số lượng ngân hàng</b><br/>Số lượng 'N ngân hàng' có khớp denominator?"}
-        R9{"<b>Luật 9: Khớp con số & Sai số</b><br/>Mọi số thực khớp fact_ids trích dẫn<br/>với tolerance = 0.5 * 10^-d + 1e-9?"}
-        R10{"<b>Luật 10: Chiều xu hướng</b><br/>Từ tăng/giảm/đi ngang/liên tục<br/>có khớp delta/median_delta và flat_pp?"}
-        R11{"<b>Luật 11: Chiều so sánh</b><br/>Từ cao hơn/thấp hơn/tốt hơn/kém hơn<br/>có khớp gap_to_median/pairwise_gap?"}
-
-        R1 -->|Vi phạm| Drop1["Loại: missing_fact_citation / unknown_fact"]
-        R1 -->|Hợp lệ| R2
-        R2 -->|Vi phạm| Drop2["Loại: causal_language"]
-        R2 -->|Hợp lệ| R3
-        R3 -->|Vi phạm| Drop3["Loại: investment_advice"]
-        R3 -->|Hợp lệ| R4
-        R4 -->|Vi phạm| Drop4["Loại: entity_not_in_plan"]
-        R4 -->|Hợp lệ| R5
-        R5 -->|Vi phạm| Drop5["Loại: period_not_cited"]
-        R5 -->|Hợp lệ| R6
-        R6 -->|Vi phạm| Drop6["Loại: count_mismatch"]
-        R6 -->|Hợp lệ| R7
-        R7 -->|Vi phạm| Drop7["Loại: rank_mismatch"]
-        R7 -->|Hợp lệ| R8
-        R8 -->|Vi phạm| Drop8["Loại: number_mismatch"]
-        R8 -->|Hợp lệ| R9
-        R9 -->|Vi phạm| Drop9["Loại: number_mismatch / unit_mismatch"]
-        R9 -->|Hợp lệ| R10
-        R10 -->|Vi phạm| Drop10["Loại: trend_without_delta / trend_direction_mismatch"]
-        R10 -->|Hợp lệ| R11
-        R11 -->|Vi phạm| Drop11["Loại: comparison_direction_mismatch"]
+    subgraph V ["Bộ kiểm tra câu (narrative_verification.py) — dừng ở luật vi phạm đầu tiên"]
+        G1["Nhóm 1 — Trích dẫn<br/>• Luật 1: có fact_ids và fact tồn tại"]
+        G2["Nhóm 2 — Ngôn ngữ cấm<br/>• Luật 2: từ nguyên nhân (vì, do, nhờ, dẫn đến…)<br/>• Luật 3: khuyến nghị đầu tư (mua, bán, giá mục tiêu…)"]
+        G3["Nhóm 3 — Phạm vi<br/>• Luật 4: ngân hàng nằm trong kế hoạch<br/>• Luật 5: kỳ trong câu thuộc fact được trích"]
+        G4["Nhóm 4 — Con số<br/>• Luật 6–8: số đếm chỉ tiêu, thứ hạng, số ngân hàng<br/>• Luật 9: mọi số khớp fact theo sai số làm tròn"]
+        G5["Nhóm 5 — Diễn giải<br/>• Luật 10: chiều xu hướng khớp delta<br/>• Luật 11: chiều so sánh khớp chênh lệch"]
+        G1 -->|Hợp lệ| G2 -->|Hợp lệ| G3 -->|Hợp lệ| G4 -->|Hợp lệ| G5
     end
 
-    SentenceIn --> R1
-
-    Drop1 & Drop2 & Drop3 & Drop4 & Drop5 & Drop6 & Drop7 & Drop8 & Drop9 & Drop10 & Drop11 --> DroppedRecord["<b>Ghi vào DroppedSentence & NarrativeAudit</b><br/>• Giữ lại reason_code và câu gốc<br/>• Không làm gián đoạn hoặc hủy lượt chạy"]
-    R11 -->|Vượt qua tất cả luật| Accepted["<b>Chấp nhận vào Báo cáo (accepted_sentences)</b><br/>• Giữ tính toàn vẹn 100% về mặt dữ kiện số"]
+    In --> G1
+    G5 -->|Qua cả 11 luật| Ok(["Câu được đưa vào báo cáo"])
+    G1 & G2 & G3 & G4 & G5 -.->|Vi phạm| Drop(["Câu bị loại riêng lẻ, ghi mã lý do<br/>vào NarrativeAudit — lượt chạy vẫn tiếp tục"])

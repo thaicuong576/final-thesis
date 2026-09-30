@@ -1,51 +1,19 @@
 flowchart TD
-    subgraph Inputs ["Đầu vào Thực nghiệm Chuẩn hóa"]
-        Q["12 Nhiệm vụ Thực nghiệm<br/>• T01–T08: Phân tích đơn kỳ, đa kỳ, xếp hạng<br/>• T09–T10: So sánh trực diện (Head-to-Head)<br/>• R1–R2: Kiểm soát từ chối (Kỳ mới, ngoài nhóm)"]
-        DB["Snapshot Gold v5 Bất biến<br/>• 5 ngân hàng, 4 quý 2024, 4 chỉ tiêu<br/>• SHA-256 byte: 1b1b5c09...ce73"]
-        Plan["Kế hoạch Đóng băng Dùng chung (Frozen Plan)<br/>• Kế hoạch tất định theo luật (rules_only)<br/>• Cố định question_type và danh mục công cụ"]
+    subgraph IN ["Đầu vào dùng chung cho mọi cấu hình"]
+        Q["12 câu hỏi<br/>T01–T10 phân tích · R1–R2 từ chối"]
+        DB[("Snapshot Gold v5<br/>5 ngân hàng × 4 quý × 4 chỉ tiêu")]
+        P["Kế hoạch tất định dùng chung<br/>(rules_only, cùng plan hash)"]
     end
 
-    Q & DB & Plan --> Tools["Công cụ Phân tích Tất định (analysis_tools)<br/>• Sinh Fact nguyên tử có formula_version và input_ids<br/>• Sinh Dataset trực quan hóa chuẩn"]
+    T["Công cụ phân tích tất định<br/>Fact + Dataset giống hệt nhau"]
+    Q & DB & P --> T
 
-    subgraph Arms ["Ba Cấu hình Đối chiếu (Research Arms)"]
-        direction TB
-        
-        subgraph ArmA ["Nhánh A: Tác tử Đơn (single_agent)"]
-            A1["Một tác tử nhận toàn bộ Fact & Dataset"]
-            A2["Viết nhận định & Lắp khối báo cáo"]
-            A3["Bộ kiểm tra câu văn (Narrative Verifier)"]
-            A1 --> A2 --> A3
-        end
-        
-        subgraph ArmB ["Nhánh B: Đa tác tử Phân cấp (hierarchical_no_critique)"]
-            B1["Chuyên viên Doanh nghiệp & Ngành viết câu"]
-            B2["Bộ kiểm tra câu văn loại bỏ câu lỗi"]
-            B3["Điều phối viên lắp ráp ReportSpec theo khối"]
-            B4["Xác thực ReportSpec & Khắc phục tất định"]
-            B1 --> B2 --> B3 --> B4
-        end
-        
-        subgraph ArmC ["Nhánh C: Đa tác tử có Phản biện (hierarchical_with_critique)"]
-            C1["Chuyên viên viết câu → Kiểm tra câu"]
-            C2["Điều phối viên lắp ReportSpec"]
-            C3["Semantic Critic phát hiện lỗi nội dung"]
-            C4["Tối đa 2 vòng sửa đổi có mục tiêu (Revision)"]
-            C5["Tái kiểm tra câu sửa qua Verifier & Spec"]
-            C1 --> C2 --> C3 --> C4 --> C5
-        end
-    end
+    A["A — Tác tử đơn<br/>một lần lắp báo cáo từ mọi fact<br/>+ kiểm câu, không phản biện"]
+    B["B — Phân cấp không phản biện<br/>chuyên viên viết câu → kiểm câu<br/>→ điều phối viên lắp báo cáo"]
+    C["C — Phân cấp có phản biện<br/>như B + critic + tối đa 2 vòng<br/>sửa đổi có mục tiêu"]
+    T --> A
+    T --> B
+    T --> C
 
-    Tools --> ArmA
-    Tools --> ArmB
-    Tools --> ArmC
-
-    subgraph Evaluation ["Đánh giá Tất định (Deterministic Scoring Engine)"]
-        M1["Tỷ lệ hoàn thành nhiệm vụ (Completion Rate)"]
-        M2["Độ chính xác dữ kiện số (Fact Accuracy)"]
-        M3["Khả năng truy vết nguồn (Observation & Locator Traceability)"]
-        M4["Xử lý thiếu dữ liệu & Từ chối ngoài phạm vi (Fail-Closed)"]
-        M5["Chất lượng câu văn & Mâu thuẫn liên tầng"]
-        M6["Chi phí vận hành: Độ trễ, Lượt gọi, Token, Chi phí USD"]
-    end
-
-    ArmA & ArmB & ArmC --> Evaluation
+    E["Chấm tất định<br/>hoàn thành · đúng số · truy vết nguồn<br/>độ phủ · xử lý thiếu dữ liệu · từ chối đúng<br/>câu bị loại · độ trễ · lượt gọi · token"]
+    A & B & C --> E

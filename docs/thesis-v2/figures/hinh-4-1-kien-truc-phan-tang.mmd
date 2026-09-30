@@ -1,43 +1,31 @@
 flowchart TB
-    subgraph ClientLayer ["1. Tầng Trình diễn (Presentation Layer - Frontend)"]
-        UI["Ứng dụng Web Phân tích (React + Vite + TailwindCSS)<br/>• Font IBM Plex Sans, tông màu Amber (--accent)<br/>• 4 màn hình: Hỏi (Ask), Điều phối (Board), Tiến trình (Trace), Báo cáo (Equity Report)<br/>• 8 biểu đồ trực quan hóa dữ liệu (charts/)"]
+    subgraph L1 ["1. Tầng trình diễn — frontend/"]
+        UI["Ứng dụng web React<br/>Màn hỏi · Điều phối · Quá trình · Báo cáo"]
     end
 
-    subgraph ApplicationLayer ["2. Tầng Ứng dụng & Dịch vụ (Application Layer - src/thesis_api/)"]
-        API["FastAPI App Shell (main.py, service.py)<br/>• Endpoints: /api/analyze, /api/analyze/stream, /api/analysis-runs"]
-        QU["Hiểu câu hỏi tiếng Việt (query_understanding.py)<br/>• Bóc tách thực thể, kỳ, chỉ tiêu, cờ ngữ nghĩa"]
-        AP["Lập kế hoạch thích ứng (analysis_planner.py)<br/>• 5 loại câu hỏi, chọn công cụ, fallback rules_plan"]
-        AT["Bộ điều phối công cụ phân tích (analysis_tools.py)<br/>• Chạy công cụ số học, định dạng dữ liệu biểu đồ"]
-        AW["Chuyên viên viết nhận định (analysis_writer.py)<br/>• Phân vai Company / Sector / Coordinator"]
-        NT["Mẫu diễn giải tất định (narrative_templates.py)<br/>• Tạo câu và khung ReportSpec dự phòng"]
-        AR["Điều phối luồng thích ứng (adaptive_runtime.py)<br/>• Quản lý vòng đời phân tích và Server-Sent Events"]
+    subgraph L2 ["2. Tầng ứng dụng — src/thesis_api/"]
+        API["API FastAPI<br/>/api/analyze, /stream, /runs"]
+        PLAN["Hiểu câu hỏi & lập kế hoạch<br/>query_understanding · analysis_planner"]
+        RUN["Điều phối lượt phân tích<br/>adaptive_runtime · analysis_tools · analysis_writer"]
     end
 
-    subgraph CoreLayer ["3. Tầng Lõi Nghiệp vụ Độc lập (Pure Core Layer - src/thesis_data/)"]
-        RF["Tính toán Fact & Tín hiệu (report_facts.py)<br/>• Pure math: 11 loại Fact, Signals, Cross-level candidates<br/>• Không import sqlite3, openai, langgraph; không hard-code 5 ngân hàng"]
-        NV["Bộ kiểm tra câu văn xác định luận (narrative_verification.py)<br/>• 11 quy tắc kiểm định câu; loại câu sai, giữ câu đúng"]
-        RS["Đặc tả & Kiểm định Báo cáo (report_spec.py)<br/>• Khối nội dung (blocks), ma trận tương thích biểu đồ - dataset"]
-        SC["Phản biện ngữ nghĩa (semantic_critic.py, openai_semantic_critic.py)<br/>• Đánh giá câu nói quá, mâu thuẫn liên tầng, trả lời trúng câu hỏi"]
-        RC["Điều khiển sửa đổi có mục tiêu (revision_controller.py)<br/>• Tối đa 2 vòng sửa đổi nhắm đúng câu/khối lỗi"]
-        DC["Hợp đồng dữ liệu & Provider (dataset_contract.py, dataset_provider.py)<br/>• CanonicalObservation, QualityStatus, FinancialDatasetProvider"]
+    subgraph L3 ["3. Tầng lõi độc lập — src/thesis_data/"]
+        FACT["Fact & tín hiệu<br/>report_facts"]
+        VER["Kiểm câu & kiểm spec<br/>narrative_verification · report_spec"]
+        CRIT["Phản biện & sửa đổi<br/>semantic_critic · revision_controller"]
+        PROV["Hợp đồng dữ liệu<br/>dataset_contract · dataset_provider"]
     end
 
-    subgraph StorageLayer ["4. Tầng Dữ liệu & Lưu trữ Phân lập (Storage Layer)"]
-        direction LR
-        SQLITE_RO[("SQLITE_DB_PATH<br/>(Chỉ đọc - Read-Only)<br/>Snapshot dữ liệu Gold v5<br/>Khóa byte hash SHA-256")]
-        RUNS_RW[("ANALYSIS_RUNS_DB_PATH<br/>(Ghi - Read/Write)<br/>Lịch sử phiên chạy & TraceStep<br/>Lưu cả run thành công và run lỗi")]
+    subgraph L4 ["4. Tầng lưu trữ tách biệt"]
+        GOLD[("Snapshot Gold v5<br/>chỉ đọc, khóa SHA-256")]
+        RUNS[("Lịch sử lượt chạy & trace<br/>đọc/ghi")]
     end
 
-    UI <-->|"HTTP REST / SSE Stream"| API
-    API --> QU --> AP --> AT
-    AT --> AW --> AR
-    AR --> NT
-
-    AT -.->|"Gọi hàm toán học thuần"| RF
-    AW -.->|"Kiểm duyệt câu"| NV
-    AW -.->|"Lắp & kiểm spec"| RS
-    AR -.->|"Phản biện & sửa đổi"| SC
-    SC -.->|"Điều khiển vòng lặp"| RC
-
-    AT -->|"Đọc quan sát đã kiểm chứng"| SQLITE_RO
-    AR -->|"Ghi vết TraceStep & Run History"| RUNS_RW
+    UI <-->|REST / SSE| API
+    API --> PLAN --> RUN
+    RUN -.->|gọi hàm thuần| FACT
+    RUN -.->|kiểm tra| VER
+    RUN -.->|phản biện| CRIT
+    RUN --> PROV
+    PROV -->|đọc quan sát| GOLD
+    RUN -->|ghi trace| RUNS

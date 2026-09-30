@@ -1862,7 +1862,8 @@
           "numbers_checked": { "type": "integer" },
           "numbers_matched": { "type": "integer" },
           "blocks_dropped": { "type": "array", "items": { "$ref": "#/components/schemas/BlockDropped" } },
-          "composition_source": { "type": "string", "enum": ["model", "deterministic_fallback"] }
+          "composition_source": { "type": "string", "enum": ["model", "deterministic_fallback"] },
+          "fallback_reason": { "type": ["string", "null"] }
         }
       },
       "SourceNote": {

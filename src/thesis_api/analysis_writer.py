@@ -6,6 +6,34 @@ import json
 import re
 from typing import Any, Mapping, Protocol, Sequence
 
+from thesis_data.report_spec import normalize_report_spec_dict
+
+
+_INLINE_FACT_REF_RE = re.compile(
+    r"\s*[\(\[]\s*(?:fact_ids?\s*[:=]\s*)?fact:[^\)\]]*[\)\]]"  # "(fact:...)", "[fact:..., fact:...]"
+    r"|\s*fact:[A-Za-z0-9_.:\-]+",  # bare "fact:delta:VPB:..." tokens
+)
+
+
+def _strip_inline_fact_refs(value: Any) -> Any:
+    """Remove fact identifiers the model sometimes inlines into prose.
+
+    Citations belong in ``fact_ids``; an identifier inside ``text`` would be shown to
+    the reader verbatim, so every ``text`` string in the decoded output is cleaned.
+    """
+    if isinstance(value, dict):
+        out = {}
+        for key, item in value.items():
+            if key == "text" and isinstance(item, str):
+                cleaned = _INLINE_FACT_REF_RE.sub("", item)
+                out[key] = re.sub(r"\s+([.,;:])", r"", cleaned).strip()
+            else:
+                out[key] = _strip_inline_fact_refs(item)
+        return out
+    if isinstance(value, list):
+        return [_strip_inline_fact_refs(item) for item in value]
+    return value
+
 
 def _clean_json_text(text: str) -> str:
     cleaned = text.strip()
@@ -52,8 +80,149 @@ COMPOSE_REPORT_PROMPT_TEMPLATE = (
     "- Ưu tiên dùng lại sentence_id. Chỉ viết câu mới khi thật cần, và câu mới phải kèm fact_ids.\n"
     "- Phát hiện liên tầng đã xác nhận nên được đưa vào callout.\n"
     "Quy tắc số, xu hướng, nguyên nhân, khuyến nghị: giống chuyên viên. Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
-    "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới)."
+    "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới).\n"
+    "Ví dụ cấu trúc cho note:\n"
+    "{{\"kind\":\"note\",\"note_label\":null,\"blocks\":[{{\"type\":\"headline\",\"sentence\":{{\"sentence_id\":\"sent-company-1\"}}}},{{\"type\":\"section\",\"title\":\"Phân tích chi tiết\",\"sentences\":[{{\"sentence_id\":\"sent-company-2\"}}]}}]}}\n"
+    "Ví dụ cấu trúc cho answer_card:\n"
+    "{{\"kind\":\"answer_card\",\"note_label\":null,\"blocks\":[{{\"type\":\"answer\",\"value_fact_id\":\"fact:value:VCB:2024_Q4:bank.npl_g35\",\"sentences\":[{{\"text\":\"Tỷ lệ nợ xấu của VCB quý 4/2024 là 0,96%.\",\"fact_ids\":[\"fact:value:VCB:2024_Q4:bank.npl_g35\"]}}]}}]}}"
 )
+
+_COMPOSE_SENTENCE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "sentence_id": {"type": ["string", "null"]},
+        "text": {"type": ["string", "null"]},
+        "fact_ids": {"type": ["array", "null"], "items": {"type": "string"}},
+    },
+    "required": ["sentence_id", "text", "fact_ids"],
+    "additionalProperties": False,
+}
+
+_COMPOSE_REPORT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "kind": {"type": "string", "enum": ["answer_card", "note"]},
+        "note_label": {"type": ["string", "null"]},
+        "blocks": {
+            "type": "array",
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["headline"]},
+                            "sentence": _COMPOSE_SENTENCE_SCHEMA,
+                        },
+                        "required": ["type", "sentence"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["answer"]},
+                            "value_fact_id": {"type": "string"},
+                            "sentences": {
+                                "type": "array",
+                                "items": _COMPOSE_SENTENCE_SCHEMA,
+                            },
+                        },
+                        "required": ["type", "value_fact_id", "sentences"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["key_points"]},
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string"},
+                                        "sentences": {
+                                            "type": "array",
+                                            "items": _COMPOSE_SENTENCE_SCHEMA,
+                                        },
+                                    },
+                                    "required": ["title", "sentences"],
+                                    "additionalProperties": False,
+                                },
+                            },
+                        },
+                        "required": ["type", "items"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["section"]},
+                            "title": {"type": "string"},
+                            "sentences": {
+                                "type": "array",
+                                "items": _COMPOSE_SENTENCE_SCHEMA,
+                            },
+                        },
+                        "required": ["type", "title", "sentences"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["figure"]},
+                            "figure_no": {"type": "integer"},
+                            "chart": {
+                                "type": "string",
+                                "enum": [
+                                    "kpi_strip",
+                                    "ranked_bar",
+                                    "line_trend",
+                                    "small_multiples",
+                                    "scatter",
+                                    "rank_heatmap",
+                                    "grouped_bar",
+                                    "comparison_table",
+                                ],
+                            },
+                            "dataset_id": {"type": "string"},
+                            "title": {"type": "string"},
+                            "takeaway": _COMPOSE_SENTENCE_SCHEMA,
+                        },
+                        "required": ["type", "figure_no", "chart", "dataset_id", "title", "takeaway"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["callout"]},
+                            "tone": {"type": "string", "enum": ["notice", "warning"]},
+                            "title": {"type": "string"},
+                            "finding_id": {"type": ["string", "null"]},
+                            "sentences": {
+                                "type": "array",
+                                "items": _COMPOSE_SENTENCE_SCHEMA,
+                            },
+                        },
+                        "required": ["type", "tone", "title", "finding_id", "sentences"],
+                        "additionalProperties": False,
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "enum": ["table"]},
+                            "dataset_id": {"type": "string"},
+                            "title": {"type": "string"},
+                        },
+                        "required": ["type", "dataset_id", "title"],
+                        "additionalProperties": False,
+                    },
+                ]
+            },
+        },
+    },
+    "required": ["kind", "note_label", "blocks"],
+    "additionalProperties": False,
+}
+
 
 REWRITE_SENTENCE_PROMPT_TEMPLATE = (
     "Bạn là chuyên viên phân tích {role_label} trong một nhóm phân tích ngân hàng.\n"
@@ -254,11 +423,11 @@ class OpenAIAnalysisWriter:
             name="report_specification",
             instructions=instructions,
             payload=payload,
-            schema=None,
+            schema=_COMPOSE_REPORT_SCHEMA,
         )
         if not isinstance(decoded, dict):
             raise AnalysisWriterError("analysis_writer_compose_output_invalid")
-        return decoded
+        return normalize_report_spec_dict(decoded, question_type)
 
     def rewrite_sentence(
         self,
@@ -338,53 +507,61 @@ class OpenAIAnalysisWriter:
         payload: Mapping[str, Any],
         schema: dict[str, Any] | None,
     ) -> dict[str, Any]:
-        try:
-            if hasattr(self.client, "responses"):
-                request_kwargs: dict[str, Any] = {
-                    "model": self.model,
-                    "instructions": instructions,
-                    "input": json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-                    "max_output_tokens": 2500,
-                    "store": False,
-                }
-                if schema is not None:
-                    request_kwargs["text"] = {
-                        "format": {
+        last_exc: Exception | None = None
+        for attempt in range(3):
+            try:
+                if hasattr(self.client, "responses"):
+                    request_kwargs: dict[str, Any] = {
+                        "model": self.model,
+                        "instructions": instructions,
+                        "input": json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                        "max_output_tokens": 2500,
+                        "store": False,
+                    }
+                    if schema is not None:
+                        request_kwargs["text"] = {
+                            "format": {
+                                "type": "json_schema",
+                                "name": name,
+                                "strict": True,
+                                "schema": schema,
+                            }
+                        }
+                    else:
+                        request_kwargs["text"] = {
+                            "format": {
+                                "type": "json_object",
+                            }
+                        }
+                    response = self.client.responses.create(**request_kwargs)
+                    output_text = getattr(response, "output_text", None)
+                else:
+                    messages = [
+                        {"role": "system", "content": instructions},
+                        {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
+                    ]
+                    kwargs: dict[str, Any] = {
+                        "model": self.model,
+                        "messages": messages,
+                        "max_tokens": 2500,
+                    }
+                    if schema is not None:
+                        kwargs["response_format"] = {
                             "type": "json_schema",
-                            "name": name,
-                            "strict": True,
-                            "schema": schema,
+                            "json_schema": {"name": name, "schema": schema, "strict": True},
                         }
-                    }
-                else:
-                    request_kwargs["text"] = {
-                        "format": {
-                            "type": "json_object",
-                        }
-                    }
-                response = self.client.responses.create(**request_kwargs)
-                output_text = getattr(response, "output_text", None)
-            else:
-                messages = [
-                    {"role": "system", "content": instructions},
-                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
-                ]
-                kwargs: dict[str, Any] = {
-                    "model": self.model,
-                    "messages": messages,
-                    "max_tokens": 2500,
-                }
-                if schema is not None:
-                    kwargs["response_format"] = {
-                        "type": "json_schema",
-                        "json_schema": {"name": name, "schema": schema, "strict": True},
-                    }
-                else:
-                    kwargs["response_format"] = {"type": "json_object"}
-                response = self.client.chat.completions.create(**kwargs)
-                output_text = response.choices[0].message.content
-        except Exception as exc:
-            raise AnalysisWriterError("analysis_writer_request_failed") from exc
+                    else:
+                        kwargs["response_format"] = {"type": "json_object"}
+                    response = self.client.chat.completions.create(**kwargs)
+                    output_text = response.choices[0].message.content
+                break
+            except Exception as exc:
+                last_exc = exc
+                if attempt < 2 and ("Connection error" in str(exc) or "timeout" in str(exc).lower()):
+                    import time
+                    time.sleep(1.0 * (attempt + 1))
+                    continue
+                raise AnalysisWriterError("analysis_writer_request_failed") from exc
 
         status = getattr(response, "status", None)
         if status not in (None, "completed"):
@@ -398,4 +575,4 @@ class OpenAIAnalysisWriter:
             raise AnalysisWriterError("analysis_writer_json_invalid") from exc
         if not isinstance(decoded, dict):
             raise AnalysisWriterError("analysis_writer_output_invalid")
-        return decoded
+        return _strip_inline_fact_refs(decoded)

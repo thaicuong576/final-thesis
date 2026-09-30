@@ -639,6 +639,79 @@ class OpenAISemanticCriticNormalizationTests(unittest.TestCase):
         self.assertNotIn("orchestrator_issue_must_target_synthesis:SYN-NUM-001", violations)
         self.assertNotIn("orchestrator_issue_must_target_synthesis:SYN-OK-002", violations)
 
+    def test_render_critic_payload_and_instructions_for_er4b(self) -> None:
+        """ER-4b: verify critic instructions forbid rechecking math/direction and payload includes direction + hien_thi."""
+        from thesis_data.openai_semantic_critic import (
+            _CRITIC_INSTRUCTIONS,
+            _render_critic_payload,
+        )
+        from thesis_data.report_facts import Fact
+        from thesis_data.schema import Stage1ValidationReport
+
+        # 1. Instructions check
+        self.assertIn("TUYỆT ĐỐI KHÔNG kiểm lại số liệu, phép tính hay chiều chỉ tiêu", _CRITIC_INSTRUCTIONS)
+        self.assertIn("TUYỆT ĐỐI KHÔNG áp dụng các requirement cũ", _CRITIC_INSTRUCTIONS)
+        self.assertIn("hien_thi", _CRITIC_INSTRUCTIONS)
+
+        # 2. Payload check with report_spec and facts
+        plan = _company_plan()
+        facts = (
+            Fact(
+                fact_id="f_npl",
+                fact_type="value",
+                entity_id="TCB",
+                metric_id="bank.npl_g35",
+                period="2024_Q4",
+                value=1.17,
+                unit="%",
+                direction="lower_is_better",
+                display_text="1,17%",
+            ),
+            Fact(
+                fact_id="f_roe",
+                fact_type="value",
+                entity_id="TCB",
+                metric_id="bank.roe",
+                period="2024_Q4",
+                value=15.5,
+                unit="%",
+                direction="higher_is_better",
+                display_text="15,5%",
+            ),
+        )
+        round_ctx = SemanticRoundContext(
+            round_number=0,
+            report_spec={"kind": "note", "blocks": []},
+            facts=facts,
+        )
+        stage1_rep = Stage1ValidationReport(
+            passed=True,
+            gate_results={},
+            integrity_violations=(),
+        )
+
+        payload = _render_critic_payload(
+            plan=plan,
+            claims=(),
+            stage1_report=stage1_rep,
+            round_context=round_ctx,
+        )
+
+        # Requirements must be empty in report_spec mode
+        self.assertEqual(payload["frozen_requirements"], [])
+        self.assertEqual(payload["allowed_requirement_ids"], [])
+
+        # Facts must be rendered with direction and hien_thi
+        rendered_facts = payload.get("facts", [])
+        self.assertEqual(len(rendered_facts), 2)
+        npl_fact = next(f for f in rendered_facts if f["fact_id"] == "f_npl")
+        self.assertEqual(npl_fact["direction"], "lower_is_better")
+        self.assertEqual(npl_fact["hien_thi"], "1,17%")
+
+        roe_fact = next(f for f in rendered_facts if f["fact_id"] == "f_roe")
+        self.assertEqual(roe_fact["direction"], "higher_is_better")
+        self.assertEqual(roe_fact["hien_thi"], "15,5%")
+
 
 if __name__ == "__main__":
     unittest.main()

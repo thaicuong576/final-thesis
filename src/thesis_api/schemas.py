@@ -776,6 +776,7 @@ class NarrativeAuditDTO(BaseModel):
     numbers_matched: int
     blocks_dropped: List[BlockDroppedDTO] = Field(default_factory=list)
     composition_source: Literal["model", "deterministic_fallback"]
+    fallback_reason: Optional[str] = None
 
 
 class SourceNoteDTO(BaseModel):

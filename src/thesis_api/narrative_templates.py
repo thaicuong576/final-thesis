@@ -425,8 +425,22 @@ def default_report_spec(
         for fnd in findings[:2]:
             if fnd.status == "confirmed":
                 fnd_facts = [facts_by_id[fid] for fid in fnd.fact_ids if fid in facts_by_id]
-                c_sents = [make_fallback_sentence(fnd_facts[0], author="critic", seq=seq)] if fnd_facts else []
-                seq += 1
+                c_sents = []
+                if fnd.kind == "divergent_signals" and len(fnd_facts) >= 2:
+                    above_f = next((f for f in fnd_facts if (f.fact_type == "gap_to_median" and (f.value or 0) > 0) or (f.fact_type == "peer_rank" and (f.rank_better or 1) <= 2)), None)
+                    below_f = next((f for f in fnd_facts if (f.fact_type == "gap_to_median" and (f.value or 0) < 0) or (f.fact_type == "peer_rank" and (f.rank_better or 1) >= 4)), None)
+                    f1 = above_f or fnd_facts[0]
+                    f2 = below_f or fnd_facts[-1]
+                    if f1.fact_id == f2.fact_id and len(fnd_facts) > 1:
+                        f2 = fnd_facts[1]
+                    c_sents.append(make_fallback_sentence(f1, author="critic", seq=seq))
+                    seq += 1
+                    c_sents.append(make_fallback_sentence(f2, author="critic", seq=seq))
+                    seq += 1
+                elif fnd_facts:
+                    c_sents.append(make_fallback_sentence(fnd_facts[0], author="critic", seq=seq))
+                    seq += 1
+
                 blocks.append(
                     CalloutBlockDTO(
                         type="callout",

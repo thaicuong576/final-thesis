@@ -160,3 +160,24 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class InlineFactReferenceStrippingTests(unittest.TestCase):
+    """Model prose must not show fact identifiers; citations live in fact_ids."""
+
+    def test_strips_parenthesised_bracketed_and_bare_fact_ids_from_text_only(self) -> None:
+        from thesis_api.analysis_writer import _strip_inline_fact_refs
+
+        raw = {
+            "blocks": [
+                {"text": "Tổng mức tăng cả năm đạt +3,3 điểm %. (fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe)",
+                 "fact_ids": ["fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe"]},
+                {"text": "Khoảng cách thu hẹp (fact:a:1, fact:b:2), dù VPB xếp hạng 5/5."},
+                {"text": "ROE 21,7% [fact:value:ACB:2024_Q4:bank.roe] cao hơn trung vị."},
+            ]
+        }
+        out = _strip_inline_fact_refs(raw)
+        self.assertEqual(out["blocks"][0]["text"], "Tổng mức tăng cả năm đạt +3,3 điểm %.")
+        self.assertEqual(out["blocks"][0]["fact_ids"], ["fact:delta:VPB:2024_Q1_to_2024_Q4:bank.roe"])
+        self.assertEqual(out["blocks"][1]["text"], "Khoảng cách thu hẹp, dù VPB xếp hạng 5/5.")
+        self.assertEqual(out["blocks"][2]["text"], "ROE 21,7% cao hơn trung vị.")

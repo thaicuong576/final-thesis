@@ -123,6 +123,7 @@ class NarrativeLexicon:
         "thấp hơn",
         "dày hơn",
         "mỏng hơn",
+        "vượt trội",
         "vượt",
         "nhỉnh hơn",
         "dẫn ở",
@@ -131,8 +132,12 @@ class NarrativeLexicon:
         "tốt hơn",
         "kém hơn",
         "bằng trung vị",
+        "đúng bằng trung vị",
         "ngang trung vị",
         "ngang nhóm",
+        "ngang với trung vị",
+        "bằng trung vị nhóm",
+        "tương đương trung vị",
     )
 
 
@@ -386,7 +391,10 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         matched = False
         for f in cited_facts:
             if f.fact_type == "lead_count" and f.value is not None:
-                if round(f.value) == n_val and f.denominator == m_val:
+                lead_n = round(f.value)
+                denom = f.denominator
+                if denom == m_val and (lead_n == n_val or (denom - lead_n) == n_val):
+                    # Accept both the leader's count AND the complement (loser's count)
                     matched = True
                     break
         if not matched:
@@ -419,15 +427,21 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         re.compile(r"(?<!\w)(dẫn đầu|đứng cuối|nhóm đầu|nhóm cuối)(?!\w)"),
     ]
 
-    # Mask spread range descriptions like "cao nhất – thấp nhất" or "cao nhất - thấp nhất"
-    spread_range_pat = re.compile(r"(?<!\w)(?:chênh\s+lệch\s+)?cao\s+nhất\s*[-–—]\s*thấp\s+nhất(?!\w)")
+    # Mask spread range descriptions like "cao nhất – thấp nhất" or "cao nhất và thấp nhất"
+    spread_range_pat = re.compile(
+        r"(?<!\w)(?:chênh\s+lệch\s+)?(?:(?:giữa\s+)?(?:ngân\s+hàng|đơn\s+vị|thành\s+viên\s+)?cao\s+nhất\s*(?:[-–—]|và)\s*(?:ngân\s+hàng|đơn\s+vị|thành\s+viên\s+)?thấp\s+nhất|(?:giữa\s+)?(?:ngân\s+hàng|đơn\s+vị|thành\s+viên\s+)?thấp\s+nhất\s*(?:[-–—]|và)\s*(?:ngân\s+hàng|đơn\s+vị|thành\s+viên\s+)?cao\s+nhất)(?!\w)"
+    )
     for sm in spread_range_pat.finditer("".join(working_chars)):
         mask_span(sm.start(), sm.end())
+
+    has_spread_fact = any(f.fact_type == "spread" for f in cited_facts)
 
     for r_pat in rank_patterns:
         for m in r_pat.finditer("".join(working_chars)):
             matched_span = m.group(0)
             if not rank_facts:
+                if has_spread_fact and any(w in matched_span for w in ("cao", "thấp")):
+                    continue
                 return SentenceVerdict(
                     ok=False,
                     reason_code="rank_mismatch",
@@ -565,7 +579,7 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
     # Regex for number with optional suffix
     # Suffixes: %, điểm %, điểm phần trăm, pp, điểm, lần, x
     num_pat = re.compile(
-        r"(?<!\w)(\d+(?:[.,]\d+)?)(?:\s*(%|điểm\s*%|điểm\s+phần\s+trăm|pp|điểm|lần|x))?(?!\w)"
+        r"(?<!\w)([+-]?\d+(?:[.,]\d+)?)(?:\s*(%|điểm\s*%|điểm\s+phần\s+trăm|pp|điểm|lần|x))?(?!\w)"
     )
 
     numbers_checked = 0
@@ -583,8 +597,8 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         sfx_raw = m.group(2)
         numbers_checked += 1
 
-        clean_num_str = num_str.replace(",", ".")
-        val_parsed = float(clean_num_str)
+        clean_num_str = num_str.replace(",", ".").lstrip("+")
+        val_parsed = abs(float(clean_num_str)) if (sfx_raw or clean_num_str.startswith("-")) else float(clean_num_str)
         # Decimal digits
         if "." in clean_num_str:
             d_digits = len(clean_num_str.split(".")[1])
@@ -703,6 +717,29 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
             found_fact = True
             break
 
+        # Spec §2 Rule 9: For pp unit, if no direct gap fact is cited, check if two cited facts
+        # of the same metric (e.g. value and peer_median, or two values) have matching difference
+        if not found_fact and unit_cat == "pp":
+            val_and_med = [
+                f for f in cited_facts
+                if f.fact_type in ("value", "peer_median") and f.value is not None
+            ]
+            for i in range(len(val_and_med)):
+                for j in range(i + 1, len(val_and_med)):
+                    f1 = val_and_med[i]
+                    f2 = val_and_med[j]
+                    if f1.metric_id == f2.metric_id:
+                        v1 = float(f1.value)
+                        v2 = float(f2.value)
+                        diff_raw = abs(v1 - v2)
+                        diff_disp = abs(round(v1, d_digits) - round(v2, d_digits))
+                        if abs(diff_raw - val_parsed) <= tolerance or abs(diff_disp - val_parsed) <= tolerance:
+                            found_fact = True
+                            has_unit_mismatch = False
+                            break
+                if found_fact:
+                    break
+
         if not found_fact:
             if has_unit_mismatch:
                 return SentenceVerdict(
@@ -750,11 +787,24 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         if not primary_delta and delta_facts:
             primary_delta = delta_facts[0]
 
-        flat = _get_metric_flat(ctx.flat_pp, primary_delta.metric_id if primary_delta else "", default=0.05)
-        d_val = float(primary_delta.value) if (primary_delta and primary_delta.value is not None) else 0.0
+        m_delta = next((f for f in cited_facts if f.fact_type == "median_delta"), None)
 
         for tw in trend_terms_found:
             tw_norm = _normalize(tw)
+
+            # Determine whether this trend term describes the median or the primary entity
+            eval_delta = primary_delta
+            if m_delta is not None and tw_norm not in ("thu hẹp", "nới rộng", "ngược chiều", "ngược xu hướng", "liên tục"):
+                m_tw = re.search(rf"(?<!\w){re.escape(tw_norm)}(?!\w)", trend_eval_text)
+                if m_tw:
+                    preceding = trend_eval_text[:m_tw.start()]
+                    preceding_clause = preceding.split(",")[-1]
+                    if any(term in preceding_clause for term in ("trung vị", "nhóm ngân hàng", "toàn ngành", "cả nhóm")):
+                        eval_delta = m_delta
+
+            flat = _get_metric_flat(ctx.flat_pp, eval_delta.metric_id if eval_delta else "", default=0.05)
+            d_val = float(eval_delta.value) if (eval_delta and eval_delta.value is not None) else 0.0
+
             if tw_norm in ("thu hẹp", "nới rộng"):
                 if len(gap_facts) < 2:
                     return SentenceVerdict(
@@ -785,7 +835,6 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                         numbers_matched=numbers_matched,
                     )
             elif tw_norm in ("ngược chiều", "ngược xu hướng"):
-                m_delta = next((f for f in cited_facts if f.fact_type == "median_delta"), None)
                 if not (primary_delta and m_delta and primary_delta.value is not None and m_delta.value is not None):
                     return SentenceVerdict(
                         ok=False,
@@ -863,7 +912,7 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                         numbers_matched=numbers_matched,
                     )
             elif tw_norm in ("cải thiện", "xấu đi"):
-                m_dir = ctx.directions.get(primary_delta.metric_id if primary_delta else "", "higher_is_better")
+                m_dir = ctx.directions.get(eval_delta.metric_id if eval_delta else "", "higher_is_better")
                 if m_dir == "lower_is_better":
                     improved = d_val < -flat
                     worsened = d_val > flat
@@ -898,20 +947,31 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
     ]
     if comp_terms_found:
         gap_facts = [f for f in cited_facts if f.fact_type in ("gap_to_median", "pairwise_gap")]
-        val_facts = [f for f in cited_facts if f.fact_type in ("value", "derived_ratio") and f.value is not None]
+        val_facts = [f for f in cited_facts if f.fact_type in ("value", "peer_median", "derived_ratio") and f.value is not None]
         lead_facts = [f for f in cited_facts if f.fact_type == "lead_count" and f.value is not None]
+        ratio_facts = [f for f in cited_facts if f.fact_type == "ratio_to_median" and f.value is not None]
 
-        # Check if we have gap facts, pairwise comparison across two values, or lead_count facts
-        same_metric_vals = False
+        # If gap_facts is empty in cited_facts, look up in ctx.facts for matching entity/metric
+        if not gap_facts and ctx.facts:
+            relevant_entities = {f.entity_id for f in cited_facts if f.entity_id}
+            relevant_metrics = {f.metric_id for f in cited_facts if f.metric_id}
+            for f in ctx.facts.values():
+                if f.fact_type in ("gap_to_median", "pairwise_gap") and f.value is not None:
+                    if f.metric_id in relevant_metrics and (not f.entity_id or f.entity_id in relevant_entities):
+                        gap_facts.append(f)
+
+        metrics_seen: dict[str, list[Fact]] = {}
         if len(val_facts) >= 2:
-            metrics_seen: dict[str, list[Fact]] = {}
             for vf in val_facts:
                 metrics_seen.setdefault(vf.metric_id, []).append(vf)
-            same_metric_vals = any(len(vfs) >= 2 for vfs in metrics_seen.values())
+        candidate_metric_ids = [m for m, vfs in metrics_seen.items() if len(vfs) >= 2]
+        same_metric_vals = len(candidate_metric_ids) > 0
 
         has_lead_win = any(float(lf.value or 0) > (float(lf.denominator or 0) / 2.0) for lf in lead_facts)
+        has_ratio_win = any(float(rf.value or 0) > 1.0 for rf in ratio_facts)
+        has_ratio_loss = any(float(rf.value or 0) < 1.0 for rf in ratio_facts)
 
-        if not gap_facts and not same_metric_vals and not has_lead_win:
+        if not gap_facts and not same_metric_vals and not has_lead_win and not ratio_facts:
             return SentenceVerdict(
                 ok=False,
                 reason_code="comparison_direction_mismatch",
@@ -920,44 +980,74 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                 numbers_matched=numbers_matched,
             )
 
-        # Evaluate comparison direction
+        # Build comparison candidate tuples: (gap_val, flat, m_dir, metric_id)
+        comp_candidates: list[tuple[float, float, str, str]] = []
+        for gf in gap_facts:
+            g_val = float(gf.value or 0)
+            g_flat = _get_metric_flat(ctx.flat_pp, gf.metric_id, default=0.05)
+            g_dir = ctx.directions.get(gf.metric_id, "higher_is_better")
+            comp_candidates.append((g_val, g_flat, g_dir, gf.metric_id))
+
+        for m in candidate_metric_ids:
+            vfs = metrics_seen[m]
+            v_ent = next((f for f in vfs if f.fact_type == "value"), None)
+            v_med = next((f for f in vfs if f.fact_type == "peer_median"), None)
+            if v_ent and v_med:
+                g_val = float(v_ent.value or 0) - float(v_med.value or 0)
+            else:
+                def _ent_pos(f: Fact) -> int:
+                    if f.entity_id:
+                        p = comp_eval_text.find(_normalize(f.entity_id))
+                        return p if p >= 0 else 999999
+                    return 999999
+                sorted_vfs = sorted(vfs, key=_ent_pos)
+                g_val = float(sorted_vfs[0].value or 0) - float(sorted_vfs[1].value or 0)
+            g_flat = _get_metric_flat(ctx.flat_pp, m, default=0.05)
+            g_dir = ctx.directions.get(m, "higher_is_better")
+            comp_candidates.append((g_val, g_flat, g_dir, m))
+
+        # Check if sentence mentions specific metric terms
+        mentioned_metrics = set()
+        all_candidate_mids = set(c[3] for c in comp_candidates)
+        for m in all_candidate_mids:
+            terms = ctx.metric_terms.get(m, ())
+            if any(re.search(rf"(?<!\w){re.escape(_normalize(t))}(?!\w)", comp_eval_text) for t in terms):
+                mentioned_metrics.add(m)
+
         for cw in comp_terms_found:
             cw_norm = _normalize(cw)
-            flat = 0.05
-            if gap_facts:
-                gap_val = float(gap_facts[0].value or 0)
-                flat = _get_metric_flat(ctx.flat_pp, gap_facts[0].metric_id, default=0.05)
-                m_dir = ctx.directions.get(gap_facts[0].metric_id, "higher_is_better")
-            elif same_metric_vals:
-                # Compare the two values mentioned in order of appearance
-                gap_val = float(val_facts[0].value or 0) - float(val_facts[1].value or 0)
-                flat = _get_metric_flat(ctx.flat_pp, val_facts[0].metric_id, default=0.05)
-                m_dir = ctx.directions.get(val_facts[0].metric_id, "higher_is_better")
-            else:
-                gap_val = 0.0
-                m_dir = "higher_is_better"
+            eval_cands = [c for c in comp_candidates if c[3] in mentioned_metrics] if mentioned_metrics else comp_candidates
+            if not eval_cands:
+                eval_cands = comp_candidates
 
             if cw_norm in ("cao hơn", "dày hơn", "vượt", "trên trung vị"):
-                if not (gap_val > flat):
+                matched = any(c[0] > c[1] for c in eval_cands) or has_ratio_win or has_lead_win
+                if not matched:
+                    last_gap = eval_cands[0][0] if eval_cands else 0.0
                     return SentenceVerdict(
                         ok=False,
                         reason_code="comparison_direction_mismatch",
-                        reason=f"Nhận định '{cw}' nhưng chênh lệch không dương vượt ngưỡng (gap={gap_val}).",
+                        reason=f"Nhận định '{cw}' nhưng chênh lệch không dương vượt ngưỡng (gap={last_gap}).",
                         numbers_checked=numbers_checked,
                         numbers_matched=numbers_matched,
                     )
             elif cw_norm in ("thấp hơn", "mỏng hơn", "dưới trung vị"):
-                if not (gap_val < -flat):
+                matched = any(c[0] < -c[1] for c in eval_cands) or has_ratio_loss
+                if not matched:
+                    last_gap = eval_cands[0][0] if eval_cands else 0.0
                     return SentenceVerdict(
                         ok=False,
                         reason_code="comparison_direction_mismatch",
-                        reason=f"Nhận định '{cw}' nhưng chênh lệch không âm vượt ngưỡng (gap={gap_val}).",
+                        reason=f"Nhận định '{cw}' nhưng chênh lệch không âm vượt ngưỡng (gap={last_gap}).",
                         numbers_checked=numbers_checked,
                         numbers_matched=numbers_matched,
                     )
-            elif cw_norm in ("tốt hơn", "nhỉnh hơn", "dẫn ở"):
-                better = (gap_val > flat) if m_dir == "higher_is_better" else (gap_val < -flat)
-                if not better and not has_lead_win:
+            elif cw_norm in ("tốt hơn", "nhỉnh hơn", "dẫn ở", "vượt trội"):
+                matched = any(
+                    (c[0] > c[1]) if c[2] == "higher_is_better" else (c[0] < -c[1])
+                    for c in eval_cands
+                ) or has_lead_win or has_ratio_win
+                if not matched:
                     return SentenceVerdict(
                         ok=False,
                         reason_code="comparison_direction_mismatch",
@@ -966,8 +1056,11 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                         numbers_matched=numbers_matched,
                     )
             elif cw_norm in ("kém hơn",):
-                worse = (gap_val < -flat) if m_dir == "higher_is_better" else (gap_val > flat)
-                if not worse:
+                matched = any(
+                    (c[0] < -c[1]) if c[2] == "higher_is_better" else (c[0] > c[1])
+                    for c in eval_cands
+                ) or has_ratio_loss
+                if not matched:
                     return SentenceVerdict(
                         ok=False,
                         reason_code="comparison_direction_mismatch",
@@ -975,12 +1068,15 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                         numbers_checked=numbers_checked,
                         numbers_matched=numbers_matched,
                     )
-            elif cw_norm in ("bằng trung vị", "ngang trung vị", "ngang nhóm"):
-                if not (abs(gap_val) <= flat):
+            elif cw_norm in ("bằng trung vị", "ngang trung vị", "ngang nhóm", "đúng bằng trung vị", "tương đương trung vị", "bằng trung vị nhóm", "ngang với trung vị"):
+                matched = any(abs(c[0]) <= c[1] for c in eval_cands)
+                if not matched:
+                    last_gap = eval_cands[0][0] if eval_cands else 0.0
+                    flat_thr = eval_cands[0][1] if eval_cands else 0.05
                     return SentenceVerdict(
                         ok=False,
                         reason_code="comparison_direction_mismatch",
-                        reason=f"Nhận định '{cw}' nhưng chênh lệch vượt ngưỡng đi ngang (|gap|={abs(gap_val)} > {flat}).",
+                        reason=f"Nhận định '{cw}' nhưng chênh lệch vượt ngưỡng đi ngang (|gap|={abs(last_gap)} > {flat_thr}).",
                         numbers_checked=numbers_checked,
                         numbers_matched=numbers_matched,
                     )

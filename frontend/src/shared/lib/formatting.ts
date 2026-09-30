@@ -1,4 +1,6 @@
 import type { Period } from '../../entities/capability/model/types';
+import type { MetricPresentation } from '@/features/equity-report/model/types';
+import { DEFAULT_METRICS } from './defaultMetrics';
 
 export function formatPeriodLabel(period: Period) {
   return `Q${period.quarter}/${period.year}`;
@@ -196,10 +198,15 @@ export function formatDecimalVi(
 /**
  * Sanitizes and formats text displayed to users:
  * - Translates periods from machine format ("2024_Q4") to human format ("Q4/2024")
- * - Replaces raw metric identifiers (LLR_COVERAGE, NPL_G35, bank.*) with Vietnamese labels
- * - Cleans up internal technical reason codes (DATA_UNAVAILABLE -> Chưa có số liệu)
+ * - Translates period ranges ("2024_Q1_to_2024_Q4") to human format ("Q1–Q4/2024")
+ * - Maps metric identifiers from metricRegistry / capabilities (e.g. bank.llr_coverage, LLR_COVERAGE)
+ * - Translates technical missing reason codes (DATA_UNAVAILABLE -> Chưa có số liệu đã kiểm định)
+ * Unmapped tokens are preserved as-is.
  */
-export function formatDisplayText(text: string | null | undefined): string {
+export function formatDisplayText(
+  text: string | null | undefined,
+  metrics?: MetricPresentation[]
+): string {
   if (!text) return '';
   let s = String(text);
 
@@ -214,29 +221,27 @@ export function formatDisplayText(text: string | null | undefined): string {
   s = s.replace(/Q([0-9]+)_(\d{4})/gi, 'Q$1/$2');
   s = s.replace(/(\d{4})_Q/gi, 'Q/$1');
 
-  // 3. Format specific known metric acronyms & keys
-  s = s.replace(/bank\.llr_coverage/gi, 'Bao phủ nợ xấu');
-  s = s.replace(/LLR_COVERAGE/gi, 'Bao phủ nợ xấu');
-  s = s.replace(/llr_coverage/gi, 'Bao phủ nợ xấu');
+  // 3. Map metric identifiers from metricRegistry / capabilities
+  const metricList = metrics && metrics.length > 0 ? metrics : Object.values(DEFAULT_METRICS);
+  for (const m of metricList) {
+    if (!m) continue;
+    const replacement = m.shortLabel || m.label || m.acronym;
+    if (!replacement) continue;
 
-  s = s.replace(/bank\.npl_g35/gi, 'Tỷ lệ nợ xấu');
-  s = s.replace(/NPL_G35/gi, 'Tỷ lệ nợ xấu');
-  s = s.replace(/npl_g35/gi, 'Tỷ lệ nợ xấu');
+    // Replace m.id (e.g. 'bank.npl_g35', 'bank.llr_coverage')
+    if (m.id) {
+      const escapedId = m.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(new RegExp(`\\b${escapedId}\\b`, 'gi'), replacement);
+    }
 
-  s = s.replace(/bank\.roe/gi, 'ROE');
-  s = s.replace(/bank\.roa/gi, 'ROA');
-  s = s.replace(/bank\.nim/gi, 'NIM');
-  s = s.replace(/bank\.casa/gi, 'CASA');
-  s = s.replace(/bank\.cir/gi, 'CIR');
-  s = s.replace(/bank\.car/gi, 'CAR');
-  s = s.replace(/bank\.ldr/gi, 'LDR');
-  s = s.replace(/derived\.roe_over_roa/gi, 'ROE/ROA');
+    // Replace technical acronym (e.g. 'LLR_COVERAGE', 'NPL_G35') if different from replacement
+    if (m.acronym && m.acronym.toLowerCase() !== replacement.toLowerCase()) {
+      const escapedAcronym = m.acronym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(new RegExp(`\\b${escapedAcronym}\\b`, 'gi'), replacement);
+    }
+  }
 
-  // 4. Any remaining bank.* patterns
-  s = s.replace(/bank\.([a-z0-9_]+)/gi, (_, key: string) => key.toUpperCase());
-  s = s.replace(/bank\./gi, '');
-
-  // 5. Missing reason code & technical reason codes
+  // 4. Missing reason code & technical reason codes
   s = s.replace(/\bDATA_UNAVAILABLE\b/g, 'Chưa có số liệu đã kiểm định');
 
   return s;

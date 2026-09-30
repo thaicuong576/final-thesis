@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -91,14 +93,68 @@ describe('ER-7b: Real Staging Responses (B1–B5)', () => {
     }
   );
 
-  it('renders B1 (company_profile) with smart Scatter axis (NPL on X, LLR on Y)', () => {
+  it.each(REAL_FIXTURES)(
+    'does not render any source note when source_notes is empty in $name',
+    ({ fixture }) => {
+      const { container } = renderReportInRouter(fixture);
+      // Real staging responses have source_notes: []
+      // When source_notes is empty, no note items are rendered
+      const noteElements = container.querySelectorAll('[id^="note-"]');
+      expect(noteElements.length).toBe(0);
+    }
+  );
+
+  it('renders B1 (company_profile) with Scatter axes determined by dataset.metric_ids and no medians without reference_lines', () => {
     const { container } = renderReportInRouter(realB1 as unknown as AdaptiveReportResponse);
     // Caption for Figure 2 should be sanitized
-    expect(screen.getByText(/Tương quan Bao phủ nợ xấu và Tỷ lệ nợ xấu · Q4\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tương quan (Bao phủ|Bao phủ nợ xấu) và (Nợ xấu|Tỷ lệ nợ xấu) · Q4\/2024/i)).toBeInTheDocument();
 
-    // Scatter axes should indicate directions
-    expect(container.textContent).toContain('Bao phủ (%) ↑ dày hơn');
-    expect(container.textContent).toContain('Nợ xấu (%) → cao hơn');
+    // In realB1, dataset 2 metric_ids is ['bank.llr_coverage', 'bank.npl_g35']
+    // Metric 0 is X axis, Metric 1 is Y axis
+    expect(container.textContent).toContain('Nợ xấu (%) ↑ cao hơn');
+    expect(container.textContent).toContain('Bao phủ (%) → cao hơn');
+
+    // Without reference_lines, no median line or text
+    expect(container.textContent).not.toContain('đường đứt: trung vị');
+    const dashedLines = container.querySelectorAll('line[stroke-dasharray="3 3"]');
+    expect(dashedLines.length).toBe(0);
+  });
+
+  it('renders Scatter with median lines when reference_lines is present', () => {
+    const b1Clone = JSON.parse(JSON.stringify(realB1));
+    b1Clone.datasets[1].reference_lines = [
+      { kind: 'median', metric_id: 'bank.llr_coverage', value: 100 },
+      { kind: 'median', metric_id: 'bank.npl_g35', value: 1.5 }
+    ];
+    const { container } = renderReportInRouter(b1Clone as unknown as AdaptiveReportResponse);
+    expect(container.textContent).toContain('đường đứt: trung vị');
+    const dashedLines = container.querySelectorAll('line[stroke-dasharray="3 3"]');
+    expect(dashedLines.length).toBe(2);
+  });
+
+  it('contains no literal bank.npl_g35 or bank.llr_coverage in frontend/src/features/equity-report', () => {
+    const equityReportDir = path.resolve(__dirname, '../src/features/equity-report');
+    function getFiles(dir: string): string[] {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      const files: string[] = [];
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          files.push(...getFiles(fullPath));
+        } else if (/\.(ts|tsx)$/.test(entry.name)) {
+          files.push(fullPath);
+        }
+      }
+      return files;
+    }
+
+    const files = getFiles(equityReportDir);
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf-8');
+      expect(content).not.toContain('bank.npl_g35');
+      expect(content).not.toContain('bank.llr_coverage');
+    }
   });
 
   it('renders B5 (lookup) as AnswerCardLayout with anchor period formatted', () => {

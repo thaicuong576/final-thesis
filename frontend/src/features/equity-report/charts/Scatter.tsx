@@ -11,13 +11,8 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
 
   const rawMetricIds = dataset.metric_ids || [];
-  // Smart metric assignment: if pair contains npl_g35 and llr_coverage, NPL is X (risk) and LLR is Y (buffer)
-  let metricXId = rawMetricIds[0] || 'bank.npl_g35';
-  let metricYId = rawMetricIds[1] || 'bank.llr_coverage';
-  if (rawMetricIds.includes('bank.npl_g35') && rawMetricIds.includes('bank.llr_coverage')) {
-    metricXId = 'bank.npl_g35';
-    metricYId = 'bank.llr_coverage';
-  }
+  const metricXId = rawMetricIds[0] || '';
+  const metricYId = rawMetricIds[1] || rawMetricIds[0] || '';
 
   const metricX = getMetricPresentation(metricXId, metrics);
   const metricY = getMetricPresentation(metricYId, metrics);
@@ -37,35 +32,13 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
     if (r.metric_id === metricYId) cur.y = Number(r.value);
   }
 
-  // Medians from refLines or compute from rows
+  // Medians strictly from refLines (never compute on frontend)
   const medianXRef = refLines.find((r) => r.metric_id === metricXId && r.kind === 'median');
   const medianYRef = refLines.find((r) => r.metric_id === metricYId && r.kind === 'median');
-  let medianX = medianXRef ? Number(medianXRef.value) : null;
-  let medianY = medianYRef ? Number(medianYRef.value) : null;
+  const medianX = medianXRef ? Number(medianXRef.value) : null;
+  const medianY = medianYRef ? Number(medianYRef.value) : null;
 
-  if (medianX === null) {
-    const valsX = rows
-      .filter((r) => r.metric_id === metricXId && r.status !== 'missing' && r.value !== null)
-      .map((r) => Number(r.value))
-      .sort((a, b) => a - b);
-    if (valsX.length > 0) {
-      const mid = Math.floor(valsX.length / 2);
-      medianX = valsX.length % 2 !== 0 ? valsX[mid] : (valsX[mid - 1] + valsX[mid]) / 2;
-    }
-  }
-
-  if (medianY === null) {
-    const valsY = rows
-      .filter((r) => r.metric_id === metricYId && r.status !== 'missing' && r.value !== null)
-      .map((r) => Number(r.value))
-      .sort((a, b) => a - b);
-    if (valsY.length > 0) {
-      const mid = Math.floor(valsY.length / 2);
-      medianY = valsY.length % 2 !== 0 ? valsY[mid] : (valsY[mid - 1] + valsY[mid]) / 2;
-    }
-  }
-
-  // Scale ranges strictly from data (including medians), +8% padding each side, no negative truncation if data >= 0
+  // Scale ranges strictly from data (including medians from refLines), +8% padding each side, no negative truncation if data >= 0
   const xValues = Array.from(entityMap.values()).map((p) => p.x);
   if (medianX !== null && !isNaN(medianX)) xValues.push(medianX);
   const yValues = Array.from(entityMap.values()).map((p) => p.y);
@@ -207,7 +180,7 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
 
         {/* Axis descriptive labels */}
         <text x={leftM} y={topM - 10} fontSize="11" fill="var(--text-muted, #85857e)">
-          {metricY.shortLabel} ({metricY.unit}) ↑ {metricY.id === 'bank.llr_coverage' ? 'dày hơn' : 'cao hơn'}
+          {metricY.shortLabel} ({metricY.unit}) ↑ cao hơn
         </text>
         <text
           x={leftM + plotW}
@@ -218,15 +191,17 @@ export const Scatter: React.FC<ChartProps> = ({ dataset, metrics, highlight = []
         >
           {metricX.shortLabel} ({metricX.unit}) → cao hơn
         </text>
-        <text
-          x={leftM + plotW}
-          y={topM - 10}
-          textAnchor="end"
-          fontSize="11"
-          fill="var(--text-muted, #85857e)"
-        >
-          đường đứt: trung vị
-        </text>
+        {(medianX !== null || medianY !== null) && (
+          <text
+            x={leftM + plotW}
+            y={topM - 10}
+            textAnchor="end"
+            fontSize="11"
+            fill="var(--text-muted, #85857e)"
+          >
+            đường đứt: trung vị
+          </text>
+        )}
 
         {/* Scatter Points */}
         {Array.from(entityMap.entries()).map(([entity, pt]) => {

@@ -126,6 +126,8 @@ from .cost_tracker import LLMUsageTracker, wrap_llm_client
 from .summaries_vi import (
     AGENT_LABELS_VI,
     TOOL_LABELS_VI,
+    clean_reader_facing_limitations,
+    format_critic_limitations,
     summary_accept,
     summary_assign,
     summary_blocked,
@@ -2146,6 +2148,7 @@ class _AdaptiveRun:
                     tool_limitations.append("Không thực hiện được phản biện tự động.")
 
                 if critic_result is not None:
+                    critic_limitation_issues: list[Any] = []
                     self.emit("REVIEW_FEEDBACK_CREATED", {
                         "round": 1,
                         "periods": list(plan.scope.periods),
@@ -2270,7 +2273,7 @@ class _AdaptiveRun:
 
                             # ADD_LIMITATION
                             if getattr(issue, "required_action", None) == "ADD_LIMITATION" or getattr(issue, "required_action", None) == CritiqueAction.ADD_LIMITATION:
-                                tool_limitations.append(issue.description)
+                                critic_limitation_issues.append(issue)
 
                             # REMOVE_CLAIM
                             elif getattr(issue, "required_action", None) == "REMOVE_CLAIM" or getattr(issue, "required_action", None) == CritiqueAction.REMOVE_CLAIM:
@@ -2571,9 +2574,9 @@ class _AdaptiveRun:
                                 # sentences. MINOR ones (style, duplication, extra context) are kept
                                 # as limitations so a readable model report is not emptied by nitpicks.
                                 severity = str(getattr(getattr(i, "severity", ""), "value", getattr(i, "severity", ""))).lower()
-                                if severity == "minor":
-                                    if i.description and i.description not in tool_limitations:
-                                        tool_limitations.append(f"Góp ý phản biện chưa xử lý (mức nhẹ): {i.description}")
+                                if severity == "minor" or getattr(i, "required_action", None) in ("ADD_LIMITATION", CritiqueAction.ADD_LIMITATION):
+                                    if i not in critic_limitation_issues:
+                                        critic_limitation_issues.append(i)
                                     continue
                                 s_ids = list(i.affected_sentence_ids)
                                 if not s_ids:
@@ -2639,6 +2642,12 @@ class _AdaptiveRun:
                                 signals=signals,
                                 findings=candidates,
                             )
+
+                if critic_limitation_issues:
+                    reader_lims = format_critic_limitations(critic_limitation_issues)
+                    for r_lim in reader_lims:
+                        if r_lim not in tool_limitations:
+                            tool_limitations.append(r_lim)
 
                 open_count = (
                     sum(i.resolution_status is CritiqueIssueStatus.OPEN for i in getattr(critic_result, "critique_issues", ()))
@@ -3647,7 +3656,7 @@ class _AdaptiveRun:
             "peer_comparison" if link.link_type is ApplicableLinkType.COMPANY_TO_PEER_BENCHMARK else "macro_transmission"
             for link in plan.applicable_links
         ]
-        plan_limitations = list(dict.fromkeys(known_limitations + list(extra_limitations)))
+        plan_limitations = clean_reader_facing_limitations(list(dict.fromkeys(known_limitations + list(extra_limitations))))
         plan_dto = AnalysisPlanDTO(
             plan_id=f"plan-{hashlib.sha256(plan.query_id.encode()).hexdigest()[:12]}",
             query=self.request.query, target_ticker=target, peer_tickers=list(peers),
@@ -3779,7 +3788,7 @@ class _AdaptiveRun:
             cross_level_critique=critique_items,
             atomic_claims=claim_dtos, evidence_trail=evidence_rows,
             revision_summary=revision_summary,
-            limitations=list(dict.fromkeys(plan_limitations)),
+            limitations=clean_reader_facing_limitations(list(dict.fromkeys(plan_limitations))),
             synthesis_summary=synthesis_summary,
             synthesis_supporting_claim_ids=[c.claim_id for c in claim_dtos] if synthesis_summary else [],
             report_version=report_version,

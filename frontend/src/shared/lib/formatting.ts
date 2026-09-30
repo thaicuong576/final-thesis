@@ -315,4 +315,85 @@ export function humanizeLocator(raw?: string | null): string {
   return text;
 }
 
+/**
+ * Defensive sanitizer for limitations to ensure reader-facing Vietnamese text without internal technical IDs.
+ */
+export function cleanReaderLimitations(limitations: string[]): string[] {
+  const results: string[] = [];
+  let unhandledCount = 0;
+  const seen = new Set<string>();
+
+  for (const lim of limitations) {
+    if (!lim || !lim.trim()) continue;
+    const raw = lim.trim();
+
+    const hasInternalId = /\b(?:sent-[a-zA-Z0-9_-]+|block[ _-]?\d+)\b/i.test(raw);
+    const hasWriterCommand = /\b(?:cần bổ sung|cần điều chỉnh|cần diễn đạt|cần kiểm tra|cần lưu ý|đề nghị|khuyến nghị)\b/i.test(raw);
+    const isCriticPrefix = /^góp ý phản biện/i.test(raw);
+
+    if (hasInternalId || hasWriterCommand || isCriticPrefix) {
+      const isPeerMedian = /(?:trung vị|peer median|peer_median)/i.test(raw);
+      const isSingleObs = /(?:1 quan sát|một quan sát|chỉ có 1|chỉ có một|mẫu chỉ có 1|mẫu chỉ có một|đúng giá trị của|duy nhất)/i.test(raw);
+
+      if (isPeerMedian && isSingleObs) {
+        let metric = '';
+        if (/\broe\b/i.test(raw)) metric = 'ROE';
+        else if (/\broa\b/i.test(raw)) metric = 'ROA';
+        else if (/\b(?:tỷ lệ nợ xấu|nợ xấu|npl)\b/i.test(raw)) metric = 'tỷ lệ nợ xấu';
+        else if (/\b(?:bao phủ|llr)\b/i.test(raw)) metric = 'tỷ lệ bao phủ nợ xấu';
+        else if (/\bcasa\b/i.test(raw)) metric = 'tỷ lệ CASA';
+        else if (/\bnim\b/i.test(raw)) metric = 'NIM';
+        else if (/\bcir\b/i.test(raw)) metric = 'tỷ lệ CIR';
+        else if (/\bldr\b/i.test(raw)) metric = 'tỷ lệ LDR';
+
+        let period = '';
+        const pMatch = raw.match(/\b(?:quý\s*([1-4])[/_](\d{4})|Q([1-4])[/_](\d{4})|(\d{4})[/_]Q([1-4]))\b/i);
+        if (pMatch) {
+          const q = pMatch[1] || pMatch[3] || pMatch[6];
+          const y = pMatch[2] || pMatch[4] || pMatch[5];
+          period = `quý ${q}/${y}`;
+        }
+
+        const formatted = metric && period
+          ? `Trung vị ngành cho ${metric} ${period} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo.`
+          : metric
+          ? `Trung vị ngành cho ${metric} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo.`
+          : period
+          ? `Trung vị ngành ${period} chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo.`
+          : 'Trung vị ngành chỉ dựa trên 1 quan sát, nên so sánh với trung vị mang tính tham khảo.';
+
+        if (!seen.has(formatted)) {
+          seen.add(formatted);
+          results.push(formatted);
+        }
+      } else {
+        unhandledCount++;
+      }
+      continue;
+    }
+
+    let cleaned = raw;
+    if (cleaned.includes('fact:')) {
+      cleaned = cleaned.replace(/fact:[a-zA-Z0-9_.:-]+/g, 'chỉ tiêu');
+    }
+
+    if (!seen.has(cleaned)) {
+      seen.add(cleaned);
+      results.push(cleaned);
+    }
+  }
+
+  if (unhandledCount > 0) {
+    const msg = unhandledCount === 1
+      ? 'Bộ phản biện còn 1 lưu ý chưa xử lý; xem quá trình phân tích.'
+      : `Bộ phản biện còn ${unhandledCount} lưu ý chưa xử lý; xem quá trình phân tích.`;
+    if (!seen.has(msg)) {
+      results.push(msg);
+    }
+  }
+
+  return results;
+}
+
+
 

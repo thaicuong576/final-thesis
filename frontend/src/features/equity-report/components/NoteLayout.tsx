@@ -17,17 +17,12 @@ export const NoteLayout: React.FC = () => {
   // Headline is rendered first, then KeyPoints is paired with SignalsAside in a 1.6fr / 1fr grid.
   // If no headline, the first block is paired with SignalsAside.
   let headerBlock = null;
-  let pairedBlock = null;
-  let remainingBlocks = blocks;
+  let contentBlocks = blocks;
 
   if (isProfile && blocks.length > 0) {
     if (blocks[0].type === 'headline') {
       headerBlock = blocks[0];
-      pairedBlock = blocks[1] || null;
-      remainingBlocks = blocks.slice(2);
-    } else {
-      pairedBlock = blocks[0];
-      remainingBlocks = blocks.slice(1);
+      contentBlocks = blocks.slice(1);
     }
   }
 
@@ -39,20 +34,20 @@ export const NoteLayout: React.FC = () => {
         <div className="space-y-5">
           {headerBlock && <BlockRenderer block={headerBlock} />}
 
-          {pairedBlock && (
-            <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-6 items-start">
-              <div>
-                <BlockRenderer block={pairedBlock} />
-              </div>
+          <div>
+            <div className="md:float-right md:w-[280px] md:ml-6 md:mb-4 mb-5">
               <SignalsAside signals={signals} />
             </div>
-          )}
 
-          {remainingBlocks.map((block, idx) => (
-            <div key={idx}>
-              <BlockRenderer block={block} />
+            <div className="space-y-4">
+              {contentBlocks.map((block, idx) => (
+                <div key={idx}>
+                  <BlockRenderer block={block} />
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="clear-both" />
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ProcessTrace } from '@/features/analysis-session';
 import type { TraceStep } from '@/features/analysis-session/model/types';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { ListTree } from 'lucide-react';
 
 export const ProcessLink: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
   const { report } = useEquityReport();
@@ -109,13 +110,13 @@ export const ProcessLink: React.FC<{ onClick?: () => void }> = ({ onClick }) => 
 
   return (
     <>
-      <div className="my-4 text-sm print:hidden">
+      <div className="mt-8 mb-2 print:hidden">
         <button
           type="button"
           onClick={handleClick}
-          className="inline-flex items-center gap-1.5 text-text-accent hover:underline font-medium p-0 bg-transparent border-none cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-md border border-border-default bg-surface-primary px-3 py-2 text-[13px] font-medium text-text-primary transition-colors hover:bg-surface-hover hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus cursor-pointer"
         >
-          <span>↳</span>
+          <ListTree className="size-4 text-text-accent" aria-hidden="true" />
           <span>{label}</span>
         </button>
       </div>

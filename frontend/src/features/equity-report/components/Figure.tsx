@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import type { FigureBlock } from '../model/types';
+import type { NormalizedFigureBlock } from '../model/normalizeBlocks';
 import { useEquityReport } from './useEquityReport';
 import { CHARTS, DataTable } from '../charts';
 import { SentenceView } from './SentenceView';
 import { formatDisplayText } from '@/shared/lib/formatting';
 
-export const Figure: React.FC<{ block: FigureBlock }> = ({ block }) => {
+export const Figure: React.FC<{ block: NormalizedFigureBlock }> = ({ block }) => {
   const { datasets, metrics, highlight } = useEquityReport();
   const [showTable, setShowTable] = useState(false);
 
@@ -23,25 +23,31 @@ export const Figure: React.FC<{ block: FigureBlock }> = ({ block }) => {
   };
 
   const ChartComponent = CHARTS[block.chart] || DataTable;
+  const takeaways = [block.takeaway, ...(block.extra_takeaways || [])].filter(Boolean);
 
   return (
-    <figure className="my-5 p-0 font-sans break-inside-avoid max-w-full overflow-hidden">
+    <figure className="my-6 p-0 font-sans break-inside-avoid max-w-full overflow-hidden">
       {/* Caption */}
-      <figcaption className="text-xs text-text-secondary mb-2">
+      <figcaption className="text-[13px] text-text-secondary mb-3">
         <b className="font-semibold text-text-primary">Hình {block.figure_no}.</b> {formatDisplayText(block.title)}
       </figcaption>
 
       {/* Chart Body or Table View */}
-      {showTable ? (
-        <DataTable dataset={dataset} metrics={metrics} highlight={highlight} />
-      ) : (
-        <ChartComponent dataset={dataset} metrics={metrics} highlight={highlight} />
-      )}
+      <div className="-mx-1 overflow-x-auto px-1">
+        {showTable ? (
+          <DataTable dataset={dataset} metrics={metrics} highlight={highlight} />
+        ) : (
+          <ChartComponent dataset={dataset} metrics={metrics} highlight={highlight} />
+        )}
+      </div>
 
-      {/* Takeaway line */}
-      {block.takeaway && (
-        <div className="text-xs text-text-primary mt-2">
-          <SentenceView sentence={block.takeaway} />
+      {takeaways.length > 0 && (
+        <div className="mt-3 space-y-1 text-[13px] leading-relaxed text-text-primary">
+          {takeaways.map((t, idx) => (
+            <p key={t.sentence_id || idx} className="m-0">
+              <SentenceView sentence={t} />
+            </p>
+          ))}
         </div>
       )}
 

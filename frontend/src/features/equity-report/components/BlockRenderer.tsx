@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReportBlock } from '../model/types';
+import type { NormalizedBlock } from '../model/normalizeBlocks';
 import { useEquityReport } from './useEquityReport';
 import { AnswerBlock } from './AnswerBlock';
 import { Headline } from './Headline';
@@ -9,7 +9,7 @@ import { Figure } from './Figure';
 import { Callout } from './Callout';
 import { DataTable } from '../charts';
 
-export const BlockRenderer: React.FC<{ block: ReportBlock }> = ({ block }) => {
+export const BlockRenderer: React.FC<{ block: NormalizedBlock; compact?: boolean }> = ({ block, compact = false }) => {
   const { datasets, metrics, highlight } = useEquityReport();
 
   switch (block.type) {
@@ -23,7 +23,7 @@ export const BlockRenderer: React.FC<{ block: ReportBlock }> = ({ block }) => {
       return <KeyPoints block={block} />;
 
     case 'section':
-      return <Section block={block} />;
+      return <Section block={block} compact={compact} />;
 
     case 'figure':
       return <Figure block={block} />;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEquityReport } from './useEquityReport';
 import { formatDisplayText, formatDecimalVi } from '@/shared/lib/formatting';
+import { ChevronRight } from 'lucide-react';
 
 export const TechnicalDetails: React.FC = () => {
   const { report, facts } = useEquityReport();
@@ -19,7 +20,7 @@ export const TechnicalDetails: React.FC = () => {
         className="text-text-muted hover:text-text-primary font-medium flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
         aria-expanded={isOpen}
       >
-        <span>{isOpen ? '▾' : '▸'}</span>
+        <ChevronRight className={`size-3.5 transition-transform ${isOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
         <span>Chi tiết kỹ thuật</span>
       </button>
 

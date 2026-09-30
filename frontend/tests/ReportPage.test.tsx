@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ReportPage } from '../src/pages/reports/ReportPage';
 import { ReportsListPage } from '../src/pages/reports/ReportsListPage';
 import { CompanyCamelBreakdown, EvidenceTrailTable, SectorBenchmarkMatrix, type AnalysisReport } from '../src/features/analysis-report';
@@ -44,6 +45,7 @@ function renderReport(path: string, report?: AnalysisReport) {
 }
 
 describe('Analysis report truth and provenance', () => {
+  afterEach(() => vi.unstubAllGlobals());
   it('marks the routed sample report as simulated content', () => {
     renderReport('/reports/acb-solo');
 
@@ -135,10 +137,23 @@ describe('Analysis report truth and provenance', () => {
     expect(screen.queryByText(/đạt tỷ suất ROE|vượt trội về NIM/i)).not.toBeInTheDocument();
   });
 
-  it('labels the report library as simulated examples rather than API results', () => {
-    render(<MemoryRouter initialEntries={['/reports']}><Routes><Route path="/reports" element={<ReportsListPage />} /></Routes></MemoryRouter>);
-    expect(screen.getByText('3 MẪU MINH HỌA · KHÔNG PHẢI KẾT QUẢ API')).toBeInTheDocument();
-    expect(screen.getByText(/không phải kết quả đã kiểm định/)).toBeInTheDocument();
-    expect(screen.getAllByText('Mẫu minh họa').length).toBeGreaterThan(0);
+  it('lists real analysis runs from the API instead of simulated examples', async () => {
+    const runs = [
+      { run_id: 'run-b', created_at: '2026-10-01T02:00:00Z', query: 'So sánh ACB và TCB quý 4/2024', target_ticker: 'ACB', peer_tickers: ['TCB'], period: '2024_Q4', status: 'accepted_with_limitations', question_type: 'head_to_head', duration_ms: 42000 },
+      { run_id: 'run-a', created_at: '2026-10-01T01:00:00Z', query: 'Phân tích CTG quý 4/2024', status: 'blocked', error_code: 'unsupported_entity' }
+    ];
+    const fetchMock = vi.fn<(input: RequestInfo | URL) => Promise<Response>>(async () => new Response(JSON.stringify(runs), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/reports']}><Routes><Route path="/reports" element={<ReportsListPage />} /></Routes></MemoryRouter>
+      </QueryClientProvider>
+    );
+    expect(await screen.findByText('So sánh ACB và TCB quý 4/2024')).toBeInTheDocument();
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/runs');
+    expect(screen.getByText('Phân tích CTG quý 4/2024').closest('a')).toHaveAttribute('href', '/reports/run-a');
+    expect(screen.getByText('Bị từ chối', { selector: 'span' })).toBeInTheDocument();
+    expect(screen.queryByText(/Mẫu minh họa/)).not.toBeInTheDocument();
   });
 });

@@ -585,7 +585,8 @@ def _observation_reference(
         accepted_missing = (
             status == "missing"
             and observation.value is None
-            and observation.missing_reason == "DATA_UNAVAILABLE"
+            and isinstance(observation.missing_reason, str)
+            and bool(observation.missing_reason.strip())
         )
         if not accepted_missing:
             violations.append(f"missing_cell_reference_not_missing:{ref.ref_id}")
@@ -626,7 +627,8 @@ def _observation_reference(
         accepted_missing = (
             status == "missing"
             and observation.value is None
-            and observation.missing_reason == "DATA_UNAVAILABLE"
+            and isinstance(observation.missing_reason, str)
+            and bool(observation.missing_reason.strip())
             and bool(observation.metadata.get("adjudication_ref"))
         )
         if not accepted_missing:

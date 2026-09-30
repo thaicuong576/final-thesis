@@ -89,6 +89,23 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
                 validation_status=QualityStatus.MISSING, missing_reason="DATA_UNAVAILABLE",
             ),
             CanonicalObservation(
+                observation_id="missing-descriptive", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
+                entity_id="entity-a", period_id="2024_Q4", metric_id="company.missing_descriptive",
+                validation_status=QualityStatus.MISSING,
+                missing_reason="Báo cáo tài chính quý 1/2024 của ACB không thuyết minh chi tiết nợ nhóm 3-5 theo D-055.",
+            ),
+            CanonicalObservation.model_construct(
+                observation_id="valid-none-value", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
+                entity_id="entity-a", period_id="2024_Q4", metric_id="company.valid_none", value=None, unit="percent",
+                source_ref="source-company", period_basis="ttm", reporting_scope="consolidated",
+                metadata={"reporting_scope_authority": {
+                    "authority_ref": "fixture-scope-authority.json",
+                    "authority_canonical_lf_utf8_sha256": "a" * 64,
+                    "review_status": "accepted",
+                }}, validation_status=QualityStatus.VALID,
+                source_locator="page:3",
+            ),
+            CanonicalObservation(
                 observation_id="macro-policy", dataset_id=ref.dataset_id, dataset_snapshot_id=ref.dataset_snapshot_id,
                 entity_id="macro-vn", period_id="2024_Q4", metric_id="macro.policy", value=4.5,
                 unit="percent_per_annum", source_ref="source-macro", validation_status=QualityStatus.VALID,
@@ -197,6 +214,47 @@ class ProviderNeutralAcceptanceTests(unittest.TestCase):
         result = validate_stage1_claims(self.resolver, (claim,), claim.scope, self.policy)
         self.assertFalse(result.gate_results["reference_validity"].passed)
         self.assertIn("missing_cell_reference_not_missing", " ".join(result.gate_results["reference_validity"].violations))
+
+    def test_explicit_missingness_with_descriptive_reason_is_accepted(self):
+        """Missing cell with descriptive sentence (Gold v5 format) is accepted under dataset contract."""
+        claim = self._claim(
+            metric_id="company.missing_descriptive",
+            value=None,
+            ref_id="missing-descriptive",
+            ref_type="missing_cell",
+            assertion_type=AssertionType.MISSINGNESS,
+            operator=AssertionOperator.MISSING,
+        )
+        claim = claim.model_copy(update={"critical": False, "claim_type": "context"})
+        self.assertTrue(validate_stage1_claims(self.resolver, (claim,), claim.scope, self.policy).passed)
+
+    def test_valid_observation_with_none_value_violates_acceptance(self):
+        """Observation marked valid but having None value violates reference validity and value/unit gates."""
+        # 1. Referenced as missing_cell: rejected because status is valid
+        claim_missing = self._claim(
+            metric_id="company.valid_none",
+            value=None,
+            ref_id="valid-none-value",
+            ref_type="missing_cell",
+            assertion_type=AssertionType.MISSINGNESS,
+            operator=AssertionOperator.MISSING,
+        )
+        claim_missing = claim_missing.model_copy(update={"critical": False, "claim_type": "context"})
+        res_missing = validate_stage1_claims(self.resolver, (claim_missing,), claim_missing.scope, self.policy)
+        self.assertFalse(res_missing.gate_results["reference_validity"].passed)
+        self.assertIn("missing_cell_reference_not_missing", " ".join(res_missing.gate_results["reference_validity"].violations))
+
+        # 2. Referenced as observation: rejected because value is None in observation
+        claim_obs = self._claim(
+            metric_id="company.valid_none",
+            value=1.0,
+            ref_id="valid-none-value",
+            ref_type="observation",
+            source_refs=("source-company",),
+        )
+        res_obs = validate_stage1_claims(self.resolver, (claim_obs,), claim_obs.scope, self.policy)
+        self.assertFalse(res_obs.gate_results["reference_validity"].passed)
+        self.assertIn("observation_value_or_unit_missing", " ".join(res_obs.gate_results["reference_validity"].violations))
 
     def test_macro_observation_is_resolved_without_physical_routing(self):
         claim = self._claim(entity="macro-vn", metric_id="macro.policy", value=4.5, unit="percent_per_annum", ref_id="macro-policy", ref_type="macro_observation", source_refs=("source-macro",))

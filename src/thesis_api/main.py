@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+import json
 import logging
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
+import uuid
 
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -17,10 +21,25 @@ from .database import (
     list_analysis_runs,
 )
 from .run_history_storage import hydrate_run_history
-from .schemas import AnalysisRequest, AnalysisResponse, RunTraceDTO
+from .schemas import (
+    AnalysisRequest,
+    AnalysisResponse,
+    RunTraceDTO,
+    UploadMetricItemDTO,
+    UploadResponseDTO,
+    UploadRowIssueDTO,
+    UploadSummaryDTO,
+)
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
+from thesis_data.user_upload import (
+    generate_ctg_error_sample_csv,
+    generate_ctg_sample_csv,
+    generate_template_csv,
+    materialize_user_upload_snapshot,
+    validate_and_parse_upload_csv,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -220,6 +239,161 @@ def create_app(
                 detail=f"Report {report_id} not found",
             )
         return report
+
+    @app.post(
+        "/api/onboarding/uploads",
+        response_model=UploadResponseDTO,
+        summary="Upload and validate a new bank CSV file",
+    )
+    async def upload_bank_csv(
+        file: UploadFile = File(..., description="CSV file of bank financial statements"),
+        entity_id: Optional[str] = Form(None, description="Optional bank ticker (3 letters)"),
+        display_name: Optional[str] = Form(None, description="Optional bank display name"),
+    ) -> UploadResponseDTO:
+        """Parse, validate, and operationalize a user-supplied bank CSV."""
+        content = await file.read()
+        upload_id = f"up-{uuid.uuid4().hex[:12]}"
+        uploads_dir = current_settings.get_user_uploads_dir()
+
+        result = validate_and_parse_upload_csv(
+            content,
+            upload_id=upload_id,
+            form_entity_id=entity_id,
+            form_display_name=display_name,
+        )
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        if result.status == "accepted":
+            sqlite_path = uploads_dir / f"{upload_id}.sqlite"
+            try:
+                materialize_user_upload_snapshot(result, sqlite_path)
+            except Exception as exc:
+                logger.error("Failed to materialize upload SQLite snapshot: %s", exc)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Lỗi khi dựng snapshot dữ liệu: {str(exc)}",
+                ) from exc
+
+        # Save record JSON and raw CSV
+        record_data = {
+            "upload_id": result.upload_id,
+            "entity_id": result.entity_id,
+            "display_name": result.display_name,
+            "status": result.status,
+            "period_id": result.period_id,
+            "created_at": now_iso,
+            "filename": file.filename or "upload.csv",
+            "metrics": [m.to_dict() for m in result.metrics],
+            "row_issues": [i.to_dict() for i in result.row_issues],
+            "limitations_vi": result.limitations_vi,
+        }
+
+        meta_file = uploads_dir / f"{upload_id}.json"
+        csv_file = uploads_dir / f"{upload_id}.csv"
+        try:
+            with open(meta_file, "w", encoding="utf-8") as f:
+                json.dump(record_data, f, ensure_ascii=False, indent=2)
+            with open(csv_file, "wb") as f:
+                f.write(content)
+        except OSError as exc:
+            logger.error("Failed to write upload artifacts to %s: %s", uploads_dir, exc)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Lỗi lưu trữ tệp tải lên vào hệ thống.",
+            ) from exc
+
+        return UploadResponseDTO.model_validate(record_data)
+
+    @app.get(
+        "/api/onboarding/uploads",
+        response_model=list[UploadSummaryDTO],
+        summary="List user-supplied bank uploads",
+    )
+    def list_uploads() -> list[UploadSummaryDTO]:
+        """List all previously uploaded bank files and their status."""
+        uploads_dir = current_settings.get_user_uploads_dir()
+        summaries: list[UploadSummaryDTO] = []
+        for path in uploads_dir.glob("*.json"):
+            try:
+                with open(path, encoding="utf-8") as f:
+                    d = json.load(f)
+                summaries.append(
+                    UploadSummaryDTO(
+                        upload_id=d["upload_id"],
+                        entity_id=d["entity_id"],
+                        display_name=d.get("display_name", d["entity_id"]),
+                        status=d["status"],
+                        period_id=d.get("period_id", ""),
+                        created_at=d.get("created_at", ""),
+                        row_issues_count=len(d.get("row_issues", [])),
+                        metrics_count=len(d.get("metrics", [])),
+                    )
+                )
+            except Exception:
+                continue
+        summaries.sort(key=lambda item: item.created_at, reverse=True)
+        return summaries
+
+    @app.get(
+        "/api/onboarding/uploads/{upload_id}",
+        response_model=UploadResponseDTO,
+        summary="Get details of a specific bank upload",
+    )
+    def get_upload_detail(upload_id: str) -> UploadResponseDTO:
+        """Retrieve full validation results and metrics for a specific upload."""
+        uploads_dir = current_settings.get_user_uploads_dir()
+        meta_file = uploads_dir / f"{upload_id.strip()}.json"
+        if not meta_file.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Upload '{upload_id}' not found.",
+            )
+        try:
+            with open(meta_file, encoding="utf-8") as f:
+                data = json.load(f)
+            return UploadResponseDTO.model_validate(data)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi đọc dữ liệu tệp tải lên: {str(exc)}",
+            ) from exc
+
+    @app.get(
+        "/api/onboarding/template.csv",
+        summary="Download CSV template for bank financial statements",
+    )
+    def download_template() -> Response:
+        """Download blank CSV template with required input headers and metrics."""
+        csv_content = generate_template_csv()
+        return Response(
+            content=csv_content,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": 'attachment; filename="bank_onboarding_template.csv"'},
+        )
+
+    @app.get(
+        "/api/onboarding/samples/{name}.csv",
+        summary="Download sample CSV for demonstration",
+    )
+    def download_sample(name: str) -> Response:
+        """Download CTG sample CSV (valid 'ctg-2024q4' or error 'ctg-2024q4-loi')."""
+        clean_name = name.strip().lower()
+        if clean_name == "ctg-2024q4":
+            content = generate_ctg_sample_csv()
+            filename = "ctg-2024q4.csv"
+        elif clean_name == "ctg-2024q4-loi":
+            content = generate_ctg_error_sample_csv()
+            filename = "ctg-2024q4-loi.csv"
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Mẫu '{name}' không tồn tại. Các mẫu hỗ trợ: ctg-2024q4, ctg-2024q4-loi.",
+            )
+        return Response(
+            content=content,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
 
     return app
 

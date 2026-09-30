@@ -268,6 +268,8 @@ and blocked run records are persisted as JSON objects under `RUN_HISTORY_REMOTE_
 (default: `run-history/`) in private Supabase Storage and re-hydrated into
 `ANALYSIS_RUNS_DB_PATH` at startup.
 
+Under D-077 (UPLOAD-1), `POST /api/analyze` accepts an optional `upload_id` parameter to evaluate a user-supplied bank CSV (e.g. CTG) alongside the Gold v5 dataset. Validated uploads are materialized into an isolated operational SQLite snapshot in `USER_UPLOADS_DIR` with deterministic ratio recomputations and primary filing locators. The runtime employs `CompositeDatasetProvider` to dynamically serve the uploaded entity for `lookup`, `company_profile`, and `head_to_head` queries, while strictly preserving the Gold 5-bank peer universe and median without mutating Gold v5 or analysis runs stores. Reports containing user-uploaded data are prepended with a clear limitation disclaimer label.
+
 ## GitHub Flow and branch safety
 
 `main` is the only canonical integration branch. Never implement directly on

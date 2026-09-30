@@ -6,6 +6,7 @@ import { PageCrumbs } from '@/components/layout/PageCrumbs';
 import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { formatPeriodsSignature } from '@/features/analysis-composer/model/intentParser';
+import { BankUploadSection } from '@/features/onboarding/BankUploadSection';
 import type { Entity, Metric, PeerUniverse } from '@/entities/capability/model/types';
 
 function getDirectionLabel(direction?: string): string {
@@ -274,7 +275,10 @@ export function DataPage() {
                 </div>
               </section>
 
-              {/* Section 3: Nguồn và giới hạn */}
+              {/* Section 3: Thêm ngân hàng mới từ tệp CSV */}
+              <BankUploadSection />
+
+              {/* Section 4: Nguồn và giới hạn */}
               <section className="w-full min-w-0 rounded-md border border-line bg-surface-secondary p-4 sm:p-5 text-sm" aria-labelledby="source-heading">
                 <div className="flex items-center gap-2">
                   <FileText className="size-4 text-ink-secondary shrink-0" aria-hidden="true" />
@@ -287,7 +291,7 @@ export function DataPage() {
                       Phiên bản Gold: {capabilities.goldVersion || 'chưa công bố'} · Kiểm tra gần nhất: {capabilities.validationTimestamp || 'chưa công bố'}
                     </p>
                     <p className="mt-3 border-t border-line pt-3 text-ink-secondary break-words">
-                      Hiện chưa có quy trình nhập nguồn mới trong giao diện này; trang không nhận trực tiếp CSV hoặc PDF scan.
+                      Để thêm ngân hàng mới ngoài 5 ngân hàng Gold (ví dụ CTG), hãy sử dụng chức năng tải lên tệp CSV đã đối chiếu ở trên. Dữ liệu tải lên được xác thực độc lập và không làm thay đổi bộ số liệu chuẩn Gold v5.
                     </p>
                   </>
                 ) : (

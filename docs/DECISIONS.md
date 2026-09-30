@@ -1556,3 +1556,21 @@ kết quả (p-hacking). Phù hợp với nguyên tắc 7 của AGENTS.md (khôn
 đánh giá mà không ghi chép) và với `docs/EVALUATION-PROTOCOL-V2.md`.
 
 Tham chiếu: `docs/EVALUATION-FREEZE-READINESS-2026-09-30.md`, PR-8 §8.
+
+
+## D-077: Dữ liệu người dùng tải lên là tầng vận hành tách khỏi Gold, không vào trung vị nhóm
+
+Status: Accepted — 2026-10-01
+
+### Quyết định
+
+1. **Tách biệt kho lưu trữ (Storage Isolation)**: Dữ liệu CSV ngân hàng mới do người dùng tải lên (ví dụ CTG) được lưu vào kho vận hành riêng biệt (`USER_UPLOADS_DIR`), hoàn toàn không ghi đè, sửa đổi hay bổ sung vào cơ sở dữ liệu Gold v5 (`SQLITE_DB_PATH`) hay kho lịch sử phân tích (`ANALYSIS_RUNS_DB_PATH`).
+2. **Tái tính toán chỉ tiêu xác định (Deterministic Recomputation)**: Các chỉ tiêu tài chính phái sinh (NPL, LLR, ROA, ROE) bắt buộc phải được tính lại bằng công thức xác định có phiên bản từ dữ liệu gốc (`bank.input.*`), kèm theo kiểm tra dung sai với giá trị công bố nếu có.
+3. **Bảo toàn nhóm so sánh chuẩn (Gold Peer Median Invariance)**: Ngân hàng tải lên tuyệt đối không được đưa vào nhóm mẫu số hoặc trung vị ngành của 5 ngân hàng chuẩn Gold. Khi thực hiện truy vấn đối đầu (head-to-head) hoặc so sánh, trung vị nhóm vẫn chỉ tính trên các ngân hàng Gold đã được thẩm định độc lập.
+4. **Minh bạch hóa xuất xứ & Nhãn giới hạn (Limitation Transparency)**: Mọi báo cáo phân tích có chứa dữ liệu do người dùng tải lên bắt buộc phải mang nhãn cảnh báo giới hạn rõ ràng:
+   *"Số liệu {BANK} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."*
+5. **Giới hạn phạm vi phân tích (Scope Boundaries)**: Ngân hàng tải lên chỉ hỗ trợ các dạng câu hỏi: `lookup`, `company_profile`, và `head_to_head` (với 1 ngân hàng Gold). Mọi câu hỏi khác hoặc lệch kỳ báo cáo đều bị từ chối rõ ràng bằng tiếng Việt.
+
+### Lý do
+
+Đảm bảo tuân thủ triệt để nguyên tắc bất biến số liệu của kho dữ liệu chuẩn (Gold benchmark immutability), ngăn chặn việc ô nhiễm dữ liệu chuẩn đã qua thẩm định đồng thời mở rộng năng lực phục vụ nghiên cứu và giảng dạy đối với các tổ chức tín dụng mới.

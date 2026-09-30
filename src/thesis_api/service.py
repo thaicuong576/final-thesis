@@ -1064,6 +1064,57 @@ def generate_company_assessment(
     return "No qualitative assessment was performed by this API path."
 
 
+def resolve_composite_upload_binding(
+    base_binding: ProviderBinding,
+    upload_id: str,
+    uploads_dir: Path | str | None = None,
+    *,
+    user_uploads_dir: Path | str | None = None,
+) -> tuple[ProviderBinding, dict[str, Any]]:
+    effective_dir = Path(uploads_dir or user_uploads_dir or get_settings().get_user_uploads_dir())
+    clean_id = upload_id.strip()
+    meta_path = effective_dir / f"{clean_id}.json"
+    sqlite_path = effective_dir / f"{clean_id}.sqlite"
+    if not meta_path.exists() or not sqlite_path.exists():
+        raise AnalysisBlocked(
+            "upload_not_found",
+            f"Tệp tải lên '{clean_id}' không tồn tại hoặc đã bị xóa.",
+        )
+    try:
+        with open(meta_path, encoding="utf-8") as f:
+            upload_meta = json.load(f)
+    except Exception as exc:
+        raise AnalysisBlocked("upload_not_found", f"Tệp thông tin tải lên '{clean_id}' bị hỏng.") from exc
+
+    if upload_meta.get("status") != "accepted":
+        raise AnalysisBlocked(
+            "upload_unaccepted",
+            "Tệp tải lên chưa được chấp nhận hoặc có lỗi xác thực cấu trúc/chỉ tiêu.",
+        )
+
+    entity_id = upload_meta.get("entity_id", "").strip().upper()
+    if not entity_id:
+        raise AnalysisBlocked("upload_not_found", "Tệp tải lên không khai báo mã ngân hàng hợp lệ.")
+
+    from thesis_data.canonical_sqlite_provider import CanonicalSqliteDatasetProvider
+    from thesis_data.composite_provider import CompositeDatasetProvider
+
+    upload_provider = CanonicalSqliteDatasetProvider(sqlite_path)
+    composite_provider = CompositeDatasetProvider(
+        base_binding.provider,
+        upload_provider,
+        uploaded_entity_id=entity_id,
+    )
+    comp_ref = composite_provider.current_dataset_ref()
+    comp_catalog = composite_provider.get_capabilities(comp_ref)
+    return ProviderBinding(
+        provider=composite_provider,
+        dataset_ref=comp_ref,
+        catalog=comp_catalog,
+        provider_name=f"composite-{base_binding.provider_name}+{entity_id.lower()}",
+    ), upload_meta
+
+
 class AnalysisEngine:
     """Run the frozen-plan specialist and bounded acceptance runtime."""
 
@@ -1092,11 +1143,18 @@ class AnalysisEngine:
             and self.settings.openai_model and self.settings.openai_model.strip()
         )
 
-    def _binding(self) -> ProviderBinding:
+    def _base_binding(self) -> ProviderBinding:
         authority_path = getattr(self.settings, "gold_scope_authority_path", None)
         if authority_path is not None:
             return _load_provider(self.db_path, scope_authority_path=Path(authority_path))
         return _load_provider(self.db_path)
+
+    def _binding(self, upload_id: str | None = None) -> tuple[ProviderBinding, dict[str, Any] | None]:
+        base = self._base_binding()
+        if not upload_id or not upload_id.strip():
+            return base, None
+        uploads_dir = self.settings.get_user_uploads_dir()
+        return resolve_composite_upload_binding(base, upload_id, uploads_dir=uploads_dir)
 
     def _attach_fallback_trace(
         self,
@@ -1169,7 +1227,7 @@ class AnalysisEngine:
                     ),
                     request,
                 )
-            binding = self._binding()
+            binding, upload_meta = self._binding(request.upload_id)
             catalog = binding.catalog
             semantic_critic = self._semantic_critic
             analysis_writer = self._analysis_writer
@@ -1205,7 +1263,7 @@ class AnalysisEngine:
                     )
             from .adaptive_runtime import run_adaptive_analysis
 
-            return run_adaptive_analysis(
+            report = run_adaptive_analysis(
                 provider=binding.provider,
                 dataset_ref=binding.dataset_ref,
                 catalog=binding.catalog,
@@ -1216,6 +1274,15 @@ class AnalysisEngine:
                 emit=event_sink,
                 client=self._planner_client,
             )
+            if upload_meta is not None and report.status != "error":
+                uploaded_entity = upload_meta.get("entity_id", "").strip().upper()
+                if uploaded_entity:
+                    limitation_label = f"Số liệu {uploaded_entity} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
+                    if limitation_label not in report.limitations:
+                        report.limitations.insert(0, limitation_label)
+                    if report.analysis_plan and limitation_label not in report.analysis_plan.known_limitations:
+                        report.analysis_plan.known_limitations.insert(0, limitation_label)
+            return report
         except AnalysisBlocked as exc:
             return self._attach_fallback_trace(_error_report(exc.code, exc.detail, request, catalog=catalog), request)
         except (DatasetProviderError, sqlite3.Error, OSError, ValueError) as exc:
@@ -1231,7 +1298,7 @@ class AnalysisEngine:
                 logger.error("Validated analysis report could not be persisted: %s", type(exc).__name__)
                 catalog = None
                 try:
-                    binding = self._binding()
+                    binding, _ = self._binding(request.upload_id)
                     catalog = binding.catalog
                 except Exception:
                     pass
@@ -1414,6 +1481,7 @@ class AnalysisEngine:
             settings=self.settings, semantic_critic=self._semantic_critic,
             analysis_writer=self._analysis_writer,
         )
+
 
 
 def stream_analysis_query(

@@ -8,8 +8,8 @@ import { OrchestratorBoard } from './OrchestratorBoard';
 import { ProcessTrace } from './ProcessTrace';
 
 export interface AnalysisSessionWorkspaceProps {
-  streamRequest?: { query: string } | null;
-  request?: { query: string } | null;
+  streamRequest?: { query: string; upload_id?: string } | null;
+  request?: { query: string; upload_id?: string } | null;
   isLiveStream?: boolean;
   steps?: TraceStep[];
   events?: unknown[]; // Backward compatibility with previous test props
@@ -81,7 +81,7 @@ function AnalysisSessionWorkspaceContent({
     reportId,
     retry
   } = useTraceStream({
-    request: isLiveStream && activeRequest ? { query: activeRequest.query } : null,
+    request: isLiveStream && activeRequest ? { query: activeRequest.query, upload_id: activeRequest.upload_id } : null,
     autoStart: isLiveStream && Boolean(activeRequest?.query),
     apiEndpoint,
     capabilities,

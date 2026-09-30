@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import tempfile
 from typing import Sequence
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -84,6 +85,19 @@ class Settings(BaseSettings):
     # Explicit opt-in only.  The Gold reporting-scope authority is an
     # independently pinned sidecar and is never discovered from the data tree.
     gold_scope_authority_path: Path | None = Field(default=None, alias="GOLD_SCOPE_AUTHORITY_PATH")
+    user_uploads_dir: str = Field(
+        default_factory=lambda: os.path.join(tempfile.gettempdir(), "user_uploads"),
+        alias="USER_UPLOADS_DIR",
+    )
+
+    def get_user_uploads_dir(self) -> Path:
+        """Resolve writable directory for user-supplied onboarding uploads."""
+        p = Path(self.user_uploads_dir).expanduser()
+        if not p.is_absolute():
+            repo_root = Path(__file__).resolve().parents[2]
+            p = (repo_root / p).resolve()
+        p.mkdir(parents=True, exist_ok=True)
+        return p
 
     def get_sqlite_path(self) -> Path:
         """Resolve canonical SQLite database path."""

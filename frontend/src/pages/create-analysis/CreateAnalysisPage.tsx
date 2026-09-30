@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CircleAlert } from 'lucide-react';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { AnalysisSessionWorkspace } from '../../features/analysis-session/components/AnalysisSessionWorkspace';
@@ -85,17 +85,19 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
 
   return (
     <WorkspaceShell activeSection="analysis">
-      <div className="min-h-[calc(100vh-80px)] bg-workspace py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[860px]">
+      <div className="min-h-[calc(100vh-56px)] bg-workspace px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[780px]">
           {mode === 'ASK' ? (
-            <div className="bg-surface-secondary border border-line rounded-xl p-6 sm:p-8">
-              {/* 1. Page Title */}
-              <h1 className="text-2xl font-bold tracking-tight text-text-primary mb-3">
+            <div className="pt-[6vh] sm:pt-[9vh]">
+              <h1 className="m-0 text-[30px] font-bold leading-[1.15] tracking-[-0.025em] text-text-primary sm:text-[34px]">
                 Bạn muốn phân tích gì?
               </h1>
+              <p className="mt-3 mb-0 max-w-[62ch] text-[15px] leading-relaxed text-text-secondary">
+                Hỏi bằng tiếng Việt về các ngân hàng niêm yết. Các tác tử chia việc, chương trình tính số liệu, và mỗi
+                con số trong báo cáo đều dẫn về trang báo cáo tài chính gốc.
+              </p>
 
-              {/* 2. Textarea and Primary Analyze Button */}
-              <div className="border border-border-strong rounded-lg p-3 sm:p-3.5 bg-surface-primary shadow-sm focus-within:ring-1 focus-within:ring-border-accent focus-within:border-border-accent transition-all">
+              <div className="mt-7 rounded-2xl border border-border-default bg-surface-primary shadow-[0_1px_2px_rgba(32,32,30,0.05),0_12px_32px_-16px_rgba(32,32,30,0.18)] transition-[border-color,box-shadow] focus-within:border-border-focus focus-within:shadow-[0_0_0_4px_var(--accent-soft),0_12px_32px_-16px_rgba(32,32,30,0.18)]">
                 <textarea
                   ref={textareaRef}
                   value={question}
@@ -103,32 +105,38 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                   onKeyDown={handleKeyDown}
                   rows={3}
                   placeholder={placeholder}
-                  className="w-full resize-none border-none bg-transparent p-0 text-[15px] leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none min-h-[56px]"
+                  className="block min-h-[88px] w-full resize-none rounded-t-2xl border-none bg-transparent px-5 pt-4 pb-2 text-[17px] leading-relaxed text-text-primary placeholder:text-text-tertiary focus:outline-none"
                   aria-label="Câu hỏi phân tích"
                 />
-                <div className="flex justify-end pt-2">
+                <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-1">
+                  <span className="hidden text-xs text-text-tertiary sm:inline">
+                    Enter để gửi · Shift + Enter để xuống dòng
+                  </span>
                   <button
                     type="button"
                     onClick={handleAnalyze}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink text-ink-inverse font-semibold text-sm rounded shadow-sm hover:bg-[#343430] active:translate-y-[1px] transition-all cursor-pointer"
+                    disabled={!question.trim()}
+                    className="ml-auto inline-flex h-10 items-center gap-2 rounded-lg bg-ink px-4 text-sm font-semibold text-ink-inverse transition-colors hover:bg-[#3a3a36] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span>Phân tích</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="size-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
 
-              {/* Error Block for RUN_BLOCKED or error status */}
               {errorInfo && (
                 <div
-                  className="mt-3 p-3.5 bg-warning-soft/60 border border-warning rounded-lg text-xs space-y-2 text-text-warning"
+                  className="mt-4 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3.5 text-sm text-text-warning"
                   role="alert"
                 >
-                  <div className="font-semibold text-text-warning">{errorInfo.message}</div>
+                  <div className="flex items-start gap-2 font-semibold">
+                    <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    <span>{errorInfo.message}</span>
+                  </div>
                   {errorInfo.suggestions && errorInfo.suggestions.length > 0 && (
-                    <div className="space-y-1">
-                      <div className="text-text-muted text-[11px] font-medium">Gợi ý câu hỏi hợp lệ:</div>
-                      <div className="flex flex-col gap-1">
+                    <div className="mt-2 pl-6">
+                      <div className="text-xs font-medium text-text-secondary">Có thể hỏi:</div>
+                      <div className="mt-1 flex flex-col items-start gap-1">
                         {errorInfo.suggestions.map((sug, i) => (
                           <button
                             key={i}
@@ -138,9 +146,9 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                               setErrorInfo(null);
                               if (textareaRef.current) textareaRef.current.focus();
                             }}
-                            className="text-left text-text-accent hover:underline cursor-pointer"
+                            className="text-left text-text-accent underline decoration-transparent underline-offset-2 hover:decoration-current"
                           >
-                            • {sug}
+                            {sug}
                           </button>
                         ))}
                       </div>
@@ -149,38 +157,49 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 </div>
               )}
 
-              {/* 3. Availability Information */}
-              <p className="text-[13px] text-text-secondary mt-2 mb-6">
+              <p className="mt-3 mb-0 px-1 text-[13px] text-text-secondary">
                 Dữ liệu hiện có: {entitiesStr} · {periodsStr} · {metricsStr} ·{' '}
-                <Link to="/data" className="text-text-accent hover:underline font-medium">
+                <Link
+                  to="/data"
+                  className="font-medium text-text-accent underline decoration-transparent underline-offset-2 hover:decoration-current"
+                >
                   Chi tiết
                 </Link>
               </p>
 
-              {/* 4. Suggested Questions (Rendered only if backend provides them) */}
               {capabilities?.suggestedQuestions && capabilities.suggestedQuestions.length > 0 && (
-                <div className="space-y-2 mb-6">
-                  <div className="text-[13px] text-text-secondary font-medium">Thử hỏi</div>
-                  <div className="flex flex-col gap-1 text-[13px]">
+                <section className="mt-12" aria-labelledby="suggest-heading">
+                  <h2 id="suggest-heading" className="m-0 text-[15px] font-semibold text-text-primary">
+                    Thử hỏi
+                  </h2>
+                  <ul className="mt-3 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
                     {capabilities.suggestedQuestions.map((sug, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setQuestion(sug);
-                          setErrorInfo(null);
-                          if (textareaRef.current) textareaRef.current.focus();
-                        }}
-                        className="text-left text-text-primary hover:text-text-accent py-0.5 transition-colors"
-                      >
-                        {sug}
-                      </button>
+                      <li key={idx}>
+                        <button
+                          type="button"
+                          aria-label={sug}
+                          onClick={() => {
+                            setQuestion(sug);
+                            setErrorInfo(null);
+                            if (textareaRef.current) textareaRef.current.focus();
+                          }}
+                          className="group flex h-full w-full items-start gap-3 rounded-xl border border-border-subtle bg-surface-primary px-4 py-3 text-left transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs font-medium text-text-tertiary">{questionKind(sug)}</span>
+                            <span className="mt-0.5 block text-[14px] leading-snug text-text-primary">{sug}</span>
+                          </span>
+                          <ArrowUpRight
+                            className="mt-0.5 size-4 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </li>
                     ))}
-                  </div>
-                </div>
+                  </ul>
+                </section>
               )}
 
-              {/* 5. Recent Reports */}
               <RecentReportsList />
             </div>
           ) : (
@@ -256,30 +275,49 @@ function RecentReportsList() {
   if (isLoading || runs.length === 0) return null;
 
   return (
-    <div className="space-y-2 mt-6">
-      <div className="text-[13px] text-text-secondary font-medium">Báo cáo gần đây</div>
-      <div className="divide-y divide-border border-t border-line text-[13px]">
+    <section className="mt-12" aria-labelledby="recent-heading">
+      <div className="flex items-baseline justify-between">
+        <h2 id="recent-heading" className="m-0 text-[15px] font-semibold text-text-primary">
+          Báo cáo gần đây
+        </h2>
+        <Link
+          to="/reports"
+          className="text-[13px] font-medium text-text-accent underline decoration-transparent underline-offset-2 hover:decoration-current"
+        >
+          Xem tất cả
+        </Link>
+      </div>
+      <ul className="mt-3 list-none divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-primary p-0">
         {runs.map((r) => {
           const dateStr = formatDateDisplay(r.created_at);
           const statusText = mapRunStatusText(r.status);
           const targetId = r.report_id || r.run_id;
-
           return (
-            <Link
-              key={r.run_id}
-              to={`/reports/${targetId}`}
-              className="flex justify-between items-center py-2.5 hover:bg-surface-tertiary transition-colors no-underline block"
-            >
-              <span className="text-text-primary font-normal truncate pr-4">{r.query}</span>
-              <span className="text-text-muted flex-none text-xs">
-                {dateStr} · {statusText}
-              </span>
-            </Link>
+            <li key={r.run_id}>
+              <Link
+                to={`/reports/${targetId}`}
+                className="flex items-center justify-between gap-4 px-4 py-3 no-underline transition-colors hover:bg-surface-secondary"
+              >
+                <span className="truncate text-[14px] text-text-primary">{r.query}</span>
+                <span className="flex-none text-xs tabular-nums text-text-tertiary">
+                  {dateStr} · {statusText}
+                </span>
+              </Link>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
+}
+
+function questionKind(question: string): string {
+  const q = question.toLowerCase();
+  if (q.includes('so sánh')) return 'So sánh hai ngân hàng';
+  if (/nào có|cao nhất|thấp nhất|xếp hạng/.test(q)) return 'Xếp hạng nhóm';
+  if (/thay đổi|xu hướng|diễn biến/.test(q)) return 'Xu hướng theo quý';
+  if (/sức khỏe|so với các ngân hàng|hồ sơ/.test(q)) return 'Hồ sơ so với nhóm';
+  return 'Tra cứu nhanh';
 }
 
 function mapRunStatusText(status?: string): string {

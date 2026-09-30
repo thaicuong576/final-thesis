@@ -24,20 +24,20 @@ export const AnswerBlock: React.FC<{ block: AnswerBlockType }> = ({ block }) => 
   const subLabel = labelParts.join(' · ');
 
   return (
-    <div className="my-4 font-sans">
-      <div className="flex items-baseline gap-3 my-2">
-        <span className="text-[32px] font-bold text-text-primary leading-tight font-sans tabular-nums">
+    <div className="mt-5 mb-2 font-sans">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-[44px] font-bold text-text-primary leading-none tracking-[-0.02em] font-sans tabular-nums">
           {displayVal}
         </span>
         {subLabel && (
-          <span className="text-xs text-text-muted font-medium">
+          <span className="text-sm text-text-secondary font-medium">
             {subLabel}
           </span>
         )}
       </div>
 
       {block.sentences && block.sentences.length > 0 && (
-        <div className="space-y-1.5 text-sm leading-relaxed text-text-primary mt-2">
+        <div className="space-y-1.5 text-[15px] leading-relaxed text-text-primary mt-3">
           {block.sentences.map((sentence) => (
             <p key={sentence.sentence_id} className="m-0">
               <SentenceView sentence={sentence} />

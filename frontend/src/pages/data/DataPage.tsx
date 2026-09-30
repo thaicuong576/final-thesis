@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Database, FileText, Loader2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
+import { PageCrumbs } from '@/components/layout/PageCrumbs';
 import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { formatPeriodsSignature } from '@/features/analysis-composer/model/intentParser';
@@ -84,7 +85,7 @@ export function DataPage() {
     capabilities!.periods.length === 0;
 
   return (
-    <WorkspaceShell activeSection="data" context={<span className="text-xs font-bold text-ink">DỮ LIỆU PHÂN TÍCH</span>}>
+    <WorkspaceShell activeSection="data" context={<PageCrumbs items={[{ label: 'Dữ liệu' }]} />}>
       <div className="min-h-[calc(100vh-80px)] w-full max-w-full min-w-0 overflow-x-hidden bg-workspace px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-6">
           <header className="border-b border-line pb-5">

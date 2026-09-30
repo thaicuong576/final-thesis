@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useLocation, useInRouterContext, Link } from 'react-router-dom';
 import { FileQuestion, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageCrumbs, StatusPill } from '@/components/layout/PageCrumbs';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import {
   LegacyReport,
@@ -275,12 +276,7 @@ function ReportPageContent({
     return (
       <WorkspaceShell
         activeSection="reports"
-        context={
-          <div className="flex items-center justify-between w-full text-xs font-mono">
-            <span className="font-bold text-ink">BÁO CÁO PHÂN TÍCH</span>
-            <span className="text-ink-secondary">ĐANG TẢI...</span>
-          </div>
-        }
+        context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Đang tải' }]} />}
       >
         <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[720px] p-8 border border-line bg-card rounded-lg text-center space-y-4">
@@ -290,7 +286,7 @@ function ReportPageContent({
             <div className="space-y-1">
               <h2 className="text-base font-bold text-ink">Đang tải báo cáo phân tích</h2>
               <p className="text-xs text-ink-secondary max-w-md mx-auto leading-relaxed">
-                Đang truy xuất bản báo cáo và số liệu kiểm chứng từ cơ sở dữ liệu SQLite...
+                Đang tải báo cáo và số liệu đã kiểm chứng…
               </p>
             </div>
           </div>
@@ -303,12 +299,7 @@ function ReportPageContent({
     return (
       <WorkspaceShell
         activeSection="reports"
-        context={
-          <div className="flex items-center justify-between w-full text-xs font-mono">
-            <span className="font-bold text-ink">BÁO CÁO PHÂN TÍCH</span>
-            <span className="text-[#c84b3f]">LỖI TẢI BÁO CÁO</span>
-          </div>
-        }
+        context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Lỗi tải báo cáo' }]} />}
       >
         <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[640px] p-8 border border-line bg-card rounded-lg text-center space-y-4 shadow-sm">
@@ -344,12 +335,7 @@ function ReportPageContent({
     return (
       <WorkspaceShell
         activeSection="reports"
-        context={
-          <div className="flex items-center justify-between w-full text-xs font-mono">
-            <span className="font-bold text-ink">BÁO CÁO PHÂN TÍCH</span>
-            <span className="text-[#c84b3f]">KHÔNG TÌM THẤY</span>
-          </div>
-        }
+        context={<PageCrumbs items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: 'Không tìm thấy' }]} />}
       >
         <div className="min-h-[calc(100vh-80px)] bg-workspace py-12 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[640px] p-8 border border-line bg-card rounded-lg text-center space-y-4 shadow-sm">
@@ -414,36 +400,20 @@ function ReportPageContent({
     <WorkspaceShell
       activeSection="reports"
       context={
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="font-bold text-ink">BÁO CÁO PHÂN TÍCH</span>
-            <span className="text-border-strong">/</span>
-            <span className="font-semibold text-ink">{scopeLabel}</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-ink-secondary font-mono">
-            {isDemo ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
-                <span>Mẫu minh họa</span>
-              </>
+        <PageCrumbs
+          items={[{ label: 'Thư viện báo cáo', to: '/reports' }, { label: scopeLabel }]}
+          aside={
+            isDemo ? (
+              <StatusPill tone="neutral">Mẫu minh họa</StatusPill>
             ) : activeReport.status === 'accepted_with_limitations' ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
-                <span className="text-amber-800 font-medium">Chấp nhận có giới hạn</span>
-              </>
+              <StatusPill tone="warning">Chấp nhận có giới hạn</StatusPill>
             ) : activeReport.status === 'completed' || activeReport.status === 'accepted' ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-                <span>Đã kiểm định</span>
-              </>
+              <StatusPill tone="ready">Đã kiểm định</StatusPill>
             ) : (
-              <>
-                <span className="w-2 h-2 rounded-full bg-ink-tertiary" aria-hidden="true" />
-                <span>{activeReport.status ? `API: ${activeReport.status}` : 'API chưa công bố trạng thái'}</span>
-              </>
-            )}
-          </div>
-        </div>
+              <StatusPill tone="neutral">{activeReport.status ? `Trạng thái: ${activeReport.status}` : 'Chưa có trạng thái'}</StatusPill>
+            )
+          }
+        />
       }
     >
       {isAdaptive ? (

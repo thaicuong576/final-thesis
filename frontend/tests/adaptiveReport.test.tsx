@@ -570,12 +570,15 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
       expect(container.textContent).not.toContain('peer median');
     });
 
-    it('profile layout renders SignalsAside with float-right container to prevent whitespace gap', () => {
+    it('profile layout pairs opening prose with SignalsAside and keeps figures full width', () => {
       const { container } = renderReportInRouter(profileFixture as unknown as AdaptiveReportResponse);
-      const asideWrapper = container.querySelector('.md\\:float-right');
-      expect(asideWrapper).not.toBeNull();
-      expect(asideWrapper?.classList.contains('md:w-[280px]')).toBe(true);
-      expect(container.querySelector('.clear-both')).not.toBeNull();
+      const aside = container.querySelector('aside');
+      expect(aside).not.toBeNull();
+      const grid = aside?.parentElement;
+      expect(grid?.className).toContain('md:grid-cols-[minmax(0,1fr)_280px]');
+      // No figure sits inside the two-column grid, so charts are never squeezed beside the panel.
+      expect(grid?.querySelector('figure')).toBeNull();
+      expect(container.querySelectorAll('figure').length).toBeGreaterThan(0);
     });
   });
 });

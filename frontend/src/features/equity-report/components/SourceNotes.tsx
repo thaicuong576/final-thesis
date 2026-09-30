@@ -1,11 +1,26 @@
 import React from 'react';
+import { Info } from 'lucide-react';
 import { useEquityReport } from './useEquityReport';
 import { cleanReaderLimitations, formatDisplayText, humanizeLocator } from '@/shared/lib/formatting';
+
+// Runtime limitation strings that describe provenance mechanics rather than the answer itself.
+const PLAIN_LIMITATIONS: Array<[RegExp, string]> = [
+  [
+    /không có đoạn trích tài liệu đã duyệt/i,
+    'Số liệu được đối chiếu tới trang cụ thể của BCTC gốc; báo cáo chưa kèm đoạn trích nguyên văn.'
+  ]
+];
+
+function plainLimitation(text: string): string {
+  for (const [pattern, plain] of PLAIN_LIMITATIONS) {
+    if (pattern.test(text)) return plain;
+  }
+  return text;
+}
 
 export const SourceNotes: React.FC = () => {
   const { report, sourceNotes, datasets } = useEquityReport();
 
-  // Determine peer group count
   const allEntities = new Set<string>();
   for (const ds of datasets) {
     for (const r of ds.rows || []) {
@@ -16,61 +31,66 @@ export const SourceNotes: React.FC = () => {
   const showSampleDisclaimer = (qType === 'company_profile' || qType === 'ranking') && allEntities.size >= 3;
   const peerCount = allEntities.size || 5;
 
-  const limitations = cleanReaderLimitations((report.limitations as string[] | undefined) || []);
+  const limitations = Array.from(
+    new Set(cleanReaderLimitations((report.limitations as string[] | undefined) || []).map(plainLimitation))
+  );
 
   return (
-    <footer className="border-t border-line mt-6 pt-3 text-[11px] leading-[1.8] text-text-muted font-sans">
-      {/* Source Notes List */}
+    <footer className="mt-6 pt-5 border-t border-border-subtle font-sans">
       {sourceNotes && sourceNotes.length > 0 && (
-        <div className="space-y-1 mb-3">
-          {sourceNotes.map((note) => {
-            const displayLocator = humanizeLocator(note.locator);
-            return (
-              <div id={`note-${note.note_no}`} key={note.note_no} className="scroll-mt-4">
-                <span>{note.note_no} · </span>
-                {note.url ? (
-                  <a
-                    href={note.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-text-primary hover:underline font-medium"
-                  >
-                    {formatDisplayText(note.title)}
-                  </a>
-                ) : (
-                  <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
-                )}
-                {displayLocator && (
-                  <span title={note.locator || undefined}> · {formatDisplayText(displayLocator)}</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <section aria-label="Nguồn số liệu">
+          <h2 className="text-[13px] font-semibold text-text-primary mb-2">Nguồn</h2>
+          <ol className="space-y-1.5 text-[12.5px] leading-relaxed text-text-secondary list-none p-0 m-0">
+            {sourceNotes.map((note) => {
+              const displayLocator = humanizeLocator(note.locator);
+              return (
+                <li id={`note-${note.note_no}`} key={note.note_no} className="scroll-mt-20 flex gap-2">
+                  <span className="shrink-0 w-4 text-right tabular-nums text-text-tertiary">{note.note_no}</span>
+                  <span className="min-w-0">
+                    {note.url ? (
+                      <a
+                        href={note.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-primary font-medium underline decoration-border-default underline-offset-2 hover:decoration-text-primary"
+                      >
+                        {formatDisplayText(note.title)}
+                      </a>
+                    ) : (
+                      <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
+                    )}
+                    {displayLocator && (
+                      <span title={note.locator || undefined}> · {formatDisplayText(displayLocator)}</span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
       )}
 
-      {/* Standard Disclaimers */}
-      <div className="space-y-0.5 text-text-muted">
-        <div>
-          Số liệu do code tính từ BCTC gốc, agent chỉ diễn giải.
-          {showSampleDisclaimer && ` Mẫu ${peerCount} ngân hàng, không đại diện toàn ngành.`} Không phải khuyến nghị đầu tư.
-        </div>
-        {limitations.length > 0 && (
-          <div className="mt-2.5 pt-2 border-t border-line/60">
-            <div className="font-semibold text-text-secondary mb-1">
-              Giới hạn phạm vi &amp; dữ liệu:
-            </div>
-            <ul className="space-y-1 list-none pl-0">
-              {limitations.map((lim, idx) => (
-                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                  <span className="text-text-muted shrink-0">·</span>
-                  <span>{formatDisplayText(lim)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      {limitations.length > 0 && (
+        <section
+          aria-label="Giới hạn dữ liệu"
+          className="mt-5 rounded-lg bg-surface-secondary border border-border-subtle px-4 py-3"
+        >
+          <h2 className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary mb-1.5">
+            <Info className="size-3.5 text-text-secondary" aria-hidden="true" />
+            Giới hạn dữ liệu
+          </h2>
+          <ul className="space-y-1 text-[12.5px] leading-relaxed text-text-secondary list-disc pl-5 m-0 marker:text-text-tertiary">
+            {limitations.map((lim, idx) => (
+              <li key={idx}>{formatDisplayText(lim)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <p className="mt-4 mb-0 text-[12px] leading-relaxed text-text-tertiary">
+        Số liệu do chương trình tính từ BCTC gốc; mô hình ngôn ngữ chỉ diễn giải.
+        {showSampleDisclaimer && ` Mẫu ${peerCount} ngân hàng, không đại diện toàn ngành.`} Không phải khuyến nghị đầu tư.
+      </p>
     </footer>
   );
 };

@@ -57,10 +57,10 @@ export const ReportMasthead: React.FC = () => {
   const showBadges = qType !== 'ranking' && highlight.length > 0;
 
   return (
-    <header className="border-t-2 border-text-primary pt-2 mb-4 font-sans">
-      <div className="flex justify-between items-baseline text-xs text-text-secondary">
-        <span className="font-medium text-text-primary">{noteLabel}</span>
-        <span className="text-text-muted font-mono">{dateStr}</span>
+    <header className="border-t-2 border-text-primary pt-3 mb-5 font-sans">
+      <div className="flex justify-between items-baseline text-[13px] text-text-secondary">
+        <span className="font-semibold text-text-primary">{noteLabel}</span>
+        <span className="text-text-tertiary tabular-nums">{dateStr}</span>
       </div>
 
       <div className="flex items-center gap-2.5 mt-3">
@@ -69,7 +69,7 @@ export const ReportMasthead: React.FC = () => {
             {highlight.map((code: string) => (
               <span
                 key={code}
-                className="text-xs font-semibold px-2 py-0.5 border border-border-strong rounded font-mono text-text-primary bg-surface-primary"
+                className="text-xs font-semibold px-2 py-0.5 border border-border-strong rounded font-mono tracking-wide text-text-primary bg-surface-primary"
               >
                 {code}
               </span>
@@ -77,19 +77,19 @@ export const ReportMasthead: React.FC = () => {
           </div>
         )}
         {periodLabel && (
-          <span className="text-xs text-text-muted font-medium">
+          <span className="text-[13px] text-text-secondary font-medium">
             {periodLabel}
           </span>
         )}
         {report.status === 'accepted_with_limitations' && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/80">
-            <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-warning-soft text-text-warning border border-warning/30">
+            <span className="size-1.5 rounded-full bg-warning" aria-hidden="true" />
             Chấp nhận có giới hạn
           </span>
         )}
         {(report.status === 'completed' || report.status === 'accepted') && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded bg-ready-soft text-text-success border border-ready/30">
+            <span className="size-1.5 rounded-full bg-ready" aria-hidden="true" />
             Đã kiểm định
           </span>
         )}

@@ -106,6 +106,7 @@ def analyze_evaluation(
 
     metrics_to_avg = [
         "completed",
+        "clean_completion",
         "protocol_success",
         "numeric_correctness",
         "traceability_score",
@@ -328,11 +329,27 @@ def analyze_evaluation(
         print("Note: matplotlib not installed; skipping PNG figure generation.")
 
     # 4. Generate experiments/er8/RESULTS.md in Vietnamese
+    manifest_path = output_dir.parent / "manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("dry_run", True):
+        run_provenance_note = (
+            "Kết quả CHẠY THỬ (dry-run) bằng mô hình giả lập, chỉ dùng để nghiệm thu bộ công cụ; "
+            "không được trích dẫn như kết quả thực nghiệm."
+        )
+    else:
+        run_provenance_note = (
+            f"Chạy thật với mô hình `{manifest.get('model', 'không rõ')}` ngày "
+            f"{str(manifest.get('created_at_utc', ''))[:10]}, seed {manifest.get('seed')}, "
+            f"{manifest.get('reps', 1)} lần lặp, tổng {manifest.get('accumulated_tokens', 'n/a')} token. "
+            "Kế hoạch dùng chung giữa 3 arm được kiểm bằng hash (bỏ trường known_limitations do runtime cộng thêm sau khi chạy)."
+        )
     results_content = f"""# Báo cáo Đánh giá Thực nghiệm A/B/C (ER-8)
 
 Tài liệu này tổng hợp kết quả chạy thử nghiệm A/B/C trên bộ dữ liệu kiểm chứng Gold v5 (`gold-bank-2025-expanded-v5-evidence`), phục vụ phân tích thực nghiệm tại **Chương 5** của khóa luận tốt nghiệp.
 
-> **Ghi chú tiến độ:** Báo cáo này được tạo bởi công cụ đánh giá tự động (harness & deterministic scorer). Dữ liệu mẫu dưới đây phản ánh kết quả chạy offline / dry-run phục vụ nghiệm thu bộ công cụ; phiên bản chính thức sẽ được kích hoạt khi chạy model trực tiếp theo ngân sách được duyệt.
+> **Nguồn dữ liệu:** {run_provenance_note}
 
 ---
 
@@ -356,6 +373,8 @@ Thực nghiệm so sánh 3 kiến trúc xử lý trên cùng một câu hỏi v�
 | Chỉ số Đánh giá | Arm A (Single-Agent) | Arm B (Phân tầng - Không phản biện) | Arm C (Phân tầng - Có phản biện) |
 |---|:---:|:---:|:---:|
 | **Số lượt chạy** | {arm_summary_data[0]["total_runs"]} | {arm_summary_data[1]["total_runs"]} | {arm_summary_data[2]["total_runs"]} |
+| **Trả lời được (completed + có giới hạn)** | {arm_summary_data[0]["mean_completed"]*100:.1f}% | {arm_summary_data[1]["mean_completed"]*100:.1f}% | {arm_summary_data[2]["mean_completed"]*100:.1f}% |
+| **Hoàn thành sạch (không giới hạn)** | {arm_summary_data[0]["mean_clean_completion"]*100:.1f}% | {arm_summary_data[1]["mean_clean_completion"]*100:.1f}% | {arm_summary_data[2]["mean_clean_completion"]*100:.1f}% |
 | **Tỷ lệ thành công thức nghiệm** | {arm_summary_data[0]["mean_protocol_success"]*100:.1f}% | {arm_summary_data[1]["mean_protocol_success"]*100:.1f}% | {arm_summary_data[2]["mean_protocol_success"]*100:.1f}% |
 | **Tính đúng số (Numeric Correctness)** | {arm_summary_data[0]["mean_numeric_correctness"]*100:.1f}% | {arm_summary_data[1]["mean_numeric_correctness"]*100:.1f}% | {arm_summary_data[2]["mean_numeric_correctness"]*100:.1f}% |
 | **Truy vết nguồn (Traceability)** | {arm_summary_data[0]["mean_traceability_score"]*100:.1f}% | {arm_summary_data[1]["mean_traceability_score"]*100:.1f}% | {arm_summary_data[2]["mean_traceability_score"]*100:.1f}% |

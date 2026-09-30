@@ -1,0 +1,532 @@
+{
+  "run_id": "er8-T03-single_agent-r0",
+  "task_id": "T03",
+  "arm": "single_agent",
+  "rep": 0,
+  "order": 14,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-0b3baca84bab",
+    "query": "Tỷ lệ nợ xấu của ACB trong quý 1/2024 là bao nhiêu?",
+    "target_ticker": "ACB",
+    "peer_tickers": [],
+    "period": "2024_Q1",
+    "periods": [
+      "2024_Q1"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "rationale": "Kế hoạch phân tích dạng lookup cho ACB với 1 công cụ.",
+    "known_limitations": [
+      "The accepted snapshot does not provide a numeric value for this scope.",
+      "Reporting scope is unavailable for missing:ACB:2024_Q1:bank.npl_g35; the API does not infer consolidated or parent-only scope.",
+      "ACB quý 1/2024 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+    ],
+    "question_type": "lookup",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng lookup cho ACB với 1 công cụ.",
+    "tools": [
+      {
+        "tool": "lookup",
+        "params": {
+          "entities": [
+            "ACB"
+          ],
+          "metrics": [
+            "bank.npl_g35"
+          ],
+          "period": "2024_Q1"
+        }
+      }
+    ],
+    "context_periods": [
+      "2024_Q1"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:ACB:2024_Q1:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q1.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2024_Q1"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "6a9c52c5dfd03a63952c637f975cdf02d66910f8b345e94d5843438ad60579a6",
+  "model": "deepseek-v4-pro-0813",
+  "duration_ms": 20500,
+  "model_calls": 1,
+  "tokens": {
+    "input_tokens": 1087,
+    "output_tokens": 381,
+    "total_tokens": 1468
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-85b6c5c75ab14194a26d360a61b8835b",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-0b3baca84bab",
+      "query": "Tỷ lệ nợ xấu của ACB trong quý 1/2024 là bao nhiêu?",
+      "target_ticker": "ACB",
+      "peer_tickers": [],
+      "period": "2024_Q1",
+      "periods": [
+        "2024_Q1"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+      "rationale": "Kế hoạch phân tích dạng lookup cho ACB với 1 công cụ.",
+      "known_limitations": [
+        "The accepted snapshot does not provide a numeric value for this scope.",
+        "Reporting scope is unavailable for missing:ACB:2024_Q1:bank.npl_g35; the API does not infer consolidated or parent-only scope.",
+        "ACB quý 1/2024 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+      ],
+      "question_type": "lookup",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng lookup cho ACB với 1 công cụ.",
+      "tools": [
+        {
+          "tool": "lookup",
+          "params": {
+            "entities": [
+              "ACB"
+            ],
+            "metrics": [
+              "bank.npl_g35"
+            ],
+            "period": "2024_Q1"
+          }
+        }
+      ],
+      "context_periods": [
+        "2024_Q1"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:ACB:2024_Q1:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for ACB at 2024_Q1.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2024_Q1"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "ACB",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Tỷ lệ nợ xấu của  đạt 1,85% trong quý 1/2024.",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-missing:ACB:2024_Q1:bank.npl_g35",
+        "observation_id": "missing:ACB:2024_Q1:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "ACB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q1",
+        "statement": "The provider records bank.npl_g35 for ACB at 2024_Q1 as unavailable.",
+        "claim_type": "missingness",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Single-agent arm execution without specialist findings or critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "The accepted snapshot does not provide a numeric value for this scope.",
+      "Reporting scope is unavailable for missing:ACB:2024_Q1:bank.npl_g35; the API does not infer consolidated or parent-only scope.",
+      "ACB quý 1/2024 chưa có số liệu đã kiểm định; để trống thay vì ước tính."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "lookup",
+    "report_spec": {
+      "kind": "answer_card",
+      "note_label": "Tra cứu chỉ tiêu",
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "answer",
+          "value_fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35",
+          "sentences": [
+            {
+              "sentence_id": "sent-fb-1",
+              "text": "Tỷ lệ nợ xấu của  đạt 1,85% trong quý 1/2024.",
+              "fact_ids": [
+                "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+              ],
+              "author": "company",
+              "source": "deterministic_fallback",
+              "revision": 0
+            },
+            {
+              "sentence_id": "sent-fb-2",
+              "text": "Trung vị tỷ lệ nợ xấu của nhóm 4 ngân hàng đạt 1,85% trong quý 1/2024.",
+              "fact_ids": [
+                "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+              ],
+              "author": "sector",
+              "source": "deterministic_fallback",
+              "revision": 0
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "kpi_strip",
+          "dataset_id": "ds-lookup-acb-npl_g35-2024q1",
+          "title": "Nợ xấu ACB Q1/2024 so với trung vị ngành",
+          "takeaway": {
+            "sentence_id": "sent-fb-fig-1",
+            "text": "Biểu đồ thể hiện Nợ xấu ACB Q1/2024 so với trung vị ngành.",
+            "fact_ids": [
+              "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-lookup-acb-npl_g35-2024q1",
+        "shape": "kpi",
+        "title": "Tra cứu chỉ tiêu · ACB Q1/2024",
+        "produced_by": {
+          "tool": "lookup",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2024_Q1"
+        ],
+        "highlight_entity_ids": [
+          "ACB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q1",
+            "status": "missing",
+            "value": null,
+            "observation_id": null,
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": "DATA_UNAVAILABLE"
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "kpi_strip"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35",
+        "fact_type": "peer_median",
+        "entity_id": null,
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2024_Q1",
+        "from_period": null,
+        "value": 1.8531499999999999,
+        "unit": "%",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 4,
+        "formula_version": "peer-median-v1",
+        "input_observation_ids": [
+          "expansion:official-MBB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+          "official-TCB-2024-FY-results-presentation:2024_Q1:bank.npl_g35",
+          "expansion:official-VCB-2024-Q1-consolidated:2024_Q1:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q1:bank.npl_g35"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 5,
+      "sentences_accepted": 3,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-lookup-acb-npl-g35-2024q1",
+          "author": "orchestrator",
+          "text": "Tỷ lệ nợ xấu của ACB trong quý 1/2024 là 1,18%.",
+          "reason_code": "unknown_fact",
+          "reason": "fact_id 'fact:value:ACB:2024_Q1:bank.npl_g35' không tồn tại trong danh mục kết quả."
+        },
+        {
+          "sentence_id": "sent-lookup-acb-npl-g35-2024q1-takeaway",
+          "author": "orchestrator",
+          "text": "Chỉ số nợ xấu quý 1/2024 của ACB đạt 1,18%, thấp hơn trung vị ngành ngân hàng là 1,85%.",
+          "reason_code": "unknown_fact",
+          "reason": "fact_id 'fact:value:ACB:2024_Q1:bank.npl_g35' không tồn tại trong danh mục kết quả."
+        }
+      ],
+      "numbers_checked": 2,
+      "numbers_matched": 2,
+      "blocks_dropped": [
+        {
+          "type": "answer",
+          "reason": "Khối bắt buộc của mô hình không qua kiểm chứng; dùng khối mặc định đã kiểm chứng."
+        }
+      ],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "expansion:official-MBB-2024-Q1-consolidated",
+        "title": "MBB · BCTC hợp nhất Q1/2024",
+        "url": "https://www.mbbank.com.vn/resources/files/NhaDauTu/2024/thang-04/file-up/20240420---mbb---bao-cao-tai-chinh-hop-nhat-quy-1.2024.pdf",
+        "locator": "tr. 21 · note 5 customer loans",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "official-TCB-2024-FY-results-presentation",
+        "title": "TCB · BCTC hợp nhất Q1/2024",
+        "url": "https://techcombank.com/content/dam/techcombank/public-site/documents/techcombank-fy24-results-presentation.pdf",
+        "locator": "tr. 30 · 4Q24 financial highlights",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "expansion:official-VCB-2024-Q1-consolidated",
+        "title": "VCB · BCTC hợp nhất Q1/2024",
+        "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20240426---VCB---BCTC-Hop-nhat-Q12024.pdf?ts=00010101000000",
+        "locator": "tr. 29 · note customer loans",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "official-VPB-2024-Q1-consolidated-lookup",
+        "title": "VPB · BCTC hợp nhất Q1/2024",
+        "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/bctc-hop-nhat-ban-tra-cuu-q1-2024.pdf",
+        "locator": "tr. 44 · 10.1",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Tra cứu. Gọi Doanh nghiệp với 1 phép phân tích",
+      "detail": {
+        "question_type": "lookup",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng lookup cho ACB với 1 công cụ.",
+        "entities": [
+          "ACB"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "anchor_period": "2024_Q1",
+        "periods": [
+          "2024_Q1"
+        ],
+        "tools": [
+          {
+            "tool": "lookup",
+            "agent": "company",
+            "label": "tra cứu chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: tra cứu chỉ tiêu",
+      "detail": {
+        "task": "lookup",
+        "tools": [
+          "tra cứu chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 46,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 1 số liệu có nguồn từ phép phân tích tra cứu chỉ tiêu",
+      "detail": {
+        "tool": "lookup",
+        "label": "tra cứu chỉ tiêu",
+        "facts": [
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q1:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 4 ngân hàng trong quý 1/2024",
+            "display_value": "1,85%",
+            "source_note_no": 1
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-lookup-acb-npl_g35-2024q1",
+            "title": "Tra cứu chỉ tiêu · ACB Q1/2024"
+          }
+        ],
+        "missing": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q1",
+            "reason": "DATA_UNAVAILABLE"
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 20125,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng báo cáo tổng hợp: 1 hình, 1 luận điểm",
+      "detail": {
+        "kind": "answer_card",
+        "blocks": [
+          {
+            "type": "answer",
+            "title": "Khối answer"
+          },
+          {
+            "type": "figure",
+            "title": "Nợ xấu ACB Q1/2024 so với trung vị ngành"
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 20139,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-85b6c5c75ab14194a26d360a61b8835b",
+        "duration_ms": 20139,
+        "model_calls": 1
+      }
+    }
+  ]
+}

@@ -51,3 +51,4 @@ docs/thesis-v2/build/
 
 # ER-8 Evaluation dry-run output
 experiments/er8/dry-run/
+experiments/er8/runs.sqlite

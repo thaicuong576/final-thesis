@@ -382,7 +382,10 @@ def _is_network_or_rate_limit_error(exc: Exception) -> bool:
 def _compute_plan_hash(plan: Any) -> str:
     if plan is None:
         return "none"
-    d = plan.model_dump(mode="json", exclude_none=True) if hasattr(plan, "model_dump") else plan
+    d = plan.model_dump(mode="json", exclude_none=True) if hasattr(plan, "model_dump") else dict(plan)
+    # known_limitations is appended by the runtime after execution and differs by arm;
+    # it is not part of the frozen plan the arms must share.
+    d = {k: v for k, v in d.items() if k != "known_limitations"}
     canonical = json.dumps(d, sort_keys=True)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -657,7 +660,7 @@ def run_evaluation(
         "accumulated_tokens": accumulated_tokens,
         "budget_exceeded": budget_exceeded,
         "dry_run": dry_run,
-        "model": model or ("offline-stub" if dry_run else "live-model"),
+        "model": model or ("offline-stub" if dry_run else (os.environ.get("OPENAI_MODEL") or "unconfigured")),
         "gold_snapshot_bytes_sha256": GOLD_RAW_BYTES_SHA256,
         "questions_file": _relpath_str(questions_path),
         "questions_canonical_lf_utf8_sha256": questions_hash,

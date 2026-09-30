@@ -1,0 +1,1012 @@
+{
+  "run_id": "er8-T10-single_agent-r0",
+  "task_id": "T10",
+  "arm": "single_agent",
+  "rep": 0,
+  "order": 23,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-c7d314302994",
+    "query": "VCB hay VPB tốt hơn về chất lượng tài sản trong quý 4/2024?",
+    "target_ticker": "VCB",
+    "peer_tickers": [
+      "VCB",
+      "VPB"
+    ],
+    "period": "2024_Q4",
+    "periods": [
+      "2024_Q4"
+    ],
+    "required_capabilities": [
+      "sector"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+    "rationale": "Kế hoạch phân tích dạng head_to_head cho VCB, VPB với 1 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "head_to_head",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho VCB, VPB với 1 công cụ.",
+    "tools": [
+      {
+        "tool": "head_to_head",
+        "params": {
+          "entities": [
+            "VCB",
+            "VPB"
+          ],
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35"
+          ],
+          "period": "2024_Q4"
+        }
+      }
+    ],
+    "context_periods": [
+      "2024_Q1",
+      "2024_Q2",
+      "2024_Q3",
+      "2024_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:VCB:2024_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for VCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:VCB:2024_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for VCB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VCB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:VPB:2024_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for VPB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VPB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:VPB:2024_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for VPB at 2024_Q4.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VPB"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "ca1f63641d8a79201ba65fe18e21fc994dc4bfb3bc76494cbaeb792e4e03e1bb",
+  "model": "deepseek-v4-pro-0813",
+  "duration_ms": 6483,
+  "model_calls": 1,
+  "tokens": {
+    "input_tokens": 1774,
+    "output_tokens": 63,
+    "total_tokens": 1837
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-6c5d93219df744ed935561be7e44cde4",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-c7d314302994",
+      "query": "VCB hay VPB tốt hơn về chất lượng tài sản trong quý 4/2024?",
+      "target_ticker": "VCB",
+      "peer_tickers": [
+        "VCB",
+        "VPB"
+      ],
+      "period": "2024_Q4",
+      "periods": [
+        "2024_Q4"
+      ],
+      "required_capabilities": [
+        "sector"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "gold-bank-2025-expanded-v5-evidence",
+      "rationale": "Kế hoạch phân tích dạng head_to_head cho VCB, VPB với 1 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "head_to_head",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho VCB, VPB với 1 công cụ.",
+      "tools": [
+        {
+          "tool": "head_to_head",
+          "params": {
+            "entities": [
+              "VCB",
+              "VPB"
+            ],
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35"
+            ],
+            "period": "2024_Q4"
+          }
+        }
+      ],
+      "context_periods": [
+        "2024_Q1",
+        "2024_Q2",
+        "2024_Q3",
+        "2024_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:VCB:2024_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for VCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:VCB:2024_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for VCB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VCB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:VPB:2024_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for VPB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VPB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:VPB:2024_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for VPB at 2024_Q4.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VPB"
+          ],
+          "periods": [
+            "2024_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": {
+      "sector": "Accepted peer universe",
+      "peer_median_roe": null,
+      "peer_median_nim": null,
+      "peer_median_npl": null,
+      "peer_median_cir": null,
+      "peer_median_casa": null,
+      "peer_median_car": null,
+      "peer_median_ldr": null,
+      "benchmarks": [
+        {
+          "metric_id": "bank.llr_coverage",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-5663f23797a47a40",
+          "value": 56.1749,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "VPB"
+          ],
+          "eligible_peer_entity_ids": [
+            "VPB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.npl_g35",
+          "benchmark_observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-5663f23797a47a40",
+          "value": 4.1956,
+          "unit": "%",
+          "period": "2024_Q4",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "VPB"
+          ],
+          "eligible_peer_entity_ids": [
+            "VPB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+          ],
+          "missing_members": []
+        }
+      ],
+      "peer_median_llr_coverage": 56.1749,
+      "peer_median_npl_g35": 4.1956,
+      "peer_universe_id": "sector:bank",
+      "aggregation_method": "peer_median_v1",
+      "requested_peer_entity_ids": [
+        "VPB"
+      ],
+      "eligible_peer_entity_ids": [
+        "VPB"
+      ],
+      "requested_denominator": 1,
+      "eligible_denominator": 1,
+      "missing_members": []
+    },
+    "company_insights": [
+      {
+        "ticker": "VCB",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "VCB nhỉnh hơn VPB ở 2/2 chỉ tiêu trong quý 4/2024.",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "VCB",
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "VCB has provider-backed bank.llr_coverage=223.311 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "company",
+        "ticker": "VCB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "VCB has provider-backed bank.npl_g35=0.9636 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "VPB",
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "VPB has provider-backed bank.llr_coverage=56.1749 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+        "input_observation_ids": [],
+        "formula_version": null,
+        "capability": "sector",
+        "ticker": "VPB",
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "VPB has provider-backed bank.npl_g35=4.1956 % for 2024_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-5663f23797a47a40",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-5663f23797a47a40",
+        "input_observation_ids": [
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.llr_coverage for sector:bank is 56.1749 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-5663f23797a47a40",
+        "observation_id": "benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-5663f23797a47a40",
+        "input_observation_ids": [
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "bank.npl_g35",
+        "period": "2024_Q4",
+        "statement": "The provider-derived median bank.npl_g35 for sector:bank is 4.1956 % at 2024_Q4, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+        "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+        "source_url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+        "metric": "bank.llr_coverage",
+        "ticker": "VCB",
+        "period": "2024_Q4",
+        "value": 223.311,
+        "source_doc": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+        "table_locator": "pdf_pages:31,32;printed_pages:30,31;sections:note_customer_loans|note_loan_loss_provision;extraction:visual_transcription",
+        "provenance_hash": "sha256:372c332c97e8c9fa124cd38a8adc93074b96424e7c1dcf2363a58e6b17db4af1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+        "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+        "source_url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+        "metric": "bank.npl_g35",
+        "ticker": "VCB",
+        "period": "2024_Q4",
+        "value": 0.9636,
+        "source_doc": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+        "table_locator": "pdf_pages:31;printed_page:30;section:note_customer_loans;row:loan_quality;groups:3|4|5;denominator:total_customer_loans;extraction:visual_transcription",
+        "provenance_hash": "sha256:372c332c97e8c9fa124cd38a8adc93074b96424e7c1dcf2363a58e6b17db4af1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+        "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+        "source_url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "VPB",
+        "period": "2024_Q4",
+        "value": 56.1749,
+        "source_doc": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "table_locator": "pdf_page:46;printed_page:44;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+        "provenance_hash": "sha256:96bd1fab33006cab427c99247981467b40adac664576c61ef2e6e6acf7b3ca9f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+        "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+        "source_url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "VPB",
+        "period": "2024_Q4",
+        "value": 4.1956,
+        "source_doc": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "table_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+        "provenance_hash": "sha256:96bd1fab33006cab427c99247981467b40adac664576c61ef2e6e6acf7b3ca9f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.llr_coverage:scope-5663f23797a47a40",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+        "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+        "source_url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "metric": "bank.llr_coverage",
+        "ticker": "VPB",
+        "period": "2024_Q4",
+        "value": 56.1749,
+        "source_doc": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "table_locator": "pdf_page:46;printed_page:44;section:11;formula:total_loan_loss_provisions/(stage_3+stage_4+stage_5)*100",
+        "provenance_hash": "sha256:96bd1fab33006cab427c99247981467b40adac664576c61ef2e6e6acf7b3ca9f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:gold-bank-2025-expanded-v5-evidence:gold-bank-2025-expanded-v5-evidence:sector:bank:2024_Q4:bank.npl_g35:scope-5663f23797a47a40",
+        "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+        "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+        "source_url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "metric": "bank.npl_g35",
+        "ticker": "VPB",
+        "period": "2024_Q4",
+        "value": 4.1956,
+        "source_doc": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "table_locator": "pdf_page:43;printed_page:41;section:10.1;formula:(stage_3+stage_4+stage_5)/gross_loans*100",
+        "provenance_hash": "sha256:96bd1fab33006cab427c99247981467b40adac664576c61ef2e6e6acf7b3ca9f"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Single-agent arm execution without specialist findings or critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "head_to_head",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-fb-1",
+            "text": "VCB nhỉnh hơn VPB ở 2/2 chỉ tiêu trong quý 4/2024.",
+            "fact_ids": [
+              "fact:lead_count:VCB:vs:VPB:2024_Q4"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        },
+        {
+          "type": "table",
+          "dataset_id": "ds-h2h-vcb-vpb-2024q4",
+          "title": "Chất lượng tài sản Q4/2024: VCB vượt trội toàn diện"
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "comparison_table",
+          "dataset_id": "ds-h2h-vcb-vpb-2024q4",
+          "title": "So sánh đối đầu · VCB vs VPB (Q4/2024)",
+          "takeaway": {
+            "sentence_id": "sent-fb-2",
+            "text": "VCB có tỷ lệ bao phủ nợ xấu cao hơn VPB 167,1 điểm % trong quý 4/2024.",
+            "fact_ids": [
+              "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-h2h-vcb-vpb-2024q4",
+        "shape": "comparison_table",
+        "title": "So sánh đối đầu · VCB vs VPB (Q4/2024)",
+        "produced_by": {
+          "tool": "head_to_head",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2024_Q4"
+        ],
+        "highlight_entity_ids": [
+          "VCB"
+        ],
+        "rows": [
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 223.311,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 0.9636,
+            "observation_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 56.1749,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2024_Q4",
+            "status": "valid",
+            "value": 4.1956,
+            "observation_id": "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "comparison_table",
+          "grouped_bar"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage",
+        "fact_type": "pairwise_gap",
+        "entity_id": "VCB",
+        "other_entity_id": "VPB",
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2024_Q4",
+        "from_period": null,
+        "value": 167.1361,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "pairwise-gap-pp-v1",
+        "input_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.npl_g35",
+        "fact_type": "pairwise_gap",
+        "entity_id": "VCB",
+        "other_entity_id": "VPB",
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2024_Q4",
+        "from_period": null,
+        "value": -3.2319999999999998,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "pairwise-gap-pp-v1",
+        "input_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:lead_count:VCB:vs:VPB:2024_Q4",
+        "fact_type": "lead_count",
+        "entity_id": "VCB",
+        "other_entity_id": "VPB",
+        "universe_id": null,
+        "metric_id": "comparison.overall",
+        "period": "2024_Q4",
+        "from_period": null,
+        "value": 2.0,
+        "unit": "count",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 2,
+        "formula_version": "lead-count-v1",
+        "input_observation_ids": [
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.llr_coverage:total_specific_plus_general_provision",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.llr_coverage",
+          "expansion:official-VCB-2024-Q4-consolidated-quarterly:2024_Q4:bank.npl_g35",
+          "official-VPB-2024-consolidated-lookup:2024_Q4:bank.npl_g35"
+        ],
+        "input_fact_ids": [
+          "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage",
+          "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.npl_g35"
+        ]
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 2,
+      "sentences_accepted": 2,
+      "sentences_dropped": [],
+      "numbers_checked": 1,
+      "numbers_matched": 1,
+      "blocks_dropped": [
+        {
+          "type": "headline",
+          "reason": "Khối bắt buộc của mô hình không qua kiểm chứng; dùng khối mặc định đã kiểm chứng."
+        }
+      ],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "expansion:official-VCB-2024-Q4-consolidated-quarterly",
+        "title": "VCB · BCTC hợp nhất Q4/2024",
+        "url": "https://www.vietcombank.com.vn/-/media/Project/VCB-Sites/VCB/Nha-Dau-tu/Files/BC-dinh-ky/BCTC/2024/20250124--VCB--BCTC-hop-nhat-Q42024-VIE.pdf?ts=00010101000000",
+        "locator": "tr. 30, 31 · note customer loans · note loan loss provision",
+        "fact_ids": [
+          "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage",
+          "fact:lead_count:VCB:vs:VPB:2024_Q4"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "official-VPB-2024-Q4-consolidated-lookup",
+        "title": "VPB · BCTC hợp nhất Q4/2024",
+        "url": "https://www.vpbank.com.vn/-/media/vpbank-latest/5nha-dau-tu/bao-cao-tai-chinh/vas/nam-2024/q4/3-bctc-hop-nhat-ban-tra-cuu-q4-2024.pdf",
+        "locator": "tr. 44 · 11",
+        "fact_ids": [
+          "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage",
+          "fact:lead_count:VCB:vs:VPB:2024_Q4"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Đối đầu. Gọi Nhóm ngành với 1 phép phân tích",
+      "detail": {
+        "question_type": "head_to_head",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng head_to_head cho VCB, VPB với 1 công cụ.",
+        "entities": [
+          "VCB",
+          "VPB",
+          "sector:bank"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "anchor_period": "2024_Q4",
+        "periods": [
+          "2024_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "head_to_head",
+            "agent": "company",
+            "label": "so sánh đối đầu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "sector",
+            "decision": "run",
+            "reason": "Chuyên viên Nhóm ngành"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 155,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: so sánh đối đầu",
+      "detail": {
+        "task": "head_to_head",
+        "tools": [
+          "so sánh đối đầu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 202,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 12 số liệu có nguồn từ phép phân tích so sánh đối đầu",
+      "detail": {
+        "tool": "head_to_head",
+        "label": "so sánh đối đầu",
+        "facts": [
+          {
+            "fact_id": "fact:value:VCB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của VCB trong quý 4/2024",
+            "display_value": "223,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:VCB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VCB trong quý 4/2024",
+            "display_value": "0,96%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:VPB:2024_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của VPB trong quý 4/2024",
+            "display_value": "56,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:VPB:2024_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VPB trong quý 4/2024",
+            "display_value": "4,20%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa VCB và VPB trong quý 4/2024",
+            "display_value": "+167,1 điểm %",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:pairwise_gap:VPB:vs:VCB:2024_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa VPB và VCB trong quý 4/2024",
+            "display_value": "-167,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:VCB:vs:VPB:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa VCB và VPB trong quý 4/2024",
+            "display_value": "-3,23 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:VPB:vs:VCB:2024_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa VPB và VCB trong quý 4/2024",
+            "display_value": "+3,23 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:lead_count:VCB:vs:VPB:2024_Q4",
+            "label": "Số chỉ tiêu vượt trội của VCB so với VPB trong quý 4/2024",
+            "display_value": "2/2 chỉ tiêu",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:lead_count:VPB:vs:VCB:2024_Q4",
+            "label": "Số chỉ tiêu vượt trội của VPB so với VCB trong quý 4/2024",
+            "display_value": "0/2 chỉ tiêu",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "92,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2024_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 5 ngân hàng trong quý 4/2024",
+            "display_value": "1,51%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-h2h-vcb-vpb-2024q4",
+            "title": "So sánh đối đầu · VCB vs VPB (Q4/2024)"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 6046,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 1 hình, 1 bảng",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "table",
+            "title": "Chất lượng tài sản Q4/2024: VCB vượt trội toàn diện"
+          },
+          {
+            "type": "figure",
+            "title": "So sánh đối đầu · VCB vs VPB (Q4/2024)"
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 6062,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-6c5d93219df744ed935561be7e44cde4",
+        "duration_ms": 6062,
+        "model_calls": 1
+      }
+    }
+  ]
+}

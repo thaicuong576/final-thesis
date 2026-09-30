@@ -39,6 +39,31 @@ fails closed before the service serves readiness. Render Free's local file is
 ephemeral, so a restart re-downloads the same immutable object; users do not
 upload the snapshot per analysis request.
 
+### Free Render analysis run history persistence & hydration
+
+On Render Free instances, the local filesystem at `ANALYSIS_RUNS_DB_PATH`
+(`/tmp/analysis_runs.sqlite`) resets whenever the instance sleeps or redeploys.
+To maintain persistent run history and report traces across cold starts:
+
+1. **Remote Run Upload**: After each analysis run completes (whether successful,
+   limited, or blocked/error), the application writes the full run record
+   (including plan, report, events, trace steps, and model metadata) as a JSON
+   object under `RUN_HISTORY_REMOTE_PREFIX` (default: `run-history/`) in the
+   private Supabase Storage bucket (`<prefix>/<run_id>.json`).
+   - The upload executes asynchronously in the background so API responses are
+     never delayed.
+   - Any upload failure logs a sanitized warning without revealing API keys and
+     does not fail the client request.
+2. **Startup Hydration**: On application startup (FastAPI `lifespan`), the server
+   lists objects under `RUN_HISTORY_REMOTE_PREFIX` (up to 500 latest runs),
+   downloads missing records, and idempotently populates the local SQLite store.
+   Runs already present locally are skipped.
+3. **Safety Boundaries**: Run history persistence strictly respects storage
+   separation: it never writes to the analytical Gold snapshot (`SQLITE_DB_PATH`),
+   never overwrites the remote snapshot object (`SUPABASE_STORAGE_OBJECT`), and
+   refuses objects with `.sqlite` extensions. If Supabase configuration is
+   incomplete, the API operates in local-only mode without breaking `/api/ready`.
+
 ---
 
 ## 1. Architectural Distinction: Deployment Infrastructure vs. Thesis Architecture
@@ -119,6 +144,7 @@ Infrastructure & Providers
 | `SUPABASE_STORAGE_BUCKET` | Yes for free hydration | `thesis-snapshots` | Private Storage bucket. |
 | `SUPABASE_STORAGE_OBJECT` | Yes for free hydration | `gold-bank-2025-expanded-v5-evidence.sqlite` | Exact immutable object path. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes for free hydration | *(Secret)* | Server-only Storage credential. Never expose to the browser. |
+| `RUN_HISTORY_REMOTE_PREFIX` | No | `run-history/` | Prefix in private Supabase Storage for persisted run JSON objects (default `run-history/`). Activates when Supabase Storage settings are configured. |
 | `OPENAI_API_KEY` | Later phases | *(Secret)* | Server-side LLM key. **Never exposed to client or version endpoint**. |
 
 ### Frontend Environment Variables (`frontend`)
@@ -232,6 +258,8 @@ services:
         value: gold-bank-2025-expanded-v5-evidence.sqlite
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: RUN_HISTORY_REMOTE_PREFIX
+        value: run-history/
       - key: GOLD_SCOPE_AUTHORITY_PATH
         value: data/evaluation/gold-v5-reporting-scope-authority-v1.json
       - key: DATABASE_URL

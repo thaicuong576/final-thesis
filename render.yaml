@@ -29,6 +29,8 @@ services:
         value: gold-bank-2025-expanded-v5-evidence.sqlite
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: RUN_HISTORY_REMOTE_PREFIX
+        value: run-history/
       - key: GOLD_SCOPE_AUTHORITY_PATH
         value: data/evaluation/gold-v5-reporting-scope-authority-v1.json
       - key: DATABASE_URL

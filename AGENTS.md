@@ -263,7 +263,10 @@ readiness. The Supabase Storage service-role credential is Render-only and
 must never reach the browser or repository. Render Free's local filesystem is
 ephemeral, so restart hydration is expected; uploading is a snapshot-version
 operation, not an analysis-request operation. `ANALYSIS_RUNS_DB_PATH` remains a
-separate writable store and may reset on free-instance restart.
+separate writable store; to survive ephemeral free-instance restarts, completed
+and blocked run records are persisted as JSON objects under `RUN_HISTORY_REMOTE_PREFIX`
+(default: `run-history/`) in private Supabase Storage and re-hydrated into
+`ANALYSIS_RUNS_DB_PATH` at startup.
 
 ## GitHub Flow and branch safety
 

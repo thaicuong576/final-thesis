@@ -66,6 +66,10 @@ class Settings(BaseSettings):
         default=None,
         alias="SUPABASE_SERVICE_ROLE_KEY",
     )
+    run_history_remote_prefix: str = Field(
+        default="run-history/",
+        alias="RUN_HISTORY_REMOTE_PREFIX",
+    )
     openai_base_url: str = Field(
         default="https://superup.codelypixverse.com/v1",
         alias="OPENAI_BASE_URL",

@@ -1591,46 +1591,15 @@
           "groupLabel"
         ],
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "bank.npl_g35"
-          },
-          "acronym": {
-            "type": "string",
-            "example": "NPL_G35"
-          },
-          "label": {
-            "type": "string",
-            "example": "Tỷ lệ nợ xấu (nhóm 3–5)"
-          },
-          "shortLabel": {
-            "type": "string",
-            "example": "Nợ xấu"
-          },
-          "unit": {
-            "type": "string",
-            "example": "%"
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "higher_is_better",
-              "lower_is_better",
-              "neutral"
-            ]
-          },
-          "decimals": {
-            "type": "integer",
-            "example": 2
-          },
-          "group": {
-            "type": "string",
-            "example": "asset_quality"
-          },
-          "groupLabel": {
-            "type": "string",
-            "example": "Chất lượng nợ"
-          }
+          "id": { "type": "string", "example": "bank.npl_g35" },
+          "acronym": { "type": "string", "example": "NPL_G35" },
+          "label": { "type": "string", "example": "Tỷ lệ nợ xấu (nhóm 3–5)" },
+          "shortLabel": { "type": "string", "example": "Nợ xấu" },
+          "unit": { "type": "string", "example": "%" },
+          "direction": { "type": "string", "enum": ["higher_is_better", "lower_is_better", "neutral"] },
+          "decimals": { "type": "integer", "example": 2 },
+          "group": { "type": "string", "example": "asset_quality" },
+          "groupLabel": { "type": "string", "example": "Chất lượng nợ" }
         }
       },
       "QuestionType": {
@@ -1647,116 +1616,32 @@
       },
       "QuestionTypeInfo": {
         "type": "object",
-        "required": [
-          "id",
-          "label",
-          "example"
-        ],
+        "required": ["id", "label", "example"],
         "properties": {
-          "id": {
-            "$ref": "#/components/schemas/QuestionType"
-          },
-          "label": {
-            "type": "string"
-          },
-          "example": {
-            "type": "string"
-          }
+          "id": { "$ref": "#/components/schemas/QuestionType" },
+          "label": { "type": "string" },
+          "example": { "type": "string" }
         }
       },
       "Capabilities": {
         "type": "object",
         "properties": {
-          "snapshotId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "datasetId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "datasetSnapshotId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "dataset_snapshot_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "analysis_available": {
-            "type": "boolean"
-          },
-          "implemented_capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "database_status": {
-            "type": "string"
-          },
-          "entities": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "periods": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetricPresentation"
-            }
-          },
-          "topics": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "peerUniverse": {
-            "type": [
-              "object",
-              "null"
-            ]
-          },
-          "macro": {
-            "type": [
-              "object",
-              "null"
-            ]
-          },
-          "suggestedQuestions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "questionTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QuestionTypeInfo"
-            }
-          },
-          "readiness": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "snapshotId": { "type": ["string", "null"] },
+          "datasetId": { "type": ["string", "null"] },
+          "datasetSnapshotId": { "type": ["string", "null"] },
+          "dataset_snapshot_id": { "type": ["string", "null"] },
+          "analysis_available": { "type": "boolean" },
+          "implemented_capabilities": { "type": "array", "items": { "type": "string" } },
+          "database_status": { "type": "string" },
+          "entities": { "type": "array", "items": { "type": "object" } },
+          "periods": { "type": "array", "items": { "type": "object" } },
+          "metrics": { "type": "array", "items": { "$ref": "#/components/schemas/MetricPresentation" } },
+          "topics": { "type": "array", "items": { "type": "object" } },
+          "peerUniverse": { "type": ["object", "null"] },
+          "macro": { "type": ["object", "null"] },
+          "suggestedQuestions": { "type": "array", "items": { "type": "string" } },
+          "questionTypes": { "type": "array", "items": { "$ref": "#/components/schemas/QuestionTypeInfo" } },
+          "readiness": { "type": ["string", "null"] }
         }
       },
       "Fact": {
@@ -1780,9 +1665,7 @@
           "input_fact_ids"
         ],
         "properties": {
-          "fact_id": {
-            "type": "string"
-          },
+          "fact_id": { "type": "string" },
           "fact_type": {
             "type": "string",
             "enum": [
@@ -1800,93 +1683,28 @@
               "outlier"
             ]
           },
-          "entity_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "other_entity_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "universe_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "metric_id": {
-            "type": "string"
-          },
-          "period": {
-            "type": "string"
-          },
-          "from_period": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "value": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "unit": {
-            "type": "string"
-          },
-          "rank_better": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "rank_desc": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "denominator": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "formula_version": {
-            "type": "string"
-          },
-          "input_observation_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "input_fact_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "entity_id": { "type": ["string", "null"] },
+          "other_entity_id": { "type": ["string", "null"] },
+          "universe_id": { "type": ["string", "null"] },
+          "metric_id": { "type": "string" },
+          "period": { "type": "string" },
+          "from_period": { "type": ["string", "null"] },
+          "value": { "type": ["number", "null"] },
+          "unit": { "type": "string" },
+          "rank_better": { "type": ["integer", "null"] },
+          "rank_desc": { "type": ["integer", "null"] },
+          "denominator": { "type": ["integer", "null"] },
+          "formula_version": { "type": "string" },
+          "input_observation_ids": { "type": "array", "items": { "type": "string" } },
+          "input_fact_ids": { "type": "array", "items": { "type": "string" } }
         }
       },
       "ProducedBy": {
         "type": "object",
-        "required": [
-          "tool",
-          "agent"
-        ],
+        "required": ["tool", "agent"],
         "properties": {
-          "tool": {
-            "type": "string"
-          },
-          "agent": {
-            "type": "string"
-          }
+          "tool": { "type": "string" },
+          "agent": { "type": "string" }
         }
       },
       "DatasetRow": {
@@ -1903,52 +1721,15 @@
           "missing_reason"
         ],
         "properties": {
-          "entity_id": {
-            "type": "string"
-          },
-          "metric_id": {
-            "type": "string"
-          },
-          "period": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "valid",
-              "missing"
-            ]
-          },
-          "value": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "observation_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "rank_better": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "rank_desc": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "missing_reason": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "entity_id": { "type": "string" },
+          "metric_id": { "type": "string" },
+          "period": { "type": "string" },
+          "status": { "type": "string", "enum": ["valid", "missing"] },
+          "value": { "type": ["number", "null"] },
+          "observation_id": { "type": ["string", "null"] },
+          "rank_better": { "type": ["integer", "null"] },
+          "rank_desc": { "type": ["integer", "null"] },
+          "missing_reason": { "type": ["string", "null"] }
         }
       },
       "ReferenceLine": {
@@ -1961,24 +1742,11 @@
           "fact_id"
         ],
         "properties": {
-          "kind": {
-            "type": "string"
-          },
-          "metric_id": {
-            "type": "string"
-          },
-          "period": {
-            "type": "string"
-          },
-          "value": {
-            "type": "number"
-          },
-          "fact_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "kind": { "type": "string" },
+          "metric_id": { "type": "string" },
+          "period": { "type": "string" },
+          "value": { "type": "number" },
+          "fact_id": { "type": ["string", "null"] }
         }
       },
       "Dataset": {
@@ -1996,9 +1764,7 @@
           "allowed_charts"
         ],
         "properties": {
-          "dataset_id": {
-            "type": "string"
-          },
+          "dataset_id": { "type": "string" },
           "shape": {
             "type": "string",
             "enum": [
@@ -2011,48 +1777,14 @@
               "paired"
             ]
           },
-          "title": {
-            "type": "string"
-          },
-          "produced_by": {
-            "$ref": "#/components/schemas/ProducedBy"
-          },
-          "metric_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "periods": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "highlight_entity_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DatasetRow"
-            }
-          },
-          "reference_lines": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReferenceLine"
-            }
-          },
-          "allowed_charts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "title": { "type": "string" },
+          "produced_by": { "$ref": "#/components/schemas/ProducedBy" },
+          "metric_ids": { "type": "array", "items": { "type": "string" } },
+          "periods": { "type": "array", "items": { "type": "string" } },
+          "highlight_entity_ids": { "type": "array", "items": { "type": "string" } },
+          "rows": { "type": "array", "items": { "$ref": "#/components/schemas/DatasetRow" } },
+          "reference_lines": { "type": "array", "items": { "$ref": "#/components/schemas/ReferenceLine" } },
+          "allowed_charts": { "type": "array", "items": { "type": "string" } }
         }
       },
       "Sentence": {
@@ -2066,18 +1798,9 @@
           "revision"
         ],
         "properties": {
-          "sentence_id": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          },
-          "fact_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
+          "sentence_id": { "type": "string" },
+          "text": { "type": "string" },
+          "fact_ids": { "type": "array", "items": { "type": "string" } },
           "author": {
             "type": "string",
             "enum": [
@@ -2096,138 +1819,57 @@
               "deterministic_fallback"
             ]
           },
-          "revision": {
-            "type": "integer"
-          }
+          "revision": { "type": "integer" }
         }
       },
       "AnswerBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "value_fact_id",
-          "sentences"
-        ],
+        "required": ["type", "value_fact_id", "sentences"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "answer"
-            ]
-          },
-          "value_fact_id": {
-            "type": "string"
-          },
-          "sentences": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sentence"
-            }
-          }
+          "type": { "type": "string", "enum": ["answer"] },
+          "value_fact_id": { "type": "string" },
+          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
         }
       },
       "HeadlineBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "sentence"
-        ],
+        "required": ["type", "sentence"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "headline"
-            ]
-          },
-          "sentence": {
-            "$ref": "#/components/schemas/Sentence"
-          }
+          "type": { "type": "string", "enum": ["headline"] },
+          "sentence": { "$ref": "#/components/schemas/Sentence" }
         }
       },
       "KeyPointItem": {
         "type": "object",
-        "required": [
-          "title",
-          "sentences"
-        ],
+        "required": ["title", "sentences"],
         "properties": {
-          "title": {
-            "type": "string"
-          },
-          "sentences": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sentence"
-            }
-          }
+          "title": { "type": "string" },
+          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
         }
       },
       "KeyPointsBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "items"
-        ],
+        "required": ["type", "items"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "key_points"
-            ]
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/KeyPointItem"
-            }
-          }
+          "type": { "type": "string", "enum": ["key_points"] },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/KeyPointItem" } }
         }
       },
       "SectionBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "title",
-          "sentences"
-        ],
+        "required": ["type", "title", "sentences"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "section"
-            ]
-          },
-          "title": {
-            "type": "string"
-          },
-          "sentences": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sentence"
-            }
-          }
+          "type": { "type": "string", "enum": ["section"] },
+          "title": { "type": "string" },
+          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
         }
       },
       "FigureBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "figure_no",
-          "chart",
-          "dataset_id",
-          "title",
-          "takeaway"
-        ],
+        "required": ["type", "figure_no", "chart", "dataset_id", "title", "takeaway"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "figure"
-            ]
-          },
-          "figure_no": {
-            "type": "integer"
-          },
+          "type": { "type": "string", "enum": ["figure"] },
+          "figure_no": { "type": "integer" },
           "chart": {
             "type": "string",
             "enum": [
@@ -2241,77 +1883,29 @@
               "comparison_table"
             ]
           },
-          "dataset_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "takeaway": {
-            "$ref": "#/components/schemas/Sentence"
-          }
+          "dataset_id": { "type": "string" },
+          "title": { "type": "string" },
+          "takeaway": { "$ref": "#/components/schemas/Sentence" }
         }
       },
       "CalloutBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "tone",
-          "title",
-          "finding_id",
-          "sentences"
-        ],
+        "required": ["type", "tone", "title", "finding_id", "sentences"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "callout"
-            ]
-          },
-          "tone": {
-            "type": "string",
-            "enum": [
-              "notice",
-              "warning"
-            ]
-          },
-          "title": {
-            "type": "string"
-          },
-          "finding_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "sentences": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sentence"
-            }
-          }
+          "type": { "type": "string", "enum": ["callout"] },
+          "tone": { "type": "string", "enum": ["notice", "warning"] },
+          "title": { "type": "string" },
+          "finding_id": { "type": ["string", "null"] },
+          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
         }
       },
       "TableBlock": {
         "type": "object",
-        "required": [
-          "type",
-          "dataset_id",
-          "title"
-        ],
+        "required": ["type", "dataset_id", "title"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "table"
-            ]
-          },
-          "dataset_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          }
+          "type": { "type": "string", "enum": ["table"] },
+          "dataset_id": { "type": "string" },
+          "title": { "type": "string" }
         }
       },
       "ReportBlock": {
@@ -2320,175 +1914,61 @@
           "propertyName": "type"
         },
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/AnswerBlock"
-          },
-          {
-            "$ref": "#/components/schemas/HeadlineBlock"
-          },
-          {
-            "$ref": "#/components/schemas/KeyPointsBlock"
-          },
-          {
-            "$ref": "#/components/schemas/SectionBlock"
-          },
-          {
-            "$ref": "#/components/schemas/FigureBlock"
-          },
-          {
-            "$ref": "#/components/schemas/CalloutBlock"
-          },
-          {
-            "$ref": "#/components/schemas/TableBlock"
-          }
+          { "$ref": "#/components/schemas/AnswerBlock" },
+          { "$ref": "#/components/schemas/HeadlineBlock" },
+          { "$ref": "#/components/schemas/KeyPointsBlock" },
+          { "$ref": "#/components/schemas/SectionBlock" },
+          { "$ref": "#/components/schemas/FigureBlock" },
+          { "$ref": "#/components/schemas/CalloutBlock" },
+          { "$ref": "#/components/schemas/TableBlock" }
         ]
       },
       "ReportSpec": {
         "type": "object",
-        "required": [
-          "kind",
-          "note_label",
-          "blocks"
-        ],
+        "required": ["kind", "note_label", "blocks"],
         "properties": {
-          "kind": {
-            "type": "string",
-            "enum": [
-              "answer_card",
-              "note"
-            ]
-          },
-          "note_label": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
+          "kind": { "type": "string", "enum": ["answer_card", "note"] },
+          "note_label": { "type": ["string", "null"] },
           "composition_source": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "model",
-              "deterministic_fallback",
-              null
-            ]
+            "type": ["string", "null"],
+            "enum": ["model", "deterministic_fallback", null]
           },
-          "blocks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReportBlock"
-            }
-          }
+          "blocks": { "type": "array", "items": { "$ref": "#/components/schemas/ReportBlock" } }
         }
       },
       "Signal": {
         "type": "object",
-        "required": [
-          "group",
-          "label",
-          "verdict",
-          "metric_ids",
-          "fact_ids"
-        ],
+        "required": ["group", "label", "verdict", "metric_ids", "fact_ids"],
         "properties": {
-          "group": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
+          "group": { "type": "string" },
+          "label": { "type": "string" },
           "verdict": {
             "type": "string",
-            "enum": [
-              "above_peers",
-              "in_line",
-              "below_peers",
-              "mixed",
-              "insufficient_data"
-            ]
+            "enum": ["above_peers", "in_line", "below_peers", "mixed", "insufficient_data"]
           },
-          "metric_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "fact_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "metric_ids": { "type": "array", "items": { "type": "string" } },
+          "fact_ids": { "type": "array", "items": { "type": "string" } }
         }
       },
       "CrossLevelFinding": {
         "type": "object",
-        "required": [
-          "finding_id",
-          "kind",
-          "severity",
-          "text",
-          "fact_ids",
-          "status"
-        ],
+        "required": ["finding_id", "kind", "severity", "text", "fact_ids", "status"],
         "properties": {
-          "finding_id": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "divergent_signals",
-              "counter_trend",
-              "cross_metric_extreme"
-            ]
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "notice",
-              "warning"
-            ]
-          },
-          "text": {
-            "type": "string"
-          },
-          "fact_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "confirmed",
-              "dismissed"
-            ]
-          }
+          "finding_id": { "type": "string" },
+          "kind": { "type": "string", "enum": ["divergent_signals", "counter_trend", "cross_metric_extreme"] },
+          "severity": { "type": "string", "enum": ["notice", "warning"] },
+          "text": { "type": "string" },
+          "fact_ids": { "type": "array", "items": { "type": "string" } },
+          "status": { "type": "string", "enum": ["confirmed", "dismissed"] }
         }
       },
       "SentenceDropped": {
         "type": "object",
-        "required": [
-          "sentence_id",
-          "author",
-          "text",
-          "reason_code",
-          "reason"
-        ],
+        "required": ["sentence_id", "author", "text", "reason_code", "reason"],
         "properties": {
-          "sentence_id": {
-            "type": "string"
-          },
-          "author": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          },
+          "sentence_id": { "type": "string" },
+          "author": { "type": "string" },
+          "text": { "type": "string" },
           "reason_code": {
             "type": "string",
             "enum": [
@@ -2508,24 +1988,15 @@
               "unresolved_critique"
             ]
           },
-          "reason": {
-            "type": "string"
-          }
+          "reason": { "type": "string" }
         }
       },
       "BlockDropped": {
         "type": "object",
-        "required": [
-          "type",
-          "reason"
-        ],
+        "required": ["type", "reason"],
         "properties": {
-          "type": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          }
+          "type": { "type": "string" },
+          "reason": { "type": "string" }
         }
       },
       "NarrativeAudit": {
@@ -2540,105 +2011,35 @@
           "composition_source"
         ],
         "properties": {
-          "sentences_checked": {
-            "type": "integer"
-          },
-          "sentences_accepted": {
-            "type": "integer"
-          },
-          "sentences_dropped": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SentenceDropped"
-            }
-          },
-          "numbers_checked": {
-            "type": "integer"
-          },
-          "numbers_matched": {
-            "type": "integer"
-          },
-          "blocks_dropped": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BlockDropped"
-            }
-          },
-          "composition_source": {
-            "type": "string",
-            "enum": [
-              "model",
-              "deterministic_fallback"
-            ]
-          },
-          "fallback_reason": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "sentences_checked": { "type": "integer" },
+          "sentences_accepted": { "type": "integer" },
+          "sentences_dropped": { "type": "array", "items": { "$ref": "#/components/schemas/SentenceDropped" } },
+          "numbers_checked": { "type": "integer" },
+          "numbers_matched": { "type": "integer" },
+          "blocks_dropped": { "type": "array", "items": { "$ref": "#/components/schemas/BlockDropped" } },
+          "composition_source": { "type": "string", "enum": ["model", "deterministic_fallback"] },
+          "fallback_reason": { "type": ["string", "null"] }
         }
       },
       "SourceNote": {
         "type": "object",
-        "required": [
-          "note_no",
-          "source_id",
-          "title",
-          "url",
-          "locator",
-          "fact_ids"
-        ],
+        "required": ["note_no", "source_id", "title", "url", "locator", "fact_ids"],
         "properties": {
-          "note_no": {
-            "type": "integer"
-          },
-          "source_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "url": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "locator": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "fact_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "note_no": { "type": "integer" },
+          "source_id": { "type": "string" },
+          "title": { "type": "string" },
+          "url": { "type": ["string", "null"] },
+          "locator": { "type": ["string", "null"] },
+          "fact_ids": { "type": "array", "items": { "type": "string" } }
         }
       },
       "ErrorInfo": {
         "type": "object",
-        "required": [
-          "code",
-          "message",
-          "suggestions"
-        ],
+        "required": ["code", "message", "suggestions"],
         "properties": {
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "suggestions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "suggestions": { "type": "array", "items": { "type": "string" } }
         }
       },
       "TraceStep": {
@@ -2654,42 +2055,16 @@
           "detail"
         ],
         "properties": {
-          "step_id": {
-            "type": "string"
-          },
-          "seq": {
-            "type": "integer"
-          },
-          "t_ms": {
-            "type": "integer"
-          },
+          "step_id": { "type": "string" },
+          "seq": { "type": "integer" },
+          "t_ms": { "type": "integer" },
           "actor": {
             "type": "string",
-            "enum": [
-              "orchestrator",
-              "company",
-              "sector",
-              "macro",
-              "critic",
-              "verifier",
-              "system"
-            ]
+            "enum": ["orchestrator", "company", "sector", "macro", "critic", "verifier", "system"]
           },
           "recipient": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "orchestrator",
-              "company",
-              "sector",
-              "macro",
-              "critic",
-              "verifier",
-              "system",
-              null
-            ]
+            "type": ["string", "null"],
+            "enum": ["orchestrator", "company", "sector", "macro", "critic", "verifier", "system", null]
           },
           "kind": {
             "type": "string",
@@ -2708,12 +2083,8 @@
               "blocked"
             ]
           },
-          "summary": {
-            "type": "string"
-          },
-          "detail": {
-            "type": "object"
-          }
+          "summary": { "type": "string" },
+          "detail": { "type": "object" }
         }
       },
       "RunTrace": {
@@ -2728,39 +2099,14 @@
           "steps"
         ],
         "properties": {
-          "run_id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "query": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "duration_ms": {
-            "type": "integer"
-          },
-          "arm": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "question_type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "steps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TraceStep"
-            }
-          }
+          "run_id": { "type": "string" },
+          "status": { "type": "string" },
+          "query": { "type": "string" },
+          "created_at": { "type": "string" },
+          "duration_ms": { "type": "integer" },
+          "arm": { "type": ["string", "null"] },
+          "question_type": { "type": ["string", "null"] },
+          "steps": { "type": "array", "items": { "$ref": "#/components/schemas/TraceStep" } }
         }
       },
       "AnalysisRunSummary": {
@@ -2781,72 +2127,19 @@
           "question_type"
         ],
         "properties": {
-          "run_id": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "query": {
-            "type": "string"
-          },
-          "target_ticker": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "peer_tickers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "period": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string"
-          },
-          "latency_ms": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "model_used": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "error_code": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "duration_ms": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "arm": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "question_type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "run_id": { "type": "string" },
+          "created_at": { "type": "string" },
+          "query": { "type": "string" },
+          "target_ticker": { "type": ["string", "null"] },
+          "peer_tickers": { "type": "array", "items": { "type": "string" } },
+          "period": { "type": ["string", "null"] },
+          "status": { "type": "string" },
+          "latency_ms": { "type": ["integer", "null"] },
+          "model_used": { "type": ["string", "null"] },
+          "error_code": { "type": ["string", "null"] },
+          "duration_ms": { "type": ["integer", "null"] },
+          "arm": { "type": ["string", "null"] },
+          "question_type": { "type": ["string", "null"] }
         }
       },
       "AnalysisRunRecord": {
@@ -2873,108 +2166,25 @@
           "question_type"
         ],
         "properties": {
-          "run_id": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "query": {
-            "type": "string"
-          },
-          "target_ticker": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "peer_tickers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "period": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string"
-          },
-          "latency_ms": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "model_used": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "report_json": {
-            "type": [
-              "object",
-              "null"
-            ]
-          },
-          "events_json": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "trace_json": {
-            "type": [
-              "object",
-              "null"
-            ]
-          },
-          "error_code": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "duration_ms": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "model_calls": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "input_tokens": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "output_tokens": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "arm": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "question_type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "run_id": { "type": "string" },
+          "created_at": { "type": "string" },
+          "query": { "type": "string" },
+          "target_ticker": { "type": ["string", "null"] },
+          "peer_tickers": { "type": "array", "items": { "type": "string" } },
+          "period": { "type": ["string", "null"] },
+          "status": { "type": "string" },
+          "latency_ms": { "type": ["integer", "null"] },
+          "model_used": { "type": ["string", "null"] },
+          "report_json": { "type": ["object", "null"] },
+          "events_json": { "type": "array", "items": { "type": "object" } },
+          "trace_json": { "type": ["object", "null"] },
+          "error_code": { "type": ["string", "null"] },
+          "duration_ms": { "type": ["integer", "null"] },
+          "model_calls": { "type": ["integer", "null"] },
+          "input_tokens": { "type": ["integer", "null"] },
+          "output_tokens": { "type": ["integer", "null"] },
+          "arm": { "type": ["string", "null"] },
+          "question_type": { "type": ["string", "null"] }
         }
       },
       "UploadRowIssue": {
@@ -3126,3 +2336,4 @@
     }
   }
 }
+

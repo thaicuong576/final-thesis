@@ -47,6 +47,9 @@ class Fact:
     formula_version: str = ""
     input_observation_ids: list[str] = field(default_factory=list)
     input_fact_ids: list[str] = field(default_factory=list)
+    direction: str | None = None
+    display_text: str | None = None
+    hien_thi: str | None = None
 
 
 @dataclass

@@ -515,11 +515,91 @@ class TestAnalysisToolsUnit(unittest.TestCase):
         self.assertGreater(len(fact_ids), 0)
         self.assertEqual(len(set(fact_ids)), len(resp.facts))
 
+    def test_f1_build_source_notes_handles_source_ref_none(self) -> None:
+        """F1: build_source_notes must produce notes even when obs.source_ref is None.
+
+        Simulates the real-staging scenario where the SQLite provider returns observations
+        with source_ref=None but obs_id follows the <source_id>:<period>:<metric>:<variant>
+        convention — so build_source_notes must fall back to splitting the obs_id.
+        """
+        from types import SimpleNamespace
+
+        obs_id = "official-E1-2024-Q4-consolidated:2024_Q4:bank.npl_g35:aligned_non_margin_variant"
+        # Use SimpleNamespace to avoid CanonicalObservation's Pydantic validator
+        obs = SimpleNamespace(
+            observation_id=obs_id,
+            entity_id="E1",
+            period_id="2024_Q4",
+            metric_id="bank.npl_g35",
+            value=1.5,
+            unit="%",
+            reporting_scope="consolidated",
+            source_ref=None,  # intentionally None — triggers F1 fallback in build_source_notes
+            source_locator=None,
+            metadata=None,
+        )
+
+        class _NoSourceRefProvider:
+            """Provider that holds the obs but get_source always returns None."""
+
+            def __init__(self) -> None:
+                self._obs_by_id = {obs_id: obs}
+
+            def resolve_observation(self, dataset_ref: Any, oid: str) -> Any:
+                return self._obs_by_id.get(oid)
+
+            def get_source(self, dataset_ref: Any, source_ref: str) -> None:
+                return None  # source lookup fails — notes must still be produced
+
+        from thesis_data.report_facts import Fact
+
+        fact = Fact(
+            fact_id="fact:value:E1:2024_Q4:bank.npl_g35",
+            fact_type="value",
+            entity_id="E1",
+            metric_id="bank.npl_g35",
+            period="2024_Q4",
+            value=1.5,
+            input_observation_ids=[obs_id],
+        )
+
+        notes = build_source_notes(_NoSourceRefProvider(), self.provider.dataset_ref, [fact])
+
+        self.assertGreater(len(notes), 0, "build_source_notes must produce at least one note from obs_id fallback")
+        self.assertEqual(notes[0].note_no, 1)
+        # source_id should be the first colon-delimited segment of the obs_id
+        self.assertEqual(notes[0].source_id, "official-E1-2024-Q4-consolidated")
+        self.assertIsNone(notes[0].url)  # no source object → no URL
+
+    def test_f2_paired_dataset_has_reference_lines(self) -> None:
+        """F2: paired scatter dataset produced by run_peer_position_tool must have reference_lines
+        for both scatter metrics (peer_median) so frontend can draw median lines."""
+        res = run_peer_position_tool(
+            self.ctx,
+            {"entity": "E1", "period": "2024_Q4", "metrics": ["bank.npl_g35", "bank.llr_coverage"]},
+        )
+        paired = next((d for d in res.datasets if d.shape == "paired"), None)
+        self.assertIsNotNone(paired, "run_peer_position_tool must produce a paired dataset")
+        assert paired is not None
+        self.assertGreaterEqual(
+            len(paired.reference_lines), 2,
+            "Paired dataset must have reference_lines for both scatter metrics",
+        )
+        ref_metric_ids = {rl.metric_id for rl in paired.reference_lines}
+        self.assertIn("bank.npl_g35", ref_metric_ids)
+        self.assertIn("bank.llr_coverage", ref_metric_ids)
+        # All reference lines must be median kind and have a fact_id
+        for rl in paired.reference_lines:
+            self.assertEqual(rl.kind, "median")
+            self.assertIsNotNone(rl.fact_id)
+            self.assertIsNotNone(rl.value)
+
 
 class TestGoldFixtureFactVerification(unittest.TestCase):
     """Independent verification: compare ER-3 computed facts against frontend/src/test/fixtures."""
 
     def test_all_fixtures_match_er3_facts(self) -> None:
+
         db_path = Path("data/processed/gold-bank-2025-expanded-v5-evidence.sqlite")
         auth_path = Path("data/evaluation/gold-v5-reporting-scope-authority-v1.json")
         if not db_path.exists() or not auth_path.exists():

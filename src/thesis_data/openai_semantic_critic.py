@@ -71,13 +71,14 @@ _CRITIC_INSTRUCTIONS = """You are a semantic reviewer for a Vietnamese equity-re
 Evaluate only the public, auditable context in the JSON input.
 
 Hướng dẫn phản biện (tiếng Việt):
-1. Số liệu đã được code kiểm định độc lập qua Stage-1 và bộ kiểm tra câu; không kiểm lại phép tính số học.
+1. Số liệu, phép tính, tỷ lệ đếm (ví dụ 3/4 chỉ tiêu), thứ hạng và phép so sánh đã được code kiểm định độc lập qua Stage-1 và bộ kiểm tra câu. Chiều tốt của từng chỉ tiêu (direction: higher_is_better hoặc lower_is_better, ví dụ nợ xấu NPL hay tỷ lệ chi phí CIR càng thấp càng tốt) đã được code tính toán chuẩn xác trong trường `direction` và `hien_thi` của từng fact trong payload. Critic TUYỆT ĐỐI KHÔNG kiểm lại số liệu, phép tính hay chiều chỉ tiêu.
 2. Kiểm tra trả lời đúng câu hỏi: khối đầu tiên (answer hoặc headline) có trả lời trực tiếp câu hỏi người dùng không. Nếu không, tạo issue incomplete_synthesis cho orchestrator (required_action=REVISE_CLAIM).
 3. Kiểm tra diễn giải: nhận định có nói quá, nói thiếu, hoặc khái quát thành "toàn ngành" trong khi chỉ là mẫu khảo sát không; có bỏ sót lưu ý quan trọng không. Nếu có, tạo issue unsupported_claim kèm affected_sentence_ids.
 4. Kiểm tra hình: hình không hỗ trợ luận điểm nào, hoặc trùng ý → tạo issue incomplete_synthesis cho orchestrator, kèm affected_block_index, required_action=REMOVE_CLAIM.
 5. Mỗi ứng viên mâu thuẫn (cross_level_candidates): xác nhận (confirmed) kèm 1–2 câu nhận định tiếng Việt có fact_ids, hoặc bác bỏ (dismissed) kèm lý do rõ ràng.
 6. Nếu có finding confirmed mà báo cáo không nhắc tới → tạo issue cross_level_contradiction cho orchestrator (required_action=RECONCILE_CROSS_LEVEL).
 7. Mỗi issue có description tiếng Việt, evidence_refs = fact_ids, required_action thuộc {REVISE_CLAIM, REMOVE_CLAIM, ADD_LIMITATION, RECONCILE_CROSS_LEVEL}.
+8. Tiêu chí phản biện chỉ áp dụng theo các mục 2-7 ở trên (spec §6). TUYỆT ĐỐI KHÔNG áp dụng các requirement cũ của atomic claims pipeline (như đòi hỏi báo cáo giá trị trung vị do provider cung cấp).
 
 Return exactly one JSON object matching the supplied strict schema. Do not make an acceptance decision or override Stage-1.
 For every prior OPEN issue in prior_open_issues, return the same issue_id exactly once with status OPEN, RESOLVED, EXPLAINED, or UNRESOLVED.
@@ -253,6 +254,59 @@ def _render_critic_payload(
         else:
             rendered_cross_level_candidates.append(str(cand))
 
+    rendered_facts = []
+    for f in getattr(round_context, "facts", ()):
+        if isinstance(f, dict):
+            fid = f.get("fact_id", "")
+            ftype = f.get("fact_type", "")
+            ent = f.get("entity_id")
+            mid = f.get("metric_id", "")
+            p = f.get("period", "")
+            val = f.get("value")
+            unit = f.get("unit", "")
+            direction = f.get("direction")
+            hien_thi = f.get("hien_thi") or f.get("display_text")
+        else:
+            fid = getattr(f, "fact_id", "")
+            ftype = getattr(f, "fact_type", "")
+            ent = getattr(f, "entity_id", None)
+            mid = getattr(f, "metric_id", "")
+            p = getattr(f, "period", "")
+            val = getattr(f, "value", None)
+            unit = getattr(f, "unit", "")
+            direction = getattr(f, "direction", None)
+            hien_thi = getattr(f, "hien_thi", None) or getattr(f, "display_text", None)
+
+        if not direction:
+            if mid in ("bank.npl_g35", "bank.cir") or "npl" in mid or "cir" in mid:
+                direction = "lower_is_better"
+            else:
+                direction = "higher_is_better"
+
+        if not hien_thi and val is not None:
+            if unit == "%":
+                hien_thi = f"{val}%"
+            elif unit == "pp":
+                hien_thi = f"{val} điểm %"
+            else:
+                hien_thi = str(val)
+
+        fact_dict = {
+            "fact_id": fid,
+            "fact_type": ftype,
+            "entity_id": ent,
+            "metric_id": mid,
+            "period": p,
+            "value": val,
+            "unit": unit,
+            "direction": direction,
+            "hien_thi": hien_thi,
+            "display_text": hien_thi,
+        }
+        rendered_facts.append(fact_dict)
+
+    is_report_spec_mode = round_context.report_spec is not None
+
     return {
         "plan_version": plan.plan_version,
         "dataset_id": plan.dataset_id,
@@ -264,6 +318,7 @@ def _render_critic_payload(
         "narrative": rendered_narrative,
         "report_spec": rendered_spec,
         "cross_level_candidates": rendered_cross_level_candidates,
+        "facts": rendered_facts,
         "report_level_synthesis": {
             "target_id": round_context.synthesis_target_id,
             "summary": round_context.synthesis_summary,
@@ -279,7 +334,7 @@ def _render_critic_payload(
                 plan.requirements,
                 key=lambda item: item.requirement_id,
             )
-        ],
+        ] if not is_report_spec_mode else [],
         "requested_outputs": list(plan.requested_outputs),
         "applicable_links": [
             link.model_dump(mode="json")
@@ -307,7 +362,7 @@ def _render_critic_payload(
         "allowed_claim_ids": sorted(claim.claim_id for claim in claims),
         "allowed_requirement_ids": sorted(
             requirement.requirement_id for requirement in plan.requirements
-        ),
+        ) if not is_report_spec_mode else [],
         "allowed_applicable_link_ids": sorted(
             link.link_id for link in plan.applicable_links
         ),
@@ -869,6 +924,12 @@ def _normalize_critic_output(
             if r not in fulfilled_set and r not in partially_set
         )
     )
+
+    if plan_req_ids is not None:
+        classified = fulfilled_set | partially_set | set(unfulfilled_dedup)
+        for req in plan_req_ids:
+            if req not in classified:
+                fulfilled_dedup.append(req)
 
     normalized["fulfilled_requirement_ids"] = fulfilled_dedup
     normalized["partially_fulfilled_requirement_ids"] = partially_dedup

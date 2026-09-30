@@ -52,6 +52,16 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 
+def _format_quarter_period(period: str) -> str:
+    """Format canonical period (e.g. 2024_Q4) into standard display (e.g. Q4/2024)."""
+    if not period:
+        return ""
+    parts = period.split("_")
+    if len(parts) == 2 and parts[1].startswith("Q"):
+        return f"{parts[1]}/{parts[0]}"
+    return period
+
+
 def humanize_locator(raw: str) -> str:
     """Humanize a machine-structured source locator string into a readable string."""
     if not raw:
@@ -278,7 +288,7 @@ def run_lookup_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
             DatasetDTO(
                 dataset_id=f"ds-lookup-{ent_slug}-{metric_slug}-{period.lower().replace('_', '')}",
                 shape="kpi",
-                title=f"Tra cứu chỉ tiêu · {entities[0]} {period}",
+                title=f"Tra cứu chỉ tiêu · {entities[0]} {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="lookup", agent="company"),
                 metric_ids=list(metrics),
                 periods=[period],
@@ -390,7 +400,7 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             DatasetDTO(
                 dataset_id=f"ds-peer-position-{target.lower()}-{period.lower().replace('_', '')}",
                 shape="peer_table",
-                title=f"Vị thế nhóm · {target} {period}",
+                title=f"Vị thế nhóm · {target} {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="peer_position", agent="sector"),
                 metric_ids=list(metrics),
                 periods=[period],
@@ -405,16 +415,38 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
     if len(metrics) >= 2:
         scatter_metrics = metrics[:2]
         scatter_rows = [r for r in peer_table_rows if r.metric_id in scatter_metrics]
+        m1_pres = ctx.presentation(scatter_metrics[0])
+        m2_pres = ctx.presentation(scatter_metrics[1])
+        m1_name = m1_pres.short_label or m1_pres.label or scatter_metrics[0].rsplit('.', 1)[-1]
+        m2_name = m2_pres.short_label or m2_pres.label or scatter_metrics[1].rsplit('.', 1)[-1]
+        # F2: add peer_median reference_lines for both axes so frontend can render median lines
+        paired_ref_lines: list[ReferenceLineDTO] = []
+        for sm in scatter_metrics:
+            med = next(
+                (f for f in facts if f.fact_type == "peer_median" and f.metric_id == sm and f.period == period),
+                None,
+            )
+            if med is not None and med.value is not None:
+                paired_ref_lines.append(
+                    ReferenceLineDTO(
+                        kind="median",
+                        metric_id=sm,
+                        period=period,
+                        value=float(med.value),
+                        fact_id=med.fact_id,
+                    )
+                )
         datasets.append(
             DatasetDTO(
                 dataset_id=f"ds-paired-{target.lower()}-{period.lower().replace('_', '')}",
                 shape="paired",
-                title=f"Tương quan {scatter_metrics[0].rsplit('.', 1)[-1].upper()} và {scatter_metrics[1].rsplit('.', 1)[-1].upper()} · {period}",
+                title=f"Tương quan {m1_name} và {m2_name} · {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="peer_position", agent="sector"),
                 metric_ids=list(scatter_metrics),
                 periods=[period],
                 highlight_entity_ids=[target] if target else [],
                 rows=scatter_rows,
+                reference_lines=paired_ref_lines,
                 allowed_charts=["scatter"],
             )
         )
@@ -525,7 +557,7 @@ def run_ranking_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
         DatasetDTO(
             dataset_id=f"ds-ranking-{metric_slug}-{period.lower().replace('_', '')}",
             shape="ranked_list",
-            title=f"Xếp hạng {pres.label} · {period}",
+            title=f"Xếp hạng {pres.label} · {_format_quarter_period(period)}",
             produced_by=ProducedByDTO(tool="ranking", agent="sector"),
             metric_ids=[metric],
             periods=[period],
@@ -757,7 +789,7 @@ def run_head_to_head_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             DatasetDTO(
                 dataset_id=f"ds-h2h-{slug}-{period.lower().replace('_', '')}",
                 shape="comparison_table",
-                title=f"So sánh đối đầu · {' vs '.join(entities)} ({period})",
+                title=f"So sánh đối đầu · {' vs '.join(entities)} ({_format_quarter_period(period)})",
                 produced_by=ProducedByDTO(tool="head_to_head", agent="company"),
                 metric_ids=list(metrics),
                 periods=[period],
@@ -862,7 +894,7 @@ def run_decomposition_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             DatasetDTO(
                 dataset_id=f"ds-decomp-{ent_slug}-{period.lower().replace('_', '')}",
                 shape="kpi",
-                title=f"Phân rã đòn bẩy ROE/ROA · {period}",
+                title=f"Phân rã đòn bẩy ROE/ROA · {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="decomposition", agent="company"),
                 metric_ids=[formula_id],
                 periods=[period],
@@ -930,7 +962,7 @@ def run_dispersion_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
             DatasetDTO(
                 dataset_id=f"ds-dispersion-{metric.rsplit('.', 1)[-1]}-{period.lower().replace('_', '')}",
                 shape="ranked_list",
-                title=f"Độ phân tán {pres.label} · {period}",
+                title=f"Độ phân tán {pres.label} · {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="dispersion", agent="sector"),
                 metric_ids=[metric],
                 periods=[period],
@@ -939,7 +971,7 @@ def run_dispersion_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
             )
         )
 
-    label = f"Độ phân tán {pres.label} · {period}"
+    label = f"Độ phân tán {pres.label} · {_format_quarter_period(period)}"
     return ToolResult(tool="dispersion", agent="sector", label=label, facts=facts, datasets=datasets, missing=missing)
 
 
@@ -979,7 +1011,7 @@ def run_relationship_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             DatasetDTO(
                 dataset_id=f"ds-relationship-{period.lower().replace('_', '')}",
                 shape="paired",
-                title=f"Mối tương quan chỉ tiêu · {period}",
+                title=f"Mối tương quan chỉ tiêu · {_format_quarter_period(period)}",
                 produced_by=ProducedByDTO(tool="relationship", agent="sector"),
                 metric_ids=list(metrics),
                 periods=[period],
@@ -988,7 +1020,7 @@ def run_relationship_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             )
         )
 
-    label = f"Tương quan chỉ tiêu · {period}"
+    label = f"Tương quan chỉ tiêu · {_format_quarter_period(period)}"
     return ToolResult(tool="relationship", agent="sector", label=label, facts=facts, datasets=datasets, missing=missing)
 
 
@@ -1020,7 +1052,12 @@ def verify_fact_inputs(
         is_valid = True
         for obs_id in f.input_observation_ids:
             try:
-                obs = provider.get_observation(dataset_ref, obs_id) if hasattr(provider, "get_observation") else None
+                obs = None
+                if hasattr(provider, "resolve_observation"):
+                    obs = provider.resolve_observation(dataset_ref, obs_id)
+                elif hasattr(provider, "get_observation"):
+                    obs = provider.get_observation(dataset_ref, obs_id)
+
                 if obs is not None:
                     if obs.validation_status is not QualityStatus.VALID or obs.value is None:
                         is_valid = False
@@ -1035,7 +1072,7 @@ def verify_fact_inputs(
                         if f.metric_id and obs.metric_id != f.metric_id:
                             is_valid = False
                             break
-                elif hasattr(provider, "get_observation"):
+                elif hasattr(provider, "resolve_observation") or hasattr(provider, "get_observation"):
                     is_valid = False
                     break
             except Exception:
@@ -1091,11 +1128,14 @@ def build_source_notes(
             if obs is None:
                 continue
             src_ref = obs.source_ref
-            if not src_ref or src_ref in seen_sources:
+            # F1: when source_ref is None, derive source_id from obs_id convention:
+            # obs_id = "<source_id>:<period>:<metric_id>:<variant>"
+            if not src_ref:
+                src_ref = obs_id.split(":")[0]
+            if src_ref in seen_sources:
                 continue
             src = provider.get_source(dataset_ref, src_ref) if hasattr(provider, "get_source") else None
-            if src is None:
-                continue
+            # Even if get_source fails, produce a minimal note so source_notes is non-empty
             seen_sources.add(src_ref)
 
             raw_locator = getattr(obs, "source_locator", None) or (obs.metadata or {}).get("source_locator") or ""
@@ -1103,10 +1143,10 @@ def build_source_notes(
 
             # Title formatted per D-073 and PR-3 §2
             entity = obs.entity_id
-            period = obs.period_id
-            p_parts = period.split("_")
+            period_id = obs.period_id
+            p_parts = period_id.split("_")
             q_str = p_parts[1].replace("Q", "") if len(p_parts) == 2 else ""
-            y_str = p_parts[0] if len(p_parts) == 2 else period
+            y_str = p_parts[0] if len(p_parts) == 2 else period_id
             scope = getattr(obs, "reporting_scope", None)
             scope_vi = "hợp nhất" if scope == "consolidated" else ("riêng lẻ" if scope == "parent_only" else "")
             if scope_vi:
@@ -1114,12 +1154,19 @@ def build_source_notes(
             else:
                 title = f"{entity} · BCTC Q{q_str}/{y_str}"
 
+            if src is not None:
+                source_id_val = src.source_id if hasattr(src, "source_id") else src_ref
+                url_val = getattr(src, "source_url", None)
+            else:
+                source_id_val = src_ref
+                url_val = None
+
             source_notes.append(
                 SourceNoteDTO(
                     note_no=note_no,
-                    source_id=src.source_id if hasattr(src, "source_id") else src_ref,
+                    source_id=source_id_val,
                     title=title,
-                    url=getattr(src, "source_url", None),
+                    url=url_val,
                     locator=locator or None,
                     fact_ids=list(dict.fromkeys(f_ids)),
                 )

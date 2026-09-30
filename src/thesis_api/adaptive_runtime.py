@@ -15,6 +15,9 @@ from pathlib import Path
 import re
 import unicodedata
 import uuid
+import copy
+import time
+import concurrent.futures
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
 
@@ -141,6 +144,7 @@ from .narrative_templates import (
     describe_fact,
     display_fact,
     make_fallback_sentence,
+    period_vi,
 )
 from .settings import Settings
 from thesis_data.narrative_verification import (
@@ -1321,10 +1325,7 @@ class _AdaptiveRun:
                 u for u in self.catalog.peer_universes
                 if not focus_entity or focus_entity in u.entity_ids
             ]
-            if not universe_id and candidate_universes and (
-                (self.spec and self.spec.question_type in ("ranking", "company_profile"))
-                or len(candidate_universes) == 1
-            ):
+            if not universe_id and candidate_universes:
                 universe_id = candidate_universes[0].peer_universe_id
 
             universe_members: tuple[str, ...] = ()
@@ -1406,7 +1407,7 @@ class _AdaptiveRun:
                                             "entity_id": m.entity_id,
                                             "metric_id": m.metric_id,
                                             "period": m.period,
-                                            "reason": getattr(m, "reason", "") or f"{m.entity_id} {m.period} chưa có số liệu đã kiểm định; để trống thay vì ước tính.",
+                                            "reason": getattr(m, "reason", "") or f"{m.entity_id} {period_vi(m.period)} chưa có số liệu đã kiểm định; để trống thay vì ước tính.",
                                         }
                                         for m in res.missing
                                     ],
@@ -1444,7 +1445,7 @@ class _AdaptiveRun:
 
             # Missing cells limitations
             for m in tool_missing:
-                tool_limitations.append(f"{m.entity_id} {m.period} chưa có số liệu đã kiểm định; để trống thay vì ước tính.")
+                tool_limitations.append(f"{m.entity_id} {period_vi(m.period)} chưa có số liệu đã kiểm định; để trống thay vì ước tính.")
         else:
             from thesis_data.report_facts import Fact
             verified_facts = []
@@ -2652,7 +2653,8 @@ class _AdaptiveRun:
         filtered_facts, filtered_datasets, ordered_cited_facts = self._collect_spec_facts_and_datasets(
             active_report_spec, facts_map, datasets_map
         )
-        source_notes = build_source_notes(self.provider, self.dataset_ref, ordered_cited_facts)
+        # F1: pass filtered_facts (includes expanded input facts) so all input_observation_ids are walked
+        source_notes = build_source_notes(self.provider, self.dataset_ref, filtered_facts)
 
         # Backfill source_note_no into tool_result trace steps
         fact_to_note_no: dict[str, int] = {}

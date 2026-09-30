@@ -153,6 +153,7 @@ class SemanticRoundContext(BaseModel):
     narrative: tuple[Any, ...] = Field(default_factory=tuple)
     report_spec: dict[str, Any] | None = None
     cross_level_candidates: tuple[Any, ...] = Field(default_factory=tuple)
+    facts: tuple[Any, ...] = Field(default_factory=tuple)
 
     @model_validator(mode="after")
     def validate_issue_context(self) -> "SemanticRoundContext":

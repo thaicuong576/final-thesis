@@ -191,6 +191,18 @@ class NarrativeVerificationTestCase(unittest.TestCase):
             "f_acb_npl_d_q2_q3": Fact(fact_id="f_acb_npl_d_q2_q3", fact_type="delta", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q3", from_period="2024_Q2", value=0.01, unit="pp"),
             "f_acb_npl_d_q3_q4": Fact(fact_id="f_acb_npl_d_q3_q4", fact_type="delta", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q4", from_period="2024_Q3", value=0.002, unit="pp"),
             "f_acb_npl_d_q3_q4_bad": Fact(fact_id="f_acb_npl_d_q3_q4_bad", fact_type="delta", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q4", from_period="2024_Q3", value=0.0001, unit="pp"),
+            # Additional facts for real-model reproduction tests (ER-4b)
+            "f_acb_npl_med_q4": Fact(fact_id="f_acb_npl_med_q4", fact_type="peer_median", metric_id="bank.npl_g35", period="2024_Q4", value=1.5122, unit="%", denominator=5),
+            "f_acb_npl_rank_q4": Fact(fact_id="f_acb_npl_rank_q4", fact_type="peer_rank", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q4", value=3.0, unit="rank", rank_better=3, rank_desc=3, denominator=5),
+            "f_acb_roa_q4": Fact(fact_id="f_acb_roa_q4", fact_type="value", entity_id="ACB", metric_id="bank.roa", period="2024_Q4", value=2.1215, unit="%"),
+            "f_acb_roa_med_q4": Fact(fact_id="f_acb_roa_med_q4", fact_type="peer_median", metric_id="bank.roa", period="2024_Q4", value=2.1215, unit="%", denominator=5),
+            "f_acb_roa_rank_q4": Fact(fact_id="f_acb_roa_rank_q4", fact_type="peer_rank", entity_id="ACB", metric_id="bank.roa", period="2024_Q4", value=3.0, unit="rank", rank_better=3, rank_desc=3, denominator=5),
+            "f_vcb_npl_q4": Fact(fact_id="f_vcb_npl_q4", fact_type="value", entity_id="VCB", metric_id="bank.npl_g35", period="2024_Q4", value=0.9636, unit="%"),
+            "f_vcb_llr_med_q4": Fact(fact_id="f_vcb_llr_med_q4", fact_type="peer_median", metric_id="bank.llr_coverage", period="2024_Q4", value=92.2484, unit="%", denominator=5),
+            "f_llr_spread_q4": Fact(fact_id="f_llr_spread_q4", fact_type="spread", metric_id="bank.llr_coverage", period="2024_Q4", value=167.1, unit="pp", denominator=5),
+            "f_vpb_roe_med_d_q3_q4": Fact(fact_id="f_vpb_roe_med_d_q3_q4", fact_type="median_delta", metric_id="bank.roe", period="2024_Q4", from_period="2024_Q3", value=-0.94, unit="pp"),
+            "f_acb_roe_med_q4": Fact(fact_id="f_acb_roe_med_q4", fact_type="peer_median", metric_id="bank.roe", period="2024_Q4", value=18.5965, unit="%", denominator=5),
+            "f_acb_roe_raw_q4": Fact(fact_id="f_acb_roe_raw_q4", fact_type="value", entity_id="ACB", metric_id="bank.roe", period="2024_Q4", value=21.7459, unit="%"),
         }
 
         self.ctx = VerificationContext(
@@ -608,5 +620,89 @@ class NarrativeVerificationTestCase(unittest.TestCase):
             self.assertTrue(verdict.ok, f"Fallback sentence failed for {fid} ({ns.text}): {verdict.reason_code}: {verdict.reason}")
 
 
+    def test_er4b_case_aa_equal_to_median(self) -> None:
+        """A.a: ACB NPL 1.51% equals peer median and rank 3/5 -> ok."""
+        s = NarrativeSentence(
+            sentence_id="s_aa",
+            author="sector",
+            text="Tỷ lệ nợ xấu của ACB ở mức 1,51%, đúng bằng trung vị nhóm và xếp hạng 3/5.",
+            fact_ids=("f_acb_npl_q4", "f_acb_npl_med_q4", "f_acb_npl_rank_q4"),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+        s_roa = NarrativeSentence(
+            sentence_id="s_aa_roa",
+            author="sector",
+            text="ROA của ACB ở mức 2,12%, bằng trung vị nhóm.",
+            fact_ids=("f_acb_roa_q4", "f_acb_roa_med_q4"),
+            source="model",
+        )
+        verdict_roa = verify_sentence(s_roa, self.ctx)
+        self.assertTrue(verdict_roa.ok, f"Expected ok, got: {verdict_roa.reason_code}: {verdict_roa.reason}")
+
+    def test_er4b_case_ab_pp_difference(self) -> None:
+        """A.b: ACB ROE 21,7% higher than peer median by 3.1 percentage points -> ok."""
+        s = NarrativeSentence(
+            sentence_id="s_ab",
+            author="sector",
+            text="ROE của ACB đạt 21,7%, cao hơn trung vị nhóm 3,1 điểm phần trăm và xếp hạng 2/5.",
+            fact_ids=("f_acb_roe_raw_q4", "f_acb_roe_med_q4", "f_acb_roe_rank_q4"),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+    def test_er4b_case_ac_ratio_exceeds_median(self) -> None:
+        """A.c: VCB surpasses peer median, 2.4x median 92.2% -> ok."""
+        s = NarrativeSentence(
+            sentence_id="s_ac",
+            author="sector",
+            text="VCB vượt trội so với trung vị ngành, gấp 2,4 lần trung vị 92,2%.",
+            fact_ids=("f_vcb_llr_q4", "f_vcb_llr_med_q4", "f_vcb_llr_ratio_q4"),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+    def test_er4b_case_ad_spread_range_not_rank_mismatch(self) -> None:
+        """A.d: 'cao nhất và thấp nhất' in spread context describes bounds, not rank."""
+        s = NarrativeSentence(
+            sentence_id="s_ad",
+            author="sector",
+            text="Chênh lệch giữa ngân hàng cao nhất và thấp nhất là 167,1 điểm phần trăm, phản ánh phân hóa mạnh về đệm dự phòng trong nhóm.",
+            fact_ids=("f_llr_spread_q4",),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+    def test_er4b_case_ae_median_trend_decrease(self) -> None:
+        """A.e: 'trung vị nhóm ngân hàng giảm -0,9 điểm %' matches median_delta -0.94 and counter-trend."""
+        s = NarrativeSentence(
+            sentence_id="s_ae",
+            author="sector",
+            text="Trong khi đó, trung vị nhóm ngân hàng giảm -0,9 điểm % ở quý 4, cho thấy xu hướng ngược chiều.",
+            fact_ids=("f_vpb_roe_d_q3_q4", "f_vpb_roe_med_d_q3_q4"),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+    def test_er4b_case_af_lookup_peer_comparison(self) -> None:
+        """A.f: 'Mức 0,96% thấp hơn trung vị tỷ lệ nợ xấu của nhóm 5 ngân hàng là 1,51%' -> ok."""
+        s = NarrativeSentence(
+            sentence_id="s_af",
+            author="company",
+            text="Mức 0,96% thấp hơn trung vị tỷ lệ nợ xấu của nhóm 5 ngân hàng là 1,51%.",
+            fact_ids=("f_vcb_npl_q4", "f_acb_npl_med_q4"),
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+
 if __name__ == "__main__":
     unittest.main()
+

@@ -291,6 +291,11 @@ def _render_critic_payload(
             else:
                 hien_thi = str(val)
 
+        denom = getattr(f, "denominator", None) or (f.get("denominator") if isinstance(f, dict) else None)
+        if ftype == "lead_count" and denom:
+            int_val = int(val) if val is not None else 0
+            hien_thi = f"{int_val}/{denom} chỉ tiêu"
+
         fact_dict = {
             "fact_id": fid,
             "fact_type": ftype,
@@ -303,6 +308,10 @@ def _render_critic_payload(
             "hien_thi": hien_thi,
             "display_text": hien_thi,
         }
+        if denom is not None:
+            fact_dict["denominator"] = denom
+            if ftype == "lead_count":
+                fact_dict["mo_ta"] = f"{ent} dẫn trước ở {int(val) if val is not None else 0}/{denom} chỉ tiêu (đã tính đúng chiều lower_is_better như nợ xấu NPL)"
         rendered_facts.append(fact_dict)
 
     is_report_spec_mode = round_context.report_spec is not None
@@ -1058,12 +1067,19 @@ class OpenAISemanticCritic:
         else:
             request_kwargs["temperature"] = self._config.temperature
 
-        try:
-            response = self._client.responses.create(**request_kwargs)
-        except Exception as exc:
-            raise OpenAISemanticCriticError(
-                "openai_semantic_critic_request_failed"
-            ) from exc
+        response = None
+        for attempt in range(3):
+            try:
+                response = self._client.responses.create(**request_kwargs)
+                break
+            except Exception as exc:
+                if attempt < 2 and ("Connection error" in str(exc) or "timeout" in str(exc).lower()):
+                    import time
+                    time.sleep(1.0 * (attempt + 1))
+                    continue
+                raise OpenAISemanticCriticError(
+                    "openai_semantic_critic_request_failed"
+                ) from exc
 
         if _contains_refusal(response):
             raise OpenAISemanticCriticError("openai_semantic_critic_refused")

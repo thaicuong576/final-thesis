@@ -337,11 +337,13 @@ class _TestOfflineWriter:
         injected_bad_sentence: str | None = None,
         injected_bad_chart: str | None = None,
         injected_garbage_spec: bool = False,
+        injected_composed_spec: dict[str, Any] | None = None,
         should_raise: bool = False,
     ) -> None:
         self.injected_bad_sentence = injected_bad_sentence
         self.injected_bad_chart = injected_bad_chart
         self.injected_garbage_spec = injected_garbage_spec
+        self.injected_composed_spec = injected_composed_spec
         self.should_raise = should_raise
         self.write_findings_calls: list[dict] = []
         self.compose_report_calls: list[dict] = []
@@ -394,6 +396,9 @@ class _TestOfflineWriter:
 
         if self.injected_garbage_spec:
             return {"garbage_field": "corrupted json without blocks"}
+
+        if self.injected_composed_spec is not None:
+            return dict(self.injected_composed_spec)
 
         # Assemble layout based on question type
         if question_type == "lookup":
@@ -528,9 +533,11 @@ class _TestOfflineCritic:
         *,
         round1_issue_sentence: bool = False,
         round1_issue_duplicate_figure: bool = False,
+        round1_issue_lead_count: bool = False,
     ) -> None:
         self.round1_issue_sentence = round1_issue_sentence
         self.round1_issue_duplicate_figure = round1_issue_duplicate_figure
+        self.round1_issue_lead_count = round1_issue_lead_count
         self.calls = 0
 
     def evaluate(self, *, plan, claims, stage1_report, round_context):
@@ -538,6 +545,23 @@ class _TestOfflineCritic:
         self.calls += 1
         claim_ids = tuple(claim.claim_id for claim in claims)
         issues: list[CritiqueIssue] = []
+
+        if self.round1_issue_lead_count:
+            for s in round_context.narrative:
+                if any("lead_count" in fid for fid in s.fact_ids):
+                    issues.append(
+                        CritiqueIssue(
+                            issue_id="issue-lead-count-dispute",
+                            issue_type=CritiqueIssueType.UNSUPPORTED_CLAIM,
+                            severity=CritiqueSeverity.MAJOR,
+                            affected_agent=s.author,
+                            affected_sentence_ids=(s.sentence_id,),
+                            affected_requirement_ids=tuple(item.requirement_id for item in plan.requirements),
+                            description="Critic cho rằng so sánh 3/4 chỉ tiêu không khớp số liệu",
+                            required_action=CritiqueAction.REVISE_CLAIM,
+                            resolution_status=CritiqueIssueStatus.OPEN,
+                        )
+                    )
 
         if self.round1_issue_sentence:
             if round_context.round_number == 0:
@@ -840,6 +864,8 @@ class ApiERReportTests(unittest.TestCase):
                 self.assertIsNotNone(report.report_spec)
                 self.assertEqual(report.report_spec.composition_source, "deterministic_fallback")
                 self.assertEqual(report.narrative_audit.composition_source, "deterministic_fallback")
+                self.assertIsNotNone(report.narrative_audit.fallback_reason)
+                self.assertIn("compose_report_error: RuntimeError", report.narrative_audit.fallback_reason)
 
                 # Audit verification: numbers checked > 0 and 100% matched
                 audit = report.narrative_audit
@@ -905,6 +931,126 @@ class ApiERReportTests(unittest.TestCase):
                         "thấp nhất" in ans_texts.lower() or "hạng 1" in ans_texts.lower(),
                         f"B5 answer should convey best/lowest rank for lower_is_better, got: {ans_texts}",
                     )
+
+
+    def test_er4b_round2_b5_real_output_fixture_normalization(self) -> None:
+        """Verify that compose_report returning real model nested output for B5 is normalized and accepted as composition_source='model'."""
+        real_b5_output = {
+            "blocks": [
+                {
+                    "kind": "answer_card",
+                    "answer": {
+                        "text": "Tỷ lệ nợ xấu của VCB quý 4/2024 là 0,96%.",
+                        "fact_ids": ["fact:value:VCB:2024_Q4:bank.npl_g35"],
+                    },
+                    "chart": None,
+                },
+                {
+                    "kind": "note",
+                    "headline": "VCB: Chất lượng tài sản dẫn đầu nhóm 5 ngân hàng quý 4/2024",
+                    "sentences": [
+                        {"sentence_id": "sent-company-1"},
+                    ],
+                    "chart": None,
+                    "callouts": [],
+                },
+            ]
+        }
+        writer = _TestOfflineWriter(injected_composed_spec=real_b5_output)
+        report = self._run_query("Tỷ lệ nợ xấu của VCB quý 4/2024 là bao nhiêu?", writer=writer)
+        self.assertIn(report.status, ("completed", "accepted_with_limitations"))
+        self.assertEqual(report.report_spec.composition_source, "model")
+        self.assertEqual(report.narrative_audit.composition_source, "model")
+        self.assertIsNone(report.narrative_audit.fallback_reason)
+        self.assertEqual(report.report_spec.kind, "answer_card")
+        self.assertEqual(len(report.report_spec.blocks), 2)
+        self.assertEqual(report.report_spec.blocks[0].type, "answer")
+        self.assertEqual(report.report_spec.blocks[1].type, "section")
+
+    def test_er4b_round2_b4_fixture_normalization(self) -> None:
+        """Verify that B4 head_to_head question normalizes to kind='note' even if blocks contain answer/answer_card."""
+        real_b4_output = {
+            "blocks": [
+                {
+                    "type": "headline",
+                    "sentence": {"text": "TCB cao hơn ACB ở tỷ lệ bao phủ nợ xấu và ROA.", "fact_ids": ["fact:value:TCB:2024_Q4:bank.llr_coverage", "fact:value:ACB:2024_Q4:bank.llr_coverage"]},
+                },
+                {
+                    "type": "section",
+                    "title": "So sánh chi tiết",
+                    "sentences": [
+                        {"text": "Quý 4/2024, TCB cao hơn ACB ở bao phủ nợ xấu (113,8% so với 76,6%).", "fact_ids": ["fact:value:TCB:2024_Q4:bank.llr_coverage", "fact:value:ACB:2024_Q4:bank.llr_coverage"]},
+                    ],
+                },
+            ]
+        }
+        writer = _TestOfflineWriter(injected_composed_spec=real_b4_output)
+        report = self._run_query("So sánh ACB và TCB quý 4/2024", writer=writer)
+        self.assertIn(report.status, ("completed", "accepted_with_limitations"))
+        self.assertEqual(report.report_spec.composition_source, "model")
+        self.assertEqual(report.report_spec.kind, "note")
+        self.assertEqual(report.narrative_audit.composition_source, "model")
+        self.assertIsNone(report.narrative_audit.fallback_reason)
+
+    def test_er4b_round2_verifier_b1_b4(self) -> None:
+        """Directly verify B1 and B4 sentences that previously failed verifier."""
+        from thesis_data.narrative_verification import verify_sentence, NarrativeSentence, VerificationContext, Fact
+
+        # B4 pairwise comparison
+        facts_b4 = {
+            "f_tcb_llr": Fact(fact_id="f_tcb_llr", fact_type="value", entity_id="TCB", metric_id="bank.llr_coverage", period="2024_Q4", value=113.8),
+            "f_acb_llr": Fact(fact_id="f_acb_llr", fact_type="value", entity_id="ACB", metric_id="bank.llr_coverage", period="2024_Q4", value=76.6),
+            "f_tcb_npl": Fact(fact_id="f_tcb_npl", fact_type="value", entity_id="TCB", metric_id="bank.npl_g35", period="2024_Q4", value=1.17),
+            "f_acb_npl": Fact(fact_id="f_acb_npl", fact_type="value", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q4", value=1.51),
+        }
+        ctx_b4 = VerificationContext(
+            facts=facts_b4,
+            plan_entities=frozenset(["ACB", "TCB"]),
+            catalog_entities=frozenset(["ACB", "TCB"]),
+            metric_terms={
+                "bank.npl_g35": ("nợ xấu", "tỷ lệ nợ xấu"),
+                "bank.llr_coverage": ("bao phủ nợ xấu", "tỷ lệ bao phủ nợ xấu"),
+            },
+            hi_words={}, lo_words={},
+            directions={"bank.llr_coverage": "higher_is_better", "bank.npl_g35": "lower_is_better"},
+            flat_pp={"bank.llr_coverage": 0.05, "bank.npl_g35": 0.05},
+            anchor_year=2024,
+        )
+        s_b4 = NarrativeSentence(
+            sentence_id="s_b4",
+            text="Quý 4/2024, TCB cao hơn ACB ở bao phủ nợ xấu (113,8% so với 76,6%).",
+            fact_ids=["f_tcb_npl", "f_acb_npl", "f_tcb_llr", "f_acb_llr"],
+            author="company",
+            source="model",
+        )
+        v_b4 = verify_sentence(s_b4, ctx_b4)
+        self.assertTrue(v_b4.ok, f"B4 comparison sentence failed: {v_b4}")
+
+        # B1 equal to median
+        facts_b1 = {
+            "f_val": Fact(fact_id="f_val", fact_type="value", entity_id="ACB", metric_id="bank.npl_g35", period="2024_Q4", value=1.5122),
+            "f_rank": Fact(fact_id="f_rank", fact_type="peer_rank", entity_id="ACB", universe_id="sector:bank", metric_id="bank.npl_g35", period="2024_Q4", value=3.0, denominator=5, rank_better=3, rank_desc=3),
+            "f_gap": Fact(fact_id="f_gap", fact_type="gap_to_median", entity_id="ACB", universe_id="sector:bank", metric_id="bank.npl_g35", period="2024_Q4", value=0.0),
+        }
+        ctx_b1 = VerificationContext(
+            facts=facts_b1,
+            plan_entities=frozenset(["ACB"]),
+            catalog_entities=frozenset(["ACB", "MBB", "TCB", "VCB", "VPB"]),
+            metric_terms={"bank.npl_g35": ("nợ xấu", "tỷ lệ nợ xấu")},
+            hi_words={}, lo_words={},
+            directions={"bank.npl_g35": "lower_is_better"},
+            flat_pp={"bank.npl_g35": 0.05},
+            anchor_year=2024,
+        )
+        s_b1 = NarrativeSentence(
+            sentence_id="s_b1",
+            text="Tỷ lệ nợ xấu của ACB ở mức 1,51%, đúng bằng trung vị nhóm và xếp hạng 3/5.",
+            fact_ids=["f_val", "f_rank"],
+            author="sector",
+            source="model",
+        )
+        v_b1 = verify_sentence(s_b1, ctx_b1)
+        self.assertTrue(v_b1.ok, f"B1 equal to median sentence failed: {v_b1}")
 
 
 if __name__ == "__main__":

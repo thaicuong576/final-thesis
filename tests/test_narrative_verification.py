@@ -203,6 +203,7 @@ class NarrativeVerificationTestCase(unittest.TestCase):
             "f_vpb_roe_med_d_q3_q4": Fact(fact_id="f_vpb_roe_med_d_q3_q4", fact_type="median_delta", metric_id="bank.roe", period="2024_Q4", from_period="2024_Q3", value=-0.94, unit="pp"),
             "f_acb_roe_med_q4": Fact(fact_id="f_acb_roe_med_q4", fact_type="peer_median", metric_id="bank.roe", period="2024_Q4", value=18.5965, unit="%", denominator=5),
             "f_acb_roe_raw_q4": Fact(fact_id="f_acb_roe_raw_q4", fact_type="value", entity_id="ACB", metric_id="bank.roe", period="2024_Q4", value=21.7459, unit="%"),
+            "f_tcb_llr_q4": Fact(fact_id="f_tcb_llr_q4", fact_type="value", entity_id="TCB", metric_id="bank.llr_coverage", period="2024_Q4", value=113.82, unit="%"),
         }
 
         self.ctx = VerificationContext(
@@ -701,6 +702,59 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         )
         verdict = verify_sentence(s, self.ctx)
         self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+
+    def test_er4b_case_b4_pairwise_value_comparison(self) -> None:
+        """B4: 'Quý 4/2024, TCB cao hơn ACB ở bao phủ nợ xấu (113,8% so với 76,6%).' -> ok even if cited facts have ACB before TCB."""
+        s = NarrativeSentence(
+            sentence_id="s_b4_pairwise",
+            author="company",
+            text="Quý 4/2024, TCB cao hơn ACB ở bao phủ nợ xấu (113,8% so với 76,6%).",
+            fact_ids=("f_acb_llr_prec_q4", "f_tcb_llr_q4"),  # ACB first in tuple
+            source="model",
+        )
+        verdict = verify_sentence(s, self.ctx)
+        self.assertTrue(verdict.ok, f"Expected ok, got: {verdict.reason_code}: {verdict.reason}")
+
+
+    def test_er4b_case_b4_complement_lead_count(self) -> None:
+        """B4 regression: '1/4 chỉ tiêu' is accepted when lead_count fact says 3/4 (complement count)."""
+        ctx = VerificationContext(
+            facts=self.facts,
+            plan_entities=frozenset(["ACB", "TCB"]),
+            catalog_entities=frozenset(["ACB", "TCB", "MBB", "VCB", "VPB"]),
+            metric_terms={},
+            hi_words={}, lo_words={}, directions={}, flat_pp={}, anchor_year=2024,
+        )
+        # Sentence with both 3/4 (leader) and 1/4 (complement/loser) plus "vượt trội" for loser
+        s = NarrativeSentence(
+            sentence_id="s_b4_complement",
+            author="company",
+            text="TCB dẫn trước ở 3/4 chỉ tiêu so sánh, còn ACB vượt trội ở 1/4 chỉ tiêu.",
+            fact_ids=("f_tcb_acb_leads",),
+            source="model",
+        )
+        verdict = verify_sentence(s, ctx)
+        self.assertTrue(verdict.ok, f"Expected ok for complement count: {verdict.reason_code}: {verdict.reason}")
+
+    def test_er4b_case_b4_vuot_troi_lead_count(self) -> None:
+        """B4 regression: 'vượt trội' passes when lead_count fact exists (has_lead_win=True)."""
+        ctx = VerificationContext(
+            facts=self.facts,
+            plan_entities=frozenset(["ACB", "TCB"]),
+            catalog_entities=frozenset(["ACB", "TCB", "MBB", "VCB", "VPB"]),
+            metric_terms={},
+            hi_words={}, lo_words={}, directions={}, flat_pp={}, anchor_year=2024,
+        )
+        s = NarrativeSentence(
+            sentence_id="s_b4_vuot_troi",
+            author="company",
+            text="TCB vượt trội hơn ACB ở 3/4 chỉ tiêu.",
+            fact_ids=("f_tcb_acb_leads",),
+            source="model",
+        )
+        verdict = verify_sentence(s, ctx)
+        self.assertTrue(verdict.ok, f"Expected ok for vượt trội + lead_count: {verdict.reason_code}: {verdict.reason}")
 
 
 if __name__ == "__main__":

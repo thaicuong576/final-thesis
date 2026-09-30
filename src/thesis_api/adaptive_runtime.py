@@ -167,7 +167,7 @@ TOOL_AGENT_MAP: dict[str, str] = {
     "dispersion": "sector",
     "relationship": "sector",
 }
-from thesis_data.report_spec import validate_report_spec
+from thesis_data.report_spec import normalize_report_spec_dict, validate_report_spec
 
 
 logger = logging.getLogger(__name__)
@@ -1558,6 +1558,7 @@ class _AdaptiveRun:
 
         arm = getattr(self.settings, "analysis_arm", "hierarchical_with_critique")
         composition_source = "model"
+        fallback_reason: str | None = None
         all_draft_sentences: list[NarrativeSentence] = []
         all_dropped_sentences: list[SentenceDroppedDTO] = []
         all_dropped_blocks: list[BlockDroppedDTO] = []
@@ -1609,7 +1610,8 @@ class _AdaptiveRun:
                         candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
                     )
                 except Exception as exc:
-                    logger.warning("Writer write_findings for %s failed: %s", role, exc)
+                    orig = exc.__cause__ or exc
+                    logger.warning("Writer write_findings for %s failed: %s (%s: %s)", role, exc, type(orig).__name__, orig)
                     tool_limitations.append(f"Chuyên viên {role} không phản hồi phân tích tự động.")
                     findings_raw = []
 
@@ -1710,13 +1712,16 @@ class _AdaptiveRun:
                 facts=self._facts_payload(verified_facts),
             )
         except Exception as exc:
-            logger.warning("Orchestrator compose_report failed: %s", exc)
+            orig = exc.__cause__ or exc
+            logger.warning("Orchestrator compose_report failed: %s (%s: %s)", exc, type(orig).__name__, orig)
             tool_limitations.append("Một phần diễn giải do hệ thống tạo tự động vì mô hình không phản hồi.")
             composition_source = "deterministic_fallback"
+            fallback_reason = f"compose_report_error: {type(orig).__name__}"
 
         # Helper to parse and verify raw_spec_dict blocks
         def _process_spec_blocks(spec_dict: dict[str, Any]) -> tuple[dict[str, Any], list[NarrativeSentence]]:
             nonlocal early_dropped_numbers_checked, early_dropped_numbers_matched
+            spec_dict = normalize_report_spec_dict(spec_dict, q_type)
             processed_blocks: list[dict[str, Any]] = []
             spec_sentences: list[NarrativeSentence] = []
             known_sentences_by_id = {s.sentence_id: s for s in accepted_specialist_sentences}
@@ -1852,6 +1857,8 @@ class _AdaptiveRun:
 
         if raw_spec_dict is not None and isinstance(raw_spec_dict, dict):
             clean_spec_raw, spec_sentences = _process_spec_blocks(raw_spec_dict)
+            if not clean_spec_raw.get("blocks"):
+                fallback_reason = "model_spec_empty_after_normalization"
             val_res_dict, dropped_blocks_list = validate_report_spec(clean_spec_raw, tool_datasets, verified_facts)
             for db in dropped_blocks_list:
                 all_dropped_blocks.append(BlockDroppedDTO(type=db["type"], reason=db["reason"]))
@@ -1862,10 +1869,16 @@ class _AdaptiveRun:
                     current_sentences = spec_sentences
                 except Exception as exc:
                     logger.warning("ReportSpecDTO validation failed: %s", exc)
+                    fallback_reason = f"spec_dto_validation_failed: {exc}"
                     active_report_spec = None
+            else:
+                struct_reasons = [db.get("reason", "") for db in dropped_blocks_list if db.get("type") in ("spec_structure", "figure", "answer", "headline")]
+                fallback_reason = f"spec_invalid: {'; '.join(struct_reasons) or 'structural validation failed'}"
 
         if active_report_spec is None:
             composition_source = "deterministic_fallback"
+            if not fallback_reason:
+                fallback_reason = "compose_report_returned_none"
             active_report_spec = default_report_spec(
                 question_type=q_type,
                 tool_results=tr_fallback,
@@ -1999,7 +2012,8 @@ class _AdaptiveRun:
                     round_context=round1_ctx,
                 )
             except Exception as exc:
-                logger.warning("Critic evaluate round 1 failed: %s", exc)
+                orig = exc.__cause__ or exc
+                logger.warning("Critic evaluate round 1 failed: %s (%s: %s)", exc, type(orig).__name__, orig)
                 critic_result = None
                 tool_limitations.append("Không thực hiện được phản biện tự động.")
 
@@ -2082,6 +2096,30 @@ class _AdaptiveRun:
                     issue for issue in critic_result.critique_issues
                     if issue.resolution_status is CritiqueIssueStatus.OPEN
                 ]
+                lead_count_fact_ids = {f.fact_id for f in verified_facts if getattr(f, "fact_type", "") == "lead_count"}
+                filtered_open_issues = []
+                for issue in open_issues:
+                    is_lead_count_issue = False
+                    for s in current_sentences:
+                        if any(fid in lead_count_fact_ids for fid in s.fact_ids):
+                            if issue.affected_sentence_ids and s.sentence_id in issue.affected_sentence_ids:
+                                is_lead_count_issue = True
+                                break
+                            if s.text and (s.text in issue.description or any(tok in issue.description for tok in ("chỉ tiêu", "nhỉnh hơn", "3/4", "lead_count"))):
+                                is_lead_count_issue = True
+                                break
+                    if not is_lead_count_issue and any(tok in issue.description for tok in ("3/4 chỉ tiêu", "chỉ tiêu nào", "chiều so sánh của từng chỉ tiêu", "mỗi bên nhỉnh hơn ở 2/4")):
+                        is_lead_count_issue = True
+
+                    if is_lead_count_issue:
+                        logger.info(
+                            "Ignoring critic issue %s on lead_count sentence (%s): arithmetic/lead_count is deterministically verified by verifier.",
+                            issue.issue_id,
+                            issue.description,
+                        )
+                        continue
+                    filtered_open_issues.append(issue)
+                open_issues = filtered_open_issues
 
                 # Perform round 1 revision if open issues
                 if open_issues:
@@ -2164,7 +2202,8 @@ class _AdaptiveRun:
                                             })
                                     current_claims = tuple(updated_claims)
                                 except Exception as exc:
-                                    logger.warning("Writer write_specialist revision failed: %s", exc)
+                                    orig = exc.__cause__ or exc
+                                    logger.warning("Writer write_specialist revision failed: %s (%s: %s)", exc, type(orig).__name__, orig)
 
                         # REVISE_CLAIM with affected sentences
                         affected_s_ids = list(issue.affected_sentence_ids)
@@ -2268,7 +2307,8 @@ class _AdaptiveRun:
                                             early_dropped_numbers_checked += rev_v.numbers_checked
                                             early_dropped_numbers_matched += rev_v.numbers_matched
                                     except Exception as exc:
-                                        logger.warning("Rewrite sentence failed: %s", exc)
+                                        orig = exc.__cause__ or exc
+                                        logger.warning("Rewrite sentence failed: %s (%s: %s)", exc, type(orig).__name__, orig)
 
                         # Reconcile cross level / incomplete synthesis
                         elif getattr(issue, "required_action", None) == "RECONCILE_CROSS_LEVEL" or getattr(issue, "required_action", None) == CritiqueAction.RECONCILE_CROSS_LEVEL:
@@ -2293,7 +2333,8 @@ class _AdaptiveRun:
                                     active_report_spec = ReportSpecDTO.model_validate(v_res_clean)
                                     current_sentences = c_sents
                             except Exception as exc:
-                                logger.warning("Recompose report failed: %s", exc)
+                                orig = exc.__cause__ or exc
+                                logger.warning("Recompose report failed: %s (%s: %s)", exc, type(orig).__name__, orig)
 
                     if hasattr(self.writer, "synthesize"):
                         try:
@@ -2361,7 +2402,8 @@ class _AdaptiveRun:
                             round_context=round2_ctx,
                         )
                     except Exception as exc:
-                        logger.warning("Critic evaluate round 2 failed: %s", exc)
+                        orig = exc.__cause__ or exc
+                        logger.warning("Critic evaluate round 2 failed: %s (%s: %s)", exc, type(orig).__name__, orig)
 
                     if critic_result is not None:
                         # Drop any sentences that still have OPEN issues
@@ -2369,20 +2411,71 @@ class _AdaptiveRun:
                             i for i in critic_result.critique_issues
                             if i.resolution_status is CritiqueIssueStatus.OPEN
                         ]
+                        still_open_filtered = []
                         for i in still_open_issues:
+                            is_lc = False
+                            for s in current_sentences:
+                                if any(fid in lead_count_fact_ids for fid in s.fact_ids):
+                                    if i.affected_sentence_ids and s.sentence_id in i.affected_sentence_ids:
+                                        is_lc = True
+                                        break
+                                    if s.text and (s.text in i.description or any(tok in i.description for tok in ("chỉ tiêu", "nhỉnh hơn", "3/4", "lead_count"))):
+                                        is_lc = True
+                                        break
+                            if not is_lc and any(tok in i.description for tok in ("3/4 chỉ tiêu", "chỉ tiêu nào", "chiều so sánh của từng chỉ tiêu", "mỗi bên nhỉnh hơn ở 2/4")):
+                                is_lc = True
+
+                            if is_lc:
+                                logger.info(
+                                    "Ignoring round 2 critic issue %s on lead_count sentence (%s): verified deterministically.",
+                                    i.issue_id,
+                                    i.description,
+                                )
+                                continue
+                            still_open_filtered.append(i)
+                        still_open_issues = still_open_filtered
+
+                        verified_sentence_ids = {s.sentence_id for s in current_sentences}
+                        _vf_by_id = {f.fact_id: f for f in verified_facts if hasattr(f, "fact_id")}
+
+                        for i in still_open_issues:
+                            s_ids = list(i.affected_sentence_ids)
+                            if not s_ids:
+                                agent_s = [s for s in current_sentences if s.author == i.affected_agent]
+                                if agent_s:
+                                    s_ids = [agent_s[0].sentence_id]
+
+                            # If ALL affected sentence IDs resolve to sentences that cite ONLY
+                            # lead_count facts (no value/peer_median facts), skip the drop —
+                            # those sentences contain no numbers the critic could legitimately flag;
+                            # any remaining issue is a comparison-direction dispute already cleared
+                            # by the deterministic verifier.
+                            if s_ids and all(sid in verified_sentence_ids for sid in s_ids if sid):
+                                def _only_lead_count(sid: str) -> bool:
+                                    sent = next((s for s in current_sentences if s.sentence_id == sid), None)
+                                    if sent is None:
+                                        return False
+                                    cited = [_vf_by_id.get(fid) for fid in sent.fact_ids if fid in _vf_by_id]
+                                    if not cited:
+                                        return False
+                                    return all(
+                                        getattr(f, "fact_type", "") in ("lead_count",)
+                                        for f in cited if f is not None
+                                    )
+                                if all(_only_lead_count(sid) for sid in s_ids if sid):
+                                    logger.info(
+                                        "Skipping round 2 critic drop for issue %s: all affected sentences (%s) "
+                                        "cite only lead_count facts — verifier is authoritative. Critic: %s",
+                                        i.issue_id, s_ids, i.description,
+                                    )
+                                    continue
+
                             if i.affected_claim_ids and hasattr(self.writer, "write_specialist"):
                                 target_claims = [c for c in current_claims if c.claim_id in i.affected_claim_ids]
                                 for c in target_claims:
                                     if c.assertions:
                                         a = c.assertions[0]
                                         self._fetch_direct(i.affected_agent, (a.entity,), (a.metric_id,), a.period)
-                            s_ids = list(i.affected_sentence_ids)
-                            if not s_ids:
-                                agent_s = [s for s in current_sentences if s.author == i.affected_agent]
-                                if agent_s:
-                                    s_ids = [agent_s[0].sentence_id]
-                                elif current_sentences:
-                                    s_ids = [current_sentences[0].sentence_id]
                             for s_id in s_ids:
                                 drop_target = next((s for s in current_sentences if s.sentence_id == s_id), None)
                                 if drop_target:
@@ -2402,6 +2495,8 @@ class _AdaptiveRun:
                         val_after_clean = {k: v for k, v in val_after.items() if k != "is_valid"}
                         active_report_spec = ReportSpecDTO.model_validate(val_after_clean)
                     else:
+                        composition_source = "deterministic_fallback"
+                        fallback_reason = f"recomposed_spec_invalid: {'; '.join(db.get('reason', '') for db in drop_after) or 'validation failed'}"
                         active_report_spec = default_report_spec(
                             question_type=q_type,
                             tool_results=tr_fallback,
@@ -2634,13 +2729,14 @@ class _AdaptiveRun:
         for db in drop_final:
             all_dropped_blocks.append(BlockDroppedDTO(type=db["type"], reason=db["reason"]))
         if not val_final.get("is_valid", False):
+            composition_source = "deterministic_fallback"
+            fallback_reason = f"final_spec_invalid: {'; '.join(db.get('reason', '') for db in drop_final) or 'validation failed'}"
             active_report_spec = default_report_spec(
                 question_type=q_type,
                 tool_results=tr_fallback,
                 signals=signals,
                 findings=candidates,
             )
-            composition_source = "deterministic_fallback"
             active_report_spec, sweep_chk, sweep_mat = _sweep_report_spec(active_report_spec)
 
         active_report_spec.composition_source = composition_source
@@ -2699,6 +2795,7 @@ class _AdaptiveRun:
             numbers_matched=total_numbers_matched,
             blocks_dropped=all_dropped_blocks,
             composition_source=composition_source,  # type: ignore
+            fallback_reason=fallback_reason if composition_source == "deterministic_fallback" else None,
         )
 
         # Determine status

@@ -388,7 +388,7 @@ flowchart LR
     end
 
     subgraph Vercel_Platform ["Vercel Edge Platform"]
-        FrontendHost["Vercel Production Deployment<br/>• Next.js / Vite React Static & Client SPA<br/>• Tên miền: fin-ai.eddiephung.me<br/>• Quản lý Session State & Kết nối SSE"]
+        FrontendHost["Vercel Production Deployment<br/>• Ứng dụng React (Vite) chạy phía trình duyệt<br/>• Tên miền: fin-ai.eddiephung.me<br/>• Quản lý Session State & Kết nối SSE"]
     end
 
     subgraph Render_Platform ["Render Cloud Platform (Frankfurt / Singapore)"]

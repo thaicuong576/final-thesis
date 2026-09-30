@@ -463,6 +463,29 @@ def convert_markdown_to_doc(
         line = lines[i]
         stripped = line.rstrip()
 
+        # --- Fenced code block ---
+        # ```mermaid blocks are the source of figures already rendered to PNG and
+        # inserted at their "Hình X.Y" caption, so they are skipped. Other fences are
+        # kept as monospace paragraphs.
+        fence = re.match(r'^\s*(```|~~~)\s*([\w-]*)', stripped)
+        if fence:
+            marker, lang = fence.group(1), fence.group(2).lower()
+            i += 1
+            block: list[str] = []
+            while i < len(lines) and not lines[i].strip().startswith(marker):
+                block.append(lines[i].rstrip())
+                i += 1
+            i += 1  # closing fence
+            if lang == "mermaid":
+                continue
+            for code_line in block:
+                para = doc.add_paragraph()
+                _set_paragraph_style(para, "Normal", doc)
+                _clear_indent(para)
+                run = para.add_run(code_line.strip() or " ")
+                _set_run_font(run, size_pt=10, font_name="Consolas")
+            continue
+
         # --- Heading 1 ---
         if stripped.startswith('# ') and not stripped.startswith('## '):
             title = stripped[2:].strip()

@@ -1,6 +1,6 @@
 # CHƯƠNG 4. THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
-Chương này trình bày chi tiết về kiến trúc phần mềm, nguyên tắc phân ranh giới, quy trình xử lý một lượt phân tích thích ứng (query-adaptive analysis flow), các giải pháp thuật toán xác định luận, hệ thống giao diện tác nghiệp và hạ tầng triển khai trên thực tế của hệ thống. Toàn bộ thiết kế được xây dựng dựa trên các quyết định kiến trúc đã được kiểm chứng (đặc biệt từ D-063 đến D-075 trong `docs/DECISIONS.md`), tuân thủ nghiêm ngặt các ranh giới bảo vệ kiến trúc (`docs/ARCHITECTURAL-GUARDRAILS.md`), nhằm đảm bảo hệ thống có độ tin cậy cao, khả năng giải thích minh bạch và khả năng truy vết nguồn gốc dữ kiện tuyệt đối.
+Chương này trình bày kiến trúc phần mềm, nguyên tắc phân ranh giới, quy trình xử lý phân tích thích ứng theo câu hỏi, giải pháp kiểm tra nhận định, giao diện tác nghiệp và hạ tầng triển khai thực tế. Toàn bộ thiết kế bám sát các quyết định kiến trúc từ D-063 đến D-075 và các ranh giới bảo vệ hệ thống đã đề ra, nhằm bảo đảm kết quả phân tích có độ tin cậy cao, giải thích rõ ràng và truy vết được nguồn gốc dữ liệu.
 
 ---
 
@@ -8,17 +8,17 @@ Chương này trình bày chi tiết về kiến trúc phần mềm, nguyên t�
 
 ### 4.1.1. Phân tách rành mạch giữa Tầng Lõi (Core) và Tầng Ứng dụng (Application)
 
-Một trong những nguyên tắc kiến trúc cốt tử của hệ thống là **phân lập hoàn toàn giữa logic nghiệp vụ tài chính cốt lõi và hạ tầng ứng dụng tham chiếu** (Hình 4.1). Ranh giới này được kiểm soát tự động thông qua công cụ kiểm thử ranh giới kiến trúc (`scripts/check_architecture_guardrails.py`):
+Hệ thống phân tách giữa logic tính toán tài chính cốt lõi và hạ tầng ứng dụng tham chiếu (Hình 4.1). Cách làm này bảo đảm việc thay đổi giao diện hay công nghệ máy chủ không làm thay đổi các phép tính kinh tế cốt lõi:
 
-1. **Tầng lõi nghiệp vụ và thuật toán thuần túy (`src/thesis_data/`):**
-   - Được thiết kế dưới dạng thư viện Python thuần túy (pure Python logic), hoàn toàn độc lập với các framework web, các cơ sở dữ liệu vật lý hay các dịch vụ trí tuệ nhân tạo bên ngoài.
-   - **Ràng buộc cấm kỵ (Negative Constraints):** Mã nguồn trong `src/thesis_data/` tuyệt đối không được phép `import sqlite3`, `import openai`, `import langchain` hay `import langgraph`.
-   - **Tính độc lập với dữ liệu cụ thể (Transferability Invariant):** Không chứa bất kỳ định danh cụ thể nào của 5 ngân hàng trong tập dữ liệu thử nghiệm (không có các chuỗi ký tự cố định `VCB`, `MBB`, `TCB`, `ACB`, `VPB`). Bất kỳ sự xuất hiện nào của các định danh này trong tầng lõi đều khiến pipeline CI tự động từ chối.
-   - **Trách nhiệm cốt lõi:** Định nghĩa các hợp đồng dữ liệu chuẩn (`dataset_contract.py`), thuật toán tính toán dữ kiện nguyên tử và tín hiệu tài chính (`report_facts.py`), bộ động cơ kiểm tra câu văn xác định luận (`narrative_verification.py`), bộ đặc tả và kiểm định tính hợp lệ của báo cáo (`report_spec.py`), giao thức phản biện ngữ nghĩa trừu tượng (`semantic_critic.py`) và bộ điều khiển sửa đổi có giới hạn (`revision_controller.py`).
+1. Tầng lõi nghiệp vụ và thuật toán thuần túy:
+- Thiết kế dưới dạng thư viện thuật toán độc lập, không phụ thuộc vào khung giao diện web, cơ sở dữ liệu vật lý hay dịch vụ trí tuệ nhân tạo bên ngoài.
+- Ràng buộc kỹ thuật: mã nguồn tầng lõi không được kết nối trực tiếp đến cơ sở dữ liệu hay thư viện của các mô hình ngôn ngữ lớn.
+- Tính độc lập với dữ liệu cụ thể: không chứa định danh cố định của năm ngân hàng thử nghiệm (VCB, MBB, TCB, ACB, VPB). Nhờ đó, các thuật toán có thể dùng lại cho các ngân hàng khác.
+- Trách nhiệm chính: định nghĩa hợp đồng dữ liệu chuẩn, tính toán số liệu và tín hiệu tài chính, vận hành bộ kiểm tra câu văn, thẩm định tính hợp lệ của báo cáo, định nghĩa quy trình phản biện ngữ nghĩa và điều khiển sửa đổi có mục tiêu.
 
-2. **Tầng ứng dụng và dịch vụ phân tích (`src/thesis_api/`):**
-   - Đóng vai trò là lớp vỏ ứng dụng (application shell), hiện thực hóa các tương tác người dùng, tích hợp các bộ chuyển đổi (adapters) và điều phối vòng đời của một phiên phân tích.
-   - **Trách nhiệm cốt lõi:** Khung máy chủ API FastAPI (`main.py`), dịch vụ phân tích tổng thể (`service.py`), bộ giải mã ngôn ngữ tự nhiên tiếng Việt (`query_understanding.py`), bộ lập kế hoạch phân tích kết hợp giữa mô hình và quy tắc (`analysis_planner.py`), bộ điều phối công cụ phân tích (`analysis_tools.py`), bộ chuyên viên viết nhận định (`analysis_writer.py`), hệ thống mẫu câu diễn giải và bố cục mặc định (`narrative_templates.py`), registry siêu dữ liệu hiển thị chỉ tiêu tài chính (`metric_presentation.py`), và cơ chế truyền dòng sự kiện thời gian thực (Server-Sent Events - SSE).
+2. Tầng ứng dụng và dịch vụ phân tích:
+- Đóng vai trò là lớp vỏ điều phối, hiện thực hóa các tương tác với người dùng và quản lý vòng đời của một phiên phân tích.
+- Trách nhiệm chính: cung cấp dịch vụ qua giao diện lập trình ứng dụng (Application Programming Interface - API), giải mã câu hỏi tiếng Việt, lập kế hoạch phân tích kết hợp giữa mô hình ngôn ngữ và quy tắc cố định, điều phối công cụ tính toán, phân công chuyên viên viết nhận định, duy trì mẫu câu diễn giải dự phòng và truyền sự kiện thời gian thực đến trình duyệt.
 
 ```mermaid
 flowchart TB
@@ -69,16 +69,17 @@ flowchart TB
 
 ### 4.1.2. Phân lập lưu trữ giữa Dữ liệu Phân tích và Lịch sử Thực thi
 
-Theo quyết định D-073 và D-075, hệ thống quy định việc phân tách vật lý triệt để giữa hai cơ sở dữ liệu:
-- **Cơ sở dữ liệu phân tích chỉ đọc (`SQLITE_DB_PATH`):** Chứa các bảng dữ liệu tài chính đã được đối soát (`finance_master_v2.sqlite`). Tệp này được mở ở chế độ chỉ đọc (`mode=ro`), hoạt động theo cơ chế nhật ký ghi trước (WAL mode). Trong suốt quá trình vận hành, hệ thống cấm mọi thao tác ghi (write/update) vào cơ sở dữ liệu này nhằm bảo toàn tuyệt đối mã băm SHA-256 của snapshot.
-- **Cơ sở dữ liệu lịch sử phiên chạy (`ANALYSIS_RUNS_DB_PATH`):** Chứa bảng lưu trữ trạng thái phiên phân tích và nhật ký vết từng bước (`contracts/run-store-schema.sql`). Đây là cơ sở dữ liệu có quyền ghi, hoàn toàn độc lập với tệp dữ liệu phân tích.
-- **Cơ chế chống bí danh (Alias Rejection):** Hệ thống sẽ chủ động từ chối khởi động (raise `SnapshotBootstrapError` hoặc `HTTPException 503`) nếu phát hiện đường dẫn `SQLITE_DB_PATH` và `ANALYSIS_RUNS_DB_PATH` trỏ tới cùng một tệp vật lý hoặc liên kết cứng (hardlink). Ràng buộc này ngăn ngừa triệt để nguy cơ làm biến tính snapshot dữ liệu chuẩn trong quá trình lưu trữ lịch sử phân tích.
+Hệ thống tách rời hai cơ sở dữ liệu vật lý để tránh việc ghi nhật ký làm thay đổi dữ liệu phân tích:
+
+- Cơ sở dữ liệu phân tích chỉ đọc: chứa các bảng chỉ tiêu tài chính đã đối soát. Tệp dữ liệu này mở ở chế độ chỉ đọc và dùng cơ chế nhật ký ghi trước. Hệ thống không ghi hoặc sửa dữ liệu trong tệp này nhằm giữ nguyên mã băm bảo mật SHA-256 của bộ dữ liệu chuẩn.
+- Cơ sở dữ liệu lịch sử phiên chạy: chuyên dùng lưu trữ trạng thái của từng phiên phân tích và nhật ký vết từng bước. Đây là cơ sở dữ liệu có quyền ghi và tách biệt với tệp dữ liệu phân tích.
+- Cơ chế chống trùng lặp định danh tệp: khi khởi động, hệ thống kiểm tra để bảo đảm hai đường dẫn trên không trỏ về cùng một tệp vật lý hay liên kết phần cứng. Nếu trùng nhau, hệ thống sẽ dừng khởi động và báo lỗi.
 
 ---
 
 ## 4.2. Luồng xử lý một lượt phân tích (End-to-End Analysis Workflow)
 
-Quy trình xử lý một yêu cầu phân tích từ khi người dùng nhập câu hỏi tiếng Việt tự nhiên cho đến khi tạo thành một báo cáo hoàn chỉnh kiểu báo cáo phân tích cổ phiếu (Equity Research Report) bao gồm 8 bước tuần tự có kiểm soát (Hình 4.2).
+Quy trình xử lý một yêu cầu phân tích từ câu hỏi tiếng Việt tự nhiên đến khi tạo thành báo cáo phân tích cổ phiếu (Equity Research Report) gồm tám bước tuần tự có kiểm soát (Hình 4.2).
 
 ```mermaid
 flowchart TD
@@ -107,115 +108,119 @@ flowchart TD
 ```
 *Hình 4.2: Luồng một lượt phân tích thích ứng (End-to-End Analysis Workflow).*
 
-### 4.2.1. Bước 1: Hiểu câu hỏi tiếng Việt tự nhiên (`query_understanding.py`)
+### 4.2.1. Bước 1: Hiểu câu hỏi tiếng Việt tự nhiên
 
-Module `query_understanding.py` chịu trách nhiệm giải mã chuỗi văn bản tự nhiên của người dùng thành đối tượng dữ liệu cấu trúc `ResolvedQuery`:
-- **Chuẩn hóa văn bản:** Chuỗi ký tự đầu vào được chuẩn hóa về định dạng Unicode chuẩn NFC, chuyển thành chữ thường (casefolding), hợp nhất dấu gạch nối và loại bỏ khoảng trắng thừa.
-- **Nhận diện thực thể (Entity Extraction):** Đối chiếu với danh mục các ngân hàng được hỗ trợ trong snapshot. Hệ thống có khả năng nhận biết tên mã chứng khoán viết hoa/viết thường (`VCB`, `vcb`, `acb`) và tên gọi thông dụng bằng tiếng Việt ("Vietcombank", "Á Châu", "Kỹ thương", "Quân đội", "Thịnh Vượng"). Nếu phát hiện thực thể chưa được hệ thống hỗ trợ (như `CTG`, `BID`, `STB`), hệ thống lưu vào danh sách `unknown_entity_tokens` để kích hoạt cơ chế từ chối hợp lệ.
-- **Trích xuất kỳ báo cáo (Period Resolution):** Hỗ trợ nhận diện linh hoạt các cách diễn đạt thời gian trong tiếng Việt:
-  - Cụ thể theo quý và năm: *"quý 4/2024"*, *"quý 4 năm 2024"*, *"Q4/2024"*, *"Q4 2024"* $\rightarrow$ quy về `2024_Q4`.
-  - Toàn bộ năm: *"năm 2024"*, *"cả năm 2024"*, *"FY2024"* $\rightarrow$ tự động mở rộng thành chuỗi 4 quý liên tiếp (`2024_Q1`, `2024_Q2`, `2024_Q3`, `2024_Q4`) với kỳ neo (anchor period) là `2024_Q4`.
-  - Mặc định: Nếu người dùng không nêu kỳ, hệ thống mặc định chọn kỳ dữ liệu hoàn chỉnh mới nhất (`2024_Q4`).
-- **Trích xuất chỉ tiêu tài chính (Metric Resolution):** Bóc tách các cụm từ chỉ tiêu tài chính tiếng Việt và mã quốc tế ("nợ xấu", "tỷ lệ nợ xấu", "NPL", "bao phủ nợ xấu", "LLR", "sinh lời trên tài sản", "ROA", "sinh lời trên vốn chủ sở hữu", "ROE"). Hệ thống cũng hỗ trợ các nhóm chủ đề (topic groups) như nhóm "chất lượng tài sản" (gồm NPL và LLR) hoặc nhóm "khả năng sinh lời" (gồm ROA và ROE).
-- **Phát hiện cờ ngữ nghĩa (Semantic Flags):** Nhận diện các từ khóa chuyên biệt để xác định ý định:
-  - Cờ tra cứu (`lookup`): *"bao nhiêu"*, *"là mấy"*, *"giá trị"*, *"con số"*;
-  - Cờ xếp hạng (`superlative`): *"nào"*, *"nhất"*, *"top"*, *"xếp hạng"*, *"đứng thứ"*, *"dẫn đầu"*;
-  - Cờ so sánh (`comparison`): *"so sánh"*, *"so với"*, *"cùng nhóm"*, *"ngành"*, *"trung vị"*, *"đối thủ"*;
-  - Cờ xu hướng (`trend`): *"diễn biến"*, *"xu hướng"*, *"thay đổi"*, *"qua các quý"*;
-  - Cờ quan hệ nhân quả (`why`): *"vì sao"*, *"tại sao"*, *"nguyên nhân"*;
-  - Cờ vĩ mô (`macro`): *"vĩ mô"*, *"lãi suất điều hành"*, *"chính sách tiền tệ"*, *"NHNN"*, *"lạm phát"*.
+Bước này chuyển câu hỏi tự do của người dùng thành cấu trúc thông tin gồm ngân hàng mục tiêu, kỳ phân tích, chỉ tiêu tài chính và ý định phân tích:
 
-### 4.2.2. Bước 2: Phân loại câu hỏi và Đóng băng Kế hoạch (`analysis_planner.py`)
+- Chuẩn hóa văn bản: đưa chuỗi ký tự về bảng mã chuẩn Unicode NFC, chuyển về chữ thường, hợp nhất dấu gạch nối và bỏ khoảng trắng thừa.
+- Nhận diện ngân hàng: đối chiếu với danh mục ngân hàng được hỗ trợ. Hệ thống nhận diện linh hoạt mã cổ phiếu như VCB, ACB và tên thông dụng bằng tiếng Việt như Vietcombank, Á Châu, Kỹ thương, Quân đội, Thịnh Vượng. Nếu câu hỏi nhắc tới ngân hàng chưa hỗ trợ như BID hay CTG, hệ thống ghi nhận vào danh sách từ khóa chưa hỗ trợ để từ chối lịch sự.
+- Xác định kỳ báo cáo: nhận diện linh hoạt các cách biểu đạt thời gian trong tiếng Việt:
+  - Cụ thể theo quý và năm: "quý 4/2024", "quý 4 năm 2024", "Q4/2024" quy về quý 4 năm 2024.
+  - Toàn bộ năm: "năm 2024", "cả năm 2024" tự động mở rộng thành chuỗi bốn quý liên tiếp từ quý 1 đến quý 4 năm 2024, lấy quý 4 làm mốc so sánh.
+  - Mặc định: nếu người dùng không nêu thời gian, hệ thống chọn kỳ dữ liệu mới nhất là quý 4 năm 2024.
+- Nhận diện chỉ tiêu tài chính: bóc tách các cụm từ chỉ tiêu tiếng Việt và tên viết tắt như nợ xấu, tỷ lệ nợ xấu (NPL), tỷ lệ bao phủ nợ xấu (LLR), tỷ suất sinh lời trên tổng tài sản (ROA), tỷ suất sinh lời trên vốn chủ sở hữu (ROE). Hệ thống cũng hỗ trợ nhóm chủ đề như nhóm chất lượng tài sản (NPL, LLR) hay nhóm khả năng sinh lời (ROA, ROE).
+- Phát hiện cờ ý định phân tích: nhận diện từ khóa để xác định ý định:
+  - Ý định tra cứu: "bao nhiêu", "là mấy", "giá trị", "con số";
+  - Ý định xếp hạng: "nào", "nhất", "top", "xếp hạng", "đứng thứ", "dẫn đầu";
+  - Ý định so sánh: "so sánh", "so với", "cùng nhóm", "ngành", "trung vị", "đối thủ";
+  - Ý định xu hướng: "diễn biến", "xu hướng", "thay đổi", "qua các quý";
+  - Ý định tìm nguyên nhân: "vì sao", "tại sao", "nguyên nhân";
+  - Ý định kinh tế vĩ mô: "vĩ mô", "lãi suất điều hành", "chính sách tiền tệ", "Ngân hàng Nhà nước", "lạm phát".
 
-Hệ thống phân loại yêu cầu vào một trong **5 dạng câu hỏi phân tích chính**:
-1. `lookup`: Tra cứu một giá trị số học đơn lẻ của một ngân hàng tại một kỳ cụ thể (ví dụ: *"Nợ xấu của ACB trong quý 4/2024 là bao nhiêu?"*).
-2. `company_profile`: Phân tích tổng thể hồ sơ tài chính của một ngân hàng, kết hợp đánh giá nội tại và so sánh vị thế tương đối với nhóm đồng đẳng tại kỳ neo (ví dụ: *"Đánh giá chất lượng tài sản và sinh lời của VCB quý 4/2024 so với nhóm"*).
-3. `ranking`: Xếp hạng toàn diện tất cả các ngân hàng trong danh mục theo một hoặc nhiều chỉ tiêu tại một kỳ cụ thể (ví dụ: *"Xếp hạng ROE các ngân hàng trong quý 4/2024"*).
-4. `trend`: Phân tích biến động chuỗi thời gian của một ngân hàng qua 2 đến 4 quý liên tiếp (ví dụ: *"Xu hướng nợ xấu của TCB qua các quý năm 2024"*).
-5. `head_to_head`: So sánh trực diện, đối đầu giữa đúng 2 ngân hàng mục tiêu trên các chỉ tiêu tài chính (ví dụ: *"So sánh ACB và TCB trong quý 4/2024"*).
-*(Hai dạng câu hỏi `sector_theme` - chủ đề ngành và `relationship` - tương quan chỉ tiêu đã được thiết kế sẵn trong contract nhưng tạm thời đóng trong đợt triển khai này theo quyết định D-075).*
+### 4.2.2. Bước 2: Phân loại câu hỏi và Cố định kế hoạch trước khi chạy
 
-**Cơ chế lập kế hoạch hai tầng (Hybrid Planning):**
-- **Đề xuất từ mô hình ngôn ngữ (`model_plan`):** LLM đóng vai trò là bộ điều phối đề xuất dạng câu hỏi và danh mục tối đa 5 lệnh gọi công cụ phân tích (`ToolCallSpec`) kèm tham số chi tiết và một câu lý giải bằng tiếng Việt (`rationale`).
-- **Thẩm định quy tắc tất định (`validate_plan`):** Toàn bộ đề xuất của mô hình được đối soát nghiêm ngặt với catalog năng lực: chỉ được sử dụng các thực thể, chỉ tiêu và kỳ có thật; các tham số công cụ phải đúng kiểu.
-- **Cơ chế dự phòng tất định (`rules_plan`):** Nếu LLM không khả dụng (lỗi mạng, hết hạn mức API) hoặc đề xuất kế hoạch không hợp lệ, hệ thống tự động kích hoạt bộ lập kế hoạch theo luật thuần túy (`rules_plan`). Bộ luật này ánh xạ trực tiếp từ các cờ ngữ nghĩa trong `ResolvedQuery` sang kế hoạch chuẩn mực tối ưu cho dạng câu hỏi tương ứng.
-- **Đóng băng kế hoạch (Plan Freezing):** Kế hoạch sau khi được thẩm định sẽ được khóa cố định thành đối tượng `AnalysisPlan`. Mọi tác tử chuyên viên ở các bước sau chỉ được phép hoạt động trong phạm vi các công cụ và thực thể đã được phê duyệt trong kế hoạch này.
+Hệ thống phân loại yêu cầu vào một trong năm dạng phân tích chính:
 
-### 4.2.3. Bước 3: Hộp công cụ phân tích tất định sinh Fact và Dataset (`analysis_tools.py`, `report_facts.py`)
+1. Tra cứu số liệu đơn lẻ (lookup): tra cứu một giá trị số học của một ngân hàng tại một kỳ, ví dụ: "Tỷ lệ nợ xấu của ACB trong quý 4 năm 2024 là bao nhiêu?".
+2. Hồ sơ doanh nghiệp (company profile): đánh giá tổng thể tài chính một ngân hàng và so sánh vị thế với nhóm đồng đẳng, ví dụ: "Đánh giá chất lượng tài sản và sinh lời của VCB quý 4 năm 2024 so với nhóm".
+3. Xếp hạng nhóm ngành (ranking): xếp hạng tất cả ngân hàng theo chỉ tiêu tại một kỳ, ví dụ: "Xếp hạng ROE các ngân hàng trong quý 4 năm 2024".
+4. Xu hướng chuỗi thời gian (trend): phân tích biến động chỉ tiêu qua hai đến bốn quý liên tiếp, ví dụ: "Xu hướng nợ xấu của TCB qua các quý năm 2024".
+5. So sánh đối đầu trực diện (head to head): so sánh trực tiếp giữa hai ngân hàng, ví dụ: "So sánh ACB và TCB trong quý 4 năm 2024".
+Hai dạng câu hỏi về chủ đề ngành và tương quan chỉ tiêu đã được thiết kế sẵn nhưng tạm thời bảo lưu trong đợt triển khai này.
 
-Hệ thống kích hoạt các công cụ phân tích số học tương ứng trong danh mục (`TOOL_CATALOG`):
-- `lookup_tool`: Trích xuất giá trị quan sát trực tiếp tại kỳ neo;
-- `peer_position_tool`: Tính toán trung vị nhóm (`peer_median`), xếp hạng cạnh tranh (`peer_rank`), khoảng cách tới trung vị (`gap_to_median`), tỷ lệ so với trung vị (`ratio_to_median`) và biên độ phân tán (`spread`);
-- `ranking_tool`: Sắp xếp toàn bộ các ngân hàng theo thứ tự giảm dần và thứ tự chất lượng tốt hơn;
-- `trend_tool`: Tính toán biến động điểm phần trăm liên tiếp giữa các quý (`delta`) và biến động trung vị nhóm (`median_delta`);
-- `head_to_head_tool`: So sánh trực diện đôi một giữa 2 ngân hàng, tính chênh lệch trực tiếp (`pairwise_gap`) và số lượng chỉ tiêu vượt trội (`lead_count`);
-- `decomposition_tool`: Phân rã mối quan hệ giữa các chỉ tiêu dẫn xuất (ví dụ tỷ lệ đòn bẩy tài chính thông qua tỷ số $\text{ROE} / \text{ROA}$).
+Cơ chế lập kế hoạch hai tầng:
+- Đề xuất từ mô hình ngôn ngữ lớn: mô hình đề xuất dạng câu hỏi và danh mục tối đa năm lệnh gọi công cụ kèm tham số và lời giải thích ngắn gọn bằng tiếng Việt.
+- Thẩm định quy tắc: hệ thống đối chiếu đề xuất của mô hình với danh mục năng lực, chỉ chấp nhận các thực thể, chỉ tiêu và kỳ có thật trong dữ liệu chuẩn.
+- Kế hoạch dự phòng theo luật: nếu mô hình gặp sự cố hoặc đề xuất không hợp lệ, hệ thống chuyển sang kế hoạch theo luật có sẵn dựa trên các cờ ý định đã bóc tách.
+- Cố định kế hoạch trước khi chạy: kế hoạch sau khi thẩm định được khóa lại. Các tác tử (agent) chuyên viên ở bước sau chỉ được thao tác trong phạm vi công cụ và thực thể đã duyệt.
 
-**Tính tất định và khả năng truy vết của Fact:**
-Mỗi công cụ sinh ra các đối tượng `Fact` với công thức phiên bản hóa rõ ràng:
+### 4.2.3. Bước 3: Hộp công cụ phân tích theo quy tắc sinh dữ kiện và tập dữ liệu
+
+Mọi phép tính toán số học tài chính đều do chương trình máy tính thực hiện theo công thức cố định, không để mô hình ngôn ngữ tự tính hay ước lượng số liệu:
+
+- Các công cụ tính toán gồm:
+  - Công cụ tra cứu: lấy giá trị quan sát trực tiếp tại kỳ phân tích;
+  - Công cụ vị thế ngành: tính trung vị nhóm, xếp hạng cạnh tranh, khoảng cách tới trung vị, tỷ số so với trung vị và biên độ phân tán giữa ngân hàng cao nhất và thấp nhất;
+  - Công cụ xếp hạng: sắp xếp các ngân hàng theo thứ tự giảm dần và thứ tự chất lượng tốt hơn;
+  - Công cụ xu hướng thời gian: tính biến động điểm phần trăm qua các quý của ngân hàng và biến động trung vị của nhóm;
+  - Công cụ so sánh đối đầu: tính chênh lệch trực tiếp giữa hai ngân hàng và đếm số chỉ tiêu vượt trội;
+  - Công cụ phân rã chỉ tiêu: tính tỷ số giữa các chỉ tiêu, ví dụ tỷ số giữa ROE và ROA thể hiện mức độ dùng đòn bẩy tài chính.
+
+Khả năng truy vết của số liệu đã tính sẵn:
+Mỗi con số được lưu cùng nguồn và công thức tính. Công cụ tạo ra các dữ kiện tài chính có gắn kèm phiên bản công thức và mã quan sát đầu vào, cho phép truy ngược về từng dòng trong cơ sở dữ liệu. Công cụ cũng chuẩn bị sẵn các cấu trúc tập dữ liệu để vẽ biểu đồ ở bước sau.
 
 *Bảng 4.1: Danh mục 11 loại Fact nguyên tử và phiên bản công thức toán học.*
 
-| Loại Fact (`fact_type`) | Mã phiên bản công thức (`formula_version`) | Ý nghĩa kinh tế và Công thức tính toán |
+| Loại dữ kiện | Mã phiên bản công thức | Ý nghĩa kinh tế và Công thức tính toán |
 |---|---|---|
-| `value` | `fact-value-v1` | Giá trị chỉ tiêu quan sát được tại kỳ phân tích ($V_{e,m,p}$). |
-| `peer_median` | `peer-median-v1` | Trung vị thống kê của nhóm đồng đẳng trên các quan sát hợp lệ ($M_{m,p} = \text{median}(V_{i,m,p})$). |
-| `peer_rank` | `peer-rank-competition-v1` | Thứ hạng cạnh tranh của ngân hàng ($R_{better}$ và $R_{desc}$ trên tổng số thành viên hợp lệ $D$). |
-| `gap_to_median` | `gap-to-median-pp-v1` | Chênh lệch điểm phần trăm so với trung vị nhóm ($\Delta_{median} = V_{e,m,p} - M_{m,p}$). |
-| `delta` | `delta-pp-v1` | Biến động điểm phần trăm qua chuỗi thời gian ($\Delta_{p_1 \to p_2} = V_{e,m,p_2} - V_{e,m,p_1}$). |
-| `median_delta` | `median-delta-pp-v1` | Biến động trung vị nhóm qua thời gian ($\Delta M = M_{m,p_2} - M_{m,p_1}$). |
-| `pairwise_gap` | `pairwise-gap-pp-v1` | Khoảng cách chênh lệch điểm phần trăm giữa 2 ngân hàng ($\Delta_{e_1 - e_2} = V_{e_1} - V_{e_2}$). |
-| `spread` | `spread-pp-v1` | Biên độ chênh lệch tuyệt đối giữa ngân hàng cao nhất và thấp nhất trong nhóm. |
-| `ratio_to_median` | `ratio-to-median-v1` | Tỷ số tương đối giữa giá trị ngân hàng và trung vị nhóm ($V / M$, đơn vị: lần). |
-| `derived_ratio` | `derived-ratio-v1` | Tỷ số dẫn xuất nội tại giữa hai chỉ tiêu (ví dụ $\text{ROE} / \text{ROA}$, phản ánh hệ số nhân đòn bẩy tài chính). |
-| `lead_count` | `lead-count-v1` | Số lượng chỉ tiêu mà ngân hàng dẫn trước đối thủ ($N/M$ chỉ tiêu). |
+| Giá trị quan sát | fact-value-v1 | Giá trị chỉ tiêu quan sát được tại kỳ phân tích ($V(e,m,p)$). |
+| Trung vị nhóm | peer-median-v1 | Trung vị thống kê của nhóm so sánh trên các quan sát hợp lệ ($M(m,p) = \text{median}(V(i,m,p))$). |
+| Thứ hạng cạnh tranh | peer-rank-competition-v1 | Thứ hạng của ngân hàng theo chiều chất lượng tốt hơn ($R(\text{tốt})$) và theo giá trị giảm dần ($R(\text{giảm})$) trên tổng số thành viên hợp lệ $D$. |
+| Chênh lệch so với trung vị | gap-to-median-pp-v1 | Mức chênh lệch điểm phần trăm so với trung vị nhóm ($\Delta(\text{trung vị}) = V(e,m,p) - M(m,p)$). |
+| Biến động chuỗi thời gian | delta-pp-v1 | Mức thay đổi điểm phần trăm qua các quý liên tiếp ($\Delta(p1 \to p2) = V(e,m,p2) - V(e,m,p1)$). |
+| Biến động trung vị nhóm | median-delta-pp-v1 | Mức thay đổi điểm phần trăm của trung vị nhóm qua thời gian ($\Delta M = M(m,p2) - M(m,p1)$). |
+| Chênh lệch đối đầu | pairwise-gap-pp-v1 | Khoảng cách chênh lệch điểm phần trăm giữa hai ngân hàng ($\Delta(e1 - e2) = V(e1) - V(e2)$). |
+| Biên độ phân tán | spread-pp-v1 | Mức chênh lệch giữa ngân hàng cao nhất và thấp nhất trong nhóm. |
+| Tỷ số so với trung vị | ratio-to-median-v1 | Tỷ số tương đối giữa giá trị của ngân hàng và trung vị nhóm ($V / M$, đơn vị: lần). |
+| Tỷ số dẫn xuất | derived-ratio-v1 | Tỷ số nội tại giữa hai chỉ tiêu, ví dụ tỷ số giữa ROE và ROA phản ánh hệ số nhân đòn bẩy tài chính. |
+| Số lượng dẫn trước | lead-count-v1 | Số lượng chỉ tiêu mà ngân hàng vượt trội so với đối thủ ($N/M$ chỉ tiêu). |
 
-Mỗi `Fact` đều bảo toàn danh sách `input_observation_ids` để nối ngược về cơ sở dữ liệu. Đồng thời, công cụ tạo sẵn các đối tượng `Dataset` chuẩn hóa hình dạng (`kpi`, `ranked_list`, `series`, `series_multi`, `paired`, `peer_table`, `comparison_table`) để phục vụ trực quan hóa ở bước sau.
+### 4.2.4. Bước 4: Tín hiệu và Ứng viên mâu thuẫn liên tầng
 
-### 4.2.4. Bước 4: Tín hiệu và Ứng viên mâu thuẫn liên tầng (`report_facts.py`)
+Dựa trên các con số đã tính, hệ thống tổng hợp thành nhận định vị thế và phát hiện các điểm tài chính bất thường:
 
-Dựa trên các `Fact` đã tính, hệ thống tự động tổng hợp:
-1. **Phân loại tín hiệu (`classify_signals`):** Phân nhóm các chỉ tiêu thành từng mảng nghiệp vụ (ví dụ nhóm Chất lượng tài sản gồm NPL và LLR) và xác định phán quyết vị thế (`verdict`):
-   - `above_peers`: Vị thế vượt trội rõ ràng so với nhóm;
-   - `below_peers`: Vị thế kém hơn rõ ràng so với nhóm;
-   - `in_line`: Vị thế tương đương trung vị nhóm (chênh lệch nằm trong biên độ đi ngang);
-   - `mixed`: Tín hiệu hỗn hợp (ví dụ nợ xấu thấp nhưng bao phủ nợ xấu cũng mỏng);
-   - `insufficient_data`: Không đủ dữ liệu đối chuẩn.
-2. **Nhận diện ứng viên mâu thuẫn liên tầng (`detect_cross_level_candidates`):** Thuật toán tự động tìm kiếm các hiện tượng tài chính phức tạp:
-   - `divergent_signals`: Mâu thuẫn giữa hai chỉ tiêu cùng mảng (ví dụ ROE thuộc nhóm dẫn đầu nhưng ROA lại thấp hơn trung vị);
-   - `counter_trend`: Xu hướng của ngân hàng đi ngược chiều với xu hướng chung của nhóm ngành (ví dụ nợ xấu của ngân hàng tăng mạnh trong khi trung vị toàn nhóm lại giảm);
-   - `cross_metric_extreme`: Ngân hàng đồng thời giữ vị trí dẫn đầu ở một chỉ tiêu nhưng lại đứng cuối bảng ở một chỉ tiêu khác.
+1. Phân loại tín hiệu vị thế: nhóm các chỉ tiêu thành từng mảng nghiệp vụ (như nợ xấu và bao phủ nợ xấu thuộc mảng chất lượng tài sản) để xác định vị thế:
+- Vị thế vượt trội: tốt hơn rõ rệt so với nhóm so sánh;
+- Vị thế kém hơn: thấp hơn rõ rệt so với nhóm;
+- Vị thế tương đương: chênh lệch nằm trong biên độ đi ngang quanh mức trung vị;
+- Tín hiệu hỗn hợp: các chỉ tiêu trong cùng mảng có kết quả trái ngược (ví dụ nợ xấu thấp nhưng bao phủ nợ xấu cũng mỏng);
+- Thiếu dữ liệu: không đủ quan sát để đối chuẩn.
 
-Các phát hiện này được gán mã `finding_id` và cung cấp cho các tác tử ở bước tiếp theo để đưa vào báo cáo dưới dạng các điểm lưu ý chuyên sâu (callout).
+2. Nhận diện mâu thuẫn liên tầng: thuật toán tự động tìm các hiện tượng:
+- Tín hiệu phân kỳ nội tại: mâu thuẫn giữa hai chỉ tiêu trong cùng mảng (ví dụ ROE thuộc nhóm đầu nhưng ROA lại dưới trung vị);
+- Xu hướng ngược chiều ngành: ngân hàng đi ngược xu hướng chung (ví dụ nợ xấu ngân hàng tăng trong khi trung vị ngành giảm);
+- Cực trị trái chiều: ngân hàng đứng đầu ở chỉ tiêu này nhưng đứng cuối ở chỉ tiêu khác.
 
-### 4.2.5. Bước 5: Chuyên viên phân tích viết câu nhận định trích dẫn Fact (`analysis_writer.py`)
+Các phát hiện này được gắn mã và chuyển sang các bước sau để đưa vào hộp lưu ý trên báo cáo.
 
-Khác với kiến trúc cũ (nơi mô hình tổng hợp bị cấm đoán cực đoan và chỉ tạo ra các đoạn văn chung chung không có số), kiến trúc hiện tại áp dụng nguyên tắc **"Kiểm, không cấm"**:
-- Các chuyên viên phân tích theo vai trò (**Chuyên viên Doanh nghiệp - Company Specialist** và **Chuyên viên Ngành - Sector Specialist**) được yêu cầu viết các câu nhận định phân tích súc tích (mỗi câu không quá 30 từ).
-- **Quy tắc bắt buộc trích dẫn:** Mỗi câu nhận định (`NarrativeSentence`) bắt buộc phải khai báo danh sách các `fact_ids` mà câu văn dựa vào để lập luận.
-- **Ràng buộc con số:** Khi nhắc tới số liệu, câu văn bắt buộc phải chép đúng chuỗi hiển thị đã định dạng sẵn (`hien_thi`) từ `Fact`, không được tự ý làm tròn khác đi hoặc tự tính nhẩm các con số mới.
-- **Kiểm soát ngôn từ:** Cấm sử dụng các từ ngữ chỉ nguyên nhân chủ quan (*"do"*, *"vì"*, *"nhờ vào"*, *"dẫn đến"*), chỉ được phép dùng từ *"hàm ý"* đối với các mối quan hệ phân rã cấu trúc toán học (như đòn bẩy tài chính $\text{ROE}/\text{ROA}$); cấm tuyệt đối mọi hình thức tư vấn đầu tư hoặc khuyến nghị mua/bán cổ phiếu.
+### 4.2.5. Bước 5: Chuyên viên phân tích viết câu nhận định trích dẫn dữ kiện
 
-Hệ thống đồng thời tích hợp sẵn module mẫu câu tất định (`narrative_templates.py`). Trong trường hợp mô hình ngôn ngữ gặp sự cố hoặc bị từ chối ở bước kiểm tra, các câu nhận định chuẩn tắc sinh ra từ mẫu câu sẽ đóng vai trò phương án thay thế an toàn (fallback), bảo đảm báo cáo luôn có nội dung diễn giải chính xác.
+Hệ thống cho phép mô hình ngôn ngữ viết câu nhận định tự nhiên nhưng buộc phải dựa trên bằng chứng số học đã tính:
 
-### 4.2.6. Bước 6: Bộ kiểm tra câu văn xác định luận (`narrative_verification.py`)
+- Phân vai chuyên môn: Chuyên viên Doanh nghiệp phân tích ngân hàng mục tiêu, Chuyên viên Ngành đánh giá bối cảnh toàn nhóm. Mỗi câu nhận định viết ngắn gọn, không quá 30 từ.
+- Trích dẫn bằng chứng: mỗi câu nhận định phải khai báo mã dữ kiện làm căn cứ số liệu.
+- Ràng buộc con số: khi nêu số liệu, câu văn phải dùng đúng chuỗi văn bản đã định dạng sẵn từ dữ kiện gốc, không tự làm tròn hay tính nhẩm số mới.
+- Kiểm soát ngôn từ: không dùng các từ chỉ nguyên nhân mang tính chủ quan như "do", "vì", "nhờ vào", "dẫn đến". Chỉ dùng từ "hàm ý" cho các quan hệ phân rã cấu trúc toán học (như tỷ số ROE/ROA). Không đưa ra khuyến nghị mua bán cổ phiếu.
 
-Toàn bộ các câu nhận định do chuyên viên hoặc mô hình sinh ra đều phải trải qua **Bộ kiểm tra câu văn xác định luận** (Sentence-Level Narrative Verification Engine - Hình 4.3). Bộ kiểm tra này là một module thuật toán thuần túy trong tầng core (`src/thesis_data/narrative_verification.py`), vận hành hoàn toàn độc lập với mô hình ngôn ngữ và quét tuần tự qua **11 quy tắc kiểm định nghiêm ngặt**.
+Hệ thống có sẵn kho mẫu câu diễn giải dự phòng. Khi mô hình gặp sự cố hoặc câu viết ra bị loại ở bước kiểm tra, các câu mẫu chuẩn sẽ được dùng để thay thế, bảo đảm báo cáo không bị gián đoạn.
 
-Quy trình thẩm định dừng lại ngay tại vi phạm đầu tiên được phát hiện trên câu văn (stop at first violation):
-1. **Luật 1 - Kiểm tra trích dẫn Fact (`missing_fact_citation`, `unknown_fact`):** Câu văn không có `fact_ids` hoặc chứa `fact_id` không tồn tại trong danh mục kết quả phân tích sẽ bị loại ngay lập tức.
-2. **Luật 2 - Cấm từ ngữ nguyên nhân chủ quan (`causal_language`):** Quét danh từ cấm nguyên nhân tiếng Việt (*"bởi vì"*, *"xuất phát từ"*, *"dẫn đến"*, *"kéo theo"*, *"gây ra"*, *"nhờ vào"*, *"vì vậy"*, *"khiến"*, *"do"*, *"vì"*...) trừ các cụm từ ngoại lệ được cho phép như *"lý do"*, *"tự do"*, *"do dự"*.
-3. **Luật 3 - Cấm khuyến nghị đầu tư (`investment_advice`):** Quét các từ ngữ mang tính tư vấn tài chính trái phép (*"định giá hấp dẫn"*, *"giá mục tiêu"*, *"nên đầu tư"*, *"khuyến nghị"*, *"nắm giữ"*, *"mua"*, *"bán"*...) trừ các thuật ngữ ngân hàng hợp lệ như *"bán lẻ"*, *"bán buôn"*, *"mua bán nợ"*.
-4. **Luật 4 - Kiểm tra thực thể trong kế hoạch (`entity_not_in_plan`):** Câu văn không được phép nhắc đến tên bất kỳ ngân hàng nào nằm ngoài phạm vi thực thể đã được phê duyệt trong kế hoạch phân tích.
-5. **Luật 5 - Kiểm tra kỳ báo cáo (`period_not_cited`):** Mọi kỳ thời gian xuất hiện trong câu văn (*"quý 4/2024"*, *"Q4/2024"*, *"năm 2024"*) bắt buộc phải thuộc danh sách các kỳ của các `Fact` được trích dẫn trong câu đó.
-6. **Luật 6 - Kiểm tra số đếm chỉ tiêu (`count_mismatch`):** Các cụm từ đếm số lượng chỉ tiêu (ví dụ: *"2/4 chỉ tiêu"*) bắt buộc phải khớp chính xác với giá trị của `Fact` kiểu `lead_count`.
-7. **Luật 7 - Kiểm tra thứ hạng cạnh tranh (`rank_mismatch`):** Các từ ngữ chỉ thứ bậc (*"hạng 1/5"*, *"cao nhất"*, *"thấp nhất"*, *"tốt nhất"*, *"dẫn đầu"*, *"đứng cuối"*) bắt buộc phải có `Fact` kiểu `peer_rank` đi kèm và khớp chính xác với chiều xếp hạng (tốt hơn hoặc thứ bậc giá trị).
-8. **Luật 8 - Kiểm tra quy mô nhóm thực thể (`number_mismatch`):** Cụm từ nêu số lượng ngân hàng (ví dụ: *"5 ngân hàng"*) bắt buộc phải khớp với mẫu số (`denominator`) của các fact so sánh.
-9. **Luật 9 - Kiểm tra độ chính xác của con số và sai số hiển thị (`number_mismatch`, `unit_mismatch`):** Mọi số thực xuất hiện trong câu văn (kèm đơn vị %, điểm %, lần) đều được đối chiếu với các `Fact` được trích dẫn. Sai số chấp nhận được (tolerance) được tính chặt chẽ theo số chữ số thập phân hiển thị $d$:
-   $$\text{Tolerance} = 0.5 \times 10^{-d} + 10^{-9}$$
-   Đồng thời, hệ thống kiểm tra sự gắn kết ngữ cảnh giữa con số với tên chỉ tiêu và tên ngân hàng xuất hiện trong phạm vi 6 từ lân cận.
-10. **Luật 10 - Kiểm tra chiều xu hướng thời gian (`trend_without_delta`, `trend_direction_mismatch`):** Các từ chỉ xu hướng (*"tăng"*, *"giảm"*, *"đi ngang"*, *"cải thiện"*, *"xấu đi"*, *"thu hẹp"*, *"nới rộng"*, *"liên tục"*, *"ngược chiều"*) bắt buộc phải có fact biến động (`delta`, `median_delta`) chứng minh và giá trị biến động phải vượt ngưỡng đi ngang (`flat_pp`, mặc định 0.05 điểm phần trăm).
-11. **Luật 11 - Kiểm tra chiều so sánh tương đối (`comparison_direction_mismatch`):** Các từ so sánh (*"cao hơn"*, *"thấp hơn"*, *"vượt"*, *"dưới trung vị"*, *"tốt hơn"*, *"kém hơn"*, *"ngang nhóm"*) bắt buộc phải có fact chênh lệch (`gap_to_median`, `pairwise_gap`) chứng minh và dấu của chênh lệch phải khớp với chiều tốt/xấu của chỉ tiêu.
+### 4.2.6. Bước 6: Bộ kiểm tra câu văn
+
+Toàn bộ các câu nhận định đều phải qua bộ kiểm tra câu văn trước khi đưa vào báo cáo (Hình 4.3). Bộ kiểm tra này hoạt động độc lập với mô hình ngôn ngữ và quét tuần tự qua mười một quy tắc, dừng lại ngay tại vi phạm đầu tiên:
+
+1. Quy tắc 1 - Trích dẫn dữ kiện: câu văn không khai báo mã dữ kiện hoặc trích dẫn mã không tồn tại sẽ bị loại.
+2. Quy tắc 2 - Cấm từ chỉ nguyên nhân chủ quan: rà soát các từ như "bởi vì", "xuất phát từ", "dẫn đến", "kéo theo", "gây ra", "nhờ vào", "khiến", "do", "vì", trừ các từ ghép thông dụng như "lý do", "tự do", "do dự".
+3. Quy tắc 3 - Cấm khuyến nghị đầu tư: rà soát các từ tư vấn tài chính như "định giá hấp dẫn", "giá mục tiêu", "nên đầu tư", "khuyến nghị", "nắm giữ", "mua", "bán", trừ các thuật ngữ ngân hàng như "bán lẻ", "bán buôn", "mua bán nợ".
+4. Quy tắc 4 - Thực thể trong kế hoạch: câu văn không được nhắc tên ngân hàng ngoài phạm vi kế hoạch đã duyệt.
+5. Quy tắc 5 - Khớp kỳ báo cáo: các mốc thời gian trong câu (như quý 4 năm 2024) phải thuộc danh sách kỳ của các dữ kiện trích dẫn.
+6. Quy tắc 6 - Số đếm chỉ tiêu: cụm từ đếm số lượng (ví dụ "2 trên 4 chỉ tiêu") phải khớp đúng số chỉ tiêu dẫn trước.
+7. Quy tắc 7 - Thứ hạng cạnh tranh: từ chỉ thứ bậc (như "hạng nhất", "dẫn đầu", "thấp nhất") phải có dữ kiện xếp hạng đi kèm và khớp đúng chiều đánh giá.
+8. Quy tắc 8 - Quy mô nhóm thực thể: số lượng ngân hàng (ví dụ "5 ngân hàng") phải khớp với số thành viên hợp lệ trong nhóm so sánh.
+9. Quy tắc 9 - Khớp con số và dung sai hiển thị: mọi số thực kèm đơn vị đo lường (như phần trăm, điểm phần trăm, lần) đều được đối chiếu với dữ kiện gốc. Dung sai chấp nhận tính theo công thức:
+$$\text{Dung sai} = 0{,}5 \times 10^{-d} + 10^{-9}$$
+trong đó $d$ là số chữ số thập phân hiển thị. Con số cũng phải gắn kết với tên chỉ tiêu và tên ngân hàng trong phạm vi sáu từ lân cận.
+10. Quy tắc 10 - Chiều xu hướng thời gian: từ chỉ xu hướng ("tăng", "giảm", "đi ngang", "cải thiện", "xấu đi") phải có dữ kiện biến động chuỗi thời gian chứng minh và vượt ngưỡng đi ngang mặc định là 0,05 điểm phần trăm.
+11. Quy tắc 11 - Chiều so sánh tương đối: từ so sánh ("cao hơn", "thấp hơn", "vượt", "tốt hơn", "kém hơn") phải có dữ kiện chênh lệch chứng minh và dấu chênh lệch phải khớp với tính chất chỉ tiêu.
 
 ```mermaid
 flowchart TD
@@ -264,122 +269,119 @@ flowchart TD
     Drop1 & Drop2 & Drop3 & Drop4 & Drop5 & Drop6 & Drop7 & Drop8 & Drop9 & Drop10 & Drop11 --> DroppedRecord["<b>Ghi vào DroppedSentence & NarrativeAudit</b><br/>• Giữ lại reason_code và câu gốc<br/>• Không làm gián đoạn hoặc hủy lượt chạy"]
     R11 -->|Vượt qua tất cả luật| Accepted["<b>Chấp nhận vào Báo cáo (accepted_sentences)</b><br/>• Giữ tính toàn vẹn 100% về mặt dữ kiện số"]
 ```
-*Hình 4.3: Quy trình kiểm tra câu văn xác định luận (narrative_verification.py).*
+*Hình 4.3: Quy trình kiểm tra câu văn theo quy tắc cố định.*
 
-**Cơ chế xử lý câu lỗi theo nguyên tắc "Kiểm, không cấm":**
-Nếu một câu nhận định vi phạm bất kỳ quy tắc nào trong 11 quy tắc trên, câu văn đó sẽ bị **loại bỏ riêng lẻ** và chuyển vào danh sách `DroppedSentence` kèm mã nguyên nhân (`reason_code`) và lý do cụ thể trong hồ sơ kiểm định `NarrativeAudit`. Hệ thống **tuyệt đối không hủy bỏ toàn bộ lượt phân tích** chỉ vì một câu văn sai sót. Các câu văn hợp lệ còn lại tiếp tục được chuyển sang bước lắp ráp báo cáo.
+Xử lý câu lỗi:
+Câu nhận định vi phạm quy tắc sẽ bị loại bỏ riêng lẻ và lưu vào hồ sơ kiểm định kèm mã lý do. Hệ thống không hủy bỏ cả lượt phân tích khi có câu lỗi. Các câu hợp lệ còn lại tiếp tục được dùng để lắp ráp báo cáo.
 
-### 4.2.7. Bước 7: Lắp ráp báo cáo theo khối và Kiểm định ReportSpec (`report_spec.py`)
+### 4.2.7. Bước 7: Lắp ráp báo cáo theo khối và Kiểm định đặc tả báo cáo
 
-Báo cáo phân tích cuối cùng không phải là một đoạn văn bản thuần túy không cấu trúc, mà được cấu thành từ các khối nội dung chuyên biệt (modular blocks) theo đặc tả `ReportSpec`:
-- Dạng báo cáo được chia thành 2 loại:
-  - `answer_card`: Thẻ trả lời nhanh dành riêng cho câu hỏi dạng `lookup`, gồm đúng 1 khối `answer` và tối đa 1 hình minh họa;
-  - `note`: Báo cáo phân tích chuyên sâu cho 4 dạng câu hỏi còn lại, bắt đầu bằng khối tiêu đề `headline` (tối đa 16 từ, mở đầu bằng mã ngân hàng và dấu hai chấm) và các khối nội dung tiếp theo.
+Báo cáo được ghép từ các khối nội dung chuyên biệt theo bản đặc tả báo cáo thống nhất, gồm hai dạng:
+- Thẻ trả lời nhanh: dành cho câu hỏi tra cứu đơn lẻ, gồm đúng một khối câu trả lời và tối đa một hình minh họa;
+- Báo cáo phân tích chuyên sâu: dành cho bốn dạng câu hỏi còn lại, bắt đầu bằng tiêu đề chính (tối đa 16 từ, mở đầu bằng mã ngân hàng và dấu hai chấm) và các khối nội dung tiếp theo.
 
-*Bảng 4.2: Danh mục các khối nội dung và giới hạn ngân sách trong ReportSpec.*
+*Bảng 4.2: Danh mục các khối nội dung và giới hạn ngân sách trong đặc tả báo cáo.*
 
-| Loại khối (`type`) | Chức năng nghiệp vụ trong báo cáo | Giới hạn ngân sách tối đa |
+| Loại khối nội dung | Chức năng nghiệp vụ trong báo cáo | Giới hạn ngân sách tối đa |
 |---|---|:---:|
-| `answer` | Hiển thị giá trị trả lời trực tiếp kèm nhận định phụ cho câu hỏi tra cứu. | Đúng 1 khối (chỉ dùng cho `answer_card`) |
-| `headline` | Tiêu đề nhận định chính của toàn bộ báo cáo phân tích. | Đúng 1 khối (bắt buộc cho `note`, $\le 16$ từ) |
-| `key_points` | Danh sách các luận điểm phân tích then chốt nhất của báo cáo. | Tối đa 5 ý con (`MAX_KEY_POINTS`) |
-| `section` | Mục phân tích chuyên sâu (chia theo mảng chất lượng tài sản hoặc sinh lời). | Tối đa 3 mục (`MAX_SECTIONS`) |
-| `figure` | Khối hình ảnh trực quan hóa dữ liệu (kèm biểu đồ, tiêu đề và câu takeaway). | Tối đa 4 hình (`MAX_FIGURES`) |
-| `callout` | Hộp lưu ý đặc biệt, làm nổi bật các phát hiện mâu thuẫn liên tầng. | Tối đa 3 hộp (`MAX_CALLOUTS`) |
-| `table` | Bảng số liệu chi tiết đối chuẩn. | Không giới hạn riêng |
-| **Tổng ngân sách** | **Tổng số khối tối đa trong một báo cáo** | **Tối đa 12 khối (`MAX_TOTAL_BLOCKS`)** |
+| Khối trả lời trực tiếp | Hiển thị giá trị trả lời câu hỏi tra cứu kèm nhận định ngắn gọn. | Đúng 1 khối (chỉ áp dụng cho thẻ trả lời nhanh) |
+| Tiêu đề chính | Tiêu đề nêu nhận định bao quát của toàn bộ báo cáo phân tích. | Đúng 1 khối (bắt buộc cho báo cáo chuyên sâu, không quá 16 từ) |
+| Điểm nhấn then chốt | Danh sách các phát hiện và luận điểm cốt lõi nhất của báo cáo. | Tối đa 5 ý |
+| Mục phân tích chuyên sâu | Phân tích chi tiết theo từng chủ đề như chất lượng tài sản hoặc khả năng sinh lời. | Tối đa 3 mục |
+| Hình trực quan hóa | Khối hình ảnh biểu đồ tài chính kèm tiêu đề và câu thông điệp rút ra. | Tối đa 4 hình |
+| Hộp lưu ý đặc biệt | Hộp nổi bật làm rõ các phát hiện mâu thuẫn liên tầng quan trọng. | Tối đa 3 hộp |
+| Bảng số liệu chi tiết | Bảng tổng hợp các chỉ tiêu đối chuẩn giữa các ngân hàng. | Không giới hạn riêng |
+| Tổng ngân sách toàn bài | Tổng số lượng tất cả các khối trong một báo cáo phân tích | Tối đa 12 khối |
 
-**Thẩm định tính tương thích giữa Biểu đồ và Cấu trúc Dữ liệu (`validate_report_spec`):**
-Mỗi khối hình (`figure`) yêu cầu một loại biểu đồ cụ thể. Hàm `validate_report_spec` kiểm tra tính tương thích toán học theo ma trận `CHART_COMPATIBILITY`:
-- `kpi_strip`: Chỉ chấp nhận dataset dạng `kpi` với 1 đến 6 hàng dữ liệu;
-- `ranked_bar`: Yêu cầu dataset `ranked_list` với tối thiểu 3 ngân hàng hợp lệ;
-- `line_trend`: Yêu cầu dataset chuỗi thời gian `series` có từ 2 kỳ trở lên;
-- `small_multiples`: Yêu cầu dataset `series_multi` có từ 2 chỉ tiêu và 2 kỳ trở lên;
-- `scatter`: Yêu cầu dataset `paired` có tối thiểu 3 ngân hàng có đủ cả 2 chỉ tiêu đối xứng;
-- `rank_heatmap`: Yêu cầu dataset bảng đối chuẩn `peer_table` có từ 3 ngân hàng và 2 chỉ tiêu trở lên;
-- `grouped_bar` và `comparison_table`: Yêu cầu từ 2 đến 5 ngân hàng so sánh.
+Tương thích giữa biểu đồ và cấu trúc dữ liệu:
+Mỗi hình yêu cầu một loại biểu đồ phù hợp với cấu trúc dữ liệu:
+- Dải thẻ chỉ số nhanh: dùng cho một đến sáu chỉ số tổng hợp;
+- Biểu đồ thanh ngang xếp hạng: cần tối thiểu ba ngân hàng hợp lệ;
+- Biểu đồ đường xu hướng: cần chuỗi thời gian từ hai kỳ trở lên;
+- Lưới biểu đồ đường thu nhỏ: cần từ hai chỉ tiêu và từ hai kỳ trở lên;
+- Biểu đồ phân tán hai chiều: cần tối thiểu ba ngân hàng có đủ cả hai chỉ tiêu đối xứng;
+- Bản đồ nhiệt thứ hạng: cần bảng dữ liệu từ ba ngân hàng và từ hai chỉ tiêu trở lên;
+- Biểu đồ cột nhóm và bảng so sánh trực diện: cần từ hai đến năm ngân hàng so sánh.
 
-Nếu loại biểu đồ do mô hình đề xuất không tương thích với hình dạng dataset, hệ thống sẽ tự động hạ cấp xuống loại biểu đồ thay thế an toàn trong `allowed_charts` hoặc chuyển sang hiển thị bảng dữ liệu (`table`), đảm bảo giao diện người dùng không bao giờ gặp lỗi render.
+Nếu biểu đồ đề xuất không tương thích với dữ liệu thực tế, hệ thống tự động đổi sang biểu đồ an toàn hoặc chuyển thành bảng số liệu, tránh lỗi hiển thị trên giao diện.
 
-### 4.2.8. Bước 8: Phản biện ngữ nghĩa và Sửa đổi có mục tiêu (`semantic_critic.py`, `revision_controller.py`)
+### 4.2.8. Bước 8: Phản biện ngữ nghĩa và Sửa đổi có mục tiêu
 
-Đối với Cấu hình C, sau khi cấu trúc `ReportSpec` ban đầu được lắp ráp, hệ thống sẽ kích hoạt **Tác tử Phản biện ngữ nghĩa (Semantic Critic)**:
-- Critic tiến hành rà soát nội dung báo cáo theo các tiêu chí chất lượng tài chính:
-  1. Phát hiện các nhận định nói quá bằng chứng hoặc suy diễn vượt quá phạm vi số liệu của các `Fact` được trích dẫn;
-  2. Phát hiện báo cáo chưa trả lời trực diện vào trọng tâm câu hỏi của người dùng;
-  3. Phát hiện các hình minh họa thừa thãi, không hỗ trợ trực tiếp cho luận điểm nào;
-  4. Phát hiện sự mâu thuẫn giữa nhận định của chuyên viên doanh nghiệp và bức tranh chung của ngành.
-- **Tạo danh sách vấn đề (`CritiqueIssue`):** Mỗi vấn đề được định danh cụ thể: câu nhận định bị lỗi (`sentence_id`), chuyên viên chịu trách nhiệm (`author`), mô tả khuyết tật (`issue_description`) và yêu cầu sửa đổi cụ thể (`required_action`).
-- **Sửa đổi có mục tiêu (Targeted Revision):** `revision_controller.py` tiếp nhận các issue và chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu nhận định bị gắn cờ lỗi (thông qua prompt `REWRITE_SENTENCE_PROMPT_TEMPLATE`). Quá trình này không chạy lại toàn bộ hệ thống, giúp tiết kiệm chi phí token.
-- **Giới hạn vòng lặp:** Quy trình sửa đổi được giới hạn **tối đa 2 vòng lặp (maximum 2 revision rounds)** để ngăn chặn hiện tượng trôi dạt ngữ nghĩa hoặc lặp vô tận.
-- **Tái kiểm tra bắt buộc:** Mọi câu nhận định sau khi được viết lại bắt buộc phải trải qua lại Bộ kiểm tra câu văn xác định luận (`narrative_verification.py`). Nếu câu sửa đổi vẫn không đạt yêu cầu, nó sẽ bị loại bỏ vĩnh viễn và thay thế bằng câu diễn giải mẫu tất định từ `narrative_templates.py`.
+Ở Cấu hình C, tác tử phản biện ngữ nghĩa rà soát nội dung báo cáo sau khi lắp ráp theo các tiêu chí:
+1. Phát hiện nhận định nói quá bằng chứng hoặc suy diễn vượt quá số liệu đã trích dẫn;
+2. Phát hiện báo cáo chưa trả lời trúng câu hỏi của người dùng;
+3. Phát hiện hình ảnh thừa, không phục vụ luận điểm nào;
+4. Phát hiện mâu thuẫn giữa nhận định về doanh nghiệp và bối cảnh ngành.
+
+Quy trình sửa đổi có mục tiêu:
+Khi phát hiện lỗi, tác tử phản biện lập danh sách nêu rõ câu lỗi, chuyên viên phụ trách, mô tả khuyết tật và yêu cầu sửa đổi. Bộ điều khiển sửa đổi chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu bị gắn cờ, không chạy lại toàn hệ thống để tiết kiệm chi phí tính toán.
+
+Quy trình sửa đổi giới hạn tối đa hai vòng lặp để tránh lặp vô hạn. Câu viết lại bắt buộc phải qua bộ kiểm tra câu văn. Nếu vẫn không đạt, câu đó sẽ bị loại và thay bằng câu mẫu an toàn từ kho mẫu có sẵn.
 
 ---
 
 ## 4.3. Cơ chế giám sát, Lưu vết và Xử lý lỗi
 
-### 4.3.1. Lưu vết tuần tự từng bước (`TraceStep`)
+### 4.3.1. Lưu vết tuần tự từng bước
 
-Để hỗ trợ tính minh bạch hoàn toàn và phục vụ việc giám sát hoạt động của hệ thống đa tác tử, mọi sự kiện trong suốt quá trình xử lý đều được ghi vết thành các đối tượng `TraceStep` tuần tự theo thời gian:
-- Mỗi `TraceStep` bao gồm: mã bước (`step_index`), thời điểm phát sinh (`timestamp`), tác tử thực hiện (`actor`: `coordinator`, `company_specialist`, `sector_specialist`, `verifier`, `critic`, `system`), tác tử tiếp nhận (`recipient`), phân loại hành động (`action_kind`: `plan`, `tool_call`, `draft`, `verify`, `compose`, `critique`, `revise`, `complete`, `error`), tiêu đề tóm tắt bằng tiếng Việt (`summary`) và đối tượng dữ liệu cấu trúc chi tiết (`details`).
-- **Bảo mật và Tinh gọn:** Các bản ghi trace tuyệt đối không lưu trữ các đoạn prompt chỉ dẫn thô của hệ thống hay chuỗi suy nghĩ nội bộ (raw chain-of-thought) của mô hình, đảm bảo tuân thủ nguyên tắc bảo mật và tối ưu hóa dung lượng lưu trữ.
+Hệ thống ghi lại hành động của từng tác tử theo trình tự thời gian để tiện kiểm tra hoạt động:
+- Mỗi bản ghi vết gồm: chỉ số bước, dấu thời gian, tác tử thực hiện (điều phối viên, chuyên viên doanh nghiệp, chuyên viên ngành, bộ kiểm tra câu, tác tử phản biện, hoặc hệ thống), tác tử nhận, loại hành động (lập kế hoạch, gọi công cụ, viết bản thảo, kiểm tra câu, lắp ráp báo cáo, phản biện, sửa đổi, hoàn thành, báo lỗi), tóm tắt bằng tiếng Việt và dữ liệu chi tiết kèm theo.
+- Bản ghi vết không lưu các lời nhắc thô hay chuỗi suy nghĩ nội bộ của mô hình, giúp bảo mật và tiết kiệm dung lượng lưu trữ.
 
-### 4.3.2. Lưu trữ bền vững phiên chạy (Run Persistence)
+### 4.3.2. Lưu trữ bền vững phiên chạy
 
-Toàn bộ thông tin của mỗi phiên phân tích đều được lưu trữ bền vững vào cơ sở dữ liệu SQLite tại `ANALYSIS_RUNS_DB_PATH`:
-- Bản ghi phiên phân tích (`analysis_runs`) lưu giữ: mã phiên (`run_id`), câu hỏi gốc của người dùng, kế hoạch phân tích đóng băng, đặc tả báo cáo hoàn chỉnh (`ReportSpec`), hồ sơ kiểm định câu văn (`NarrativeAudit`), danh sách phát hiện liên tầng, số vòng phản biện đã thực hiện, trạng thái kết thúc (`COMPLETED`, `BLOCKED`, `FAILED`), tổng thời gian thực thi (giây), tổng số token sử dụng và toàn bộ chuỗi sự kiện `TraceStep`.
-- **Lưu trữ cả phiên thất bại:** Ngay cả khi một yêu cầu bị từ chối do vượt phạm vi dữ liệu hoặc gặp sự cố mạng, hệ thống vẫn ghi nhận phiên chạy vào cơ sở dữ liệu với đầy đủ lý do lỗi. Điều này giúp các nhà nghiên cứu và quản trị viên có thể kiểm toán đầy đủ mẫu số thực nghiệm mà không bỏ sót các trường hợp biên.
+Toàn bộ thông tin của mỗi phiên phân tích được lưu vào cơ sở dữ liệu trên đĩa:
+- Bản ghi lưu giữ mã phiên, câu hỏi ban đầu, kế hoạch phân tích đã duyệt, đặc tả báo cáo, hồ sơ kiểm định câu văn, danh sách mâu thuẫn liên tầng, số vòng phản biện, trạng thái kết thúc (hoàn thành, bị chặn, hoặc thất bại), thời gian thực thi (giây), số token đã dùng và chuỗi bản ghi vết từng bước.
+- Lưu trữ cả phiên thất bại: khi yêu cầu bị từ chối do ngoài phạm vi dữ liệu hoặc sự cố mạng, hệ thống vẫn ghi lại phiên chạy kèm lý do lỗi. Điều này giúp kiểm toán đầy đủ mẫu thực nghiệm mà không bỏ sót trường hợp biên.
 
-### 4.3.3. Xử lý lỗi thân thiện bằng tiếng Việt (`AnalysisBlocked`)
+### 4.3.3. Xử lý lỗi thân thiện bằng tiếng Việt
 
-Hệ thống loại bỏ hoàn toàn các thông báo lỗi kỹ thuật khó hiểu hay các mã lỗi HTTP 500 chung chung đối với các sự cố nghiệp vụ. Khi một yêu cầu phân tích không thể thực hiện, hệ thống ném ra ngoại lệ `AnalysisBlocked` với thông điệp giải thích rõ ràng bằng tiếng Việt:
-- Khi người dùng hỏi về ngân hàng ngoài danh mục: *"Ngân hàng [Mã] hiện chưa có dữ liệu kiểm định trong hệ thống. Vui lòng chọn một trong các ngân hàng: VCB, MBB, TCB, ACB, VPB."*
-- Khi người dùng hỏi về kỳ thời gian ngoài phạm vi: *"Kỳ phân tích [Kỳ] vượt quá phạm vi dữ liệu đã kiểm định (năm 2024)."*
-- Khi người dùng hỏi về vĩ mô nhưng chưa có dữ liệu: *"Dữ liệu kinh tế vĩ mô chưa được tích hợp trong snapshot hiện tại. Hệ thống tập trung phân tích số liệu tài chính doanh nghiệp và nhóm so sánh."*
-- Khi phát hiện ô dữ liệu thiếu: *"Chỉ tiêu [Tên chỉ tiêu] của [Ngân hàng] trong [Kỳ] không được công bố đầy đủ trong báo cáo tài chính gốc, hệ thống ghi nhận trạng thái thiếu dữ liệu có kiểm soát."*
+Khi yêu cầu phân tích không thể thực hiện, hệ thống đưa ra thông điệp giải thích rõ ràng bằng tiếng Việt thay vì mã lỗi kỹ thuật:
+- Khi hỏi về ngân hàng ngoài danh mục: "Ngân hàng [Mã] hiện chưa có dữ liệu kiểm định trong hệ thống. Vui lòng chọn một trong các ngân hàng: VCB, MBB, TCB, ACB, VPB."
+- Khi hỏi về kỳ thời gian ngoài phạm vi: "Kỳ phân tích [Kỳ] vượt quá phạm vi dữ liệu đã kiểm định (năm 2024)."
+- Khi hỏi về kinh tế vĩ mô chưa có dữ liệu: "Dữ liệu kinh tế vĩ mô chưa được tích hợp trong bộ dữ liệu hiện tại. Hệ thống tập trung phân tích số liệu tài chính doanh nghiệp và nhóm so sánh."
+- Khi phát hiện ô dữ liệu thiếu: "Chỉ tiêu [Tên chỉ tiêu] của [Ngân hàng] trong [Kỳ] không được công bố đầy đủ trong báo cáo tài chính gốc, hệ thống ghi nhận trạng thái thiếu dữ liệu có kiểm soát."
 
 ---
 
 ## 4.4. Thiết kế giao diện tác nghiệp tham chiếu
 
-Giao diện người dùng được xây dựng dưới dạng một ứng dụng web đơn trang (Single Page Application - SPA) hiện đại bằng React, Vite và TailwindCSS, tuân thủ các nguyên tắc thiết kế trong `.agent/rules/design/`: sử dụng kiểu chữ phi chân phương chuẩn mực (IBM Plex Sans), tông màu nhấn hổ phách (`--accent: amber-500/amber-600`) cho ngân hàng mục tiêu, các tông màu xám trung tính cho nhóm so sánh, bố cục trang nghiêm túc, tập trung vào khả năng đọc dữ liệu tài chính.
+Giao diện người dùng là ứng dụng trang đơn xây dựng bằng React, Vite và TailwindCSS. Thiết kế dùng phông chữ phi chân phương (IBM Plex Sans), tông màu nhấn hổ phách cho ngân hàng mục tiêu, màu xám trung tính cho nhóm so sánh, bố cục trang tập trung vào tính dễ đọc của số liệu tài chính. Giao diện gồm bốn màn hình chính:
 
-Giao diện bao gồm 4 màn hình tác nghiệp chính tương ứng với hành trình nghiên cứu của một chuyên viên phân tích tài chính:
+### 4.4.1. Màn hình Đặt câu hỏi
+- Cung cấp ô nhập liệu câu hỏi tiếng Việt tự nhiên với trải nghiệm tìm kiếm tối giản.
+- Có sẵn các câu hỏi mẫu theo năm dạng phân tích (tra cứu, hồ sơ doanh nghiệp, xếp hạng, xu hướng bốn quý, so sánh đối đầu) để người dùng dễ làm quen.
 
-### 4.4.1. Màn hình Đặt câu hỏi (Ask Screen - `create-analysis`)
-- Cung cấp ô nhập liệu câu hỏi tự nhiên bằng tiếng Việt với trải nghiệm tìm kiếm tối giản.
-- Tích hợp sẵn danh mục các câu hỏi mẫu gợi ý chia theo 5 dạng phân tích chính (tra cứu, hồ sơ doanh nghiệp, xếp hạng, xu hướng 4 quý, so sánh đối đầu), giúp người dùng dễ dàng khám phá năng lực của hệ thống.
+### 4.4.2. Màn hình Bàn điều phối tác tử
+- Hiển thị cấu trúc của hệ thống đa tác tử thích ứng theo từng câu hỏi.
+- Chỉ hiển thị tác tử thực sự tham gia: ví dụ với câu hỏi về một ngân hàng đơn lẻ, thẻ Chuyên viên Ngành sẽ không hiện; các tác tử chưa có dữ liệu cũng không vẽ thẻ chờ để tránh gây hiểu lầm.
+- Hiển thị tóm tắt kế hoạch phân tích, các chỉ tiêu liên quan và lý do lựa chọn của điều phối viên.
 
-### 4.4.2. Màn hình Bàn điều phối tác tử (Orchestration Board - `OrchestratorBoard.tsx`)
-- Hiển thị trực quan cấu trúc của hệ thống đa tác tử thích ứng theo yêu cầu.
-- **Tuân thủ quy tắc chỉ hiển thị tác tử hoạt động (Guardrail §6):** Hệ thống chỉ vẽ thẻ tác tử cho những chuyên viên thực sự được huy động trong kế hoạch phân tích. Ví dụ, nếu câu hỏi chỉ liên quan đến một ngân hàng đơn lẻ, thẻ Chuyên viên Ngành (Sector Specialist) sẽ không xuất hiện; tác tử Vĩ mô (Macro) không được hỗ trợ trong snapshot sẽ không vẽ thẻ nét đứt nhằm tránh gây hiểu lầm cho người dùng.
-- Hiển thị tóm tắt kế hoạch phân tích, các chỉ tiêu liên quan và câu lý giải lựa chọn của điều phối viên.
+### 4.4.3. Màn hình Dòng thời gian tiến trình
+- Nhận dữ liệu truyền dòng thời gian thực từ máy chủ qua cơ chế truyền sự kiện từ máy chủ (Server-Sent Events - SSE).
+- Thể hiện dòng thời gian của các bước: Lập kế hoạch $\to$ Tính toán công cụ $\to$ Nhận định chuyên viên $\to$ Kiểm định câu văn $\to$ Lắp ráp báo cáo $\to$ Phản biện ngữ nghĩa và sửa đổi.
+- Cho phép người dùng mở rộng từng bước để xem chi tiết các con số đã tính, các câu bị loại kèm lý do và ý kiến của tác tử phản biện.
 
-### 4.4.3. Màn hình Dòng thời gian tiến trình (Process Trace - `ProcessTrace.tsx`)
-- Nhận dữ liệu truyền dòng theo thời gian thực từ backend thông qua Server-Sent Events (SSE).
-- Hiển thị dòng thời gian trực quan của từng bước thực thi: Lập kế hoạch $\rightarrow$ Tính toán công cụ $\rightarrow$ Nhận định chuyên viên $\rightarrow$ Kiểm định câu văn xác định luận $\rightarrow$ Lắp ráp báo cáo $\rightarrow$ Phản biện ngữ nghĩa và sửa đổi.
-- Cho phép chuyên viên mở rộng (expand) từng bước để xem xét chi tiết kỹ thuật: danh sách các `Fact` được tính, các câu văn bị bộ kiểm tra loại bỏ kèm mã lý do, và nội dung phản biện của Critic.
-
-### 4.4.4. Màn hình Báo cáo phân tích kiểu Equity Research (`equity-report`)
-- Báo cáo tự động điều chỉnh hình thái hiển thị linh hoạt theo dạng câu hỏi:
-  - Với câu hỏi `lookup`: Hiển thị dạng thẻ trả lời nổi bật (`answer_card`) với con số trung tâm, nhãn chỉ tiêu, kỳ báo cáo và liên kết mở nhanh bằng chứng nguồn gốc.
-  - Với các câu hỏi `company_profile`, `ranking`, `trend`, `head_to_head`: Hiển thị dạng báo cáo nghiên cứu hoàn chỉnh (`note`) gồm khối tiêu đề nhận định lớn (`headline`), danh sách các phát hiện then chốt (`key_points`), các mục nội dung chuyên sâu (`section`) và các hộp lưu ý (`callout`).
-- **Thư viện 8 loại biểu đồ tài chính trực quan hóa (`charts/`):**
-  1. `KpiStrip`: Dải thẻ chỉ số đo lường hiệu suất tài chính nhanh tại kỳ neo;
-  2. `RankedBar`: Biểu đồ thanh ngang xếp hạng các ngân hàng từ cao xuống thấp;
-  3. `LineTrend`: Biểu đồ đường xu hướng thể hiện biến động chỉ tiêu qua các quý;
-  4. `SmallMultiples`: Lưới các biểu đồ đường thu nhỏ, so sánh xu hướng đồng thời của nhiều chỉ tiêu;
-  5. `Scatter`: Biểu đồ phân tán hai chiều, thể hiện mối tương quan giữa hai chỉ tiêu (chẳng hạn tương quan giữa tỷ lệ nợ xấu và khả năng sinh lời ROE);
-  6. `RankHeatmap`: Bản đồ nhiệt hiển thị ma trận vị thế thứ hạng của toàn bộ các ngân hàng trên tất cả các chỉ tiêu;
-  7. `GroupedBar`: Biểu đồ cột nhóm so sánh nhiều chỉ tiêu giữa 2 đến 3 ngân hàng;
-  8. `ComparisonTable`: Bảng đối chuẩn tài chính trực diện đôi một, tô màu tương phản làm nổi bật khoảng cách chênh lệch.
-- **Bảng số liệu đối soát (DataTable):** Cho phép người dùng chuyển đổi xem bảng dữ liệu chi tiết kèm liên kết xem số trang và vị trí nguồn trích dẫn của từng ô số liệu.
+### 4.4.4. Màn hình Báo cáo phân tích chuyên sâu
+- Báo cáo tự động điều chỉnh cách trình bày theo dạng câu hỏi:
+  - Câu hỏi tra cứu: hiển thị thẻ trả lời nhanh với con số kết quả ở trung tâm, nhãn chỉ tiêu, kỳ báo cáo và liên kết mở nguồn gốc;
+  - Các câu hỏi còn lại: hiển thị báo cáo nghiên cứu gồm tiêu đề nhận định, danh sách phát hiện then chốt, các mục chuyên sâu và hộp lưu ý.
+- Thư viện tám loại biểu đồ tài chính:
+  1. Dải thẻ chỉ số nhanh: hiển thị các chỉ số tài chính cốt lõi tại kỳ phân tích;
+  2. Biểu đồ thanh ngang xếp hạng: xếp hạng các ngân hàng từ cao xuống thấp;
+  3. Biểu đồ đường xu hướng: thể hiện biến động chỉ tiêu qua các quý;
+  4. Lưới biểu đồ đường thu nhỏ: so sánh đồng thời xu hướng của nhiều chỉ tiêu;
+  5. Biểu đồ phân tán hai chiều: thể hiện tương quan giữa hai chỉ tiêu (ví dụ nợ xấu và ROE);
+  6. Bản đồ nhiệt thứ hạng: ma trận xếp hạng của các ngân hàng trên tất cả chỉ tiêu;
+  7. Biểu đồ cột nhóm: so sánh nhiều chỉ tiêu giữa hai đến ba ngân hàng;
+  8. Bảng so sánh trực diện: đối chuẩn tài chính trực tiếp từng đôi một, dùng màu tương phản thể hiện khoảng cách chênh lệch.
+- Bảng số liệu đối soát: cho phép chuyển sang xem bảng số liệu chi tiết kèm số trang và dòng trích dẫn trong báo cáo tài chính gốc đã kiểm toán.
 
 ---
 
 ## 4.5. Kiến trúc triển khai đám mây và Vận hành thực tế
 
-Hệ thống được đóng gói và triển khai trên hạ tầng đám mây phân tán hiện đại, đảm bảo tính sẵn sàng cao và khả năng phục vụ trực tiếp cho người dùng cuối (Hình 4.4):
+Hệ thống được đóng gói và triển khai trên hạ tầng đám mây phân tán, đảm bảo tính sẵn sàng cao và phục vụ trực tiếp người dùng qua Internet (Hình 4.4):
 
 ```mermaid
 flowchart LR
@@ -416,53 +418,52 @@ flowchart LR
 ```
 *Hình 4.4: Sơ đồ kiến trúc triển khai hệ thống trên đám mây.*
 
-1. **Ứng dụng giao diện người dùng (Frontend Hosting):**
-   - Triển khai trên nền tảng **Vercel Edge Network**, tối ưu hóa phân phối nội dung tĩnh toàn cầu qua mạng CDN.
-   - Hoạt động chính thức tại tên miền sản xuất: `https://fin-ai.eddiephung.me`.
-   - Kết nối với backend API thông qua giao thức HTTPS bảo mật và thiết lập kênh truyền dòng Server-Sent Events (SSE).
+1. Ứng dụng giao diện người dùng:
+- Triển khai trên nền tảng phân phối biên đám mây, tối ưu hóa phân phối nội dung tĩnh qua mạng phân phối nội dung (Content Delivery Network - CDN).
+- Hoạt động tại tên miền: https://fin-ai.eddiephung.me.
+- Kết nối với máy chủ phân tích qua giao thức truyền dữ liệu bảo mật và kênh truyền dòng sự kiện thời gian thực.
 
-2. **Dịch vụ máy chủ phân tích (Backend Hosting):**
-   - Đóng gói container Docker và triển khai trên dịch vụ **Render Web Service** (môi trường thực thi Python 3.11, máy chủ ASGI Uvicorn).
-   - Tích hợp cơ chế cấu hình linh hoạt thông qua các biến môi trường (`Settings` trong `src/thesis_api/settings.py`), hỗ trợ thiết lập nguồn gốc CORS cho phép kết nối an toàn từ tên miền Vercel.
+2. Dịch vụ máy chủ phân tích:
+- Đóng gói trong môi trường vùng chứa và chạy trên dịch vụ máy chủ đám mây với môi trường thực thi ngôn ngữ hiện đại.
+- Cấu hình qua các biến môi trường, thiết lập chia sẻ tài nguyên an toàn chỉ cho phép tên miền giao diện chính thức kết nối.
 
-3. **Cơ chế nạp dữ liệu chuẩn tự động (Snapshot Hydration from Supabase):**
-   - Do hệ thống tệp trên dịch vụ Render Free có tính chất tạm thời (ephemeral filesystem - dữ liệu cục bộ bị xóa sạch mỗi khi container khởi động lại), tệp cơ sở dữ liệu SQLite Gold v5 được lưu trữ cố định trên một thùng chứa riêng tư (**Supabase Storage Private Bucket**).
-   - Trong quá trình khởi động máy chủ FastAPI (`lifespan` event trong `src/thesis_api/main.py`), module `src/thesis_api/snapshot_bootstrap.py` tự động tải tệp snapshot từ Supabase Storage về hệ thống tệp cục bộ của Render.
-   - **Xác thực toàn vẹn 2 lớp bắt buộc:**
-     1. Tính toán mã băm SHA-256 byte thô của tệp vừa tải và đối chiếu với mã băm kỳ vọng được cấu hình cứng;
-     2. Thực thi lệnh kiểm tra tính toàn vẹn vật lý của SQLite (`PRAGMA integrity_check`).
-     Nếu phát hiện bất kỳ sự sai khác nào về mã băm hoặc lỗi cấu trúc bảng, ứng dụng sẽ lập tức dừng khởi động và từ chối phục vụ.
+3. Cơ chế tự động nạp bộ dữ liệu chuẩn:
+- Do máy chủ miễn phí có đặc tính tệp tạm thời (dữ liệu cục bộ bị xóa mỗi khi máy chủ khởi động lại), tệp cơ sở dữ liệu tài chính chuẩn được lưu cố định trên kho lưu trữ đám mây riêng tư.
+- Khi máy chủ khởi động, dịch vụ tự động tải tệp dữ liệu chuẩn từ kho đám mây về bộ nhớ máy chủ cục bộ.
+- Quy trình kiểm tra toàn vẹn gồm hai bước:
+  1. Tính mã băm SHA-256 trên chuỗi byte của tệp vừa tải và đối chiếu với mã băm chuẩn đã công bố;
+  2. Thực thi lệnh kiểm tra tính toàn vẹn cấu trúc vật lý của cơ sở dữ liệu.
+  Nếu phát hiện sai khác mã băm hoặc lỗi cấu trúc bảng, ứng dụng sẽ dừng khởi động và từ chối phục vụ.
 
-4. **Hệ thống thăm dò trạng thái (Health & Readiness Probes):**
-   - `/api/health`: Endpoint thăm dò sự sống (liveness probe), phản hồi HTTP 200 cho các bộ cân bằng tải của Render biết tiến trình máy chủ đang chạy.
-   - `/api/ready`: Endpoint thăm dò mức độ sẵn sàng nghiệp vụ (readiness probe). Chỉ khi cơ sở dữ liệu snapshot Gold v5 đã được tải thành công, xác thực mã băm chính xác và kết nối sẵn sàng, endpoint này mới trả về trạng thái `"status": "ready"`. Ngược lại, hệ thống trả về mã lỗi HTTP 503 Service Unavailable, ngăn chặn việc phục vụ các yêu cầu phân tích khi dữ liệu chưa được kiểm chứng.
-   - `/api/version` và `/api/capabilities`: Cung cấp thông tin phiên bản hệ thống và danh mục các chỉ tiêu/ngân hàng đang có dữ liệu sẵn sàng phục vụ.
+4. Hệ thống thăm dò trạng thái hoạt động:
+- Cổng thăm dò sự sống: phản hồi trạng thái hoạt động cho bộ cân bằng tải của dịch vụ đám mây biết máy chủ đang chạy.
+- Cổng thăm dò mức độ sẵn sàng: chỉ khi cơ sở dữ liệu chuẩn đã tải xong, kiểm tra mã băm đạt và kết nối sẵn sàng, cổng này mới xác nhận sẵn sàng phục vụ. Nếu chưa hoàn tất, hệ thống trả về mã báo dịch vụ chưa sẵn sàng để tránh phân tích khi dữ liệu chưa kiểm chứng.
+- Cổng thông tin phiên bản và năng lực: cung cấp thông tin phiên bản hệ thống cùng danh mục ngân hàng và chỉ tiêu sẵn sàng phục vụ.
 
 ---
 
 ## 4.6. Chiến lược kiểm thử và Cổng nghiệm thu kỹ thuật
 
-Chất lượng và độ tin cậy của hệ thống được bảo chứng thông qua một hệ thống kiểm thử đa tầng và tự động hóa hoàn toàn:
+Chất lượng hệ thống được bảo đảm qua hệ thống kiểm thử tự động nhiều tầng:
 
-1. **Bộ kiểm thử đơn vị toàn diện (Comprehensive Unit Test Suite):**
-   - Bao gồm **781 bài kiểm thử tự động (781 passed unit tests)** trong thư mục `tests/`, bao phủ toàn bộ các module từ tầng lõi đến tầng ứng dụng:
-     - Kiểm thử hợp đồng dữ liệu, tính toàn vẹn của snapshot và cơ chế nạp snapshot (`test_dataset_contract.py`, `test_snapshot_bootstrap.py`);
-     - Kiểm thử các công cụ tính toán số học tất định, tính toán Fact và Dataset (`test_analysis_tools.py`, `test_report_facts.py`);
-     - Kiểm thử bộ giải mã ngôn ngữ tự nhiên tiếng Việt và bộ lập kế hoạch phân tích thích ứng (`test_query_understanding.py`, `test_analysis_planner.py`);
-     - Kiểm thử 11 quy tắc của bộ kiểm tra câu văn xác định luận (`test_narrative_verification.py`);
-     - Kiểm thử tính tương thích của đặc tả báo cáo và cấu trúc biểu đồ (`test_report_spec.py`);
-     - Kiểm thử bộ điều khiển sửa đổi có mục tiêu và cơ chế phản biện ngữ nghĩa (`test_revision_controller.py`, `test_semantic_critic.py`);
-     - Kiểm thử luồng tích hợp end-to-end, lưu vết `TraceStep` và API streaming (`test_adaptive_runtime.py`, `test_run_trace.py`, `test_thesis_api.py`).
+1. Bộ kiểm thử đơn vị toàn diện:
+Gồm 781 bài kiểm thử tự động đạt kết quả thành công, bao phủ các thành phần từ tầng thuật toán lõi đến tầng dịch vụ ứng dụng:
+- Kiểm thử hợp đồng dữ liệu chuẩn, tính toàn vẹn của dữ liệu và cơ chế nạp dữ liệu từ kho đám mây;
+- Kiểm thử các công cụ tính toán số học theo quy tắc, tính toán dữ kiện tài chính và chuẩn bị dữ liệu biểu đồ;
+- Kiểm thử bộ giải mã câu hỏi tiếng Việt và bộ lập kế hoạch phân tích thích ứng;
+- Kiểm thử mười một quy tắc của bộ kiểm tra câu văn;
+- Kiểm thử tính tương thích của đặc tả báo cáo và cấu trúc biểu đồ;
+- Kiểm thử bộ điều khiển sửa đổi có mục tiêu và cơ chế phản biện ngữ nghĩa;
+- Kiểm thử luồng xử lý toàn trình từ đầu đến cuối, ghi nhận vết từng bước và truyền dòng dữ liệu thời gian thực.
 
-2. **Kiểm soát ranh giới kiến trúc tự động (`check_architecture_guardrails.py`):**
-   - Script tự động quét toàn bộ cây mã nguồn để đảm bảo không có bất kỳ sự vi phạm nào đối với các nguyên tắc kiến trúc:
-     - Đảm bảo tầng `src/thesis_data/` không phụ thuộc vào `sqlite3`, `openai`, `langgraph`, và không hard-code tên 5 ngân hàng;
-     - Đảm bảo các mô hình Pydantic và các route API không bị rò rỉ vào tầng lõi;
-     - Đảm bảo ranh giới lưu trữ giữa dữ liệu phân tích chỉ đọc và lịch sử chạy được phân tách rõ ràng.
+2. Kiểm soát ranh giới kiến trúc tự động:
+Công cụ tự động quét cây mã nguồn để ngăn vi phạm kiến trúc:
+- Đảm bảo tầng thuật toán lõi độc lập, không phụ thuộc cơ sở dữ liệu vật lý hay thư viện của các mô hình ngôn ngữ lớn, và không chứa định danh của năm ngân hàng thử nghiệm;
+- Đảm bảo các mô hình dữ liệu của tầng giao tiếp không rò rỉ vào tầng thuật toán lõi;
+- Đảm bảo cơ sở dữ liệu phân tích chỉ đọc và cơ sở dữ liệu lịch sử chạy luôn tách biệt nhau.
 
-3. **Kiểm tra tính tương thích hợp đồng giao tiếp (`check_openapi_contract.py`):**
-   - Tự động đối chiếu lược đồ OpenAPI 3.1.0 xuất ra từ mã nguồn FastAPI với hợp đồng chuẩn hóa tại `contracts/openapi.json`.
-   - Ngăn chặn mọi sự thay đổi tùy tiện làm phá vỡ tính tương thích ngược với ứng dụng frontend trên Vercel.
+3. Kiểm tra tính tương thích hợp đồng giao diện:
+Hệ thống tự động đối chiếu lược đồ giao diện lập trình ứng dụng xuất ra từ mã nguồn với bản đặc tả hợp đồng chuẩn, tránh việc thay đổi làm đứt gãy liên lạc với giao diện người dùng trên đám mây.
 
-4. **Tích hợp liên tục trên GitHub Actions (Continuous Integration):**
-   - Mọi thay đổi mã nguồn trước khi được tích hợp vào nhánh chính `main` đều phải vượt qua toàn bộ pipeline CI trên GitHub Actions: kiểm tra định dạng mã nguồn (linting), kiểm tra kiểu tĩnh (type checking), xác thực ranh giới kiến trúc, kiểm tra hợp đồng OpenAPI và vượt qua 100% bộ kiểm thử tự động. Nguyên tắc "Zero-Failure Handoff" bảo đảm nhánh chính luôn ở trạng thái ổn định và sẵn sàng triển khai.
+4. Quy trình tích hợp liên tục tự động:
+Mọi thay đổi mã nguồn trước khi hợp nhất vào nhánh chính đều phải qua chuỗi kiểm định tự động: kiểm tra định dạng mã nguồn, kiểm tra kiểu dữ liệu tĩnh, xác thực ranh giới kiến trúc, kiểm tra hợp đồng giao diện và vượt qua 781 bài kiểm thử tự động. Nguyên tắc bàn giao không lỗi bảo đảm nhánh chính luôn ở trạng thái ổn định và sẵn sàng phục vụ.

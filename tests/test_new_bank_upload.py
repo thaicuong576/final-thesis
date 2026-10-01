@@ -56,6 +56,8 @@ from thesis_data.user_upload import (
     generate_ctg_error_sample_csv,
     generate_ctg_sample_csv,
     generate_template_csv,
+    generate_vib_error_sample_csv,
+    generate_vib_sample_csv,
     validate_and_parse_upload_csv,
 )
 
@@ -194,6 +196,43 @@ class NewBankUploadTests(unittest.TestCase):
         self.assertAlmostEqual(metric_map["bank.llr_coverage"].computed_value, 174.68, places=1)
         self.assertAlmostEqual(metric_map["bank.roa"].computed_value, 1.15, places=2)
         self.assertAlmostEqual(metric_map["bank.roe"].computed_value, 18.60, places=1)
+
+    def test_vib_fy2025_sample_is_accepted_with_matching_ratios(self) -> None:
+        result = validate_and_parse_upload_csv(generate_vib_sample_csv(), upload_id="test-vib", form_entity_id="VIB")
+        self.assertEqual(result.status, "accepted", [i.message_vi for i in result.row_issues])
+        self.assertEqual((result.entity_id, result.period_id), ("VIB", "2025_Q4"))
+        metric_map = {m.metric_id: m for m in result.metrics}
+        for m in metric_map.values():
+            self.assertEqual(m.status, "matched")
+        self.assertAlmostEqual(metric_map["bank.npl_g35"].computed_value, 2.9674, places=3)
+        self.assertAlmostEqual(metric_map["bank.llr_coverage"].computed_value, 42.8668, places=2)
+        self.assertAlmostEqual(metric_map["bank.roa"].computed_value, 1.3887, places=3)
+        self.assertAlmostEqual(metric_map["bank.roe"].computed_value, 16.4148, places=2)
+        bad = validate_and_parse_upload_csv(generate_vib_error_sample_csv(), upload_id="test-vib-bad", form_entity_id="VIB")
+        self.assertEqual(bad.status, "rejected")
+        self.assertGreaterEqual(len(bad.row_issues), 3)
+
+    def test_upload_of_a_bank_already_served_is_rejected(self) -> None:
+        served = self.client.get("/api/capabilities").json()["entities"]
+        self.assertTrue(served)
+        ticker = str(served[0].get("id") or served[0].get("ticker")).upper()
+        csv_text = generate_vib_sample_csv().replace(",VIB,", f",{ticker},")
+        resp = self.client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("dup.csv", io.BytesIO(csv_text.encode("utf-8")), "text/csv")},
+            data={"entity_id": ticker},
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["status"], "rejected")
+        self.assertTrue(any("đã có trong bộ dữ liệu" in i["message_vi"] for i in data["row_issues"]))
+        ok = self.client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("vib.csv", io.BytesIO(generate_vib_sample_csv().encode("utf-8")), "text/csv")},
+            data={"entity_id": "VIB"},
+        )
+        self.assertEqual(ok.json()["status"], "accepted")
+        self.assertEqual(self.client.get("/api/onboarding/samples/vib-2025q4.csv").status_code, 200)
 
     def test_ctg_error_sample_csv_is_rejected_with_exact_three_row_issues(self) -> None:
         csv_bytes = generate_ctg_error_sample_csv()

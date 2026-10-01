@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+import dataclasses
 import json
 import logging
 from pathlib import Path
@@ -35,7 +36,10 @@ from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
 from thesis_data.user_upload import (
     generate_ctg_error_sample_csv,
+    generate_vib_error_sample_csv,
+    generate_vib_sample_csv,
     generate_ctg_sample_csv,
+    UploadRowIssue,
     generate_template_csv,
     materialize_user_upload_snapshot,
     validate_and_parse_upload_csv,
@@ -240,6 +244,33 @@ def create_app(
             )
         return report
 
+    def _reject_entity_already_served(result: Any) -> Any:
+        """A bank that the served dataset already covers cannot be uploaded again.
+
+        Two sources for the same ticker would give two different figures for one bank; the
+        user is pointed to the existing data instead.
+        """
+        if result.status != "accepted" or not result.entity_id:
+            return result
+        try:
+            served = {
+                str(e.get("id") or e.get("ticker") or "").upper()
+                for e in engine.get_capabilities().get("entities", [])
+            }
+        except Exception:  # noqa: BLE001 - capability lookup must not block an upload
+            return result
+        if result.entity_id.upper() not in served:
+            return result
+        issue = UploadRowIssue(
+            row=0,
+            field="entity_id",
+            message_vi=(
+                f"{result.entity_id} đã có trong bộ dữ liệu hệ thống; hãy hỏi trực tiếp về "
+                f"{result.entity_id} thay vì tải lên. Chức năng tải lên dành cho ngân hàng chưa có trong dữ liệu."
+            ),
+        )
+        return dataclasses.replace(result, status="rejected", row_issues=[*result.row_issues, issue])
+
     @app.post(
         "/api/onboarding/uploads",
         response_model=UploadResponseDTO,
@@ -261,6 +292,7 @@ def create_app(
             form_entity_id=entity_id,
             form_display_name=display_name,
         )
+        result = _reject_entity_already_served(result)
 
         now_iso = datetime.now(timezone.utc).isoformat()
         if result.status == "accepted":
@@ -378,7 +410,13 @@ def create_app(
     def download_sample(name: str) -> Response:
         """Download CTG sample CSV (valid 'ctg-2024q4' or error 'ctg-2024q4-loi')."""
         clean_name = name.strip().lower()
-        if clean_name == "ctg-2024q4":
+        if clean_name == "vib-2025q4":
+            content = generate_vib_sample_csv()
+            filename = "vib-2025q4.csv"
+        elif clean_name == "vib-2025q4-loi":
+            content = generate_vib_error_sample_csv()
+            filename = "vib-2025q4-loi.csv"
+        elif clean_name == "ctg-2024q4":
             content = generate_ctg_sample_csv()
             filename = "ctg-2024q4.csv"
         elif clean_name == "ctg-2024q4-loi":
@@ -387,7 +425,7 @@ def create_app(
         else:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Mẫu '{name}' không tồn tại. Các mẫu hỗ trợ: ctg-2024q4, ctg-2024q4-loi.",
+                detail=f"Mẫu '{name}' không tồn tại. Các mẫu hỗ trợ: vib-2025q4, vib-2025q4-loi, ctg-2024q4, ctg-2024q4-loi.",
             )
         return Response(
             content=content,

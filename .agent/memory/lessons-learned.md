@@ -728,3 +728,7 @@ Writing run history must obey strict safety boundaries:
 - When the opening headline/answer failed verification the sweep substituted a fixed string ("Báo cáo phân tích tài chính.") or left the answer empty. Stand-ins must be built from verified facts and re-verified.
 - Some models rewrite the echoed `evaluator_version`; the critic adapter now pins it to the configured adapter:model identity instead of rejecting the round.
 - Latency matters for a live demo: on the current proxy gpt-6-luna took ~24 s per call versus ~3 s for deepseek-v4-pro, i.e. ~7.7 min for a simple lookup.
+
+## [LESSON-037] Upload samples must name a bank the served dataset does not already cover
+
+When staging moved from Gold v5 (5 banks) to the 10-bank operational snapshot, the CTG demo sample became a duplicate: uploading it produced a second, different CTG 2024 Q4 figure next to the dataset's own. Uploads of an already-served ticker are now rejected with a Vietnamese pointer to the existing data, and the demo sample is VIB FY2025 (outside the top 10). Uploaded banks are never peer-universe members, so tool planning must fall back to the catalog's peer group instead of requiring the focus bank to be a member — otherwise profile signals silently become "insufficient data".

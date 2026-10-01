@@ -105,6 +105,26 @@ class SnapshotBootstrapTests(unittest.TestCase):
             self.assertIn("/storage/v1/object/thesis-snapshots/accepted.sqlite", request.full_url)
 
     @patch("thesis_api.snapshot_bootstrap.urlopen")
+    def test_canonical_snapshot_identity_is_read_from_dataset_metadata(self, mocked_urlopen):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "canonical.sqlite"
+            connection = sqlite3.connect(source)
+            try:
+                connection.execute("CREATE TABLE dataset_metadata (dataset_id TEXT, dataset_snapshot_id TEXT NOT NULL)")
+                connection.execute("INSERT INTO dataset_metadata VALUES (?, ?)", ("ops", "ops-snapshot-v1"))
+                connection.commit()
+            finally:
+                connection.close()
+            payload = source.read_bytes()
+            mocked_urlopen.return_value = _FakeResponse(payload)
+            result = ensure_snapshot_available(
+                root / "accepted.sqlite",
+                **_kwargs(sha256(payload).hexdigest(), snapshot_id="ops-snapshot-v1"),
+            )
+            self.assertTrue(result)
+
+    @patch("thesis_api.snapshot_bootstrap.urlopen")
     def test_matching_existing_file_skips_network(self, mocked_urlopen):
         with TemporaryDirectory() as directory:
             root = Path(directory)

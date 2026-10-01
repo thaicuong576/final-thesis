@@ -1336,6 +1336,77 @@ def generate_ctg_sample_csv() -> str:
     return output.getvalue()
 
 
+def generate_vib_sample_csv() -> str:
+    """Valid FY2025 sample for VIB, a listed bank outside the served top-10 dataset.
+
+    Values transcribed from VIB's audited consolidated FY2025 statements (scanned PDF):
+    balance sheet pdf pages 8-9, income statement page 11, loan quality note page 66.
+    The five loan groups add up to the printed total (381,972,016 million VND), which also
+    equals balance-sheet customer loans; assets equal liabilities plus equity in both years.
+    """
+    headers = [
+        "observation_id", "entity_id", "metric_id", "value", "unit", "period_id",
+        "period_basis", "reporting_scope", "source_locator", "source_url", "source_sha256",
+    ]
+    url = "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/VIB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf"
+    sha = "D6B96DDAAADB19A4EA1C083CEAA1A15500B742383321C2BCB7C22706509837B7"
+    note = "pdf_page=66; printed_page=64; section=Thuyết minh rủi ro tín dụng - chất lượng cho vay khách hàng"
+    bs_a = "pdf_page=8; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất"
+    bs_e = "pdf_page=9; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất"
+    inc = "pdf_page=11; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất"
+    rows = [
+        ("group-3", "bank.input.npl_group_3_balance", "2149.202", "2025_Q4", "point_in_time", note),
+        ("group-4", "bank.input.npl_group_4_balance", "2824.185", "2025_Q4", "point_in_time", note),
+        ("group-5", "bank.input.npl_group_5_balance", "6361.298", "2025_Q4", "point_in_time", note),
+        ("gross-loans", "bank.input.gross_customer_loans", "381972.016", "2025_Q4", "point_in_time", note),
+        ("provisions", "bank.input.loan_loss_provisions", "4858.821", "2025_Q4", "point_in_time", bs_a),
+        ("npl-balance", "bank.input.npl_g35_balance", "11334.685", "2025_Q4", "point_in_time", note),
+        ("pat", "bank.input.profit_after_tax", "7285.43", "2025_Q4", "annual", inc),
+        ("pat-prior", "bank.input.profit_after_tax", "7204.47", "2024_Q4", "annual", inc),
+        ("assets", "bank.input.total_assets", "556098.441", "2025_Q4", "point_in_time", bs_a),
+        ("assets-prior", "bank.input.total_assets", "493158.37", "2024_Q4", "point_in_time", bs_a),
+        ("parent-profit", "bank.input.parent_attributable_profit", "7285.43", "2025_Q4", "annual", inc),
+        ("parent-profit-prior", "bank.input.parent_attributable_profit", "7204.47", "2024_Q4", "annual", inc),
+        ("total-equity", "bank.input.total_equity", "46904.739", "2025_Q4", "point_in_time", bs_e),
+        ("total-equity-prior", "bank.input.total_equity", "41861.809", "2024_Q4", "point_in_time", bs_e),
+        ("nci", "bank.input.non_controlling_interests", "0", "2025_Q4", "point_in_time", bs_e),
+        ("nci-prior", "bank.input.non_controlling_interests", "0", "2024_Q4", "point_in_time", bs_e),
+        ("parent-equity", "bank.input.parent_attributable_equity", "46904.739", "2025_Q4", "point_in_time", bs_e),
+        ("parent-equity-prior", "bank.input.parent_attributable_equity", "41861.809", "2024_Q4", "point_in_time", bs_e),
+        ("npl", "bank.npl_g35", "2.9674", "2025_Q4", "point_in_time", note),
+        ("llr", "bank.llr_coverage", "42.8668", "2025_Q4", "point_in_time", note),
+        ("roa", "bank.roa", "1.3887", "2025_Q4", "ttm", inc),
+        ("roe", "bank.roe", "16.4148", "2025_Q4", "ttm", inc),
+    ]
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+    for key, metric, value, period, basis, locator in rows:
+        unit = "%" if not metric.startswith("bank.input.") else "billion_vnd"
+        oid = f"vib-{key}-{period.lower().replace('_', '')}"
+        writer.writerow([oid, "VIB", metric, value, unit, period, basis, "consolidated", locator, url, sha])
+    return output.getvalue()
+
+
+def generate_vib_error_sample_csv() -> str:
+    """VIB sample with three deliberate errors: missing page, wrong unit, wrong reported NPL."""
+    reader = csv.DictReader(io.StringIO(generate_vib_sample_csv()))
+    rows = list(reader)
+    for row in rows:
+        m = row.get("metric_id")
+        if m == "bank.input.gross_customer_loans":
+            row["source_locator"] = "Báo cáo tài chính kiểm toán năm 2025 phần phân tích nợ"
+        elif m == "bank.input.loan_loss_provisions":
+            row["unit"] = "triệu_vnd"
+        elif m == "bank.npl_g35":
+            row["value"] = "3.5"
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=reader.fieldnames or [])
+    writer.writeheader()
+    writer.writerows(rows)
+    return output.getvalue()
+
+
 def generate_ctg_error_sample_csv() -> str:
     """Generate CTG sample with exactly 3 deliberate errors per UPLOAD-1 spec.
 

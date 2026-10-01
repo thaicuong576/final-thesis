@@ -1382,6 +1382,10 @@ class _AdaptiveRun:
             ]
             if not universe_id and candidate_universes:
                 universe_id = candidate_universes[0].peer_universe_id
+            # An uploaded bank is compared with the existing peer group but is never a member
+            # of it (D-077: excluded from the median), so no universe "contains" it.
+            if not universe_id and self.catalog.peer_universes:
+                universe_id = self.catalog.peer_universes[0].peer_universe_id
 
             universe_members: tuple[str, ...] = ()
             if universe_id:

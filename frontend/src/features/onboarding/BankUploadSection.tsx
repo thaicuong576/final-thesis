@@ -176,20 +176,20 @@ export function BankUploadSection() {
           Tải file mẫu (.csv)
         </a>
         <a
-          href={`${apiBase}/api/onboarding/samples/ctg-2024q4.csv`}
-          download="ctg-2024q4.csv"
+          href={`${apiBase}/api/onboarding/samples/vib-2025q4.csv`}
+          download="vib-2025q4.csv"
           className="inline-flex items-center gap-1.5 rounded-md border border-ready/40 bg-ready-soft/40 px-2.5 py-1 text-xs font-medium text-text-success hover:bg-ready-soft/70 no-underline transition-colors"
         >
           <FileSpreadsheet className="size-3 text-ready" />
-          Mẫu CTG hợp lệ
+          Mẫu VIB 2025 hợp lệ
         </a>
         <a
-          href={`${apiBase}/api/onboarding/samples/ctg-2024q4-loi.csv`}
-          download="ctg-2024q4-loi.csv"
+          href={`${apiBase}/api/onboarding/samples/vib-2025q4-loi.csv`}
+          download="vib-2025q4-loi.csv"
           className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning-soft/40 px-2.5 py-1 text-xs font-medium text-text-warning hover:bg-warning-soft/70 no-underline transition-colors"
         >
           <AlertTriangle className="size-3 text-warning" />
-          Mẫu CTG có lỗi (thử nghiệm)
+          Mẫu VIB có lỗi (thử nghiệm)
         </a>
       </div>
 

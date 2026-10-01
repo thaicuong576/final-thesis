@@ -22,8 +22,8 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
 
     expect(screen.getByText('Thêm ngân hàng mới từ tệp CSV')).toBeInTheDocument();
     expect(screen.getByText('Tải file mẫu (.csv)')).toHaveAttribute('href', expect.stringContaining('/api/onboarding/template.csv'));
-    expect(screen.getByText('Mẫu CTG hợp lệ')).toHaveAttribute('href', expect.stringContaining('/api/onboarding/samples/ctg-2024q4.csv'));
-    expect(screen.getByText(/Mẫu CTG có lỗi/)).toHaveAttribute('href', expect.stringContaining('/api/onboarding/samples/ctg-2024q4-loi.csv'));
+    expect(screen.getByText('Mẫu VIB 2025 hợp lệ')).toHaveAttribute('href', expect.stringContaining('/api/onboarding/samples/vib-2025q4.csv'));
+    expect(screen.getByText(/Mẫu VIB có lỗi/)).toHaveAttribute('href', expect.stringContaining('/api/onboarding/samples/vib-2025q4-loi.csv'));
     expect(screen.getByRole('button', { name: 'Kiểm tra và tải lên' })).toBeDisabled();
   });
 

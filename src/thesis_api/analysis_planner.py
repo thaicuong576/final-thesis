@@ -404,6 +404,24 @@ def validate_plan(
     if (spec.question_type == "trend" or has_trend_tool) and len(spec.periods) < 2:
         errors.append(f"Trend question type requires at least 2 periods, got {len(spec.periods)}.")
 
+    # 6. The plan must carry the tool its question type is answered with; otherwise a
+    #    proposed plan can label an overview as a profile yet only run a value lookup,
+    #    leaving the report without peer position or signals.
+    tool_names = {t.tool for t in spec.tools}
+    required_tool = {
+        "lookup": "lookup",
+        "company_profile": "peer_position",
+        "ranking": "ranking",
+        "trend": "trend",
+        "head_to_head": "head_to_head",
+    }.get(spec.question_type)
+    if required_tool and required_tool not in tool_names:
+        errors.append(f"Question type {spec.question_type} requires the {required_tool} tool.")
+    # A lookup answers a named metric or an explicit "how much" question; an overview
+    # question ("Tổng quan MBB…") stays a profile, as the deterministic rules classify it.
+    if spec.question_type == "lookup" and not (resolved.explicit_metrics or "lookup" in resolved.flags):
+        errors.append("Lookup requires a metric named in the question.")
+
     return errors
 
 

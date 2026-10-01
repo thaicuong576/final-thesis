@@ -2973,7 +2973,21 @@ class _AdaptiveRun:
                 return True
 
             kept_blocks = []
+            seen_tables: set[str] = set()
+            sections_by_title: dict[str, Any] = {}
             for blk in spec.blocks:
+                # The same dataset shown twice as a table, or two sections with one title,
+                # read as a layout bug; keep the first table and merge same-titled sections.
+                if blk.type == "table":
+                    if blk.dataset_id in seen_tables:
+                        continue
+                    seen_tables.add(blk.dataset_id)
+                if blk.type == "section":
+                    title_key = " ".join((blk.title or "").split()).casefold()
+                    first = sections_by_title.get(title_key)
+                    if first is not None:
+                        first.sentences.extend(x for x in blk.sentences if fresh(x))
+                        continue
                 if blk.type == "headline":
                     fresh(blk.sentence)
                 elif blk.type in ("section", "callout", "answer"):
@@ -2989,6 +3003,8 @@ class _AdaptiveRun:
                 elif blk.type == "figure":
                     fresh(blk.takeaway)  # takeaway is required; a repeat is tolerated, only recorded
                 kept_blocks.append(blk)
+                if blk.type == "section":
+                    sections_by_title[" ".join((blk.title or "").split()).casefold()] = blk
             spec.blocks = kept_blocks
             return spec
 

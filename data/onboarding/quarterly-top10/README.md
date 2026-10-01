@@ -63,7 +63,7 @@ say so (for example, "hạng 2/7").
 5. `comparative_only` (26 cells) were taken from the prior-period column of a later
    filing, mainly for 2023 profits needed by TTM.
 
-Each `source_locator` states the PDF page, the statement or note, the row, the column
+Locators use Vietnamese statement/row labels (revision r2, snapshot `snapshot-bd4249838344c4fd33de12a2a5198affe28a5a8ca73ec5e5a35707d44b78ff31`; values and ratios identical to r1). Each `source_locator` states the PDF page, the statement or note, the row, the column
 (current or comparative) and the reading status.
 
 ## Definitions

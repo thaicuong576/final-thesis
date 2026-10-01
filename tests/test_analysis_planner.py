@@ -464,3 +464,19 @@ class ModelPlanFreezeFallbackTests(unittest.TestCase):
         self.assertEqual(result.planner_source, "rules")
         self.assertIn("model_plan_not_freezable", result.fallback_reasons)
         self.assertEqual(calls["build"], 2)
+
+
+class TestPlanToolMatchesQuestionType(unittest.TestCase):
+    def setUp(self) -> None:
+        self.catalog = _make_test_catalog()
+
+    def test_overview_planned_as_bare_lookup_is_rejected(self) -> None:
+        resolved = resolve_query("Tổng quan BANK_A quý 4/2024", self.catalog)
+        lookup_only = (ToolCallSpec(tool="lookup", params={"entities": ["BANK_A"], "metrics": ["bank.npl_g35"], "period": "2024_Q4"}),)
+        as_lookup = PlanSpec("lookup", "BANK_A", ("BANK_A",), ("bank.npl_g35",), "2024_Q4", ("2024_Q4",), lookup_only, "r")
+        self.assertTrue(any("metric named" in e for e in validate_plan(as_lookup, resolved, self.catalog)))
+        as_profile = PlanSpec("company_profile", "BANK_A", ("BANK_A",), ("bank.npl_g35",), "2024_Q4", ("2024_Q4",), lookup_only, "r")
+        self.assertTrue(any("peer_position" in e for e in validate_plan(as_profile, resolved, self.catalog)))
+        rules = rules_plan(resolved, self.catalog)
+        self.assertEqual(rules.question_type, "company_profile")
+        self.assertEqual(validate_plan(rules, resolved, self.catalog), [])

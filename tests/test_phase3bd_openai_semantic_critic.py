@@ -608,16 +608,16 @@ class OpenAISemanticCriticAdapterTests(unittest.TestCase):
         critic, client = self._critic_with(_result(plan, "placeholder"))
         wrong_version = _result(plan, "provider-chosen-version")
         client.responses.responses[0] = FakeResponse(_encoded(wrong_version))
-        with self.assertRaisesRegex(
-            OpenAISemanticCriticError,
-            "evaluator_version_invalid",
-        ):
-            critic.evaluate(
-                plan=plan,
-                claims=(),
-                stage1_report=_stage1(),
-                round_context=SemanticRoundContext(round_number=0),
-            )
+        # The provider's echoed version is ignored: the result always carries the
+        # configured adapter:model identity, so the provider still cannot select it.
+        result = critic.evaluate(
+            plan=plan,
+            claims=(),
+            stage1_report=_stage1(),
+            round_context=SemanticRoundContext(round_number=0),
+        )
+        self.assertEqual(result.evaluator_version, critic.evaluator_version)
+        self.assertNotEqual(result.evaluator_version, "provider-chosen-version")
 
     def test_prior_open_issue_details_are_rendered_and_can_be_resolved(self):
         plan = _company_plan()

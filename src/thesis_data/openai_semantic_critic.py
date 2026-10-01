@@ -497,11 +497,10 @@ def _normalize_critic_output(
         normalized["contract_version"] = contract_ver
 
     # 2. evaluator_version
-    eval_ver = decoded.get("evaluator_version")
-    if not isinstance(eval_ver, str) or not eval_ver.strip():
-        normalized["evaluator_version"] = evaluator_version
-    else:
-        normalized["evaluator_version"] = eval_ver
+    # The evaluator identity is the configured adapter and model, not whatever string the
+    # model echoes back (some models rewrite it, e.g. to their own name), so it is set here
+    # the same way as contract_version.
+    normalized["evaluator_version"] = evaluator_version
 
     # 3. applicable_link_results / link_results
     raw_links = decoded.get("applicable_link_results")

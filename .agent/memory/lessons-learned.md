@@ -721,3 +721,10 @@ Writing run history must obey strict safety boundaries:
 - Some PDFs carry an embedded text layer that is garbled (HDB 2025 Q3, 2026 Q2) or tables drawn as grids/rotated pages (STB, SHB 2024) that defeat Tesseract. Re-OCR the page or read a rendered crop; never trust a value that does not satisfy the statement identity (assets = liabilities + equity, groups sum to the total, PBT − tax = PAT).
 - Banks with loss-making subsidiaries (VPB/FE Credit) have parent profit > group profit; profit-split checks must allow negative minority interest.
 - Keep one definition across a time series: mixing audited year-end (margin lending excluded) with interim rows (margin included) silently shifts NPL by ~0.1 point.
+
+## [LESSON-036] Verified narrative needs the verifier's own vocabulary and a real fallback
+
+- The writer used "giảm nhẹ" for a −0.04 pp ROA move and "ngang trung vị" for a +0.6 pp gap; the verifier's flat thresholds (0.05 pp for ROA/NPL) were never shown to the model, so correct-looking sentences were dropped. Fact payloads now carry `huong`, the exact direction phrase computed with the verifier's thresholds.
+- When the opening headline/answer failed verification the sweep substituted a fixed string ("Báo cáo phân tích tài chính.") or left the answer empty. Stand-ins must be built from verified facts and re-verified.
+- Some models rewrite the echoed `evaluator_version`; the critic adapter now pins it to the configured adapter:model identity instead of rejecting the round.
+- Latency matters for a live demo: on the current proxy gpt-6-luna took ~24 s per call versus ~3 s for deepseek-v4-pro, i.e. ~7.7 min for a simple lookup.

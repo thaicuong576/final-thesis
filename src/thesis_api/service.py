@@ -140,6 +140,47 @@ _METRIC_PHRASES = {
 }
 
 
+
+def _append_local_cost_log(*, run_id: str, created_at: str, query: str, model: str, tracker: Any) -> None:
+    """Append one line of provider-reported usage/cost to a local JSONL file.
+
+    Only for the operator's own bookkeeping: a one-line server log summary always, and a
+    JSONL file when ``LLM_COST_LOG_PATH`` is set. Never part of the API response, run
+    history or report. Failures are logged and ignored.
+    """
+    import os
+
+    if tracker is None:
+        return
+    logger.info(
+        "llm_usage run=%s model=%s calls=%s input_tokens=%s output_tokens=%s provider_cost=%s",
+        run_id, model, tracker.model_calls, tracker.total_input_tokens, tracker.total_output_tokens, tracker.total_cost,
+    )
+    path = os.environ.get("LLM_COST_LOG_PATH", "").strip()
+    if not path:
+        return
+    line = {
+        "run_id": run_id,
+        "created_at": created_at,
+        "query": query,
+        "model": model,
+        "model_calls": tracker.model_calls,
+        "input_tokens": tracker.total_input_tokens,
+        "output_tokens": tracker.total_output_tokens,
+        "provider_cost": tracker.total_cost,
+        "calls": [
+            {"role": c.role, "latency_ms": c.latency_ms, "input_tokens": c.input_tokens,
+             "output_tokens": c.output_tokens, "cost": c.cost}
+            for c in tracker.calls
+        ],
+    }
+    try:
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(line, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        logger.warning("Could not append LLM cost log: %s", exc)
+
 class AnalysisBlocked(ValueError):
     """A request cannot be executed from the currently accepted data scope."""
 
@@ -1411,6 +1452,14 @@ class AnalysisEngine:
             output_tokens=output_tokens,
             arm=arm,
             question_type=question_type,
+        )
+
+        _append_local_cost_log(
+            run_id=report.report_id,
+            created_at=trace_dto["created_at"],
+            query=request.query,
+            model=model_used,
+            tracker=tracker,
         )
 
         schedule_remote_run_persist(

@@ -18,6 +18,21 @@ class LLMCallRecord:
     latency_ms: int
     input_tokens: int | None
     output_tokens: int | None
+    cost: float | None = None
+
+
+def _extract_cost(response: Any) -> float | None:
+    """Provider-reported cost of one call (a non-standard ``usage.cost`` field some
+    OpenAI-compatible proxies return). Never estimated; None when absent."""
+    usage = getattr(response, "usage", None)
+    if usage is None and isinstance(response, dict):
+        usage = response.get("usage")
+    if usage is None:
+        return None
+    cost = usage.get("cost") if isinstance(usage, dict) else getattr(usage, "cost", None)
+    if cost is None and not isinstance(usage, dict):
+        cost = (getattr(usage, "model_extra", None) or {}).get("cost")
+    return float(cost) if isinstance(cost, (int, float)) and not isinstance(cost, bool) else None
 
 
 def _extract_usage(response: Any) -> tuple[int | None, int | None]:
@@ -73,6 +88,7 @@ class LLMUsageTracker:
         latency_ms: int,
         input_tokens: int | None,
         output_tokens: int | None,
+        cost: float | None = None,
     ) -> None:
         self.calls.append(
             LLMCallRecord(
@@ -80,6 +96,7 @@ class LLMUsageTracker:
                 latency_ms=latency_ms,
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
+                cost=cost,
             )
         )
 
@@ -96,6 +113,11 @@ class LLMUsageTracker:
     def total_output_tokens(self) -> int | None:
         tokens = [c.output_tokens for c in self.calls if c.output_tokens is not None]
         return sum(tokens) if tokens else None
+
+    @property
+    def total_cost(self) -> float | None:
+        costs = [c.cost for c in self.calls if c.cost is not None]
+        return sum(costs) if costs else None
 
 
 class _TrackingCallable:
@@ -120,6 +142,7 @@ class _TrackingCallable:
             latency_ms=duration_ms,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+            cost=_extract_cost(response),
         )
         return response
 
@@ -146,6 +169,7 @@ class _TrackingResponsesNamespace:
             latency_ms=duration_ms,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+            cost=_extract_cost(response),
         )
         return response
 
@@ -175,6 +199,7 @@ class _TrackingChatCompletionsNamespace:
             latency_ms=duration_ms,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+            cost=_extract_cost(response),
         )
         return response
 

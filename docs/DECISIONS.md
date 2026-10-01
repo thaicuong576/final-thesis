@@ -1574,3 +1574,20 @@ Status: Accepted — 2026-10-01
 ### Lý do
 
 Đảm bảo tuân thủ triệt để nguyên tắc bất biến số liệu của kho dữ liệu chuẩn (Gold benchmark immutability), ngăn chặn việc ô nhiễm dữ liệu chuẩn đã qua thẩm định đồng thời mở rộng năng lực phục vụ nghiên cứu và giảng dạy đối với các tổ chức tín dụng mới.
+
+## D-078: Operational FY2025 snapshot for the ten largest listed banks
+
+Status: accepted (2026-10-01). Scope: product/demo dataset; the evaluation benchmark is unchanged.
+
+### Decision
+
+1. `data/processed/bank-2025-top10-operational-v1.sqlite` is a canonical operational snapshot for ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB and VPB at `2025_Q4`, with `2024_Q4` priors for average-balance ROA/ROE.
+2. Inputs are the audited consolidated FY2025 financial statements of each bank (mirror: `static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/<TICKER>_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf`, SHA-256 recorded per row). Every input row (`data/onboarding/top10-2025/<TICKER>-2025q4.csv`) carries pdf page, printed page, statement/note, row and column.
+3. Values were transcribed visually from the filings by the orchestrator, cross-checked against printed totals (NPL groups sum to the loan-quality total; provision components sum to the note total) and then passed through the same validator as the web upload, which recomputes NPL, LLR coverage, ROA and ROE with versioned formulas and calculation receipts. Definitions follow Gold v5: margin-lending balances and their allowances are excluded from gross loans and provisions when reported outside the loan classification (ACB, TCB, VPB; MBB classifies margin loans in group 1 and is kept as reported).
+4. `scripts/build_operational_snapshot.py` merges the per-bank candidates into one snapshot whose peer universe `sector:bank` contains all ten banks, so medians and ranks are over ten banks.
+5. Gold v5 (`gold-bank-2025-expanded-v5-evidence`) remains the frozen evaluation benchmark; chapter 5 results are not re-run on this snapshot. The product may serve this snapshot by pointing `SQLITE_DB_PATH` (or the Supabase object) at it.
+6. Generic acceptance change: peer-benchmark members may be formula-derived metrics (`derived_metric` refs), validated through their input lineage; Gold members remain primary observations.
+
+### Limitations
+
+Transcription was performed by an AI agent and is not an independent human review; reviewer is recorded as `claude-orchestrator-visual-transcription`. Only one period with ratios (2025_Q4) is available, so multi-period trends are not supported on this snapshot.

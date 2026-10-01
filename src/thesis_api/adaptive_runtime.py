@@ -3382,7 +3382,10 @@ class _AdaptiveRun:
             data_refs = tuple(
                 ClaimDataRef(
                     ref_id=peer_observations[entity].observation_id,
-                    ref_type="observation", entity=entity, period=period, metric_id=metric_id,
+                    # Members recomputed from source-backed inputs are validated through their
+                    # formula lineage, the same way a direct derived-metric claim is.
+                    ref_type="derived_metric" if peer_observations[entity].derivation_method else "observation",
+                    entity=entity, period=period, metric_id=metric_id,
                 )
                 for entity in valid_peers
             )

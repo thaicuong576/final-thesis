@@ -3,6 +3,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { BarChart3, Database, FileText, MessageSquareText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { analyticalPeriodIds } from '@/entities/capability/model/coverage';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import {
   Sidebar,
@@ -122,11 +123,11 @@ function DatasetStatus() {
   const { data } = useAnalysisCapabilities();
   if (!data) return null;
   const tickers = (data.entities || []).map((e) => e.ticker || e.id);
-  const periods = (data.periods || []).map((p) => p.id);
-  const latest = periods.slice().sort().pop();
+  const periods = analyticalPeriodIds(data);
+  const latest = periods[periods.length - 1];
   const years = Array.from(new Set(periods.map((p) => p.slice(0, 4)))).sort();
   const snapshot = data.dataset_snapshot_id || data.datasetSnapshotId || data.snapshotId || '';
-  const label = snapshot.startsWith('gold') ? 'Bộ Gold v5 · đã đối chiếu BCTC' : 'BCTC kiểm toán · đã đối chiếu';
+  const label = snapshot.startsWith('gold') ? 'Bộ Gold v5 · đã đối chiếu BCTC' : 'BCTC hợp nhất · đã đối chiếu';
   const latestLabel = latest ? latest.replace(/^(\d{4})_Q(\d)$/, 'Q$2/$1') : '';
   return (
     <div className="mx-3 mt-auto mb-3 rounded-xl bg-sidebar-accent p-3 text-xs text-[#aaa497] group-data-[collapsible=icon]:hidden">
@@ -135,7 +136,7 @@ function DatasetStatus() {
         {label}
       </p>
       <p className="mt-1.5 mb-2 leading-relaxed">
-        {tickers.length} ngân hàng · {years.join('–')}
+        {tickers.length} ngân hàng · {years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : years[0]}
         {latestLabel ? ` · mới nhất ${latestLabel}` : ''} · {(data.metrics || []).length} chỉ tiêu
       </p>
       <div className="flex flex-wrap gap-1">

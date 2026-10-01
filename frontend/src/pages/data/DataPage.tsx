@@ -1,214 +1,165 @@
-import { useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowRight, Database, FileText, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, Database, Loader2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PageCrumbs } from '@/components/layout/PageCrumbs';
 import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
-import { formatPeriodsSignature } from '@/features/analysis-composer/model/intentParser';
 import { BankUploadSection } from '@/features/onboarding/BankUploadSection';
-import type { CoverageItem, Entity, Metric, PeerUniverse } from '@/entities/capability/model/types';
+import type { CoverageItem, Entity, Metric } from '@/entities/capability/model/types';
+import { analyticalPeriodIds, formatQuarter } from '@/entities/capability/model/coverage';
 
-function getDirectionLabel(direction?: string): string {
+const CORE_METRICS = 4;
+
+/** Plain-language definitions shown to readers; formulas match the versioned code formulas. */
+const METRIC_DEFINITIONS: Record<string, { name: string; formula: string }> = {
+  'bank.npl_g35': {
+    name: 'Tỷ lệ nợ xấu',
+    formula: 'Dư nợ nhóm 3–5 / tổng dư nợ cho vay khách hàng',
+  },
+  'bank.llr_coverage': {
+    name: 'Tỷ lệ bao phủ nợ xấu',
+    formula: 'Dự phòng rủi ro cho vay khách hàng / dư nợ nhóm 3–5',
+  },
+  'bank.roa': {
+    name: 'Tỷ suất sinh lời trên tổng tài sản (ROA)',
+    formula: 'Lợi nhuận sau thuế 4 quý gần nhất / tổng tài sản bình quân',
+  },
+  'bank.roe': {
+    name: 'Tỷ suất sinh lời trên vốn chủ sở hữu (ROE)',
+    formula: 'Lợi nhuận của cổ đông ngân hàng mẹ 4 quý gần nhất / vốn chủ sở hữu bình quân',
+  },
+};
+
+function metricSymbol(metric: Metric): string {
+  if (metric.id === 'bank.npl_g35') return 'NPL';
+  if (metric.id === 'bank.llr_coverage') return 'LLR';
+  return (metric.acronym || metric.shortLabel || metric.id).replace(/_.*$/, '');
+}
+
+function directionLabel(direction?: string): string {
   if (direction === 'higher_is_better') return 'Càng cao càng tốt';
   if (direction === 'lower_is_better') return 'Càng thấp càng tốt';
-  if (direction === 'neutral') return 'Trung tính';
   return 'Theo dõi';
 }
 
-function isDistinctName(name?: string, ticker?: string): boolean {
-  if (!name || !name.trim()) return false;
-  if (!ticker || !ticker.trim()) return true;
-  return name.trim().toUpperCase() !== ticker.trim().toUpperCase();
-}
-
-function formatEntityCatalogEntry(entity: Entity): string {
-  return isDistinctName(entity.name, entity.ticker)
-    ? `${entity.ticker} (${entity.name})`
-    : entity.ticker;
-}
-
-function formatMetricSymbol(metric: Metric): string {
-  if (metric.acronym === 'LLR_COVERAGE') return 'LLR';
-  if (metric.acronym === 'NPL_G35') return 'NPL';
-  if (metric.acronym) {
-    return metric.acronym.replace(/_COVERAGE$/, '').replace(/_G\d+$/, '');
-  }
-  return metric.shortLabel || metric.id || '';
-}
-
-function formatCapabilityName(capability: string): string {
-  switch (capability.toLowerCase()) {
-    case 'company':
-      return 'Doanh nghiệp';
-    case 'sector':
-      return 'Nhóm ngành';
-    case 'macro':
-      return 'Vĩ mô';
-    default:
-      return capability;
-  }
-}
-
-function formatPeerUniverseLabel(peerUniverse?: PeerUniverse | null): string {
-  if (!peerUniverse) return 'API chưa công bố nhóm tham chiếu';
-  const entityCount = peerUniverse.entityIds?.length ?? 0;
-  if (entityCount > 0) {
-    return `${entityCount} ngân hàng: ${peerUniverse.entityIds.join(', ')}`;
-  }
-  return peerUniverse.label || 'API chưa công bố nhóm tham chiếu';
-}
-
-function formatPeriodColumnLabel(periodId: string): string {
-  const match = periodId.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
-  if (match) {
-    return `Q${match[2]}/${match[1]}`;
-  }
-  return periodId;
-}
-
-interface CoverageMatrixSectionProps {
+interface MatrixProps {
   coverage: CoverageItem[];
   entities: Entity[];
+  periodIds: string[];
 }
 
-function CoverageMatrixSection({ coverage, entities }: CoverageMatrixSectionProps) {
-  const activePeriodIds = useMemo(() => {
-    if (!coverage || coverage.length === 0) return [];
-    const periodsWithData = new Set<string>();
-    for (const item of coverage) {
-      if (item.metrics && item.metrics.length > 0) {
-        periodsWithData.add(item.period_id);
-      }
-    }
-    const targetSet =
-      periodsWithData.size > 0
-        ? periodsWithData
-        : new Set(coverage.map((c) => c.period_id));
-
-    return Array.from(targetSet).sort((a, b) => {
-      const ma = a.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
-      const mb = b.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
-      if (ma && mb) {
-        const yDiff = Number(ma[1]) - Number(mb[1]);
-        if (yDiff !== 0) return yDiff;
-        return Number(ma[2]) - Number(mb[2]);
-      }
-      return a.localeCompare(b);
-    });
-  }, [coverage]);
-
-  const coverageMap = useMemo(() => {
-    const map = new Map<string, string[]>();
-    for (const item of coverage) {
-      map.set(`${item.entity_id.toUpperCase()}:${item.period_id}`, item.metrics);
-    }
+function CoverageMatrix({ coverage, entities, periodIds }: MatrixProps) {
+  const byCell = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of coverage) map.set(`${c.entity_id.toUpperCase()}:${c.period_id}`, c.metrics?.length ?? 0);
     return map;
   }, [coverage]);
-
-  const sortedEntities = useMemo(() => {
-    return [...entities].sort((a, b) => (a.ticker || a.id).localeCompare(b.ticker || b.id));
-  }, [entities]);
-
-  if (activePeriodIds.length === 0 || sortedEntities.length === 0) {
-    return null;
-  }
+  const banks = useMemo(
+    () => [...entities].sort((a, b) => (a.ticker || a.id).localeCompare(b.ticker || b.id)),
+    [entities]
+  );
+  const years = useMemo(() => {
+    const out: { year: string; count: number }[] = [];
+    for (const p of periodIds) {
+      const y = p.slice(0, 4);
+      const last = out[out.length - 1];
+      if (last && last.year === y) last.count += 1;
+      else out.push({ year: y, count: 1 });
+    }
+    return out;
+  }, [periodIds]);
+  const latest = periodIds[periodIds.length - 1];
 
   return (
-    <section className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="coverage-heading">
-      <div className="border-b border-line pb-3">
-        <div className="flex items-center gap-2">
-          <Database className="size-4 text-ink-secondary shrink-0" aria-hidden="true" />
-          <h2 id="coverage-heading" className="text-base font-bold text-ink">
-            Ma trận độ bao phủ dữ liệu
-          </h2>
-        </div>
-        <p className="mt-1 text-xs text-ink-secondary">
-          Tỷ lệ bao phủ 4 chỉ tiêu cốt lõi (NPL, LLR, ROA, ROE) theo từng ngân hàng và kỳ báo cáo trong snapshot đã kiểm định.
-        </p>
-      </div>
-
-      <div className="mt-4 w-full max-w-full min-w-0 overflow-x-auto rounded border border-line">
-        <table className="w-full min-w-[640px] border-collapse text-left text-xs" data-testid="coverage-matrix-table">
-          <thead>
-            <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
-              <th scope="col" className="sticky left-0 z-20 bg-surface-secondary py-2.5 px-3 font-semibold shadow-[1px_0_0_0_hsl(var(--border))]">
-                Ngân hàng
+    <div className="w-full min-w-0 overflow-x-auto" data-testid="coverage-matrix-scroll">
+      <table className="w-full min-w-[620px] border-separate border-spacing-0 text-xs" data-testid="coverage-matrix-table">
+        <caption className="sr-only">Độ phủ số liệu theo ngân hàng và quý</caption>
+        <thead>
+          <tr>
+            <th scope="col" rowSpan={2} className="sticky left-0 z-20 w-20 whitespace-nowrap bg-card pb-2 pr-3 text-left align-bottom font-semibold text-ink-secondary">
+              Ngân hàng
+            </th>
+            {years.map((y) => (
+              <th
+                key={y.year}
+                scope="colgroup"
+                colSpan={y.count}
+                className="border-b border-line pb-1 text-center font-mono text-[11px] font-semibold tracking-wide text-ink-secondary"
+              >
+                {y.year}
               </th>
-              {activePeriodIds.map((pId) => (
-                <th key={pId} scope="col" className="py-2.5 px-3 text-center font-semibold whitespace-nowrap">
-                  {formatPeriodColumnLabel(pId)}
+            ))}
+            <th scope="col" rowSpan={2} className="w-16 whitespace-nowrap pb-2 pl-3 text-right align-bottom font-semibold text-ink-secondary">
+              Đủ số liệu
+            </th>
+          </tr>
+          <tr>
+            {periodIds.map((p) => (
+              <th
+                key={p}
+                scope="col"
+                className={`pt-1.5 pb-2 text-center font-mono text-[11px] font-semibold ${p === latest ? 'text-text-accent' : 'text-ink-tertiary'}`}
+              >
+                Q{p.slice(-1)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {banks.map((bank) => {
+            const key = (bank.ticker || bank.id).toUpperCase();
+            const full = periodIds.filter((p) => (byCell.get(`${key}:${p}`) ?? 0) >= CORE_METRICS).length;
+            return (
+              <tr key={bank.id}>
+                <th scope="row" className="sticky left-0 z-10 bg-card py-[3px] pr-3 text-left font-mono text-[12px] font-semibold text-ink" title={bank.name}>
+                  {bank.ticker || bank.id}
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {sortedEntities.map((entity) => {
-              const entityKey = (entity.ticker || entity.id).toUpperCase();
-              return (
-                <tr key={entity.id} className="hover:bg-surface-hover/50">
-                  <td className="sticky left-0 z-10 bg-card py-2.5 px-3 font-bold text-ink whitespace-nowrap shadow-[1px_0_0_0_hsl(var(--border))]">
-                    {entity.ticker || entity.id}
-                  </td>
-                  {activePeriodIds.map((pId) => {
-                    const metrics =
-                      coverageMap.get(`${entityKey}:${pId}`) ??
-                      coverageMap.get(`${entity.id.toUpperCase()}:${pId}`) ??
-                      [];
-                    const count = metrics.length;
-                    return (
-                      <td key={pId} className="py-2.5 px-3 text-center whitespace-nowrap">
-                        {count === 4 ? (
-                          <span className="inline-flex items-center justify-center rounded px-2 py-0.5 font-mono text-xs font-semibold bg-ready-soft text-text-success border border-ready/30">
-                            4/4
-                          </span>
-                        ) : count > 0 ? (
-                          <span className="inline-flex items-center justify-center rounded px-2 py-0.5 font-mono text-xs font-semibold bg-warning-soft text-text-warning border border-warning/30">
-                            {count}/4
-                          </span>
+                {periodIds.map((p) => {
+                  const n = byCell.get(`${key}:${p}`) ?? 0;
+                  const quarter = formatQuarter(p);
+                  const state = n >= CORE_METRICS ? 'full' : n > 0 ? 'partial' : 'missing';
+                  const label =
+                    state === 'full'
+                      ? `${key} ${quarter}: đủ ${CORE_METRICS} chỉ tiêu`
+                      : state === 'partial'
+                        ? `${key} ${quarter}: có ${n}/${CORE_METRICS} chỉ tiêu`
+                        : `${key} ${quarter}: chưa có báo cáo`;
+                  return (
+                    <td key={p} className="px-[3px] py-[3px]">
+                      <div
+                        role="img"
+                        aria-label={label}
+                        title={label}
+                        data-state={state}
+                        className={
+                          state === 'full'
+                            ? 'flex h-7 items-center justify-center rounded-sm bg-ready-soft'
+                            : state === 'partial'
+                              ? 'flex h-7 items-center justify-center rounded-sm bg-warning-soft font-mono text-[10px] font-semibold text-text-warning'
+                              : 'flex h-7 items-center justify-center rounded-sm border border-dashed border-border-strong bg-surface-secondary font-mono text-[11px] text-ink-tertiary'
+                        }
+                      >
+                        {state === 'full' ? (
+                          <span className="size-1.5 rounded-full bg-ready" aria-hidden="true" />
+                        ) : state === 'partial' ? (
+                          `${n}/${CORE_METRICS}`
                         ) : (
-                          <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-ink-tertiary border border-line/50">
-                            chưa có báo cáo
-                          </span>
+                          '–'
                         )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ink-secondary">
-        <span className="font-semibold text-ink">Chú thích:</span>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold bg-ready-soft text-text-success border border-ready/30">
-            4/4
-          </span>
-          <span>Đầy đủ 4 chỉ tiêu</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold bg-warning-soft text-text-warning border border-warning/30">
-            1–3/4
-          </span>
-          <span>Có một phần chỉ tiêu</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-ink-tertiary border border-line/50">
-            chưa có báo cáo
-          </span>
-          <span>Chưa có báo cáo tài chính</span>
-        </div>
-      </div>
-
-      <div className="mt-3 border-t border-line pt-3">
-        <p className="text-xs text-ink-secondary">
-          Các kỳ thiếu báo cáo không bao giờ được suy diễn hay nội suy số liệu; báo cáo phân tích sẽ ghi nhận rõ độ bao phủ thực tế.
-        </p>
-      </div>
-    </section>
+                      </div>
+                    </td>
+                  );
+                })}
+                <td className="py-[3px] pl-3 text-right font-mono text-[12px] tabular-nums text-ink-secondary">
+                  {full}/{periodIds.length}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -217,53 +168,56 @@ export function DataPage() {
 
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = 'Dữ liệu phân tích · Phân tích tài chính';
+    document.title = 'Dữ liệu · Phân tích tài chính';
     return () => {
       document.title = previousTitle;
     };
   }, []);
 
   const capabilities = capabilitiesQuery.data;
-  const runnableCapabilities = new Set(
-    capabilities?.analysis_available === true ? capabilities.implemented_capabilities ?? [] : []
-  );
-  const canRunPeerAnalysis = runnableCapabilities.has('sector');
-  const canRunMacroAnalysis = runnableCapabilities.has('macro');
+  const periodIds = useMemo(() => (capabilities ? analyticalPeriodIds(capabilities) : []), [capabilities]);
+  const coverage = capabilities?.coverage ?? [];
+  const bankCount = capabilities?.entities.length ?? 0;
+  const cells = bankCount * periodIds.length;
+  const fullCells = coverage.filter(
+    (c) => periodIds.includes(c.period_id) && (c.metrics?.length ?? 0) >= CORE_METRICS
+  ).length;
+  const missingCells = cells - fullCells;
+  const range = periodIds.length ? `${formatQuarter(periodIds[0])} – ${formatQuarter(periodIds[periodIds.length - 1])}` : '';
 
   const isEmpty =
     Boolean(capabilities) &&
     !capabilitiesQuery.isPending &&
     !capabilitiesQuery.isError &&
     capabilities!.entities.length === 0 &&
-    capabilities!.metrics.length === 0 &&
-    capabilities!.periods.length === 0;
+    capabilities!.metrics.length === 0;
 
   return (
     <WorkspaceShell activeSection="data" context={<PageCrumbs items={[{ label: 'Dữ liệu' }]} />}>
       <div className="min-h-[calc(100vh-80px)] w-full max-w-full min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-[1120px] min-w-0 space-y-6">
-          <header className="border-b border-line pb-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">Dữ liệu phân tích</h1>
-                <p className="mt-1 max-w-2xl text-sm text-ink-secondary break-words">
-                  Catalog dưới đây do API công bố. Chỉ có thể chạy phân tích khi API xác nhận snapshot dữ liệu đã kiểm định và năng lực tương ứng.
-                </p>
-              </div>
-              {capabilities?.analysis_available === true && (
-                <Button asChild className="h-9 w-fit border border-amber-border bg-amber px-3 text-xs font-semibold text-ink hover:bg-amber-hover shrink-0">
-                  <Link to="/analysis">
-                    Tạo phân tích <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
-                  </Link>
-                </Button>
-              )}
+        <div className="mx-auto w-full max-w-[1080px] min-w-0 space-y-6">
+          <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="m-0 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-text-accent">Phạm vi dữ liệu</p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">Dữ liệu đang dùng để phân tích</h1>
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-secondary">
+                Số liệu lấy từ báo cáo tài chính hợp nhất của từng ngân hàng, đối chiếu tới số trang. Mọi con số trong báo cáo
+                phân tích đều nằm trong bảng dưới đây; quý nào chưa có báo cáo thì để trống, không ước tính.
+              </p>
             </div>
+            {capabilities?.analysis_available === true && (
+              <Button asChild className="h-9 w-fit shrink-0 border border-amber-border bg-amber px-3 text-xs font-semibold text-ink hover:bg-amber-hover">
+                <Link to="/analysis">
+                  Đặt câu hỏi <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
+                </Link>
+              </Button>
+            )}
           </header>
 
           {capabilitiesQuery.isPending && (
             <div className="flex items-center gap-3 rounded-md border border-line bg-card p-5 text-sm text-ink-secondary" role="status">
-              <Loader2 className="size-4 animate-spin text-ink-secondary shrink-0" aria-hidden="true" />
-              <span>Đang tải phạm vi dữ liệu từ hệ thống…</span>
+              <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+              <span>Đang tải phạm vi dữ liệu…</span>
             </div>
           )}
 
@@ -271,19 +225,14 @@ export function DataPage() {
             <div className="rounded-md border border-warning/40 bg-card p-5" role="alert">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true" />
-                <div className="space-y-3 min-w-0 flex-1">
-                  <h2 className="text-sm font-bold text-ink">Không thể xác định dữ liệu đang hỗ trợ</h2>
+                <div className="min-w-0 flex-1 space-y-3">
+                  <h2 className="text-sm font-bold text-ink">Không tải được phạm vi dữ liệu</h2>
                   <p className="text-sm text-ink-secondary break-words">
                     {capabilitiesQuery.error instanceof Error
                       ? capabilitiesQuery.error.message
-                      : 'Không thể xác nhận phạm vi từ API. Hãy thử tải lại trước khi tạo phân tích.'}
+                      : 'Máy chủ chưa phản hồi. Hãy thử tải lại.'}
                   </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => void capabilitiesQuery.refetch()}
-                    className="border-line text-xs font-medium"
-                  >
+                  <Button type="button" variant="outline" onClick={() => void capabilitiesQuery.refetch()} className="border-line text-xs font-medium">
                     Thử tải lại
                   </Button>
                 </div>
@@ -295,9 +244,7 @@ export function DataPage() {
             <div className="rounded-md border border-line bg-card p-8 text-center" role="region" aria-label="Dữ liệu rỗng">
               <Database className="mx-auto size-8 text-ink-tertiary" aria-hidden="true" />
               <h2 className="mt-3 text-base font-bold text-ink">Chưa có dữ liệu phân tích</h2>
-              <p className="mx-auto mt-1 max-w-md text-sm text-ink-secondary break-words">
-                API hiện chưa công bố dữ liệu hoặc snapshot đã kiểm định nào. Hãy kiểm tra kết nối với kho dữ liệu.
-              </p>
+              <p className="mx-auto mt-1 max-w-md text-sm text-ink-secondary">Máy chủ chưa nạp bộ dữ liệu đã kiểm định.</p>
             </div>
           )}
 
@@ -305,159 +252,84 @@ export function DataPage() {
             <>
               {capabilities.analysis_available !== true && (
                 <div className="rounded-md border border-warning/40 bg-warning-soft/50 p-4" role="alert">
-                  <h2 className="text-sm font-bold text-ink">Chưa thể chạy phân tích trên dữ liệu hiện tại</h2>
-                  <p className="mt-1 text-sm text-ink-secondary break-words">
-                    API chưa xác nhận snapshot đã kiểm định có thể chạy. Catalog vẫn hiển thị để tham khảo; trạng thái kho dữ liệu: {capabilities.database_status || 'chưa được API công bố'}.
-                  </p>
+                  <h2 className="text-sm font-bold text-ink">Chưa thể chạy phân tích</h2>
+                  <p className="mt-1 text-sm text-ink-secondary">Bộ dữ liệu vẫn hiển thị để tham khảo, nhưng máy chủ chưa sẵn sàng phân tích.</p>
                 </div>
               )}
 
-              {/* Section 1: Catalog & Snapshot Overview */}
-              <section className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="dataset-heading">
-                <div className="border-b border-line pb-4">
-                  <div className="flex items-center gap-2">
-                    <Database className="size-4 text-ink-secondary shrink-0" aria-hidden="true" />
-                    <h2 id="dataset-heading" className="text-base font-bold text-ink">Catalog năng lực API</h2>
+              <dl className="grid grid-cols-2 overflow-hidden rounded-md border border-line bg-card sm:grid-cols-4" data-testid="dataset-stats">
+                {[
+                  ['Ngân hàng', String(bankCount), 'niêm yết, cùng một nhóm so sánh'],
+                  ['Kỳ', String(periodIds.length || '—'), range || 'chưa công bố'],
+                  ['Chỉ tiêu', String(capabilities.metrics.length), 'chất lượng tài sản và sinh lời'],
+                  ['Độ phủ', cells ? `${fullCells}/${cells}` : '—', missingCells > 0 ? `${missingCells} ô ngân hàng–quý chưa có báo cáo` : 'đủ mọi ngân hàng – quý'],
+                ].map(([label, value, note], i) => (
+                  <div key={label} className={`p-4 ${i % 2 ? 'border-l' : ''} ${i > 1 ? 'border-t sm:border-t-0' : ''} ${i === 2 ? 'sm:border-l' : ''} border-line`}>
+                    <dt className="text-xs text-ink-secondary">{label}</dt>
+                    <dd className="m-0 mt-1 font-mono text-2xl font-semibold tabular-nums text-ink">{value}</dd>
+                    <dd className="m-0 mt-0.5 text-[11px] leading-snug text-ink-tertiary">{note}</dd>
                   </div>
-                  <p className="mt-2 font-mono text-xs text-ink-secondary break-all">
-                    {capabilities.dataset_snapshot_id
-                      ? `Snapshot đã kiểm định: ${capabilities.dataset_snapshot_id}`
-                      : `Mã catalog: ${capabilities.snapshotId || 'chưa công bố'} · Snapshot đã kiểm định: chưa công bố`}
-                  </p>
-                </div>
+                ))}
+              </dl>
 
-                <dl className="grid grid-cols-2 gap-4 py-5 text-sm sm:grid-cols-4">
-                  <div>
-                    <dt className="text-xs text-ink-secondary">Ngân hàng</dt>
-                    <dd className="mt-1 font-semibold text-ink">{capabilities.entities.length}</dd>
+              {coverage.length > 0 && periodIds.length > 0 && (
+                <section className="rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="coverage-heading">
+                  <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h2 id="coverage-heading" className="m-0 text-base font-bold text-ink">Độ phủ theo quý</h2>
+                      <p className="mt-1 text-xs text-ink-secondary">
+                        Mỗi ô là một ngân hàng trong một quý. Ô đầy đủ có cả {CORE_METRICS} chỉ tiêu, mỗi chỉ tiêu được tính lại từ số liệu gốc.
+                      </p>
+                    </div>
+                    <ul className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-[11px] text-ink-secondary" aria-label="Chú thích">
+                      <li className="flex items-center gap-1.5"><span className="inline-flex h-3 w-4 items-center justify-center rounded-sm bg-ready-soft" aria-hidden="true"><span className="size-1 rounded-full bg-ready" /></span>Đủ {CORE_METRICS} chỉ tiêu</li>
+                      <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-4 rounded-sm bg-warning-soft" aria-hidden="true" />Thiếu một phần</li>
+                      <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-4 rounded-sm border border-dashed border-border-strong bg-surface-secondary" aria-hidden="true" />Chưa có báo cáo</li>
+                    </ul>
                   </div>
-                  <div>
-                    <dt className="text-xs text-ink-secondary">Kỳ dữ liệu</dt>
-                    <dd className="mt-1 font-semibold text-ink">{formatPeriodsSignature(capabilities.periods) || 'Chưa công bố'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-ink-secondary">Chỉ tiêu</dt>
-                    <dd className="mt-1 font-semibold text-ink">{capabilities.metrics.length}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-ink-secondary">Phân tích khả dụng</dt>
-                    <dd className="mt-1 font-semibold text-ink">{capabilities.analysis_available === true ? 'Có' : 'Chưa xác nhận'}</dd>
-                  </div>
+                  <CoverageMatrix coverage={coverage} entities={capabilities.entities} periodIds={periodIds} />
+                </section>
+              )}
+
+              <section className="rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="metrics-heading">
+                <h2 id="metrics-heading" className="m-0 text-base font-bold text-ink">Chỉ tiêu và cách tính</h2>
+                <dl className="mt-4 grid gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-2">
+                  {capabilities.metrics.map((metric) => {
+                    const def = METRIC_DEFINITIONS[metric.id];
+                    return (
+                      <div key={metric.id} className="bg-card p-4">
+                        <dt className="flex items-baseline gap-2">
+                          <span className="font-mono text-xs font-semibold text-text-accent">{metricSymbol(metric)}</span>
+                          <span className="text-sm font-semibold text-ink">{def?.name || metric.label}</span>
+                        </dt>
+                        {def && <dd className="m-0 mt-1.5 text-xs leading-relaxed text-ink-secondary">{def.formula}</dd>}
+                        <dd className="m-0 mt-1 text-[11px] text-ink-tertiary">
+                          {metric.groupLabel || metric.group || 'Chung'} · {directionLabel(metric.direction)}
+                        </dd>
+                      </div>
+                    );
+                  })}
                 </dl>
-
-                <div className="grid gap-5 border-t border-line pt-5 text-sm sm:grid-cols-2">
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-ink-secondary">Ngân hàng trong catalog</h3>
-                    <p className="mt-2 leading-relaxed text-ink break-words">
-                      {capabilities.entities.map(formatEntityCatalogEntry).join(' · ') || 'Chưa công bố'}
-                    </p>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-ink-secondary">Chỉ tiêu trong catalog</h3>
-                    <p className="mt-2 leading-relaxed text-ink break-words">
-                      {capabilities.metrics.map(formatMetricSymbol).join(' · ') || 'Chưa công bố'}
-                    </p>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-ink-secondary">Nhóm tham chiếu</h3>
-                    <p className="mt-2 text-ink break-words">
-                      {canRunPeerAnalysis
-                        ? formatPeerUniverseLabel(capabilities.peerUniverse)
-                        : 'API chưa xác nhận phân tích nhóm tham chiếu có thể chạy.'}
-                    </p>
-                    {canRunPeerAnalysis && capabilities.peerUniverse?.description && (
-                      <p className="mt-1 text-xs text-ink-secondary break-words">{capabilities.peerUniverse.description}</p>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-ink-secondary">Bối cảnh vĩ mô</h3>
-                    <p className="mt-2 text-ink break-words">
-                      {canRunMacroAnalysis
-                        ? capabilities.macro.summary
-                        : 'API chưa xác nhận năng lực phân tích vĩ mô có thể chạy.'}
-                    </p>
-                    {canRunMacroAnalysis && <p className="mt-1 text-xs text-ink-secondary break-words">{capabilities.macro.details}</p>}
-                  </div>
-                  <div className="min-w-0 sm:col-span-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-ink-secondary">Năng lực API xác nhận</h3>
-                    <p className="mt-2 text-ink break-words">
-                      {capabilities.implemented_capabilities?.length
-                        ? capabilities.implemented_capabilities.map(formatCapabilityName).join(' · ')
-                        : 'Chưa công bố'}
-                    </p>
-                    <p className="mt-1 text-xs text-ink-secondary break-words">Trạng thái kho dữ liệu: {capabilities.database_status || 'chưa được API công bố'}</p>
-                  </div>
-                </div>
-
-                <div className="mt-5 border-t border-line pt-3">
-                  <p className="text-xs text-ink-secondary">
-                    Ghi chú: Ô thiếu số liệu đã kiểm định sẽ được ghi rõ trong từng báo cáo.
-                  </p>
-                </div>
               </section>
 
-              {/* Section 2: Ma trận độ bao phủ dữ liệu */}
-              {capabilities.coverage && capabilities.coverage.length > 0 && (
-                <CoverageMatrixSection coverage={capabilities.coverage} entities={capabilities.entities} />
-              )}
-
-              {/* Section 3: Danh mục chỉ tiêu tài chính */}
-              <section className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="metrics-heading">
-                <div className="border-b border-line pb-3">
-                  <h2 id="metrics-heading" className="text-base font-bold text-ink">Chỉ tiêu tài chính ({capabilities.metrics.length})</h2>
-                  <p className="mt-1 text-xs text-ink-secondary">Các chỉ số được định nghĩa theo chuẩn tài chính, có nhãn tiếng Việt và đơn vị đo rõ ràng.</p>
-                </div>
-                <div className="mt-4 w-full max-w-full min-w-0 overflow-x-auto rounded border border-line">
-                  <table className="w-full min-w-[500px] border-collapse text-left text-xs sm:text-sm">
-                    <thead>
-                      <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
-                        <th scope="col" className="py-2.5 px-3 font-semibold">Ký hiệu</th>
-                        <th scope="col" className="py-2.5 px-3 font-semibold">Tên chỉ tiêu (tiếng Việt)</th>
-                        <th scope="col" className="py-2.5 px-3 text-center font-semibold">Đơn vị</th>
-                        <th scope="col" className="py-2.5 px-3 font-semibold">Nhóm chỉ tiêu</th>
-                        <th scope="col" className="py-2.5 px-3 font-semibold">Chiều hướng</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                      {capabilities.metrics.map((metric) => (
-                        <tr key={metric.id} className="hover:bg-surface-hover/50">
-                          <td className="py-2.5 px-3 font-bold text-ink">{formatMetricSymbol(metric)}</td>
-                          <td className="py-2.5 px-3 font-medium text-ink">{metric.label}</td>
-                          <td className="py-2.5 px-3 text-center font-mono text-xs font-semibold text-ink-secondary">{metric.unit || '%'}</td>
-                          <td className="py-2.5 px-3 text-ink-secondary">{metric.groupLabel || metric.group || 'Chung'}</td>
-                          <td className="py-2.5 px-3 text-xs text-ink-secondary">{getDirectionLabel(metric.direction)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-
-              {/* Section 3: Thêm ngân hàng mới từ tệp CSV */}
               <BankUploadSection />
 
-              {/* Section 4: Nguồn và giới hạn */}
-              <section className="w-full min-w-0 rounded-md border border-line bg-surface-secondary p-4 sm:p-5 text-sm" aria-labelledby="source-heading">
-                <div className="flex items-center gap-2">
-                  <FileText className="size-4 text-ink-secondary shrink-0" aria-hidden="true" />
-                  <h2 id="source-heading" className="font-bold text-ink">Nguồn và giới hạn</h2>
-                </div>
-                {capabilities.analysis_available === true ? (
-                  <>
-                    <p className="mt-2 text-ink-secondary break-words">{capabilities.source || 'API chưa công bố nguồn dữ liệu chi tiết.'}</p>
-                    <p className="mt-2 text-ink-secondary break-words">
-                      Phiên bản Gold: {capabilities.goldVersion || 'chưa công bố'} · Kiểm tra gần nhất: {capabilities.validationTimestamp || 'chưa công bố'}
-                    </p>
-                    <p className="mt-3 border-t border-line pt-3 text-ink-secondary break-words">
-                      Để thêm ngân hàng mới ngoài 5 ngân hàng Gold (ví dụ CTG), hãy sử dụng chức năng tải lên tệp CSV đã đối chiếu ở trên. Dữ liệu tải lên được xác thực độc lập và không làm thay đổi bộ số liệu chuẩn Gold v5.
-                    </p>
-                  </>
-                ) : (
-                  <p className="mt-2 text-ink-secondary break-words">
-                    API chưa xác nhận snapshot có thể chạy. Nguồn, phiên bản dữ liệu và thời điểm kiểm định chưa được xác nhận.
-                  </p>
-                )}
-              </section>
+              <details className="group rounded-md border border-line bg-surface-secondary px-4 py-3 text-xs text-ink-secondary sm:px-5">
+                <summary className="cursor-pointer select-none font-semibold text-ink">Chi tiết kỹ thuật</summary>
+                <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-[max-content_1fr]">
+                  {[
+                    ['Mã bộ dữ liệu', capabilities.datasetId || '—'],
+                    ['Mã bản chụp', capabilities.dataset_snapshot_id || capabilities.datasetSnapshotId || '—'],
+                    ['Nguồn', capabilities.source || '—'],
+                    ['Kho dữ liệu', capabilities.database_status || '—'],
+                  ].map(([k, v]) => (
+                    <Fragment key={k}>
+                      <dt className="text-ink-tertiary">{k}</dt>
+                      <dd className="m-0 break-all font-mono text-[11px] text-ink-secondary">{v}</dd>
+                    </Fragment>
+                  ))}
+                </dl>
+              </details>
             </>
           )}
         </div>

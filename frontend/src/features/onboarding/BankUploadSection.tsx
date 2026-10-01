@@ -160,7 +160,7 @@ export function BankUploadSection() {
           </h2>
         </div>
         <p className="mt-1 text-xs text-ink-secondary leading-relaxed">
-          Tải lên bảng số liệu BCTC đã đối chiếu của ngân hàng mới (ví dụ CTG) để hệ thống tự động kiểm tra cấu trúc, định vị nguồn sơ cấp, tái tính toán 4 chỉ tiêu tài chính và phân tích đối chiếu với nhóm 5 ngân hàng Gold v5.
+          Tải lên số liệu báo cáo tài chính đã đối chiếu của một ngân hàng chưa có trong bộ dữ liệu. Hệ thống kiểm tra cấu trúc tệp và vị trí nguồn, tự tính lại 4 chỉ tiêu, rồi cho phép hỏi về ngân hàng đó và so với nhóm ngân hàng sẵn có. Ngân hàng tải lên không được tính vào trung vị nhóm.
         </p>
       </div>
 

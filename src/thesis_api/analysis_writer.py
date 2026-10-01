@@ -63,6 +63,7 @@ FINDINGS_PROMPT_TEMPLATE = (
     "1. Mỗi câu liệt kê fact_ids nó dựa vào, chỉ dùng fact_id có trong danh sách.\n"
     "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
     "3. Chỉ nói tăng/giảm/liên tục/thu hẹp khi có fact thay đổi; chỉ nói cao hơn/thấp hơn/nhỉnh hơn khi có fact chênh lệch; chỉ nói \"nhất/hạng\" khi có fact hạng.\n"
+    "3b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
     "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Được dùng \"hàm ý\" cho phép phân rã như ROE/ROA. Không khuyến nghị mua/bán.\n"
     "5. Câu tối đa 30 từ, giọng báo cáo phân tích, dùng tên chỉ tiêu tiếng Việt, không dùng mã như bank.roe.\n"
     "6. Nếu có \"ung_vien_mau_thuan\", được nêu dữ kiện liên quan nhưng không kết luận nguyên nhân.\n"
@@ -78,6 +79,7 @@ COMPOSE_REPORT_PROMPT_TEMPLATE = (
     "- Mỗi hình chọn chart trong allowed_charts của dataset, có title ngắn và 1 câu takeaway kèm fact_ids.\n"
     "- Chỉ đưa hình thật sự hỗ trợ một luận điểm; không đưa hình trùng ý.\n"
     "- Ưu tiên dùng lại sentence_id. Chỉ viết câu mới khi thật cần, và câu mới phải kèm fact_ids.\n"
+    "- Câu mới tả chiều thay đổi/chênh lệch phải dùng đúng cụm trong \"huong\" của fact (đi ngang, cao hơn trung vị nhóm…).\n"
     "- Phát hiện liên tầng đã xác nhận nên được đưa vào callout.\n"
     "Quy tắc số, xu hướng, nguyên nhân, khuyến nghị: giống chuyên viên. Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
     "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới).\n"
@@ -235,6 +237,7 @@ REWRITE_SENTENCE_PROMPT_TEMPLATE = (
     "1. Liệt kê fact_ids câu dựa vào, chỉ dùng fact_id trong danh sách.\n"
     "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
     "3. Chỉ nói tăng/giảm khi có fact thay đổi; chỉ nói cao/thấp hơn khi có fact chênh lệch.\n"
+    "3b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
     "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Tối đa 30 từ.\n"
     "Trả về JSON: {{\"text\":\"…\",\"fact_ids\":[\"…\"]}}"
 )
@@ -251,11 +254,15 @@ def _normalize_facts(facts: Sequence[Any]) -> list[dict[str, Any]]:
             fid = getattr(f, "fact_id", "")
             mota = getattr(f, "mo_ta", None) or getattr(f, "description", "")
             hienthi = getattr(f, "hien_thi", None) or getattr(f, "display_value", "") or str(getattr(f, "value", ""))
-        normalized.append({
+        item = {
             "fact_id": str(fid),
             "mo_ta": str(mota),
             "hien_thi": str(hienthi),
-        })
+        }
+        huong = f.get("huong") if isinstance(f, dict) else getattr(f, "huong", None)
+        if huong:
+            item["huong"] = str(huong)
+        normalized.append(item)
     return normalized
 
 

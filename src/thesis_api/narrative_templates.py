@@ -78,6 +78,26 @@ def display_fact(fact: Fact) -> str:
     return str(fact.value)
 
 
+def direction_label(fact: Fact) -> str | None:
+    """Direction wording the verifier accepts for a change/gap fact, using its flat threshold.
+
+    Given to the writer so it cannot call a move inside the flat band "giảm nhẹ" or a
+    0.6-point gap "ngang trung vị"; None for facts that carry no direction.
+    """
+    if fact.value is None:
+        return None
+    val = float(fact.value)
+    flat = get_metric_presentation(fact.metric_id).flat_threshold_pp
+    if fact.fact_type in ("delta", "median_delta"):
+        return "tăng" if val > flat else "giảm" if val < -flat else "đi ngang"
+    if fact.fact_type == "gap_to_median":
+        return "cao hơn trung vị nhóm" if val > flat else "thấp hơn trung vị nhóm" if val < -flat else "ngang trung vị nhóm"
+    if fact.fact_type == "pairwise_gap":
+        other = fact.other_entity_id or "đối thủ"
+        return f"cao hơn {other}" if val > flat else f"thấp hơn {other}" if val < -flat else f"tương đương {other}"
+    return None
+
+
 def describe_fact(fact: Fact) -> str:
     """Produce human-readable metadata description of a fact."""
     pres = get_metric_presentation(fact.metric_id)
@@ -665,12 +685,21 @@ def default_report_spec(
 
     # 5. Head-to-Head
     blocks = []
+    # Lead with the widest single-metric gap: it names the metric and both banks, whereas a
+    # bare "leads on k/n metrics" count does not say which metrics and fails verification.
+    gap_f = max(
+        [f for f in all_facts if f.fact_type == "pairwise_gap" and f.value is not None],
+        key=lambda f: abs(float(f.value or 0)),
+        default=None,
+    )
     lead_f = max(
         [f for f in all_facts if f.fact_type == "lead_count"],
         key=lambda f: float(f.value or 0),
         default=None,
     )
-    if lead_f:
+    if gap_f:
+        hl_sent = make_fallback_sentence(gap_f, author="orchestrator", seq=seq)
+    elif lead_f:
         hl_sent = make_fallback_sentence(lead_f, author="orchestrator", seq=seq)
     else:
         hl_sent = make_fallback_sentence(all_facts[0], author="orchestrator", seq=seq) if all_facts else SentenceDTO(sentence_id="sent-fb-1", text="So sánh đối đầu.", fact_ids=[], author="orchestrator", source="deterministic_fallback")

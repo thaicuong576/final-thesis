@@ -143,6 +143,7 @@ from .summaries_vi import (
 )
 from .analysis_writer import AnalysisWriterError
 from .narrative_templates import (
+    direction_label,
     default_report_spec,
     describe_fact,
     display_fact,
@@ -1112,14 +1113,14 @@ class _AdaptiveRun:
 
     @staticmethod
     def _facts_payload(facts: Sequence[Any]) -> list[dict[str, str]]:
-        return [
-            {
-                "fact_id": f.fact_id,
-                "mo_ta": describe_fact(f),
-                "hien_thi": display_fact(f),
-            }
-            for f in facts
-        ]
+        payload: list[dict[str, str]] = []
+        for f in facts:
+            item = {"fact_id": f.fact_id, "mo_ta": describe_fact(f), "hien_thi": display_fact(f)}
+            label = direction_label(f)
+            if label:
+                item["huong"] = label
+            payload.append(item)
+        return payload
 
     @staticmethod
     def _datasets_summary(datasets: Sequence[DatasetDTO]) -> list[dict[str, Any]]:
@@ -2165,6 +2166,7 @@ class _AdaptiveRun:
                     synthesis_supporting_claim_ids=tuple(c.claim_id for c in current_claims) if synth_summary_for_ctx else (),
                 )
                 self.emit("REVIEW_STARTED", {"stage": "stage2", "periods": list(periods), "message": "Running semantic critique on block-structured report."})
+                critic_limitation_issues: list[Any] = []
                 try:
                     critic_result = self.critic.evaluate(
                         plan=plan,
@@ -2179,7 +2181,6 @@ class _AdaptiveRun:
                     tool_limitations.append("Không thực hiện được phản biện tự động.")
 
                 if critic_result is not None:
-                    critic_limitation_issues: list[Any] = []
                     self.emit("REVIEW_FEEDBACK_CREATED", {
                         "round": 1,
                         "periods": list(plan.scope.periods),
@@ -2706,6 +2707,44 @@ class _AdaptiveRun:
                 current_sentences = _pre_critique_sentences
                 tool_limitations.append("Vòng phản biện gặp lỗi kỹ thuật; báo cáo giữ bản đã kiểm chứng trước phản biện.")
 
+        def _verified_required_sentences(block_type: str) -> list[SentenceDTO]:
+            """Verified stand-in for a headline/answer whose model text failed verification.
+
+            Tries the deterministic default block first, then single-fact template sentences
+            in order of how directly they answer the question; returns only sentences that
+            pass the same verifier, so the report never opens with an empty or generic line.
+            """
+            default_blocks = default_report_spec(
+                question_type=q_type,
+                tool_results=tr_fallback,
+                signals=signals,
+                findings=candidates,
+            ).blocks
+            tried: list[SentenceDTO] = []
+            for b in default_blocks:
+                if b.type == block_type == "headline":
+                    tried.append(b.sentence)
+                elif b.type == block_type == "answer":
+                    tried.extend(b.sentences)
+            preference = ("value", "pairwise_gap", "peer_rank", "gap_to_median", "delta", "spread", "peer_median")
+            ranked = sorted(
+                (f for f in verified_facts if f.fact_type in preference),
+                key=lambda f: (preference.index(f.fact_type), -abs(float(f.value or 0)) if f.fact_type == "pairwise_gap" else 0),
+            )
+            author = "orchestrator" if block_type == "headline" else "company"
+            tried.extend(make_fallback_sentence(f, author=author, seq=900 + i) for i, f in enumerate(ranked[:12]))
+            ok: list[SentenceDTO] = []
+            for s in tried:
+                res = verify_sentence(NarrativeSentence(
+                    sentence_id=s.sentence_id, author=s.author, text=s.text,
+                    fact_ids=tuple(s.fact_ids), source=s.source, revision=s.revision,
+                ), v_ctx)
+                if res.ok:
+                    ok.append(s)
+                    if block_type == "headline" or len(ok) >= 2:
+                        break
+            return ok
+
         # Helper to verify every sentence in a ReportSpecDTO
         def _sweep_report_spec(spec: ReportSpecDTO) -> tuple[ReportSpecDTO, int, int]:
             sweep_chk = 0
@@ -2737,7 +2776,8 @@ class _AdaptiveRun:
                                 reason=v_res.reason or "",
                             )
                         )
-                        safe_hl = SentenceDTO(
+                        replacement = _verified_required_sentences("headline")
+                        blk.sentence = replacement[0] if replacement else SentenceDTO(
                             sentence_id="sent-fb-hl-safe",
                             text="Báo cáo phân tích tài chính.",
                             fact_ids=[],
@@ -2745,7 +2785,6 @@ class _AdaptiveRun:
                             source="deterministic_fallback",
                             revision=0,
                         )
-                        blk.sentence = safe_hl
                         verified_blks.append(blk)
 
                 elif blk.type == "answer":
@@ -2774,6 +2813,8 @@ class _AdaptiveRun:
                                     reason=v_res.reason or "",
                                 )
                             )
+                    if not val_sents:
+                        val_sents = _verified_required_sentences("answer")
                     blk.sentences = val_sents
                     verified_blks.append(blk)
 

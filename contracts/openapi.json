@@ -1636,12 +1636,32 @@
           "entities": { "type": "array", "items": { "type": "object" } },
           "periods": { "type": "array", "items": { "type": "object" } },
           "metrics": { "type": "array", "items": { "$ref": "#/components/schemas/MetricPresentation" } },
+          "coverage": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CoverageItem" }
+          },
           "topics": { "type": "array", "items": { "type": "object" } },
           "peerUniverse": { "type": ["object", "null"] },
           "macro": { "type": ["object", "null"] },
           "suggestedQuestions": { "type": "array", "items": { "type": "string" } },
           "questionTypes": { "type": "array", "items": { "$ref": "#/components/schemas/QuestionTypeInfo" } },
           "readiness": { "type": ["string", "null"] }
+        }
+      },
+      "CoverageItem": {
+        "type": "object",
+        "required": [
+          "entity_id",
+          "period_id",
+          "metrics"
+        ],
+        "properties": {
+          "entity_id": { "type": "string" },
+          "period_id": { "type": "string" },
+          "metrics": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         }
       },
       "Fact": {

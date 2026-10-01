@@ -477,6 +477,14 @@ class QuestionTypeInfoDTO(BaseModel):
     example: str
 
 
+class CoverageItemDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    entity_id: str
+    period_id: str
+    metrics: List[str] = Field(default_factory=list)
+
+
 class CapabilitiesDTO(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -490,6 +498,7 @@ class CapabilitiesDTO(BaseModel):
     entities: List[dict[str, Any]] = Field(default_factory=list)
     periods: List[dict[str, Any]] = Field(default_factory=list)
     metrics: List[MetricPresentationDTO] = Field(default_factory=list)
+    coverage: List[CoverageItemDTO] = Field(default_factory=list)
     topics: List[dict[str, Any]] = Field(default_factory=list)
     peerUniverse: Optional[dict[str, Any]] = None
     macro: Optional[dict[str, Any]] = None

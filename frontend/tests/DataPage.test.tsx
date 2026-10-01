@@ -249,4 +249,48 @@ describe('DataPage catalog and readiness', () => {
     expect(screen.getByText(/API hiện chưa công bố dữ liệu hoặc snapshot đã kiểm định nào/)).toBeInTheDocument();
     expect(screen.queryByText('Catalog năng lực API')).not.toBeInTheDocument();
   });
+
+  it('renders data coverage matrix with bank rows, period columns, badges, legend, and non-imputation note', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
+      analysis_available: true,
+      dataset_snapshot_id: 'test-snapshot',
+      database_status: 'connected',
+      entities: [
+        { id: 'ACB', ticker: 'ACB', name: 'Ngân hàng Á Châu', type: 'company' },
+        { id: 'BID', ticker: 'BID', name: 'Ngân hàng Đầu tư và Phát triển', type: 'company' },
+        { id: 'CTG', ticker: 'CTG', name: 'Ngân hàng Công Thương', type: 'company' },
+      ],
+      coverage: [
+        { entity_id: 'ACB', period_id: '2024_Q1', metrics: ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'] },
+        { entity_id: 'ACB', period_id: '2024_Q2', metrics: ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'] },
+        { entity_id: 'BID', period_id: '2024_Q1', metrics: ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'] },
+        { entity_id: 'BID', period_id: '2024_Q2', metrics: [] },
+        { entity_id: 'CTG', period_id: '2024_Q1', metrics: ['bank.npl_g35', 'bank.llr_coverage'] },
+        { entity_id: 'CTG', period_id: '2024_Q2', metrics: ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'] },
+      ],
+    }));
+
+    renderDataPage();
+
+    expect(await screen.findByRole('heading', { name: 'Ma trận độ bao phủ dữ liệu' })).toBeInTheDocument();
+
+    // Period column headers in chronological order
+    expect(screen.getByRole('columnheader', { name: 'Ngân hàng' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Q1/2024' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Q2/2024' })).toBeInTheDocument();
+
+    // Badges
+    const fullBadges = screen.getAllByText('4/4');
+    expect(fullBadges.length).toBeGreaterThanOrEqual(4); // ACB Q1, ACB Q2, BID Q1, CTG Q2 + legend
+    expect(screen.getByText('2/4')).toBeInTheDocument(); // CTG Q1 partial
+    expect(screen.getAllByText('chưa có báo cáo').length).toBeGreaterThanOrEqual(2); // BID Q2 + legend
+
+    // Legend
+    expect(screen.getByText('Đầy đủ 4 chỉ tiêu')).toBeInTheDocument();
+    expect(screen.getByText('Có một phần chỉ tiêu')).toBeInTheDocument();
+    expect(screen.getByText('Chưa có báo cáo tài chính')).toBeInTheDocument();
+
+    // Non-imputation note
+    expect(screen.getByText(/Các kỳ thiếu báo cáo không bao giờ được suy diễn hay nội suy số liệu/)).toBeInTheDocument();
+  });
 });

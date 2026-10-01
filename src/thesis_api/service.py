@@ -752,6 +752,83 @@ def _has_runnable_company_claim(binding: ProviderBinding) -> bool:
     return False
 
 
+_COVERAGE_TARGET_METRICS = (
+    "bank.npl_g35",
+    "bank.llr_coverage",
+    "bank.roa",
+    "bank.roe",
+)
+
+
+def _compute_coverage(binding: ProviderBinding) -> list[dict[str, Any]]:
+    catalog = binding.catalog
+    entities = [
+        item for item in catalog.entities if item.entity_type.value == "company"
+    ] or list(catalog.entities)
+    period_ids = [item.period_id for item in catalog.periods]
+    if not entities or not period_ids:
+        return []
+
+    coverage_list: list[dict[str, Any]] = []
+    for entity in entities:
+        accepted_set: set[tuple[str, str]] = set()
+        try:
+            observations = binding.provider.get_entity_metrics(
+                binding.dataset_ref,
+                entity.entity_id,
+                period_ids,
+                _COVERAGE_TARGET_METRICS,
+            )
+        except (DatasetProviderError, sqlite3.Error, OSError, ValueError, AttributeError):
+            observations = ()
+
+        if observations:
+            for obs in observations:
+                val_status = getattr(obs, "validation_status", None)
+                val_status_val = (
+                    val_status.value
+                    if hasattr(val_status, "value")
+                    else str(val_status or "")
+                )
+                val_num = getattr(obs, "value", None)
+                if val_status_val == "valid" and val_num is not None:
+                    accepted_set.add((obs.period_id, obs.metric_id))
+        else:
+            for p_id in period_ids:
+                for m_id in _COVERAGE_TARGET_METRICS:
+                    try:
+                        obs = binding.provider.get_metric(
+                            binding.dataset_ref,
+                            entity.entity_id,
+                            p_id,
+                            m_id,
+                        )
+                        if obs is not None:
+                            val_status = getattr(obs, "validation_status", None)
+                            val_status_val = (
+                                val_status.value
+                                if hasattr(val_status, "value")
+                                else str(val_status or "")
+                            )
+                            val_num = getattr(obs, "value", None)
+                            if val_status_val == "valid" and val_num is not None:
+                                accepted_set.add((p_id, m_id))
+                    except Exception:
+                        pass
+
+        for p_id in period_ids:
+            found_metrics = [
+                m_id for m_id in _COVERAGE_TARGET_METRICS
+                if (p_id, m_id) in accepted_set
+            ]
+            coverage_list.append({
+                "entity_id": entity.entity_id,
+                "period_id": p_id,
+                "metrics": found_metrics,
+            })
+    return coverage_list
+
+
 def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
     catalog = binding.catalog
     company_available = _has_runnable_company_claim(binding)
@@ -812,6 +889,7 @@ def _capabilities_payload(binding: ProviderBinding) -> dict[str, Any]:
         "entities": entities,
         "periods": periods,
         "metrics": metrics,
+        "coverage": _compute_coverage(binding),
         "topics": [],
         "suggestedQuestions": suggestions_for(catalog),
         "questionTypes": get_question_types_info(catalog),
@@ -868,6 +946,7 @@ def _unavailable_capabilities(detail: str, code: str) -> dict[str, Any]:
             "entities": [],
             "periods": [],
             "metrics": [],
+            "coverage": [],
             "topics": [],
             "suggestedQuestions": [],
             "questionTypes": get_question_types_info(None),

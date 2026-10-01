@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Database, FileText, Loader2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { formatPeriodsSignature } from '@/features/analysis-composer/model/intentParser';
 import { BankUploadSection } from '@/features/onboarding/BankUploadSection';
-import type { Entity, Metric, PeerUniverse } from '@/entities/capability/model/types';
+import type { CoverageItem, Entity, Metric, PeerUniverse } from '@/entities/capability/model/types';
 
 function getDirectionLabel(direction?: string): string {
   if (direction === 'higher_is_better') return 'Càng cao càng tốt';
@@ -57,6 +57,159 @@ function formatPeerUniverseLabel(peerUniverse?: PeerUniverse | null): string {
     return `${entityCount} ngân hàng: ${peerUniverse.entityIds.join(', ')}`;
   }
   return peerUniverse.label || 'API chưa công bố nhóm tham chiếu';
+}
+
+function formatPeriodColumnLabel(periodId: string): string {
+  const match = periodId.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
+  if (match) {
+    return `Q${match[2]}/${match[1]}`;
+  }
+  return periodId;
+}
+
+interface CoverageMatrixSectionProps {
+  coverage: CoverageItem[];
+  entities: Entity[];
+}
+
+function CoverageMatrixSection({ coverage, entities }: CoverageMatrixSectionProps) {
+  const activePeriodIds = useMemo(() => {
+    if (!coverage || coverage.length === 0) return [];
+    const periodsWithData = new Set<string>();
+    for (const item of coverage) {
+      if (item.metrics && item.metrics.length > 0) {
+        periodsWithData.add(item.period_id);
+      }
+    }
+    const targetSet =
+      periodsWithData.size > 0
+        ? periodsWithData
+        : new Set(coverage.map((c) => c.period_id));
+
+    return Array.from(targetSet).sort((a, b) => {
+      const ma = a.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
+      const mb = b.match(/^(\d{4})[_ -]?[Qq](\d)$/i);
+      if (ma && mb) {
+        const yDiff = Number(ma[1]) - Number(mb[1]);
+        if (yDiff !== 0) return yDiff;
+        return Number(ma[2]) - Number(mb[2]);
+      }
+      return a.localeCompare(b);
+    });
+  }, [coverage]);
+
+  const coverageMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const item of coverage) {
+      map.set(`${item.entity_id.toUpperCase()}:${item.period_id}`, item.metrics);
+    }
+    return map;
+  }, [coverage]);
+
+  const sortedEntities = useMemo(() => {
+    return [...entities].sort((a, b) => (a.ticker || a.id).localeCompare(b.ticker || b.id));
+  }, [entities]);
+
+  if (activePeriodIds.length === 0 || sortedEntities.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="coverage-heading">
+      <div className="border-b border-line pb-3">
+        <div className="flex items-center gap-2">
+          <Database className="size-4 text-ink-secondary shrink-0" aria-hidden="true" />
+          <h2 id="coverage-heading" className="text-base font-bold text-ink">
+            Ma trận độ bao phủ dữ liệu
+          </h2>
+        </div>
+        <p className="mt-1 text-xs text-ink-secondary">
+          Tỷ lệ bao phủ 4 chỉ tiêu cốt lõi (NPL, LLR, ROA, ROE) theo từng ngân hàng và kỳ báo cáo trong snapshot đã kiểm định.
+        </p>
+      </div>
+
+      <div className="mt-4 w-full max-w-full min-w-0 overflow-x-auto rounded border border-line">
+        <table className="w-full min-w-[640px] border-collapse text-left text-xs" data-testid="coverage-matrix-table">
+          <thead>
+            <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
+              <th scope="col" className="sticky left-0 z-20 bg-surface-secondary py-2.5 px-3 font-semibold shadow-[1px_0_0_0_hsl(var(--border))]">
+                Ngân hàng
+              </th>
+              {activePeriodIds.map((pId) => (
+                <th key={pId} scope="col" className="py-2.5 px-3 text-center font-semibold whitespace-nowrap">
+                  {formatPeriodColumnLabel(pId)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {sortedEntities.map((entity) => {
+              const entityKey = (entity.ticker || entity.id).toUpperCase();
+              return (
+                <tr key={entity.id} className="hover:bg-surface-hover/50">
+                  <td className="sticky left-0 z-10 bg-card py-2.5 px-3 font-bold text-ink whitespace-nowrap shadow-[1px_0_0_0_hsl(var(--border))]">
+                    {entity.ticker || entity.id}
+                  </td>
+                  {activePeriodIds.map((pId) => {
+                    const metrics =
+                      coverageMap.get(`${entityKey}:${pId}`) ??
+                      coverageMap.get(`${entity.id.toUpperCase()}:${pId}`) ??
+                      [];
+                    const count = metrics.length;
+                    return (
+                      <td key={pId} className="py-2.5 px-3 text-center whitespace-nowrap">
+                        {count === 4 ? (
+                          <span className="inline-flex items-center justify-center rounded px-2 py-0.5 font-mono text-xs font-semibold bg-ready-soft text-text-success border border-ready/30">
+                            4/4
+                          </span>
+                        ) : count > 0 ? (
+                          <span className="inline-flex items-center justify-center rounded px-2 py-0.5 font-mono text-xs font-semibold bg-warning-soft text-text-warning border border-warning/30">
+                            {count}/4
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-ink-tertiary border border-line/50">
+                            chưa có báo cáo
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ink-secondary">
+        <span className="font-semibold text-ink">Chú thích:</span>
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold bg-ready-soft text-text-success border border-ready/30">
+            4/4
+          </span>
+          <span>Đầy đủ 4 chỉ tiêu</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold bg-warning-soft text-text-warning border border-warning/30">
+            1–3/4
+          </span>
+          <span>Có một phần chỉ tiêu</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center justify-center rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-ink-tertiary border border-line/50">
+            chưa có báo cáo
+          </span>
+          <span>Chưa có báo cáo tài chính</span>
+        </div>
+      </div>
+
+      <div className="mt-3 border-t border-line pt-3">
+        <p className="text-xs text-ink-secondary">
+          Các kỳ thiếu báo cáo không bao giờ được suy diễn hay nội suy số liệu; báo cáo phân tích sẽ ghi nhận rõ độ bao phủ thực tế.
+        </p>
+      </div>
+    </section>
+  );
 }
 
 export function DataPage() {
@@ -243,7 +396,12 @@ export function DataPage() {
                 </div>
               </section>
 
-              {/* Section 2: Danh mục chỉ tiêu tài chính */}
+              {/* Section 2: Ma trận độ bao phủ dữ liệu */}
+              {capabilities.coverage && capabilities.coverage.length > 0 && (
+                <CoverageMatrixSection coverage={capabilities.coverage} entities={capabilities.entities} />
+              )}
+
+              {/* Section 3: Danh mục chỉ tiêu tài chính */}
               <section className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6" aria-labelledby="metrics-heading">
                 <div className="border-b border-line pb-3">
                   <h2 id="metrics-heading" className="text-base font-bold text-ink">Chỉ tiêu tài chính ({capabilities.metrics.length})</h2>

@@ -50,6 +50,12 @@ export interface MacroCapability {
   executable?: boolean;
 }
 
+export interface CoverageItem {
+  entity_id: string;
+  period_id: string;
+  metrics: string[];
+}
+
 export interface AnalysisCapabilities {
   /** Identifier for the API capability catalog; it is not a validated data snapshot. */
   snapshotId?: string | null;
@@ -74,6 +80,7 @@ export interface AnalysisCapabilities {
   entities: Entity[];
   periods: Period[];
   metrics: Metric[];
+  coverage?: CoverageItem[];
   topics: TopicPreset[];
   peerUniverse?: PeerUniverse | null;
   peerUniverses?: PeerUniverse[];

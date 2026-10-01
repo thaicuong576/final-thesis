@@ -401,7 +401,7 @@ def _benchmark_reference_violations(
     if not input_refs:
         violations.append(f"benchmark_inputs_missing:{ref.ref_id}")
     else:
-        if any(item.ref_type != "observation" for item in input_refs):
+        if any(item.ref_type not in ("observation", "derived_metric") for item in input_refs):
             violations.append(f"benchmark_inputs_not_observations:{ref.ref_id}")
         if any(item.period != ref.period or item.metric_id != ref.metric_id for item in input_refs):
             violations.append(f"benchmark_input_scope_mismatch:{ref.ref_id}")
@@ -453,7 +453,9 @@ def _benchmark_reference_violations(
         if len(set(eligible_ids)) != len(eligible_ids):
             violations.append(f"benchmark_eligible_peer_set_ambiguous:{ref.ref_id}")
 
-        observation_refs = [item for item in input_refs if item.ref_type == "observation"]
+        # Peer members may be primary observations or formula-derived metrics; both are
+        # validated individually by their own reference type before this set check.
+        observation_refs = [item for item in input_refs if item.ref_type in ("observation", "derived_metric")]
         input_ids = [item.ref_id for item in observation_refs]
         input_entities = [item.entity for item in observation_refs]
         if len(set(input_ids)) != len(input_ids) or len(set(input_entities)) != len(

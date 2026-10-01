@@ -1,6 +1,6 @@
 """Deterministic, unit-aware financial metric calculations."""
 
-from dataclasses import dataclass
+from dataclasses import replace, dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Callable, Literal, Sequence
 
@@ -32,7 +32,7 @@ class OperationalDerivedFormulaSpec:
     output_unit: str
     output_period_basis: str
     tolerance: Decimal
-    period_rule: Literal["same_period", "q4_ttm"]
+    period_rule: Literal["same_period", "q4_ttm", "interim_ttm", "annual_ytd"]
     calculate: Callable[[tuple[Number, ...]], MetricResult]
 
 
@@ -364,6 +364,29 @@ def _calculate_q4_roe_ttm(inputs: tuple[Number, ...]) -> MetricResult:
     return calculate_roe_ttm(inputs[0], inputs[1], inputs[1], average_equity)
 
 
+def _calculate_interim_roa_ttm(inputs: tuple[Number, ...]) -> MetricResult:
+    """Inputs: YTD profit (t), YTD profit (same quarter, prior year), FY profit (prior year),
+    total assets (t), total assets (prior year-end). Average = opening/closing of the year."""
+    result = calculate_roa_ttm(inputs[0], inputs[1], inputs[2], _q4_ttm_average(inputs[3], inputs[4]))
+    return replace(result, formula_version="roa-ttm-interim-v1")
+
+
+def _calculate_interim_roe_ttm(inputs: tuple[Number, ...]) -> MetricResult:
+    result = calculate_roe_ttm(inputs[0], inputs[1], inputs[2], _q4_ttm_average(inputs[3], inputs[4]))
+    return replace(result, formula_version="roe-ttm-interim-v1")
+
+
+def _calculate_annual_ytd_roa(inputs: tuple[Number, ...]) -> MetricResult:
+    """Q4: the full-year YTD profit is already trailing twelve months."""
+    result = calculate_roa_ttm(inputs[0], 0, 0, _q4_ttm_average(inputs[1], inputs[2]))
+    return replace(result, formula_version="roa-ttm-annual-ytd-v1")
+
+
+def _calculate_annual_ytd_roe(inputs: tuple[Number, ...]) -> MetricResult:
+    result = calculate_roe_ttm(inputs[0], 0, 0, _q4_ttm_average(inputs[1], inputs[2]))
+    return replace(result, formula_version="roe-ttm-annual-ytd-v1")
+
+
 _AMOUNT = "billion_vnd"
 _POINT_IN_TIME = "point_in_time"
 _AMOUNT_INPUTS_3 = (_AMOUNT, _AMOUNT, _AMOUNT)
@@ -469,6 +492,70 @@ _OPERATIONAL_DERIVED_FORMULAS = {
         tolerance=Decimal("0.00005"),
         period_rule="q4_ttm",
         calculate=_calculate_q4_roe_ttm,
+    ),
+    ("bank.roa", "roa-ttm-interim-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roa",
+        formula_version="roa-ttm-interim-v1",
+        input_metric_ids=(
+            "bank.input.profit_after_tax",
+            "bank.input.profit_after_tax",
+            "bank.input.profit_after_tax",
+            "bank.input.total_assets",
+            "bank.input.total_assets",
+        ),
+        input_units=(_AMOUNT,) * 5,
+        input_period_bases=("ytd", "ytd", "ytd", _POINT_IN_TIME, _POINT_IN_TIME),
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="interim_ttm",
+        calculate=_calculate_interim_roa_ttm,
+    ),
+    ("bank.roe", "roe-ttm-interim-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roe",
+        formula_version="roe-ttm-interim-v1",
+        input_metric_ids=(
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_equity",
+            "bank.input.parent_attributable_equity",
+        ),
+        input_units=(_AMOUNT,) * 5,
+        input_period_bases=("ytd", "ytd", "ytd", _POINT_IN_TIME, _POINT_IN_TIME),
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="interim_ttm",
+        calculate=_calculate_interim_roe_ttm,
+    ),
+    ("bank.roa", "roa-ttm-annual-ytd-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roa",
+        formula_version="roa-ttm-annual-ytd-v1",
+        input_metric_ids=("bank.input.profit_after_tax", "bank.input.total_assets", "bank.input.total_assets"),
+        input_units=(_AMOUNT,) * 3,
+        input_period_bases=("ytd", _POINT_IN_TIME, _POINT_IN_TIME),
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="annual_ytd",
+        calculate=_calculate_annual_ytd_roa,
+    ),
+    ("bank.roe", "roe-ttm-annual-ytd-v1"): OperationalDerivedFormulaSpec(
+        metric_id="bank.roe",
+        formula_version="roe-ttm-annual-ytd-v1",
+        input_metric_ids=(
+            "bank.input.parent_attributable_profit",
+            "bank.input.parent_attributable_equity",
+            "bank.input.parent_attributable_equity",
+        ),
+        input_units=(_AMOUNT,) * 3,
+        input_period_bases=("ytd", _POINT_IN_TIME, _POINT_IN_TIME),
+        output_unit="percent",
+        output_period_basis="ttm",
+        tolerance=Decimal("0.00005"),
+        period_rule="annual_ytd",
+        calculate=_calculate_annual_ytd_roe,
     ),
 }
 

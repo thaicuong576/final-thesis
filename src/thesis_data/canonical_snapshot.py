@@ -69,6 +69,22 @@ def _expected_input_periods(
 ) -> tuple[str, ...]:
     if period_rule == "same_period":
         return (output_period_id,) * input_count
+    if period_rule == "annual_ytd":
+        year_text, quarter_text = output_period_id.split("_Q", 1)
+        if quarter_text != "4" or input_count != 3:
+            raise ValueError("annual YTD TTM requires a Q4 output and three ordered inputs")
+        return (output_period_id, output_period_id, f"{int(year_text) - 1}_Q4")
+    if period_rule == "interim_ttm":
+        try:
+            year_text, quarter_text = output_period_id.split("_Q", 1)
+            year, quarter = int(year_text), int(quarter_text)
+        except (ValueError, TypeError) as exc:
+            raise ValueError("TTM derived output period must use YYYY_Qn") from exc
+        if input_count != 5:
+            raise ValueError("interim TTM formula requires five ordered inputs")
+        same_prior = f"{year - 1}_Q{quarter}"
+        prior_fy = f"{year - 1}_Q4"
+        return (output_period_id, same_prior, prior_fy, output_period_id, prior_fy)
     if period_rule != "q4_ttm":
         raise ValueError(f"unsupported derived period rule: {period_rule}")
     try:

@@ -714,3 +714,10 @@ Writing run history must obey strict safety boundaries:
 1. **Benchmark Observation ID Binding**: In multi-provider or composite dataset architectures (such as `CompositeDatasetProvider`), synthesized benchmark observations returned by base providers embed `dataset_id` and `dataset_snapshot_id`. When consumed through a composite dataset reference, the runtime checks `benchmark.observation_id == peer_benchmark_observation_id(composite_ref, ...)`. The composite provider's `get_peer_benchmark` must explicitly regenerate `observation_id` with `peer_benchmark_observation_id` bound to `composite_ref` and `requested_peer_entity_ids`.
 2. **AnalysisEngine Method Integrity**: Reusable wrappers or delegation must not override `AnalysisEngine.analyze` with internal `_analyze`, as `analyze` encapsulates mandatory operational run persistence (`persist_run`) and trace persistence to `analysis_runs.sqlite`. Bypassing it breaks run-trace endpoints and persistent history.
 
+
+## [LESSON-035] Quarterly bank filings: mislabelled mirrors, garbled text layers and convention drift
+
+- A mirror path is not proof of period: Vietstock's `TCB_..._Q4_2024_Hopnhat.pdf` contains the 2023 Q4 report; the real file is `_Hopnhat_1.pdf`. Always check the statement date on page 1 before extracting.
+- Some PDFs carry an embedded text layer that is garbled (HDB 2025 Q3, 2026 Q2) or tables drawn as grids/rotated pages (STB, SHB 2024) that defeat Tesseract. Re-OCR the page or read a rendered crop; never trust a value that does not satisfy the statement identity (assets = liabilities + equity, groups sum to the total, PBT − tax = PAT).
+- Banks with loss-making subsidiaries (VPB/FE Credit) have parent profit > group profit; profit-split checks must allow negative minority interest.
+- Keep one definition across a time series: mixing audited year-end (margin lending excluded) with interim rows (margin included) silently shifts NPL by ~0.1 point.

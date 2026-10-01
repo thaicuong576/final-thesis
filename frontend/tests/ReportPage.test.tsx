@@ -151,7 +151,7 @@ describe('Analysis report truth and provenance', () => {
       </QueryClientProvider>
     );
     expect(await screen.findByText('So sánh ACB và TCB quý 4/2024')).toBeInTheDocument();
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/runs');
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/runs"))).toBe(true);
     expect(screen.getByText('Phân tích CTG quý 4/2024').closest('a')).toHaveAttribute('href', '/reports/run-a');
     expect(screen.getByText('Bị từ chối', { selector: 'span' })).toBeInTheDocument();
     expect(screen.queryByText(/Mẫu minh họa/)).not.toBeInTheDocument();

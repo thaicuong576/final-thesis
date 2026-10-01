@@ -45,14 +45,21 @@ def _snapshot_id(path: Path) -> str:
     connection: sqlite3.Connection | None = None
     try:
         connection = sqlite3.connect(uri, uri=True)
-        row = connection.execute("SELECT snapshot_id FROM snapshot_metadata LIMIT 1").fetchone()
+        tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        if "snapshot_metadata" in tables:
+            row = connection.execute("SELECT snapshot_id FROM snapshot_metadata LIMIT 1").fetchone()
+        elif "dataset_metadata" in tables:
+            # Canonical operational snapshots (D-077/D-078) record their identity here.
+            row = connection.execute("SELECT dataset_snapshot_id FROM dataset_metadata LIMIT 1").fetchone()
+        else:
+            row = None
     except (OSError, sqlite3.Error) as exc:
         raise SnapshotBootstrapError("Downloaded snapshot is not readable SQLite.") from exc
     finally:
         if connection is not None:
             connection.close()
     if not row or not row[0]:
-        raise SnapshotBootstrapError("Downloaded snapshot has no snapshot_metadata identity.")
+        raise SnapshotBootstrapError("Downloaded snapshot has no snapshot identity (snapshot_metadata or dataset_metadata).")
     return str(row[0])
 
 

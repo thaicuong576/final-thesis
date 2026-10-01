@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DataPage } from '../src/pages/data/DataPage';
 import { capabilityService } from '../src/entities/capability/api/capabilityService';
 import { mockCapabilities } from '../src/entities/capability/api/mockCapabilityProvider';
-import { stagingCapabilitiesFixture } from '../src/test/fixtures/stagingCapabilitiesFixture';
-import type { AnalysisCapabilities } from '../src/entities/capability/model/types';
+import type { AnalysisCapabilities, CoverageItem } from '../src/entities/capability/model/types';
+import { analyticalPeriodIds } from '../src/entities/capability/model/coverage';
+
+const ALL = ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'];
 
 function renderDataPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -28,225 +30,92 @@ function capabilities(overrides: Partial<AnalysisCapabilities> = {}): AnalysisCa
   };
 }
 
-describe('DataPage catalog and readiness', () => {
+/** Two banks, an input-only prior period, three analytical quarters and one missing cell. */
+function quarterlyCaps(): AnalysisCapabilities {
+  const periods = ['2023_Q4', '2024_Q1', '2024_Q2', '2025_Q1'];
+  const coverage: CoverageItem[] = [];
+  for (const bank of ['AAA', 'BBB']) {
+    for (const p of periods) {
+      let metrics = p === '2023_Q4' ? [] : ALL;
+      if (bank === 'BBB' && p === '2024_Q2') metrics = [];
+      if (bank === 'AAA' && p === '2025_Q1') metrics = ALL.slice(0, 2);
+      coverage.push({ entity_id: bank, period_id: p, metrics });
+    }
+  }
+  return capabilities({
+    analysis_available: true,
+    dataset_snapshot_id: 'snapshot-test',
+    implemented_capabilities: ['company', 'sector'],
+    database_status: 'connected',
+    entities: [
+      { id: 'AAA', ticker: 'AAA', name: 'Ngân hàng A' },
+      { id: 'BBB', ticker: 'BBB', name: 'Ngân hàng B' }
+    ],
+    periods: periods.map((id) => ({ id, label: id })) as AnalysisCapabilities['periods'],
+    metrics: ALL.map((id) => ({ id, acronym: id.split('.')[1].toUpperCase(), label: id, topicId: 'x', direction: 'higher_is_better' })),
+    coverage
+  });
+}
+
+describe('DataPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities());
   });
 
-  it('keeps provider catalog visible while clearly blocking an unavailable snapshot', async () => {
+  it('says plainly when analysis cannot run and invents no source or coverage', async () => {
     renderDataPage();
-
-    expect(await screen.findByRole('heading', { name: 'Dữ liệu phân tích' })).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: 'Chưa thể chạy phân tích trên dữ liệu hiện tại' })).toBeInTheDocument();
-    expect(screen.getByText(/Mã catalog:/)).toBeInTheDocument();
-    expect(screen.getByText(/Snapshot đã kiểm định: chưa công bố/)).toBeInTheDocument();
-    expect(screen.getByText('Ngân hàng trong catalog')).toBeInTheDocument();
-    expect(screen.getByText(/ACB \(Ngân hàng Á Châu\)/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Trạng thái kho dữ liệu: disconnected/).length).toBeGreaterThan(0);
-    expect(screen.getByText('API chưa xác nhận phân tích nhóm tham chiếu có thể chạy.')).toBeInTheDocument();
-    expect(screen.getByText('API chưa xác nhận năng lực phân tích vĩ mô có thể chạy.')).toBeInTheDocument();
-    expect(screen.getByText(/Nguồn, phiên bản dữ liệu và thời điểm kiểm định chưa được xác nhận/)).toBeInTheDocument();
-    expect(screen.queryByText(mockCapabilities.source!)).not.toBeInTheDocument();
-    expect(screen.queryByText(mockCapabilities.macro.summary)).not.toBeInTheDocument();
-    expect(screen.queryByText('5 ngân hàng: acb, tcb, vpb, mbb, vcb')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Thêm nguồn dữ liệu|Kết nối nguồn mới/ })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Dữ liệu đang dùng để phân tích' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Chưa thể chạy phân tích' })).toBeInTheDocument();
+    expect(screen.queryByTestId('coverage-matrix-table')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Đặt câu hỏi/ })).not.toBeInTheDocument();
   });
 
-  it('renders the API catalog counts without substituting the older frontend sample', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      entities: Array.from({ length: 27 }, (_, index) => ({ id: `bank-${index}`, ticker: `B${index}`, name: `Bank ${index}` })),
-      metrics: Array.from({ length: 7 }, (_, index) => ({ id: `metric-${index}`, acronym: `M${index}`, label: `Metric ${index}`, topicId: 'catalog' }))
-    }));
-
-    renderDataPage();
-
-    expect(await screen.findByText('27')).toBeInTheDocument();
-    expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText(/B0 \(Bank 0\) · B1 \(Bank 1\)/)).toBeInTheDocument();
-    expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
+  it('offers only quarters that carry metrics, not input-only prior periods', () => {
+    expect(analyticalPeriodIds(quarterlyCaps())).toEqual(['2024_Q1', '2024_Q2', '2025_Q1']);
   });
 
-  it('shows a provider-backed runnable company snapshot when the API confirms it', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      analysis_available: true,
-      dataset_snapshot_id: 'provider-snapshot-42',
-      implemented_capabilities: ['company'],
-      database_status: 'connected'
-    }));
-
+  it('summarises banks, quarter range and full cells from API coverage', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(quarterlyCaps());
     renderDataPage();
-
-    expect(await screen.findByText('Snapshot đã kiểm định: provider-snapshot-42')).toBeInTheDocument();
-    expect(screen.getByText('Có')).toBeInTheDocument();
-    expect(screen.getByText('Doanh nghiệp')).toBeInTheDocument();
+    const stats = await screen.findByTestId('dataset-stats');
+    expect(within(stats).getByText('Q1/2024 – Q1/2025')).toBeInTheDocument();
+    // 2 banks × 3 quarters = 6 cells; BBB 2024_Q2 is missing and AAA 2025_Q1 is partial.
+    expect(within(stats).getByText('4/6')).toBeInTheDocument();
+    expect(within(stats).getByText('2 ô ngân hàng–quý chưa có báo cáo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Đặt câu hỏi/ })).toHaveAttribute('href', '/analysis');
   });
 
-  it('uses the API sector capability to mark the catalog peer universe as runnable', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      analysis_available: true,
-      dataset_snapshot_id: 'provider-snapshot-42',
-      implemented_capabilities: ['company', 'sector'],
-      database_status: 'connected'
-    }));
-
+  it('marks each bank-quarter cell full, partial or missing without imputing', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(quarterlyCaps());
     renderDataPage();
-
-    expect(await screen.findByText('5 ngân hàng: acb, tcb, vpb, mbb, vcb')).toBeInTheDocument();
-    expect(screen.getByText(mockCapabilities.peerUniverse!.description)).toBeInTheDocument();
+    const table = await screen.findByTestId('coverage-matrix-table');
+    expect(within(table).queryByText('Q4')).not.toBeInTheDocument();
+    expect(within(table).getByRole('img', { name: 'BBB Q2/2024: chưa có báo cáo' })).toHaveAttribute('data-state', 'missing');
+    expect(within(table).getByRole('img', { name: 'AAA Q1/2025: có 2/4 chỉ tiêu' })).toHaveAttribute('data-state', 'partial');
+    expect(within(table).getByRole('img', { name: 'AAA Q1/2024: đủ 4 chỉ tiêu' })).toHaveAttribute('data-state', 'full');
+    expect(screen.getByTestId('coverage-matrix-scroll').className).toContain('overflow-x-auto');
   });
 
-  it('renders Vietnamese metric labels and units in the metrics table', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      analysis_available: true,
-      dataset_snapshot_id: 'gold-v5-snap',
-      database_status: 'connected'
-    }));
-
+  it('explains every metric in Vietnamese with its formula', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(quarterlyCaps());
     renderDataPage();
-
-    expect(await screen.findByRole('heading', { name: /Chỉ tiêu tài chính/ })).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ nợ xấu')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ bao phủ nợ xấu')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ suất sinh lời trên tài sản')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ suất sinh lời trên vốn chủ sở hữu')).toBeInTheDocument();
-    const percentUnits = screen.getAllByText('%');
-    expect(percentUnits.length).toBeGreaterThanOrEqual(4);
+    expect(await screen.findByText('Tỷ suất sinh lời trên vốn chủ sở hữu (ROE)')).toBeInTheDocument();
+    expect(screen.getByText('Dư nợ nhóm 3–5 / tổng dư nợ cho vay khách hàng')).toBeInTheDocument();
+    expect(screen.queryByText(/Gold v5/)).not.toBeInTheDocument();
   });
 
-  it('renders enterprise list in catalog overview without separate redundant enterprise table', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      analysis_available: true,
-      dataset_snapshot_id: 'gold-v5-snap',
-      database_status: 'connected'
-    }));
-
+  it('shows an error with retry and no fallback numbers when the API fails', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockRejectedValue(new Error('Máy chủ không phản hồi'));
     renderDataPage();
-
-    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
-    expect(screen.getByText(/ACB \(Ngân hàng Á Châu\)/)).toBeInTheDocument();
-    expect(screen.getByText(/TCB \(Ngân hàng Kỹ thương Việt Nam\)/)).toBeInTheDocument();
-    expect(screen.getByText(/VCB \(Ngân hàng Ngoại thương Việt Nam\)/)).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /Danh sách doanh nghiệp/ })).not.toBeInTheDocument();
-  });
-
-  it('renders realistic staging capabilities fixture with friendly labels, single action button, and neutral note', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(stagingCapabilitiesFixture);
-
-    renderDataPage();
-
-    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
-
-    // Single "Tạo phân tích" button at top header only
-    const createAnalysisLinks = screen.getAllByRole('link', { name: /Tạo phân tích/i });
-    expect(createAnalysisLinks.length).toBe(1);
-
-    // 5 enterprises formatted cleanly (name === ticker, so no redundant parens)
-    expect(screen.getByText('ACB · TCB · VPB · MBB · VCB')).toBeInTheDocument();
-
-    // 4 metrics with clean symbols (LLR, NPL, ROA, ROE instead of LLR_COVERAGE, NPL_G35)
-    expect(screen.getByText('NPL · LLR · ROA · ROE')).toBeInTheDocument();
-
-    // 4 metrics in table
-    expect(screen.getByRole('heading', { name: /Chỉ tiêu tài chính \(4\)/ })).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ nợ xấu (nhóm 3–5)')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ bao phủ nợ xấu')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ suất sinh lời trên tổng tài sản')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ suất sinh lời trên vốn chủ sở hữu')).toBeInTheDocument();
-    const percentUnits = screen.getAllByText('%');
-    expect(percentUnits.length).toBeGreaterThanOrEqual(4);
-
-    // Friendly periods format: Q1–Q4/2024
-    expect(screen.getByText('Q1–Q4/2024')).toBeInTheDocument();
-
-    // Peer group formatted in Vietnamese: "5 ngân hàng: ACB, TCB, VPB, MBB, VCB"
-    expect(screen.getByText('5 ngân hàng: ACB, TCB, VPB, MBB, VCB')).toBeInTheDocument();
-    expect(screen.getByText('Nhóm 5 ngân hàng niêm yết được kiểm định trong snapshot Gold.')).toBeInTheDocument();
-
-    // Capabilities formatted in Vietnamese: "Doanh nghiệp · Nhóm ngành"
-    expect(screen.getByText('Doanh nghiệp · Nhóm ngành')).toBeInTheDocument();
-
-    // Neutral disclaimer inside catalog card
-    expect(screen.getByText(/Ô thiếu số liệu đã kiểm định sẽ được ghi rõ trong từng báo cáo/)).toBeInTheDocument();
-
-    // NO separate scope matrix or enterprise tables
-    expect(screen.queryByRole('heading', { name: /Phạm vi dữ liệu/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /Danh sách doanh nghiệp/ })).not.toBeInTheDocument();
-    expect(screen.queryByText('Trong phạm vi')).not.toBeInTheDocument();
-    expect(screen.queryByText('Đã kiểm định')).not.toBeInTheDocument();
-    expect(screen.queryByText('chưa có số liệu đã kiểm định')).not.toBeInTheDocument();
-  });
-
-  it('only displays entity name in catalog when distinct from ticker', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      analysis_available: true,
-      dataset_snapshot_id: 'gold-v5-snap',
-      database_status: 'connected',
-      entities: [
-        { id: 'ACB', ticker: 'ACB', name: 'ACB', type: 'company' },
-        { id: 'MBB', ticker: 'MBB', name: 'Ngân hàng Quân Đội', type: 'company' }
-      ]
-    }));
-
-    renderDataPage();
-
-    expect(await screen.findByRole('heading', { name: 'Catalog năng lực API' })).toBeInTheDocument();
-    // Non-distinct entity renders only ticker; distinct entity renders ticker with name in parens
-    expect(screen.getByText('ACB · MBB (Ngân hàng Quân Đội)')).toBeInTheDocument();
-  });
-
-  it('ensures responsive classes to prevent horizontal page overflow at 375px', async () => {
-    const { container } = renderDataPage();
-
-    await screen.findByRole('heading', { name: 'Catalog năng lực API' });
-
-    // Root wrapper has overflow-x-hidden and max-w-full
-    const rootWrapper = container.querySelector('.overflow-x-hidden');
-    expect(rootWrapper).toBeInTheDocument();
-    expect(rootWrapper).toHaveClass('w-full', 'max-w-full', 'min-w-0');
-
-    // Table container has overflow-x-auto
-    const tableWrapper = container.querySelector('.overflow-x-auto');
-    expect(tableWrapper).toBeInTheDocument();
-    expect(tableWrapper).toHaveClass('w-full', 'max-w-full', 'min-w-0');
-
-    // Snapshot ID has break-all to prevent pushing layout
-    const snapshotText = screen.getByText(/Mã catalog:/);
-    expect(snapshotText).toHaveClass('break-all');
-  });
-
-  it('renders error state with retry button and does not fall back to mock data or display fake numbers when API fails', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockRejectedValue(new Error('Máy chủ API không phản hồi (500)'));
-
-    renderDataPage();
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Không thể xác định dữ liệu đang hỗ trợ')).toBeInTheDocument();
-    expect(screen.getByText(/Máy chủ API không phản hồi \(500\)/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Không tải được phạm vi dữ liệu' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Thử tải lại' })).toBeInTheDocument();
-
-    // Verify NO mock catalog or fake numbers are rendered
-    expect(screen.queryByText('Catalog năng lực API')).not.toBeInTheDocument();
-    expect(screen.queryByText('Ngân hàng trong catalog')).not.toBeInTheDocument();
-    expect(screen.queryByText('Chỉ tiêu trong catalog')).not.toBeInTheDocument();
-    expect(screen.queryByText('Ma trận độ phủ doanh nghiệp × kỳ')).not.toBeInTheDocument();
-    expect(screen.queryByText('Phạm vi dữ liệu: Doanh nghiệp × Kỳ')).not.toBeInTheDocument();
-    expect(screen.queryByText('Danh sách doanh nghiệp')).not.toBeInTheDocument();
-    expect(screen.queryByText(/ACB · TCB · VPB · MBB · VCB/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('dataset-stats')).not.toBeInTheDocument();
   });
 
-  it('renders clean empty state when API returns empty catalog', async () => {
-    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({
-      entities: [],
-      metrics: [],
-      periods: []
-    }));
-
+  it('renders an empty state when the API publishes no dataset', async () => {
+    vi.spyOn(capabilityService, 'getCapabilities').mockResolvedValue(capabilities({ entities: [], metrics: [], periods: [] }));
     renderDataPage();
-
-    expect(await screen.findByRole('region', { name: 'Dữ liệu rỗng' })).toBeInTheDocument();
-    expect(screen.getByText('Chưa có dữ liệu phân tích')).toBeInTheDocument();
-    expect(screen.getByText(/API hiện chưa công bố dữ liệu hoặc snapshot đã kiểm định nào/)).toBeInTheDocument();
-    expect(screen.queryByText('Catalog năng lực API')).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Chưa có dữ liệu phân tích' })).toBeInTheDocument();
   });
 });

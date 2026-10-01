@@ -36,6 +36,7 @@ export interface Capabilities {
   entities?: Record<string, unknown>[];
   periods?: Record<string, unknown>[];
   metrics?: MetricPresentation[];
+  coverage?: { entity_id: string; period_id: string; metrics: string[] }[];
   topics?: Record<string, unknown>[];
   peerUniverse?: Record<string, unknown> | null;
   macro?: Record<string, unknown> | null;

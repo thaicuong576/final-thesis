@@ -56,7 +56,8 @@ export const capabilityService: CapabilityService = {
       ingestionTimestamp: raw.ingestionTimestamp ?? null,
       validationTimestamp: raw.validationTimestamp ?? null,
       source: raw.source ?? null,
-      readiness: raw.readiness ?? null
+      readiness: raw.readiness ?? null,
+      coverage: Array.isArray(raw.coverage) ? (raw.coverage as AnalysisCapabilities['coverage']) : []
     };
   }
 };

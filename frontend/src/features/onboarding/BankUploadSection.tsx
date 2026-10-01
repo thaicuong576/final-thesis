@@ -160,7 +160,7 @@ export function BankUploadSection() {
           </h2>
         </div>
         <p className="mt-1 text-xs text-ink-secondary leading-relaxed">
-          Tải lên bảng số liệu BCTC đã đối chiếu của ngân hàng mới (ví dụ CTG) để hệ thống tự động kiểm tra cấu trúc, định vị nguồn sơ cấp, tái tính toán 4 chỉ tiêu tài chính và phân tích đối chiếu với nhóm 5 ngân hàng Gold v5.
+          Tải lên số liệu báo cáo tài chính đã đối chiếu của một ngân hàng chưa có trong bộ dữ liệu. Hệ thống kiểm tra cấu trúc tệp và vị trí nguồn, tự tính lại 4 chỉ tiêu, rồi cho phép hỏi về ngân hàng đó và so với nhóm ngân hàng sẵn có. Ngân hàng tải lên không được tính vào trung vị nhóm.
         </p>
       </div>
 
@@ -170,7 +170,7 @@ export function BankUploadSection() {
         <a
           href={`${apiBase}/api/onboarding/template.csv`}
           download="template.csv"
-          className="inline-flex items-center gap-1 rounded border border-line bg-surface-secondary px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-hover no-underline"
+          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-secondary px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-hover no-underline transition-colors"
         >
           <Download className="size-3 text-ink-secondary" />
           Tải file mẫu (.csv)
@@ -178,17 +178,17 @@ export function BankUploadSection() {
         <a
           href={`${apiBase}/api/onboarding/samples/ctg-2024q4.csv`}
           download="ctg-2024q4.csv"
-          className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 hover:bg-emerald-100 no-underline"
+          className="inline-flex items-center gap-1.5 rounded-md border border-ready/40 bg-ready-soft/40 px-2.5 py-1 text-xs font-medium text-text-success hover:bg-ready-soft/70 no-underline transition-colors"
         >
-          <FileSpreadsheet className="size-3 text-emerald-600" />
+          <FileSpreadsheet className="size-3 text-ready" />
           Mẫu CTG hợp lệ
         </a>
         <a
           href={`${apiBase}/api/onboarding/samples/ctg-2024q4-loi.csv`}
           download="ctg-2024q4-loi.csv"
-          className="inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100 no-underline"
+          className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning-soft/40 px-2.5 py-1 text-xs font-medium text-text-warning hover:bg-warning-soft/70 no-underline transition-colors"
         >
-          <AlertTriangle className="size-3 text-amber-600" />
+          <AlertTriangle className="size-3 text-warning" />
           Mẫu CTG có lỗi (thử nghiệm)
         </a>
       </div>
@@ -200,12 +200,12 @@ export function BankUploadSection() {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer text-center ${
+          className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed p-6 transition-colors cursor-pointer text-center ${
             isDragging
               ? 'border-amber-border bg-amber-soft/30'
               : selectedFile
-              ? 'border-emerald-400 bg-emerald-50/20'
-              : 'border-line hover:border-ink-tertiary bg-surface-secondary/40'
+              ? 'border-ready/60 bg-ready-soft/20'
+              : 'border-line hover:border-border-strong bg-surface-secondary/40 hover:bg-surface-hover/40'
           }`}
           role="button"
           tabIndex={0}
@@ -225,15 +225,15 @@ export function BankUploadSection() {
             className="hidden"
           />
           {selectedFile ? (
-            <div className="space-y-1">
-              <FileSpreadsheet className="mx-auto size-8 text-emerald-600" />
+            <div className="space-y-1.5">
+              <FileSpreadsheet className="mx-auto size-8 text-ready" />
               <div className="text-sm font-semibold text-ink">{selectedFile.name}</div>
               <div className="text-xs text-ink-secondary">
                 {(selectedFile.size / 1024).toFixed(1)} KB · Nhấn để chọn tệp khác
               </div>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Upload className="mx-auto size-8 text-ink-secondary" />
               <div className="text-sm font-semibold text-ink">
                 Chọn hoặc kéo thả tệp CSV vào đây
@@ -255,7 +255,7 @@ export function BankUploadSection() {
             type="button"
             disabled={!selectedFile || isUploading}
             onClick={handleSubmit}
-            className="h-9 border border-amber-border bg-amber px-4 text-xs font-semibold text-ink hover:bg-amber-hover shrink-0 disabled:opacity-50"
+            className="h-9 border border-amber-border bg-amber px-4 text-xs font-semibold text-ink shadow-tactile transition hover:bg-amber-hover active:translate-y-[0.5px] shrink-0 disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {isUploading ? (
               <>
@@ -269,11 +269,11 @@ export function BankUploadSection() {
         </div>
 
         {uploadError && (
-          <div className="rounded-md border border-red-300 bg-red-50 p-3 text-xs text-red-800 flex items-start gap-2">
-            <XCircle className="size-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="rounded-md border border-blocked/40 bg-blocked-soft/50 p-3 text-xs text-ink flex items-start gap-2.5">
+            <XCircle className="size-4 text-blocked shrink-0 mt-0.5" />
             <div>
-              <div className="font-semibold">Lỗi tải lên hoặc xác thực dữ liệu:</div>
-              <div className="mt-0.5 leading-relaxed">{uploadError}</div>
+              <div className="font-semibold text-blocked">Lỗi tải lên hoặc xác thực dữ liệu:</div>
+              <div className="mt-0.5 leading-relaxed text-ink">{uploadError}</div>
             </div>
           </div>
         )}
@@ -281,10 +281,10 @@ export function BankUploadSection() {
         {/* Verification Result Card */}
         {result && (
           <div
-            className={`mt-6 rounded-lg border p-4 sm:p-5 space-y-4 ${
+            className={`mt-6 rounded-md border p-4 sm:p-5 space-y-4 ${
               result.status === 'accepted'
-                ? 'border-emerald-300 bg-emerald-50/20'
-                : 'border-red-300 bg-red-50/20'
+                ? 'border-ready/40 bg-ready-soft/20'
+                : 'border-blocked/40 bg-blocked-soft/20'
             }`}
             data-testid="upload-result-card"
           >
@@ -292,9 +292,9 @@ export function BankUploadSection() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-line pb-3">
               <div className="flex items-center gap-2">
                 {result.status === 'accepted' ? (
-                  <CheckCircle2 className="size-5 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="size-5 text-ready shrink-0" />
                 ) : (
-                  <XCircle className="size-5 text-red-600 shrink-0" />
+                  <XCircle className="size-5 text-blocked shrink-0" />
                 )}
                 <div>
                   <h3 className="text-sm font-bold text-ink">
@@ -312,7 +312,7 @@ export function BankUploadSection() {
                 <Button
                   type="button"
                   onClick={() => handleAskQuestion()}
-                  className="h-8 border border-amber-border bg-amber px-3 text-xs font-semibold text-ink hover:bg-amber-hover shrink-0"
+                  className="h-8 border border-amber-border bg-amber px-3 text-xs font-semibold text-ink shadow-tactile transition hover:bg-amber-hover active:translate-y-[0.5px] shrink-0"
                 >
                   <span>Hỏi về {result.entity_id}</span>
                   <ArrowRight className="ml-1 size-3.5" />
@@ -341,7 +341,7 @@ export function BankUploadSection() {
                         const info = METRIC_LABELS[m.metric_id] || { label: m.metric_id, unit: '%' };
                         const isMatch = m.status === 'valid';
                         return (
-                          <tr key={m.metric_id} className="hover:bg-surface-hover/40">
+                          <tr key={m.metric_id} className="hover:bg-surface-hover/40 transition-colors">
                             <td className="py-2 px-3">
                               <span className="font-semibold text-ink">{info.label}</span>
                               <span className="block font-mono text-[11px] text-ink-secondary">
@@ -356,11 +356,11 @@ export function BankUploadSection() {
                             </td>
                             <td className="py-2 px-3 text-center">
                               {isMatch ? (
-                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
+                                <span className="inline-flex items-center rounded-full bg-ready-soft px-2 py-0.5 text-[11px] font-medium text-text-success border border-ready/30">
                                   Hợp lệ
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-800">
+                                <span className="inline-flex items-center rounded-full bg-blocked-soft px-2 py-0.5 text-[11px] font-medium text-blocked border border-blocked/30">
                                   Lệch dung sai
                                 </span>
                               )}
@@ -377,19 +377,19 @@ export function BankUploadSection() {
             {/* Row Issues */}
             {result.row_issues && result.row_issues.length > 0 && (
               <div className="space-y-2">
-                <div className="text-xs font-bold uppercase tracking-wide text-red-800 flex items-center gap-1.5">
-                  <AlertTriangle className="size-3.5 text-red-600" />
+                <div className="text-xs font-bold uppercase tracking-wide text-blocked flex items-center gap-1.5">
+                  <AlertTriangle className="size-3.5 text-blocked" />
                   Danh sách lỗi dữ liệu phát hiện ({result.row_issues.length}):
                 </div>
-                <div className="rounded border border-red-200 bg-red-50/60 p-3 space-y-1.5 text-xs">
+                <div className="rounded-md border border-blocked/30 bg-blocked-soft/30 p-3 space-y-1.5 text-xs">
                   {result.row_issues.map((issue, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-red-900 leading-relaxed">
-                      <span className="font-mono font-semibold shrink-0">
+                    <div key={idx} className="flex items-start gap-2 text-ink leading-relaxed">
+                      <span className="font-mono font-semibold shrink-0 text-blocked">
                         {issue.row ? `Dòng ${issue.row}` : 'Cấu trúc'}:
                       </span>
                       <span>{issue.message_vi}</span>
                       {issue.field && (
-                        <span className="font-mono text-[11px] text-red-600">({issue.field})</span>
+                        <span className="font-mono text-[11px] text-blocked">({issue.field})</span>
                       )}
                     </div>
                   ))}
@@ -399,9 +399,9 @@ export function BankUploadSection() {
 
             {/* Limitations Notice */}
             {result.limitations_vi && result.limitations_vi.length > 0 && (
-              <div className="rounded border border-amber-border/70 bg-amber-soft/40 p-3 text-xs text-ink space-y-1">
-                <div className="font-semibold text-amber-900 flex items-center gap-1.5">
-                  <FileText className="size-3.5 text-amber-700" />
+              <div className="rounded-md border border-warning/40 bg-warning-soft/40 p-3 text-xs text-ink space-y-1">
+                <div className="font-semibold text-text-warning flex items-center gap-1.5">
+                  <FileText className="size-3.5 text-warning" />
                   Giới hạn sử dụng dữ liệu:
                 </div>
                 {result.limitations_vi.map((lim, idx) => (
@@ -426,7 +426,7 @@ export function BankUploadSection() {
                       key={qIdx}
                       type="button"
                       onClick={() => handleAskQuestion(qText)}
-                      className="text-left text-ink hover:text-amber-800 hover:underline py-0.5 cursor-pointer flex items-center gap-1.5"
+                      className="text-left text-ink hover:text-text-accent hover:underline py-0.5 cursor-pointer flex items-center gap-1.5 transition-colors"
                     >
                       <ArrowRight className="size-3 text-amber-border shrink-0" />
                       <span>{qText}</span>

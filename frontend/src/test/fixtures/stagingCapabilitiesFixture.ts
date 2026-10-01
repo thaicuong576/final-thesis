@@ -100,5 +100,12 @@ export const stagingCapabilitiesFixture: AnalysisCapabilities = {
   implemented_capabilities: ['company', 'sector'],
   supported_operations: ['get_company_metric', 'get_peer_benchmark'],
   source: 'gold-sqlite',
-  readiness: 'Runnable for company claims.'
+  readiness: 'Runnable for company claims.',
+  coverage: ['ACB', 'TCB', 'VPB', 'MBB', 'VCB'].flatMap((entityId) =>
+    ['2024_Q1', '2024_Q2', '2024_Q3', '2024_Q4'].map((periodId) => ({
+      entity_id: entityId,
+      period_id: periodId,
+      metrics: ['bank.npl_g35', 'bank.llr_coverage', 'bank.roa', 'bank.roe'],
+    }))
+  ),
 };

@@ -1591,3 +1591,20 @@ Status: accepted (2026-10-01). Scope: product/demo dataset; the evaluation bench
 ### Limitations
 
 Transcription was performed by an AI agent and is not an independent human review; reviewer is recorded as `claude-orchestrator-visual-transcription`. Only one period with ratios (2025_Q4) is available, so multi-period trends are not supported on this snapshot.
+
+## D-079: Quarterly operational snapshot, top-10 banks, 2024 Q1 – 2026 Q2
+
+Status: accepted (2026-10-01). Scope: product/demo dataset; the evaluation benchmark is unchanged.
+
+### Decision
+
+1. `data/processed/bank-quarterly-top10-operational-v1.sqlite` (dataset `bank-quarterly-top10-operational-v1`) extends D-078 to every quarter from 2024 Q1 to 2026 Q2 for ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB and VPB: 92 of 100 bank-quarters, 368 NPL/LLR/ROA/ROE values with calculation receipts. Eight bank-quarters whose consolidated filing could not be obtained are left empty, never imputed.
+2. Inputs: `data/onboarding/quarterly-top10/inputs.csv` (billion VND, one row per input cell with PDF page, statement/note, row, column, reading status, source URL and PDF SHA-256). Audited FY2025 rows from D-078 take precedence for 2025 Q4 and the 2024 Q4 balances they use.
+3. New versioned formulas for interim periods: `roa-ttm-interim-v1` / `roe-ttm-interim-v1` = (YTD(t) − YTD(t−4) + FY(y−1)) / average(balance t, balance prior year-end); Q4 uses `*-ttm-annual-ytd-v1` (annual profit over the average of the two year-end balances). Period rules `interim_ttm` / `annual_ytd` bind each input period in `_expected_input_periods`.
+4. Definitions follow D-078, including the exclusion of margin lending from VPB gross loans in every quarter (so the series is consistent with the audited FY2025 point).
+5. Verification: 2025 Q4 reproduces all 40 production FY2025 values exactly; 66 of 76 overlapping Gold v5 quarterly values agree. The ten differences are explained in the dataset README (VPB margin convention, TCB bank-reported rounded ratios, VCB restated 2024 equity).
+6. Gold v5 remains the frozen evaluation benchmark. Staging may serve this snapshot instead of the FY2025-only one by changing the Supabase object and the expected SHA-256 / snapshot id (requires user approval).
+
+### Limitations
+
+Readings were made by an AI agent (OCR plus visual reading of rendered crops, each cross-checked against statement identities) and have not had an independent human review; 29 cells rest on a single OCR pass that agrees with Gold or neighbouring quarters. Trend requests remain bounded to two to four periods (D-074); longer windows are answered with their end points.

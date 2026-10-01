@@ -327,6 +327,17 @@ roles; deterministic retrieval alone is not a model specialist.
 
 The mutable analysis_runs DDL now lives in contracts/run-store-schema.sql; contracts/schema.sql describes analytical storage only. This separation does not migrate or rewrite existing accepted SQLite artifacts.
 
+## Operational datasets (D-078, D-079)
+
+Besides the frozen Gold v5 benchmark there are two operational product snapshots,
+both built from primary filings with per-row page locators and calculation
+receipts: `bank-2025-top10-operational-v1` (FY2025, top-10 banks, D-078) and
+`bank-quarterly-top10-operational-v1` (2024 Q1 – 2026 Q2, 92 of 100 bank-quarters,
+D-079, inputs in `data/onboarding/quarterly-top10/`, builder
+`scripts/build_quarterly_snapshot.py`). Interim ROA/ROE use the versioned
+`*-ttm-interim-v1` formulas; Q4 uses `*-ttm-annual-ytd-v1`. Missing quarters are
+never imputed. Evaluation results stay on Gold v5.
+
 ## Multi-period Company trend target gate (implemented; evaluation pending)
 
 D-074 allows a bounded Company-only trend request with two to four unique,

@@ -3,6 +3,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { BarChart3, Database, FileText, MessageSquareText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import {
   Sidebar,
   SidebarContent,
@@ -55,13 +56,7 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
               <WorkspaceNavItem to="/data" label="Dữ liệu" icon={Database} active={activeSection === 'data'} />
             </SidebarMenu>
           </SidebarGroup>
-          <div className="mx-3 mt-auto mb-3 rounded-xl bg-sidebar-accent p-3 text-xs text-[#aaa497] group-data-[collapsible=icon]:hidden">
-            <p className="m-0 flex items-center gap-2 font-semibold text-[#f1ece2]">
-              <span className="size-1.5 rounded-full bg-[#4cc38a]" aria-hidden="true" />
-              Gold v5 · đã đối chiếu BCTC
-            </p>
-            <p className="mt-1.5 mb-0 leading-relaxed">5 ngân hàng · Q1–Q4/2024 · 4 chỉ tiêu. Mỗi con số dẫn về trang báo cáo tài chính gốc.</p>
-          </div>
+          <DatasetStatus />
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-0">
@@ -119,5 +114,37 @@ function WorkspaceNavItem({ to, label, icon: Icon, active }: { to: string; label
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
+  );
+}
+
+/** Live summary of the dataset the API is serving; nothing here is hard-coded to one snapshot. */
+function DatasetStatus() {
+  const { data } = useAnalysisCapabilities();
+  if (!data) return null;
+  const tickers = (data.entities || []).map((e) => e.ticker || e.id);
+  const periods = (data.periods || []).map((p) => p.id);
+  const latest = periods.slice().sort().pop();
+  const years = Array.from(new Set(periods.map((p) => p.slice(0, 4)))).sort();
+  const snapshot = data.dataset_snapshot_id || data.datasetSnapshotId || data.snapshotId || '';
+  const label = snapshot.startsWith('gold') ? 'Bộ Gold v5 · đã đối chiếu BCTC' : 'BCTC kiểm toán · đã đối chiếu';
+  const latestLabel = latest ? latest.replace(/^(\d{4})_Q(\d)$/, 'Q$2/$1') : '';
+  return (
+    <div className="mx-3 mt-auto mb-3 rounded-xl bg-sidebar-accent p-3 text-xs text-[#aaa497] group-data-[collapsible=icon]:hidden">
+      <p className="m-0 flex items-center gap-2 font-semibold text-[#f1ece2]">
+        <span className={`size-1.5 rounded-full ${data.analysis_available === false ? 'bg-amber' : 'bg-[#4cc38a]'}`} aria-hidden="true" />
+        {label}
+      </p>
+      <p className="mt-1.5 mb-2 leading-relaxed">
+        {tickers.length} ngân hàng · {years.join('–')}
+        {latestLabel ? ` · mới nhất ${latestLabel}` : ''} · {(data.metrics || []).length} chỉ tiêu
+      </p>
+      <div className="flex flex-wrap gap-1">
+        {tickers.map((t) => (
+          <span key={t} className="rounded bg-[#1b1a18] px-1.5 py-px font-mono text-[10px] font-semibold text-[#e9e4da]">
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

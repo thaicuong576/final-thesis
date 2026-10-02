@@ -1,3 +1,4 @@
+import { analyticalPeriodIds } from '@/entities/capability/model/coverage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TraceStep } from './model/types';
 import type { AnalysisCapabilities } from '../../entities/capability/model/types';
@@ -33,9 +34,15 @@ export function formatCapabilitiesPeriods(capabilities?: AnalysisCapabilities | 
   if (!capabilities?.periods || capabilities.periods.length === 0) {
     return 'Q1–Q4/2024';
   }
-  const years = Array.from(new Set(capabilities.periods.map((p) => p.year).filter(Boolean)));
+  // Only quarters that carry metrics: prior-year periods held as formula inputs are not askable.
+  const analytical = new Set(analyticalPeriodIds(capabilities));
+  const periods = capabilities.periods.filter((p) => analytical.has(p.id));
+  if (periods.length === 0) {
+    return 'Q1–Q4/2024';
+  }
+  const years = Array.from(new Set(periods.map((p) => p.year).filter(Boolean)));
   if (years.length === 1) {
-    const quarters = capabilities.periods
+    const quarters = periods
       .filter((p) => p.year === years[0])
       .map((p) => p.quarter)
       .sort((a, b) => a - b);
@@ -44,7 +51,7 @@ export function formatCapabilitiesPeriods(capabilities?: AnalysisCapabilities | 
     }
     return `Q${quarters[0]}/${years[0]}`;
   }
-  const sorted = [...capabilities.periods].sort((a, b) => a.year - b.year || a.quarter - b.quarter);
+  const sorted = [...periods].sort((a, b) => a.year - b.year || a.quarter - b.quarter);
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   return `Q${first.quarter}/${first.year}–Q${last.quarter}/${last.year}`;

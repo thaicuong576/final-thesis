@@ -5,7 +5,7 @@ import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
 import { useAnalysisCapabilities } from '../../features/create-analysis/hooks/useAnalysisCapabilities';
 import { AnalysisSessionWorkspace } from '../../features/analysis-session/components/AnalysisSessionWorkspace';
 import type { TraceStep } from '../../features/analysis-session/model/types';
-import { mapErrorCodeToMessage } from '../../features/analysis-session/useTraceStream';
+import { formatCapabilitiesPeriods, mapErrorCodeToMessage } from '../../features/analysis-session/useTraceStream';
 import { DEFAULT_METRICS } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 
@@ -50,16 +50,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
       ? capabilities.entities.map((e) => e.ticker || e.name || e.id).join(', ')
       : 'ACB, MBB, TCB, VCB, VPB';
 
-  const periodsStr = (() => {
-    if (!capabilities?.periods || capabilities.periods.length === 0) {
-      return 'Q1–Q4/2024';
-    }
-    const years = Array.from(new Set(capabilities.periods.map((p) => p.year).filter(Boolean)));
-    if (years.length === 1) {
-      return `Q1–Q4/${years[0]}`;
-    }
-    return 'Q1–Q4/2024';
-  })();
+  const periodsStr = formatCapabilitiesPeriods(capabilities);
 
   const metricsStr =
     capabilities?.metrics && capabilities.metrics.length > 0

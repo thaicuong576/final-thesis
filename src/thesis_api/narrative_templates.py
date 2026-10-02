@@ -286,12 +286,16 @@ def default_report_spec(
             r_val = rank_f.rank_better or rank_f.rank_desc or 1
             den = rank_f.denominator or 5
             superlative = ""
+            med_f = next((f for f in all_facts if f.fact_type == "peer_median" and f.metric_id == rank_f.metric_id), None)
+            is_non_member = bool(med_f and med_f.denominator and den > med_f.denominator)
             if rank_f.rank_desc == den:
-                superlative = " (thấp nhất nhóm)"
+                superlative = f" (thấp nhất khi đặt cạnh {med_f.denominator} ngân hàng trong nhóm)" if is_non_member and med_f else " (thấp nhất nhóm)"
             elif rank_f.rank_desc == 1:
-                superlative = " (cao nhất nhóm)"
+                superlative = f" (cao nhất khi đặt cạnh {med_f.denominator} ngân hàng trong nhóm)" if is_non_member and med_f else " (cao nhất nhóm)"
             ans_text = f"{m_name_upper} của {ent} đạt {disp} trong {p_vi}, xếp hạng {r_val}/{den}{superlative}."
             cited_ids = [val_fact.fact_id, rank_f.fact_id]
+            if is_non_member and med_f and med_f.fact_id not in cited_ids:
+                cited_ids.append(med_f.fact_id)
         else:
             ans_text = f"{m_name_upper} của {ent} đạt {disp} trong {p_vi}."
             cited_ids = [val_fact.fact_id]

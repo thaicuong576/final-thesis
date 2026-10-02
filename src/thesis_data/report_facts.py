@@ -51,6 +51,23 @@ class Fact:
     display_text: str | None = None
     hien_thi: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.fact_type == "peer_rank" and self.denominator is not None:
+            if self.denominator < 1:
+                raise ValueError(f"Peer rank denominator must be >= 1, got {self.denominator}")
+            if self.value is not None and not (1 <= self.value <= self.denominator):
+                raise ValueError(
+                    f"Peer rank value {self.value} violates invariant 1 <= rank <= denominator ({self.denominator})"
+                )
+            if self.rank_better is not None and not (1 <= self.rank_better <= self.denominator):
+                raise ValueError(
+                    f"Peer rank rank_better {self.rank_better} violates invariant 1 <= rank <= denominator ({self.denominator})"
+                )
+            if self.rank_desc is not None and not (1 <= self.rank_desc <= self.denominator):
+                raise ValueError(
+                    f"Peer rank rank_desc {self.rank_desc} violates invariant 1 <= rank <= denominator ({self.denominator})"
+                )
+
 
 @dataclass
 class SignalResult:

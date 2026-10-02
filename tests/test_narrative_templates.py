@@ -83,5 +83,75 @@ class TestRatioToMedianWording(unittest.TestCase):
         self.assertEqual(sent.sentence_id, "sent-fb-3")
 
 
+class TestNonMemberBankRankTemplates(unittest.TestCase):
+    """VIBFIX-1 / Bug 1: Non-member rank wording and denominator in fallback templates."""
+
+    def test_fallback_sentence_non_member_rank_11_of_11(self) -> None:
+        fact = Fact(
+            fact_id="fact:peer_rank:VIB:sector:bank:2025_Q4:bank.llr_coverage",
+            fact_type="peer_rank",
+            entity_id="VIB",
+            metric_id="bank.llr_coverage",
+            period="2025_Q4",
+            value=11.0,
+            rank_better=11,
+            rank_desc=11,
+            denominator=11,
+            unit="rank",
+        )
+        sent = make_fallback_sentence(fact, seq=1)
+        self.assertIn("11/11", sent.text)
+        self.assertNotIn("11/10", sent.text)
+
+    def test_fallback_answer_card_non_member_wording(self) -> None:
+        from thesis_api.narrative_templates import default_report_spec
+
+        val_fact = Fact(
+            fact_id="f_val_vib",
+            fact_type="value",
+            entity_id="VIB",
+            metric_id="bank.llr_coverage",
+            period="2025_Q4",
+            value=42.87,
+            unit="%",
+        )
+        rank_fact = Fact(
+            fact_id="f_rank_vib",
+            fact_type="peer_rank",
+            entity_id="VIB",
+            metric_id="bank.llr_coverage",
+            period="2025_Q4",
+            value=11.0,
+            rank_better=11,
+            rank_desc=11,
+            denominator=11,
+            unit="rank",
+        )
+        med_fact = Fact(
+            fact_id="f_med_bank",
+            fact_type="peer_median",
+            universe_id="sector:bank",
+            metric_id="bank.llr_coverage",
+            period="2025_Q4",
+            value=96.83,
+            unit="%",
+            denominator=10,
+        )
+        from thesis_api.analysis_tools import ToolResult
+
+        all_facts = [val_fact, rank_fact, med_fact]
+        tool_results = [ToolResult(tool="lookup", agent="company", label="Tra cứu", facts=all_facts, datasets=[], missing=[])]
+        spec = default_report_spec("lookup", tool_results, [], [])
+        self.assertEqual(spec.kind, "answer_card")
+        ans_block = spec.blocks[0]
+        ans_sent = ans_block.sentences[0]
+        # Must say 'xếp hạng 11/11'
+        self.assertIn("11/11", ans_sent.text)
+        # Must say 'khi đặt cạnh 10 ngân hàng trong nhóm' without claiming VIB is in the group
+        self.assertIn("khi đặt cạnh 10 ngân hàng trong nhóm", ans_sent.text)
+        # Must cite med_fact to satisfy entity count check for '10 ngân hàng'
+        self.assertIn(med_fact.fact_id, ans_sent.fact_ids)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -298,6 +298,32 @@ def run_lookup_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
                 pres = ctx.presentation(metric)
                 r_facts = rank_facts(valid_obs, universe_id, pres.direction)
                 ent_rf = next((rf for rf in r_facts if rf.entity_id == entity), None)
+                if not ent_rf and obs is not None and obs.validation_status is QualityStatus.VALID and obs.value is not None and valid_obs:
+                    t_val = float(obs.value)
+                    t_rank_desc = 1 + sum(1 for other in valid_obs if float(other.value) > t_val)
+                    if pres.direction == "lower_is_better":
+                        t_rank_better = 1 + sum(1 for other in valid_obs if float(other.value) < t_val)
+                    elif pres.direction == "higher_is_better":
+                        t_rank_better = t_rank_desc
+                    else:
+                        t_rank_better = None
+                    fact_val = float(t_rank_better if t_rank_better is not None else t_rank_desc)
+                    target_denom = len(valid_obs) + 1
+                    ent_rf = Fact(
+                        fact_id=f"fact:peer_rank:{entity}:{universe_id}:{period}:{metric}",
+                        fact_type="peer_rank",
+                        entity_id=entity,
+                        universe_id=universe_id,
+                        metric_id=metric,
+                        period=period,
+                        value=fact_val,
+                        unit="rank",
+                        rank_better=t_rank_better,
+                        rank_desc=t_rank_desc,
+                        denominator=target_denom,
+                        formula_version=FORMULA["peer_rank"],
+                        input_observation_ids=[obs.observation_id] + [o.observation_id for o in valid_obs],
+                    )
                 if ent_rf:
                     facts.append(ent_rf)
 
@@ -406,6 +432,15 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
             else:
                 t_rank_better = None
             fact_val = float(t_rank_better if t_rank_better is not None else t_rank_desc)
+            # When target is not a member of the peer universe, its rank is its position
+            # among the peer members plus itself, so the denominator is members + 1 (D-077).
+            target_denom = len(valid_obs) + 1
+            if not (1 <= fact_val <= target_denom):
+                raise ValueError(f"Peer rank {fact_val} violates invariant 1 <= rank <= denominator ({target_denom})")
+            if t_rank_better is not None and not (1 <= t_rank_better <= target_denom):
+                raise ValueError(f"Peer rank_better {t_rank_better} violates invariant 1 <= rank <= denominator ({target_denom})")
+            if t_rank_desc is not None and not (1 <= t_rank_desc <= target_denom):
+                raise ValueError(f"Peer rank_desc {t_rank_desc} violates invariant 1 <= rank <= denominator ({target_denom})")
             target_rf = Fact(
                 fact_id=f"fact:peer_rank:{target}:{universe_id}:{period}:{metric}",
                 fact_type="peer_rank",
@@ -417,7 +452,7 @@ def run_peer_position_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResu
                 unit="rank",
                 rank_better=t_rank_better,
                 rank_desc=t_rank_desc,
-                denominator=len(valid_obs),
+                denominator=target_denom,
                 formula_version=FORMULA["peer_rank"],
                 input_observation_ids=[target_obs.observation_id] + [o.observation_id for o in valid_obs],
             )
@@ -747,6 +782,34 @@ def run_trend_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResult:
                 _, anchor_valid = _get_universe_obs(ctx, anchor, metric)
                 rf_list = rank_facts(anchor_valid, universe_id, pres.direction)
                 target_rf = next((rf for rf in rf_list if rf.entity_id == target), None)
+                if not target_rf and anchor_valid:
+                    anchor_obs = get_cached_obs(ctx, target, anchor, metric)
+                    if anchor_obs is not None and anchor_obs.validation_status is QualityStatus.VALID and anchor_obs.value is not None:
+                        t_val = float(anchor_obs.value)
+                        t_rank_desc = 1 + sum(1 for other in anchor_valid if float(other.value) > t_val)
+                        if pres.direction == "lower_is_better":
+                            t_rank_better = 1 + sum(1 for other in anchor_valid if float(other.value) < t_val)
+                        elif pres.direction == "higher_is_better":
+                            t_rank_better = t_rank_desc
+                        else:
+                            t_rank_better = None
+                        fact_val = float(t_rank_better if t_rank_better is not None else t_rank_desc)
+                        target_denom = len(anchor_valid) + 1
+                        target_rf = Fact(
+                            fact_id=f"fact:peer_rank:{target}:{universe_id}:{anchor}:{metric}",
+                            fact_type="peer_rank",
+                            entity_id=target,
+                            universe_id=universe_id,
+                            metric_id=metric,
+                            period=anchor,
+                            value=fact_val,
+                            unit="rank",
+                            rank_better=t_rank_better,
+                            rank_desc=t_rank_desc,
+                            denominator=target_denom,
+                            formula_version=FORMULA["peer_rank"],
+                            input_observation_ids=[anchor_obs.observation_id] + [o.observation_id for o in anchor_valid],
+                        )
                 if target_rf:
                     facts.append(target_rf)
 

@@ -401,6 +401,77 @@ class TestReportFactsCore(unittest.TestCase):
         cand_multi = detect_cross_level_candidates(facts_multi_period, [], flat_pp=flat_pp_map)
         self.assertFalse(any(c.kind == "counter_trend" for c in cand_multi))
 
+    def test_peer_rank_invariant_enforcement(self) -> None:
+        """Verify peer_rank fact enforces 1 <= rank <= denominator invariant (VIBFIX-1 / Bug 1)."""
+        # Valid non-member bank rank (e.g. 11/11)
+        valid_fact = Fact(
+            fact_id="fact:peer_rank:VIB:sector:bank:2025_Q4:bank.llr_coverage",
+            fact_type="peer_rank",
+            entity_id="VIB",
+            denominator=11,
+            value=11.0,
+            rank_better=11,
+            rank_desc=11,
+        )
+        self.assertEqual(valid_fact.denominator, 11)
+        self.assertEqual(valid_fact.value, 11.0)
+
+        # Invalid: rank larger than denominator (11/10)
+        with self.assertRaises(ValueError) as ctx_val:
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:1",
+                fact_type="peer_rank",
+                denominator=10,
+                value=11.0,
+            )
+        self.assertIn("violates invariant 1 <= rank <= denominator", str(ctx_val.exception))
+
+        # Invalid: rank_better larger than denominator
+        with self.assertRaises(ValueError) as ctx_rb:
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:2",
+                fact_type="peer_rank",
+                denominator=10,
+                rank_better=11,
+            )
+        self.assertIn("rank_better", str(ctx_rb.exception))
+
+        # Invalid: rank_desc larger than denominator
+        with self.assertRaises(ValueError) as ctx_rd:
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:3",
+                fact_type="peer_rank",
+                denominator=10,
+                rank_desc=11,
+            )
+        self.assertIn("rank_desc", str(ctx_rd.exception))
+
+        # Invalid: rank < 1
+        with self.assertRaises(ValueError):
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:4",
+                fact_type="peer_rank",
+                denominator=10,
+                value=0.0,
+            )
+
+        with self.assertRaises(ValueError):
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:5",
+                fact_type="peer_rank",
+                denominator=10,
+                rank_better=0,
+            )
+
+        # Invalid: denominator < 1
+        with self.assertRaises(ValueError):
+            Fact(
+                fact_id="fact:peer_rank:VIB:bad:6",
+                fact_type="peer_rank",
+                denominator=0,
+                value=1.0,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

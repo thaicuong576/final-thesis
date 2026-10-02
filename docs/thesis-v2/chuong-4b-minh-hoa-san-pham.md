@@ -1,14 +1,14 @@
 ## 4.7. Minh họa sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo đúng thứ tự một chuyên viên phân tích sử dụng nó: xem dữ liệu đang có, đặt câu hỏi, theo dõi các tác tử làm việc, đọc báo cáo, kiểm tra lại quá trình phân tích và mở lại báo cáo cũ. Toàn bộ ảnh được chụp từ phiên bản đang vận hành tại https://fin-ai.eddiephung.me với dữ liệu Gold v5 và mô hình ngôn ngữ thật.
+Mục này đi qua sản phẩm theo đúng thứ tự một chuyên viên phân tích sử dụng nó: xem dữ liệu đang có, đặt câu hỏi, theo dõi các tác tử làm việc, đọc báo cáo, kiểm tra lại quá trình phân tích và mở lại báo cáo cũ. Toàn bộ ảnh được chụp từ phiên bản đang vận hành tại https://fin-ai.eddiephung.me, dùng bộ dữ liệu vận hành mười ngân hàng từ quý 1/2024 đến quý 2/2026 (mục 3.2.5) và mô hình ngôn ngữ thật.
 
 ### 4.7.1. Xem dữ liệu hiện có
 
-Trước khi hỏi, người dùng có thể mở trang Dữ liệu để biết hệ thống đang có những ngân hàng, kỳ và chỉ tiêu nào. Thông tin trên trang được lấy trực tiếp từ máy chủ, nên luôn khớp với bộ dữ liệu mà hệ thống thực sự dùng để phân tích.
+Trước khi hỏi, người dùng có thể mở trang Dữ liệu để biết hệ thống đang có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không; các ô chưa có báo cáo được đánh dấu rõ thay vì bị điền ước tính. Thông tin trên trang được lấy trực tiếp từ máy chủ, nên luôn khớp với bộ dữ liệu mà hệ thống thực sự dùng để phân tích.
 
 ![](docs/thesis-v2/screenshots/01-du-lieu.png)
 
-Hình 4.5: Trang Dữ liệu – phạm vi ngân hàng, kỳ và chỉ tiêu đang được hỗ trợ
+Hình 4.5: Trang Dữ liệu – bảng độ phủ mười ngân hàng theo từng quý
 
 ### 4.7.2. Đặt câu hỏi
 
@@ -34,7 +34,7 @@ Khi hoàn tất, hệ thống mở báo cáo được trình bày theo phong cá
 
 Hình 4.8: Báo cáo hồ sơ doanh nghiệp của ACB – tiêu đề, nhận định và tín hiệu so với nhóm
 
-Phần thân báo cáo kết hợp nhận định với biểu đồ. Với câu hỏi về sức khỏe tài chính, hệ thống dùng bảng màu thứ hạng giữa năm ngân hàng, biểu đồ tương quan giữa nợ xấu và bao phủ nợ xấu, và các biểu đồ nhỏ theo từng quý. Các phát hiện đáng chú ý giữa các cấp (ví dụ sinh lời trên nhóm nhưng đệm dự phòng dưới nhóm) được đặt trong khối lưu ý riêng.
+Phần thân báo cáo kết hợp nhận định với biểu đồ. Với câu hỏi về sức khỏe tài chính, hệ thống dùng bảng màu thứ hạng giữa các ngân hàng trong nhóm, biểu đồ tương quan giữa nợ xấu và bao phủ nợ xấu, và các biểu đồ nhỏ theo từng quý. Các phát hiện đáng chú ý giữa các cấp (ví dụ sinh lời trên nhóm nhưng đệm dự phòng dưới nhóm) được đặt trong khối lưu ý riêng.
 
 ![](docs/thesis-v2/screenshots/05-bao-cao-bieu-do.png)
 
@@ -80,7 +80,7 @@ Nếu người dùng hỏi về một ngân hàng hoặc một kỳ chưa có tr
 
 ![](docs/thesis-v2/screenshots/11-tu-choi.png)
 
-Hình 4.15: Thông báo khi câu hỏi về ngân hàng CTG nằm ngoài phạm vi dữ liệu
+Hình 4.15: Thông báo khi câu hỏi về một ngân hàng chưa có trong bộ dữ liệu
 
 ### 4.7.8. Mở lại báo cáo cũ
 

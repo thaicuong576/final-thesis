@@ -146,15 +146,38 @@ snapshot-b86db41dd976731cf3cf8c457c0874f8bea95798d9c42b3e3ff953efc8a58aaa
 
 Dữ liệu CTG là minh chứng cho khả năng tiếp nhận ngân hàng mới. CTG không nằm trong bộ dữ liệu chuẩn Gold v5, không tham gia tính trung vị nhóm và không có trong bài đo thực nghiệm giữa ba cấu hình A, B và C. Mọi câu hỏi về CTG gửi tới bộ dữ liệu Gold v5 đều bị hệ thống từ chối ngay từ khâu lập kế hoạch.
 
+Quy trình trên cũng được đưa lên giao diện web để người dùng tự thực hiện. Trên trang Dữ liệu, người dùng tải lên một tệp CSV gồm các số liệu đầu vào của ngân hàng mới (nhóm nợ, dư nợ, dự phòng, tổng tài sản, vốn chủ sở hữu, lợi nhuận), mỗi dòng ghi kèm vị trí trong báo cáo tài chính gốc. Hệ thống kiểm tra cấu trúc tệp, tự tính lại bốn chỉ tiêu bằng đúng các công thức có đánh số phiên bản và lưu biên nhận tính toán, rồi đóng gói thành một bản dữ liệu riêng. Sau đó người dùng có thể hỏi về ngân hàng vừa tải lên và nhận báo cáo so sánh với nhóm ngân hàng sẵn có. Ngân hàng tải lên được ghi chú rõ trong báo cáo là dữ liệu do người dùng cung cấp và không được đưa vào phép tính trung vị nhóm, để một tệp chưa qua đối soát độc lập không làm lệch chuẩn so sánh của các ngân hàng khác. Hệ thống từ chối tệp của một ngân hàng đã có sẵn trong dữ liệu, vì nếu nhận thì cùng một ngân hàng và cùng một kỳ sẽ có hai bộ số khác nhau. Tệp mẫu đi kèm sản phẩm dùng Ngân hàng TMCP Quốc tế Việt Nam (VIB), một ngân hàng ngoài nhóm mười, với số liệu lấy từ báo cáo tài chính hợp nhất năm 2025 đã kiểm toán.
+
+### 3.2.5. Bộ dữ liệu vận hành cho sản phẩm
+
+Gold v5 được giữ cố định để thực nghiệm ở Chương 5 có thể lặp lại, nhưng năm ngân hàng trong một năm là quá hẹp cho người dùng thực tế. Vì vậy, sản phẩm triển khai dùng một bộ dữ liệu vận hành riêng, xây dựng theo đúng quy trình tiếp nhận ở mục 3.2.4 nhưng mở rộng về quy mô:
+- Phạm vi: mười ngân hàng niêm yết lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười kỳ từ quý 1/2024 đến quý 2/2026, cùng bốn chỉ tiêu như Gold v5.
+- Nguồn: báo cáo tài chính hợp nhất giữa niên độ của từng quý; với quý 4/2025 dùng báo cáo tài chính năm 2025 đã kiểm toán. Mỗi số liệu đầu vào ghi kèm số trang, bảng, dòng, cột và mã băm của đúng tệp PDF gốc.
+- Cách đọc số: số liệu được trích tự động từ lớp chữ hoặc bằng nhận dạng chữ quang học, và chỉ được chấp nhận tự động khi thỏa một phép kiểm số học (các nhóm nợ cộng đúng tổng in trên báo cáo, hoặc hai lần nhận dạng cho cùng kết quả). Các ô còn lại được đọc trực tiếp trên ảnh trang báo cáo và đối chiếu bằng các đẳng thức kế toán: tổng tài sản bằng nợ phải trả cộng vốn chủ sở hữu, lợi nhuận trước thuế trừ thuế bằng lợi nhuận sau thuế.
+- Công thức: ROA và ROE của quý 1 đến quý 3 được tính theo bốn quý gần nhất (lợi nhuận lũy kế từ đầu năm, trừ phần cùng kỳ năm trước, cộng lợi nhuận cả năm trước), chia cho bình quân số dư cuối kỳ và đầu năm. Quý 4 dùng lợi nhuận cả năm. Cả hai công thức đều có mã phiên bản riêng và được lưu biên nhận tính toán.
+
+*Bảng 3.3: Độ phủ bộ dữ liệu vận hành (10 ngân hàng × 10 quý).*
+
+| Kết quả | Số ô ngân hàng – quý | Ghi chú |
+|---|:---:|---|
+| Đủ bốn chỉ tiêu | 92 | 368 giá trị chỉ tiêu, mỗi giá trị có biên nhận tính toán |
+| Để trống | 8 | Không thu thập được báo cáo hợp nhất của quý đó: ACB quý 1/2026, BID quý 3/2024, CTG quý 3/2024 và quý 3/2025, HDB quý 3/2024, SHB quý 2/2024, VPB quý 1 và quý 2/2026 |
+
+Các ô thiếu không được ước tính hay nội suy. Khi xếp hạng hoặc tính trung vị ở một quý có ô thiếu, hệ thống dùng số ngân hàng thực có dữ liệu và ghi rõ trong báo cáo (ví dụ "hạng 2/7").
+
+Để kiểm tra độ tin cậy, bộ dữ liệu được đối chiếu hai chiều. Toàn bộ 40 giá trị của quý 4/2025 khớp tuyệt đối với bộ dữ liệu năm 2025 đã kiểm toán. Trong 76 giá trị trùng kỳ với Gold v5, 66 giá trị khớp; 10 giá trị lệch nhỏ và đều giải thích được: VPB được loại phần cho vay ký quỹ khỏi dư nợ cho thống nhất với báo cáo kiểm toán, TCB trong Gold v5 dùng tỷ số do ngân hàng tự công bố (đã làm tròn, cách tính bình quân khác), và vốn chủ sở hữu năm 2024 của VCB đã được trình bày lại trong báo cáo kiểm toán.
+
+Bộ dữ liệu vận hành chỉ phục vụ sản phẩm. Toàn bộ kết quả thực nghiệm ở Chương 5 vẫn chạy trên Gold v5 và không được chạy lại trên bộ dữ liệu này.
+
 ---
 
 ## 3.3. Thiết kế thực nghiệm so sánh A/B/C
 
 ### 3.3.1. Ba cấu hình hệ thống đối chiếu
 
-Để tách bạch tác động của việc chia việc cho nhiều tác tử và tác động của phản biện ngữ nghĩa, thực nghiệm được thiết kế trên ba cấu hình cùng xử lý một bài toán (Hình 3.3, Bảng 3.3):
+Để tách bạch tác động của việc chia việc cho nhiều tác tử và tác động của phản biện ngữ nghĩa, thực nghiệm được thiết kế trên ba cấu hình cùng xử lý một bài toán (Hình 3.3, Bảng 3.4):
 
-*Bảng 3.3: Đặc tả ba cấu hình hệ thống trong thực nghiệm A/B/C.*
+*Bảng 3.4: Đặc tả ba cấu hình hệ thống trong thực nghiệm A/B/C.*
 
 | Tiêu chí | Cấu hình A (Tác tử đơn) | Cấu hình B (Đa tác tử không phản biện) | Cấu hình C (Đa tác tử có phản biện) |
 |---|---|---|---|
@@ -233,9 +256,9 @@ flowchart TD
 
 ### 3.3.3. Bộ nhiệm vụ thực nghiệm chuẩn hóa (12 câu hỏi)
 
-Bộ nhiệm vụ thực nghiệm phiên bản 2 gồm 12 câu hỏi tiếng Việt tự nhiên, bao quát 5 dạng câu hỏi thường gặp và 2 trường hợp kiểm tra ranh giới (Bảng 3.4):
+Bộ nhiệm vụ thực nghiệm phiên bản 2 gồm 12 câu hỏi tiếng Việt tự nhiên, bao quát 5 dạng câu hỏi thường gặp và 2 trường hợp kiểm tra ranh giới (Bảng 3.5):
 
-*Bảng 3.4: Danh mục 12 nhiệm vụ thực nghiệm chuẩn hóa.*
+*Bảng 3.5: Danh mục 12 nhiệm vụ thực nghiệm chuẩn hóa.*
 
 | Mã nhiệm vụ | Dạng câu hỏi | Nội dung câu hỏi tiếng Việt tự nhiên | Mục tiêu kiểm chứng thực nghiệm |
 |:---:|---|---|---|
@@ -254,9 +277,9 @@ Bộ nhiệm vụ thực nghiệm phiên bản 2 gồm 12 câu hỏi tiếng Vi�
 
 ### 3.3.4. Phương pháp chấm điểm theo quy tắc và điều chỉnh thực tế
 
-Để đánh giá khách quan, tránh thiên vị và không dùng mô hình ngôn ngữ tự chấm điểm chính mình, nghiên cứu dùng bộ đo tự động theo quy tắc cố định (Bảng 3.5):
+Để đánh giá khách quan, tránh thiên vị và không dùng mô hình ngôn ngữ tự chấm điểm chính mình, nghiên cứu dùng bộ đo tự động theo quy tắc cố định (Bảng 3.6):
 
-*Bảng 3.5: Hệ thống chỉ số đánh giá theo quy tắc.*
+*Bảng 3.6: Hệ thống chỉ số đánh giá theo quy tắc.*
 
 | Nhóm chỉ số | Chỉ số cụ thể | Phương pháp đo lường theo quy tắc |
 |---|---|---|
@@ -280,7 +303,7 @@ Các điều chỉnh phương pháp thực tế:
 ## 3.4. Giới hạn của phương pháp nghiên cứu
 
 Để diễn giải kết quả đúng mực, các giới hạn của phương pháp cần được nêu rõ:
-1. Giới hạn về mẫu ngân hàng: Mẫu 5 ngân hàng thương mại niêm yết trong năm 2024 là mẫu chọn có chủ đích, tập trung vào các ngân hàng lớn có thanh khoản cao. Kết quả thực nghiệm không đại diện cho toàn bộ gần 30 ngân hàng thương mại tại Việt Nam.
+1. Giới hạn về mẫu ngân hàng: Mẫu 5 ngân hàng thương mại niêm yết trong năm 2024 là mẫu chọn có chủ đích, tập trung vào các ngân hàng lớn có thanh khoản cao. Kết quả thực nghiệm không đại diện cho toàn bộ gần 30 ngân hàng thương mại tại Việt Nam. Bộ dữ liệu vận hành mười ngân hàng (mục 3.2.5) mở rộng phạm vi cho người dùng sản phẩm nhưng không thay đổi mẫu của thực nghiệm. Số liệu của bộ này do tác giả đối soát với sự hỗ trợ của công cụ, chưa qua kiểm tra độc lập của người thứ hai.
 2. Giới hạn về số lượng chỉ tiêu: Nghiên cứu tập trung vào 4 chỉ tiêu cơ bản phản ánh chất lượng tài sản và khả năng sinh lời. Các chỉ tiêu quan trọng khác như tỷ lệ an toàn vốn (CAR), tỷ lệ dư nợ trên vốn huy động (LDR), tỷ lệ tiền gửi không kỳ hạn (CASA) và biên lãi thuần (NIM) chưa có trong bộ dữ liệu chuẩn v5.
 3. Giới hạn của bộ đo tự động: Bộ chấm điểm theo quy tắc kiểm tra tốt tính đúng đắn của số liệu và cấu trúc báo cáo, nhưng chưa đo lường được văn phong tài chính, tính thuyết phục hay chiều sâu trong gợi mở kinh doanh.
 4. Không đưa ra khuyến nghị đầu tư: Hệ thống chỉ hỗ trợ tổng hợp thông tin và phân tích cơ bản. Mọi nội dung liên quan đến định giá cổ phiếu, giá mục tiêu, khuyến nghị mua hay bán đều bị loại trừ theo chuẩn mực đạo đức dữ liệu tài chính.

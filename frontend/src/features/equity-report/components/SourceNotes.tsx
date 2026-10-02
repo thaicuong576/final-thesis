@@ -38,8 +38,8 @@ export const SourceNotes: React.FC = () => {
   return (
     <footer className="mt-6 pt-5 border-t border-border-subtle font-sans">
       {sourceNotes && sourceNotes.length > 0 && (
-        <section aria-label="Nguồn số liệu">
-          <h2 className="text-[13px] font-semibold text-text-primary mb-2">Nguồn</h2>
+        <section id="source-notes" aria-label="Nguồn số liệu" className="scroll-mt-20">
+          <h2 id="sources" className="text-[13px] font-semibold text-text-primary mb-2">Nguồn</h2>
           <ol className="space-y-1.5 text-[12.5px] leading-relaxed text-text-secondary list-none p-0 m-0">
             {sourceNotes.map((note) => {
               const displayLocator = humanizeLocator(note.locator);

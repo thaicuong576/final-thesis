@@ -178,6 +178,14 @@ describe('ER-7 Adaptive Equity Research Reports', () => {
         expect(targetEl).not.toBeNull();
       });
     });
+
+    it('headline renders zero citation numbers in full profile report', () => {
+      const { container } = renderReportInRouter(profileFixture as unknown as AdaptiveReportResponse);
+      const headline = container.querySelector('h1');
+      expect(headline).not.toBeNull();
+      const headlineCitations = headline?.querySelectorAll('sup');
+      expect(headlineCitations?.length ?? 0).toBe(0);
+    });
   });
 
   describe('Individual Chart Behaviors', () => {

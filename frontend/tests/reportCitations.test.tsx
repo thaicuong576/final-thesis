@@ -11,6 +11,7 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
     note_no: i + 1,
     source_id: `src-${i + 1}`,
     title: `Nguồn BCTC số ${i + 1}`,
+    url: null,
     locator: `tr. ${i + 1}`,
     fact_ids: [`fact-${i + 1}`]
   }));
@@ -19,9 +20,16 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
     fact_id: `fact-${i + 1}`,
     fact_type: 'value',
     entity_id: 'ACB',
+    other_entity_id: null,
+    universe_id: null,
     metric_id: `metric.${i + 1}`,
     period: '2024_Q4',
+    from_period: null,
     value: 10 + i,
+    unit: '%',
+    rank_better: null,
+    rank_desc: null,
+    denominator: null,
     formula_version: 'v1',
     input_observation_ids: [],
     input_fact_ids: []
@@ -48,7 +56,8 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
               text: 'ACB: đệm dự phòng trên nhóm, chất lượng nợ trên nhóm trong quý 2/2026.',
               fact_ids: tenNotes.map((n) => `fact-${n.note_no}`),
               author: 'orchestrator',
-              source: 'model'
+              source: 'model',
+              revision: 0
             }
           }}
         />
@@ -71,7 +80,8 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
             text: 'Tỷ lệ bao phủ nợ xấu của ACB đạt 105,3% trong quý 2/2026.',
             fact_ids: ['fact-1', 'fact-2'],
             author: 'company',
-            source: 'model'
+            source: 'model',
+            revision: 0
           }}
         />
       </EquityReportProvider>
@@ -102,7 +112,8 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
             text: 'ACB xếp hạng 4/10 về tỷ lệ bao phủ nợ xấu trong quý 2/2026.',
             fact_ids: tenNotes.map((n) => `fact-${n.note_no}`),
             author: 'company',
-            source: 'model'
+            source: 'model',
+            revision: 0
           }}
         />
       </EquityReportProvider>
@@ -134,7 +145,8 @@ describe('Report Citation Superscripts and Caps (CITE-1)', () => {
             text: 'ACB xếp hạng 4/10.',
             fact_ids: tenNotes.map((n) => `fact-${n.note_no}`),
             author: 'company',
-            source: 'model'
+            source: 'model',
+            revision: 0
           }}
         />
         <SourceNotes />

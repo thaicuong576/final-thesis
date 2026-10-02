@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Upload,
@@ -13,7 +13,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
+import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { normalizeLimitations } from './normalizeLimitations';
+import { buildUploadSuggestions } from './uploadSuggestions';
 
 export interface OnboardingMetric {
   metric_id: string;
@@ -52,9 +55,15 @@ function formatMetricValue(val: number | null | undefined, unit: string): string
   return `${val.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`;
 }
 
-export function BankUploadSection() {
+export interface BankUploadSectionProps {
+  capabilities?: AnalysisCapabilities | null;
+}
+
+export function BankUploadSection({ capabilities: propCapabilities }: BankUploadSectionProps = {}) {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: queryCapabilities } = useAnalysisCapabilities();
+  const capabilities = propCapabilities ?? queryCapabilities;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -134,11 +143,19 @@ export function BankUploadSection() {
     }
   };
 
+  const suggestions = useMemo(
+    () =>
+      result && result.status === 'accepted'
+        ? buildUploadSuggestions(result.entity_id, result.period_id, capabilities)
+        : [],
+    [result, capabilities]
+  );
+
   const handleAskQuestion = useCallback(
     (questionText?: string) => {
       if (!result) return;
       const bank = result.entity_id;
-      const defaultQ = `Tỷ lệ nợ xấu của ${bank} quý 4/2024 là bao nhiêu?`;
+      const defaultQ = suggestions[0] || `Tỷ lệ nợ xấu của ${bank} là bao nhiêu?`;
       const q = questionText || defaultQ;
       const params = new URLSearchParams({
         upload_id: result.upload_id,
@@ -148,7 +165,7 @@ export function BankUploadSection() {
       });
       navigate(`/analysis?${params.toString()}`);
     },
-    [navigate, result]
+    [navigate, result, suggestions]
   );
 
   return (
@@ -421,15 +438,11 @@ export function BankUploadSection() {
             })()}
 
             {/* Suggested Questions when Accepted */}
-            {result.status === 'accepted' && (
+            {result.status === 'accepted' && suggestions.length > 0 && (
               <div className="pt-2 border-t border-line space-y-2">
                 <div className="text-xs font-semibold text-ink">Gợi ý câu hỏi phân tích cho {result.entity_id}:</div>
                 <div className="flex flex-col gap-1.5 text-xs">
-                  {[
-                    `Tỷ lệ nợ xấu của ${result.entity_id} quý 4/2024 là bao nhiêu?`,
-                    `Hồ sơ tài chính của ${result.entity_id} trong năm 2024`,
-                    `So sánh nợ xấu giữa ${result.entity_id} và ACB trong quý 4/2024`,
-                  ].map((qText, qIdx) => (
+                  {suggestions.map((qText, qIdx) => (
                     <button
                       key={qIdx}
                       type="button"

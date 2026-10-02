@@ -958,7 +958,17 @@ def build(template_path: str, out_path: str) -> None:
     # ---- 9. References ----
     if references_text:
         print("[build] Adding TÀI LIỆU THAM KHẢO...")
-        convert_markdown_to_doc(doc, references_text, figures_dir=figures_dir, pngs=pngs)
+        # The section is written as '##' in the chapters 1-2 file; promote it to a chapter-level
+        # heading (new page) and give every entry the APA hanging indent.
+        first_ref = len(doc.paragraphs)
+        convert_markdown_to_doc(doc, _shift_heading_levels(references_text, shift=1, drop_title=False),
+                                figures_dir=figures_dir, pngs=pngs)
+        for para in doc.paragraphs[first_ref:]:
+            if para.style is not None and para.style.name == "Normal" and para.text.strip():
+                pf = para.paragraph_format
+                pf.left_indent = Cm(1.27)
+                pf.first_line_indent = Cm(-1.27)
+                para.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
     # ---- Save ----
     settings_el = doc.settings.element

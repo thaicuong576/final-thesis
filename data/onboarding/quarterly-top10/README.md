@@ -27,10 +27,10 @@ PYTHONPATH=src python scripts/build_quarterly_snapshot.py \
 | VCB | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | VPB | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-That is 100 of 100 bank-quarters and 400 ratio values (revision r3, 2026-10-02).
+That is 100 of 100 bank-quarters and 400 ratio values (revision r4, 2026-10-02).
 Revisions r1 and r2 had 92 bank-quarters: eight consolidated filings were missing from
 the usual Vietstock path. They were found elsewhere (see Sources) and added in r3.
-The 368 ratio values of r2 are unchanged in r3. No value is imputed anywhere; if a
+The 368 ratio values of r2 are unchanged in r3 and r4. No value is imputed anywhere; if a
 quarter is ever missing, medians and ranks use fewer banks and the reports say so
 (for example, "hạng 2/7").
 
@@ -75,8 +75,9 @@ quarter is ever missing, medians and ranks use fewer banks and the reports say s
 5. `comparative_only` (26 cells) were taken from the prior-period column of a later
    filing, mainly for 2023 profits needed by TTM.
 
-Locators use Vietnamese statement/row labels (since revision r2). The current revision is r3,
-snapshot `snapshot-ee70ddd78d8068a1ae86adeb7baa260841138fa4a3ff4dbde8896863d6989395`.
+Locators use Vietnamese statement/row labels (since revision r2). The current revision is r4,
+snapshot `snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e`.
+r4 differs from r3 in three provision cells only (see Definitions).
 In r3 the 80 input cells of the eight added quarters are `reading=confirmed`: each was read from
 the page text (text layer for ACB, Tesseract otherwise) and accepted only because an identity
 held. The five loan groups add to the printed total, liabilities plus equity equal total assets,
@@ -94,8 +95,14 @@ These are the same as Gold v5 and D-078:
   - Gross loans are the total of the loan-quality table.
   - Margin lending is excluded wherever it is reported outside the classification:
     ACB, TCB, and VPB (aligned to the FY2025 audited convention).
-  - For ACB 2026 Q1 and VPB 2026 Q1/Q2 the provision is general plus specific provision,
-    without the separate margin-lending provision, as in the audited FY2025 rows.
+- Provision convention, a known inconsistency of this series:
+  - Interim quarters use the balance-sheet line "Dự phòng rủi ro cho vay khách hàng". For
+    ACB, TCB and VPB that line includes the small provision for margin lending.
+  - The audited 2025 Q4 rows of those three banks (D-078) exclude it.
+  - The effect on LLR coverage is about 1.5% of the ratio for ACB and under 1% for VPB.
+  - r3 briefly used the audited convention for ACB 2026 Q1 and VPB 2026 Q1/Q2. r4 moved
+    these three cells back to the balance-sheet line so that each interim series is
+    consistent with its neighbouring quarters.
 - LLR coverage is the balance-sheet loan-loss provision divided by NPL balance.
 - ROA and ROE are trailing-twelve-month values:
   - Q1 to Q3 use `YTD(t) − YTD(t−4) + FY(y−1)` over the average of the period-end

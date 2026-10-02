@@ -1,6 +1,6 @@
 ## 4.7. Minh họa sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo đúng thứ tự một chuyên viên phân tích sử dụng nó: xem dữ liệu đang có, đặt câu hỏi, theo dõi các tác tử làm việc, đọc báo cáo, kiểm tra lại quá trình phân tích và mở lại báo cáo cũ. Toàn bộ ảnh được chụp từ phiên bản đang vận hành tại https://fin-ai.eddiephung.me, dùng bộ dữ liệu vận hành mười ngân hàng từ quý 1/2024 đến quý 2/2026 (mục 3.2.5) và mô hình ngôn ngữ thật.
+Mục này đi qua sản phẩm theo đúng thứ tự một chuyên viên phân tích sử dụng nó: xem dữ liệu đang có, đặt câu hỏi, theo dõi các tác tử làm việc, đọc báo cáo, kiểm tra lại quá trình phân tích, mở lại báo cáo cũ và thêm một ngân hàng mới. Toàn bộ ảnh được chụp từ phiên bản đang vận hành tại https://fin-ai.eddiephung.me, dùng bộ dữ liệu vận hành mười ngân hàng từ quý 1/2024 đến quý 2/2026 (mục 3.2.5) và mô hình ngôn ngữ thật.
 
 ### 4.7.1. Xem dữ liệu hiện có
 
@@ -89,3 +89,17 @@ Mọi lượt phân tích, kể cả lượt bị từ chối, đều được l
 ![](docs/thesis-v2/screenshots/12-thu-vien.png)
 
 Hình 4.16: Thư viện báo cáo
+
+### 4.7.9. Thêm một ngân hàng mới
+
+Người dùng có thể đưa thêm một ngân hàng chưa có trong dữ liệu bằng một tệp CSV, theo quy trình ở mục 3.2.4. Trên trang Dữ liệu, sau khi chọn tệp và bấm "Kiểm tra và tải lên", hệ thống kiểm tra cấu trúc tệp và vị trí nguồn của từng dòng, tự tính lại bốn chỉ tiêu từ số liệu gốc rồi đối chiếu với giá trị người dùng khai. Hình 4.17 là kết quả với tệp mẫu của Ngân hàng TMCP Quốc tế Việt Nam (VIB), quý 4/2025: cả bốn chỉ tiêu tính lại đều khớp. Nếu tệp có dòng thiếu vị trí nguồn, sai đơn vị hoặc tỷ lệ khai lệch với giá trị tính lại, hệ thống từ chối và chỉ ra từng dòng sai. Tệp của một ngân hàng đã có sẵn trong dữ liệu cũng bị từ chối.
+
+![](docs/thesis-v2/screenshots/13-tai-len.png)
+
+Hình 4.17: Kết quả kiểm tra tệp tải lên của VIB quý 4/2025 – bốn chỉ tiêu được tính lại và đối chiếu
+
+Sau khi tệp được chấp nhận, người dùng hỏi về ngân hàng vừa thêm như với các ngân hàng khác. Báo cáo ở Hình 4.18 đặt VIB cạnh mười ngân hàng trong nhóm: thứ hạng được tính trên mười một ngân hàng (ví dụ hạng 11/11 về bao phủ nợ xấu), còn trung vị nhóm vẫn chỉ tính trên mười ngân hàng đã đối soát. Dải thông báo ở đầu báo cáo ghi rõ số liệu của VIB do người dùng cung cấp.
+
+![](docs/thesis-v2/screenshots/14-bao-cao-vib.png)
+
+Hình 4.18: Báo cáo về ngân hàng do người dùng tải lên (VIB quý 4/2025) so với nhóm mười ngân hàng

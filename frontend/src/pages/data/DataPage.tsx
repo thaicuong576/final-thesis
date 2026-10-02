@@ -312,7 +312,7 @@ export function DataPage() {
                 </dl>
               </section>
 
-              <BankUploadSection />
+              <BankUploadSection capabilities={capabilities} />
 
               <details className="group rounded-md border border-line bg-surface-secondary px-4 py-3 text-xs text-ink-secondary sm:px-5">
                 <summary className="cursor-pointer select-none font-semibold text-ink">Chi tiết kỹ thuật</summary>

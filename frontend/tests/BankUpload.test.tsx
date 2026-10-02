@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BankUploadSection } from '../src/features/onboarding/BankUploadSection';
@@ -136,6 +136,12 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
     expect(
       screen.getByText('Dữ liệu VIB 2025_Q4 do người dùng tải lên, chỉ phục vụ mục đích thử nghiệm và so sánh độc lập.')
     ).toBeInTheDocument();
+
+    // Suggested questions use 2025 and no 2024
+    expect(screen.getByText('Tỷ lệ nợ xấu của VIB quý 4/2025 là bao nhiêu?')).toBeInTheDocument();
+    expect(screen.getByText('Sức khỏe tài chính của VIB quý 4/2025 so với nhóm')).toBeInTheDocument();
+    expect(screen.getByText('So sánh VIB và ACB quý 4/2025')).toBeInTheDocument();
+    expect(screen.queryByText(/2024/)).not.toBeInTheDocument();
   });
 
   it('handles rejected CSV upload and renders row issues in Vietnamese', async () => {
@@ -207,5 +213,40 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
     await waitFor(() => {
       expect(screen.queryByText(/Đang dùng thêm dữ liệu tải lên:/)).not.toBeInTheDocument();
     });
+  });
+
+  it('renders 2025 suggestions for VIB 2025_Q4 on CreateAnalysisPage without any 2024 text', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <MemoryRouter initialEntries={['/analysis?upload_id=upl-vib-2025&entity=VIB&period=2025_Q4']}>
+        <QueryClientProvider client={queryClient}>
+          <Routes>
+            <Route path="/analysis" element={<CreateAnalysisPage />} />
+          </Routes>
+        </QueryClientProvider>
+      </MemoryRouter>
+    );
+
+    const chip = await screen.findByText(/Đang dùng thêm dữ liệu tải lên:/);
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent('VIB');
+    expect(chip).toHaveTextContent('Q4/2025');
+    expect(chip).not.toHaveTextContent('2024');
+
+    const suggestionsHeading = await screen.findByText('Gợi ý cho VIB');
+    expect(suggestionsHeading).toBeInTheDocument();
+
+    const suggestionsSection = suggestionsHeading.closest('section');
+    expect(suggestionsSection).not.toBeNull();
+    expect(within(suggestionsSection!).getByText('Tỷ lệ nợ xấu của VIB quý 4/2025 là bao nhiêu?')).toBeInTheDocument();
+    expect(within(suggestionsSection!).getByText('Sức khỏe tài chính của VIB quý 4/2025 so với nhóm')).toBeInTheDocument();
+    expect(within(suggestionsSection!).getByText('So sánh VIB và ACB quý 4/2025')).toBeInTheDocument();
+    expect(within(suggestionsSection!).queryByText(/2024/)).not.toBeInTheDocument();
+
+    const suggestionBtn = screen.getByRole('button', { name: /Tỷ lệ nợ xấu của VIB quý 4\/2025 là bao nhiêu\?/i });
+    fireEvent.click(suggestionBtn);
+    expect(screen.getByRole('textbox', { name: 'Câu hỏi phân tích' })).toHaveValue(
+      'Tỷ lệ nợ xấu của VIB quý 4/2025 là bao nhiêu?'
+    );
   });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, CircleAlert, X } from 'lucide-react';
 import { WorkspaceShell } from '../../components/layout/WorkspaceShell';
@@ -8,6 +8,8 @@ import type { TraceStep } from '../../features/analysis-session/model/types';
 import { formatCapabilitiesPeriods, mapErrorCodeToMessage } from '../../features/analysis-session/useTraceStream';
 import { DEFAULT_METRICS } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { formatQuarter } from '@/entities/capability/model/coverage';
+import { buildUploadSuggestions } from '@/features/onboarding/uploadSuggestions';
 
 export interface CreateAnalysisPageProps {
   initialMode?: 'ASK' | 'SESSION';
@@ -26,9 +28,14 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
   const [isLiveStream, setIsLiveStream] = useState<boolean>(true);
 
   const uploadId = searchParams.get('upload_id') || searchParams.get('upload');
-  const uploadEntity = searchParams.get('entity') || 'CTG';
-  const uploadPeriodRaw = searchParams.get('period') || '2024_Q4';
-  const uploadPeriodDisplay = uploadPeriodRaw.replace('2024_Q4', 'Q4/2024').replace('_', ' ');
+  const uploadEntity = searchParams.get('entity') || '';
+  const uploadPeriodRaw = searchParams.get('period');
+  const uploadPeriodDisplay = uploadPeriodRaw ? formatQuarter(uploadPeriodRaw) : '';
+  const uploadSuggestions = useMemo(
+    () =>
+      uploadId ? buildUploadSuggestions(uploadEntity, uploadPeriodRaw, capabilities) : [],
+    [uploadId, uploadEntity, uploadPeriodRaw, capabilities]
+  );
 
   const handleClearUpload = () => {
     const next = new URLSearchParams(searchParams);
@@ -111,7 +118,8 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 <div className="mt-6 mb-2 inline-flex items-center gap-2 rounded-full border border-amber-border bg-amber-soft px-3 py-1.5 text-xs font-medium text-ink">
                   <span className="size-2 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
                   <span>
-                    Đang dùng thêm dữ liệu tải lên: <strong>{uploadEntity}</strong> ({uploadPeriodDisplay})
+                    Đang dùng thêm dữ liệu tải lên: <strong>{uploadEntity || 'Ngân hàng mới'}</strong>
+                    {uploadPeriodDisplay ? ` (${uploadPeriodDisplay})` : ''}
                   </span>
                   <button
                     type="button"
@@ -195,17 +203,13 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 </Link>
               </p>
 
-              {uploadId ? (
+              {uploadId && uploadSuggestions.length > 0 ? (
                 <section className="mt-12" aria-labelledby="suggest-upload-heading">
                   <h2 id="suggest-upload-heading" className="m-0 text-[15px] font-semibold text-text-primary">
-                    Gợi ý cho {uploadEntity}
+                    {uploadEntity ? `Gợi ý cho ${uploadEntity}` : 'Gợi ý cho dữ liệu tải lên'}
                   </h2>
                   <ul className="mt-3 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
-                    {[
-                      `Tỷ lệ nợ xấu của ${uploadEntity} quý 4/2024 là bao nhiêu?`,
-                      `Hồ sơ tài chính của ${uploadEntity} trong năm 2024`,
-                      `So sánh nợ xấu giữa ${uploadEntity} và ACB trong quý 4/2024`,
-                    ].map((sug, idx) => (
+                    {uploadSuggestions.map((sug, idx) => (
                       <li key={idx}>
                         <button
                           type="button"

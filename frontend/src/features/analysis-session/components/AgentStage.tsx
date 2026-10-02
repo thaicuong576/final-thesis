@@ -111,11 +111,23 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   // Local seconds counter while the run is live, so waiting on a model still reads as work in progress.
   const [tickMs, setTickMs] = useState(0);
   useEffect(() => {
-    if (!live || model.done) return;
+    if (!live || model.done || isDisconnected) return;
     const id = setInterval(() => setTickMs((t) => t + 1000), 1000);
     return () => clearInterval(id);
-  }, [live, model.done]);
-  const elapsed = model.done || !live ? last?.t_ms ?? 0 : Math.max(last?.t_ms ?? 0, tickMs);
+  }, [live, model.done, isDisconnected]);
+
+  const [prevStepsLength, setPrevStepsLength] = useState(steps.length);
+  if (steps.length === 0 && prevStepsLength !== 0) {
+    setPrevStepsLength(0);
+    setTickMs(0);
+  } else if (steps.length !== prevStepsLength) {
+    setPrevStepsLength(steps.length);
+  }
+
+  const elapsed =
+    model.done || (!live && !isDisconnected)
+      ? last?.t_ms ?? 0
+      : Math.max(last?.t_ms ?? 0, tickMs);
 
   const effectiveReportId =
     reportId || (steps.find((s) => s.kind === 'report_ready')?.detail?.report_id as string | undefined) || null;
@@ -134,10 +146,16 @@ export const AgentStage: React.FC<AgentStageProps> = ({
           <div className="min-w-0 flex-1">
             <p className="m-0 flex items-center gap-2 text-[13px] text-text-secondary">
               <span
-                className={`size-2 rounded-full ${model.done ? 'bg-success' : 'bg-amber agent-live-dot'}`}
+                className={`size-2 rounded-full ${
+                  isDisconnected
+                    ? 'bg-warning'
+                    : model.done
+                    ? 'bg-success'
+                    : 'bg-amber agent-live-dot'
+                }`}
                 aria-hidden="true"
               />
-              {model.done ? 'Đã hoàn tất' : 'Các tác tử đang làm việc'}
+              {isDisconnected ? 'Mất kết nối' : model.done ? 'Đã hoàn tất' : 'Các tác tử đang làm việc'}
               {model.questionType && (
                 <span className="rounded-md border border-border-default px-1.5 py-px text-xs text-text-secondary">
                   {QUESTION_TYPES[model.questionType] || model.questionType}
@@ -177,8 +195,8 @@ export const AgentStage: React.FC<AgentStageProps> = ({
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <Stage agents={model.agents} snapshots={model.snapshots} last={last} elapsed={elapsed} live={live && !model.done} />
-        <Feed steps={visible} live={live && !model.done} />
+        <Stage agents={model.agents} snapshots={model.snapshots} last={last} elapsed={elapsed} live={live && !model.done && !isDisconnected} />
+        <Feed steps={visible} live={live && !model.done && !isDisconnected} />
       </div>
 
       {(isDisconnected || ready) && (

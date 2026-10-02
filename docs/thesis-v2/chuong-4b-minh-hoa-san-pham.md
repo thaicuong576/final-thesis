@@ -4,11 +4,11 @@ Mục này đi qua sản phẩm theo đúng thứ tự một chuyên viên phân
 
 ### 4.7.1. Xem dữ liệu hiện có
 
-Trước khi hỏi, người dùng có thể mở trang Dữ liệu để biết hệ thống đang có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không; các ô chưa có báo cáo được đánh dấu rõ thay vì bị điền ước tính. Thông tin trên trang được lấy trực tiếp từ máy chủ, nên luôn khớp với bộ dữ liệu mà hệ thống thực sự dùng để phân tích.
+Trước khi hỏi, người dùng có thể mở trang Dữ liệu để biết hệ thống đang có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không; ở bộ dữ liệu hiện tại cả 100 ô ngân hàng – quý đều đủ bốn chỉ tiêu, và nếu một quý chưa có báo cáo thì ô đó được đánh dấu rõ thay vì bị điền ước tính. Bên dưới bảng là định nghĩa và công thức của từng chỉ tiêu, cùng khu vực tải lên số liệu của một ngân hàng mới. Thông tin trên trang được lấy trực tiếp từ máy chủ, nên luôn khớp với bộ dữ liệu mà hệ thống thực sự dùng để phân tích.
 
 ![](docs/thesis-v2/screenshots/01-du-lieu.png)
 
-Hình 4.5: Trang Dữ liệu – bảng độ phủ mười ngân hàng theo từng quý
+Hình 4.5: Trang Dữ liệu – bảng độ phủ mười ngân hàng theo từng quý (100/100 ô đủ số liệu)
 
 ### 4.7.2. Đặt câu hỏi
 
@@ -28,11 +28,11 @@ Hình 4.7: Màn hình điều phối – các tác tử nhận việc và trả 
 
 ### 4.7.4. Đọc báo cáo
 
-Khi hoàn tất, hệ thống mở báo cáo được trình bày theo phong cách báo cáo phân tích đầu tư. Phần đầu gồm tiêu đề nêu kết luận chính, trạng thái kiểm định và phạm vi dữ liệu. Mỗi câu nhận định có số chú thích nhỏ dẫn tới tài liệu gốc (báo cáo tài chính của ngân hàng, kèm số trang). Cột bên phải tóm tắt tín hiệu so với nhóm theo từng khía cạnh.
+Khi hoàn tất, hệ thống mở báo cáo được trình bày theo phong cách báo cáo phân tích đầu tư. Phần đầu gồm tiêu đề nêu kết luận chính, trạng thái kiểm định và phạm vi dữ liệu. Mỗi câu nhận định có số chú thích nhỏ dẫn tới tài liệu gốc (báo cáo tài chính của ngân hàng, kèm số trang). Khi một câu dựa trên nhiều nguồn, chẳng hạn một thứ hạng trong nhóm mười ngân hàng, báo cáo hiện ba số đầu và gộp phần còn lại thành ký hiệu "+N"; danh sách đầy đủ nằm ở mục Nguồn cuối báo cáo. Cột bên phải tóm tắt tín hiệu so với nhóm theo từng khía cạnh.
 
 ![](docs/thesis-v2/screenshots/04-bao-cao-ho-so.png)
 
-Hình 4.8: Báo cáo hồ sơ doanh nghiệp của ACB – tiêu đề, nhận định và tín hiệu so với nhóm
+Hình 4.8: Báo cáo hồ sơ doanh nghiệp của ACB quý 2/2026 – tiêu đề, nhận định và tín hiệu so với nhóm
 
 Phần thân báo cáo kết hợp nhận định với biểu đồ. Với câu hỏi về sức khỏe tài chính, hệ thống dùng bảng màu thứ hạng giữa các ngân hàng trong nhóm, biểu đồ tương quan giữa nợ xấu và bao phủ nợ xấu, và các biểu đồ nhỏ theo từng quý. Các phát hiện đáng chú ý giữa các cấp (ví dụ sinh lời trên nhóm nhưng đệm dự phòng dưới nhóm) được đặt trong khối lưu ý riêng.
 

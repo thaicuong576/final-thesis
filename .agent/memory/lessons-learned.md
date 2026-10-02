@@ -732,3 +732,9 @@ Writing run history must obey strict safety boundaries:
 ## [LESSON-037] Upload samples must name a bank the served dataset does not already cover
 
 When staging moved from Gold v5 (5 banks) to the 10-bank operational snapshot, the CTG demo sample became a duplicate: uploading it produced a second, different CTG 2024 Q4 figure next to the dataset's own. Uploads of an already-served ticker are now rejected with a Vietnamese pointer to the existing data, and the demo sample is VIB FY2025 (outside the top 10). Uploaded banks are never peer-universe members, so tool planning must fall back to the catalog's peer group instead of requiring the focus bank to be a member — otherwise profile signals silently become "insufficient data".
+
+## [LESSON-038] A filing missing from the mirror is not a filing that was never published
+
+- Eight bank-quarters were left empty in r1/r2 because the usual Vietstock file name returned nothing. All eight filings existed: on the bank's investor-relations site (ACB, BIDV, VietinBank, HDBank), on CafeF (VPB 2026 Q1), or on Vietstock under the reviewed semi-annual name `..._6T_<year>_Soatxet_Hopnhat.pdf` (SHB 2024 Q2, VPB 2026 Q2). Check those three places before recording a gap.
+- A worker agent is useful for locating and downloading files, but its transcription was slower than re-reading the pages directly. The orchestrator verified every cell with statement identities (groups add to the total, liabilities plus equity equal assets, equity components add up, profit after tax minus the non-controlling share equals parent profit) and with the comparative columns, which must equal the values already held for the prior period.
+- Tesseract on this machine has only the `eng` language pack. Calling it with `-l vie` fails silently and writes no output; numbers still read well with `eng`, and keyword search needs accent-folded patterns.

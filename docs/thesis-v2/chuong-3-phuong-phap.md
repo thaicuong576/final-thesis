@@ -160,10 +160,10 @@ Gold v5 được giữ cố định để thực nghiệm ở Chương 5 có th�
 
 | Kết quả | Số ô ngân hàng – quý | Ghi chú |
 |---|:---:|---|
-| Đủ bốn chỉ tiêu | 92 | 368 giá trị chỉ tiêu, mỗi giá trị có biên nhận tính toán |
-| Để trống | 8 | Không thu thập được báo cáo hợp nhất của quý đó: ACB quý 1/2026, BID quý 3/2024, CTG quý 3/2024 và quý 3/2025, HDB quý 3/2024, SHB quý 2/2024, VPB quý 1 và quý 2/2026 |
+| Đủ bốn chỉ tiêu | 100 | 400 giá trị chỉ tiêu, mỗi giá trị có biên nhận tính toán |
+| Để trống | 0 | Tám báo cáo không có ở nguồn tổng hợp (ACB quý 1/2026, BID quý 3/2024, CTG quý 3/2024 và quý 3/2025, HDB quý 3/2024, SHB quý 2/2024, VPB quý 1 và quý 2/2026) được lấy từ trang quan hệ nhà đầu tư của ngân hàng hoặc nguồn công bố khác; riêng SHB quý 2/2024 và VPB quý 2/2026 dùng báo cáo bán niên đã soát xét |
 
-Các ô thiếu không được ước tính hay nội suy. Khi xếp hạng hoặc tính trung vị ở một quý có ô thiếu, hệ thống dùng số ngân hàng thực có dữ liệu và ghi rõ trong báo cáo (ví dụ "hạng 2/7").
+Bộ dữ liệu không có ô nào được ước tính hay nội suy. Nếu một ngân hàng thiếu số liệu ở một quý, hệ thống xếp hạng và tính trung vị trên số ngân hàng thực có dữ liệu và ghi rõ trong báo cáo (ví dụ "hạng 2/7"); cơ chế này vẫn được dùng với ngân hàng do người dùng tải lên.
 
 Để kiểm tra độ tin cậy, bộ dữ liệu được đối chiếu hai chiều. Toàn bộ 40 giá trị của quý 4/2025 khớp tuyệt đối với bộ dữ liệu năm 2025 đã kiểm toán. Trong 76 giá trị trùng kỳ với Gold v5, 66 giá trị khớp; 10 giá trị lệch nhỏ và đều giải thích được: VPB được loại phần cho vay ký quỹ khỏi dư nợ cho thống nhất với báo cáo kiểm toán, TCB trong Gold v5 dùng tỷ số do ngân hàng tự công bố (đã làm tròn, cách tính bình quân khác), và vốn chủ sở hữu năm 2024 của VCB đã được trình bày lại trong báo cáo kiểm toán.
 

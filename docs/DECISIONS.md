@@ -1605,6 +1605,10 @@ Status: accepted (2026-10-01). Scope: product/demo dataset; the evaluation bench
 5. Verification: 2025 Q4 reproduces all 40 production FY2025 values exactly; 66 of 76 overlapping Gold v5 quarterly values agree. The ten differences are explained in the dataset README (VPB margin convention, TCB bank-reported rounded ratios, VCB restated 2024 equity).
 6. Gold v5 remains the frozen evaluation benchmark. Staging may serve this snapshot instead of the FY2025-only one by changing the Supabase object and the expected SHA-256 / snapshot id (requires user approval).
 
+### Amendment (2026-10-02): revision r3 fills the eight missing bank-quarters
+
+The eight consolidated filings missing from the usual Vietstock path were obtained from bank investor-relations sites, CafeF and the Vietstock reviewed semi-annual files (ACB 2026 Q1; BID 2024 Q3; CTG 2024 Q3 and 2025 Q3; HDB 2024 Q3; SHB 2024 Q2; VPB 2026 Q1 and Q2). Coverage is now 100 of 100 bank-quarters and 400 ratio values; the 368 values of r2 are unchanged. Snapshot `snapshot-ee70ddd78d8068a1ae86adeb7baa260841138fa4a3ff4dbde8896863d6989395`, file `bank-quarterly-top10-operational-v1-r3.sqlite`. SHB 2024 Q2 and VPB 2026 Q2 use reviewed semi-annual statements; this is recorded in each locator. A worker agent located and downloaded the files; every input cell was then re-read and checked against statement identities by the orchestrator (see the dataset README).
+
 ### Limitations
 
 Readings were made by an AI agent (OCR plus visual reading of rendered crops, each cross-checked against statement identities) and have not had an independent human review; 29 cells rest on a single OCR pass that agrees with Gold or neighbouring quarters. Trend requests remain bounded to two to four periods (D-074); longer windows are answered with their end points.

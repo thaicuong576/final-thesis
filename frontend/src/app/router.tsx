@@ -3,24 +3,28 @@ import { DataPage } from '../pages/data/DataPage';
 import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage';
 import { ReportPage } from '../pages/reports/ReportPage';
 import { ReportsListPage } from '../pages/reports/ReportsListPage';
-import { ReportErrorElement } from '../pages/reports/ReportErrorElement';
+import { RouteErrorElement } from './RouteErrorElement';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/analysis" replace />
+    element: <Navigate to="/analysis" replace />,
+    errorElement: <RouteErrorElement section="analysis" />
   },
   {
     path: '/analysis',
-    element: <CreateAnalysisPage />
+    element: <CreateAnalysisPage />,
+    errorElement: <RouteErrorElement section="analysis" />
   },
   {
     path: '/session',
-    element: <CreateAnalysisPage initialMode="SESSION" />
+    element: <CreateAnalysisPage initialMode="SESSION" />,
+    errorElement: <RouteErrorElement section="analysis" />
   },
   {
     path: '/data',
-    element: <DataPage />
+    element: <DataPage />,
+    errorElement: <RouteErrorElement section="data" />
   },
   {
     path: '/analysis/new',
@@ -29,11 +33,11 @@ export const router = createBrowserRouter([
   {
     path: '/reports',
     element: <ReportsListPage />,
-    errorElement: <ReportErrorElement />
+    errorElement: <RouteErrorElement section="reports" />
   },
   {
     path: '/reports/:id',
     element: <ReportPage />,
-    errorElement: <ReportErrorElement />
+    errorElement: <RouteErrorElement section="reports" />
   }
 ]);

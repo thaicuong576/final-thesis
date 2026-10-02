@@ -31,18 +31,18 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
     const mockUploadResponse = {
       upload_id: 'upl-test-12345678',
       entity_id: 'CTG',
+      display_name: 'Ngân hàng TMCP Công Thương Việt Nam',
       period_id: '2024_Q4',
       status: 'accepted',
       metrics: [
-        { metric_id: 'bank.npl_g35', computed_value: 1.13, reported_value: 1.13, status: 'valid' },
-        { metric_id: 'bank.llr_coverage', computed_value: 170.52, reported_value: 170.52, status: 'valid' },
-        { metric_id: 'bank.roa', computed_value: 1.34, reported_value: 1.34, status: 'valid' },
-        { metric_id: 'bank.roe', computed_value: 16.78, reported_value: 16.78, status: 'valid' },
+        { metric_id: 'bank.npl_g35', computed_value: 1.13, reported_value: 1.13, status: 'matched' },
+        { metric_id: 'bank.llr_coverage', computed_value: 170.52, reported_value: 170.52, status: 'matched' },
+        { metric_id: 'bank.roa', computed_value: 1.34, reported_value: 1.34, status: 'matched' },
+        { metric_id: 'bank.roe', computed_value: 16.78, reported_value: 16.78, status: 'matched' },
       ],
       row_issues: [],
-      limitations_vi: [
+      limitations_vi:
         'Số liệu CTG do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold.',
-      ],
       created_at: new Date().toISOString(),
     };
 
@@ -81,10 +81,68 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
     expect(screen.getByText('Tỷ lệ nợ xấu của CTG quý 4/2024 là bao nhiêu?')).toBeInTheDocument();
   });
 
+  it('renders accepted result with bank name, four metrics, and string limitation without crashing (UPFIX-1)', async () => {
+    const vibUploadResponse = {
+      upload_id: 'upl-vib-2025q4-staging',
+      entity_id: 'VIB',
+      display_name: 'Ngân hàng TMCP Quốc tế Việt Nam',
+      period_id: '2025_Q4',
+      status: 'accepted',
+      metrics: [
+        { metric_id: 'bank.npl_g35', computed_value: 2.35, reported_value: 2.35, status: 'matched' },
+        { metric_id: 'bank.llr_coverage', computed_value: 125.4, reported_value: 125.4, status: 'matched' },
+        { metric_id: 'bank.roa', computed_value: 1.82, reported_value: 1.82, status: 'matched' },
+        { metric_id: 'bank.roe', computed_value: 19.45, reported_value: 19.45, status: 'matched' },
+      ],
+      row_issues: [],
+      limitations_vi:
+        'Dữ liệu VIB 2025_Q4 do người dùng tải lên, chỉ phục vụ mục đích thử nghiệm và so sánh độc lập.',
+      created_at: '2026-10-02T08:00:00Z',
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => vibUploadResponse,
+    } as unknown as Response);
+
+    render(
+      <MemoryRouter>
+        <BankUploadSection />
+      </MemoryRouter>
+    );
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const testFile = new File(['dummy,vib,csv'], 'vib-2025q4.csv', { type: 'text/csv' });
+    fireEvent.change(fileInput, { target: { files: [testFile] } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra và tải lên' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đã xác thực và chấp nhận: VIB \(2025_Q4\)/)).toBeInTheDocument();
+    });
+
+    // Bank name (display_name and entity_id)
+    expect(screen.getByText('Ngân hàng TMCP Quốc tế Việt Nam')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hỏi về VIB' })).toBeInTheDocument();
+
+    // Four metrics
+    expect(screen.getByText(/Tỷ lệ nợ xấu \(NPL nhóm 3–5\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Tỷ lệ bao phủ nợ xấu \(LLR\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Tỷ suất sinh lời trên tài sản \(ROA\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Tỷ suất sinh lời trên vốn CSH \(ROE\)/)).toBeInTheDocument();
+
+    // Limitation text
+    expect(
+      screen.getByText('Dữ liệu VIB 2025_Q4 do người dùng tải lên, chỉ phục vụ mục đích thử nghiệm và so sánh độc lập.')
+    ).toBeInTheDocument();
+  });
+
   it('handles rejected CSV upload and renders row issues in Vietnamese', async () => {
     const mockRejectedResponse = {
       upload_id: 'upl-err-87654321',
       entity_id: 'CTG',
+      display_name: 'Ngân hàng TMCP Công Thương Việt Nam',
       period_id: '2024_Q4',
       status: 'rejected',
       metrics: [],
@@ -93,7 +151,7 @@ describe('BankUploadSection and Upload Analysis Flow', () => {
         { row: 12, field: 'unit', message_vi: 'Đơn vị đo VND không hợp lệ cho chỉ tiêu tỷ lệ' },
         { row: 19, field: 'reported_value', message_vi: 'Giá trị công bố 1.50 lệch dung sai so với giá trị tính lại 1.13' },
       ],
-      limitations_vi: [],
+      limitations_vi: '',
       created_at: new Date().toISOString(),
     };
 

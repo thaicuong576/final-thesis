@@ -13,30 +13,31 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { normalizeLimitations } from './normalizeLimitations';
 
 export interface OnboardingMetric {
   metric_id: string;
   computed_value: number;
   reported_value: number | null;
-  status: string;
+  status: 'matched' | 'computed' | 'mismatched' | string;
 }
 
 export interface OnboardingRowIssue {
-  row: number | null;
-  field: string | null;
+  row: number;
+  field: string;
   message_vi: string;
 }
 
 export interface OnboardingUploadResult {
   upload_id: string;
   entity_id: string;
-  period_id: string;
+  display_name: string;
   status: 'accepted' | 'rejected';
-  display_name?: string | null;
+  period_id: string;
   metrics: OnboardingMetric[];
   row_issues: OnboardingRowIssue[];
-  limitations_vi: string[];
-  created_at: string;
+  limitations_vi: string;
+  created_at?: string | null;
 }
 
 const METRIC_LABELS: Record<string, { label: string; unit: string }> = {
@@ -302,6 +303,9 @@ export function BankUploadSection() {
                       ? `Đã xác thực và chấp nhận: ${result.entity_id} (${result.period_id})`
                       : `Từ chối tiếp nhận tệp: ${result.entity_id || 'Ngân hàng mới'}`}
                   </h3>
+                  {result.display_name && result.display_name !== result.entity_id && (
+                    <p className="text-xs font-medium text-ink">{result.display_name}</p>
+                  )}
                   <p className="text-xs text-ink-secondary font-mono">
                     Mã phiên tải lên: {result.upload_id}
                   </p>
@@ -339,7 +343,7 @@ export function BankUploadSection() {
                     <tbody className="divide-y divide-line">
                       {result.metrics.map((m) => {
                         const info = METRIC_LABELS[m.metric_id] || { label: m.metric_id, unit: '%' };
-                        const isMatch = m.status === 'valid';
+                        const isMatch = m.status === 'valid' || m.status === 'matched' || m.status === 'computed';
                         return (
                           <tr key={m.metric_id} className="hover:bg-surface-hover/40 transition-colors">
                             <td className="py-2 px-3">
@@ -398,19 +402,23 @@ export function BankUploadSection() {
             )}
 
             {/* Limitations Notice */}
-            {result.limitations_vi && result.limitations_vi.length > 0 && (
-              <div className="rounded-md border border-warning/40 bg-warning-soft/40 p-3 text-xs text-ink space-y-1">
-                <div className="font-semibold text-text-warning flex items-center gap-1.5">
-                  <FileText className="size-3.5 text-warning" />
-                  Giới hạn sử dụng dữ liệu:
+            {(() => {
+              const limitations = normalizeLimitations(result.limitations_vi);
+              if (limitations.length === 0) return null;
+              return (
+                <div className="rounded-md border border-warning/40 bg-warning-soft/40 p-3 text-xs text-ink space-y-1">
+                  <div className="font-semibold text-text-warning flex items-center gap-1.5">
+                    <FileText className="size-3.5 text-warning" />
+                    Giới hạn sử dụng dữ liệu:
+                  </div>
+                  {limitations.map((lim, idx) => (
+                    <p key={idx} className="leading-relaxed text-ink-secondary">
+                      {lim}
+                    </p>
+                  ))}
                 </div>
-                {result.limitations_vi.map((lim, idx) => (
-                  <p key={idx} className="leading-relaxed text-ink-secondary">
-                    {lim}
-                  </p>
-                ))}
-              </div>
-            )}
+              );
+            })()}
 
             {/* Suggested Questions when Accepted */}
             {result.status === 'accepted' && (

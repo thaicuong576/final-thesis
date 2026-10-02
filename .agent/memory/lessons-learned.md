@@ -739,3 +739,15 @@ When staging moved from Gold v5 (5 banks) to the 10-bank operational snapshot, t
 - A worker agent is useful for locating and downloading files, but its transcription was slower than re-reading the pages directly. The orchestrator verified every cell with statement identities (groups add to the total, liabilities plus equity equal assets, equity components add up, profit after tax minus the non-controlling share equals parent profit) and with the comparative columns, which must equal the values already held for the prior period.
 - Tesseract on this machine has only the `eng` language pack. Calling it with `-l vie` fails silently and writes no output; numbers still read well with `eng`, and keyword search needs accent-folded patterns.
 - Before choosing a convention for a new cell, read the neighbouring cells of the same bank. r3 took the audited year-end provision convention (margin-lending provision excluded) for three interim cells whose neighbours all use the balance-sheet line; the worker's independent transcription exposed the mismatch and r4 corrected it. A second transcription is worth having even when every identity check passes, because identities cannot catch a convention choice.
+
+## [LESSON-039] Uploaded bank reports: rank denominator bounds, unit enforcement, and grounded superlatives
+
+- Date: 2026-10-02
+- Scope: `src/thesis_data/report_facts.py`, `src/thesis_api/analysis_tools.py`, `src/thesis_api/narrative_templates.py`, `src/thesis_data/narrative_verification.py`
+- Status: ACTIVE
+
+### 1. Three Failure Modes in Uploaded Bank Analysis
+1. **Rank Denominator Overflow for Non-Member Banks**: When an uploaded bank (e.g. VIB) outside the 10-peer universe was ranked, tools evaluated its position against the 10 peers without adding the bank itself to the denominator, producing invalid rank facts like `11/10`. An entity's rank among peers plus itself must have denominator `len(peers) + 1` (e.g. 11/11), satisfying `1 <= rank <= denominator`. Peer median calculations remain strictly on the 10-bank peer universe per D-077.
+2. **Fact Unit Mismatch in Model Narratives**: The LLM produced sentences like "ROE/ROA ở mức 11,82 lần, nhỉnh hơn trung vị nhóm 11,46%", where the fact had unit `x` (ratio) but was written with `%`. The narrative verifier did not cross-check unit compatibility between cited facts and numeric tokens. Enforce that facts with unit `x` / `lần` reject `%` and `điểm %`, while facts with unit `%` and `pp` reject `lần`.
+3. **Ungrounded Group Superlatives**: Models inserted superlative phrases ("kém nhất nhóm", "thấp nhất") without factual grounding or when conflicting facts existed (e.g. VPB having higher NPL than VIB). The narrative verifier now requires group superlatives ("nhất nhóm", "kém nhất", "tốt nhất", "cao nhất", "thấp nhất", "dẫn đầu", "đứng đầu", "đứng cuối", "xếp cuối", "đội sổ") to cite an entity- and metric-aligned rank fact with rank 1 (for best/top) or denominator (for worst/bottom). Metric detection uses clause boundaries and length-descending term matching to prevent substring collisions (e.g. `nợ xấu` within `bao phủ nợ xấu`).
+

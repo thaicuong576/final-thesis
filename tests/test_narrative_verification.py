@@ -813,6 +813,294 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         verdict2 = verify_sentence(s2, self.ctx)
         self.assertNotEqual(verdict2.reason_code, "causal_language")
 
+    def test_vibfix1_bug2_unit_compatibility_x_cannot_be_pct_or_pp(self) -> None:
+        """Bug 2: Value whose fact unit is 'x' must not be followed by '%' or 'điểm %'."""
+        f_vib_ratio = Fact(
+            fact_id="f_vib_roe_roa",
+            fact_type="value",
+            entity_id="VIB",
+            metric_id="derived.roe_over_roa",
+            period="2025_Q4",
+            value=11.82,
+            unit="x",
+        )
+        f_med_ratio = Fact(
+            fact_id="f_med_roe_roa",
+            fact_type="peer_median",
+            universe_id="sector:bank",
+            metric_id="derived.roe_over_roa",
+            period="2025_Q4",
+            value=11.46,
+            unit="x",
+            denominator=10,
+        )
+        custom_facts = dict(self.facts)
+        custom_facts[f_vib_ratio.fact_id] = f_vib_ratio
+        custom_facts[f_med_ratio.fact_id] = f_med_ratio
+        ctx = VerificationContext(
+            facts=custom_facts,
+            plan_entities=self.ctx.plan_entities | {"VIB"},
+            catalog_entities=self.ctx.catalog_entities | {"VIB"},
+            metric_terms=self.ctx.metric_terms,
+            hi_words=self.ctx.hi_words,
+            lo_words=self.ctx.lo_words,
+            directions=self.ctx.directions,
+            flat_pp=self.ctx.flat_pp,
+            anchor_year=2025,
+        )
+
+        # Case from live staging: second number has '%' instead of 'lần'
+        s_pct = NarrativeSentence(
+            sentence_id="s_b2_pct",
+            author="model",
+            text="Tỷ lệ ROE/ROA ở mức 11,82 lần, nhỉnh hơn trung vị nhóm 11,46%",
+            fact_ids=(f_vib_ratio.fact_id, f_med_ratio.fact_id),
+            source="model",
+        )
+        v_pct = verify_sentence(s_pct, ctx)
+        self.assertFalse(v_pct.ok)
+        self.assertEqual(v_pct.reason_code, "unit_mismatch")
+
+        # Number followed by 'điểm %' for fact with unit 'x'
+        s_pp = NarrativeSentence(
+            sentence_id="s_b2_pp",
+            author="model",
+            text="Tỷ lệ ROE/ROA đạt 11,82 điểm %.",
+            fact_ids=(f_vib_ratio.fact_id,),
+            source="model",
+        )
+        v_pp = verify_sentence(s_pp, ctx)
+        self.assertFalse(v_pp.ok)
+        self.assertEqual(v_pp.reason_code, "unit_mismatch")
+
+    def test_vibfix1_bug2_unit_compatibility_pct_and_pp_cannot_be_lan(self) -> None:
+        """Bug 2: Value whose fact unit is '%' or 'pp' must not be followed by 'lần'."""
+        f_gap = Fact(
+            fact_id="f_gap_test_pp",
+            fact_type="gap_to_median",
+            entity_id="ACB",
+            universe_id="sector:bank",
+            metric_id="bank.roe",
+            period="2024_Q4",
+            value=0.5,
+            unit="pp",
+        )
+        custom_facts = dict(self.facts)
+        custom_facts[f_gap.fact_id] = f_gap
+        ctx = VerificationContext(
+            facts=custom_facts,
+            plan_entities=self.ctx.plan_entities,
+            catalog_entities=self.ctx.catalog_entities,
+            metric_terms=self.ctx.metric_terms,
+            hi_words=self.ctx.hi_words,
+            lo_words=self.ctx.lo_words,
+            directions=self.ctx.directions,
+            flat_pp=self.ctx.flat_pp,
+            anchor_year=2024,
+        )
+
+        # Percent fact followed by 'lần'
+        s_pct_lan = NarrativeSentence(
+            sentence_id="s_b2_pct_lan",
+            author="model",
+            text="ROE của ACB đạt 21,75 lần trong quý 4/2024.",
+            fact_ids=("f_acb_roe_raw_q4",),
+            source="model",
+        )
+        v_pct_lan = verify_sentence(s_pct_lan, ctx)
+        self.assertFalse(v_pct_lan.ok)
+        self.assertEqual(v_pct_lan.reason_code, "unit_mismatch")
+
+        # PP fact followed by 'lần'
+        s_pp_lan = NarrativeSentence(
+            sentence_id="s_b2_pp_lan",
+            author="model",
+            text="Chênh lệch ROE so với trung vị là 0,5 lần.",
+            fact_ids=(f_gap.fact_id,),
+            source="model",
+        )
+        v_pp_lan = verify_sentence(s_pp_lan, ctx)
+        self.assertFalse(v_pp_lan.ok)
+        self.assertEqual(v_pp_lan.reason_code, "unit_mismatch")
+
+    def test_vibfix1_bug2_correct_ratio_sentence_passes(self) -> None:
+        """Bug 2: Correct ratio sentence with 'lần ... lần' passes verification."""
+        f_vib_ratio = Fact(
+            fact_id="f_vib_roe_roa_ok",
+            fact_type="value",
+            entity_id="VIB",
+            metric_id="derived.roe_over_roa",
+            period="2025_Q4",
+            value=11.82,
+            unit="x",
+        )
+        f_med_ratio = Fact(
+            fact_id="f_med_roe_roa_ok",
+            fact_type="peer_median",
+            universe_id="sector:bank",
+            metric_id="derived.roe_over_roa",
+            period="2025_Q4",
+            value=11.46,
+            unit="x",
+            denominator=10,
+        )
+        custom_facts = dict(self.facts)
+        custom_facts[f_vib_ratio.fact_id] = f_vib_ratio
+        custom_facts[f_med_ratio.fact_id] = f_med_ratio
+        ctx = VerificationContext(
+            facts=custom_facts,
+            plan_entities=self.ctx.plan_entities | {"VIB"},
+            catalog_entities=self.ctx.catalog_entities | {"VIB"},
+            metric_terms=self.ctx.metric_terms,
+            hi_words=self.ctx.hi_words,
+            lo_words=self.ctx.lo_words,
+            directions=self.ctx.directions,
+            flat_pp=self.ctx.flat_pp,
+            anchor_year=2025,
+        )
+
+        s_ok = NarrativeSentence(
+            sentence_id="s_b2_ok",
+            author="model",
+            text="Tỷ lệ ROE/ROA ở mức 11,82 lần, nhỉnh hơn trung vị nhóm 11,46 lần.",
+            fact_ids=(f_vib_ratio.fact_id, f_med_ratio.fact_id),
+            source="model",
+        )
+        v_ok = verify_sentence(s_ok, ctx)
+        self.assertTrue(v_ok.ok, f"Expected ok but failed: {v_ok.reason_code}: {v_ok.reason}")
+
+    def test_vibfix1_bug3_superlative_with_rank_1_and_worst_passes(self) -> None:
+        """Bug 3: Group superlatives with consistent rank 1 or denominator fact pass."""
+        f_vpb_npl_worst = Fact(
+            fact_id="f_vpb_npl_worst",
+            fact_type="peer_rank",
+            entity_id="VPB",
+            metric_id="bank.npl_g35",
+            period="2024_Q4",
+            value=5.0,
+            rank_better=5,
+            rank_desc=1,
+            denominator=5,
+            unit="rank",
+        )
+        custom_facts = dict(self.facts)
+        custom_facts[f_vpb_npl_worst.fact_id] = f_vpb_npl_worst
+        ctx = VerificationContext(
+            facts=custom_facts,
+            plan_entities=self.ctx.plan_entities,
+            catalog_entities=self.ctx.catalog_entities,
+            metric_terms=self.ctx.metric_terms,
+            hi_words=self.ctx.hi_words,
+            lo_words=self.ctx.lo_words,
+            directions=self.ctx.directions,
+            flat_pp=self.ctx.flat_pp,
+            anchor_year=2024,
+        )
+
+        # Ranking report saying 'cao nhất' with rank-1 fact
+        s_cao_nhat = NarrativeSentence(
+            sentence_id="s_b3_cao_nhat",
+            author="model",
+            text="VCB có tỷ lệ bao phủ nợ xấu cao nhất nhóm (đạt 223,3%), xếp hạng 1/5.",
+            fact_ids=("f_vcb_llr_q4", "f_vcb_llr_rank_q4"),
+            source="model",
+        )
+        v_cao_nhat = verify_sentence(s_cao_nhat, ctx)
+        self.assertTrue(v_cao_nhat.ok, f"Failed: {v_cao_nhat.reason_code}: {v_cao_nhat.reason}")
+
+        # Standing: 'dẫn đầu' with rank-1 fact
+        s_dan_dau = NarrativeSentence(
+            sentence_id="s_b3_dan_dau",
+            author="model",
+            text="VCB dẫn đầu về tỷ lệ bao phủ nợ xấu trong quý 4/2024.",
+            fact_ids=("f_vcb_llr_rank_q4",),
+            source="model",
+        )
+        v_dan_dau = verify_sentence(s_dan_dau, ctx)
+        self.assertTrue(v_dan_dau.ok, f"Failed: {v_dan_dau.reason_code}: {v_dan_dau.reason}")
+
+        # Standing: 'đứng cuối' with rank_better == denominator fact
+        s_dung_cuoi = NarrativeSentence(
+            sentence_id="s_b3_dung_cuoi",
+            author="model",
+            text="VPB đứng cuối về nợ xấu trong quý 4/2024.",
+            fact_ids=(f_vpb_npl_worst.fact_id,),
+            source="model",
+        )
+        v_dung_cuoi = verify_sentence(s_dung_cuoi, ctx)
+        self.assertTrue(v_dung_cuoi.ok, f"Failed: {v_dung_cuoi.reason_code}: {v_dung_cuoi.reason}")
+
+        # Standing: 'xếp cuối'
+        s_xep_cuoi = NarrativeSentence(
+            sentence_id="s_b3_xep_cuoi",
+            author="model",
+            text="VPB xếp cuối về nợ xấu trong quý 4/2024.",
+            fact_ids=(f_vpb_npl_worst.fact_id,),
+            source="model",
+        )
+        v_xep_cuoi = verify_sentence(s_xep_cuoi, ctx)
+        self.assertTrue(v_xep_cuoi.ok, f"Failed: {v_xep_cuoi.reason_code}: {v_xep_cuoi.reason}")
+
+        # Standing: 'đội sổ'
+        s_doi_so = NarrativeSentence(
+            sentence_id="s_b3_doi_so",
+            author="model",
+            text="VPB đội sổ về nợ xấu trong quý 4/2024.",
+            fact_ids=(f_vpb_npl_worst.fact_id,),
+            source="model",
+        )
+        v_doi_so = verify_sentence(s_doi_so, ctx)
+        self.assertTrue(v_doi_so.ok, f"Failed: {v_doi_so.reason_code}: {v_doi_so.reason}")
+
+        # Superlative: 'kém nhất' with worst rank
+        s_kem_nhat = NarrativeSentence(
+            sentence_id="s_b3_kem_nhat",
+            author="model",
+            text="VPB có nợ xấu kém nhất nhóm trong quý 4/2024.",
+            fact_ids=(f_vpb_npl_worst.fact_id,),
+            source="model",
+        )
+        v_kem_nhat = verify_sentence(s_kem_nhat, ctx)
+        self.assertTrue(v_kem_nhat.ok, f"Failed: {v_kem_nhat.reason_code}: {v_kem_nhat.reason}")
+
+    def test_vibfix1_bug3_superlative_rejected_without_rank_or_mismatch(self) -> None:
+        """Bug 3: Superlatives rejected without rank fact, non-extreme rank, or wrong metric."""
+        # 1. Superlative without rank fact
+        s_no_rank = NarrativeSentence(
+            sentence_id="s_no_rf",
+            author="model",
+            text="VCB có nợ xấu kém nhất nhóm trong quý 4/2024.",
+            fact_ids=("f_vcb_npl_q4",),
+            source="model",
+        )
+        v_no_rank = verify_sentence(s_no_rank, self.ctx)
+        self.assertFalse(v_no_rank.ok)
+        self.assertEqual(v_no_rank.reason_code, "rank_mismatch")
+
+        # 2. Superlative when entity is not extreme (ACB has rank 3/5 for NPL)
+        s_not_extreme = NarrativeSentence(
+            sentence_id="s_not_ext",
+            author="model",
+            text="ACB có tỷ lệ nợ xấu thấp nhất nhóm trong quý 4/2024.",
+            fact_ids=("f_acb_npl_rank_q4",),
+            source="model",
+        )
+        v_not_extreme = verify_sentence(s_not_extreme, self.ctx)
+        self.assertFalse(v_not_extreme.ok)
+        self.assertEqual(v_not_extreme.reason_code, "rank_mismatch")
+
+        # 3. Superlative for wrong metric (sentence says NPL, but cites LLR rank fact)
+        s_wrong_metric = NarrativeSentence(
+            sentence_id="s_wrong_m",
+            author="model",
+            text="VCB có tỷ lệ nợ xấu thấp nhất nhóm trong quý 4/2024.",
+            fact_ids=("f_vcb_llr_rank_q4",),
+            source="model",
+        )
+        v_wrong_metric = verify_sentence(s_wrong_metric, self.ctx)
+        self.assertFalse(v_wrong_metric.ok)
+        self.assertEqual(v_wrong_metric.reason_code, "rank_mismatch")
+
 
 if __name__ == "__main__":
     unittest.main()

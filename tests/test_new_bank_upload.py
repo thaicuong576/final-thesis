@@ -665,8 +665,10 @@ class NewBankUploadTests(unittest.TestCase):
         self.assertTrue(len(medians) > 0)
         for m in medians:
             self.assertEqual(m.get("denominator"), 5)
-        # Verify CTG has rank fact vs group
+        # Verify CTG has rank fact vs group (denominator is peer members + CTG = 6 per VIBFIX-1 / D-077)
         ranks = [f for f in prof_data.get("facts", []) if f.get("fact_type") == "peer_rank" and f.get("entity_id") == "CTG"]
         self.assertTrue(len(ranks) > 0)
         for r in ranks:
-            self.assertEqual(r.get("denominator"), 5)
+            self.assertEqual(r.get("denominator"), 6)
+            rank_val = r.get("rank_better") or r.get("rank_desc") or r.get("value")
+            self.assertTrue(1 <= rank_val <= 6)

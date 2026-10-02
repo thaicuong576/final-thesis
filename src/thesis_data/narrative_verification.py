@@ -215,6 +215,26 @@ def _parse_order_token(token: str) -> int | None:
     return _ORDER_WORD_TO_NUM.get(token)
 
 
+def _classify_fact_unit(f: Fact) -> str:
+    """Classify fact unit into 'ratio', 'pp', 'pct', or 'any'."""
+    f_unit = (f.unit or "").strip().lower()
+    if f_unit in ("x", "lần"):
+        return "ratio"
+    if f_unit in ("pp", "điểm %"):
+        return "pp"
+    if f_unit in ("%", "percent", "percent_per_annum"):
+        return "pct"
+    # Fallback to fact_type only if unit was unspecified
+    if not f_unit:
+        if f.fact_type in ("ratio_to_median", "derived_ratio"):
+            return "ratio"
+        if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread"):
+            return "pp"
+        if f.fact_type in ("value", "peer_median"):
+            return "pct"
+    return "any"
+
+
 def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceVerdict:
     """Verify an atomic analytical narrative sentence against cited facts.
 
@@ -432,10 +452,12 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         re.compile(r"(?<!\w)(cao|thấp|tốt|kém|dày|mỏng)\s+thứ\s+(\d+|nhì|hai|ba|tư|bốn|năm)(?!\w)"),
         # hạng N or thứ N
         re.compile(r"(?<!\w)(?:hạng|thứ)\s+(\d+|nhì|hai|ba|tư|bốn|năm)(?!\w)"),
-        # superlatives: cao nhất, thấp nhất, tốt nhất, kém nhất, dày nhất, mỏng nhất
-        re.compile(r"(?<!\w)(cao|thấp|tốt|kém|dày|mỏng)\s+nhất(?!\w)"),
-        # standing: dẫn đầu, đứng cuối, nhóm đầu, nhóm cuối
-        re.compile(r"(?<!\w)(dẫn đầu|đứng cuối|nhóm đầu|nhóm cuối)(?!\w)"),
+        # superlatives: cao nhất, thấp nhất, tốt nhất, kém nhất, dày nhất, mỏng nhất (optionally followed by nhóm)
+        re.compile(r"(?<!\w)(cao|thấp|tốt|kém|dày|mỏng)\s+nhất(?:\s+nhóm)?(?!\w)"),
+        # standing: dẫn đầu, đứng đầu, đứng cuối, xếp cuối, đội sổ, nhóm đầu, nhóm cuối
+        re.compile(r"(?<!\w)(dẫn đầu|đứng đầu|đứng cuối|xếp cuối|đội sổ|nhóm đầu|nhóm cuối)(?!\w)"),
+        # nhất nhóm standalone
+        re.compile(r"(?<!\w)nhất\s+nhóm(?!\w)"),
     ]
 
     # Mask spread range descriptions like "cao nhất – thấp nhất" or "cao nhất và thấp nhất"
@@ -461,6 +483,79 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                     numbers_matched=0,
                 )
 
+            # Determine associated entity for this span
+            target_entity: str | None = None
+            preceding_text = norm_text[: m.start()]
+            following_text = norm_text[m.end() :]
+
+            entities_before = []
+            for ent in ctx.plan_entities | ctx.catalog_entities:
+                ent_norm = _normalize(ent)
+                for em in re.finditer(rf"(?<!\w){re.escape(ent_norm)}(?!\w)", preceding_text):
+                    entities_before.append((em.start(), ent_norm))
+            if entities_before:
+                entities_before.sort(key=lambda x: x[0])
+                target_entity = entities_before[-1][1]
+            else:
+                entities_after = []
+                for ent in ctx.plan_entities | ctx.catalog_entities:
+                    ent_norm = _normalize(ent)
+                    for em in re.finditer(rf"(?<!\w){re.escape(ent_norm)}(?!\w)", following_text):
+                        entities_after.append((em.start(), ent_norm))
+                if entities_after:
+                    entities_after.sort(key=lambda x: x[0])
+                    target_entity = entities_after[0][1]
+
+            if not target_entity:
+                distinct_fact_entities = {
+                    _normalize(f.entity_id) for f in cited_facts if f.entity_id
+                }
+                if len(distinct_fact_entities) == 1:
+                    target_entity = next(iter(distinct_fact_entities))
+                elif len(ctx.plan_entities) == 1:
+                    target_entity = _normalize(next(iter(ctx.plan_entities)))
+
+            # Determine associated metric for this span
+            clause_start = max(
+                norm_text.rfind(",", 0, m.start()),
+                norm_text.rfind(";", 0, m.start()),
+                norm_text.rfind(".", 0, m.start()),
+                norm_text.rfind(" và ", 0, m.start()),
+                norm_text.rfind(" nhưng ", 0, m.start()),
+            )
+            clause_start = 0 if clause_start == -1 else clause_start + 1
+
+            clause_end = len(norm_text)
+            for sep in (",", ";", ".", " và ", " nhưng "):
+                idx = norm_text.find(sep, m.end())
+                if idx != -1 and idx < clause_end:
+                    clause_end = idx
+
+            clause_text = norm_text[clause_start:clause_end]
+
+            associated_metric: str | None = None
+            metric_terms_sorted: list[tuple[str, str]] = []
+            for mid, terms in ctx.metric_terms.items():
+                for term in terms:
+                    metric_terms_sorted.append((_normalize(term), mid))
+            metric_terms_sorted.sort(key=lambda x: len(x[0]), reverse=True)
+            for term_norm, mid in metric_terms_sorted:
+                if term_norm in clause_text:
+                    associated_metric = mid
+                    break
+
+            if not associated_metric:
+                for term_norm, mid in metric_terms_sorted:
+                    if term_norm in norm_text:
+                        associated_metric = mid
+                        break
+
+            applicable_rf = rank_facts
+            if target_entity:
+                applicable_rf = [rf for rf in applicable_rf if _normalize(rf.entity_id or "") == target_entity]
+            if associated_metric:
+                applicable_rf = [rf for rf in applicable_rf if rf.metric_id == associated_metric]
+
             groups = m.groups()
             rank_matched = False
 
@@ -468,14 +563,14 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                 # N/M
                 n_val = int(groups[0])
                 m_val = int(groups[1])
-                for rf in rank_facts:
+                for rf in applicable_rf:
                     if rf.denominator == m_val and (rf.rank_better == n_val or rf.rank_desc == n_val or round(rf.value or 0) == n_val):
                         rank_matched = True
                         break
             elif len(groups) == 2 and (groups[0] in ("cao", "thấp", "tốt", "kém", "dày", "mỏng")):
                 word_type = groups[0]
                 n_ord = _parse_order_token(groups[1]) or 1
-                for rf in rank_facts:
+                for rf in applicable_rf:
                     den = rf.denominator or 1
                     if word_type in ("cao", "dày"):
                         if rf.rank_desc == n_ord:
@@ -493,38 +588,42 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                         if rf.rank_better == (den + 1 - n_ord):
                             rank_matched = True
                             break
-            elif len(groups) == 1:
+            elif len(groups) >= 1 and groups[0] is not None:
                 tok = groups[0]
                 if tok in ("cao", "thấp", "tốt", "kém", "dày", "mỏng"):
                     # superlative ... nhất
-                    for rf in rank_facts:
+                    for rf in applicable_rf:
                         den = rf.denominator or 1
-                        if tok in ("cao", "dày") and rf.rank_desc == 1:
-                            rank_matched = True
-                            break
-                        elif tok in ("thấp", "mỏng") and rf.rank_desc == den:
-                            rank_matched = True
-                            break
-                        elif tok == "tốt" and rf.rank_better == 1:
-                            rank_matched = True
-                            break
-                        elif tok == "kém" and rf.rank_better == den:
-                            rank_matched = True
-                            break
-                elif tok == "dẫn đầu":
-                    rank_matched = any(rf.rank_better == 1 for rf in rank_facts)
-                elif tok == "đứng cuối":
-                    rank_matched = any(rf.rank_better == (rf.denominator or 1) for rf in rank_facts)
+                        if tok in ("cao", "dày"):
+                            if rf.rank_desc == 1:
+                                rank_matched = True
+                                break
+                        elif tok in ("thấp", "mỏng"):
+                            if rf.rank_desc == den:
+                                rank_matched = True
+                                break
+                        elif tok == "tốt":
+                            if rf.rank_better == 1:
+                                rank_matched = True
+                                break
+                        elif tok == "kém":
+                            if rf.rank_better == den:
+                                rank_matched = True
+                                break
+                elif tok in ("dẫn đầu", "đứng đầu"):
+                    rank_matched = any(rf.rank_better == 1 for rf in applicable_rf)
+                elif tok in ("đứng cuối", "xếp cuối", "đội sổ"):
+                    rank_matched = any(rf.rank_better == (rf.denominator or 1) for rf in applicable_rf)
                 elif tok == "nhóm đầu":
                     rank_matched = any(
                         rf.rank_better is not None and rf.rank_better <= max(1, round((rf.denominator or 1) / 3))
-                        for rf in rank_facts
+                        for rf in applicable_rf
                     )
                 elif tok == "nhóm cuối":
                     rank_matched = any(
                         rf.rank_better is not None
                         and rf.rank_better >= (rf.denominator or 1) + 1 - max(1, round((rf.denominator or 1) / 3))
-                        for rf in rank_facts
+                        for rf in applicable_rf
                     )
                 else:
                     # hạng N or thứ N
@@ -532,8 +631,11 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                     if n_ord:
                         rank_matched = any(
                             rf.rank_better == n_ord or rf.rank_desc == n_ord or round(rf.value or 0) == n_ord
-                            for rf in rank_facts
+                            for rf in applicable_rf
                         )
+            else:
+                # Standalone nhất nhóm (len(groups) == 0)
+                rank_matched = any(rf.rank_better == 1 for rf in applicable_rf)
 
             if not rank_matched:
                 return SentenceVerdict(
@@ -673,31 +775,30 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                 continue
             f_val = float(f.value)
 
-            # Target comparison value based on unit category (strictly raw fact value per PR-4 §2 Rule 9)
+            f_cat = _classify_fact_unit(f)
+
+            # Target comparison value based on unit category
             if unit_cat == "pp":
-                if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread"):
-                    comp_val = abs(f_val)
-                else:
-                    if abs(abs(f_val) - val_parsed) <= tolerance:
+                if f_cat != "pp":
+                    if abs(abs(f_val) - val_parsed) <= tolerance or abs(f_val - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
+                comp_val = abs(f_val)
             elif unit_cat == "pct":
-                if f.fact_type in ("value", "peer_median"):
-                    comp_val = f_val
-                else:
-                    if abs(f_val - val_parsed) <= tolerance:
+                if f_cat != "pct":
+                    if abs(f_val - val_parsed) <= tolerance or abs(abs(f_val) - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
+                comp_val = f_val
             elif unit_cat == "ratio":
-                if f.fact_type in ("ratio_to_median", "derived_ratio"):
-                    comp_val = f_val
-                else:
-                    if abs(f_val - val_parsed) <= tolerance:
+                if f_cat != "ratio":
+                    if abs(f_val - val_parsed) <= tolerance or abs(abs(f_val) - val_parsed) <= tolerance:
                         has_unit_mismatch = True
                     continue
+                comp_val = f_val
             else:
                 # Any unit
-                comp_val = abs(f_val) if f.fact_type in ("gap_to_median", "delta", "median_delta", "pairwise_gap", "spread") else f_val
+                comp_val = abs(f_val) if f_cat == "pp" else f_val
 
             # Tolerance check: strictly compare against raw value v with 0.5 * 10^-d + 1e-9
             if abs(comp_val - val_parsed) > tolerance:
@@ -733,7 +834,9 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
         if not found_fact and unit_cat == "pp":
             val_and_med = [
                 f for f in cited_facts
-                if f.fact_type in ("value", "peer_median") and f.value is not None
+                if f.fact_type in ("value", "peer_median")
+                and f.value is not None
+                and _classify_fact_unit(f) == "pct"
             ]
             for i in range(len(val_and_med)):
                 for j in range(i + 1, len(val_and_med)):
@@ -1055,7 +1158,7 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                     )
             elif cw_norm in ("tốt hơn", "nhỉnh hơn", "dẫn ở", "vượt trội"):
                 matched = any(
-                    (c[0] > c[1]) if c[2] == "higher_is_better" else (c[0] < -c[1])
+                    (c[0] < -c[1]) if c[2] == "lower_is_better" else (c[0] > c[1])
                     for c in eval_cands
                 ) or has_lead_win or has_ratio_win
                 if not matched:
@@ -1068,7 +1171,7 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                     )
             elif cw_norm in ("kém hơn",):
                 matched = any(
-                    (c[0] < -c[1]) if c[2] == "higher_is_better" else (c[0] > c[1])
+                    (c[0] > c[1]) if c[2] == "lower_is_better" else (c[0] < -c[1])
                     for c in eval_cands
                 ) or has_ratio_loss
                 if not matched:

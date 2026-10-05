@@ -5,6 +5,7 @@ import { ChevronRight, FileSearch, Plus, RotateCw, Search } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PageCrumbs, StatusPill } from '@/components/layout/PageCrumbs';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { dedupeRunTickers } from './reportTickers';
 
 /** Mirrors `AnalysisRunSummary` in contracts/openapi.json. */
 interface RunSummary {
@@ -84,7 +85,7 @@ export function ReportsListPage() {
         if (filter === 'answered' && !answered) return false;
         if (filter === 'blocked' && answered) return false;
         if (!q) return true;
-        const hay = [r.query, r.target_ticker, ...(r.peer_tickers || [])].join(' ').toLowerCase();
+        const hay = [r.query, ...dedupeRunTickers(r.target_ticker, r.peer_tickers)].join(' ').toLowerCase();
         return hay.includes(q);
       })
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
@@ -195,7 +196,7 @@ export function ReportsListPage() {
             <ul className="m-0 list-none divide-y divide-border-subtle p-0">
               {visible.map((run) => {
                 const st = statusTone(run.status);
-                const tickers = [run.target_ticker, ...(run.peer_tickers || [])].filter(Boolean) as string[];
+                const tickers = dedupeRunTickers(run.target_ticker, run.peer_tickers);
                 const seconds = Math.round(((run.duration_ms ?? run.latency_ms) || 0) / 1000);
                 const meta = [
                   run.question_type ? TYPE_LABELS[run.question_type] || run.question_type : null,

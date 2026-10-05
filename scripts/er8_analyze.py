@@ -115,6 +115,7 @@ def analyze_evaluation(
         "traceability_score",
         "coverage_score",
         "discard_rate",
+        "composition_fallback",
         "cross_level_findings_count",
         "duration_ms",
         "model_calls",
@@ -179,6 +180,7 @@ def analyze_evaluation(
         ("coverage_score", "Độ phủ chỉ tiêu"),
         ("traceability_score", "Truy vết observation"),
         ("discard_rate", "Tỷ lệ câu bị loại"),
+        ("composition_fallback", "Tỷ lệ fallback bố cục"),
         ("cross_level_findings_count", "Số liên kết tầng"),
         ("total_tokens", "Tổng token tiêu thụ"),
         ("duration_ms", "Thời gian xử lý (ms)"),
@@ -397,6 +399,7 @@ Thực nghiệm so sánh 3 kiến trúc xử lý trên cùng một câu hỏi v�
 | **Truy vết nguồn (Traceability)** | {arm_summary_data[0]["mean_traceability_score"]*100:.1f}% | {arm_summary_data[1]["mean_traceability_score"]*100:.1f}% | {arm_summary_data[2]["mean_traceability_score"]*100:.1f}% |
 | **Độ phủ chỉ tiêu (Coverage)** | {arm_summary_data[0]["mean_coverage_score"]*100:.1f}% | {arm_summary_data[1]["mean_coverage_score"]*100:.1f}% | {arm_summary_data[2]["mean_coverage_score"]*100:.1f}% |
 | **Tỷ lệ câu bị loại (Discard Rate)** | {arm_summary_data[0]["mean_discard_rate"]*100:.1f}% | {arm_summary_data[1]["mean_discard_rate"]*100:.1f}% | {arm_summary_data[2]["mean_discard_rate"]*100:.1f}% |
+| **Tỷ lệ fallback bố cục (Composition Fallback)** | {arm_summary_data[0]["mean_composition_fallback"]*100:.1f}% | {arm_summary_data[1]["mean_composition_fallback"]*100:.1f}% | {arm_summary_data[2]["mean_composition_fallback"]*100:.1f}% |
 | **Số liên kết tầng phát hiện** | {arm_summary_data[0]["mean_cross_level_findings_count"]:.2f} | {arm_summary_data[1]["mean_cross_level_findings_count"]:.2f} | {arm_summary_data[2]["mean_cross_level_findings_count"]:.2f} |
 | **Thời gian thực thi trung bình (ms)** | {arm_summary_data[0]["mean_duration_ms"]:.0f} | {arm_summary_data[1]["mean_duration_ms"]:.0f} | {arm_summary_data[2]["mean_duration_ms"]:.0f} |
 | **Số lần gọi mô hình (Calls)** | {arm_summary_data[0]["mean_model_calls"]:.1f} | {arm_summary_data[1]["mean_model_calls"]:.1f} | {arm_summary_data[2]["mean_model_calls"]:.1f} |

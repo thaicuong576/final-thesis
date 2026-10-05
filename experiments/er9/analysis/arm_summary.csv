@@ -1,4 +1,4 @@
-arm,label,total_runs,mean_completed,mean_clean_completion,mean_protocol_success,mean_numeric_correctness,mean_traceability_score,mean_coverage_score,mean_discard_rate,mean_cross_level_findings_count,mean_duration_ms,mean_model_calls,mean_total_tokens,mean_revision_rounds,mean_missingness_handled
-single_agent,Arm A (Single-Agent),12,0.8333,0.5833,1.0,1.0,1.0,0.7969,0.0,0.3333,17545.0,0.8333,3784.4167,0.0,N/A
-hierarchical_no_critique,Arm B (Hierarchical không phản biện),12,0.8333,0.75,1.0,1.0,1.0,0.8438,0.0,0.3333,27496.0833,2.0833,8251.6667,0.0,N/A
-hierarchical_with_critique,Arm C (Hierarchical có phản biện),12,0.8333,0.3333,1.0,1.0,1.0,0.7812,0.0,0.6667,62876.1667,4.4167,25856.0833,1.25,N/A
+arm,label,total_runs,mean_completed,mean_clean_completion,mean_protocol_success,mean_numeric_correctness,mean_traceability_score,mean_coverage_score,mean_discard_rate,mean_composition_fallback,mean_cross_level_findings_count,mean_duration_ms,mean_model_calls,mean_total_tokens,mean_revision_rounds,mean_missingness_handled
+single_agent,Arm A (Single-Agent),12,0.8333,0.5833,1.0,1.0,1.0,0.7969,0.0985,0.3,0.3333,17545.0,0.8333,3784.4167,0.0,N/A
+hierarchical_no_critique,Arm B (Hierarchical không phản biện),12,0.8333,0.75,1.0,1.0,1.0,0.8438,0.1081,0.1,0.3333,27496.0833,2.0833,8251.6667,0.0,N/A
+hierarchical_with_critique,Arm C (Hierarchical có phản biện),12,0.8333,0.3333,1.0,1.0,1.0,0.7812,0.227,0.2,0.6667,62876.1667,4.4167,25856.0833,1.25,N/A

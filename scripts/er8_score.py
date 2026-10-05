@@ -381,10 +381,47 @@ def score_single_run(
 
     # Narrative quality
     narrative_audit = response.get("narrative_audit") or {}
-    sentences_proposed = narrative_audit.get("sentences_checked") or len(sentences)
-    sentences_accepted = narrative_audit.get("sentences_accepted") or sents_accepted_count
-    sentences_discarded = len(narrative_audit.get("dropped_sentences") or []) if "dropped_sentences" in narrative_audit else sents_discarded_count
+    has_audit = bool(response.get("narrative_audit"))
+
+    if "sentences_checked" in narrative_audit and narrative_audit["sentences_checked"] is not None:
+        try:
+            sentences_proposed = int(narrative_audit["sentences_checked"])
+        except (ValueError, TypeError):
+            sentences_proposed = len(sentences)
+    else:
+        sentences_proposed = len(sentences)
+
+    if "sentences_accepted" in narrative_audit and narrative_audit["sentences_accepted"] is not None:
+        try:
+            sentences_accepted = int(narrative_audit["sentences_accepted"])
+        except (ValueError, TypeError):
+            sentences_accepted = sents_accepted_count
+    else:
+        sentences_accepted = sents_accepted_count
+
+    raw_dropped = None
+    if "sentences_dropped" in narrative_audit:
+        raw_dropped = narrative_audit["sentences_dropped"]
+    elif "dropped_sentences" in narrative_audit:
+        raw_dropped = narrative_audit["dropped_sentences"]
+
+    if raw_dropped is not None:
+        if isinstance(raw_dropped, list):
+            sentences_discarded = len(raw_dropped)
+        else:
+            try:
+                sentences_discarded = int(raw_dropped)
+            except (ValueError, TypeError):
+                sentences_discarded = 0
+    else:
+        sentences_discarded = sents_discarded_count
+
     discard_rate = (sentences_discarded / sentences_proposed) if sentences_proposed > 0 else 0.0
+
+    if has_audit:
+        composition_fallback = 1 if narrative_audit.get("composition_source") == "deterministic_fallback" else 0
+    else:
+        composition_fallback = None
 
     # Cross-level findings
     cross_level_critique = response.get("cross_level_critique") or []
@@ -424,6 +461,7 @@ def score_single_run(
         "sentences_accepted": sentences_accepted,
         "sentences_discarded": sentences_discarded,
         "discard_rate": round(discard_rate, 4),
+        "composition_fallback": composition_fallback if composition_fallback is not None else "",
         "cross_level_findings_count": cross_level_findings_count,
         "duration_ms": duration_ms,
         "model_calls": model_calls,

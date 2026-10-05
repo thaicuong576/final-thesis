@@ -339,6 +339,25 @@ class TestBankNameAliases(unittest.TestCase):
         self.catalog = _make_gold_catalog()
         self.mock_catalog = _make_mock_catalog()
 
+    def test_regression_generic_vietnamese_phrases_not_banks(self) -> None:
+        """Regression tests: non-bank phrases containing common words must NOT resolve to banks.
+
+        - 'Bộ Công Thương và VCB quý 4/2025' -> only VCB (Bộ Công Thương is not CTG)
+        - 'Sinh viên Ngoại thương hỏi ROE của ACB quý 4/2025' -> only ACB (Ngoại thương here is university, not VCB)
+        - 'Đầu tư và phát triển số của TCB quý 4/2025' -> only TCB (Đầu tư và phát triển số is not BID)
+        """
+        res1 = resolve_query("Bộ Công Thương và VCB quý 4/2025", self.catalog)
+        self.assertEqual(res1.entities, ("VCB",))
+        self.assertEqual(res1.unknown_entity_tokens, ())
+
+        res2 = resolve_query("Sinh viên Ngoại thương hỏi ROE của ACB quý 4/2025", self.catalog)
+        self.assertEqual(res2.entities, ("ACB",))
+        self.assertEqual(res2.unknown_entity_tokens, ())
+
+        res3 = resolve_query("Đầu tư và phát triển số của TCB quý 4/2025", self.catalog)
+        self.assertEqual(res3.entities, ("TCB",))
+        self.assertEqual(res3.unknown_entity_tokens, ())
+
     def test_vietcombank_and_techcombank_order(self) -> None:
         """'So sánh Vietcombank và Techcombank quý 4/2025' → VCB, TCB in that order."""
         resolved = resolve_query(
@@ -365,16 +384,20 @@ class TestBankNameAliases(unittest.TestCase):
         res2 = resolve_query("Nợ xấu của ngan hang a chau quý 2/2026", self.catalog)
         self.assertEqual(res2.entities, ("ACB",))
 
-        # Accentless 'a chau' alone
-        res3 = resolve_query("Nợ xấu của a chau quý 2/2026", self.catalog)
+        # With 'NH' prefix
+        res3 = resolve_query("Nợ xấu của NH Á Châu quý 2/2026", self.catalog)
         self.assertEqual(res3.entities, ("ACB",))
 
-        # Accented 'Á Châu' alone
-        res4 = resolve_query("Nợ xấu của Á Châu quý 2/2026", self.catalog)
+        # Accentless with 'nh' prefix
+        res4 = resolve_query("Nợ xấu của nh a chau quý 2/2026", self.catalog)
         self.assertEqual(res4.entities, ("ACB",))
 
+        # Ticker ACB alone
+        res5 = resolve_query("Nợ xấu của ACB quý 2/2026", self.catalog)
+        self.assertEqual(res5.entities, ("ACB",))
+
     def test_mbb_variants_and_mbs_boundary(self) -> None:
-        """'MB Bank' / 'MBBank' / 'Quân đội' → MBB; 'MB' does not match inside 'MBS' or other words."""
+        """'MB Bank' / 'MBBank' / 'ngân hàng Quân đội' → MBB; 'MB' does not match inside 'MBS' or other words."""
         # 'MB Bank'
         res_mb_bank = resolve_query("Nợ xấu của MB Bank quý 4/2025", self.catalog)
         self.assertEqual(res_mb_bank.entities, ("MBB",))
@@ -383,9 +406,13 @@ class TestBankNameAliases(unittest.TestCase):
         res_mbbank = resolve_query("Nợ xấu của MBBank quý 4/2025", self.catalog)
         self.assertEqual(res_mbbank.entities, ("MBB",))
 
-        # 'Quân đội'
-        res_qd = resolve_query("Nợ xấu của Quân đội quý 4/2025", self.catalog)
+        # 'ngân hàng Quân đội'
+        res_qd = resolve_query("Nợ xấu của ngân hàng Quân đội quý 4/2025", self.catalog)
         self.assertEqual(res_qd.entities, ("MBB",))
+
+        # 'NH Quân đội'
+        res_nh_qd = resolve_query("Nợ xấu của NH Quân đội quý 4/2025", self.catalog)
+        self.assertEqual(res_nh_qd.entities, ("MBB",))
 
         # 'MB' alone
         res_mb = resolve_query("Nợ xấu của MB quý 4/2025", self.catalog)
@@ -397,6 +424,11 @@ class TestBankNameAliases(unittest.TestCase):
         self.assertEqual(res_mbs.entities, ())
         self.assertIn("MBS", res_mbs.unknown_entity_tokens)
 
+        # Bare 'quân đội' in non-bank context must not match MBB
+        res_nonbank = resolve_query("Doanh nghiệp quân đội vay vốn tại TCB", self.catalog)
+        self.assertNotIn("MBB", res_nonbank.entities)
+        self.assertEqual(res_nonbank.entities, ("TCB",))
+
     def test_unsupported_bank_names(self) -> None:
         """A name of a bank not in the catalog (e.g. 'OCB', 'Phương Đông') → unsupported, as today."""
         # 'OCB' ticker
@@ -404,15 +436,25 @@ class TestBankNameAliases(unittest.TestCase):
         self.assertEqual(res_ocb.entities, ())
         self.assertIn("OCB", res_ocb.unknown_entity_tokens)
 
-        # 'Phương Đông' name
-        res_pd = resolve_query("Phân tích Phương Đông quý 4/2025", self.catalog)
+        # 'ngân hàng Phương Đông'
+        res_pd = resolve_query("Phân tích ngân hàng Phương Đông quý 4/2025", self.catalog)
         self.assertEqual(res_pd.entities, ())
         self.assertIn("OCB", res_pd.unknown_entity_tokens)
 
-        # Accentless 'phuong dong'
-        res_pd_noacc = resolve_query("Phân tích phuong dong quý 4/2025", self.catalog)
+        # 'NH Phương Đông'
+        res_nh_pd = resolve_query("Phân tích NH Phương Đông quý 4/2025", self.catalog)
+        self.assertEqual(res_nh_pd.entities, ())
+        self.assertIn("OCB", res_nh_pd.unknown_entity_tokens)
+
+        # Accentless 'ngan hang phuong dong'
+        res_pd_noacc = resolve_query("Phân tích ngan hang phuong dong quý 4/2025", self.catalog)
         self.assertEqual(res_pd_noacc.entities, ())
         self.assertIn("OCB", res_pd_noacc.unknown_entity_tokens)
+
+        # Bare 'phương đông' in non-bank phrase does not match OCB
+        res_hotel = resolve_query("Khách sạn Phương Đông và VCB quý 4/2025", self.catalog)
+        self.assertEqual(res_hotel.entities, ("VCB",))
+        self.assertNotIn("OCB", res_hotel.unknown_entity_tokens)
 
         # When a bank name is in alias map but NOT in the catalog for this request:
         # e.g. Vietcombank queried against mock catalog (which only has BANK_A..BANK_E)
@@ -424,19 +466,26 @@ class TestBankNameAliases(unittest.TestCase):
         """Verify Vietnamese names for all served banks map to correct tickers."""
         cases = [
             ("BIDV", "BID"),
-            ("Đầu tư và Phát triển", "BID"),
+            ("ngân hàng Đầu tư và Phát triển", "BID"),
+            ("NH Đầu tư và Phát triển", "BID"),
             ("VietinBank", "CTG"),
-            ("Công Thương", "CTG"),
+            ("ngân hàng Công Thương", "CTG"),
+            ("NH Công Thương", "CTG"),
             ("Techcombank", "TCB"),
-            ("Kỹ Thương", "TCB"),
+            ("ngân hàng Kỹ Thương", "TCB"),
+            ("NH Kỹ Thương", "TCB"),
             ("Sacombank", "STB"),
-            ("Sài Gòn Thương Tín", "STB"),
-            ("Sài Gòn – Hà Nội", "SHB"),
-            ("Sài Gòn - Hà Nội", "SHB"),
+            ("ngân hàng Sài Gòn Thương Tín", "STB"),
+            ("NH Sài Gòn Thương Tín", "STB"),
+            ("ngân hàng Sài Gòn – Hà Nội", "SHB"),
+            ("ngân hàng Sài Gòn - Hà Nội", "SHB"),
+            ("NH Sài Gòn - Hà Nội", "SHB"),
             ("HDBank", "HDB"),
             ("VPBank", "VPB"),
-            ("Việt Nam Thịnh Vượng", "VPB"),
-            ("Ngoại thương", "VCB"),
+            ("ngân hàng Việt Nam Thịnh Vượng", "VPB"),
+            ("NH Việt Nam Thịnh Vượng", "VPB"),
+            ("ngân hàng Ngoại thương", "VCB"),
+            ("NH Ngoại thương", "VCB"),
             ("Vietcombank", "VCB"),
         ]
         for name, expected_ticker in cases:

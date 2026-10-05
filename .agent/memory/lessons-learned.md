@@ -817,3 +817,11 @@ Vietnamese bank entity references in real user queries span a wide spectrum from
 - If an alias refers to a bank not present in the catalog (e.g. "OCB", "Phương Đông" when using the 10-bank Gold catalog, or "Vietcombank" when using a test mock catalog), its canonical ticker is routed directly to `unknown_entity_tokens`. This triggers `AnalysisBlocked("unsupported_entity")` with the standard localized message listing available banks.
 - Blanking consumed alias spans also prevents uppercase brand tokens (such as "BIDV" for ticker `BID`, or "SACOMBANK" for ticker `STB`) from being erroneously flagged as unknown entities by the trailing uppercase token scanner.
 
+### 4. Non-Distinctive Bare Phrases Must Require Bank Prefixes ('ngân hàng' or 'nh')
+In user queries, common Vietnamese dictionary terms, ministry titles, universities, or economic phrases can contain substrings identical to bank names:
+- `"Bộ Công Thương và VCB"` matched CTG because of bare `"công thương"` (Ministry of Industry and Trade).
+- `"Sinh viên Ngoại thương hỏi ROE của ACB"` matched VCB because of bare `"ngoại thương"` (Foreign Trade University).
+- `"Đầu tư và phát triển số của TCB"` matched BID because of bare `"đầu tư và phát triển"` (digital investment & development).
+- **Rule**: Distinctive brand names (`Vietcombank`, `VCB`, `BIDV`, `BID`, `VietinBank`, `CTG`, `Techcombank`, `TCB`, `MBBank`, `MB Bank`, `MB`, `VPBank`, `VPB`, `ACB`, `Sacombank`, `STB`, `SHB`, `HDBank`, `HDB`, `VIB`, `OCB`, `TPBank`, `MSB`, `LPBank`, `SeABank`, `Eximbank`) are permitted as bare terms. Non-distinctive, polysemous phrases (`công thương`, `ngoại thương`, `đầu tư và phát triển`, `kỹ thương`, `quân đội`, `sài gòn - hà nội`, `việt nam thịnh vượng`, `á châu`, `sài gòn thương tín`, `phương đông`, `tiên phong`, `hàng hải`, `đông nam á`, `xuất nhập khẩu`) MUST strictly require an explicit bank prefix (`ngân hàng`, `nh`, `ngân hàng tmcp`, `nh tmcp`, `nhtmcp`).
+
+

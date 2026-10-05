@@ -515,6 +515,14 @@ class Prompt1VerifierRulesTestCase(unittest.TestCase):
                 and "tuyệt đối không tự tạo hoặc sửa fact_id" in tmpl,
                 f"{name} must contain rule 4 on copying fact_id strings exactly",
             )
+            # Rule 5: Each number and rank stands right after its bank and metric
+            self.assertTrue(
+                "Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu" in tmpl
+                and "HDB đạt 25,4% (hạng 1/10)" in tmpl
+                and 'không viết "<NGÂN HÀNG> hạng X/Y (Z%)"' in tmpl
+                and "không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu" in tmpl,
+                f"{name} must contain rule 5 on each number and rank standing right after its bank and metric",
+            )
 
     # -------------------------------------------------------------------------
     # Item 4: Count rule (E) accepts distinct cited entities count

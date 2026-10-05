@@ -80,6 +80,14 @@ class Settings(BaseSettings):
         alias="OPENAI_MODEL",
     )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    analysis_writer_max_output_tokens: int = Field(
+        default=6000,
+        alias="ANALYSIS_WRITER_MAX_OUTPUT_TOKENS",
+    )
+    semantic_critic_max_output_tokens: int = Field(
+        default=8192,
+        alias="SEMANTIC_CRITIC_MAX_OUTPUT_TOKENS",
+    )
     planner_mode: str = Field(default="model_with_fallback", alias="PLANNER_MODE")
     analysis_arm: str = Field(default="hierarchical_with_critique", alias="ANALYSIS_ARM")
     # Explicit opt-in only.  The Gold reporting-scope authority is an

@@ -657,7 +657,14 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
             cnt_val = _parse_order_token(tok)
             if cnt_val:
                 matched_denom = any(f.denominator == cnt_val for f in cited_facts if f.denominator is not None)
-                if not matched_denom:
+                distinct_entities = {
+                    _normalize(ent)
+                    for f in cited_facts
+                    for ent in (f.entity_id, f.other_entity_id)
+                    if ent
+                }
+                matched_entities = len(distinct_entities) == cnt_val
+                if not (matched_denom or matched_entities):
                     return SentenceVerdict(
                         ok=False,
                         reason_code="number_mismatch",

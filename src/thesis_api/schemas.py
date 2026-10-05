@@ -769,6 +769,7 @@ class SentenceDroppedDTO(BaseModel):
     sentence_id: str
     author: str
     text: str
+    fact_ids: List[str] = Field(default_factory=list)
     reason_code: SentenceDropReason
     reason: str
 

@@ -1989,6 +1989,7 @@
           "sentence_id": { "type": "string" },
           "author": { "type": "string" },
           "text": { "type": "string" },
+          "fact_ids": { "type": "array", "items": { "type": "string" } },
           "reason_code": {
             "type": "string",
             "enum": [

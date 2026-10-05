@@ -751,3 +751,30 @@ When staging moved from Gold v5 (5 banks) to the 10-bank operational snapshot, t
 2. **Fact Unit Mismatch in Model Narratives**: The LLM produced sentences like "ROE/ROA ở mức 11,82 lần, nhỉnh hơn trung vị nhóm 11,46%", where the fact had unit `x` (ratio) but was written with `%`. The narrative verifier did not cross-check unit compatibility between cited facts and numeric tokens. Enforce that facts with unit `x` / `lần` reject `%` and `điểm %`, while facts with unit `%` and `pp` reject `lần`.
 3. **Ungrounded Group Superlatives**: Models inserted superlative phrases ("kém nhất nhóm", "thấp nhất") without factual grounding or when conflicting facts existed (e.g. VPB having higher NPL than VIB). The narrative verifier now requires group superlatives ("nhất nhóm", "kém nhất", "tốt nhất", "cao nhất", "thấp nhất", "dẫn đầu", "đứng đầu", "đứng cuối", "xếp cuối", "đội sổ") to cite an entity- and metric-aligned rank fact with rank 1 (for best/top) or denominator (for worst/bottom). Metric detection uses clause boundaries and length-descending term matching to prevent substring collisions (e.g. `nợ xấu` within `bao phủ nợ xấu`).
 
+---
+
+## [LESSON-040] Writer Prompts Must Explicitly State Verifier Rules; Stronger Models Write Denser Prose Dropped for Unstated Rules
+
+- Date: 2026-10-05
+- Scope: `src/thesis_api/analysis_writer.py`, `src/thesis_api/adaptive_runtime.py`, `src/thesis_data/narrative_verification.py`, `contracts/openapi.json`
+- Status: ACTIVE
+
+### 1. The Denser Prose Failure Mode in Capable Models
+- Capable models (`gpt-5.5`, `gpt-5.6-luna`, `deepseek-v4`) naturally synthesize dense, multi-clause analytical sentences combining multiple metrics, multi-quarter timelines, and comparative ranks (e.g. "So với quý 1/2026, tỷ lệ bao phủ nợ xấu giảm -8,6 điểm %, còn tỷ lệ nợ xấu đi ngang (+0,03 điểm %)").
+- The sentence verifier was designed around atomic verification constraints:
+  1. Direction checks test against a single primary delta fact; combining opposite movements ("giảm" and "đi ngang") in one sentence fails `trend_direction_mismatch`.
+  2. Period checks reject named quarters unless they match the `period` or `from_period` of a cited fact (`period_not_cited`).
+  3. Metric proximity bindings scan terms within proximity windows; combining multiple metrics and ranks in one sentence can cause metric-rank cross-talk (`rank_mismatch`).
+- Because writer prompt templates previously only stated a vague "Mỗi câu liệt kê fact_ids nó dựa vào", models were unaware of these structural verification boundaries, causing factually accurate synthesis to be dropped during verification sweeps.
+- **Rule**: Prompts must explicitly instruct models:
+  1. `fact_ids` must cover EVERY number, rank, and period named in the sentence; quarters may only be named if a cited fact has it as `period` or `from_period`.
+  2. Periods must be written in full: `"quý N/YYYY"`.
+  3. One sentence describes one metric and uses one direction word (`tăng / giảm / đi ngang / cao hơn / thấp hơn`). Two metrics moving differently must be split into two separate sentences.
+  4. Exact citation: `fact_id` strings must be copied verbatim without modification or fabrication.
+
+### 2. Audit Citation Traceability and Output Limits
+- `SentenceDroppedDTO` previously omitted `fact_ids`, making it impossible in offline audits to distinguish between missing citations vs verifier false rejections. Citations are now preserved in `narrative_audit.sentences_dropped[].fact_ids`.
+- Reasoning models (e.g. `gpt-5.5`) exhaust output token limits when strict reasoning overhead is deducted from tight generation budgets. Literal hardcoded token limits (2500) truncated responses mid-JSON. Configurable limits (`ANALYSIS_WRITER_MAX_OUTPUT_TOKENS` default 6000, `SEMANTIC_CRITIC_MAX_OUTPUT_TOKENS` default 8192) avoid truncation while allowing reasoning models adequate generation margin.
+- Head-to-head entity counts: Comparisons like "Lợi thế được phân bổ cân bằng giữa hai ngân hàng..." previously failed if facts had no denominator. The count check now accepts counts matching the number of distinct entities cited in the sentence's facts.
+
+

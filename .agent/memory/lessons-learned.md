@@ -775,6 +775,21 @@ When staging moved from Gold v5 (5 banks) to the 10-bank operational snapshot, t
 ### 2. Audit Citation Traceability and Output Limits
 - `SentenceDroppedDTO` previously omitted `fact_ids`, making it impossible in offline audits to distinguish between missing citations vs verifier false rejections. Citations are now preserved in `narrative_audit.sentences_dropped[].fact_ids`.
 - Reasoning models (e.g. `gpt-5.5`) exhaust output token limits when strict reasoning overhead is deducted from tight generation budgets. Literal hardcoded token limits (2500) truncated responses mid-JSON. Configurable limits (`ANALYSIS_WRITER_MAX_OUTPUT_TOKENS` default 6000, `SEMANTIC_CRITIC_MAX_OUTPUT_TOKENS` default 8192) avoid truncation while allowing reasoning models adequate generation margin.
-- Head-to-head entity counts: Comparisons like "Lợi thế được phân bổ cân bằng giữa hai ngân hàng..." previously failed if facts had no denominator. The count check now accepts counts matching the number of distinct entities cited in the sentence's facts.
+## [LESSON-041] Evaluation Harness Migration to Operational Multi-Bank Snapshots: Canonical Schema, Scope Isolation, and Plan Hashing
 
+- Date: 2026-10-05
+- Scope: `scripts/er8_run.py`, `scripts/er8_score.py`, `scripts/er8_analyze.py`, `scripts/generate_er9_data.py`, `tests/test_er9_harness.py`
+- Status: ACTIVE
 
+### 1. Context & Operational Snapshot Differences
+Migrating the A/B/C evaluation harness from the 5-bank Gold v5 annual benchmark to the 10-bank quarterly operational snapshot (`bank-quarterly-top10-operational-v1-r4.sqlite`) introduced several architectural and schema divergences:
+1. **Physical Schema & Snapshot Metadata**: Operational SQLite snapshots store observations in `observations` with columns `(entity_id, period_id, metric_id, value, unit, validation_status, source_ref, source_locator)` and identify snapshots via `dataset_metadata.dataset_snapshot_id`, contrasting with Gold v5's `metric_observations` and `snapshot_metadata.snapshot_id`. The dataset observation loader must dynamically inspect available tables or support both schemas to remain backward compatible.
+2. **Scope Authority Uncoupling**: Staging serves the operational 10-bank snapshot without a Gold scope-authority sidecar (`gold_scope_authority_path=None`), loading `CanonicalSqliteDatasetProvider` rather than `GoldSqliteDatasetProvider`. The evaluation harness must leave `gold_scope_authority_path` unset so that evaluation runs reproduce staging behavior faithfully.
+
+### 2. Cross-Arm Plan Hash Invariance
+In ER-8, manifests recorded 3 plan-hash mismatches across arms because the runtime appended `known_limitations` to `analysis_plan` after execution. Since different arms (single-agent vs hierarchical) encounter different execution paths and append different limitations, including post-execution limitations broke cross-arm plan equivalence.
+- **Rule**: Plan hashing (`_compute_plan_hash`) must exclude runtime-appended fields (`known_limitations`) and hash only the frozen pre-retrieval plan. Under this rule, cross-arm plan-hash mismatches drop to exactly 0 across all 36 runs.
+
+### 3. Missingness Metric on Complete Coverage Snapshots
+When an evaluation dataset contains complete coverage (all 100 bank-quarters across 10 banks present, 0 missing cells), evaluating missingness handling against hardcoded task IDs (e.g. ACB 2024 Q1 in Gold v5) would report false 100% scores. Missingness checks must be driven dynamically by `expected_coverage.missing_count`:
+- When `missing_count == 0`, `missingness_handled` evaluates to `None` and is exported as `N/A` in arm summary tables, avoiding misleading evaluations when no missing-cell handling was triggered.

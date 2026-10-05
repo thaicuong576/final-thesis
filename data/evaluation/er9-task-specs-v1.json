@@ -1,0 +1,360 @@
+{
+  "manifest_id": "er9-ten-bank-evaluation-task-specs-v1",
+  "status": "frozen_protocol_v2_task_specs",
+  "protocol_ref": "docs/EVALUATION-PROTOCOL-V2.md",
+  "dataset": {
+    "dataset_id": "bank-quarterly-top10-operational-v1",
+    "snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "sqlite_sha256_raw_file_bytes": "2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a",
+    "authority_sidecar_ref": null,
+    "authority_sidecar_sha256_canonical_lf_utf8": null
+  },
+  "question_set": {
+    "path": "data/evaluation/er9-questions-v1.jsonl",
+    "encoding": "UTF-8",
+    "newline": "LF",
+    "hash_mode": "canonical_lf_utf8_sha256",
+    "canonical_lf_utf8_sha256": "e125a08f856e3d9ca1708aa5e9a9eff9385927f0e62f918640ffca5d3784f7ab"
+  },
+  "tasks": [
+    {
+      "task_id": "T01",
+      "task_type": "company_profile",
+      "question_sha256_utf8": "86f60eb1fbe78a60f2002c79698507b714a48b5efa558744f447ebc87bf69add",
+      "target_entity_ids": [
+        "BID"
+      ],
+      "period_ids": [
+        "2026_Q2"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage",
+        "bank.npl_g35",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T02",
+      "task_type": "company_profile",
+      "question_sha256_utf8": "bb4206cbaa11204586a692eaf6db4c6c5463008ff71fdb10b1ad2f536e073f7e",
+      "target_entity_ids": [
+        "STB"
+      ],
+      "period_ids": [
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage",
+        "bank.npl_g35",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T03",
+      "task_type": "lookup",
+      "question_sha256_utf8": "35847f8ee7bce6fbc2c981826cb98ef0484c5157c03f8ca450ae962e35ec6dfa",
+      "target_entity_ids": [
+        "HDB"
+      ],
+      "period_ids": [
+        "2026_Q1"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T04",
+      "task_type": "trend",
+      "question_sha256_utf8": "f8921b0e3c98a676386497b8637904a07ad98d18dd8de951237ce1fefc0c1c4e",
+      "target_entity_ids": [
+        "CTG"
+      ],
+      "period_ids": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.npl_g35",
+        "bank.llr_coverage"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T05",
+      "task_type": "trend",
+      "question_sha256_utf8": "4978ff089af139a321501f482b01cdb21a9a1923c0da20bf18aa66aa741bc1d3",
+      "target_entity_ids": [
+        "SHB"
+      ],
+      "period_ids": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T06",
+      "task_type": "ranking",
+      "question_sha256_utf8": "328975929c8d83a56b8abcfa9946796ab5db0f1c2a71bd4fcb07f13e5eceeec5",
+      "target_entity_ids": [
+        "ACB",
+        "BID",
+        "CTG",
+        "HDB",
+        "MBB",
+        "SHB",
+        "STB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "period_ids": [
+        "2026_Q2"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T07",
+      "task_type": "ranking",
+      "question_sha256_utf8": "e635912b424e11c869c99faceab732d16c967f0aafd7e54938ea00863586bc1c",
+      "target_entity_ids": [
+        "ACB",
+        "BID",
+        "CTG",
+        "HDB",
+        "MBB",
+        "SHB",
+        "STB",
+        "TCB",
+        "VCB",
+        "VPB"
+      ],
+      "period_ids": [
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T08",
+      "task_type": "trend",
+      "question_sha256_utf8": "8b3c3eb53aa1de2aa148d9c9dbf2cd9722db618e9a0415e34b67f4a15e351c14",
+      "target_entity_ids": [
+        "VPB"
+      ],
+      "period_ids": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage",
+        "bank.npl_g35",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T09",
+      "task_type": "head_to_head",
+      "question_sha256_utf8": "00085735b94c46af5850b8c282ce3a237b74fc118f63631d473aa2ccec4e28bc",
+      "target_entity_ids": [
+        "MBB",
+        "TCB"
+      ],
+      "period_ids": [
+        "2026_Q2"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage",
+        "bank.npl_g35",
+        "bank.roa",
+        "bank.roe"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "T10",
+      "task_type": "head_to_head",
+      "question_sha256_utf8": "87291969012ff4614dfff53e37b961f5f72bf35972383789f1cd2a8ff8f178e4",
+      "target_entity_ids": [
+        "VCB",
+        "CTG"
+      ],
+      "period_ids": [
+        "2025_Q4"
+      ],
+      "metric_ids": [
+        "bank.llr_coverage",
+        "bank.npl_g35"
+      ],
+      "required_capabilities": [
+        "Company",
+        "Peer"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "eligible_for_evaluation"
+    },
+    {
+      "task_id": "R1",
+      "task_type": "rejection",
+      "question_sha256_utf8": "42792e48bfb686e5ed2a118daba4e6b79e4629dd8911b86df905293b35735227",
+      "target_entity_ids": [
+        "VCB"
+      ],
+      "period_ids": [
+        "2026_Q3"
+      ],
+      "metric_ids": [
+        "bank.npl_g35"
+      ],
+      "required_capabilities": [
+        "Company"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "rejection_control",
+      "expected_error_code": "unsupported_period"
+    },
+    {
+      "task_id": "R2",
+      "task_type": "rejection",
+      "question_sha256_utf8": "0dd4cac618520810edb1327734afe60e6f7238abd12af6301e372b64b76df2a3",
+      "target_entity_ids": [
+        "OCB"
+      ],
+      "period_ids": [
+        "2025_Q4"
+      ],
+      "metric_ids": [],
+      "required_capabilities": [
+        "Company"
+      ],
+      "arms": [
+        "single_agent",
+        "hierarchical_no_critique",
+        "hierarchical_with_critique"
+      ],
+      "prompt_version": "er9-natural-v1",
+      "eligibility_status": "rejection_control",
+      "expected_error_code": "unsupported_entity"
+    }
+  ]
+}

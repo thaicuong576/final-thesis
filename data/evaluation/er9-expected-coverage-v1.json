@@ -1,0 +1,1103 @@
+{
+  "manifest_id": "er9-expected-coverage-v1",
+  "status": "frozen_protocol_v2_expected_coverage",
+  "dataset_id": "bank-quarterly-top10-operational-v1",
+  "snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+  "snapshot_sha256_raw_file_bytes": "2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a",
+  "question_set_hash_mode": "canonical_lf_utf8_sha256",
+  "question_set_canonical_lf_utf8_sha256": "e125a08f856e3d9ca1708aa5e9a9eff9385927f0e62f918640ffca5d3784f7ab",
+  "task_specs_canonical_lf_utf8_sha256": "ca6e68607c531c74da9dd02e2a39bf13fe3caae0dceedc8e4d1c398eed14735b",
+  "peer_scope_label": "ten listed banks, operational snapshot, not the whole sector",
+  "coverage_source": "read-only canonical operational SQLite observations (mode=ro)",
+  "tasks": [
+    {
+      "task_id": "T01",
+      "question_sha256_utf8": "86f60eb1fbe78a60f2002c79698507b714a48b5efa558744f447ebc87bf69add",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "company_profile",
+        "target_entity_ids": [
+          "BID"
+        ],
+        "period_ids": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "observation-3ef505578ac5fd03ef058a0506e4ee113b94d6ca4b6da3027e1f9d48aa30c318",
+          "observation-c0e09acfc0f39ca56c8ff491a758ab80609d55997fdcd0e41eda5fb059744128",
+          "observation-d0e7ae610b4cad5c21f9f200e282a66d01bece5b7d40f6c8c4b46639acce5761",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 10,
+          "bank.npl_g35": 10,
+          "bank.roa": 10,
+          "bank.roe": 10
+        },
+        "expected_observations": {
+          "observation-3ef505578ac5fd03ef058a0506e4ee113b94d6ca4b6da3027e1f9d48aa30c318": {
+            "entity_id": "BID",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 75.88728294221634,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=4; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74": {
+            "entity_id": "BID",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.8274294625526801,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-c0e09acfc0f39ca56c8ff491a758ab80609d55997fdcd0e41eda5fb059744128": {
+            "entity_id": "BID",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roa",
+            "value": 0.9672,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-d0e7ae610b4cad5c21f9f200e282a66d01bece5b7d40f6c8c4b46639acce5761": {
+            "entity_id": "BID",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roe",
+            "value": 17.868,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T02",
+      "question_sha256_utf8": "bb4206cbaa11204586a692eaf6db4c6c5463008ff71fdb10b1ad2f536e073f7e",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "company_profile",
+        "target_entity_ids": [
+          "STB"
+        ],
+        "period_ids": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+          "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 10,
+          "bank.npl_g35": 10,
+          "bank.roa": 10,
+          "bank.roe": 10
+        },
+        "expected_observations": {
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca": {
+            "entity_id": "STB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 49.969020915939446,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=47; printed_page=46; section=Thuyết minh 9 Dự phòng rủi ro cho vay khách hàng; row=Tổng (chung 4.473.516 + cụ thể 15.582.429); column=31/12/2025"
+          },
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce": {
+            "entity_id": "STB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 6.407606813375827,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31/12/2025"
+          },
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0": {
+            "entity_id": "STB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roa",
+            "value": 0.7133,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=11; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN; column=2025"
+          },
+          "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4": {
+            "entity_id": "STB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 10.3434,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=11; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN (không có lợi ích CĐKKS); column=2025"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T03",
+      "question_sha256_utf8": "35847f8ee7bce6fbc2c981826cb98ef0484c5157c03f8ca450ae962e35ec6dfa",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "lookup",
+        "target_entity_ids": [
+          "HDB"
+        ],
+        "period_ids": [
+          "2026_Q1"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "valid_count": 1,
+        "missing_count": 0,
+        "required_observation_count": 1,
+        "required_observation_ids": [
+          "observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {},
+        "expected_observations": {
+          "observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5": {
+            "entity_id": "HDB",
+            "period_id": "2026_Q1",
+            "metric_id": "bank.llr_coverage",
+            "value": 50.00265759795743,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=visual"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T04",
+      "question_sha256_utf8": "f8921b0e3c98a676386497b8637904a07ad98d18dd8de951237ce1fefc0c1c4e",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "CTG"
+        ],
+        "period_ids": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35",
+          "bank.llr_coverage"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "observation-31af624f8a5d8005ce344b831e9b68606bb8b64f80de5ad64230fa314ab5da82",
+          "observation-81e42449d660cf41edff8266556ca88241de0729ef2e51bee3e9ec5cb2d1992c",
+          "observation-892a79f41e5e13af832cfdcee2dbe7375cb1727eca7c8e5017f1365bf16ea290",
+          "observation-aeeaae715e1b6f295bdfd9afecbb55a16f42ad7c981dc36b9cc76b810d3f7996",
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+          "observation-ebc988945decb9016f593a3741fe506fef8d93f80001440b7844b54d4521264d",
+          "observation-f60da3a6fffb24f155342607b3b420f5ca21aeaded3e57897b8de8561975678b"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {},
+        "expected_observations": {
+          "observation-f60da3a6fffb24f155342607b3b420f5ca21aeaded3e57897b8de8561975678b": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.npl_g35",
+            "value": 1.553558467056929,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=40; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-ebc988945decb9016f593a3741fe506fef8d93f80001440b7844b54d4521264d": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.llr_coverage",
+            "value": 136.81583480886957,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=4; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-31af624f8a5d8005ce344b831e9b68606bb8b64f80de5ad64230fa314ab5da82": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.3064188480613415,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-81e42449d660cf41edff8266556ca88241de0729ef2e51bee3e9ec5cb2d1992c": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 134.755072302215,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-aeeaae715e1b6f295bdfd9afecbb55a16f42ad7c981dc36b9cc76b810d3f7996": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.npl_g35",
+            "value": 1.0912700895145697,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-892a79f41e5e13af832cfdcee2dbe7375cb1727eca7c8e5017f1365bf16ea290": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.llr_coverage",
+            "value": 176.48268118917315,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.1000599542371523,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31.12.2025"
+          },
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 158.83397374252357,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=44; printed_page=42; section=Thuyết minh 8.6 Dự phòng rủi ro cho vay khách hàng; row=Tổng cộng; column=31.12.2025"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T05",
+      "question_sha256_utf8": "4978ff089af139a321501f482b01cdb21a9a1923c0da20bf18aa66aa741bc1d3",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "SHB"
+        ],
+        "period_ids": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "observation-00074907feffe82520e5e0a499990eec4a5442c9aaa94a1ee782e380d2b52875",
+          "observation-005d1ffe78bbf9b9ff1be54220e352267b8948fd13eb2bef3c646e8a6d22eaf2",
+          "observation-4aa2697350b882fa4f7c2ccfdc551ddeb405740ad90c732e7c212101574d7396",
+          "observation-68145a58224a516b8b0cac4cf4775824b120298f8f77281a495addaaa806a710",
+          "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+          "observation-bc0fa8b0982d52a467ef80e8b9487a0a24642f459d670d0003782dfc7e5aec33",
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+          "observation-d630d4a61c7459d73c8b7642dd6b7f07b9160f2d9c42e4884ca0344363e05dee"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {},
+        "expected_observations": {
+          "observation-00074907feffe82520e5e0a499990eec4a5442c9aaa94a1ee782e380d2b52875": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.roa",
+            "value": 1.2494,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-d630d4a61c7459d73c8b7642dd6b7f07b9160f2d9c42e4884ca0344363e05dee": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.roe",
+            "value": 16.0766,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-005d1ffe78bbf9b9ff1be54220e352267b8948fd13eb2bef3c646e8a6d22eaf2": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.roa",
+            "value": 1.3898,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-bc0fa8b0982d52a467ef80e8b9487a0a24642f459d670d0003782dfc7e5aec33": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.roe",
+            "value": 18.0395,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-4aa2697350b882fa4f7c2ccfdc551ddeb405740ad90c732e7c212101574d7396": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.roa",
+            "value": 1.4796,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-68145a58224a516b8b0cac4cf4775824b120298f8f77281a495addaaa806a710": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.roe",
+            "value": 19.1191,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=7; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roa",
+            "value": 1.459,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN; column=Năm nay"
+          },
+          "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 18.9548,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của chủ sở hữu; column=Năm nay"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T06",
+      "question_sha256_utf8": "328975929c8d83a56b8abcfa9946796ab5db0f1c2a71bd4fcb07f13e5eceeec5",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "ranking",
+        "target_entity_ids": [
+          "ACB",
+          "BID",
+          "CTG",
+          "HDB",
+          "MBB",
+          "SHB",
+          "STB",
+          "TCB",
+          "VCB",
+          "VPB"
+        ],
+        "period_ids": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "valid_count": 10,
+        "missing_count": 0,
+        "required_observation_count": 10,
+        "required_observation_ids": [
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.npl_g35": 10
+        },
+        "expected_observations": {
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980": {
+            "entity_id": "ACB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.0267936275412444,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice"
+          },
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74": {
+            "entity_id": "BID",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.8274294625526801,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d": {
+            "entity_id": "CTG",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.19840842105771,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice"
+          },
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb": {
+            "entity_id": "HDB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 2.7909106044276113,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73": {
+            "entity_id": "MBB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.4498095468230694,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70": {
+            "entity_id": "SHB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 2.072748732594227,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4": {
+            "entity_id": "STB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 7.5400794724588085,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a": {
+            "entity_id": "TCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.1523541921744083,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5": {
+            "entity_id": "VCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 0.6106652267057302,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice"
+          },
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74": {
+            "entity_id": "VPB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 3.3908774957973935,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T07",
+      "question_sha256_utf8": "e635912b424e11c869c99faceab732d16c967f0aafd7e54938ea00863586bc1c",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "ranking",
+        "target_entity_ids": [
+          "ACB",
+          "BID",
+          "CTG",
+          "HDB",
+          "MBB",
+          "SHB",
+          "STB",
+          "TCB",
+          "VCB",
+          "VPB"
+        ],
+        "period_ids": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "valid_count": 10,
+        "missing_count": 0,
+        "required_observation_count": 10,
+        "required_observation_ids": [
+          "observation-3fff49311a6212de4cbc2277d134bd433177a58fe64928273531c2f2ae0893df",
+          "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537",
+          "observation-77514213ec4ddc546d0a267abeb826edc23afe342e2069041504184104b85848",
+          "observation-91dde2c25620a9bf6b441d27548bbb12ffc1accd0fb729c8c83275e3217798f5",
+          "observation-9b6df191c3383834103673d4c33a8436266a96fa6163ea7e0b7d58eec1bbe591",
+          "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+          "observation-aa469049cd59c91d579c8872e2a32bebf72b2f3339eddba0c4f3f891711cc24a",
+          "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+          "observation-aedbf3e0f3b65ca50730294d968d70e06e228bb9660ef14f883f92561d7e318c",
+          "observation-d9cd0af05127d4632af893a6c94997fb1fc96ef759181678e4e608478a19d67a"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.roe": 10
+        },
+        "expected_observations": {
+          "observation-9b6df191c3383834103673d4c33a8436266a96fa6163ea7e0b7d58eec1bbe591": {
+            "entity_id": "ACB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 17.5577,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế (không có lợi ích CĐKKS); column=Năm 2025"
+          },
+          "observation-3fff49311a6212de4cbc2277d134bd433177a58fe64928273531c2f2ae0893df": {
+            "entity_id": "BID",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 19.4349,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=12; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của Ngân hàng mẹ; column=Năm nay"
+          },
+          "observation-aedbf3e0f3b65ca50730294d968d70e06e228bb9660ef14f883f92561d7e318c": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 21.2309,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=11; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của chủ sở hữu; column=2025"
+          },
+          "observation-91dde2c25620a9bf6b441d27548bbb12ffc1accd0fb729c8c83275e3217798f5": {
+            "entity_id": "HDB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 25.4102,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của chủ sở hữu; column=Năm nay"
+          },
+          "observation-d9cd0af05127d4632af893a6c94997fb1fc96ef759181678e4e608478a19d67a": {
+            "entity_id": "MBB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 21.5712,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=13; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế thuộc về Ngân hàng mẹ; column=Năm 2025"
+          },
+          "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036": {
+            "entity_id": "SHB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 18.9548,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của chủ sở hữu; column=Năm nay"
+          },
+          "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4": {
+            "entity_id": "STB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 10.3434,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=11; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN (không có lợi ích CĐKKS); column=2025"
+          },
+          "observation-aa469049cd59c91d579c8872e2a32bebf72b2f3339eddba0c4f3f891711cc24a": {
+            "entity_id": "TCB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 16.0337,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=14; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông của Ngân hàng; column=2025"
+          },
+          "observation-77514213ec4ddc546d0a267abeb826edc23afe342e2069041504184104b85848": {
+            "entity_id": "VCB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 16.7274,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=12; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông Ngân hàng; column=2025"
+          },
+          "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 15.487,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=12; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông ngân hàng; column=Năm 2025"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T08",
+      "question_sha256_utf8": "8b3c3eb53aa1de2aa148d9c9dbf2cd9722db618e9a0415e34b67f4a15e351c14",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "trend",
+        "target_entity_ids": [
+          "VPB"
+        ],
+        "period_ids": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 16,
+        "missing_count": 0,
+        "required_observation_count": 16,
+        "required_observation_ids": [
+          "observation-19c421ac01485131cdd26e45977c4516b23c999564c46b368950d3a94daaa9c9",
+          "observation-2358f2e7aa30feda74d95109ec1c1f4c52f3ba6fa3f82b11e935684aeb1742c7",
+          "observation-263d759b0d1b7635be46be2ae45a00c7947609c9200db1620bc4d481deec8e11",
+          "observation-3207e539f2fb21e1f3eb6d4f7b81d7e84b7c481c4fc229e3988abfb54069aa06",
+          "observation-3b9c11e9717e31cfb64e7a5cb014551566cb9826bfa1b3e0659c263797b3290f",
+          "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537",
+          "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d",
+          "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e",
+          "observation-55fedff8a237b6704eaa6902040fe782f011a5351f185f9b6976b4708e9de82e",
+          "observation-995ce5ae5f4b31d75f8050ab8e7d21b7f8b63f309ca074d541129570df83337b",
+          "observation-9cee911fe422517d419debccfc46745a4a279528b7f945908cb6efdd0d35acf7",
+          "observation-b47b8413d2c2cf772033d6366ecef2e332bf61fd6a4706380b7313a8d573875b",
+          "observation-bf216f268ea30a30fad8aa60df3ac9b6df88f780701038cc854a3587996e9502",
+          "observation-ca5e80a46e30eee90aff708940d59c56ef1fb54398cb4e263c3c232c7e497ba7",
+          "observation-e92f8ec41129d95cc099b79094a3ea65b6570d712ebdbf53228bf717ae491e11",
+          "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 10,
+          "bank.npl_g35": 10,
+          "bank.roa": 10,
+          "bank.roe": 10
+        },
+        "expected_observations": {
+          "observation-b47b8413d2c2cf772033d6366ecef2e332bf61fd6a4706380b7313a8d573875b": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.llr_coverage",
+            "value": 47.42495910789863,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-9cee911fe422517d419debccfc46745a4a279528b7f945908cb6efdd0d35acf7": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.npl_g35",
+            "value": 4.8265194023756814,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=43; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-2358f2e7aa30feda74d95109ec1c1f4c52f3ba6fa3f82b11e935684aeb1742c7": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.roa",
+            "value": 1.7498,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-3b9c11e9717e31cfb64e7a5cb014551566cb9826bfa1b3e0659c263797b3290f": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q1",
+            "metric_id": "bank.roe",
+            "value": 11.1968,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-19c421ac01485131cdd26e45977c4516b23c999564c46b368950d3a94daaa9c9": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 52.19494803403446,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-ca5e80a46e30eee90aff708940d59c56ef1fb54398cb4e263c3c232c7e497ba7": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 4.060459994117793,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-3207e539f2fb21e1f3eb6d4f7b81d7e84b7c481c4fc229e3988abfb54069aa06": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.roa",
+            "value": 1.783,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-55fedff8a237b6704eaa6902040fe782f011a5351f185f9b6976b4708e9de82e": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q2",
+            "metric_id": "bank.roe",
+            "value": 12.0658,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-263d759b0d1b7635be46be2ae45a00c7947609c9200db1620bc4d481deec8e11": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.llr_coverage",
+            "value": 55.05499821162742,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-bf216f268ea30a30fad8aa60df3ac9b6df88f780701038cc854a3587996e9502": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.npl_g35",
+            "value": 3.6227343726834986,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-e92f8ec41129d95cc099b79094a3ea65b6570d712ebdbf53228bf717ae491e11": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.roa",
+            "value": 2.0242,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-995ce5ae5f4b31d75f8050ab8e7d21b7f8b63f309ca074d541129570df83337b": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q3",
+            "metric_id": "bank.roe",
+            "value": 13.9587,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 54.878496397789206,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=48; printed_page=45; section=Thuyết minh 11 Dự phòng rủi ro cho vay khách hàng; row=Dự phòng chung 6.754.832 + cụ thể 10.512.525 (không gồm dự phòng cho vay ký quỹ 161.614); column=31/12/2025"
+          },
+          "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 3.4583880100004922,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=45; printed_page=42; section=Thuyết minh 10.1 Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=31/12/2025"
+          },
+          "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roa",
+            "value": 2.2303,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=12; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; column=Năm 2025"
+          },
+          "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537": {
+            "entity_id": "VPB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.roe",
+            "value": 15.487,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=12; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông ngân hàng; column=Năm 2025"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T09",
+      "question_sha256_utf8": "00085735b94c46af5850b8c282ce3a237b74fc118f63631d473aa2ccec4e28bc",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "head_to_head",
+        "target_entity_ids": [
+          "MBB",
+          "TCB"
+        ],
+        "period_ids": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "valid_count": 8,
+        "missing_count": 0,
+        "required_observation_count": 8,
+        "required_observation_ids": [
+          "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+          "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+          "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+          "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 2,
+          "bank.npl_g35": 2,
+          "bank.roa": 2,
+          "bank.roe": 2
+        },
+        "expected_observations": {
+          "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3": {
+            "entity_id": "MBB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 93.62640824102576,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73": {
+            "entity_id": "MBB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.4498095468230694,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53": {
+            "entity_id": "MBB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roa",
+            "value": 1.8324,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb": {
+            "entity_id": "MBB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roe",
+            "value": 21.0725,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a": {
+            "entity_id": "TCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.llr_coverage",
+            "value": 125.64393376824556,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=single"
+          },
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a": {
+            "entity_id": "TCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.npl_g35",
+            "value": 1.1523541921744083,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed"
+          },
+          "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e": {
+            "entity_id": "TCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roa",
+            "value": 2.2933,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          },
+          "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a": {
+            "entity_id": "TCB",
+            "period_id": "2026_Q2",
+            "metric_id": "bank.roe",
+            "value": 15.5301,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "T10",
+      "question_sha256_utf8": "87291969012ff4614dfff53e37b961f5f72bf35972383789f1cd2a8ff8f178e4",
+      "expected_coverage": {
+        "is_rejection": false,
+        "task_type": "head_to_head",
+        "target_entity_ids": [
+          "VCB",
+          "CTG"
+        ],
+        "period_ids": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "valid_count": 4,
+        "missing_count": 0,
+        "required_observation_count": 4,
+        "required_observation_ids": [
+          "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+          "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016"
+        ],
+        "missing_observation_ids": [],
+        "peer_denominators": {
+          "bank.llr_coverage": 2,
+          "bank.npl_g35": 2
+        },
+        "expected_observations": {
+          "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497": {
+            "entity_id": "VCB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 258.2919172598946,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=41; printed_page=39; section=Thuyết minh 10 Dự phòng rủi ro cho vay khách hàng; row=Tổng (chung 12.422.684 + cụ thể 12.552.995); column=31/12/2025"
+          },
+          "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5": {
+            "entity_id": "VCB",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 0.5777954377664388,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=39; printed_page=37; section=Thuyết minh 9 Phân tích dư nợ theo chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=31/12/2025"
+          },
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.llr_coverage",
+            "value": 158.83397374252357,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=44; printed_page=42; section=Thuyết minh 8.6 Dự phòng rủi ro cho vay khách hàng; row=Tổng cộng; column=31.12.2025"
+          },
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7": {
+            "entity_id": "CTG",
+            "period_id": "2025_Q4",
+            "metric_id": "bank.npl_g35",
+            "value": 1.1000599542371523,
+            "unit": "percent",
+            "quality_status": "valid",
+            "source_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31.12.2025"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "R1",
+      "question_sha256_utf8": "42792e48bfb686e5ed2a118daba4e6b79e4629dd8911b86df905293b35735227",
+      "expected_coverage": {
+        "is_rejection": true,
+        "expected_error_code": "unsupported_period",
+        "valid_count": 0,
+        "missing_count": 0,
+        "required_observation_count": 0,
+        "required_observation_ids": [],
+        "missing_observation_ids": [],
+        "expected_observations": {}
+      }
+    },
+    {
+      "task_id": "R2",
+      "question_sha256_utf8": "0dd4cac618520810edb1327734afe60e6f7238abd12af6301e372b64b76df2a3",
+      "expected_coverage": {
+        "is_rejection": true,
+        "expected_error_code": "unsupported_entity",
+        "valid_count": 0,
+        "missing_count": 0,
+        "required_observation_count": 0,
+        "required_observation_ids": [],
+        "missing_observation_ids": [],
+        "expected_observations": {}
+      }
+    }
+  ]
+}

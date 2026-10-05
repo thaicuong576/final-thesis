@@ -116,6 +116,6 @@ Danh sách các thuật ngữ đã được thay bằng cách diễn đạt dễ
 | MAJOR / MINOR (mức nghiêm trọng của phản biện) | 5.5 | Hai mức độ vấn đề do bộ phản biện gán | nghiêm trọng / mức nhẹ | Bỏ khỏi bài |
 | Staging, Render | 5.1.2 | Môi trường chạy thử trên mạng và dịch vụ máy chủ đang dùng | phiên bản đang vận hành trên mạng | Chương 4 (phần triển khai) đã nêu; không cần lặp lại |
 | Kiểm tra hợp đồng OpenAPI, `check_architecture_guardrails.py`, `src/thesis_data/` | 5.1.1 | Hai bước tự động kiểm tra định dạng dữ liệu trao đổi và ranh giới kiến trúc | kiểm tra định dạng dữ liệu trao đổi / phần lõi không bị gắn chặt | Phụ lục kỹ thuật |
-| Stage-1 | (1.3, RQ3) | Lớp kiểm tra số liệu theo quy tắc chạy trước mọi bước đánh giá nội dung | "kiểm tra số liệu theo quy tắc" | Chương 1 (do bạn viết) còn dùng "Stage-1" trong RQ3 — nên đổi thành diễn đạt thường |
+| Stage-1 | (1.3, RQ3) | Lớp kiểm tra số liệu theo quy tắc chạy trước mọi bước đánh giá nội dung | "kiểm tra số liệu theo quy tắc" | Chương 1 đã được cập nhật thành diễn đạt thường |
 | `experiments/er8/` và tên tệp hình | 5 | Thư mục lưu kết quả thực nghiệm | "các tệp kết quả được lưu lại cùng mã nguồn" | Phụ lục (đường dẫn để tái lập) |
 

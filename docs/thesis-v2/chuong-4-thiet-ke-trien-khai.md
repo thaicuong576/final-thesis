@@ -61,7 +61,7 @@ flowchart TD
 
 Câu hỏi được chuẩn hóa (bảng mã Unicode, chữ thường, khoảng trắng) rồi bóc tách bốn thông tin:
 
-- **Ngân hàng:** nhận cả mã cổ phiếu (VCB, BID) và tên thường gọi (Vietcombank, Á Châu, Quân đội). Ngân hàng ngoài bộ dữ liệu được ghi lại để từ chối kèm giải thích.
+- **Ngân hàng:** nhận theo mã cổ phiếu (VCB, BID, MBB…). Ngân hàng ngoài bộ dữ liệu được ghi lại để từ chối kèm giải thích.
 - **Kỳ:** "quý 4/2025", "Q4/2025", "quý 4 năm 2025"; "năm 2025" được mở thành bốn quý của năm. Nếu câu hỏi không nêu kỳ, hệ thống dùng kỳ mới nhất có dữ liệu và ghi nhận việc áp dụng mặc định này.
 - **Chỉ tiêu:** tên tiếng Việt và viết tắt (nợ xấu, NPL, bao phủ nợ xấu, ROA, ROE) hoặc nhóm chủ đề (chất lượng tài sản, khả năng sinh lời).
 - **Ý định:** các từ khóa tra cứu ("bao nhiêu"), xếp hạng ("nhất", "xếp hạng"), so sánh ("so với", "cùng nhóm"), xu hướng ("diễn biến", "qua các quý").
@@ -91,7 +91,7 @@ Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từ
 
 ### 4.2.4. Chuyên viên viết nhận định
 
-Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Mỗi câu không quá 30 từ, phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Lời nhắc của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
+Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Lời nhắc yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Lời nhắc của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
@@ -114,7 +114,7 @@ Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm t
 
 ### 4.2.6. Lắp báo cáo theo khối
 
-Báo cáo được ghép từ các khối theo một bản đặc tả thống nhất. Câu hỏi tra cứu nhận một **thẻ trả lời** gồm con số, nhận định ngắn và nguồn. Các dạng khác nhận một **báo cáo phân tích** gồm tiêu đề nêu kết luận (tối đa 16 từ), tối đa 5 điểm chính, 3 mục phân tích, 4 hình, 3 khối lưu ý và bảng số liệu, không quá 12 khối. Mỗi hình chỉ dùng loại biểu đồ phù hợp với dữ liệu: biểu đồ thanh xếp hạng cần ít nhất ba ngân hàng, biểu đồ đường cần từ hai kỳ, bản đồ nhiệt thứ hạng cần từ ba ngân hàng và hai chỉ tiêu, bảng đối chiếu dùng cho hai ngân hàng. Nếu điều phối viên chọn biểu đồ không phù hợp hoặc trả về cấu trúc sai, hệ thống tự đổi sang biểu đồ an toàn hoặc dùng khối dựng sẵn đã kiểm chứng.
+Báo cáo được ghép từ các khối theo một bản đặc tả thống nhất. Câu hỏi tra cứu nhận một **thẻ trả lời** gồm con số, nhận định ngắn và nguồn. Các dạng khác nhận một **báo cáo phân tích** gồm tiêu đề ngắn nêu kết luận, tối đa 5 điểm chính, 3 mục phân tích, 4 hình, 3 khối lưu ý và bảng số liệu, không quá 12 khối. Mỗi hình chỉ dùng loại biểu đồ phù hợp với dữ liệu: biểu đồ thanh xếp hạng cần ít nhất ba ngân hàng, biểu đồ đường cần từ hai kỳ, bản đồ nhiệt thứ hạng cần từ ba ngân hàng và hai chỉ tiêu, bảng đối chiếu dùng cho hai ngân hàng. Nếu điều phối viên chọn biểu đồ không phù hợp hoặc trả về cấu trúc sai, hệ thống tự đổi sang biểu đồ an toàn hoặc dùng khối dựng sẵn đã kiểm chứng.
 
 ### 4.2.7. Phản biện và sửa đổi có mục tiêu
 
@@ -142,4 +142,4 @@ flowchart LR
 ```
 *Hình 4.3: Kiến trúc triển khai.*
 
-Chất lượng được kiểm soát bằng kiểm thử tự động: 907 bài kiểm thử phía máy chủ (hợp đồng dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và 181 bài phía giao diện. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu hợp đồng API với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.
+Chất lượng được kiểm soát bằng kiểm thử tự động: hơn 900 bài kiểm thử phía máy chủ (hợp đồng dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và 188 bài phía giao diện. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu hợp đồng API với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.

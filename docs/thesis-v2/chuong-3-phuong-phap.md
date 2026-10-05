@@ -15,7 +15,7 @@ Quy trình nghiên cứu gồm sáu bước (Hình 3.1):
 1. **Xác định vấn đề:** số liệu ngân hàng cần chính xác, rõ nguồn và đúng phạm vi báo cáo; mô hình ngôn ngữ có thể tự tạo thông tin, và nhiều tác tử làm tăng chi phí phối hợp.
 2. **Chuyển thành yêu cầu thiết kế:** chương trình tính mọi con số, mô hình ngôn ngữ chỉ diễn giải; mỗi số liệu truy được về trang báo cáo gốc; mọi câu nhận định qua bộ kiểm tra theo quy tắc; phản biện có giới hạn.
 3. **Xây dựng sản phẩm:** tầng lõi (tính chỉ tiêu, kiểm tra câu, kiểm tra cấu trúc báo cáo) và tầng ứng dụng (hiểu câu hỏi, lập kế hoạch, điều phối tác tử, giao diện web).
-4. **Kiểm tra kỹ thuật:** 907 bài kiểm thử tự động, kiểm tra ranh giới kiến trúc và hợp đồng giao diện trước mỗi lần hợp nhất mã nguồn.
+4. **Kiểm tra kỹ thuật:** hơn 900 bài kiểm thử tự động, kiểm tra ranh giới kiến trúc và hợp đồng giao diện trước mỗi lần hợp nhất mã nguồn.
 5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước.
 6. **Đánh giá:** chấm tự động theo quy tắc về độ chính xác số liệu, khả năng truy nguồn, độ bao phủ, khả năng từ chối câu hỏi ngoài phạm vi và chi phí (thời gian, lượt gọi mô hình, token).
 
@@ -24,7 +24,7 @@ flowchart TD
     S1["<b>1. Xác định vấn đề</b><br/>Số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số,<br/>chi phí phối hợp nhiều tác tử"]
     S2["<b>2. Yêu cầu thiết kế</b><br/>Code tính số, mô hình diễn giải;<br/>truy nguồn tới trang; kiểm tra từng câu"]
     S3["<b>3. Xây dựng sản phẩm</b><br/>Tầng lõi + tầng ứng dụng + giao diện web"]
-    S4["<b>4. Kiểm tra kỹ thuật</b><br/>907 bài kiểm thử tự động,<br/>kiểm tra ranh giới kiến trúc"]
+    S4["<b>4. Kiểm tra kỹ thuật</b><br/>hơn 900 bài kiểm thử tự động,<br/>kiểm tra ranh giới kiến trúc"]
     S5["<b>5. Thực nghiệm A/B/C</b><br/>12 câu hỏi, 10 ngân hàng,<br/>kế hoạch cố định dùng chung"]
     S6["<b>6. Đánh giá</b><br/>Chấm theo quy tắc: đúng số, truy nguồn,<br/>độ phủ, từ chối, chi phí"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6
@@ -80,7 +80,7 @@ flowchart LR
 
 Cả sản phẩm và thực nghiệm dùng chung một bộ dữ liệu:
 
-- **Phạm vi:** mười ngân hàng niêm yết có tổng tài sản lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ quý 1/2024 đến quý 2/2026, bốn chỉ tiêu: tỷ lệ nợ xấu (nhóm 3–5), tỷ lệ bao phủ nợ xấu, ROA và ROE.
+- **Phạm vi:** mười ngân hàng niêm yết có tổng tài sản lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ quý 1/2024 đến quý 2/2026, bốn chỉ tiêu: tỷ lệ nợ xấu (nhóm 3–5), tỷ lệ bao phủ nợ xấu, ROA và ROE. Theo báo cáo tài chính hợp nhất đã kiểm toán năm 2024 nằm trong chính bộ dữ liệu, tổng tài sản của mười ngân hàng tại 31/12/2024 từ khoảng 697 nghìn tỷ đồng (HDB) đến khoảng 2,76 triệu tỷ đồng (BID).
 - **Nguồn:** báo cáo tài chính hợp nhất giữa niên độ từng quý; quý 4/2025 dùng báo cáo năm 2025 đã kiểm toán. Mỗi số đầu vào ghi trang, bảng, dòng, cột và mã băm của tệp PDF gốc.
 - **Cách đọc số:** số được trích tự động và chỉ được nhận tự động khi thỏa một phép kiểm số học (các nhóm nợ cộng đúng tổng in trên báo cáo, hoặc hai lần nhận dạng cho cùng kết quả). Các ô còn lại được đọc trực tiếp trên ảnh trang và đối chiếu bằng các đẳng thức kế toán (tổng tài sản bằng nợ phải trả cộng vốn chủ sở hữu; dư nợ trừ dự phòng bằng dư nợ thuần).
 - **Công thức:** ROA và ROE quý 1–3 tính theo bốn quý gần nhất (lợi nhuận lũy kế năm nay, trừ phần cùng kỳ năm trước, cộng lợi nhuận cả năm trước) chia cho bình quân số dư cuối kỳ và đầu năm; quý 4 dùng lợi nhuận cả năm. Mỗi công thức có mã phiên bản và mỗi giá trị có biên nhận tính toán.

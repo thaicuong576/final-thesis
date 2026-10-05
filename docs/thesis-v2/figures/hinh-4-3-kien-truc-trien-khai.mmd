@@ -1,0 +1,10 @@
+flowchart LR
+    B["<b>Trình duyệt</b><br/>fin-ai.eddiephung.me"]
+    FE["<b>Vercel</b><br/>Giao diện React"]
+    BE["<b>Render</b><br/>Máy chủ phân tích FastAPI"]
+    ST[("<b>Supabase Storage</b><br/>Bộ dữ liệu khóa mã băm,<br/>lịch sử lượt chạy")]
+    LLM["<b>Mô hình ngôn ngữ</b><br/>API tương thích OpenAI"]
+    B <--> FE
+    FE <-->|"REST + luồng sự kiện"| BE
+    BE -->|"Khởi động: tải + kiểm tra mã băm"| ST
+    BE <--> LLM

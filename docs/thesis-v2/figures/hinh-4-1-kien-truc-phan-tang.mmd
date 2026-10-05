@@ -1,31 +1,23 @@
 flowchart TB
-    subgraph L1 ["1. Tầng trình diễn — frontend/"]
-        UI["Ứng dụng web React<br/>Màn hỏi · Điều phối · Quá trình · Báo cáo"]
+    UI["<b>Giao diện web</b><br/>Hỏi · Điều phối · Báo cáo · Quá trình · Dữ liệu"]
+    subgraph App ["Tầng ứng dụng"]
+        API["API phân tích + luồng sự kiện thời gian thực"]
+        QP["Hiểu câu hỏi → Lập kế hoạch"]
+        AG["Chuyên viên viết nhận định · Điều phối viên · Phản biện"]
     end
-
-    subgraph L2 ["2. Tầng ứng dụng — src/thesis_api/"]
-        API["API FastAPI<br/>/api/analyze, /stream, /runs"]
-        PLAN["Hiểu câu hỏi & lập kế hoạch<br/>query_understanding · analysis_planner"]
-        RUN["Điều phối lượt phân tích<br/>adaptive_runtime · analysis_tools · analysis_writer"]
+    subgraph Core ["Tầng lõi (không phụ thuộc CSDL, mô hình)"]
+        F["Dữ kiện, tín hiệu,<br/>phát hiện liên tầng"]
+        V["Kiểm tra câu theo quy tắc"]
+        S["Kiểm tra cấu trúc báo cáo"]
+        R["Phản biện – sửa đổi có giới hạn"]
     end
-
-    subgraph L3 ["3. Tầng lõi độc lập — src/thesis_data/"]
-        FACT["Fact & tín hiệu<br/>report_facts"]
-        VER["Kiểm câu & kiểm spec<br/>narrative_verification · report_spec"]
-        CRIT["Phản biện & sửa đổi<br/>semantic_critic · revision_controller"]
-        PROV["Hợp đồng dữ liệu<br/>dataset_contract · dataset_provider"]
-    end
-
-    subgraph L4 ["4. Tầng lưu trữ tách biệt"]
-        GOLD[("Snapshot Gold v5<br/>chỉ đọc, khóa SHA-256")]
-        RUNS[("Lịch sử lượt chạy & trace<br/>đọc/ghi")]
-    end
-
-    UI <-->|REST / SSE| API
-    API --> PLAN --> RUN
-    RUN -.->|gọi hàm thuần| FACT
-    RUN -.->|kiểm tra| VER
-    RUN -.->|phản biện| CRIT
-    RUN --> PROV
-    PROV -->|đọc quan sát| GOLD
-    RUN -->|ghi trace| RUNS
+    DB[("Bộ dữ liệu phân tích<br/>chỉ đọc, khóa mã băm")]
+    RUNS[("Lịch sử lượt chạy<br/>có quyền ghi")]
+    UI <--> API
+    API --> QP --> AG
+    QP --> F
+    AG --> V
+    AG --> S
+    AG --> R
+    F --> DB
+    API --> RUNS

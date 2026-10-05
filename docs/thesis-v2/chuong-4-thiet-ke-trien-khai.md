@@ -61,7 +61,7 @@ flowchart TD
 
 Câu hỏi được chuẩn hóa (bảng mã Unicode, chữ thường, khoảng trắng) rồi bóc tách bốn thông tin:
 
-- **Ngân hàng:** nhận theo mã cổ phiếu (VCB, BID, MBB…). Ngân hàng ngoài bộ dữ liệu được ghi lại để từ chối kèm giải thích.
+- **Ngân hàng:** nhận cả mã cổ phiếu (VCB, BID) và tên thường gọi (Vietcombank, BIDV, ngân hàng Á Châu), kể cả khi gõ không dấu; các cụm dễ nhầm như "Công Thương" chỉ được nhận khi có chữ "ngân hàng" đứng trước. Ngân hàng ngoài bộ dữ liệu được ghi lại để từ chối kèm giải thích.
 - **Kỳ:** "quý 4/2025", "Q4/2025", "quý 4 năm 2025"; "năm 2025" được mở thành bốn quý của năm. Nếu câu hỏi không nêu kỳ, hệ thống dùng kỳ mới nhất có dữ liệu và ghi nhận việc áp dụng mặc định này.
 - **Chỉ tiêu:** tên tiếng Việt và viết tắt (nợ xấu, NPL, bao phủ nợ xấu, ROA, ROE) hoặc nhóm chủ đề (chất lượng tài sản, khả năng sinh lời).
 - **Ý định:** các từ khóa tra cứu ("bao nhiêu"), xếp hạng ("nhất", "xếp hạng"), so sánh ("so với", "cùng nhóm"), xu hướng ("diễn biến", "qua các quý").

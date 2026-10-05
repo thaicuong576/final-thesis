@@ -447,7 +447,7 @@ flowchart LR
 Chất lượng hệ thống được bảo đảm qua hệ thống kiểm thử tự động nhiều tầng:
 
 1. Bộ kiểm thử đơn vị toàn diện:
-Gồm 781 bài kiểm thử tự động đạt kết quả thành công, bao phủ các thành phần từ tầng thuật toán lõi đến tầng dịch vụ ứng dụng:
+Gồm 907 bài kiểm thử tự động đạt kết quả thành công, bao phủ các thành phần từ tầng thuật toán lõi đến tầng dịch vụ ứng dụng:
 - Kiểm thử hợp đồng dữ liệu chuẩn, tính toàn vẹn của dữ liệu và cơ chế nạp dữ liệu từ kho đám mây;
 - Kiểm thử các công cụ tính toán số học theo quy tắc, tính toán dữ kiện tài chính và chuẩn bị dữ liệu biểu đồ;
 - Kiểm thử bộ giải mã câu hỏi tiếng Việt và bộ lập kế hoạch phân tích thích ứng;
@@ -466,4 +466,4 @@ Công cụ tự động quét cây mã nguồn để ngăn vi phạm kiến trú
 Hệ thống tự động đối chiếu lược đồ giao diện lập trình ứng dụng xuất ra từ mã nguồn với bản đặc tả hợp đồng chuẩn, tránh việc thay đổi làm đứt gãy liên lạc với giao diện người dùng trên đám mây.
 
 4. Quy trình tích hợp liên tục tự động:
-Mọi thay đổi mã nguồn trước khi hợp nhất vào nhánh chính đều phải qua chuỗi kiểm định tự động: kiểm tra định dạng mã nguồn, kiểm tra kiểu dữ liệu tĩnh, xác thực ranh giới kiến trúc, kiểm tra hợp đồng giao diện và vượt qua 781 bài kiểm thử tự động. Nguyên tắc bàn giao không lỗi bảo đảm nhánh chính luôn ở trạng thái ổn định và sẵn sàng phục vụ.
+Mọi thay đổi mã nguồn trước khi hợp nhất vào nhánh chính đều phải qua chuỗi kiểm định tự động: kiểm tra định dạng mã nguồn, kiểm tra kiểu dữ liệu tĩnh, xác thực ranh giới kiến trúc, kiểm tra hợp đồng giao diện và vượt qua 907 bài kiểm thử tự động. Nguyên tắc bàn giao không lỗi bảo đảm nhánh chính luôn ở trạng thái ổn định và sẵn sàng phục vụ.

@@ -23,7 +23,7 @@ Quy trình nghiên cứu gồm sáu bước kế tiếp nhau (Hình 3.1):
 3. Xây dựng sản phẩm: Hệ thống gồm hai phần chính:
    - Tầng nghiệp vụ và thuật toán: tính toán chỉ tiêu tài chính, kiểm tra câu văn và kiểm tra bố cục báo cáo, không phụ thuộc thư viện bên ngoài;
    - Tầng ứng dụng: nhận câu hỏi tiếng Việt của người dùng, lập kế hoạch phân tích, điều phối các tác tử và hiển thị kết quả trên giao diện web.
-4. Kiểm tra kỹ thuật: Hệ thống trải qua 781 trường hợp kiểm thử tự động, cùng các bài kiểm tra ranh giới kiến trúc và chuẩn giao tiếp phần mềm trước khi chạy thực nghiệm.
+4. Kiểm tra kỹ thuật: Hệ thống trải qua 907 trường hợp kiểm thử tự động, cùng các bài kiểm tra ranh giới kiến trúc và chuẩn giao tiếp phần mềm trước khi chạy thực nghiệm.
 5. Thực nghiệm đối chiếu: Hệ thống được thử nghiệm trên ba cấu hình A, B và C với cùng một kế hoạch phân tích được cố định trước khi chạy, thực hiện trên 12 câu hỏi chuẩn và bộ dữ liệu Gold v5.
 6. Đánh giá kết quả: Kết quả được chấm tự động theo quy tắc cố định, đo lường độ chính xác của số liệu, khả năng dẫn nguồn, độ bao phủ chỉ tiêu, khả năng từ chối câu hỏi ngoài phạm vi và tài nguyên sử dụng (thời gian xử lý, số lượt gọi mô hình, lượng token).
 
@@ -35,7 +35,7 @@ flowchart TD
     
     S3["<b>Bước 3. Xây dựng Artifact</b><br/>• Tầng lõi thuật toán: thesis_data (fact, verifier, spec)<br/>• Tầng ứng dụng phân tích: thesis_api (planner, writer, runtime)<br/>• Ứng dụng tham chiếu: web UI với 4 màn hình tác nghiệp"]
     
-    S4["<b>Bước 4. Kiểm chứng kỹ thuật (Verification)</b><br/>• 781 kiểm thử đơn vị tự động (tests/)<br/>• Kiểm soát ranh giới kiến trúc (check_architecture_guardrails)<br/>• Xác thực hợp đồng OpenAPI 3.1.0 (check_openapi_contract)"]
+    S4["<b>Bước 4. Kiểm chứng kỹ thuật (Verification)</b><br/>• 907 kiểm thử đơn vị tự động (tests/)<br/>• Kiểm soát ranh giới kiến trúc (check_architecture_guardrails)<br/>• Xác thực hợp đồng OpenAPI 3.1.0 (check_openapi_contract)"]
     
     S5["<b>Bước 5. Thực nghiệm đối chiếu (Experiment)</b><br/>• 3 cấu hình A/B/C với kế hoạch đóng băng dùng chung<br/>• 12 câu hỏi chuẩn hóa (T01–T10 phân tích, R1–R2 kiểm soát)<br/>• Snapshot Gold v5 bất biến (80 ô mục tiêu)"]
     

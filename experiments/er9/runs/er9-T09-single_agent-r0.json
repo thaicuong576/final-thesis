@@ -1,0 +1,2502 @@
+{
+  "run_id": "er9-T09-single_agent-r0",
+  "task_id": "T09",
+  "arm": "single_agent",
+  "rep": 0,
+  "order": 26,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-20db36d9fcfb",
+    "query": "So sánh MBB và TCB trong quý 2/2026.",
+    "target_ticker": "MBB",
+    "peer_tickers": [
+      "MBB",
+      "TCB"
+    ],
+    "period": "2026_Q2",
+    "periods": [
+      "2026_Q2"
+    ],
+    "required_capabilities": [
+      "sector"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng head_to_head cho MBB, TCB với 2 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "head_to_head",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho MBB, TCB với 2 công cụ.",
+    "tools": [
+      {
+        "tool": "head_to_head",
+        "params": {
+          "entities": [
+            "MBB",
+            "TCB"
+          ],
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "period": "2026_Q2"
+        }
+      },
+      {
+        "tool": "decomposition",
+        "params": {
+          "entities": [
+            "MBB",
+            "TCB"
+          ],
+          "period": "2026_Q2",
+          "formula": "derived.roe_over_roa"
+        }
+      }
+    ],
+    "context_periods": [
+      "2026_Q1",
+      "2026_Q2"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:TCB:2026_Q2:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2026_Q2:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2026_Q2:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:MBB:2026_Q2:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:MBB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:MBB:2026_Q2:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:MBB:2026_Q2:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "d5e80adf28d1c7df3a3234c28da84deb019c577c21722a7cebac1bcdf992743b",
+  "model": "deepseek-v4-pro-0813",
+  "duration_ms": 16906,
+  "model_calls": 1,
+  "tokens": {
+    "input_tokens": 2643,
+    "output_tokens": 719,
+    "total_tokens": 3362
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-e9d3e7b40e93461bb8a4649021086379",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-20db36d9fcfb",
+      "query": "So sánh MBB và TCB trong quý 2/2026.",
+      "target_ticker": "MBB",
+      "peer_tickers": [
+        "MBB",
+        "TCB"
+      ],
+      "period": "2026_Q2",
+      "periods": [
+        "2026_Q2"
+      ],
+      "required_capabilities": [
+        "sector"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng head_to_head cho MBB, TCB với 2 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "head_to_head",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng head_to_head cho MBB, TCB với 2 công cụ.",
+      "tools": [
+        {
+          "tool": "head_to_head",
+          "params": {
+            "entities": [
+              "MBB",
+              "TCB"
+            ],
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "period": "2026_Q2"
+          }
+        },
+        {
+          "tool": "decomposition",
+          "params": {
+            "entities": [
+              "MBB",
+              "TCB"
+            ],
+            "period": "2026_Q2",
+            "formula": "derived.roe_over_roa"
+          }
+        }
+      ],
+      "context_periods": [
+        "2026_Q1",
+        "2026_Q2"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:TCB:2026_Q2:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2026_Q2:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2026_Q2:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:MBB:2026_Q2:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:MBB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:MBB:2026_Q2:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:MBB:2026_Q2:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": {
+      "sector": "Accepted peer universe",
+      "peer_median_roe": 15.5301,
+      "peer_median_nim": null,
+      "peer_median_npl": null,
+      "peer_median_cir": null,
+      "peer_median_casa": null,
+      "peer_median_car": null,
+      "peer_median_ldr": null,
+      "benchmarks": [
+        {
+          "metric_id": "bank.llr_coverage",
+          "benchmark_observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+          "value": 125.64393376824556,
+          "unit": "percent",
+          "period": "2026_Q2",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.npl_g35",
+          "benchmark_observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+          "value": 1.1523541921744083,
+          "unit": "percent",
+          "period": "2026_Q2",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.roa",
+          "benchmark_observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+          "value": 2.2933,
+          "unit": "percent",
+          "period": "2026_Q2",
+          "period_basis": "ttm",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e"
+          ],
+          "missing_members": []
+        },
+        {
+          "metric_id": "bank.roe",
+          "benchmark_observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+          "value": 15.5301,
+          "unit": "percent",
+          "period": "2026_Q2",
+          "period_basis": "ttm",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "TCB"
+          ],
+          "eligible_peer_entity_ids": [
+            "TCB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 1,
+          "eligible_denominator": 1,
+          "input_observation_ids": [
+            "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a"
+          ],
+          "missing_members": []
+        }
+      ],
+      "peer_median_llr_coverage": 125.64393376824556,
+      "peer_median_npl_g35": 1.1523541921744083,
+      "peer_median_roa": 2.2933,
+      "peer_universe_id": "sector:bank",
+      "aggregation_method": "peer_median_v1",
+      "requested_peer_entity_ids": [
+        "TCB"
+      ],
+      "eligible_peer_entity_ids": [
+        "TCB"
+      ],
+      "requested_denominator": 1,
+      "eligible_denominator": 1,
+      "missing_members": []
+    },
+    "company_insights": [
+      {
+        "ticker": "MBB",
+        "roe": 21.0725,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+        "metric_period_records": [],
+        "roa": 1.8324
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "observation_id": "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "input_observation_ids": [
+          "observation-de9f5c331eb774e22b5cc5bbecf25633a55e2bd7abc974d7ad8f146f50ba31d6",
+          "observation-fc8410e74e391e980c85b12bceb256660058d6a89de54d8dd33e5c51c0a221a5"
+        ],
+        "formula_version": "llr-coverage-v1",
+        "capability": "company",
+        "ticker": "MBB",
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2026_Q2",
+        "statement": "MBB has provider-backed Tỷ lệ bao phủ nợ xấu=93.62640824102576 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "input_observation_ids": [
+          "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+          "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+          "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+          "observation-7f119dd6769aaaae1d47c13bb33aa74f57b255c07f54a85004f1eebab52e5594"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "company",
+        "ticker": "MBB",
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "MBB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.4498095468230694 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "input_observation_ids": [
+          "observation-0d470eee7f442146d0d363e46c988516e123925940e6dc288e8951e85419dcff",
+          "observation-d40a7fe5e6f8c5fafdadd203821cf0e85f02d71a5baf9a0042f79d54f79c6e04",
+          "observation-e3c5ede3a1f4539e90a0abfb5e37099999520f88288714d4bc25460e7a862e5c",
+          "observation-e8e423805021d64ee7a5de5f04eba774ed557c302a0e92e0e8561ad1655783e5",
+          "observation-80739d0e96a4af0f22e93775d2f250cf2124b1c0a525bcd9c668bba1e774e3cb"
+        ],
+        "formula_version": "roa-ttm-interim-v1",
+        "capability": "company",
+        "ticker": "MBB",
+        "metric": "ROA",
+        "period": "2026_Q2",
+        "statement": "MBB has provider-backed ROA=1.8324 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "input_observation_ids": [
+          "observation-cd7f48dbee6a2f683adaae08c1446d0be57b63bc3bdd398ae8516d793adc01a8",
+          "observation-144e8e48dc00acea88d26781aead4d07aeb3310b8c7de94ec710c6b2d5c835ce",
+          "observation-09fb1cc9cacb7775707d20fbd56c92e6f0cc14be569a1cd3218603befc7b0d9d",
+          "observation-5f8f28a3b8b43e949507fc8ee3958e9ee13d347dae149cd8d2e2d511c92b64fd",
+          "observation-c0a5f14c157f612fc8b67e0a827bceda69230db3229c54cdf37498948b8df310"
+        ],
+        "formula_version": "roe-ttm-interim-v1",
+        "capability": "company",
+        "ticker": "MBB",
+        "metric": "ROE",
+        "period": "2026_Q2",
+        "statement": "MBB has provider-backed ROE=21.0725 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "observation_id": "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "input_observation_ids": [
+          "observation-02831f7d9093dd78de84db8b509c204ab7c52fdd7720ba6aca264b2471275d0d",
+          "observation-edd51f3fa7989853736b723f2325b91fa1ff95da434796075ad6498b9e2cceab"
+        ],
+        "formula_version": "llr-coverage-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2026_Q2",
+        "statement": "TCB has provider-backed Tỷ lệ bao phủ nợ xấu=125.64393376824556 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "input_observation_ids": [
+          "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+          "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+          "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+          "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "TCB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.1523541921744083 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "input_observation_ids": [
+          "observation-d7e980c49be68bee15509bda9c442ad622468fdd0995353c0df675e2b97f4522",
+          "observation-9c8050ef0be23796f49e2fe23b6e90e96d255fd6ba54a84ac6e4fd633401c5ed",
+          "observation-872c1f2b3259093a7e691fb4452f351518a71d810f168a61a05bd0e8d5de061f",
+          "observation-b0d24ce55b4ba637b0216e82082d30e378e7031256f4baffdd4f39e50c797029",
+          "observation-a72824bdc12b70b97b2158d691117772f44273b79ee55b50597c3d353e6ed0f5"
+        ],
+        "formula_version": "roa-ttm-interim-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "ROA",
+        "period": "2026_Q2",
+        "statement": "TCB has provider-backed ROA=2.2933 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "input_observation_ids": [
+          "observation-bf3a4b2590527e186925493e99de2ab135e90156e3b27b5e502f922ed665f6e9",
+          "observation-4888845337970865990998fb531e9947e727ced39ed0f42521c374b14ac63876",
+          "observation-eb3e800e34587fef85b9f0feba3f558abb1c526f21dfafd5e99cb525d1ab3246",
+          "observation-15ec1302c1dd1d3cc6c3949f75c3012528c1f37b0bd00be79ee0f5c5cc360222",
+          "observation-45fcab0bf4a0132197684a0321e6d1bba4fcf95861ce45e1ed72724e6037a145"
+        ],
+        "formula_version": "roe-ttm-interim-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "ROE",
+        "period": "2026_Q2",
+        "statement": "TCB has provider-backed ROE=15.5301 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2026_Q2",
+        "statement": "The provider-derived median bank.llr_coverage for sector:bank is 125.64393376824556 percent at 2026_Q2, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "The provider-derived median bank.npl_g35 for sector:bank is 1.1523541921744083 percent at 2026_Q2, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "ROA",
+        "period": "2026_Q2",
+        "statement": "The provider-derived median bank.roa for sector:bank is 2.2933 percent at 2026_Q2, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "input_observation_ids": [
+          "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "ROE",
+        "period": "2026_Q2",
+        "statement": "The provider-derived median bank.roe for sector:bank is 15.5301 percent at 2026_Q2, using 1 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "observation_id": "observation-de9f5c331eb774e22b5cc5bbecf25633a55e2bd7abc974d7ad8f146f50ba31d6",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 16662.881,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "observation_id": "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4622.128,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "observation_id": "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4428.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "observation_id": "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 8747.009,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4622.128,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4428.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 8747.009,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-7f119dd6769aaaae1d47c13bb33aa74f57b255c07f54a85004f1eebab52e5594",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 1227554.477,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-0d470eee7f442146d0d363e46c988516e123925940e6dc288e8951e85419dcff",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 15744.575,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-d40a7fe5e6f8c5fafdadd203821cf0e85f02d71a5baf9a0042f79d54f79c6e04",
+        "source_id": "source:mbb:b8fec7b6162f",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "MBB",
+        "period": "2025_Q2",
+        "value": 12445.345,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "e9330c616739ff018dda9967b9fd27445adbd44171a979ea83876ed493b5ed92"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-e3c5ede3a1f4539e90a0abfb5e37099999520f88288714d4bc25460e7a862e5c",
+        "source_id": "source:mbb:3c9c251361ac",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "MBB",
+        "period": "2025_Q4",
+        "value": 27382.978,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=13; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; column=Năm 2025",
+        "provenance_hash": "9853cc4909dc73ddea9907465b09d7ecdb96cf6c1627f56943f3a20d14b49f80"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-e8e423805021d64ee7a5de5f04eba774ed557c302a0e92e0e8561ad1655783e5",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 1733012.662,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "observation_id": "observation-80739d0e96a4af0f22e93775d2f250cf2124b1c0a525bcd9c668bba1e774e3cb",
+        "source_id": "source:mbb:3c9c251361ac",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "MBB",
+        "period": "2025_Q4",
+        "value": 1615763.927,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=10; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=31/12/2025",
+        "provenance_hash": "9853cc4909dc73ddea9907465b09d7ecdb96cf6c1627f56943f3a20d14b49f80"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-cd7f48dbee6a2f683adaae08c1446d0be57b63bc3bdd398ae8516d793adc01a8",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 15744.575,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-144e8e48dc00acea88d26781aead4d07aeb3310b8c7de94ec710c6b2d5c835ce",
+        "source_id": "source:mbb:b8fec7b6162f",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "MBB",
+        "period": "2025_Q2",
+        "value": 12445.345,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=45; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "e9330c616739ff018dda9967b9fd27445adbd44171a979ea83876ed493b5ed92"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-09fb1cc9cacb7775707d20fbd56c92e6f0cc14be569a1cd3218603befc7b0d9d",
+        "source_id": "source:mbb:3c9c251361ac",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "MBB",
+        "period": "2025_Q4",
+        "value": 26778.939,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=13; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế thuộc về Ngân hàng mẹ; column=Năm 2025",
+        "provenance_hash": "9853cc4909dc73ddea9907465b09d7ecdb96cf6c1627f56943f3a20d14b49f80"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-a8dcf70c9ffbc2c94160d29e83e8e2217769efa4c1da2f2f67f57ca8dde70108",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 156762.644,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=4; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu (gồm lợi ích cổ đông không kiểm soát); column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-0cf7434c98d4839bc0e3ae5884b570ec345173f07d018e03c323ed0ffda06969",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 7425.661,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=4; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích của cổ đông không kiểm soát; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-601c50326170ded30c56627036891ca4a278856f290a4ebf41c5ed419827085e",
+        "source_id": "source:mbb:3c9c251361ac",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "MBB",
+        "period": "2025_Q4",
+        "value": 142022.525,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu; column=31/12/2025",
+        "provenance_hash": "9853cc4909dc73ddea9907465b09d7ecdb96cf6c1627f56943f3a20d14b49f80"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "observation_id": "observation-f9fe2221e4b908ad5bb5abe317d838fc6cdcec9722dd013f5a734f336107ee64",
+        "source_id": "source:mbb:3c9c251361ac",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "MBB",
+        "period": "2025_Q4",
+        "value": 5886.495,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/MBB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích của cổ đông không kiểm soát; column=31/12/2025",
+        "provenance_hash": "9853cc4909dc73ddea9907465b09d7ecdb96cf6c1627f56943f3a20d14b49f80"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "observation_id": "observation-02831f7d9093dd78de84db8b509c204ab7c52fdd7720ba6aca264b2471275d0d",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 11522.285,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=single",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 795813.133,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-d7e980c49be68bee15509bda9c442ad622468fdd0995353c0df675e2b97f4522",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 14676.922,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-9c8050ef0be23796f49e2fe23b6e90e96d255fd6ba54a84ac6e4fd633401c5ed",
+        "source_id": "source:tcb:8fbf179a728a",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2025_Q2",
+        "value": 12361.121,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "ed276f17363405f3a553a6b5f6872ca545f3e986773515f268972704595b589d"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-872c1f2b3259093a7e691fb4452f351518a71d810f168a61a05bd0e8d5de061f",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 25954.472,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=14; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; column=2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-b0d24ce55b4ba637b0216e82082d30e378e7031256f4baffdd4f39e50c797029",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1273076.923,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "observation_id": "observation-a72824bdc12b70b97b2158d691117772f44273b79ee55b50597c3d353e6ed0f5",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 1192344.137,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-bf3a4b2590527e186925493e99de2ab135e90156e3b27b5e502f922ed665f6e9",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 14021.14,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-4888845337970865990998fb531e9947e727ced39ed0f42521c374b14ac63876",
+        "source_id": "source:tcb:8fbf179a728a",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2025_Q2",
+        "value": 12195.324,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "ed276f17363405f3a553a6b5f6872ca545f3e986773515f268972704595b589d"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-eb3e800e34587fef85b9f0feba3f558abb1c526f21dfafd5e99cb525d1ab3246",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 25290.23,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=14; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông của Ngân hàng; column=2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-066fb355f47880b0ce1e1ff0b82d56d1ac452e5bdd7367c899041a5a130a00aa",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 188997.15,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu (gồm lợi ích cổ đông không kiểm soát); column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-6540e2e04162e4dc6a38380ac58a2ab017a5194beabb24970f7d1dc7de6921b8",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 9834.883,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích của cổ đông không kiểm soát; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-2bc6fb109833367f72b18e412fa28b0032e71350b7de23f40de947ead2a1b267",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 179501.442,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=12; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "observation_id": "observation-ddf1ed3a470c3c9f77c7d4185dd20ae309e0c4a95bcbc4eae7ecf751cb97b9d0",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 9456.938,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=12; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "observation-02831f7d9093dd78de84db8b509c204ab7c52fdd7720ba6aca264b2471275d0d",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 11522.285,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=single",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.llr_coverage:scope-ed1c333388e6df7f",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ed1c333388e6df7f",
+        "observation_id": "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 795813.133,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "observation-d7e980c49be68bee15509bda9c442ad622468fdd0995353c0df675e2b97f4522",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 14676.922,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "observation-9c8050ef0be23796f49e2fe23b6e90e96d255fd6ba54a84ac6e4fd633401c5ed",
+        "source_id": "source:tcb:8fbf179a728a",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2025_Q2",
+        "value": 12361.121,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "ed276f17363405f3a553a6b5f6872ca545f3e986773515f268972704595b589d"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "observation-872c1f2b3259093a7e691fb4452f351518a71d810f168a61a05bd0e8d5de061f",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 25954.472,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=14; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế; column=2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "observation-b0d24ce55b4ba637b0216e82082d30e378e7031256f4baffdd4f39e50c797029",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1273076.923,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roa:scope-ed1c333388e6df7f",
+        "observation_id": "observation-a72824bdc12b70b97b2158d691117772f44273b79ee55b50597c3d353e6ed0f5",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 1192344.137,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-bf3a4b2590527e186925493e99de2ab135e90156e3b27b5e502f922ed665f6e9",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 14021.14,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-4888845337970865990998fb531e9947e727ced39ed0f42521c374b14ac63876",
+        "source_id": "source:tcb:8fbf179a728a",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2025_Q2",
+        "value": 12195.324,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "table_locator": "pdf_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuộc cổ đông ngân hàng mẹ; period=lũy kế từ đầu năm; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "ed276f17363405f3a553a6b5f6872ca545f3e986773515f268972704595b589d"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-eb3e800e34587fef85b9f0feba3f558abb1c526f21dfafd5e99cb525d1ab3246",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 25290.23,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=14; printed_page=9; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của cổ đông của Ngân hàng; column=2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-066fb355f47880b0ce1e1ff0b82d56d1ac452e5bdd7367c899041a5a130a00aa",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 188997.15,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu (gồm lợi ích cổ đông không kiểm soát); column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-6540e2e04162e4dc6a38380ac58a2ab017a5194beabb24970f7d1dc7de6921b8",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 9834.883,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích của cổ đông không kiểm soát; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-2bc6fb109833367f72b18e412fa28b0032e71350b7de23f40de947ead2a1b267",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 179501.442,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=12; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.roe:scope-ed1c333388e6df7f",
+        "observation_id": "observation-ddf1ed3a470c3c9f77c7d4185dd20ae309e0c4a95bcbc4eae7ecf751cb97b9d0",
+        "source_id": "source:tcb:f90d6f0bc297",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "TCB",
+        "period": "2025_Q4",
+        "value": 9456.938,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/TCB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=12; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát; column=31/12/2025",
+        "provenance_hash": "553195cdc772f58a5ea34cb118cfcf98f7ea7460efc802ecc4e95269665a8527"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Single-agent arm execution without specialist findings or critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "head_to_head",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-fb-1",
+            "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+            "fact_ids": [
+              "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        },
+        {
+          "type": "section",
+          "title": "Phân tích đòn bẩy và rủi ro",
+          "sentences": [
+            {
+              "sentence_id": "sent-orchestrator-4732ec",
+              "text": "Tỷ lệ ROE/ROA của MBB là 11,50 lần, phản ánh mức độ sử dụng đòn bẩy tài chính cao hơn để tối ưu hóa lợi nhuận cho cổ đông so với con số 6,77 lần của TCB.",
+              "fact_ids": [
+                "fact:derived_ratio:MBB:2026_Q2:derived.roe_over_roa",
+                "fact:derived_ratio:TCB:2026_Q2:derived.roe_over_roa"
+              ],
+              "author": "orchestrator",
+              "source": "model",
+              "revision": 0
+            },
+            {
+              "sentence_id": "sent-orchestrator-9b7bac",
+              "text": "Về an toàn vốn, TCB sở hữu đệm dự phòng rủi ro dày dặn hơn với tỷ lệ bao phủ nợ xấu đạt 125,6%, cao hơn MBB tới 32,0 điểm %.",
+              "fact_ids": [
+                "fact:value:TCB:2026_Q2:bank.llr_coverage",
+                "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.llr_coverage"
+              ],
+              "author": "orchestrator",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "comparison_table",
+          "dataset_id": "ds-h2h-mbb-tcb-2026q2",
+          "title": "So sánh đối đầu · MBB vs TCB (Q2/2026)",
+          "takeaway": {
+            "sentence_id": "sent-fb-2",
+            "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+            "fact_ids": [
+              "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-h2h-mbb-tcb-2026q2",
+        "shape": "comparison_table",
+        "title": "So sánh đối đầu · MBB vs TCB (Q2/2026)",
+        "produced_by": {
+          "tool": "head_to_head",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "highlight_entity_ids": [
+          "MBB"
+        ],
+        "rows": [
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 93.62640824102576,
+            "observation_id": "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.4498095468230694,
+            "observation_id": "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roa",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.8324,
+            "observation_id": "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roe",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 21.0725,
+            "observation_id": "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 125.64393376824556,
+            "observation_id": "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.1523541921744083,
+            "observation_id": "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roa",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 2.2933,
+            "observation_id": "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roe",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 15.5301,
+            "observation_id": "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "comparison_table",
+          "grouped_bar"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:value:MBB:2026_Q2:bank.roa",
+        "fact_type": "value",
+        "entity_id": "MBB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 1.8324,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:MBB:2026_Q2:bank.roe",
+        "fact_type": "value",
+        "entity_id": "MBB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roe",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 21.0725,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:TCB:2026_Q2:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "TCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 125.64393376824556,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:TCB:2026_Q2:bank.roa",
+        "fact_type": "value",
+        "entity_id": "TCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 2.2933,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:TCB:2026_Q2:bank.roe",
+        "fact_type": "value",
+        "entity_id": "TCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roe",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 15.5301,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage",
+        "fact_type": "pairwise_gap",
+        "entity_id": "MBB",
+        "other_entity_id": "TCB",
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": -32.0175255272198,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "pairwise-gap-pp-v1",
+        "input_observation_ids": [
+          "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.llr_coverage",
+        "fact_type": "pairwise_gap",
+        "entity_id": "TCB",
+        "other_entity_id": "MBB",
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 32.0175255272198,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "pairwise-gap-pp-v1",
+        "input_observation_ids": [
+          "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+          "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:derived_ratio:MBB:2026_Q2:derived.roe_over_roa",
+        "fact_type": "derived_ratio",
+        "entity_id": "MBB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "derived.roe_over_roa",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 11.499945426762716,
+        "unit": "x",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "roe-over-roa-v1",
+        "input_observation_ids": [
+          "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+          "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53"
+        ],
+        "input_fact_ids": [
+          "fact:value:MBB:2026_Q2:bank.roe",
+          "fact:value:MBB:2026_Q2:bank.roa"
+        ]
+      },
+      {
+        "fact_id": "fact:derived_ratio:TCB:2026_Q2:derived.roe_over_roa",
+        "fact_type": "derived_ratio",
+        "entity_id": "TCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "derived.roe_over_roa",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 6.77194435965639,
+        "unit": "x",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "roe-over-roa-v1",
+        "input_observation_ids": [
+          "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+          "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e"
+        ],
+        "input_fact_ids": [
+          "fact:value:TCB:2026_Q2:bank.roe",
+          "fact:value:TCB:2026_Q2:bank.roa"
+        ]
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 5,
+      "sentences_accepted": 4,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-orchestrator-36c195",
+          "author": "orchestrator",
+          "text": "Trong quý 2/2026, TCB vượt trội MBB ở 3/4 chỉ tiêu chính (ROA, nợ xấu, bao phủ nợ xấu), trong khi MBB chỉ dẫn đầu về ROE.",
+          "fact_ids": [
+            "fact:lead_count:TCB:vs:MBB:2026_Q2",
+            "fact:lead_count:MBB:vs:TCB:2026_Q2"
+          ],
+          "reason_code": "rank_mismatch",
+          "reason": "Nhắc tới thứ hạng 'dẫn đầu' nhưng không trích dẫn fact peer_rank nào."
+        }
+      ],
+      "numbers_checked": 6,
+      "numbers_matched": 6,
+      "blocks_dropped": [
+        {
+          "type": "headline",
+          "reason": "Khối bắt buộc của mô hình không qua kiểm chứng; dùng khối mặc định đã kiểm chứng."
+        }
+      ],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "observation-f13b2aac69b0e3b18b5742da75b9ddd06f36617eeaed5a0d040ed85ffb745b53",
+        "title": "MBB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 45 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:value:MBB:2026_Q2:bank.roa",
+          "fact:derived_ratio:MBB:2026_Q2:derived.roe_over_roa"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "observation-c33d501a620a2c6cda41ab9f8b7a6c566012aeffd43305bd14722a04106bf4cb",
+        "title": "MBB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 45 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:value:MBB:2026_Q2:bank.roe",
+          "fact:derived_ratio:MBB:2026_Q2:derived.roe_over_roa"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "observation-9173d30d30f237fd0c55da82d54aa49926a78d31b3f536b3a87de3f368c7d06a",
+        "title": "TCB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 5 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:value:TCB:2026_Q2:bank.llr_coverage",
+          "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage",
+          "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "observation-079f605e930f2ea84b68751117d29b63fc1d7a2c8260e0b2426b3aafa6f3713e",
+        "title": "TCB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:value:TCB:2026_Q2:bank.roa",
+          "fact:derived_ratio:TCB:2026_Q2:derived.roe_over_roa"
+        ]
+      },
+      {
+        "note_no": 5,
+        "source_id": "observation-06af3f7424718c74152ed36a363be0e735ddc72c400c155ef379ea9336dcfc0a",
+        "title": "TCB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:value:TCB:2026_Q2:bank.roe",
+          "fact:derived_ratio:TCB:2026_Q2:derived.roe_over_roa"
+        ]
+      },
+      {
+        "note_no": 6,
+        "source_id": "observation-19fe8a8768cba7a4e188ad0b827f9ef0bc300a71a8bce608b54ec356db43dbb3",
+        "title": "MBB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 3 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage",
+          "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.llr_coverage"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Đối đầu. Gọi Nhóm ngành với 2 phép phân tích",
+      "detail": {
+        "question_type": "head_to_head",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng head_to_head cho MBB, TCB với 2 công cụ.",
+        "entities": [
+          "MBB",
+          "TCB",
+          "sector:bank"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "anchor_period": "2026_Q2",
+        "periods": [
+          "2026_Q2"
+        ],
+        "tools": [
+          {
+            "tool": "head_to_head",
+            "agent": "company",
+            "label": "so sánh đối đầu"
+          },
+          {
+            "tool": "decomposition",
+            "agent": "company",
+            "label": "phân rã chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "sector",
+            "decision": "run",
+            "reason": "Chuyên viên Nhóm ngành"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 1000,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: so sánh đối đầu · phân rã chỉ tiêu",
+      "detail": {
+        "task": "head_to_head, decomposition",
+        "tools": [
+          "so sánh đối đầu",
+          "phân rã chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 1280,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 22 số liệu có nguồn từ phép phân tích so sánh đối đầu",
+      "detail": {
+        "tool": "head_to_head",
+        "label": "so sánh đối đầu",
+        "facts": [
+          {
+            "fact_id": "fact:value:MBB:2026_Q2:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của MBB trong quý 2/2026",
+            "display_value": "93,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:MBB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của MBB trong quý 2/2026",
+            "display_value": "1,45%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:MBB:2026_Q2:bank.roa",
+            "label": "ROA của MBB trong quý 2/2026",
+            "display_value": "1,83%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:MBB:2026_Q2:bank.roe",
+            "label": "ROE của MBB trong quý 2/2026",
+            "display_value": "21,1%",
+            "source_note_no": 2
+          },
+          {
+            "fact_id": "fact:value:TCB:2026_Q2:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của TCB trong quý 2/2026",
+            "display_value": "125,6%",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:value:TCB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của TCB trong quý 2/2026",
+            "display_value": "1,15%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:TCB:2026_Q2:bank.roa",
+            "label": "ROA của TCB trong quý 2/2026",
+            "display_value": "2,29%",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:value:TCB:2026_Q2:bank.roe",
+            "label": "ROE của TCB trong quý 2/2026",
+            "display_value": "15,5%",
+            "source_note_no": 5
+          },
+          {
+            "fact_id": "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa MBB và TCB trong quý 2/2026",
+            "display_value": "-32,0 điểm %",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu giữa TCB và MBB trong quý 2/2026",
+            "display_value": "+32,0 điểm %",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa MBB và TCB trong quý 2/2026",
+            "display_value": "+0,30 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu giữa TCB và MBB trong quý 2/2026",
+            "display_value": "-0,30 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.roa",
+            "label": "Chênh lệch ROA giữa MBB và TCB trong quý 2/2026",
+            "display_value": "-0,46 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.roa",
+            "label": "Chênh lệch ROA giữa TCB và MBB trong quý 2/2026",
+            "display_value": "+0,46 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:MBB:vs:TCB:2026_Q2:bank.roe",
+            "label": "Chênh lệch ROE giữa MBB và TCB trong quý 2/2026",
+            "display_value": "+5,5 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:pairwise_gap:TCB:vs:MBB:2026_Q2:bank.roe",
+            "label": "Chênh lệch ROE giữa TCB và MBB trong quý 2/2026",
+            "display_value": "-5,5 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:lead_count:MBB:vs:TCB:2026_Q2",
+            "label": "Số chỉ tiêu vượt trội của MBB so với TCB trong quý 2/2026",
+            "display_value": "1/4 chỉ tiêu",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:lead_count:TCB:vs:MBB:2026_Q2",
+            "label": "Số chỉ tiêu vượt trội của TCB so với MBB trong quý 2/2026",
+            "display_value": "3/4 chỉ tiêu",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "88,1%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "1,64%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "1,57%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "17,4%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-h2h-mbb-tcb-2026q2",
+            "title": "So sánh đối đầu · MBB vs TCB (Q2/2026)"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 1280,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 3 số liệu có nguồn từ phép phân tích phân rã chỉ tiêu",
+      "detail": {
+        "tool": "decomposition",
+        "label": "phân rã chỉ tiêu",
+        "facts": [
+          {
+            "fact_id": "fact:derived_ratio:MBB:2026_Q2:derived.roe_over_roa",
+            "label": "Tỷ lệ ROE/ROA của MBB trong quý 2/2026",
+            "display_value": "11,50 lần",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:derived_ratio:TCB:2026_Q2:derived.roe_over_roa",
+            "label": "Tỷ lệ ROE/ROA của TCB trong quý 2/2026",
+            "display_value": "6,77 lần",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:derived.roe_over_roa",
+            "label": "Trung vị ROE/ROA nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "11,67%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-decomp-mbb-2026q2",
+            "title": "Phân rã đòn bẩy ROE/ROA · Q2/2026"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 16311,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 1 hình",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "section",
+            "title": "Phân tích đòn bẩy và rủi ro"
+          },
+          {
+            "type": "figure",
+            "title": "So sánh đối đầu · MBB vs TCB (Q2/2026)"
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 16327,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-e9d3e7b40e93461bb8a4649021086379",
+        "duration_ms": 16327,
+        "model_calls": 1
+      }
+    }
+  ]
+}

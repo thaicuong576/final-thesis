@@ -341,6 +341,102 @@ class TestER9EvaluationHarness(unittest.TestCase):
         self.assertTrue(callable(getattr(w_score, "main", None)))
         self.assertTrue(callable(getattr(w_analyze, "main", None)))
 
+    def test_09_scorer_dropped_sentences_and_fallback_flag(self) -> None:
+        """Scorer counts dropped sentences from sentences_dropped list, supports old key, and tracks fallbacks."""
+        cov_payload = json.loads(self.expected_coverage_path.read_text(encoding="utf-8"))
+        cov_map = {t["task_id"]: t for t in cov_payload.get("tasks", [])}
+
+        def make_run(
+            audit: dict | None,
+            task_id: str = "T01",
+            status: str = "completed",
+        ) -> dict:
+            resp: dict = {"status": status}
+            if audit is not None:
+                resp["narrative_audit"] = audit
+            return {
+                "run_id": f"test-run-{task_id}",
+                "task_id": task_id,
+                "arm": "hierarchical_with_critique",
+                "rep": 0,
+                "order": 1,
+                "status": status,
+                "plan_hash": "a" * 64,
+                "tokens": {"input_tokens": 10, "output_tokens": 10, "total_tokens": 20},
+                "response": resp,
+            }
+
+        # 1. Primary key: sentences_dropped as list of 3, sentences_checked 10 -> discard rate 0.3
+        run_primary = make_run({
+            "sentences_checked": 10,
+            "sentences_accepted": 7,
+            "sentences_dropped": [{"sentence_id": "d1"}, {"sentence_id": "d2"}, {"sentence_id": "d3"}],
+            "composition_source": "deterministic_fallback",
+        })
+        score_primary = score_single_run(run_primary, cov_map, {})
+        self.assertEqual(score_primary["sentences_proposed"], 10)
+        self.assertEqual(score_primary["sentences_accepted"], 7)
+        self.assertEqual(score_primary["sentences_discarded"], 3)
+        self.assertAlmostEqual(score_primary["discard_rate"], 0.3, places=4)
+        self.assertEqual(score_primary["composition_fallback"], 1)
+
+        # 2. Old key: dropped_sentences as list of 3, sentences_checked 10 -> discard rate 0.3
+        run_old_list = make_run({
+            "sentences_checked": 10,
+            "sentences_accepted": 7,
+            "dropped_sentences": [{"sentence_id": "d1"}, {"sentence_id": "d2"}, {"sentence_id": "d3"}],
+            "composition_source": "model",
+        })
+        score_old_list = score_single_run(run_old_list, cov_map, {})
+        self.assertEqual(score_old_list["sentences_discarded"], 3)
+        self.assertAlmostEqual(score_old_list["discard_rate"], 0.3, places=4)
+        self.assertEqual(score_old_list["composition_fallback"], 0)
+
+        # 3. Old key with integer: dropped_sentences = 2
+        run_old_int = make_run({
+            "sentences_checked": 10,
+            "sentences_accepted": 8,
+            "dropped_sentences": 2,
+            "composition_source": "model",
+        })
+        score_old_int = score_single_run(run_old_int, cov_map, {})
+        self.assertEqual(score_old_int["sentences_discarded"], 2)
+        self.assertAlmostEqual(score_old_int["discard_rate"], 0.2, places=4)
+
+        # 4. Refused / no-audit run: composition_fallback is blank ("")
+        run_refused = make_run(None, task_id="R1", status="error")
+        score_refused = score_single_run(run_refused, cov_map, {})
+        self.assertEqual(score_refused["composition_fallback"], "")
+        self.assertEqual(score_refused["sentences_discarded"], 0)
+        self.assertEqual(score_refused["discard_rate"], 0.0)
+
+        # 5. Analyzer computes mean_composition_fallback and formats in RESULTS.md
+        scores_csv = self.output_dir / "scores_fallback_test.csv"
+        rows = [score_primary, score_old_list, score_refused]
+        scores_csv.parent.mkdir(parents=True, exist_ok=True)
+        with open(scores_csv, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=list(score_primary.keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+
+        analysis_dir = self.output_dir / "analysis_fallback"
+        results_md = self.output_dir / "RESULTS_fallback.md"
+        analyze_evaluation(
+            scores_csv=scores_csv,
+            output_dir=analysis_dir,
+            results_md=results_md,
+            is_er9=True,
+        )
+
+        with open(analysis_dir / "arm_summary.csv", "r", encoding="utf-8") as f:
+            summary = list(csv.DictReader(f))
+        arm_c = next(s for s in summary if s["arm"] == "hierarchical_with_critique")
+        # 1 fallback out of 2 answered runs = 0.5 (refused run with blank is skipped)
+        self.assertEqual(float(arm_c["mean_composition_fallback"]), 0.5)
+
+        md_text = results_md.read_text(encoding="utf-8")
+        self.assertIn("Composition Fallback", md_text)
+
 
 if __name__ == "__main__":
     unittest.main()

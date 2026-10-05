@@ -824,4 +824,22 @@ In user queries, common Vietnamese dictionary terms, ministry titles, universiti
 - `"Đầu tư và phát triển số của TCB"` matched BID because of bare `"đầu tư và phát triển"` (digital investment & development).
 - **Rule**: Distinctive brand names (`Vietcombank`, `VCB`, `BIDV`, `BID`, `VietinBank`, `CTG`, `Techcombank`, `TCB`, `MBBank`, `MB Bank`, `MB`, `VPBank`, `VPB`, `ACB`, `Sacombank`, `STB`, `SHB`, `HDBank`, `HDB`, `VIB`, `OCB`, `TPBank`, `MSB`, `LPBank`, `SeABank`, `Eximbank`) are permitted as bare terms. Non-distinctive, polysemous phrases (`công thương`, `ngoại thương`, `đầu tư và phát triển`, `kỹ thương`, `quân đội`, `sài gòn - hà nội`, `việt nam thịnh vượng`, `á châu`, `sài gòn thương tín`, `phương đông`, `tiên phong`, `hàng hải`, `đông nam á`, `xuất nhập khẩu`) MUST strictly require an explicit bank prefix (`ngân hàng`, `nh`, `ngân hàng tmcp`, `nh tmcp`, `nhtmcp`).
 
+---
+
+## [LESSON-043] Evaluation Scorer Metric Extraction Must Match Runtime Audit DTO Schema (`sentences_dropped` vs `dropped_sentences`)
+
+- Date: 2026-10-05
+- Scope: `scripts/er8_score.py`, `scripts/er8_analyze.py`, `src/thesis_api/adaptive_runtime.py`, `tests/test_er9_harness.py`
+- Status: ACTIVE
+
+### 1. Context & Root Cause
+In evaluation scoring (`scripts/er8_score.py`), `sentences_discarded` was queried from `narrative_audit.get("dropped_sentences")`. However, the Pydantic schema in `src/thesis_api/adaptive_runtime.py` and `src/thesis_api/schemas.py` defines this field as `NarrativeAuditDTO.sentences_dropped: List[SentenceDroppedDTO]`.
+Because `"dropped_sentences"` was never found in real run files, the scorer silently fell back to re-verifying the final report spec (`sents_discarded_count`), which yielded 0 because the final report spec contains only already-accepted sentences. Consequently, both ER-8 and ER-9 reported 0.0% sentence discard rates across all arms.
+
+### 2. Resolution & Fallback Tracking
+1. **Schema-Grounded Extraction with Legacy Fallback**:
+   The scorer now inspects `sentences_dropped` first, falling back to `dropped_sentences` for backwards compatibility with older run files/mocks, supporting both list representations and integer counts.
+2. **Composition Fallback Metric**:
+   When report spec validation fails during runtime sweeps, the pipeline reverts to deterministic template layout (`composition_source == "deterministic_fallback"`). The scorer now reports `composition_fallback = 1` for such runs (0 for normal runs, blank `None` for refused/un-audited runs), and `er8_analyze.py` exports its mean in `arm_summary.csv` and Chapter 5 `RESULTS.md` summary tables.
+
 

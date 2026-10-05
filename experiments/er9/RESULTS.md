@@ -32,7 +32,8 @@ Thực nghiệm so sánh 3 kiến trúc xử lý trên cùng một câu hỏi v�
 | **Tính đúng số (Numeric Correctness)** | 100.0% | 100.0% | 100.0% |
 | **Truy vết nguồn (Traceability)** | 100.0% | 100.0% | 100.0% |
 | **Độ phủ chỉ tiêu (Coverage)** | 79.7% | 84.4% | 78.1% |
-| **Tỷ lệ câu bị loại (Discard Rate)** | 0.0% | 0.0% | 0.0% |
+| **Tỷ lệ câu bị loại (Discard Rate)** | 9.8% | 10.8% | 22.7% |
+| **Tỷ lệ fallback bố cục (Composition Fallback)** | 30.0% | 10.0% | 20.0% |
 | **Số liên kết tầng phát hiện** | 0.33 | 0.33 | 0.67 |
 | **Thời gian thực thi trung bình (ms)** | 17545 | 27496 | 62876 |
 | **Số lần gọi mô hình (Calls)** | 0.8 | 2.1 | 4.4 |
@@ -54,7 +55,8 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 | Tính đúng số | +0.0000 | [+0.0000, +0.0000] | Khám phá |
 | Độ phủ chỉ tiêu | -0.0625 | [-0.2083, +0.0833] | Khám phá |
 | Truy vết observation | +0.0000 | [+0.0000, +0.0000] | Khám phá |
-| Tỷ lệ câu bị loại | +0.0000 | [+0.0000, +0.0000] | Khám phá |
+| Tỷ lệ câu bị loại | +0.1189 | [-0.0184, +0.2414] | Khám phá |
+| Tỷ lệ fallback bố cục | +0.1000 | [+0.0000, +0.3000] | Khám phá |
 | Số liên kết tầng | +0.3333 | [+0.0000, +1.0000] | Khám phá |
 | Tổng token tiêu thụ | +17604.4167 | [+9164.3333, +29644.0833] | Khám phá |
 | Thời gian xử lý (ms) | +35380.0833 | [+21546.4167, +48320.0833] | Khám phá |
@@ -67,7 +69,8 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 | Tính đúng số | +0.0000 | [+0.0000, +0.0000] | Khám phá |
 | Độ phủ chỉ tiêu | +0.0469 | [-0.0365, +0.1458] | Khám phá |
 | Truy vết observation | +0.0000 | [+0.0000, +0.0000] | Khám phá |
-| Tỷ lệ câu bị loại | +0.0000 | [+0.0000, +0.0000] | Khám phá |
+| Tỷ lệ câu bị loại | +0.0096 | [-0.0446, +0.0644] | Khám phá |
+| Tỷ lệ fallback bố cục | -0.2000 | [-0.5000, +0.0000] | Khám phá |
 | Số liên kết tầng | +0.0000 | [+0.0000, +0.0000] | Khám phá |
 | Tổng token tiêu thụ | +4467.2500 | [+2540.3333, +6317.0833] | Khám phá |
 | Thời gian xử lý (ms) | +9951.0833 | [+5571.4167, +14717.9167] | Khám phá |
@@ -80,7 +83,8 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 | Tính đúng số | +0.0000 | [+0.0000, +0.0000] | Khám phá |
 | Độ phủ chỉ tiêu | -0.0156 | [-0.1406, +0.0885] | Khám phá |
 | Truy vết observation | +0.0000 | [+0.0000, +0.0000] | Khám phá |
-| Tỷ lệ câu bị loại | +0.0000 | [+0.0000, +0.0000] | Khám phá |
+| Tỷ lệ câu bị loại | +0.1285 | [-0.0114, +0.2697] | Khám phá |
+| Tỷ lệ fallback bố cục | -0.1000 | [-0.4000, +0.2000] | Khám phá |
 | Số liên kết tầng | +0.3333 | [+0.0000, +1.0000] | Khám phá |
 | Tổng token tiêu thụ | +22071.6667 | [+12711.1667, +34889.9167] | Khám phá |
 | Thời gian xử lý (ms) | +45331.1667 | [+27738.2500, +62025.0000] | Khám phá |
@@ -89,7 +93,7 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 
 ## 4. Các Biểu Đồ Minh Họa Phục Vụ Chương 5
 
-Các đồ thị phân tích đã được xuất tại thư mục `D:/eddie-projects/personal-projects/final-thesis/experiments/er9/analysis`:
+Các đồ thị phân tích đã được xuất tại thư mục `D:/eddie-projects/personal-projects/final-thesis/.worktrees/fix-scorer-discard-rate/experiments/er9/analysis`:
 
 1. **Tỷ lệ hoàn thành & Tính đúng số giữa các arm**: `figure_er9_completion_accuracy.png`
 2. **Chi phí tokens & Thời gian thực thi**: `figure_er9_cost_latency.png`

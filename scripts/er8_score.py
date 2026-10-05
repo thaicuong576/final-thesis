@@ -47,13 +47,26 @@ from thesis_data.report_facts import Fact
 logger = logging.getLogger(__name__)
 
 
-def load_gold_observations(gold_path: Path) -> dict[str, dict[str, Any]]:
-    conn = sqlite3.connect(f"file:{gold_path.as_posix()}?mode=ro", uri=True)
+def load_dataset_observations(db_path: Path) -> dict[str, dict[str, Any]]:
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
     c = conn.cursor()
-    c.execute(
-        "SELECT observation_id, ticker, period, metric, value, unit, quality_status, source_id, source_locator "
-        "FROM metric_observations"
-    )
+    c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = [r[0] for r in c.fetchall()]
+
+    if "observations" in tables:
+        c.execute(
+            "SELECT observation_id, entity_id, period_id, metric_id, value, unit, validation_status, source_ref, source_locator "
+            "FROM observations"
+        )
+    elif "metric_observations" in tables:
+        c.execute(
+            "SELECT observation_id, ticker, period, metric, value, unit, quality_status, source_id, source_locator "
+            "FROM metric_observations"
+        )
+    else:
+        conn.close()
+        return {}
+
     rows = c.fetchall()
     conn.close()
 
@@ -71,6 +84,10 @@ def load_gold_observations(gold_path: Path) -> dict[str, dict[str, Any]]:
             "source_locator": r[8],
         }
     return result
+
+
+def load_gold_observations(gold_path: Path) -> dict[str, dict[str, Any]]:
+    return load_dataset_observations(gold_path)
 
 
 def matches_number(num: float, candidates: Sequence[float], tol: float = 0.05) -> bool:
@@ -341,24 +358,26 @@ def score_single_run(
     else:
         coverage_score = 1.0 if (completed or is_rejection_expected) else 0.0
 
-    # Missingness handling
+    # Missingness handling: driven by expected-coverage file (not hardcoded task IDs)
     missingness_handled = None
-    if task_id == "T03":
-        acb_q1_facts = [
+    missing_count = exp_task.get("missing_count", 0)
+    missing_obs_ids = set(exp_task.get("missing_observation_ids", []))
+
+    if missing_count > 0:
+        fabricated = [
             f for f in facts
-            if f.get("entity_id") == "ACB" and f.get("period_id") == "2024_Q1" and f.get("value") is not None
+            if any(oid in missing_obs_ids for oid in f.get("input_observation_ids", []))
+            and f.get("value") is not None
         ]
-        has_limitation = any("ACB" in lim or "thiếu" in lim.lower() or "unavailable" in lim.lower() for lim in limitations)
-        if len(acb_q1_facts) == 0 and (has_limitation or completed or any("missing" in s.get("text", "").lower() for s in sentences)):
-            missingness_handled = 1
-        else:
-            missingness_handled = 0
-    elif task_id == "T08":
-        acb_q1_facts = [
-            f for f in facts
-            if f.get("entity_id") == "ACB" and f.get("period_id") == "2024_Q1" and f.get("value") is not None
-        ]
-        missingness_handled = 1 if len(acb_q1_facts) == 0 else 0
+        has_limitation = (
+            any("thiếu" in lim.lower() or "unavailable" in lim.lower() or "missing" in lim.lower() or "acb" in lim.lower() for lim in limitations)
+            or any("thiếu" in s.get("text", "").lower() or "missing" in s.get("text", "").lower() for s in sentences)
+            or completed
+        )
+        missingness_handled = 1 if (len(fabricated) == 0 and has_limitation) else 0
+    else:
+        # No missing cells: reported as not applicable (None / ""), not as 100%
+        missingness_handled = None
 
     # Narrative quality
     narrative_audit = response.get("narrative_audit") or {}
@@ -420,14 +439,30 @@ def score_evaluation(
     runs_dir: Path,
     expected_coverage_path: Path,
     gold_path: Path | None = None,
+    dataset_path: Path | None = None,
     output_csv: Path | None = None,
 ) -> list[dict[str, Any]]:
-    gold_obs: dict[str, dict[str, Any]] = {}
-    try:
-        verified_gold = find_gold_path(gold_path, verify_hash=gold_path is not None)
-        gold_obs = load_gold_observations(verified_gold)
-    except (FileNotFoundError, ValueError) as exc:
-        logger.warning("Gold v5 database not available (%s); running scoring without Gold database reconciliation.", exc)
+    effective_dataset = dataset_path or gold_path
+    dataset_obs: dict[str, dict[str, Any]] = {}
+
+    if effective_dataset is not None and Path(effective_dataset).exists():
+        dataset_obs = load_dataset_observations(Path(effective_dataset))
+    else:
+        try:
+            verified_gold = find_gold_path_or_none(effective_dataset)
+            if verified_gold:
+                dataset_obs = load_dataset_observations(verified_gold)
+            else:
+                for cand in (
+                    ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+                    ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+                    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
+                ):
+                    if cand.exists():
+                        dataset_obs = load_dataset_observations(cand)
+                        break
+        except Exception as exc:
+            logger.warning("Dataset not available (%s); running scoring without dataset reconciliation.", exc)
 
     coverage_payload = json.loads(expected_coverage_path.read_text(encoding="utf-8"))
     coverage_map = {t["task_id"]: t for t in coverage_payload.get("tasks", [])}
@@ -452,7 +487,7 @@ def score_evaluation(
     scored_records: list[dict[str, Any]] = []
     for (tid, arm, rep), (rf, data) in sorted(runs_by_key.items(), key=lambda x: (x[0][2], x[0][0], x[0][1])):
         try:
-            row = score_single_run(data, coverage_map, gold_obs)
+            row = score_single_run(data, coverage_map, dataset_obs)
             scored_records.append(row)
         except Exception as exc:
             logger.error("Failed to score run file %s: %s", rf, exc)
@@ -470,32 +505,57 @@ def score_evaluation(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Deterministic scoring for ER-8 evaluation runs")
+    parser = argparse.ArgumentParser(description="Deterministic scoring for ER-8 / ER-9 evaluation runs")
     parser.add_argument("--runs-dir", type=Path, default=None)
-    parser.add_argument("--coverage-path", type=Path, default=ROOT / "data" / "evaluation" / "er8-expected-coverage-v2.json")
-    parser.add_argument("--gold-path", type=Path, default=None)
+    parser.add_argument("--coverage-path", type=Path, default=None)
+    parser.add_argument("--gold-path", type=Path, default=None, help="Path to verified Gold SQLite snapshot (deprecated alias for --dataset-path)")
+    parser.add_argument("--dataset-path", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--er9", action="store_true", help="Score ER-9 ten-bank run")
 
     args = parser.parse_args()
 
+    is_er9 = args.er9 or (args.runs_dir and "er9" in str(args.runs_dir.as_posix()))
+
+    coverage_path = args.coverage_path
+    if coverage_path is None:
+        if is_er9:
+            coverage_path = ROOT / "data" / "evaluation" / "er9-expected-coverage-v1.json"
+        else:
+            coverage_path = ROOT / "data" / "evaluation" / "er8-expected-coverage-v2.json"
+
     runs_dir = args.runs_dir
     if runs_dir is None:
-        if (ROOT / "experiments" / "er8" / "runs").exists() and any((ROOT / "experiments" / "er8" / "runs").glob("*.json")):
-            runs_dir = ROOT / "experiments" / "er8" / "runs"
+        exp_name = "er9" if is_er9 else "er8"
+        if (ROOT / "experiments" / exp_name / "runs").exists() and any((ROOT / "experiments" / exp_name / "runs").glob("*.json")):
+            runs_dir = ROOT / "experiments" / exp_name / "runs"
         else:
-            runs_dir = ROOT / "experiments" / "er8" / "dry-run" / "runs"
+            runs_dir = ROOT / "experiments" / exp_name / "dry-run" / "runs"
 
     output_csv = args.output
     if output_csv is None:
+        exp_name = "er9" if is_er9 else "er8"
         if "dry-run" in str(runs_dir.as_posix()):
-            output_csv = ROOT / "experiments" / "er8" / "dry-run" / "scores" / "deterministic.csv"
+            output_csv = ROOT / "experiments" / exp_name / "dry-run" / "scores" / "deterministic.csv"
         else:
-            output_csv = ROOT / "experiments" / "er8" / "scores" / "deterministic.csv"
+            output_csv = ROOT / "experiments" / exp_name / "scores" / "deterministic.csv"
+
+    dataset_path = args.dataset_path or args.gold_path
+    if dataset_path is None and is_er9:
+        for cand in (
+            ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+            ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+            Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
+        ):
+            if cand.exists():
+                dataset_path = cand
+                break
 
     score_evaluation(
         runs_dir=runs_dir,
-        expected_coverage_path=args.coverage_path,
-        gold_path=args.gold_path,
+        expected_coverage_path=coverage_path,
+        gold_path=dataset_path,
+        dataset_path=dataset_path,
         output_csv=output_csv,
     )
 

@@ -89,12 +89,15 @@ def analyze_evaluation(
     scores_csv: Path,
     output_dir: Path,
     results_md: Path,
+    is_er9: bool = False,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     rows = read_scores_csv(scores_csv)
     if not rows:
         print("No rows found in scores CSV.")
         return
+
+    er_label = "ER-9" if (is_er9 or "er9" in str(scores_csv.as_posix())) else "ER-8"
 
     # 1. Summary by Arm
     arms = ["single_agent", "hierarchical_no_critique", "hierarchical_with_critique"]
@@ -138,6 +141,11 @@ def analyze_evaluation(
             vals = [r[m] for r in a_rows if r.get(m) is not None]
             avg = (sum(vals) / len(vals)) if vals else 0.0
             row_dict[f"mean_{m}"] = round(avg, 4)
+
+        # Missingness metric: if all rows are None, report N/A instead of 100%
+        miss_vals = [r["missingness_handled"] for r in a_rows if r.get("missingness_handled") is not None]
+        row_dict["mean_missingness_handled"] = round(sum(miss_vals) / len(miss_vals), 4) if miss_vals else "N/A"
+
         arm_summary_data.append(row_dict)
 
     # Write arm_summary.csv
@@ -206,6 +214,8 @@ def analyze_evaluation(
         writer.writerows(pairwise_results)
     print(f"Written: {pairwise_csv}")
 
+    prefix = "figure_er9" if er_label == "ER-9" else "figure_er8"
+
     # 3. Generate PNG figures with matplotlib (if available)
     if HAS_MATPLOTLIB and plt is not None:
         plt.rcParams.update({"font.sans-serif": "DejaVu Sans", "figure.autolayout": True})
@@ -221,7 +231,7 @@ def analyze_evaluation(
         b2 = ax.bar([i + width / 2 for i in x], accuracy_rates, width, label="Đúng số (%)", color="#2a9d8f")
 
         ax.set_ylabel("Tỷ lệ (%)")
-        ax.set_title("ER-8: Tỷ lệ hoàn thành & Tính đúng số giữa 3 Arm")
+        ax.set_title(f"{er_label}: Tỷ lệ hoàn thành & Tính đúng số giữa 3 Arm")
         ax.set_xticks(x)
         ax.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
         ax.set_ylim(0, 110)
@@ -235,7 +245,7 @@ def analyze_evaluation(
                         xytext=(0, 3), textcoords="offset points",
                         ha="center", va="bottom", fontsize=8)
 
-        fig1_path = output_dir / "figure_er8_completion_accuracy.png"
+        fig1_path = output_dir / f"{prefix}_completion_accuracy.png"
         plt.savefig(fig1_path)
         plt.close()
         print(f"Written: {fig1_path}")
@@ -252,7 +262,7 @@ def analyze_evaluation(
 
         ax1.set_ylabel("Tokens tiêu thụ")
         ax2.set_ylabel("Thời gian trung bình (giây)")
-        ax1.set_title("ER-8: Chi phí Tokens & Độ trễ thực thi theo Arm")
+        ax1.set_title(f"{er_label}: Chi phí Tokens & Độ trễ thực thi theo Arm")
         ax1.set_xticks(x)
         ax1.set_xticklabels([arm_labels[a] for a in arms], rotation=10, ha="right", fontsize=9)
         ax1.grid(axis="y", linestyle="--", alpha=0.5)
@@ -262,7 +272,7 @@ def analyze_evaluation(
         lines2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
 
-        fig2_path = output_dir / "figure_er8_cost_latency.png"
+        fig2_path = output_dir / f"{prefix}_cost_latency.png"
         plt.savefig(fig2_path)
         plt.close()
         print(f"Written: {fig2_path}")
@@ -312,7 +322,7 @@ def analyze_evaluation(
         ax.set_yticks(y_ticks)
         ax.set_yticklabels(y_labels, fontsize=8)
         ax.set_xlabel("Chênh lệch trung bình theo cặp (Kèm 95% Bootstrap CI)")
-        ax.set_title("ER-8: So sánh cặp Arm A/B/C với Khoảng tin cậy Bootstrap")
+        ax.set_title(f"{er_label}: So sánh cặp Arm A/B/C với Khoảng tin cậy Bootstrap")
         ax.grid(axis="x", linestyle="--", alpha=0.5)
 
         # Unique legend entries
@@ -321,14 +331,14 @@ def analyze_evaluation(
         if by_label:
             ax.legend(by_label.values(), by_label.keys(), loc="lower right")
 
-        fig3_path = output_dir / "figure_er8_pairwise_diff.png"
+        fig3_path = output_dir / f"{prefix}_pairwise_diff.png"
         plt.savefig(fig3_path)
         plt.close()
         print(f"Written: {fig3_path}")
     else:
         print("Note: matplotlib not installed; skipping PNG figure generation.")
 
-    # 4. Generate experiments/er8/RESULTS.md in Vietnamese
+    # 4. Generate RESULTS.md in Vietnamese
     manifest_path = output_dir.parent / "manifest.json"
     manifest: dict[str, Any] = {}
     if manifest_path.exists():
@@ -345,9 +355,16 @@ def analyze_evaluation(
             f"{manifest.get('reps', 1)} lần lặp, tổng {manifest.get('accumulated_tokens', 'n/a')} token. "
             "Kế hoạch dùng chung giữa 3 arm được kiểm bằng hash (bỏ trường known_limitations do runtime cộng thêm sau khi chạy)."
         )
-    results_content = f"""# Báo cáo Đánh giá Thực nghiệm A/B/C (ER-8)
 
-Tài liệu này tổng hợp kết quả chạy thử nghiệm A/B/C trên bộ dữ liệu kiểm chứng Gold v5 (`gold-bank-2025-expanded-v5-evidence`), phục vụ phân tích thực nghiệm tại **Chương 5** của khóa luận tốt nghiệp.
+    dataset_desc = (
+        "bộ dữ liệu ảnh chụp hoạt động 10 ngân hàng theo quý (`bank-quarterly-top10-operational-v1`)"
+        if er_label == "ER-9"
+        else "bộ dữ liệu kiểm chứng Gold v5 (`gold-bank-2025-expanded-v5-evidence`)"
+    )
+
+    results_content = f"""# Báo cáo Đánh giá Thực nghiệm A/B/C ({er_label})
+
+Tài liệu này tổng hợp kết quả chạy thử nghiệm A/B/C trên {dataset_desc}, phục vụ phân tích thực nghiệm tại **Chương 5** của khóa luận tốt nghiệp.
 
 > **Nguồn dữ liệu:** {run_provenance_note}
 
@@ -355,7 +372,7 @@ Tài liệu này tổng hợp kết quả chạy thử nghiệm A/B/C trên bộ
 
 ## 1. Thiết kế Thí nghiệm và Các Nhánh So Sánh (Arms)
 
-Thực nghiệm so sánh 3 kiến trúc xử lý trên cùng một câu hỏi và cùng một ảnh chụp dữ liệu (Gold v5):
+Thực nghiệm so sánh 3 kiến trúc xử lý trên cùng một câu hỏi và cùng một ảnh chụp dữ liệu ({er_label}):
 
 - **Arm A (`single_agent`)**: Mô hình đơn lẻ, đóng vai trò đường cơ sở (baseline). Điều phối viên tổng hợp trực tiếp báo cáo từ tập dữ kiện tất định, không có sự tham gia của các chuyên viên độc lập và không có vòng phản biện ngữ nghĩa.
 - **Arm B (`hierarchical_no_critique`)**: Kiến trúc phân tầng thích ứng theo loại câu hỏi. Các chuyên viên chuyên trách (doanh nghiệp, ngành, liên kết tầng) lập luận và trích xuất câu phân tích; kiểm chứng câu tự động; điều phối viên ghép khối báo cáo, không có vòng phản biện.
@@ -407,18 +424,18 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 
 ## 4. Các Biểu Đồ Minh Họa Phục Vụ Chương 5
 
-Các đồ thị phân tích đã được xuất tại thư mục `experiments/er8/analysis/`:
+Các đồ thị phân tích đã được xuất tại thư mục `{output_dir.as_posix()}`:
 
-1. **Tỷ lệ hoàn thành & Tính đúng số giữa các arm**: `figure_er8_completion_accuracy.png`
-2. **Chi phí tokens & Thời gian thực thi**: `figure_er8_cost_latency.png`
-3. **So sánh chênh lệch cặp với khoảng tin cậy Bootstrap**: `figure_er8_pairwise_diff.png`
+1. **Tỷ lệ hoàn thành & Tính đúng số giữa các arm**: `{prefix}_completion_accuracy.png`
+2. **Chi phí tokens & Thời gian thực thi**: `{prefix}_cost_latency.png`
+3. **So sánh chênh lệch cặp với khoảng tin cậy Bootstrap**: `{prefix}_pairwise_diff.png`
 
 ---
 
 ## 5. Hạn Chế Của Đợt Đánh Giá
 
 1. **Chấm điểm tất định**: Phiên bản này ưu tiên tính khách quan, đo lường tự động trên bằng chứng số liệu và bộ kiểm chứng câu; chưa bao gồm gói chấm mù định tính từ chuyên gia con người.
-2. **Quy mô tập tác vụ**: Gồm 12 câu hỏi tiêu biểu đại diện cho 5 loại hình câu hỏi chính (hồ sơ, xu hướng, xếp hạng, đối đầu, thiếu dữ liệu/từ chối).
+2. **Quy mô tập tác vụ**: Gồm 12 câu hỏi tiêu biểu đại diện cho 5 loại hình câu hỏi chính (hồ sơ, xu hướng, xếp hạng, đối đầu, từ chối ngoài phạm vi).
 3. **Lập kế hoạch tất định**: Chế độ `planner_mode="rules_only"` giúp đảm bảo tính tương đương giữa các arm nhưng làm giảm bớt tính tự do thích ứng của mô hình ngôn ngữ lớn ở tầng lập kế hoạch.
 """
 
@@ -428,38 +445,45 @@ Các đồ thị phân tích đã được xuất tại thư mục `experiments/
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Analyze ER-8 evaluation results")
+    parser = argparse.ArgumentParser(description="Analyze ER-8 / ER-9 evaluation results")
     parser.add_argument("--scores-csv", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--results-md", type=Path, default=None)
+    parser.add_argument("--er9", action="store_true", help="Analyze ER-9 evaluation results")
 
     args = parser.parse_args()
 
+    is_er9 = args.er9 or (args.scores_csv and "er9" in str(args.scores_csv.as_posix()))
+
     scores_csv = args.scores_csv
     if scores_csv is None:
-        if (ROOT / "experiments" / "er8" / "scores" / "deterministic.csv").exists():
-            scores_csv = ROOT / "experiments" / "er8" / "scores" / "deterministic.csv"
+        exp_name = "er9" if is_er9 else "er8"
+        if (ROOT / "experiments" / exp_name / "scores" / "deterministic.csv").exists():
+            scores_csv = ROOT / "experiments" / exp_name / "scores" / "deterministic.csv"
         else:
-            scores_csv = ROOT / "experiments" / "er8" / "dry-run" / "scores" / "deterministic.csv"
+            scores_csv = ROOT / "experiments" / exp_name / "dry-run" / "scores" / "deterministic.csv"
 
     output_dir = args.output_dir
     if output_dir is None:
+        exp_name = "er9" if is_er9 else "er8"
         if "dry-run" in str(scores_csv.as_posix()):
-            output_dir = ROOT / "experiments" / "er8" / "dry-run" / "analysis"
+            output_dir = ROOT / "experiments" / exp_name / "dry-run" / "analysis"
         else:
-            output_dir = ROOT / "experiments" / "er8" / "analysis"
+            output_dir = ROOT / "experiments" / exp_name / "analysis"
 
     results_md = args.results_md
     if results_md is None:
+        exp_name = "er9" if is_er9 else "er8"
         if "dry-run" in str(scores_csv.as_posix()):
-            results_md = ROOT / "experiments" / "er8" / "dry-run" / "RESULTS.md"
+            results_md = ROOT / "experiments" / exp_name / "dry-run" / "RESULTS.md"
         else:
-            results_md = ROOT / "experiments" / "er8" / "RESULTS.md"
+            results_md = ROOT / "experiments" / exp_name / "RESULTS.md"
 
     analyze_evaluation(
         scores_csv=scores_csv,
         output_dir=output_dir,
         results_md=results_md,
+        is_er9=is_er9,
     )
 
 

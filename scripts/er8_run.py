@@ -19,6 +19,7 @@ Constraints:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import logging
@@ -28,6 +29,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -55,11 +57,21 @@ from thesis_api.settings import Settings
 logger = logging.getLogger(__name__)
 
 GOLD_RAW_BYTES_SHA256 = "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73"
+GOLD_SNAPSHOT_ID = "gold-bank-2025-expanded-v5-evidence"
 GOLD_RELATIVE_CANDIDATES = [
     ROOT / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parents[1] / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parent / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/gold-bank-2025-expanded-v5-evidence.sqlite"),
+]
+
+ER9_DATASET_RAW_BYTES_SHA256 = "2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a"
+ER9_DATASET_SNAPSHOT_ID = "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e"
+ER9_RELATIVE_CANDIDATES = [
+    ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+    ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+    ROOT.parent / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
+    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
 ]
 
 ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")
@@ -81,21 +93,82 @@ def _relpath_str(p: Path) -> str:
         return p.as_posix()
 
 
-def find_gold_path(explicit_path: Path | None = None, *, verify_hash: bool = True) -> Path:
-    if explicit_path and explicit_path.exists():
-        if not verify_hash:
-            return explicit_path
-        raw_hash = hashlib.sha256(explicit_path.read_bytes()).hexdigest().lower()
-        if raw_hash == GOLD_RAW_BYTES_SHA256:
-            return explicit_path
-        raise ValueError(f"Supplied Gold database SHA-256 mismatch: {raw_hash} != {GOLD_RAW_BYTES_SHA256}")
+def verify_dataset_snapshot(
+    db_path: Path,
+    expected_hash: str | None = None,
+    expected_snapshot_id: str | None = None,
+) -> None:
+    """Verify raw file SHA-256 and internal snapshot ID, raising ValueError on mismatch."""
+    if not db_path.exists():
+        raise FileNotFoundError(f"Database snapshot not found: {db_path}")
 
-    for candidate in GOLD_RELATIVE_CANDIDATES:
+    if expected_hash:
+        raw_hash = hashlib.sha256(db_path.read_bytes()).hexdigest().lower()
+        if raw_hash != expected_hash.lower():
+            raise ValueError(
+                f"Supplied dataset SHA-256 mismatch for {db_path}: {raw_hash} != {expected_hash.lower()}"
+            )
+
+    if expected_snapshot_id:
+        conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+        found_id = None
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [r[0] for r in cur.fetchall()]
+            if "dataset_metadata" in tables:
+                cur.execute("SELECT dataset_snapshot_id FROM dataset_metadata LIMIT 1")
+                row = cur.fetchone()
+                if row:
+                    found_id = row[0]
+            elif "snapshot_metadata" in tables:
+                cur.execute("SELECT snapshot_id FROM snapshot_metadata LIMIT 1")
+                row = cur.fetchone()
+                if row:
+                    found_id = row[0]
+        finally:
+            conn.close()
+
+        if found_id != expected_snapshot_id:
+            raise ValueError(
+                f"Supplied dataset snapshot_id mismatch for {db_path}: expected '{expected_snapshot_id}', got '{found_id}'"
+            )
+
+
+def find_dataset_path(
+    explicit_path: Path | None = None,
+    *,
+    candidates: Sequence[Path] = (),
+    expected_hash: str | None = None,
+    expected_snapshot_id: str | None = None,
+    verify_integrity: bool = True,
+) -> Path:
+    if explicit_path and explicit_path.exists():
+        if verify_integrity:
+            verify_dataset_snapshot(explicit_path, expected_hash, expected_snapshot_id)
+        return explicit_path
+    if explicit_path and not explicit_path.exists():
+        raise FileNotFoundError(f"Specified dataset path does not exist: {explicit_path}")
+
+    for candidate in candidates:
         if candidate.exists():
-            raw_hash = hashlib.sha256(candidate.read_bytes()).hexdigest().lower()
-            if raw_hash == GOLD_RAW_BYTES_SHA256:
+            try:
+                if verify_integrity:
+                    verify_dataset_snapshot(candidate, expected_hash, expected_snapshot_id)
                 return candidate
-    raise FileNotFoundError("Could not find verified Gold v5 SQLite database matching expected hash.")
+            except (ValueError, FileNotFoundError):
+                continue
+    raise FileNotFoundError("Could not find verified SQLite database matching expected hash and snapshot ID.")
+
+
+def find_gold_path(explicit_path: Path | None = None, *, verify_hash: bool = True) -> Path:
+    return find_dataset_path(
+        explicit_path,
+        candidates=GOLD_RELATIVE_CANDIDATES,
+        expected_hash=GOLD_RAW_BYTES_SHA256 if verify_hash else None,
+        expected_snapshot_id=GOLD_SNAPSHOT_ID if verify_hash else None,
+        verify_integrity=verify_hash,
+    )
 
 
 def find_gold_path_or_none(explicit_path: Path | None = None, *, verify_hash: bool = True) -> Path | None:
@@ -390,6 +463,9 @@ def _compute_plan_hash(plan: Any) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+_DEFAULT = object()
+
+
 def run_evaluation(
     *,
     dry_run: bool = False,
@@ -398,27 +474,68 @@ def run_evaluation(
     max_tokens: int = 3000000,
     only_tasks: Sequence[str] | None = None,
     gold_path: Path | None = None,
-    authority_path: Path | None = None,
+    dataset_path: Path | None = None,
+    authority_path: Any = _DEFAULT,
     questions_path: Path | None = None,
     task_specs_path: Path | None = None,
     expected_coverage_path: Path | None = None,
     output_dir: Path | None = None,
     model: str | None = None,
+    concurrency: int = 1,
+    resume: bool = False,
+    expected_raw_sha256: str | None = None,
+    expected_snapshot_id: str | None = None,
+    run_id_prefix: str = "er8",
+    manifest_id: str | None = None,
 ) -> dict[str, Any]:
-    if output_dir is None:
-        output_dir = (ROOT / "experiments" / "er8" / "dry-run") if dry_run else (ROOT / "experiments" / "er8")
+    effective_dataset = dataset_path or gold_path
+
+    if run_id_prefix == "er9":
+        if output_dir is None:
+            output_dir = (ROOT / "experiments" / "er9" / "dry-run") if dry_run else (ROOT / "experiments" / "er9")
+        eff_expected_hash = expected_raw_sha256 or ER9_DATASET_RAW_BYTES_SHA256
+        eff_expected_snapshot_id = expected_snapshot_id or ER9_DATASET_SNAPSHOT_ID
+        verified_dataset = find_dataset_path(
+            effective_dataset,
+            candidates=ER9_RELATIVE_CANDIDATES,
+            expected_hash=eff_expected_hash,
+            expected_snapshot_id=eff_expected_snapshot_id,
+            verify_integrity=True,
+        )
+        if authority_path is _DEFAULT:
+            authority_path = None
+        questions_path = questions_path or (ROOT / "data" / "evaluation" / "er9-questions-v1.jsonl")
+        task_specs_path = task_specs_path or (ROOT / "data" / "evaluation" / "er9-task-specs-v1.json")
+        expected_coverage_path = expected_coverage_path or (ROOT / "data" / "evaluation" / "er9-expected-coverage-v1.json")
+        manifest_id = manifest_id or "er9-evaluation-manifest-v1"
+    else:
+        if output_dir is None:
+            output_dir = (ROOT / "experiments" / "er8" / "dry-run") if dry_run else (ROOT / "experiments" / "er8")
+        eff_expected_hash = expected_raw_sha256 or GOLD_RAW_BYTES_SHA256
+        eff_expected_snapshot_id = expected_snapshot_id or GOLD_SNAPSHOT_ID
+        should_verify = not dry_run or (effective_dataset is None) or (expected_raw_sha256 is not None)
+        verified_dataset = find_dataset_path(
+            effective_dataset,
+            candidates=GOLD_RELATIVE_CANDIDATES,
+            expected_hash=eff_expected_hash,
+            expected_snapshot_id=eff_expected_snapshot_id,
+            verify_integrity=should_verify,
+        )
+        if authority_path is _DEFAULT:
+            authority_path = ROOT / "data" / "evaluation" / "gold-v5-reporting-scope-authority-v1.json"
+        questions_path = questions_path or (ROOT / "data" / "evaluation" / "er8-questions-v2.jsonl")
+        task_specs_path = task_specs_path or (ROOT / "data" / "evaluation" / "er8-task-specs-v2.json")
+        expected_coverage_path = expected_coverage_path or (ROOT / "data" / "evaluation" / "er8-expected-coverage-v2.json")
+        manifest_id = manifest_id or "er8-evaluation-manifest-v2"
+
     output_dir.mkdir(parents=True, exist_ok=True)
     runs_dir = output_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
+    runs_dbs_dir = output_dir / "runs_dbs"
+    runs_dbs_dir.mkdir(parents=True, exist_ok=True)
 
     if not dry_run:
         check_live_model_preflight(model=model)
-
-    verified_gold = find_gold_path(gold_path, verify_hash=not dry_run or (gold_path is None))
-    authority_path = authority_path or (ROOT / "data" / "evaluation" / "gold-v5-reporting-scope-authority-v1.json")
-    questions_path = questions_path or (ROOT / "data" / "evaluation" / "er8-questions-v2.jsonl")
-    task_specs_path = task_specs_path or (ROOT / "data" / "evaluation" / "er8-task-specs-v2.json")
-    expected_coverage_path = expected_coverage_path or (ROOT / "data" / "evaluation" / "er8-expected-coverage-v2.json")
 
     # Hashes of input files
     q_content = questions_path.read_bytes()
@@ -455,15 +572,14 @@ def run_evaluation(
     rng = random.Random(seed)
     rng.shuffle(planned_runs)
 
-    # Copy Gold v5 to temporary file
-    temp_dir = tempfile.mkdtemp(prefix="er8-gold-")
-    temp_gold = Path(temp_dir) / "gold_v5_ro_snapshot.sqlite"
-    shutil.copyfile(verified_gold, temp_gold)
-
-    runs_db_path = output_dir / "runs.sqlite"
+    # Copy dataset to temporary file
+    temp_dir = tempfile.mkdtemp(prefix=f"{run_id_prefix}-db-")
+    temp_db = Path(temp_dir) / f"{run_id_prefix}_ro_snapshot.sqlite"
+    shutil.copyfile(verified_dataset, temp_db)
 
     accumulated_tokens = 0
     budget_exceeded = False
+    budget_lock = threading.Lock()
     run_records: list[dict[str, Any]] = []
 
     # If dry-run, install socket guard to forbid any accidental network requests
@@ -472,54 +588,73 @@ def run_evaluation(
         install_socket_guard()
 
     try:
-        for order, plan_item in enumerate(planned_runs, start=1):
+        def execute_single_run(order: int, plan_item: dict[str, Any]) -> dict[str, Any]:
+            nonlocal accumulated_tokens, budget_exceeded
+
             tid = plan_item["task_id"]
             q_text = plan_item["question_text"]
             arm = plan_item["arm"]
             rep = plan_item["rep"]
 
-            run_id = f"er8-{tid}-{arm}-r{rep}"
+            run_id = f"{run_id_prefix}-{tid}-{arm}-r{rep}"
+            run_file = runs_dir / f"{run_id}.json"
 
-            if budget_exceeded or accumulated_tokens >= max_tokens:
-                budget_exceeded = True
-                logger.warning("Token budget exceeded (%d >= %d). Aborting run %s.", accumulated_tokens, max_tokens, run_id)
-                aborted_record = {
-                    "run_id": run_id,
-                    "task_id": tid,
-                    "arm": arm,
-                    "rep": rep,
-                    "order": order,
-                    "status": "aborted_budget",
-                    "plan": None,
-                    "plan_hash": None,
-                    "model": model or ("offline-stub" if dry_run else "unconfigured"),
-                    "duration_ms": 0,
-                    "model_calls": 0,
-                    "tokens": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
-                    "retries": [],
-                    "response": None,
-                    "trace": [],
-                }
-                run_file = runs_dir / f"{run_id}.json"
-                run_file.write_text(json.dumps(aborted_record, indent=2, ensure_ascii=False), encoding="utf-8")
-                run_records.append(aborted_record)
-                continue
+            # Resume check
+            if resume and run_file.exists():
+                try:
+                    existing = json.loads(run_file.read_text(encoding="utf-8"))
+                    existing_status = existing.get("status")
+                    if existing_status in ("completed", "accepted_with_limitations", "blocked"):
+                        logger.info("Resuming run %s: already has status %s", run_id, existing_status)
+                        with budget_lock:
+                            existing_tokens = (existing.get("tokens") or {}).get("total_tokens", 0)
+                            accumulated_tokens += existing_tokens
+                            if accumulated_tokens >= max_tokens:
+                                budget_exceeded = True
+                        return existing
+                except Exception as exc:
+                    logger.warning("Could not read existing run file %s for resume: %s. Re-running.", run_file, exc)
 
+            with budget_lock:
+                if budget_exceeded or accumulated_tokens >= max_tokens:
+                    budget_exceeded = True
+                    logger.warning("Token budget exceeded (%d >= %d). Aborting run %s.", accumulated_tokens, max_tokens, run_id)
+                    aborted_record = {
+                        "run_id": run_id,
+                        "task_id": tid,
+                        "arm": arm,
+                        "rep": rep,
+                        "order": order,
+                        "status": "aborted_budget",
+                        "plan": None,
+                        "plan_hash": None,
+                        "model": model or ("offline-stub" if dry_run else "unconfigured"),
+                        "duration_ms": 0,
+                        "model_calls": 0,
+                        "tokens": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+                        "retries": [],
+                        "response": None,
+                        "trace": [],
+                    }
+                    run_file.write_text(json.dumps(aborted_record, indent=2, ensure_ascii=False), encoding="utf-8")
+                    return aborted_record
+
+            run_db_path = runs_dbs_dir / f"{run_id}.sqlite"
             settings_kwargs: dict[str, Any] = {
-                "app_name": "er8-evaluation-harness",
-                "sqlite_db_path": str(temp_gold),
-                "analysis_runs_db_path": str(runs_db_path),
-                "gold_scope_authority_path": str(authority_path),
+                "app_name": f"{run_id_prefix}-evaluation-harness",
+                "sqlite_db_path": str(temp_db),
+                "analysis_runs_db_path": str(run_db_path),
                 "planner_mode": "rules_only",
                 "analysis_arm": arm,
             }
+            if authority_path:
+                settings_kwargs["gold_scope_authority_path"] = str(authority_path)
             if model:
                 settings_kwargs["openai_model"] = model
             if dry_run:
                 settings_kwargs["openai_api_key"] = "dry-run-key"
 
             settings = Settings(**settings_kwargs)
-
             writer_double = DryRunOfflineWriter() if dry_run else None
             critic_double = DryRunOfflineCritic() if dry_run else None
 
@@ -535,12 +670,11 @@ def run_evaluation(
                 attempt += 1
                 try:
                     engine = AnalysisEngine(
-                        temp_gold,
+                        temp_db,
                         settings,
                         semantic_critic=critic_double,
                         analysis_writer=writer_double,
                     )
-                    # Pass writer/critic to runner with tracker
                     final_resp = engine.analyze(AnalysisRequest(query=q_text))
                     break
                 except Exception as exc:
@@ -590,9 +724,10 @@ def run_evaluation(
                 trace_dump = []
                 resp_dump = {"status": "error", "error": {"code": "execution_failed", "message": final_err or "Unknown execution error"}}
 
-            accumulated_tokens += tot_tok
-            if accumulated_tokens >= max_tokens:
-                budget_exceeded = True
+            with budget_lock:
+                accumulated_tokens += tot_tok
+                if accumulated_tokens >= max_tokens:
+                    budget_exceeded = True
 
             record = {
                 "run_id": run_id,
@@ -616,12 +751,43 @@ def run_evaluation(
                 "trace": trace_dump,
             }
 
-            run_file = runs_dir / f"{run_id}.json"
             run_file.write_text(json.dumps(record, indent=2, ensure_ascii=False), encoding="utf-8")
-            run_records.append(record)
+            return record
+
+        effective_concurrency = max(1, concurrency)
+        if effective_concurrency == 1:
+            for order, plan_item in enumerate(planned_runs, start=1):
+                rec = execute_single_run(order, plan_item)
+                run_records.append(rec)
+        else:
+            with ThreadPoolExecutor(max_workers=effective_concurrency) as executor:
+                futures = [
+                    executor.submit(execute_single_run, order, plan_item)
+                    for order, plan_item in enumerate(planned_runs, start=1)
+                ]
+                for f in futures:
+                    run_records.append(f.result())
 
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
+
+    # Consolidated runs.sqlite
+    runs_sqlite_path = output_dir / "runs.sqlite"
+    try:
+        from thesis_api.database import ensure_analysis_runs_table
+        ensure_analysis_runs_table(runs_sqlite_path)
+        conn_all = sqlite3.connect(runs_sqlite_path)
+        for single_db in sorted(runs_dbs_dir.glob("*.sqlite")):
+            try:
+                conn_all.execute(f"ATTACH DATABASE '{single_db.resolve().as_posix()}' AS single_run")
+                conn_all.execute("INSERT OR REPLACE INTO analysis_runs SELECT * FROM single_run.analysis_runs")
+                conn_all.commit()
+                conn_all.execute("DETACH DATABASE single_run")
+            except Exception as e:
+                logger.warning("Could not merge run db %s: %s", single_db, e)
+        conn_all.close()
+    except Exception as e:
+        logger.warning("Could not build consolidated runs.sqlite: %s", e)
 
     # Cross-arm plan hash verification
     # For each (task_id, rep), verify plan hashes of the 3 arms are equal
@@ -652,16 +818,19 @@ def run_evaluation(
     aborted_runs = sum(1 for r in run_records if r["status"] == "aborted_budget")
 
     manifest = {
-        "manifest_id": "er8-evaluation-manifest-v2",
+        "manifest_id": manifest_id,
         "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "seed": seed,
         "reps": reps,
+        "concurrency": effective_concurrency,
         "max_tokens_budget": max_tokens,
         "accumulated_tokens": accumulated_tokens,
         "budget_exceeded": budget_exceeded,
         "dry_run": dry_run,
         "model": model or ("offline-stub" if dry_run else (os.environ.get("OPENAI_MODEL") or "unconfigured")),
-        "gold_snapshot_bytes_sha256": GOLD_RAW_BYTES_SHA256,
+        "gold_snapshot_bytes_sha256": eff_expected_hash,
+        "dataset_snapshot_bytes_sha256": eff_expected_hash,
+        "dataset_snapshot_id": eff_expected_snapshot_id,
         "questions_file": _relpath_str(questions_path),
         "questions_canonical_lf_utf8_sha256": questions_hash,
         "task_specs_file": _relpath_str(task_specs_path),
@@ -704,19 +873,31 @@ def run_evaluation(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ER-8 Evaluation Run Harness")
+    parser = argparse.ArgumentParser(description="ER-8 / ER-9 Evaluation Run Harness")
     parser.add_argument("--dry-run", action="store_true", help="Run offline using mock doubles, no external network")
     parser.add_argument("--reps", type=int, default=1, help="Repetitions per task-arm (default: 1)")
     parser.add_argument("--seed", type=int, default=20260930, help="Random seed for execution order (default: 20260930)")
     parser.add_argument("--max-tokens", type=int, default=3000000, help="Maximum accumulated token budget (default: 3000000)")
     parser.add_argument("--only", type=str, default=None, help="Comma-separated task IDs to run (e.g. T01,T02)")
-    parser.add_argument("--gold-path", type=Path, default=None, help="Path to verified Gold SQLite snapshot")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory (default: experiments/er8)")
+    parser.add_argument("--gold-path", type=Path, default=None, help="Path to verified Gold SQLite snapshot (deprecated alias for --dataset-path)")
+    parser.add_argument("--dataset-path", type=Path, default=None, help="Path to verified SQLite snapshot")
+    parser.add_argument("--expected-hash", type=str, default=None, help="Expected raw file SHA-256")
+    parser.add_argument("--expected-snapshot-id", type=str, default=None, help="Expected snapshot_id in dataset metadata")
+    parser.add_argument("--authority-path", type=Path, default=None, help="Path to scope authority sidecar (None for ER-9)")
+    parser.add_argument("--questions", type=Path, default=None, help="Path to questions JSONL file")
+    parser.add_argument("--specs", type=Path, default=None, help="Path to task specs JSON file")
+    parser.add_argument("--coverage", type=Path, default=None, help="Path to expected coverage JSON file")
+    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory")
     parser.add_argument("--model", type=str, default=None, help="OpenAI model name override")
+    parser.add_argument("--concurrency", type=int, default=1, help="Number of concurrent workers (default: 1)")
+    parser.add_argument("--resume", action="store_true", help="Skip runs whose files already exist with status completed/blocked")
+    parser.add_argument("--run-id-prefix", type=str, default=None, help="Run ID prefix (er8 or er9)")
+    parser.add_argument("--er9", action="store_true", help="Preset: run ER-9 on the ten-bank quarterly operational snapshot")
 
     args = parser.parse_args()
 
     only_tasks = [t.strip() for t in args.only.split(",")] if args.only else None
+    run_id_prefix = args.run_id_prefix or ("er9" if args.er9 else "er8")
 
     run_evaluation(
         dry_run=args.dry_run,
@@ -725,8 +906,18 @@ def main() -> None:
         max_tokens=args.max_tokens,
         only_tasks=only_tasks,
         gold_path=args.gold_path,
+        dataset_path=args.dataset_path,
+        authority_path=args.authority_path if args.authority_path is not None else (_DEFAULT if not args.er9 else None),
+        questions_path=args.questions,
+        task_specs_path=args.specs,
+        expected_coverage_path=args.coverage,
         output_dir=args.output_dir,
         model=args.model,
+        concurrency=args.concurrency,
+        resume=args.resume,
+        expected_raw_sha256=args.expected_hash,
+        expected_snapshot_id=args.expected_snapshot_id,
+        run_id_prefix=run_id_prefix,
     )
 
 

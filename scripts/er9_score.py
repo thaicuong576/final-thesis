@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""CLI entrypoint for ER-9 deterministic scoring."""
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.er8_score import main
+
+if __name__ == "__main__":
+    if "--er9" not in sys.argv:
+        sys.argv.insert(1, "--er9")
+    main()

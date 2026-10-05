@@ -71,8 +71,198 @@ _IGNORED_UPPER_TOKENS = frozenset({
     "ROE", "ROA", "NIM", "NPL", "CIR", "CASA", "CAR", "LDR", "LLR",
     "Q1", "Q2", "Q3", "Q4", "FY20", "FY21", "FY22", "FY23", "FY24",
     "SBV", "NHNN", "CPI", "GDP", "VND", "USD", "API", "DTO",
-    "TOP", "AND", "THE", "FOR",
+    "TOP", "AND", "THE", "FOR", "TMCP", "NHTMCP",
 })
+
+# Canonical Vietnamese bank aliases mapping canonical ticker to known names/phrases.
+# Matching is case-insensitive, accent-insensitive, whole-words, longest phrase first.
+BANK_NAME_ALIASES: dict[str, tuple[str, ...]] = {
+    "VCB": (
+        "ngân hàng thương mại cổ phần ngoại thương việt nam",
+        "ngân hàng ngoại thương việt nam",
+        "ngân hàng ngoại thương",
+        "ngân hàng vietcombank",
+        "ngân hàng vietcom bank",
+        "ngân hàng vcb",
+        "ngoại thương việt nam",
+        "ngoại thương",
+        "vietcombank",
+        "vietcom bank",
+        "vcb",
+    ),
+    "BID": (
+        "ngân hàng thương mại cổ phần đầu tư và phát triển việt nam",
+        "ngân hàng đầu tư và phát triển việt nam",
+        "ngân hàng đầu tư và phát triển",
+        "ngân hàng đầu tư & phát triển",
+        "ngân hàng bidv",
+        "ngân hàng bid",
+        "đầu tư và phát triển",
+        "đầu tư & phát triển",
+        "bidv",
+        "bid",
+    ),
+    "CTG": (
+        "ngân hàng thương mại cổ phần công thương việt nam",
+        "ngân hàng công thương việt nam",
+        "ngân hàng công thương",
+        "ngân hàng vietinbank",
+        "ngân hàng vietin bank",
+        "ngân hàng ctg",
+        "công thương việt nam",
+        "công thương",
+        "vietinbank",
+        "vietin bank",
+        "vietin",
+        "ctg",
+    ),
+    "TCB": (
+        "ngân hàng thương mại cổ phần kỹ thương việt nam",
+        "ngân hàng kỹ thương việt nam",
+        "ngân hàng kỹ thương",
+        "ngân hàng techcombank",
+        "ngân hàng techcom bank",
+        "ngân hàng tcb",
+        "kỹ thương việt nam",
+        "kỹ thương",
+        "techcombank",
+        "techcom bank",
+        "tcb",
+    ),
+    "MBB": (
+        "ngân hàng thương mại cổ phần quân đội",
+        "ngân hàng quân đội",
+        "ngân hàng mbbank",
+        "ngân hàng mb bank",
+        "ngân hàng mb",
+        "ngân hàng mbb",
+        "quân đội",
+        "mbbank",
+        "mb bank",
+        "mbb",
+        "mb",
+    ),
+    "VPB": (
+        "ngân hàng thương mại cổ phần việt nam thịnh vượng",
+        "ngân hàng việt nam thịnh vượng",
+        "ngân hàng vpbank",
+        "ngân hàng vp bank",
+        "ngân hàng vpb",
+        "việt nam thịnh vượng",
+        "vpbank",
+        "vp bank",
+        "vpb",
+    ),
+    "ACB": (
+        "ngân hàng thương mại cổ phần á châu",
+        "ngân hàng á châu",
+        "ngân hàng acb",
+        "á châu",
+        "acb",
+    ),
+    "STB": (
+        "ngân hàng thương mại cổ phần sài gòn thương tín",
+        "ngân hàng sài gòn thương tín",
+        "ngân hàng sacombank",
+        "ngân hàng sacom bank",
+        "ngân hàng stb",
+        "sài gòn thương tín",
+        "sacombank",
+        "sacom bank",
+        "stb",
+    ),
+    "SHB": (
+        "ngân hàng thương mại cổ phần sài gòn - hà nội",
+        "ngân hàng thương mại cổ phần sài gòn hà nội",
+        "ngân hàng sài gòn - hà nội",
+        "ngân hàng sài gòn – hà nội",
+        "ngân hàng sài gòn hà nội",
+        "ngân hàng shb",
+        "sài gòn - hà nội",
+        "sài gòn – hà nội",
+        "sài gòn hà nội",
+        "shb",
+    ),
+    "HDB": (
+        "ngân hàng thương mại cổ phần phát triển thành phố hồ chí minh",
+        "ngân hàng phát triển thành phố hồ chí minh",
+        "ngân hàng hdbank",
+        "ngân hàng hd bank",
+        "ngân hàng hdb",
+        "hdbank",
+        "hd bank",
+        "hdb",
+    ),
+    "VIB": (
+        # "quốc tế" alone is intentionally NOT mapped (Requirement 3)
+        "ngân hàng thương mại cổ phần quốc tế việt nam",
+        "ngân hàng quốc tế việt nam",
+        "ngân hàng quốc tế",
+        "ngân hàng vibank",
+        "ngân hàng vib",
+        "vibank",
+        "vib",
+    ),
+    # Common unsupported banks (e.g. OCB, Phương Đông)
+    "OCB": (
+        "ngân hàng thương mại cổ phần phương đông",
+        "ngân hàng phương đông",
+        "ngân hàng ocb",
+        "phương đông",
+        "ocb",
+    ),
+    "TPB": (
+        "ngân hàng thương mại cổ phần tiên phong",
+        "ngân hàng tiên phong",
+        "ngân hàng tpbank",
+        "ngân hàng tp bank",
+        "ngân hàng tpb",
+        "tiên phong",
+        "tpbank",
+        "tp bank",
+        "tpb",
+    ),
+    "MSB": (
+        "ngân hàng thương mại cổ phần hàng hải",
+        "ngân hàng hàng hải",
+        "ngân hàng msb",
+        "maritime bank",
+        "hàng hải",
+        "msb",
+    ),
+    "LPB": (
+        "ngân hàng bưu điện liên việt",
+        "ngân hàng lộc phát việt nam",
+        "ngân hàng lộc phát",
+        "ngân hàng lpbank",
+        "ngân hàng lp bank",
+        "bưu điện liên việt",
+        "lộc phát",
+        "lpbank",
+        "lp bank",
+        "lpb",
+    ),
+    "SSB": (
+        "ngân hàng thương mại cổ phần đông nam á",
+        "ngân hàng đông nam á",
+        "ngân hàng seabank",
+        "ngân hàng sea bank",
+        "đông nam á",
+        "seabank",
+        "sea bank",
+        "ssb",
+    ),
+    "EIB": (
+        "ngân hàng xuất nhập khẩu việt nam",
+        "ngân hàng xuất nhập khẩu",
+        "ngân hàng eximbank",
+        "ngân hàng exim bank",
+        "xuất nhập khẩu",
+        "eximbank",
+        "exim bank",
+        "eib",
+    ),
+}
 
 
 def strip_accents(text: str) -> str:
@@ -253,22 +443,80 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
     # 2. Resolve Entities
     company_entities = [e for e in catalog.entities if e.entity_type.value == "company"]
     company_id_map = {e.entity_id.upper(): e.entity_id for e in company_entities}
+    for e in company_entities:
+        ticker_attr = e.attributes.get("ticker") if isinstance(e.attributes, dict) else None
+        if ticker_attr and isinstance(ticker_attr, str):
+            company_id_map[ticker_attr.upper()] = e.entity_id
 
-    # Find position of each company match in query
+    # Build candidates list: (canonical_ticker, pattern_norm_no_accents, length)
+    # Longest phrase first ensures e.g. "ngân hàng Á Châu" matches before "Á Châu",
+    # "Sài Gòn - Hà Nội" matches before "Sài Gòn", and "MBBank" before "MB".
+    candidates: list[tuple[str, str, int]] = []
+    seen_aliases: set[tuple[str, str]] = set()
+
+    for ticker, aliases in BANK_NAME_ALIASES.items():
+        for alias in aliases:
+            a_norm = strip_accents(normalize_text(alias))
+            if (ticker, a_norm) not in seen_aliases:
+                seen_aliases.add((ticker, a_norm))
+                candidates.append((ticker, a_norm, len(a_norm)))
+
+    # Include any company entities from catalog not already covered in alias list
+    for entity_id in company_id_map:
+        e_norm = strip_accents(normalize_text(entity_id))
+        if (entity_id, e_norm) not in seen_aliases:
+            seen_aliases.add((entity_id, e_norm))
+            candidates.append((entity_id, e_norm, len(e_norm)))
+
+    candidates.sort(key=lambda x: -x[2])
+
+    working_text = norm_no_accents
+    found_matches: list[tuple[int, str]] = []  # (start_index, ticker)
+
+    for ticker, a_norm, _length in candidates:
+        pattern = rf"(?<![a-z0-9_]){re.escape(a_norm)}(?![a-z0-9_])"
+        while True:
+            m = re.search(pattern, working_text)
+            if not m:
+                break
+            start, end = m.start(), m.end()
+            found_matches.append((start, ticker))
+            working_text = working_text[:start] + (" " * (end - start)) + working_text[end:]
+
+    # Separate matches into supported entities and unknown entities
     entity_positions: list[tuple[int, str]] = []
-    for entity_id, canonical_id in company_id_map.items():
-        pattern = rf"(?<![A-Za-z0-9_]){re.escape(entity_id)}(?![A-Za-z0-9_])"
-        match = re.search(pattern, query, re.I)
-        if match:
-            entity_positions.append((match.start(), canonical_id))
-    entity_positions.sort(key=lambda item: item[0])
-    matched_entities = tuple(item[1] for item in entity_positions)
+    unknown_positions: list[tuple[int, str]] = []
+
+    for start_index, ticker in found_matches:
+        u_tick = ticker.upper()
+        if u_tick in company_id_map:
+            entity_positions.append((start_index, company_id_map[u_tick]))
+        else:
+            unknown_positions.append((start_index, u_tick))
+
+    entity_positions.sort(key=lambda x: x[0])
+    unknown_positions.sort(key=lambda x: x[0])
+
+    matched_entities_list: list[str] = []
+    for _pos, can_id in entity_positions:
+        if can_id not in matched_entities_list:
+            matched_entities_list.append(can_id)
+    matched_entities = tuple(matched_entities_list)
+
+    unknown_entity_tokens: list[str] = []
+    for _pos, tok in unknown_positions:
+        if tok not in unknown_entity_tokens:
+            unknown_entity_tokens.append(tok)
 
     # Detect unknown entity tokens: uppercase tokens of 3-10 chars not in catalog
     all_raw_tokens = re.findall(r"\b[A-Za-z0-9_]{3,10}\b", query)
-    unknown_entity_tokens: list[str] = []
     for token in all_raw_tokens:
         u_tok = token.upper()
+        t_norm = strip_accents(normalize_text(token))
+        tok_pat = rf"(?<![a-z0-9_]){re.escape(t_norm)}(?![a-z0-9_])"
+        if not re.search(tok_pat, working_text):
+            # Consumed/blanked out by a matched alias
+            continue
         if (
             u_tok == token
             and u_tok not in company_id_map

@@ -362,6 +362,7 @@ def build_openai_semantic_critic(settings: Settings):
         network_access="enabled",
         api_key_env_var="OPENAI_API_KEY",
         endpoint_env_var="OPENAI_BASE_URL",
+        max_output_tokens=settings.semantic_critic_max_output_tokens,
     )
     from .llm import get_llm_client
 
@@ -376,7 +377,11 @@ def build_openai_analysis_writer(settings: Settings):
     from .analysis_writer import OpenAIAnalysisWriter
     from .llm import get_llm_client
 
-    return OpenAIAnalysisWriter(client=get_llm_client(settings), model=settings.openai_model)
+    return OpenAIAnalysisWriter(
+        client=get_llm_client(settings),
+        model=settings.openai_model,
+        max_output_tokens=settings.analysis_writer_max_output_tokens,
+    )
 
 
 def _is_comparison_requested(request: AnalysisRequest) -> bool:
@@ -1720,6 +1725,7 @@ class _AdaptiveRun:
                             sentence_id=sent.sentence_id,
                             author=sent.author,
                             text=sent.text,
+                            fact_ids=list(getattr(sent, "fact_ids", ())),
                             reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                             reason=v_res.reason or "",
                         )
@@ -1833,6 +1839,7 @@ class _AdaptiveRun:
                             sentence_id=s_id,
                             author=author,
                             text=text,
+                            fact_ids=list(fact_ids),
                             reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                             reason=v_res.reason or "",
                         ))
@@ -2240,6 +2247,7 @@ class _AdaptiveRun:
                                     sentence_id=c_sent.sentence_id,
                                     author=c_sent.author,
                                     text=c_sent.text,
+                                    fact_ids=list(getattr(c_sent, "fact_ids", ())),
                                     reason_code=c_verdict.reason_code or "unknown_fact",  # type: ignore
                                     reason="không kiểm chứng được",
                                 ))
@@ -2321,6 +2329,7 @@ class _AdaptiveRun:
                                                 sentence_id=drop_target.sentence_id,
                                                 author=drop_target.author,
                                                 text=drop_target.text,
+                                                fact_ids=list(getattr(drop_target, "fact_ids", ())),
                                                 reason_code="unresolved_critique",
                                                 reason=issue.description,
                                             ))
@@ -2468,6 +2477,7 @@ class _AdaptiveRun:
                                                     sentence_id=orig_s.sentence_id,
                                                     author=orig_s.author,
                                                     text=rev_s.text,
+                                                    fact_ids=list(getattr(rev_s, "fact_ids", ())),
                                                     reason_code=rev_v.reason_code or "unknown_fact",  # type: ignore
                                                     reason=rev_v.reason or "",
                                                 ))
@@ -2658,6 +2668,7 @@ class _AdaptiveRun:
                                             sentence_id=drop_target.sentence_id,
                                             author=drop_target.author,
                                             text=drop_target.text,
+                                            fact_ids=list(getattr(drop_target, "fact_ids", ())),
                                             reason_code="unresolved_critique",
                                             reason=i.description,
                                         ))
@@ -2776,6 +2787,7 @@ class _AdaptiveRun:
                                 sentence_id=blk.sentence.sentence_id,
                                 author=blk.sentence.author,
                                 text=blk.sentence.text,
+                                fact_ids=list(getattr(blk.sentence, "fact_ids", ())),
                                 reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                 reason=v_res.reason or "",
                             )
@@ -2813,6 +2825,7 @@ class _AdaptiveRun:
                                     sentence_id=s.sentence_id,
                                     author=s.author,
                                     text=s.text,
+                                    fact_ids=list(getattr(s, "fact_ids", ())),
                                     reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                     reason=v_res.reason or "",
                                 )
@@ -2846,6 +2859,7 @@ class _AdaptiveRun:
                                         sentence_id=s.sentence_id,
                                         author=s.author,
                                         text=s.text,
+                                        fact_ids=list(getattr(s, "fact_ids", ())),
                                         reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                         reason=v_res.reason or "",
                                     )
@@ -2881,6 +2895,7 @@ class _AdaptiveRun:
                                     sentence_id=s.sentence_id,
                                     author=s.author,
                                     text=s.text,
+                                    fact_ids=list(getattr(s, "fact_ids", ())),
                                     reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                     reason=v_res.reason or "",
                                 )
@@ -2913,6 +2928,7 @@ class _AdaptiveRun:
                                     sentence_id=s.sentence_id,
                                     author=s.author,
                                     text=s.text,
+                                    fact_ids=list(getattr(s, "fact_ids", ())),
                                     reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                     reason=v_res.reason or "",
                                 )
@@ -2942,6 +2958,7 @@ class _AdaptiveRun:
                                     sentence_id=blk.takeaway.sentence_id,
                                     author=blk.takeaway.author,
                                     text=blk.takeaway.text,
+                                    fact_ids=list(getattr(blk.takeaway, "fact_ids", ())),
                                     reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
                                     reason=v_res.reason or "",
                                 )

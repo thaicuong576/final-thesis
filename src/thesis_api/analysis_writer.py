@@ -60,13 +60,16 @@ FINDINGS_PROMPT_TEMPLATE = (
     "Câu hỏi: {question} (dạng: {question_type_label}).\n"
     "Viết tối đa {max_sentences} câu nhận định tiếng Việt trả lời trực tiếp câu hỏi, chỉ dựa trên các fact được cung cấp. Ưu tiên insight quan trọng nhất trước.\n"
     "Quy tắc:\n"
-    "1. Mỗi câu liệt kê fact_ids nó dựa vào, chỉ dùng fact_id có trong danh sách.\n"
-    "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
-    "3. Chỉ nói tăng/giảm/liên tục/thu hẹp khi có fact thay đổi; chỉ nói cao hơn/thấp hơn/nhỉnh hơn khi có fact chênh lệch; chỉ nói \"nhất/hạng\" khi có fact hạng.\n"
-    "3b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
-    "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Được dùng \"hàm ý\" cho phép phân rã như ROE/ROA. Không khuyến nghị mua/bán.\n"
-    "5. Câu tối đa 30 từ, giọng báo cáo phân tích, dùng tên chỉ tiêu tiếng Việt, không dùng mã như bank.roe.\n"
-    "6. Nếu có \"ung_vien_mau_thuan\", được nêu dữ kiện liên quan nhưng không kết luận nguyên nhân.\n"
+    "1. Chép chính xác chuỗi fact_id từ danh sách; tuyệt đối không tự tạo hoặc sửa fact_id.\n"
+    "2. fact_ids phải chứa fact của MỌI số liệu, mọi thứ hạng và mọi kỳ xuất hiện trong câu; chỉ được nêu tên quý nếu fact được trích dẫn có kỳ (period) hoặc kỳ gốc (from_period) là quý đó.\n"
+    "3. Viết kỳ đầy đủ theo định dạng: \"quý N/YYYY\".\n"
+    "4. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
+    "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
+    "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng. Chỉ nói tăng/giảm/liên tục/thu hẹp khi có fact thay đổi; chỉ nói cao hơn/thấp hơn/nhỉnh hơn khi có fact chênh lệch; chỉ nói \"nhất/hạng\" khi có fact hạng.\n"
+    "6b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
+    "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Được dùng \"hàm ý\" cho phép phân rã như ROE/ROA. Không khuyến nghị mua/bán.\n"
+    "8. Câu tối đa 30 từ, giọng báo cáo phân tích, dùng tên chỉ tiêu tiếng Việt, không dùng mã như bank.roe.\n"
+    "9. Nếu có \"ung_vien_mau_thuan\", được nêu dữ kiện liên quan nhưng không kết luận nguyên nhân.\n"
     "Trả về JSON: {{\"sentences\":[{{\"text\":\"…\",\"fact_ids\":[\"…\"]}}]}}"
 )
 
@@ -81,7 +84,14 @@ COMPOSE_REPORT_PROMPT_TEMPLATE = (
     "- Ưu tiên dùng lại sentence_id. Chỉ viết câu mới khi thật cần, và câu mới phải kèm fact_ids.\n"
     "- Câu mới tả chiều thay đổi/chênh lệch phải dùng đúng cụm trong \"huong\" của fact (đi ngang, cao hơn trung vị nhóm…).\n"
     "- Phát hiện liên tầng đã xác nhận nên được đưa vào callout.\n"
-    "Quy tắc số, xu hướng, nguyên nhân, khuyến nghị: giống chuyên viên. Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
+    "Quy tắc cho câu mới và takeaway:\n"
+    "1. Chép chính xác chuỗi fact_id từ danh sách; tuyệt đối không tự tạo hoặc sửa fact_id.\n"
+    "2. fact_ids phải chứa fact của MỌI số liệu, mọi thứ hạng và mọi kỳ xuất hiện trong câu; chỉ được nêu tên quý nếu fact trích dẫn có kỳ hoặc kỳ gốc là quý đó.\n"
+    "3. Viết kỳ đầy đủ theo định dạng: \"quý N/YYYY\".\n"
+    "4. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
+    "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
+    "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng.\n"
+    "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
     "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới).\n"
     "Ví dụ cấu trúc cho note:\n"
     "{{\"kind\":\"note\",\"note_label\":null,\"blocks\":[{{\"type\":\"headline\",\"sentence\":{{\"sentence_id\":\"sent-company-1\"}}}},{{\"type\":\"section\",\"title\":\"Phân tích chi tiết\",\"sentences\":[{{\"sentence_id\":\"sent-company-2\"}}]}}]}}\n"
@@ -234,11 +244,14 @@ REWRITE_SENTENCE_PROMPT_TEMPLATE = (
     "Yêu cầu xử lý: {required_action}\n"
     "Hãy viết lại 1 câu nhận định tiếng Việt để khắc phục vấn đề trên, chỉ dùng các fact được cung cấp.\n"
     "Quy tắc:\n"
-    "1. Liệt kê fact_ids câu dựa vào, chỉ dùng fact_id trong danh sách.\n"
-    "2. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
-    "3. Chỉ nói tăng/giảm khi có fact thay đổi; chỉ nói cao/thấp hơn khi có fact chênh lệch.\n"
-    "3b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
-    "4. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Tối đa 30 từ.\n"
+    "1. Chép chính xác chuỗi fact_id từ danh sách; tuyệt đối không tự tạo hoặc sửa fact_id.\n"
+    "2. fact_ids phải chứa fact của MỌI số liệu, mọi thứ hạng và mọi kỳ xuất hiện trong câu; chỉ được nêu tên quý nếu fact trích dẫn có kỳ hoặc kỳ gốc là quý đó.\n"
+    "3. Viết kỳ đầy đủ theo định dạng: \"quý N/YYYY\".\n"
+    "4. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
+    "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
+    "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng. Chỉ nói tăng/giảm khi có fact thay đổi; chỉ nói cao/thấp hơn khi có fact chênh lệch.\n"
+    "6b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
+    "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Tối đa 30 từ.\n"
     "Trả về JSON: {{\"text\":\"…\",\"fact_ids\":[\"…\"]}}"
 )
 
@@ -307,12 +320,24 @@ class AnalysisWriter(Protocol):
 class OpenAIAnalysisWriter:
     """OpenAI Responses / chat adapter providing specialist findings, composition, and sentence revision."""
 
-    def __init__(self, *, client: Any, model: str) -> None:
+    def __init__(
+        self,
+        *,
+        client: Any,
+        model: str,
+        max_output_tokens: int | None = None,
+    ) -> None:
         if client is None or not isinstance(model, str) or not model.strip():
             raise AnalysisWriterError("analysis_writer_configuration_invalid")
         self.client = client
         self.model = model.strip()
         self._current_role: str = "orchestrator"
+        if max_output_tokens is None:
+            from thesis_api.settings import get_settings
+
+            self.max_output_tokens = get_settings().analysis_writer_max_output_tokens
+        else:
+            self.max_output_tokens = int(max_output_tokens)
 
     def write_findings(
         self,
@@ -522,7 +547,7 @@ class OpenAIAnalysisWriter:
                         "model": self.model,
                         "instructions": instructions,
                         "input": json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-                        "max_output_tokens": 2500,
+                        "max_output_tokens": self.max_output_tokens,
                         "store": False,
                     }
                     if schema is not None:
@@ -550,7 +575,7 @@ class OpenAIAnalysisWriter:
                     kwargs: dict[str, Any] = {
                         "model": self.model,
                         "messages": messages,
-                        "max_tokens": 2500,
+                        "max_tokens": self.max_output_tokens,
                     }
                     if schema is not None:
                         kwargs["response_format"] = {

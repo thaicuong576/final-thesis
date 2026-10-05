@@ -544,13 +544,15 @@ def model_plan(
         ],
     }
 
+    from .settings import get_settings
+
     try:
         response = client.responses.create(
             model=model,
             instructions=_MODEL_PLAN_PROMPT,
             input=json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
             text={"format": {"type": "json_schema", "name": "analysis_plan", "strict": True, "schema": _PLAN_SCHEMA}},
-            max_output_tokens=2500,
+            max_output_tokens=get_settings().analysis_writer_max_output_tokens,
             store=False,
         )
         output_text = getattr(response, "output_text", None)

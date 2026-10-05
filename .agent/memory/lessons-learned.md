@@ -793,3 +793,35 @@ In ER-8, manifests recorded 3 plan-hash mismatches across arms because the runti
 ### 3. Missingness Metric on Complete Coverage Snapshots
 When an evaluation dataset contains complete coverage (all 100 bank-quarters across 10 banks present, 0 missing cells), evaluating missingness handling against hardcoded task IDs (e.g. ACB 2024 Q1 in Gold v5) would report false 100% scores. Missingness checks must be driven dynamically by `expected_coverage.missing_count`:
 - When `missing_count == 0`, `missingness_handled` evaluates to `None` and is exported as `N/A` in arm summary tables, avoiding misleading evaluations when no missing-cell handling was triggered.
+
+---
+
+## [LESSON-042] Vietnamese Bank Name Alias Recognition: Longest-Phrase-First Matching, Boundary Disambiguation, and Catalog Grounding
+
+- Date: 2026-10-05
+- Scope: `src/thesis_api/query_understanding.py`, `tests/test_query_understanding.py`
+- Status: ACTIVE
+
+### 1. Longest-Phrase-First Matching and Span Blanking
+Vietnamese bank entity references in real user queries span a wide spectrum from 2-letter abbreviations ("MB") to multi-word official Vietnamese titles ("ngân hàng Ngoại thương", "Sài Gòn – Hà Nội", "Đầu tư và Phát triển").
+- **Collisions & Sub-phrases**: Matching shorter abbreviations or words first would incorrectly match "MB" inside "MBBank" or "MBS", "Á Châu" inside "ngân hàng Á Châu", or "Sài Gòn" inside "Sài Gòn – Hà Nội".
+- **Solution**: Normalize all alias phrases (`normalize_text` and `strip_accents`), sort candidates by phrase length descending, and blank out matched spans with spaces in the working text. This ensures longer phrases consume the characters first, and subsequent shorter candidates cannot falsely re-match within consumed spans while preserving character indices and relative left-to-right order for multi-entity head-to-head queries.
+
+### 2. Polysemous and Generic Word Disambiguation
+- Generic Vietnamese words ("ngân hàng", "nhà nước", "Việt Nam") must never be mapped to any bank entity alone, preventing false matches on macro policy queries ("Ngân hàng nhà nước điều hành lãi suất thế nào?").
+- Polysemous terms like "Quốc tế" appear in general banking contexts ("chuẩn quốc tế Basel", "thị trường quốc tế"). To prevent false positive matches for VIB, "quốc tế" alone is never mapped; VIB is matched exclusively via "VIB", "vibank", or "ngân hàng quốc tế [việt nam]".
+- Word boundary regex `(?<![A-Za-z0-9_À-ỹĐđ])...(?![A-Za-z0-9_À-ỹĐđ])` strictly enforces word boundaries across ASCII and Vietnamese unicode ranges, preventing "MB" from matching inside "MBS".
+
+### 3. Catalog Grounding and Unsupported Bank Refusals
+- A recognized alias maps to a resolved company entity only if its canonical ticker exists in the request's `catalog.entities`.
+- If an alias refers to a bank not present in the catalog (e.g. "OCB", "Phương Đông" when using the 10-bank Gold catalog, or "Vietcombank" when using a test mock catalog), its canonical ticker is routed directly to `unknown_entity_tokens`. This triggers `AnalysisBlocked("unsupported_entity")` with the standard localized message listing available banks.
+- Blanking consumed alias spans also prevents uppercase brand tokens (such as "BIDV" for ticker `BID`, or "SACOMBANK" for ticker `STB`) from being erroneously flagged as unknown entities by the trailing uppercase token scanner.
+
+### 4. Non-Distinctive Bare Phrases Must Require Bank Prefixes ('ngân hàng' or 'nh')
+In user queries, common Vietnamese dictionary terms, ministry titles, universities, or economic phrases can contain substrings identical to bank names:
+- `"Bộ Công Thương và VCB"` matched CTG because of bare `"công thương"` (Ministry of Industry and Trade).
+- `"Sinh viên Ngoại thương hỏi ROE của ACB"` matched VCB because of bare `"ngoại thương"` (Foreign Trade University).
+- `"Đầu tư và phát triển số của TCB"` matched BID because of bare `"đầu tư và phát triển"` (digital investment & development).
+- **Rule**: Distinctive brand names (`Vietcombank`, `VCB`, `BIDV`, `BID`, `VietinBank`, `CTG`, `Techcombank`, `TCB`, `MBBank`, `MB Bank`, `MB`, `VPBank`, `VPB`, `ACB`, `Sacombank`, `STB`, `SHB`, `HDBank`, `HDB`, `VIB`, `OCB`, `TPBank`, `MSB`, `LPBank`, `SeABank`, `Eximbank`) are permitted as bare terms. Non-distinctive, polysemous phrases (`công thương`, `ngoại thương`, `đầu tư và phát triển`, `kỹ thương`, `quân đội`, `sài gòn - hà nội`, `việt nam thịnh vượng`, `á châu`, `sài gòn thương tín`, `phương đông`, `tiên phong`, `hàng hải`, `đông nam á`, `xuất nhập khẩu`) MUST strictly require an explicit bank prefix (`ngân hàng`, `nh`, `ngân hàng tmcp`, `nh tmcp`, `nhtmcp`).
+
+

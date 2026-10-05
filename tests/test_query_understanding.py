@@ -268,5 +268,274 @@ class TestMetricPhraseResolution(unittest.TestCase):
         )
 
 
+def _make_gold_catalog() -> DatasetCapabilityCatalog:
+    ref = DatasetRef(dataset_id="gold-fixture", dataset_snapshot_id="gold-fixture-v1")
+    entities = tuple(
+        DatasetEntity(
+            entity_id=ticker,
+            entity_type=DatasetEntityType.COMPANY,
+            display_name=ticker,
+            attributes={"ticker": ticker},
+        )
+        for ticker in ("ACB", "BID", "CTG", "HDB", "MBB", "SHB", "STB", "TCB", "VCB", "VPB")
+    )
+    periods = tuple(
+        DatasetPeriod(period_id=f"{year}_Q{q}", label=f"{year} Q{q}")
+        for year in (2024, 2025, 2026)
+        for q in range(1, 5)
+    )
+    metrics = (
+        DatasetMetric(
+            metric_id="bank.npl_g35",
+            display_name="Tỷ lệ nợ xấu",
+            analytical_level=AnalyticalLevel.COMPANY,
+            default_unit="percent",
+        ),
+        DatasetMetric(
+            metric_id="bank.llr_coverage",
+            display_name="Tỷ lệ bao phủ nợ xấu",
+            analytical_level=AnalyticalLevel.COMPANY,
+            default_unit="percent",
+        ),
+        DatasetMetric(
+            metric_id="bank.roa",
+            display_name="ROA",
+            analytical_level=AnalyticalLevel.COMPANY,
+            default_unit="percent",
+        ),
+        DatasetMetric(
+            metric_id="bank.roe",
+            display_name="ROE",
+            analytical_level=AnalyticalLevel.COMPANY,
+            default_unit="percent",
+        ),
+    )
+    peer_universes = (
+        PeerUniverse(
+            peer_universe_id="universe-gold",
+            display_name="Gold Universe",
+            entity_ids=tuple(e.entity_id for e in entities),
+        ),
+    )
+    return DatasetCapabilityCatalog(
+        dataset_ref=ref,
+        entities=entities,
+        periods=periods,
+        metrics=metrics,
+        peer_universes=peer_universes,
+        supported_operations=(
+            SupportedOperation.GET_METRIC,
+            SupportedOperation.RESOLVE_OBSERVATION,
+            SupportedOperation.GET_SOURCE,
+            SupportedOperation.GET_PEER_BENCHMARK,
+        ),
+    )
+
+
+class TestBankNameAliases(unittest.TestCase):
+    """Tests for Task ALIAS-1: recognise common Vietnamese bank names in questions."""
+
+    def setUp(self) -> None:
+        self.catalog = _make_gold_catalog()
+        self.mock_catalog = _make_mock_catalog()
+
+    def test_regression_generic_vietnamese_phrases_not_banks(self) -> None:
+        """Regression tests: non-bank phrases containing common words must NOT resolve to banks.
+
+        - 'Bộ Công Thương và VCB quý 4/2025' -> only VCB (Bộ Công Thương is not CTG)
+        - 'Sinh viên Ngoại thương hỏi ROE của ACB quý 4/2025' -> only ACB (Ngoại thương here is university, not VCB)
+        - 'Đầu tư và phát triển số của TCB quý 4/2025' -> only TCB (Đầu tư và phát triển số is not BID)
+        """
+        res1 = resolve_query("Bộ Công Thương và VCB quý 4/2025", self.catalog)
+        self.assertEqual(res1.entities, ("VCB",))
+        self.assertEqual(res1.unknown_entity_tokens, ())
+
+        res2 = resolve_query("Sinh viên Ngoại thương hỏi ROE của ACB quý 4/2025", self.catalog)
+        self.assertEqual(res2.entities, ("ACB",))
+        self.assertEqual(res2.unknown_entity_tokens, ())
+
+        res3 = resolve_query("Đầu tư và phát triển số của TCB quý 4/2025", self.catalog)
+        self.assertEqual(res3.entities, ("TCB",))
+        self.assertEqual(res3.unknown_entity_tokens, ())
+
+    def test_vietcombank_and_techcombank_order(self) -> None:
+        """'So sánh Vietcombank và Techcombank quý 4/2025' → VCB, TCB in that order."""
+        resolved = resolve_query(
+            "So sánh Vietcombank và Techcombank quý 4/2025", self.catalog
+        )
+        self.assertEqual(resolved.entities, ("VCB", "TCB"))
+        self.assertEqual(resolved.unknown_entity_tokens, ())
+        self.assertEqual(resolved.anchor_period, "2025_Q4")
+
+        # Reverse order preserved
+        resolved_rev = resolve_query(
+            "So sánh Techcombank và Vietcombank quý 4/2025", self.catalog
+        )
+        self.assertEqual(resolved_rev.entities, ("TCB", "VCB"))
+
+    def test_acb_accents_and_accentless(self) -> None:
+        """'Nợ xấu của ngân hàng Á Châu quý 2/2026' and the accentless 'a chau' → ACB."""
+        # Accented with 'ngân hàng'
+        res1 = resolve_query("Nợ xấu của ngân hàng Á Châu quý 2/2026", self.catalog)
+        self.assertEqual(res1.entities, ("ACB",))
+        self.assertEqual(res1.anchor_period, "2026_Q2")
+
+        # Accentless with 'ngan hang'
+        res2 = resolve_query("Nợ xấu của ngan hang a chau quý 2/2026", self.catalog)
+        self.assertEqual(res2.entities, ("ACB",))
+
+        # With 'NH' prefix
+        res3 = resolve_query("Nợ xấu của NH Á Châu quý 2/2026", self.catalog)
+        self.assertEqual(res3.entities, ("ACB",))
+
+        # Accentless with 'nh' prefix
+        res4 = resolve_query("Nợ xấu của nh a chau quý 2/2026", self.catalog)
+        self.assertEqual(res4.entities, ("ACB",))
+
+        # Ticker ACB alone
+        res5 = resolve_query("Nợ xấu của ACB quý 2/2026", self.catalog)
+        self.assertEqual(res5.entities, ("ACB",))
+
+    def test_mbb_variants_and_mbs_boundary(self) -> None:
+        """'MB Bank' / 'MBBank' / 'ngân hàng Quân đội' → MBB; 'MB' does not match inside 'MBS' or other words."""
+        # 'MB Bank'
+        res_mb_bank = resolve_query("Nợ xấu của MB Bank quý 4/2025", self.catalog)
+        self.assertEqual(res_mb_bank.entities, ("MBB",))
+
+        # 'MBBank'
+        res_mbbank = resolve_query("Nợ xấu của MBBank quý 4/2025", self.catalog)
+        self.assertEqual(res_mbbank.entities, ("MBB",))
+
+        # 'ngân hàng Quân đội'
+        res_qd = resolve_query("Nợ xấu của ngân hàng Quân đội quý 4/2025", self.catalog)
+        self.assertEqual(res_qd.entities, ("MBB",))
+
+        # 'NH Quân đội'
+        res_nh_qd = resolve_query("Nợ xấu của NH Quân đội quý 4/2025", self.catalog)
+        self.assertEqual(res_nh_qd.entities, ("MBB",))
+
+        # 'MB' alone
+        res_mb = resolve_query("Nợ xấu của MB quý 4/2025", self.catalog)
+        self.assertEqual(res_mb.entities, ("MBB",))
+
+        # 'MB' does not match inside 'MBS'
+        res_mbs = resolve_query("Phân tích MBS quý 4/2025", self.catalog)
+        self.assertNotIn("MBB", res_mbs.entities)
+        self.assertEqual(res_mbs.entities, ())
+        self.assertIn("MBS", res_mbs.unknown_entity_tokens)
+
+        # Bare 'quân đội' in non-bank context must not match MBB
+        res_nonbank = resolve_query("Doanh nghiệp quân đội vay vốn tại TCB", self.catalog)
+        self.assertNotIn("MBB", res_nonbank.entities)
+        self.assertEqual(res_nonbank.entities, ("TCB",))
+
+    def test_unsupported_bank_names(self) -> None:
+        """A name of a bank not in the catalog (e.g. 'OCB', 'Phương Đông') → unsupported, as today."""
+        # 'OCB' ticker
+        res_ocb = resolve_query("Phân tích OCB quý 4/2025", self.catalog)
+        self.assertEqual(res_ocb.entities, ())
+        self.assertIn("OCB", res_ocb.unknown_entity_tokens)
+
+        # 'ngân hàng Phương Đông'
+        res_pd = resolve_query("Phân tích ngân hàng Phương Đông quý 4/2025", self.catalog)
+        self.assertEqual(res_pd.entities, ())
+        self.assertIn("OCB", res_pd.unknown_entity_tokens)
+
+        # 'NH Phương Đông'
+        res_nh_pd = resolve_query("Phân tích NH Phương Đông quý 4/2025", self.catalog)
+        self.assertEqual(res_nh_pd.entities, ())
+        self.assertIn("OCB", res_nh_pd.unknown_entity_tokens)
+
+        # Accentless 'ngan hang phuong dong'
+        res_pd_noacc = resolve_query("Phân tích ngan hang phuong dong quý 4/2025", self.catalog)
+        self.assertEqual(res_pd_noacc.entities, ())
+        self.assertIn("OCB", res_pd_noacc.unknown_entity_tokens)
+
+        # Bare 'phương đông' in non-bank phrase does not match OCB
+        res_hotel = resolve_query("Khách sạn Phương Đông và VCB quý 4/2025", self.catalog)
+        self.assertEqual(res_hotel.entities, ("VCB",))
+        self.assertNotIn("OCB", res_hotel.unknown_entity_tokens)
+
+        # When a bank name is in alias map but NOT in the catalog for this request:
+        # e.g. Vietcombank queried against mock catalog (which only has BANK_A..BANK_E)
+        res_mock = resolve_query("Phân tích Vietcombank quý 4/2024", self.mock_catalog)
+        self.assertEqual(res_mock.entities, ())
+        self.assertIn("VCB", res_mock.unknown_entity_tokens)
+
+    def test_all_served_bank_aliases(self) -> None:
+        """Verify Vietnamese names for all served banks map to correct tickers."""
+        cases = [
+            ("BIDV", "BID"),
+            ("ngân hàng Đầu tư và Phát triển", "BID"),
+            ("NH Đầu tư và Phát triển", "BID"),
+            ("VietinBank", "CTG"),
+            ("ngân hàng Công Thương", "CTG"),
+            ("NH Công Thương", "CTG"),
+            ("Techcombank", "TCB"),
+            ("ngân hàng Kỹ Thương", "TCB"),
+            ("NH Kỹ Thương", "TCB"),
+            ("Sacombank", "STB"),
+            ("ngân hàng Sài Gòn Thương Tín", "STB"),
+            ("NH Sài Gòn Thương Tín", "STB"),
+            ("ngân hàng Sài Gòn – Hà Nội", "SHB"),
+            ("ngân hàng Sài Gòn - Hà Nội", "SHB"),
+            ("NH Sài Gòn - Hà Nội", "SHB"),
+            ("HDBank", "HDB"),
+            ("VPBank", "VPB"),
+            ("ngân hàng Việt Nam Thịnh Vượng", "VPB"),
+            ("NH Việt Nam Thịnh Vượng", "VPB"),
+            ("ngân hàng Ngoại thương", "VCB"),
+            ("NH Ngoại thương", "VCB"),
+            ("Vietcombank", "VCB"),
+        ]
+        for name, expected_ticker in cases:
+            with self.subTest(name=name):
+                resolved = resolve_query(f"Tỷ lệ nợ xấu của {name} quý 4/2025", self.catalog)
+                self.assertEqual(resolved.entities, (expected_ticker,))
+
+    def test_vib_uploaded_and_quoc_te_boundary(self) -> None:
+        """'Quốc tế' matches VIB only in 'ngân hàng Quốc tế', not in generic phrases."""
+        # In gold catalog (without VIB), 'ngân hàng Quốc tế' maps to unsupported VIB
+        res_vib_unsupported = resolve_query("Tỷ lệ nợ xấu của ngân hàng Quốc tế quý 4/2025", self.catalog)
+        self.assertEqual(res_vib_unsupported.entities, ())
+        self.assertIn("VIB", res_vib_unsupported.unknown_entity_tokens)
+
+        # 'chuẩn quốc tế' must NOT match VIB
+        res_generic = resolve_query("Chất lượng tín dụng chuẩn quốc tế quý 4/2025", self.catalog)
+        self.assertEqual(res_generic.entities, ())
+        self.assertNotIn("VIB", res_generic.unknown_entity_tokens)
+
+        # In composite catalog containing VIB (e.g. from user upload)
+        vib_entity = DatasetEntity(
+            entity_id="VIB",
+            entity_type=DatasetEntityType.COMPANY,
+            display_name="VIB",
+            attributes={"ticker": "VIB"},
+        )
+        catalog_with_vib = DatasetCapabilityCatalog(
+            dataset_ref=self.catalog.dataset_ref,
+            entities=self.catalog.entities + (vib_entity,),
+            periods=self.catalog.periods,
+            metrics=self.catalog.metrics,
+            peer_universes=self.catalog.peer_universes,
+            supported_operations=self.catalog.supported_operations,
+        )
+        res_vib_ok = resolve_query("Tỷ lệ nợ xấu của ngân hàng Quốc tế quý 4/2025", catalog_with_vib)
+        self.assertEqual(res_vib_ok.entities, ("VIB",))
+        res_vib_ticker = resolve_query("Tỷ lệ nợ xấu của VIB quý 4/2025", catalog_with_vib)
+        self.assertEqual(res_vib_ticker.entities, ("VIB",))
+
+    def test_ticker_questions_pass_unchanged(self) -> None:
+        """Existing ticker-based questions continue to pass unchanged."""
+        res_mock = resolve_query("So sánh BANK_C, BANK_A và BANK_B quý 4/2024", self.mock_catalog)
+        self.assertEqual(res_mock.entities, ("BANK_C", "BANK_A", "BANK_B"))
+
+        res_gold = resolve_query("Tỷ lệ nợ xấu của VCB quý 4/2025", self.catalog)
+        self.assertEqual(res_gold.entities, ("VCB",))
+
+        res_pair = resolve_query("So sánh VCB và TCB quý 4/2025", self.catalog)
+        self.assertEqual(res_pair.entities, ("VCB", "TCB"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -2,9 +2,13 @@ import React from 'react';
 import type { SectionBlock } from '../model/types';
 import { SentenceView } from './SentenceView';
 
-export const Section: React.FC<{ block: SectionBlock; compact?: boolean }> = ({ block, compact = false }) => {
+export const Section: React.FC<{ block: SectionBlock; compact?: boolean; className?: string }> = ({
+  block,
+  compact = false,
+  className = ''
+}) => {
   return (
-    <section className={compact ? 'mt-4 font-sans' : 'mt-7 mb-4 font-sans'}>
+    <section className={`font-sans max-w-[70ch] ${compact ? 'mt-4' : 'mt-7 mb-4'} ${className}`}>
       {block.title && (
         <h2
           className={

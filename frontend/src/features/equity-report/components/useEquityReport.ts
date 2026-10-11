@@ -9,6 +9,7 @@ export interface EquityReportContextValue {
   metrics: MetricPresentation[];
   highlight: string[];
   getNoteNumbersForFactIds: (factIds: string[]) => number[];
+  onOpenSource?: (noteNo: number) => void;
 }
 
 export const EquityReportContext = createContext<EquityReportContextValue | null>(null);

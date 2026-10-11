@@ -2,15 +2,21 @@ import React from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, formatDisplayText } from '@/shared/lib/formatting';
+import { RankHeatmap } from './RankHeatmap';
 
 export const DataTable: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
-  const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
-
   const rows = dataset.rows || [];
+
+  // Pivot long datasets (shape peer_table / comparison_table or > 12 rows) into compact matrix
+  if (rows.length > 12 || dataset.shape === 'peer_table' || (dataset.shape === 'comparison_table' && rows.length > 12)) {
+    return <RankHeatmap dataset={dataset} metrics={metrics} highlight={highlight} className={className} />;
+  }
+
+  const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
 
   return (
     <div className={`overflow-x-auto my-2 border border-line rounded bg-surface-primary p-3 ${className}`}>
-      <table className="w-full min-w-[480px] text-xs text-left border-collapse" role="table">
+      <table className="w-full min-w-[420px] text-xs text-left border-collapse" role="table">
         <thead>
           <tr className="border-b border-line text-text-tertiary font-semibold">
             <th className="py-1.5 px-2">Thực thể</th>
@@ -18,7 +24,6 @@ export const DataTable: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
             <th className="py-1.5 px-2">Kỳ</th>
             <th className="py-1.5 px-2 text-right">Giá trị</th>
             <th className="py-1.5 px-2 text-right">Hạng</th>
-            <th className="py-1.5 px-2">Trạng thái</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -37,15 +42,16 @@ export const DataTable: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 <td className="py-1.5 px-2 font-mono">{row.entity_id}</td>
                 <td className="py-1.5 px-2">{metricMeta.shortLabel}</td>
                 <td className="py-1.5 px-2 text-text-secondary">{fmtPeriod(row.period)}</td>
-                <td className="py-1.5 px-2 text-right font-medium">{displayVal}</td>
-                <td className="py-1.5 px-2 text-right text-text-secondary">{rankText}</td>
-                <td className="py-1.5 px-2 text-text-secondary">
+                <td className="py-1.5 px-2 text-right font-medium">
                   {isMissing ? (
-                    <span className="text-warning-text">{formatDisplayText(row.missing_reason) || 'Chưa có số liệu đã kiểm định'}</span>
+                    <span className="text-warning-text font-normal italic text-[11px]" title={row.missing_reason || undefined}>
+                      {formatDisplayText(row.missing_reason) || 'Chưa có số liệu'}
+                    </span>
                   ) : (
-                    'Hợp lệ'
+                    displayVal
                   )}
                 </td>
+                <td className="py-1.5 px-2 text-right text-text-secondary">{rankText}</td>
               </tr>
             );
           })}

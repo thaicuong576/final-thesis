@@ -1,55 +1,98 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
+import { formatDisplayText } from '@/shared/lib/formatting';
 
 export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
-  const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const metricIds = dataset.metric_ids || [];
-  const rows = dataset.rows || [];
-  const refLines = dataset.reference_lines || [];
+  const { highlightSet, metricIds, entities, displayedEntities, cellMap, medianMap, totalEntities } = useMemo(() => {
+    const rawHighlight = highlight.length > 0 ? highlight : dataset.highlight_entity_ids || [];
+    const hlSet = new Set(rawHighlight);
+    const rws = dataset.rows || [];
+    const mIds = (dataset.metric_ids && dataset.metric_ids.length > 0)
+      ? dataset.metric_ids
+      : Array.from(new Set(rws.map((r) => r.metric_id).filter(Boolean)));
+    const rLines = dataset.reference_lines || [];
 
-  // Group entities
-  const entitySet = new Set<string>();
-  for (const r of rows) entitySet.add(r.entity_id);
-  const entities = Array.from(entitySet);
+    const eSet = new Set<string>();
+    for (const r of rws) eSet.add(r.entity_id);
+    const ents = Array.from(eSet);
 
-  // Highlight entities sorted to top, then remaining
-  const sortedEntities = [
-    ...entities.filter((e) => highlightSet.has(e)),
-    ...entities.filter((e) => !highlightSet.has(e))
-  ];
+    const sorted = [
+      ...ents.filter((e) => hlSet.has(e)),
+      ...ents.filter((e) => !hlSet.has(e))
+    ];
 
-  const totalEntities = entities.length || 5;
-
-  // Row map: entity -> metric -> row
-  const cellMap = new Map<string, (typeof rows)[0]>();
-  for (const r of rows) {
-    cellMap.set(`${r.entity_id}:${r.metric_id}`, r);
-  }
-
-  // Median map: metric -> value
-  const medianMap = new Map<string, number>();
-  for (const ref of refLines) {
-    if (ref.kind === 'median') {
-      medianMap.set(ref.metric_id, Number(ref.value));
+    const cMap = new Map<string, (typeof rws)[0]>();
+    for (const r of rws) {
+      cMap.set(`${r.entity_id}:${r.metric_id}`, r);
     }
-  }
 
-  // If median missing for any metric, calculate median from valid rows
-  for (const mId of metricIds) {
-    if (!medianMap.has(mId)) {
-      const vals = rows
-        .filter((r) => r.metric_id === mId && r.status !== 'missing' && r.value !== null)
-        .map((r) => Number(r.value))
-        .sort((a, b) => a - b);
-      if (vals.length > 0) {
-        const mid = Math.floor(vals.length / 2);
-        const med = vals.length % 2 !== 0 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
-        medianMap.set(mId, med);
+    const medMap = new Map<string, number>();
+    for (const ref of rLines) {
+      if (ref.kind === 'median') {
+        medMap.set(ref.metric_id, Number(ref.value));
       }
     }
-  }
+    for (const mId of mIds) {
+      if (!medMap.has(mId)) {
+        const vals = rws
+          .filter((r) => r.metric_id === mId && r.status !== 'missing' && r.value !== null)
+          .map((r) => Number(r.value))
+          .sort((a, b) => a - b);
+        if (vals.length > 0) {
+          const mid = Math.floor(vals.length / 2);
+          const med = vals.length % 2 !== 0 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
+          medMap.set(mId, med);
+        }
+      }
+    }
+
+    let disp = sorted;
+    if (!isExpanded && ents.length > 5) {
+      const visible = new Set<string>();
+      for (const e of ents) {
+        if (hlSet.has(e)) visible.add(e);
+      }
+      if (visible.size === 0 && sorted.length > 0) {
+        visible.add(sorted[0]);
+      }
+      for (const mId of mIds) {
+        let bestEntity: string | null = null;
+        let worstEntity: string | null = null;
+        let bestRank = Infinity;
+        let worstRank = -1;
+
+        for (const e of ents) {
+          const row = cMap.get(`${e}:${mId}`);
+          if (row && row.status !== 'missing' && row.value !== null && row.rank_better !== null && row.rank_better !== undefined) {
+            if (row.rank_better < bestRank) {
+              bestRank = row.rank_better;
+              bestEntity = e;
+            }
+            if (row.rank_better > worstRank) {
+              worstRank = row.rank_better;
+              worstEntity = e;
+            }
+          }
+        }
+        if (bestEntity) visible.add(bestEntity);
+        if (worstEntity) visible.add(worstEntity);
+      }
+      disp = sorted.filter((e) => visible.has(e));
+    }
+
+    return {
+      highlightSet: hlSet,
+      metricIds: mIds,
+      entities: ents,
+      displayedEntities: disp,
+      cellMap: cMap,
+      medianMap: medMap,
+      totalEntities: ents.length || 5
+    };
+  }, [dataset, highlight, isExpanded]);
 
   // Tint calculation
   const getCellBg = (rank: number | null | undefined, direction: string) => {
@@ -73,10 +116,10 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
 
   return (
     <div className={`my-2 overflow-x-auto ${className}`}>
-      <table className="w-full min-w-[420px] border-collapse text-xs table-fixed font-sans" role="table">
+      <table className="w-full min-w-[420px] border-collapse text-xs table-fixed font-sans" role="table" aria-label="Ma trận vị thế nhóm ngân hàng">
         <thead>
           <tr className="border-b border-line text-text-muted">
-            <th className="py-2 px-2 text-left font-semibold w-[22%]"></th>
+            <th className="py-2 px-2 text-left font-semibold w-[24%]">Ngân hàng</th>
             {metricIds.map((mId) => {
               const meta = getMetricPresentation(mId, metrics);
               return (
@@ -88,13 +131,18 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
-          {sortedEntities.map((entity) => {
+          {displayedEntities.map((entity) => {
             const isHighlight = highlightSet.has(entity);
 
             return (
-              <tr key={entity} className={isHighlight ? 'font-semibold' : ''}>
-                <td className={`py-2 px-2 text-left font-mono ${isHighlight ? 'text-text-primary' : 'text-text-secondary'}`}>
-                  {entity}
+              <tr key={entity} className={isHighlight ? 'bg-amber-soft/25 font-semibold ring-1 ring-inset ring-amber/40' : ''}>
+                <td className={`py-2 px-2 text-left font-mono ${isHighlight ? 'text-text-primary font-bold' : 'text-text-secondary'}`}>
+                  <span>{entity}</span>
+                  {isHighlight && (
+                    <span className="ml-1.5 text-[10px] px-1 py-0.2 rounded bg-amber-soft text-amber-border font-sans font-semibold uppercase">
+                      Mục tiêu
+                    </span>
+                  )}
                 </td>
                 {metricIds.map((mId) => {
                   const meta = getMetricPresentation(mId, metrics);
@@ -102,6 +150,7 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
                   const isMissing = !row || row.status === 'missing' || row.value === null;
                   const rank = row?.rank_better;
                   const bg = isMissing ? 'transparent' : getCellBg(rank, meta.direction);
+                  // Missing values never shown as 0!
                   const displayVal = isMissing ? '—' : formatMetricValue(row.value, meta);
 
                   return (
@@ -110,9 +159,16 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
                       style={{ background: bg }}
                       className="py-2 px-1 text-right font-mono text-xs transition-colors"
                     >
-                      <span>{displayVal}</span>
+                      <span className={isMissing ? 'text-text-muted font-normal' : ''}>{displayVal}</span>
                       {rank !== null && rank !== undefined && (
-                        <span className="text-text-muted text-[11px] font-sans"> #{rank}</span>
+                        <span className="ml-1 inline-flex items-center px-1 py-0.2 rounded text-[10px] font-mono font-medium bg-surface-secondary/90 text-text-secondary border border-border-subtle select-none">
+                          #{rank}
+                        </span>
+                      )}
+                      {isMissing && row?.missing_reason && (
+                        <span className="block text-[10px] text-text-warning italic leading-tight truncate max-w-[120px]" title={row.missing_reason}>
+                          {formatDisplayText(row.missing_reason)}
+                        </span>
                       )}
                     </td>
                   );
@@ -122,13 +178,13 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
           })}
 
           {/* Median row */}
-          <tr className="border-t border-line text-text-secondary font-medium">
-            <td className="py-2 px-2 text-left text-text-muted">Trung vị</td>
+          <tr className="border-t-2 border-line text-text-primary font-semibold bg-surface-secondary/40">
+            <td className="py-2 px-2 text-left text-text-secondary font-medium">Trung vị</td>
             {metricIds.map((mId) => {
               const meta = getMetricPresentation(mId, metrics);
               const med = medianMap.get(mId);
               return (
-                <td key={mId} className="py-2 px-1 text-right font-mono text-xs text-text-muted">
+                <td key={mId} className="py-2 px-1 text-right font-mono text-xs text-text-primary">
                   {med !== undefined ? formatMetricValue(med, meta) : '—'}
                 </td>
               );
@@ -136,6 +192,24 @@ export const RankHeatmap: React.FC<ChartProps> = ({ dataset, metrics, highlight 
           </tr>
         </tbody>
       </table>
+
+      {/* Collapse / Expand toggle */}
+      {entities.length > 5 && (
+        <div className="mt-2.5 flex items-center justify-between text-[11px] text-text-muted print:hidden">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="text-[12px] font-medium text-text-accent hover:underline cursor-pointer bg-transparent border-none p-0 inline-flex items-center gap-1"
+          >
+            {isExpanded ? 'Thu gọn danh sách' : `Xem đủ ${entities.length} ngân hàng`}
+          </button>
+          {!isExpanded && (
+            <span>
+              Đang hiển thị {displayedEntities.length}/{entities.length} ngân hàng (mục tiêu & cực trị)
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Legend / explanation */}
       <div className="mt-2 text-[11px] text-text-muted">

@@ -18,4 +18,6 @@ export * from './components/TechnicalDetails';
 export * from './components/BlockRenderer';
 export * from './components/AnswerCardLayout';
 export * from './components/NoteLayout';
+export * from './components/SectionFigureUnit';
+export * from './components/KpiBand';
 export * from './components/AdaptiveReport';

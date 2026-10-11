@@ -145,7 +145,8 @@ class TestLineageApi(unittest.TestCase):
         cls.initial_hash = _file_sha256(cls.temp_db_path)
 
         cls.settings = Settings(
-            sqlite_db_path=str(cls.temp_db_path),
+            _env_file=None,
+            SQLITE_DB_PATH=str(cls.temp_db_path),
             app_env="test",
         )
         cls.app = create_app(settings=cls.settings)

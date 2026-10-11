@@ -18,6 +18,7 @@ import type {
   SentenceItem,
   AuditVerdictItem,
 } from "./types";
+import { formatNumber, formatPeriod } from "./formatters";
 
 interface JourneyTabProps {
   node: LineageNode | null;
@@ -44,15 +45,11 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
     );
   }
 
-  const formatNumber = (num?: number | null, decimals: number = 1) => {
-    if (num == null) return "—";
-    return num.toLocaleString("vi-VN", { maximumFractionDigits: decimals });
-  };
-
-  const page = node.page || activeNote?.page || 7;
+  const page = node.page ?? (node.children?.[0]?.page ?? 7);
   const filingTitle = activeNote?.title || node.source_title || `${node.entity} · Báo cáo tài chính`;
   const formula = node.formula_version || activeFact?.formula_version || "primary-calculation-v1";
   const ratioValue = `${formatNumber(node.value, 1)} ${node.unit || "%"}`;
+  const periodVi = formatPeriod(node.period);
 
   // Fact description
   const factDesc = (() => {
@@ -60,19 +57,19 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
       return `Xếp hạng ${activeFact.value}/${activeFact.denominator || 5} trong nhóm ngành`;
     }
     if (activeFact?.fact_type === "peer_median") {
-      return `Trung vị ngành ${activeFact.period}: ${formatNumber(activeFact.value, 1)}%`;
+      return `Trung vị ngành ${formatPeriod(activeFact.period)}: ${formatNumber(activeFact.value, 1)}%`;
     }
     if (activeFact?.fact_type === "gap_to_median") {
       const val = typeof activeFact.value === "number" ? activeFact.value : 0;
       return `Chênh lệch so với trung vị: ${val > 0 ? "+" : ""}${formatNumber(val, 1)} điểm %`;
     }
-    return `${node.entity} đạt ${ratioValue} kỳ ${node.period}`;
+    return `${node.entity} đạt ${ratioValue} ${periodVi}`;
   })();
 
   // Sentence text
   const sentenceText =
     activeSentence?.text ||
-    `${node.entity} ghi nhận ${node.metric_name || node.metric} đạt ${ratioValue} trong kỳ ${node.period}, thể hiện chất lượng số liệu đã thẩm định.`;
+    `${node.entity} ghi nhận ${node.metric_name || node.metric} đạt ${ratioValue} trong ${periodVi}, thể hiện chất lượng số liệu đã thẩm định.`;
 
   // Verdict details
   const isAccepted = auditVerdict?.status !== "dropped";

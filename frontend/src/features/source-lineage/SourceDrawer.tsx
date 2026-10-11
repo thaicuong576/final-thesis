@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { X, FileText, TableProperties, Milestone, Loader2 } from "lucide-react";
+import { X, FileText, TableProperties, Milestone, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { DocumentTab } from "./DocumentTab";
 import { DataTab } from "./DataTab";
 import { JourneyTab } from "./JourneyTab";
 import { useLineage } from "./useLineage";
+import { formatPeriod } from "./formatters";
 import type { SourceDrawerProps, LineageTab } from "./types";
 
 export const SourceDrawer: React.FC<SourceDrawerProps> = ({
@@ -32,6 +33,8 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
   const {
     node,
     isLoading,
+    error,
+    retry,
     activeNote,
     activeFact,
     activeSentence,
@@ -47,7 +50,8 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
 
   const entity = node?.entity || activeFact?.entity_id || "VCB";
   const metricName = node?.metric_name || activeFact?.metric_id || "Chỉ số tài chính";
-  const period = node?.period || activeFact?.period || "2024_Q4";
+  const rawPeriod = node?.period || activeFact?.period || "2026_Q2";
+  const period = formatPeriod(rawPeriod);
 
   return (
     <div
@@ -155,6 +159,26 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
             <div className="flex flex-col items-center justify-center h-48 space-y-2 text-[#8C8A82]">
               <Loader2 className="w-6 h-6 animate-spin text-[#B45309]" />
               <span className="text-xs">Đang tải nguồn gốc và dữ liệu thẩm định...</span>
+            </div>
+          ) : error || !node ? (
+            <div className="flex flex-col items-center justify-center h-48 space-y-3 p-6 text-center">
+              <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-500" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-[#1C1B18] dark:text-[#F0F0F0]">
+                  Không tải được truy vết nguồn
+                </h4>
+                <p className="text-xs text-[#6B6960] dark:text-[#A0A0A0] max-w-sm">
+                  {error?.message || "Không tìm thấy cấu trúc truy vết số liệu cho chỉ tiêu này trong cơ sở dữ liệu chấp thuận."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={retry}
+                className="px-3.5 py-1.5 text-xs font-medium rounded-md bg-[#FAF9F5] dark:bg-[#2A2A2A] border border-[#E5E3DC] dark:border-[#444] text-[#1C1B18] dark:text-[#E0E0E0] hover:border-[#B45309] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Thử lại
+              </button>
             </div>
           ) : (
             <>

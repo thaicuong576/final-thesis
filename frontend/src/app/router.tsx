@@ -41,8 +41,12 @@ export const router = createBrowserRouter([
     element: <ReportPage />,
     errorElement: <RouteErrorElement section="reports" />
   },
-  {
-    path: '/demo/lineage',
-    element: <SourceLineageDemo />
-  }
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/demo/lineage',
+          element: <SourceLineageDemo />,
+        },
+      ]
+    : []),
 ]);

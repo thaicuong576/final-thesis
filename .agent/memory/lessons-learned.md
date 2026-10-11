@@ -861,8 +861,29 @@ Financial ratios like `bank.llr_coverage` depend on inputs like `bank.input.npl_
 ### 3. Read-Only SQLite Guarantee
 To ensure the operational snapshot file hash is never mutated during lineage API queries, the SQLite connection is established using `uri=True` with `mode=ro` (`file:{path}?mode=ro`). This completely eliminates WAL/SHM sidecars and file modification timestamps.
 
-### 4. Interactive Test Harness Modal Backdrops
-When building demo harnesses with slide-out side drawers, modal backdrops (`fixed inset-0 z-50`) intercept pointer clicks for background controls like report selectors during automated browser tests. Automated scripts should use event-level targeting or explicit drawer state controls when switching harness fixtures.
+### 4. Interactive Test Harness Modal Backdrops and Deterministic URL Deep-linking
+When building demo harnesses with slide-out side drawers, modal backdrops (`fixed inset-0 z-50`) intercept pointer clicks for background controls like report selectors during automated browser tests. Automated scripts and harnesses should support URL search parameters (e.g. `?report=ranking&tab=data`) for direct, deterministic deep-linking without relying on fragile multi-step click sequences across backdrop layers.
+
+---
+
+## [LESSON-045] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/source-lineage/`, `tests/sourceLineageDrawer.test.tsx`
+- Status: ACTIVE
+
+### 1. Strict Enforcement of AGENTS.md Rule 5 (No Synthesized / Mocked Fallbacks)
+- Synthesizing mock fallback lineage trees when API queries fail or return 404 creates misleading illusions of validation and arithmetic discrepancies (e.g. mixing 2024_Q4 mock numbers with 2026_Q2 reports, yielding 223,3% instead of the authentic 279,3%).
+- **Rule**: When `/api/lineage` fails, the UI must strictly render a clean error state (`Không tải được truy vết nguồn`) with an explicit retry action. It must never fabricate nodes, values, formula receipts, or locators.
+
+### 2. Pure Derivation from Calculation Receipts
+- Never hardcode metric-specific formula strings or numbers. Formula substitutions must be constructed dynamically and solely from `receipt.ordered_inputs` and `receipt.calculated_output`. The formula version label must be taken directly from `receipt.formula_version`.
+- If no calculation receipt exists (e.g. direct filing observation), the UI renders the observation as a primary filing record without a formula. If the reported fact value diverges from the lineage root value beyond the receipt tolerance, a prominent warning banner is displayed.
+
+### 3. Leaf-Level Locator Integrity and Cross-Origin PDF Sandboxing
+- In recursive lineage trees, each leaf's PDF page must come from that specific leaf's own locator (e.g. provisions on page 7, NPL groups on page 30 for VCB 2026_Q2). It must never fall back to the note's page or page 1.
+- Many public financial filing CDNs (e.g. Vietstock) restrict cross-origin iframe embedding in modern browsers. Rather than presenting a broken iframe, render a first-class document card presenting extracted metadata (row label, value, reading mode) and an actionable primary link directly navigating to `url#page=N`.
+
 
 
 

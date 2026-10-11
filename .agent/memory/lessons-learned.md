@@ -842,4 +842,27 @@ Because `"dropped_sentences"` was never found in real run files, the scorer sile
 2. **Composition Fallback Metric**:
    When report spec validation fails during runtime sweeps, the pipeline reverts to deterministic template layout (`composition_source == "deterministic_fallback"`). The scorer now reports `composition_fallback = 1` for such runs (0 for normal runs, blank `None` for refused/un-audited runs), and `er8_analyze.py` exports its mean in `arm_summary.csv` and Chapter 5 `RESULTS.md` summary tables.
 
+---
+
+## [LESSON-044] Visual Report Layout: TooltipProvider Scope, DOM Preservation in Collapsible Citations & Heatmap Fallback
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/equity-report/`, `frontend/src/pages/reports/`
+- Status: ACTIVE
+
+### 1. Radix Tooltip Context in Standalone Components (`SentenceView`)
+- **Symptom**: Rendering `SentenceView` in component-level unit tests or isolated story blocks threw `Error: Tooltip must be used within TooltipProvider`.
+- **Root Cause**: `@radix-ui/react-tooltip` requires an ambient `TooltipProvider`. When components containing citation tooltips are rendered outside the top-level app tree (e.g. in targeted tests or isolated sub-trees), the context is absent.
+- **Solution**: Wrap the citation superscript block inside `SentenceView` directly with `<TooltipProvider delayDuration={200}>`. Radix UI allows nested providers, ensuring self-contained reliability in both app and test contexts.
+
+### 2. DOM Node Preservation in Collapsible Source Notes
+- **Symptom**: Unmounting collapsible source notes (`{isExpanded && <ol>...}`) broke citation target lookups (`#note-n` returned `null`) and failed text content inspections for citation locators.
+- **Root Cause**: In React, conditionally unmounted children are completely excised from the DOM tree. Native browser hash jumps (`#note-1`) cannot scroll to missing elements, and accessible assistive tools cannot locate target citations.
+- **Solution**: Keep `<ol>` mounted in the DOM using CSS visibility (`className={isExpanded ? '...' : 'hidden'}`). This preserves anchor targets (`id="note-n"`), ensures immediate locator availability in tests and accessibility trees, while maintaining clean visual collapsing for the reader.
+
+### 3. Metric Fallback in Peer Rank Heatmap Pivot
+- **Symptom**: When rendering ad-hoc or partially-formed datasets where `dataset.metric_ids` was not explicitly populated at the dataset root, the pivoted heatmap failed to render columns.
+- **Solution**: In `RankHeatmap.tsx`, compute `metricIds` by defaulting to `dataset.metric_ids` if present and non-empty, otherwise dynamically extracting unique `metric_id`s from `dataset.rows`. Always format missing cells with `—` and explicit `missing_reason`, never `0` or `0%`.
+
+
 

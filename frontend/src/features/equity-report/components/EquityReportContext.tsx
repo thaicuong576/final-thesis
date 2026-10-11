@@ -5,8 +5,9 @@ import { EquityReportContext } from './useEquityReport';
 export const EquityReportProvider: React.FC<{
   report: AdaptiveReportResponse;
   metrics?: MetricPresentation[];
+  onOpenSource?: (noteNo: number) => void;
   children: React.ReactNode;
-}> = ({ report, metrics = [], children }) => {
+}> = ({ report, metrics = [], onOpenSource, children }) => {
   const sourceNotes = useMemo(() => report.source_notes || [], [report.source_notes]);
   const facts = useMemo(() => report.facts || [], [report.facts]);
   const datasets = useMemo(() => report.datasets || [], [report.datasets]);
@@ -43,9 +44,10 @@ export const EquityReportProvider: React.FC<{
       datasets,
       metrics,
       highlight,
-      getNoteNumbersForFactIds
+      getNoteNumbersForFactIds,
+      onOpenSource
     }),
-    [report, sourceNotes, facts, datasets, metrics, highlight, getNoteNumbersForFactIds]
+    [report, sourceNotes, facts, datasets, metrics, highlight, getNoteNumbersForFactIds, onOpenSource]
   );
 
   return <EquityReportContext.Provider value={value}>{children}</EquityReportContext.Provider>;

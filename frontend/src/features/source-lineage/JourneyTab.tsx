@@ -18,7 +18,7 @@ import type {
   SentenceItem,
   AuditVerdictItem,
 } from "./types";
-import { formatNumber, formatPeriod } from "./formatters";
+import { formatNumber, formatPeriod, formatUnit } from "./formatters";
 
 interface JourneyTabProps {
   node: LineageNode | null;
@@ -48,7 +48,7 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
   const page = node.page ?? (node.children?.[0]?.page ?? 7);
   const filingTitle = activeNote?.title || node.source_title || `${node.entity} · Báo cáo tài chính`;
   const formula = node.formula_version || activeFact?.formula_version || "primary-calculation-v1";
-  const ratioValue = `${formatNumber(node.value, 1)} ${node.unit || "%"}`;
+  const ratioValue = `${formatNumber(node.value, 1)} ${formatUnit(node.unit) || "%"}`;
   const periodVi = formatPeriod(node.period);
 
   // Fact description

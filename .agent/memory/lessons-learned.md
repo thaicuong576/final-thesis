@@ -934,5 +934,26 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 - In recursive lineage trees, each leaf's PDF page must come from that specific leaf's own locator (e.g. provisions on page 7, NPL groups on page 30 for VCB 2026_Q2). It must never fall back to the note's page or page 1.
 - Many public financial filing CDNs (e.g. Vietstock) restrict cross-origin iframe embedding in modern browsers. Rather than presenting a broken iframe, render a first-class document card presenting extracted metadata (row label, value, reading mode) and an actionable primary link directly navigating to `url#page=N`.
 
+---
+
+## [LESSON-048] Deep Wiring of Provenance Drawers into Adaptive Equity Reports & Dropped Sentences Auditing (LIN-1 Phase 2)
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/equity-report/`, `frontend/src/features/source-lineage/`, `frontend/vite.config.ts`
+- Status: ACTIVE
+
+### 1. Two-Way Fact and Citation Lineage Dispatch
+- **Requirement**: Reports must allow drilldown both from narrative citations (opening the Document tab for a specific `note_no`) and directly from numerical elements (KPI bands, charts, tables with a known `fact_id` opening the Data tab).
+- **Architecture**: `EquityReportContext` exposes both `onOpenSource(noteNo)` and `onOpenFact(factId)`. `AdaptiveReport` hosts the `<SourceDrawer>` instance and provides unified state management (`isOpen`, `noteNo`, `factId`, `defaultTab`).
+- **Tooltips & DOM Sanitization**: Tooltips and hover elements for clickable numbers must use neutral human-readable copy (`Xem nguồn gốc số liệu`) rather than serializing raw machine tokens (`fact:value:...`), preventing DOM text leaks in end-user presentations and test assertions.
+
+### 2. Collapsible Audit Panel for Dropped Sentences (Requirement 5)
+- Under multi-agent audit contracts, narrative verification drops sentences failing Stage-1 assertions (`narrative_audit.sentences_dropped`).
+- Rather than hiding dropped sentences or cluttering the executive report, `TechnicalDetails` renders an accordion panel (`Câu bị loại`) that is collapsed by default. Expanding reveals rejected statements with strikethrough styling, author specialty (`Chuyên viên Doanh nghiệp`, `Chuyên viên Ngành`), and human-friendly Vietnamese reasons mapped via `REASON_VI_MAP`.
+
+### 3. Vite Serving Whitelist for Cross-Directory Fixtures
+- In Vite dev mode, importing fixtures residing outside the `frontend/` root (e.g. `experiments/er9/runs/`) triggers 403 Forbidden errors unless explicitly allowed in `vite.config.ts` (`server.fs.allow: ['..']`). Production builds (`tsc -b && vite build`) bundle dynamic imports seamlessly, but local dev workflows require this whitelist to enable deep-linking to experimental run fixtures.
+
+
 
 

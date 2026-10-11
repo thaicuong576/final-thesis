@@ -3,10 +3,14 @@ import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod, niceTicks, formatDecimalVi } from '@/shared/lib/formatting';
 import { useChartWidth } from './useChartWidth';
+import { useSafeEquityReport } from '../components/useEquityReport';
 
 export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const width = useChartWidth(containerRef, 560);
+  const equityCtx = useSafeEquityReport();
+  const onOpenFact = equityCtx?.onOpenFact;
+  const facts = equityCtx?.facts || [];
 
   const highlightSet = new Set(highlight.length > 0 ? highlight : dataset.highlight_entity_ids || []);
   const metricMeta = getMetricPresentation(dataset.metric_ids?.[0] || '', metrics);
@@ -211,35 +215,69 @@ export const LineTrend: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
 
         {/* Target Entity points */}
         {segments.map((seg, sIdx) =>
-          seg.map((pt, pIdx) => (
-            <circle
-              key={`pt-${sIdx}-${pIdx}`}
-              cx={pt.x}
-              cy={pt.y}
-              r={3}
-              fill="var(--fill-accent, #ee9f0d)"
-              tabIndex={0}
-              role="graphics-symbol"
-              aria-label={pt.label}
-              className="cursor-pointer focus:outline-none focus:stroke-text-primary focus:stroke-2"
-            >
-              <title>{pt.label}</title>
-            </circle>
-          ))
+          seg.map((pt, pIdx) => {
+            const row = rowMap.get(`${targetEntity}:${pt.period}`);
+            const matchedFact =
+              row &&
+              (facts.find((f) => f.entity_id === targetEntity && f.metric_id === (dataset.metric_ids?.[0] || row.metric_id) && f.period === pt.period && f.fact_type === 'value') ||
+               facts.find((f) => f.entity_id === targetEntity && f.metric_id === (dataset.metric_ids?.[0] || row.metric_id) && f.period === pt.period) ||
+               facts.find((f) => row.observation_id && f.input_observation_ids?.includes(row.observation_id)));
+            const factId = matchedFact?.fact_id;
+
+            return (
+              <circle
+                key={`pt-${sIdx}-${pIdx}`}
+                cx={pt.x}
+                cy={pt.y}
+                r={3.5}
+                fill="var(--fill-accent, #ee9f0d)"
+                tabIndex={0}
+                role="graphics-symbol"
+                aria-label={`${pt.label}${factId ? ' (Nhấp để xem nguồn gốc)' : ''}`}
+                onClick={() => {
+                  if (factId && onOpenFact) {
+                    onOpenFact(factId);
+                  }
+                }}
+                className={`focus:outline-none focus:stroke-text-primary focus:stroke-2 transition-all ${
+                  factId && onOpenFact ? 'cursor-pointer hover:r-5 hover:opacity-85' : 'cursor-pointer'
+                }`}
+              >
+                <title>{pt.label}</title>
+              </circle>
+            );
+          })
         )}
 
         {/* End of line label for Target Entity */}
-        {lastTargetPoint && (
-          <text
-            x={leftMargin + plotWidth + 6}
-            y={lastTargetPoint.y + 3}
-            fontSize="11"
-            fontWeight="700"
-            fill="var(--text-accent, #bc7600)"
-          >
-            {targetEntity} {formatMetricValue(lastTargetPoint.val, metricMeta)}
-          </text>
-        )}
+        {lastTargetPoint && (() => {
+          const lastRow = rowMap.get(`${targetEntity}:${lastTargetPoint.period}`);
+          const lastMatchedFact =
+            lastRow &&
+            (facts.find((f) => f.entity_id === targetEntity && f.metric_id === (dataset.metric_ids?.[0] || lastRow.metric_id) && f.period === lastTargetPoint.period && f.fact_type === 'value') ||
+             facts.find((f) => f.entity_id === targetEntity && f.metric_id === (dataset.metric_ids?.[0] || lastRow.metric_id) && f.period === lastTargetPoint.period) ||
+             facts.find((f) => lastRow.observation_id && f.input_observation_ids?.includes(lastRow.observation_id)));
+          const lastFactId = lastMatchedFact?.fact_id;
+
+          return (
+            <text
+              x={leftMargin + plotWidth + 6}
+              y={lastTargetPoint.y + 3}
+              fontSize="11"
+              fontWeight="700"
+              fill="var(--text-accent, #bc7600)"
+              onClick={() => {
+                if (lastFactId && onOpenFact) {
+                  onOpenFact(lastFactId);
+                }
+              }}
+              className={lastFactId && onOpenFact ? 'cursor-pointer hover:underline' : ''}
+            >
+              <title>{lastFactId ? 'Xem nguồn gốc số liệu' : undefined}</title>
+              {targetEntity} {formatMetricValue(lastTargetPoint.val, metricMeta)}
+            </text>
+          );
+        })()}
 
         {/* End of line label for Median */}
         {lastMedianPoint && (

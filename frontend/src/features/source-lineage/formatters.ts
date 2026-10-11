@@ -29,6 +29,27 @@ export function formatNumber(
 }
 
 /**
+ * Format raw unit identifiers (e.g. "billion_vnd", "percent") into standard Vietnamese labels ("tỷ đồng", "%").
+ */
+export function formatUnit(unit?: string | null): string {
+  if (!unit) return "";
+  const lower = unit.trim().toLowerCase();
+  if (lower === "billion_vnd" || lower === "billion vnd" || lower === "ty_dong" || lower === "tỷ đồng") {
+    return "tỷ đồng";
+  }
+  if (lower === "percent" || lower === "pct" || lower === "%") {
+    return "%";
+  }
+  if (lower === "percentage_points" || lower === "pp" || lower === "điểm %") {
+    return "điểm %";
+  }
+  if (lower === "rank" || lower === "hạng") {
+    return "hạng";
+  }
+  return unit;
+}
+
+/**
  * Friendly display labels for input metric IDs in formulas.
  */
 const INPUT_METRIC_SHORT_NAMES: Record<string, string> = {
@@ -65,7 +86,9 @@ export function buildSubstitutedFormula(
     : rootValue != null
     ? formatNumber(rootValue, 1)
     : "";
-  const unitSuffix = receipt.unit === "percent" || unit === "%" ? "%" : "";
+  const rawUnit = receipt.unit || unit || "";
+  const formattedUnit = formatUnit(rawUnit);
+  const unitSuffix = formattedUnit === "%" ? "%" : formattedUnit ? ` ${formattedUnit}` : "";
 
   // 1. Division / Ratio formulas (e.g. llr-coverage, roe, roa, cir, nim, ldr, npl) with 2 inputs
   if (inputs.length === 2 && (version.includes("coverage") || version.includes("roe") || version.includes("roa") || version.includes("ratio"))) {

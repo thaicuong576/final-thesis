@@ -5,6 +5,10 @@ import { DataTab } from "../src/features/source-lineage/DataTab";
 import { DocumentTab } from "../src/features/source-lineage/DocumentTab";
 import { buildSubstitutedFormula, formatPeriod } from "../src/features/source-lineage/formatters";
 import type { ReportItem, LineageNode } from "../src/features/source-lineage/types";
+import { AdaptiveReport } from "../src/features/equity-report/components/AdaptiveReport";
+import { TechnicalDetails } from "../src/features/equity-report/components/TechnicalDetails";
+import { EquityReportProvider } from "../src/features/equity-report/components/EquityReportContext";
+import type { AdaptiveReportResponse } from "../src/features/equity-report/model/types";
 
 describe("SourceDrawer Component (LIN-1)", () => {
   const mockReport: ReportItem = {
@@ -303,5 +307,216 @@ describe("SourceDrawer Component (LIN-1)", () => {
     expect(formatPeriod("2024_Q4")).toBe("Quý 4/2024");
     expect(formatPeriod("2025_Q1")).toBe("Quý 1/2025");
     expect(formatPeriod("")).toBe("");
+  });
+
+  describe("Phase 2: Real report integration & dropped sentences panel", () => {
+    const fullMockReport: AdaptiveReportResponse = {
+      report_id: "test-adaptive-1",
+      status: "completed",
+      question_type: "company_profile",
+      report_spec: {
+        kind: "note",
+        note_label: "BÁO CÁO PHÂN TÍCH",
+        blocks: [
+          {
+            type: "headline",
+            sentence: {
+              sentence_id: "s1",
+              text: "VCB duy trì vị thế an toàn vốn hàng đầu ngành ngân hàng.",
+              fact_ids: [],
+              author: "orchestrator",
+              source: "model",
+              revision: 0,
+            },
+          },
+          {
+            type: "section",
+            title: "Tổng quan chất lượng tài sản",
+            sentences: [
+              {
+                sentence_id: "s2",
+                text: "Tỷ lệ bao phủ nợ xấu đạt mức cao kỷ lục trong quý.",
+                fact_ids: ["fact-1"],
+                author: "company",
+                source: "model",
+                revision: 0,
+              },
+            ],
+          },
+        ],
+      },
+      datasets: [
+        {
+          dataset_id: "ds_kpi",
+          shape: "kpi",
+          title: "Chỉ số an toàn vốn",
+          produced_by: { tool: "kpi_tool", agent: "analyst" },
+          metric_ids: ["bank.llr_coverage"],
+          periods: ["2026_Q2"],
+          highlight_entity_ids: ["VCB"],
+          rows: [
+            {
+              entity_id: "VCB",
+              metric_id: "bank.llr_coverage",
+              period: "2026_Q2",
+              status: "valid",
+              value: 279.3,
+              observation_id: "obs-vcb-llr-2026q2",
+              rank_better: 1,
+              rank_desc: 1,
+              missing_reason: null,
+            },
+          ],
+          reference_lines: [],
+          allowed_charts: ["kpi_strip"],
+        },
+      ],
+      facts: [
+        {
+          fact_id: "fact-1",
+          fact_type: "value",
+          entity_id: "VCB",
+          other_entity_id: null,
+          universe_id: null,
+          metric_id: "bank.llr_coverage",
+          period: "2026_Q2",
+          from_period: null,
+          value: 279.3,
+          unit: "percent",
+          rank_better: 1,
+          rank_desc: 1,
+          denominator: null,
+          formula_version: "llr-coverage-v1",
+          input_observation_ids: ["obs-vcb-llr-2026q2"],
+          input_fact_ids: [],
+        },
+      ],
+      source_notes: [
+        {
+          note_no: 1,
+          source_id: "src_vcb_2026_q2",
+          title: "BCTC Hợp nhất Q2/2026 - Vietcombank",
+          url: "https://static2.vietstock.vn/vcb_2026_q2.pdf",
+          locator: "pdf_page=7; section=Thuyet minh; row=Du phong",
+          fact_ids: ["fact-1"],
+        },
+      ],
+      narrative_audit: {
+        sentences_checked: 5,
+        sentences_accepted: 3,
+        sentences_dropped: [
+          {
+            sentence_id: "drop_1",
+            author: "company",
+            text: "VCB dự kiến tăng trưởng tín dụng vượt 25% trong năm 2026.",
+            reason_code: "unresolved_critique",
+            reason: "Phản biện: Chưa có căn cứ từ kế hoạch NHNN giao",
+          },
+          {
+            sentence_id: "drop_2",
+            author: "sector",
+            text: "Nhà đầu tư nên mua mạnh cổ phiếu VCB vùng giá hiện tại.",
+            reason_code: "investment_advice",
+            reason: "Chứa khuyến nghị đầu tư (vi phạm quy định)",
+          },
+        ],
+        numbers_checked: 4,
+        numbers_matched: 4,
+        blocks_dropped: [],
+        composition_source: "model",
+      },
+    };
+
+    it("Requirement 2: clicking citation [1] opens drawer on document tab", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => mockVCBLineageNode,
+      } as Response);
+
+      render(<AdaptiveReport report={fullMockReport} />);
+
+      // Find the citation link [1]
+      const citationLink = screen.getByRole("link", {
+        name: /tr\. 7 · Thuyet minh/i,
+      });
+      expect(citationLink).toBeInTheDocument();
+
+      fireEvent.click(citationLink);
+
+      // Drawer should open and Document tab should be active
+      await waitFor(() => {
+        expect(screen.getByRole("dialog", { name: /Ngăn truy vết nguồn số liệu/i })).toBeInTheDocument();
+      });
+      const docTab = screen.getByRole("tab", { name: /Tài liệu/i });
+      expect(docTab).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("Requirement 2: clicking a KPI card with fact_id opens drawer on data tab", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => mockVCBLineageNode,
+      } as Response);
+
+      render(<AdaptiveReport report={fullMockReport} />);
+
+      // The KPI band renders VCB with 279,3% with title 'Xem nguồn gốc số liệu'
+      const kpiButtons = screen.getAllByTitle("Xem nguồn gốc số liệu");
+      expect(kpiButtons.length).toBeGreaterThan(0);
+
+      fireEvent.click(kpiButtons[0]);
+
+      // Drawer should open on Data tab
+      await waitFor(() => {
+        expect(screen.getByRole("dialog", { name: /Ngăn truy vết nguồn số liệu/i })).toBeInTheDocument();
+      });
+      const dataTab = screen.getByRole("tab", { name: /Dữ liệu/i });
+      expect(dataTab).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("Requirement 5: TechnicalDetails renders collapsed 'Câu bị loại' panel with Vietnamese reasons", () => {
+      const { container } = render(
+        <EquityReportProvider report={fullMockReport}>
+          <TechnicalDetails />
+        </EquityReportProvider>
+      );
+
+      // Open the Technical Details section first
+      const techDetailsBtn = screen.getByRole("button", { name: /Chi tiết kỹ thuật/i });
+      fireEvent.click(techDetailsBtn);
+
+      // Accordion 'Câu bị loại' button should be visible and collapsed (aria-expanded="false")
+      const droppedBtn = container.querySelector<HTMLButtonElement>('button[aria-controls="panel-dropped-sentences"]')!;
+      expect(droppedBtn).toBeInTheDocument();
+      expect(droppedBtn).toHaveAttribute("aria-expanded", "false");
+
+      // Dropped sentences should not be in DOM yet
+      expect(
+        screen.queryByText(/VCB dự kiến tăng trưởng tín dụng vượt 25%/i)
+      ).not.toBeInTheDocument();
+
+      // Click to expand
+      fireEvent.click(droppedBtn);
+      expect(droppedBtn).toHaveAttribute("aria-expanded", "true");
+
+      // Verify dropped sentences are now visible with strike-through and Vietnamese author/reason
+      expect(
+        screen.getByText(/VCB dự kiến tăng trưởng tín dụng vượt 25% trong năm 2026\./i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Nhà đầu tư nên mua mạnh cổ phiếu VCB vùng giá hiện tại\./i)
+      ).toBeInTheDocument();
+
+      // Authors
+      expect(screen.getByText(/Chuyên viên Doanh nghiệp/i)).toBeInTheDocument();
+      expect(screen.getByText(/Chuyên viên Ngành/i)).toBeInTheDocument();
+
+      // Vietnamese reasons
+      expect(
+        screen.getByText(/Chưa có căn cứ từ kế hoạch NHNN giao/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Chứa khuyến nghị đầu tư/i)
+      ).toBeInTheDocument();
+    });
   });
 });

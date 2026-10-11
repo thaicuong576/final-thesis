@@ -97,9 +97,18 @@ export interface AuditVerdictItem {
   reason_code?: string;
 }
 
+export interface ReportBlockItem {
+  sentences?: SentenceItem[];
+  sentence?: SentenceItem;
+  items?: Array<{ sentences?: SentenceItem[] }>;
+  subsections?: Array<{ sentences?: SentenceItem[] }>;
+  takeaway?: SentenceItem;
+  [key: string]: unknown;
+}
+
 export interface ReportItem {
   report_id?: string;
-  question_type?: string;
+  question_type?: string | null;
   synthesis_summary?: string;
   source_notes?: SourceNoteItem[];
   facts?: FactItem[];
@@ -110,17 +119,11 @@ export interface ReportItem {
       reason?: string;
       reason_code?: string;
     }>;
-  };
+  } | null;
   report_spec?: {
-    blocks?: Array<{
-      sentences?: SentenceItem[];
-      sentence?: SentenceItem;
-    }>;
-  };
-  blocks?: Array<{
-    sentences?: SentenceItem[];
-    sentence?: SentenceItem;
-  }>;
+    blocks?: unknown[];
+  } | null;
+  blocks?: unknown[];
 }
 
 export interface SourceDrawerProps {

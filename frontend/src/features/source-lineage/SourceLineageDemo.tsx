@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SourceDrawer } from "./SourceDrawer";
-import { formatPeriod } from "./formatters";
+import { formatNumber, formatPeriod, formatUnit } from "./formatters";
+import { formatDisplayText } from "@/shared/lib/formatting";
 import type { LineageTab, ReportItem, SourceNoteItem, FactItem } from "./types";
 import er9T01Fixture from "./fixtures/er9-t01-response.json";
 import er9T07Fixture from "./fixtures/er9-t07-response.json";
@@ -26,6 +27,23 @@ export const SourceLineageDemo: React.FC = () => {
   const [selectedNoteNo, setSelectedNoteNo] = useState<number>(1);
   const [selectedFactId, setSelectedFactId] = useState<string | undefined>(initialFactId);
   const [selectedObsId, setSelectedObsId] = useState<string | undefined>(initialObsId);
+  const [vcbLlrLabel, setVcbLlrLabel] = useState<string>("Bao phủ nợ xấu (LLR)");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/lineage/observation-3a26e363c78be87d85d2c7b3a34d4121cc5b718647425d8b3017678fb966e936")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data && data.value != null) {
+          const formatted = formatNumber(data.value, 1);
+          setVcbLlrLabel(`Bao phủ nợ xấu: ${formatted}%`);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const activeReport = (
     reportType === "ranking" ? er9T01Fixture : er9T07Fixture
@@ -165,7 +183,7 @@ export const SourceLineageDemo: React.FC = () => {
                 VCB · Quý 2/2026
               </span>
               <span className="text-xs font-bold text-[#1C1B18] dark:text-[#F0F0F0] block mt-0.5">
-                Bao phủ nợ xấu: 279,3%
+                {vcbLlrLabel}
               </span>
               <span className="text-[10px] text-[#6B6960] dark:text-[#A0A0A0] block mt-1">
                 Dự phòng (tr. 7) / Nợ xấu (tr. 30)
@@ -314,12 +332,12 @@ export const SourceLineageDemo: React.FC = () => {
                       {formatPeriod(f.period)}
                     </span>
                   </div>
-                  <div className="text-xs text-[#1C1B18] dark:text-[#E0E0E0] font-mono mt-1">
-                    {f.metric_id}
+                  <div className="text-xs text-[#1C1B18] dark:text-[#E0E0E0] mt-1 font-medium truncate">
+                    {formatDisplayText(f.metric_id)}
                   </div>
                   {f.value != null && (
-                    <div className="text-xs font-bold text-[#1C1B18] dark:text-[#F0F0F0] mt-0.5">
-                      {f.value} {f.unit || ""}
+                    <div className="text-xs font-bold text-[#1C1B18] dark:text-[#F0F0F0] mt-0.5 font-mono">
+                      {formatNumber(f.value, 1)} {formatUnit(f.unit)}
                     </div>
                   )}
                 </button>

@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckCircle2, Calculator, Database, AlertTriangle } from "lucide-react";
-import { formatNumber, formatPeriod, buildSubstitutedFormula } from "./formatters";
+import { formatNumber, formatPeriod, formatUnit, buildSubstitutedFormula } from "./formatters";
 import type { LineageNode, FactItem } from "./types";
 
 interface DataTabProps {
@@ -168,7 +168,7 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
           </div>
           <div className="p-2.5 bg-[#FAF9F5] dark:bg-[#252525] border border-[#E5E3DC] dark:border-[#333] rounded font-mono text-sm font-semibold text-[#B45309]">
             {node.metric_name || node.metric} = {formatNumber(node.value, 2)}{" "}
-            {node.unit || ""}
+            {formatUnit(node.unit)}
           </div>
           <p className="text-[11px] text-[#8C8A82]">
             Số liệu trích xuất trực tiếp từ báo cáo tài chính, không qua bước tính toán dẫn xuất.
@@ -219,7 +219,7 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
                     {formatNumber(r.value, 1)}
                   </td>
                   <td className="py-2 px-2 text-center text-[#6B6960] dark:text-[#A0A0A0] text-[11px]">
-                    {r.unit || "—"}
+                    {formatUnit(r.unit) || "—"}
                   </td>
                   <td className="py-2 px-3 text-center">
                     {r.page ? (

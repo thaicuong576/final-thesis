@@ -9,7 +9,7 @@ import { fmtPp } from '@/shared/lib/formatting';
  * Metrics without a value fact are left out rather than filled from elsewhere.
  */
 export const KpiBand: React.FC = () => {
-  const { report, facts, metrics, highlight } = useEquityReport();
+  const { report, facts, metrics, highlight, onOpenFact } = useEquityReport();
   const entity =
     highlight[0] ||
     (report as { target_ticker?: string }).target_ticker ||
@@ -46,7 +46,7 @@ export const KpiBand: React.FC = () => {
     const spread = at('spread') || facts.find((f) => f.fact_type === 'spread' && f.metric_id === metricId);
     const lowerBetter = meta.direction === 'lower_is_better';
     const good = gap === null || Math.abs(Number(gap)) < 0.005 ? null : lowerBetter ? Number(gap) < 0 : Number(gap) > 0;
-    return { metricId, meta, value, gap, good, rank, median, spread };
+    return { metricId, meta, value, gap, good, rank, median, spread, gapFact };
   }).filter(Boolean) as Array<{
     metricId: string;
     meta: ReturnType<typeof getMetricPresentation>;
@@ -56,6 +56,7 @@ export const KpiBand: React.FC = () => {
     rank?: (typeof facts)[number];
     median?: (typeof facts)[number];
     spread?: (typeof facts)[number];
+    gapFact?: (typeof facts)[number];
   }>;
 
   if (cells.length === 0 || report.report_spec?.kind === 'answer_card') return null;
@@ -80,6 +81,7 @@ export const KpiBand: React.FC = () => {
       subContent?: React.ReactNode;
       valueClassName?: string;
       captionClassName?: string;
+      factId?: string;
     }
 
     const tiles: KpiTile[] = [];
@@ -90,7 +92,8 @@ export const KpiBand: React.FC = () => {
       label: `${entity} · ${c.meta.shortLabel}`,
       value: formatMetricValue(c.value.value, c.meta),
       caption: 'Giá trị thực tế',
-      valueClassName: 'text-text-primary'
+      valueClassName: 'text-text-primary',
+      factId: c.value.fact_id,
     });
 
     // 2. Rank tile (only if peer_rank fact exists with a rank position)
@@ -115,7 +118,8 @@ export const KpiBand: React.FC = () => {
             </div>
           ) : null,
         caption: rankPos && denom ? undefined : 'Vị thế nhóm',
-        valueClassName: 'text-text-primary'
+        valueClassName: 'text-text-primary',
+        factId: c.rank?.fact_id,
       });
     }
 
@@ -126,7 +130,8 @@ export const KpiBand: React.FC = () => {
         label: `Trung vị nhóm${denom ? ` (${denom} NH)` : ''}`,
         value: medianVal,
         caption: 'Mức chuẩn toàn nhóm',
-        valueClassName: 'text-text-secondary'
+        valueClassName: 'text-text-secondary',
+        factId: c.median?.fact_id,
       });
     }
 
@@ -142,7 +147,8 @@ export const KpiBand: React.FC = () => {
         value: `${Number(c.gap) > 0 ? '+' : ''}${fmtPp(c.gap)}`,
         caption: isNearZero ? 'Ngang trung vị' : isGood ? '▲ Tốt hơn trung vị' : '▼ Kém hơn trung vị',
         valueClassName: isNearZero ? 'text-text-primary' : isGood ? 'text-text-success' : 'text-text-warning',
-        captionClassName: isNearZero ? 'text-text-tertiary' : isGood ? 'text-text-success' : 'text-text-warning'
+        captionClassName: isNearZero ? 'text-text-tertiary' : isGood ? 'text-text-success' : 'text-text-warning',
+        factId: c.gapFact?.fact_id,
       });
     }
 
@@ -158,7 +164,8 @@ export const KpiBand: React.FC = () => {
         label: 'Chênh lệch cao – thấp',
         value: spreadVal,
         caption: denom ? `Khoảng cách hạng 1 – ${denom}` : 'Biên độ phân hóa nhóm',
-        valueClassName: 'text-text-primary'
+        valueClassName: 'text-text-primary',
+        factId: c.spread?.fact_id,
       });
     }
 
@@ -193,9 +200,26 @@ export const KpiBand: React.FC = () => {
         aria-label={`Chỉ số chính của ${entity}`}
       >
         {tiles.map((tile, i) => (
-          <div key={tile.id} className={`p-4 ${getBorderClass(i)} border-border-subtle`}>
+          <div
+            key={tile.id}
+            className={`p-4 ${getBorderClass(i)} border-border-subtle ${
+              tile.factId && onOpenFact
+                ? 'cursor-pointer hover:bg-surface-secondary/70 transition-colors group'
+                : ''
+            }`}
+            onClick={() => {
+              if (tile.factId && onOpenFact) {
+                onOpenFact(tile.factId);
+              }
+            }}
+            title={tile.factId ? 'Xem nguồn gốc số liệu' : undefined}
+          >
             <p className="m-0 text-xs font-medium text-text-tertiary">{tile.label}</p>
-            <p className={`mt-1.5 mb-1 text-[26px] font-semibold leading-none tabular-nums ${tile.valueClassName || 'text-text-primary'}`}>
+            <p
+              className={`mt-1.5 mb-1 text-[26px] font-semibold leading-none tabular-nums ${
+                tile.valueClassName || 'text-text-primary'
+              } ${tile.factId && onOpenFact ? 'group-hover:text-text-accent' : ''}`}
+            >
               {tile.value}
             </p>
             {tile.subContent ? (
@@ -230,10 +254,24 @@ export const KpiBand: React.FC = () => {
             key={c.metricId}
             className={`p-4 ${i % 2 === 1 ? 'border-l' : ''} ${i >= 2 ? 'border-t sm:border-t-0' : ''} ${
               i > 0 ? 'sm:border-l' : ''
-            } border-border-subtle`}
+            } border-border-subtle ${
+              c.value?.fact_id && onOpenFact
+                ? 'cursor-pointer hover:bg-surface-secondary/70 transition-colors group'
+                : ''
+            }`}
+            onClick={() => {
+              if (c.value?.fact_id && onOpenFact) {
+                onOpenFact(c.value.fact_id);
+              }
+            }}
+            title={c.value?.fact_id ? 'Xem nguồn gốc số liệu' : undefined}
           >
             <p className="m-0 text-xs font-medium text-text-tertiary">{c.meta.shortLabel}</p>
-            <p className="mt-1.5 mb-1 text-[26px] font-semibold leading-none tabular-nums text-text-primary">
+            <p
+              className={`mt-1.5 mb-1 text-[26px] font-semibold leading-none tabular-nums text-text-primary ${
+                c.value?.fact_id && onOpenFact ? 'group-hover:text-text-accent' : ''
+              }`}
+            >
               {formatMetricValue(c.value.value, c.meta)}
             </p>
             {c.gap !== null ? (

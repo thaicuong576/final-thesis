@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ExternalLink, FileText, ShieldCheck, Info } from "lucide-react";
-import { formatNumber } from "./formatters";
+import { formatNumber, formatUnit } from "./formatters";
 import type { LineageNode, SourceNoteItem } from "./types";
 
 interface DocumentTabProps {
@@ -133,16 +133,26 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({ node, activeNote }) =>
 
         {/* Fact details extracted from filing row */}
         <div className="p-3 bg-[#FAF9F5] dark:bg-[#252525] border border-[#E5E3DC] dark:border-[#333] rounded-md space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[#6B6960] dark:text-[#999]">Dòng chỉ tiêu công bố:</span>
-            <span className="font-semibold text-[#1C1B18] dark:text-[#F0F0F0] font-mono text-right">
-              {activeLeaf?.rowLabel || activeLeaf?.metricName || "—"}
-            </span>
+          <div className="space-y-1">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[#6B6960] dark:text-[#999] shrink-0">Chỉ tiêu công bố:</span>
+              <span className="font-semibold text-[#1C1B18] dark:text-[#F0F0F0] text-right">
+                {activeLeaf?.metricName || "—"}
+              </span>
+            </div>
+            {activeLeaf?.rowLabel && (
+              <div className="flex items-start justify-between gap-2 text-[11px]">
+                <span className="text-[#8C8A82] shrink-0">Dòng BCTC gốc:</span>
+                <span className="text-[#6B6960] dark:text-[#AAA] font-mono text-right">
+                  {activeLeaf.rowLabel}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[#6B6960] dark:text-[#999]">Giá trị trích xuất:</span>
             <span className="font-bold text-[#B45309] dark:text-[#F59E0B] font-mono text-sm">
-              {formatNumber(activeLeaf?.value, 1)} {activeLeaf?.unit || ""}
+              {formatNumber(activeLeaf?.value, 1)} {formatUnit(activeLeaf?.unit)}
             </span>
           </div>
           {activeLeaf?.reading && (
@@ -155,12 +165,12 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({ node, activeNote }) =>
           )}
         </div>
 
-        {/* First-class Cross-origin PDF Action Fallback */}
+        {/* First-class Neutral PDF Action Fallback */}
         <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-md space-y-2.5 text-xs">
           <div className="flex items-start gap-2 text-amber-900 dark:text-amber-200">
             <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <p className="leading-relaxed text-[11px]">
-              Trình duyệt hạn chế nhúng tệp PDF trực tiếp từ máy chủ ngoài. Vui lòng mở trang PDF gốc tại tab mới để đối chiếu số liệu và vị trí công bố chính thức.
+              Xem và đối chiếu số liệu trực tiếp tại trang báo cáo tài chính gốc công bố chính thức.
             </p>
           </div>
 

@@ -3,10 +3,14 @@ import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
 import { fmtPeriod } from '@/shared/lib/formatting';
 import { useChartWidth } from './useChartWidth';
+import { useSafeEquityReport } from '../components/useEquityReport';
 
 export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = [], className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const width = useChartWidth(containerRef, 560);
+  const equityCtx = useSafeEquityReport();
+  const onOpenFact = equityCtx?.onOpenFact;
+  const facts = equityCtx?.facts || [];
 
   const highlightList = highlight.length > 0 ? highlight : dataset.highlight_entity_ids || [];
   const primaryHighlight = highlightList[0];
@@ -61,28 +65,42 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
         className="overflow-visible font-sans"
       >
         {/* Median reference line */}
-        {medianX !== null && (
-          <g className="median-line">
-            <line
-              x1={medianX}
-              x2={medianX}
-              y1={4}
-              y2={totalHeight - 14}
-              stroke="var(--text-muted, #85857e)"
-              strokeDasharray="3 3"
-              strokeWidth="1"
-            />
-            <text
-              x={medianX}
-              y={totalHeight - 2}
-              textAnchor="middle"
-              fontSize="11"
-              fill="var(--text-muted, #85857e)"
+        {medianX !== null && (() => {
+          const medianFactId =
+            medianRef?.fact_id ||
+            facts.find((f) => f.fact_type === 'peer_median' && f.metric_id === (dataset.metric_ids?.[0] || medianRef?.metric_id))?.fact_id;
+
+          return (
+            <g
+              className={`median-line ${medianFactId && onOpenFact ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={() => {
+                if (medianFactId && onOpenFact) {
+                  onOpenFact(medianFactId);
+                }
+              }}
             >
-              trung vị
-            </text>
-          </g>
-        )}
+              <title>{medianFactId ? `Trung vị nhóm: ${formatMetricValue(medianVal, metricMeta)} (Nhấp để xem nguồn gốc)` : undefined}</title>
+              <line
+                x1={medianX}
+                x2={medianX}
+                y1={4}
+                y2={totalHeight - 14}
+                stroke="var(--text-muted, #85857e)"
+                strokeDasharray="3 3"
+                strokeWidth="1"
+              />
+              <text
+                x={medianX}
+                y={totalHeight - 2}
+                textAnchor="middle"
+                fontSize="11"
+                fill="var(--text-muted, #85857e)"
+              >
+                trung vị
+              </text>
+            </g>
+          );
+        })()}
 
         {/* Rows */}
         {sortedRows.map((row, idx) => {
@@ -106,7 +124,13 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
           const val = Number(row.value);
           const barW = Math.max(scaleX(val) - leftMargin, 2);
           const formattedVal = formatMetricValue(val, metricMeta);
-          const ariaLabel = `${row.entity_id} · ${metricMeta.shortLabel}: ${formattedVal} · ${fmtPeriod(row.period)}`;
+
+          const matchedFact =
+            facts.find((f) => f.entity_id === row.entity_id && f.metric_id === (dataset.metric_ids?.[0] || row.metric_id) && f.period === row.period && f.fact_type === 'value') ||
+            facts.find((f) => f.entity_id === row.entity_id && f.metric_id === (dataset.metric_ids?.[0] || row.metric_id) && f.period === row.period) ||
+            facts.find((f) => row.observation_id && f.input_observation_ids?.includes(row.observation_id));
+          const factId = matchedFact?.fact_id;
+          const ariaLabel = `${row.entity_id} · ${metricMeta.shortLabel}: ${formattedVal} · ${fmtPeriod(row.period)}${factId ? ' (Nhấp để xem nguồn gốc)' : ''}`;
 
           return (
             <g key={`${row.entity_id}-${idx}`} className="group">
@@ -134,7 +158,14 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 tabIndex={0}
                 role="graphics-symbol"
                 aria-label={ariaLabel}
-                className="cursor-pointer focus:outline-none focus:stroke-accent focus:stroke-2 hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  if (factId && onOpenFact) {
+                    onOpenFact(factId);
+                  }
+                }}
+                className={`focus:outline-none focus:stroke-accent focus:stroke-2 transition-opacity ${
+                  factId && onOpenFact ? 'cursor-pointer hover:opacity-85' : 'cursor-pointer hover:opacity-90'
+                }`}
               >
                 <title>{ariaLabel}</title>
               </rect>
@@ -146,6 +177,12 @@ export const RankedBar: React.FC<ChartProps> = ({ dataset, metrics, highlight = 
                 fontSize="11"
                 fontWeight={isHighlight ? '700' : '400'}
                 fill="var(--text-primary, #20201e)"
+                onClick={() => {
+                  if (factId && onOpenFact) {
+                    onOpenFact(factId);
+                  }
+                }}
+                className={factId && onOpenFact ? 'cursor-pointer hover:fill-accent transition-colors' : ''}
               >
                 {formattedVal}
               </text>

@@ -6,7 +6,7 @@ import { fmtPeriod } from '@/shared/lib/formatting';
 import { SentenceView } from './SentenceView';
 
 export const AnswerBlock: React.FC<{ block: AnswerBlockType }> = ({ block }) => {
-  const { facts, metrics } = useEquityReport();
+  const { facts, metrics, onOpenFact } = useEquityReport();
 
   // Find fact by value_fact_id
   const targetFact = facts.find((f) => f.fact_id === block.value_fact_id);
@@ -26,7 +26,19 @@ export const AnswerBlock: React.FC<{ block: AnswerBlockType }> = ({ block }) => 
   return (
     <div className="mt-5 mb-2 font-sans">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-[44px] font-bold text-text-primary leading-none tracking-[-0.02em] font-sans tabular-nums">
+        <span
+          className={`text-[44px] font-bold text-text-primary leading-none tracking-[-0.02em] font-sans tabular-nums ${
+            block.value_fact_id && onOpenFact
+              ? 'cursor-pointer hover:text-text-accent transition-colors'
+              : ''
+          }`}
+          onClick={() => {
+            if (block.value_fact_id && onOpenFact) {
+              onOpenFact(block.value_fact_id);
+            }
+          }}
+          title={block.value_fact_id ? 'Xem nguồn gốc số liệu' : undefined}
+        >
           {displayVal}
         </span>
         {subLabel && (

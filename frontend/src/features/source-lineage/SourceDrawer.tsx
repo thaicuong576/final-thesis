@@ -58,6 +58,7 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
       className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-2xs transition-opacity animate-in fade-in duration-200"
       aria-modal="true"
       role="dialog"
+      aria-label="Ngăn truy vết nguồn số liệu"
     >
       {/* Backdrop click to close */}
       <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />

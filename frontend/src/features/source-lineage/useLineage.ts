@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import type {
   LineageNode,
   ReportItem,
+  ReportBlockItem,
   SourceNoteItem,
   FactItem,
   SentenceItem,
@@ -41,15 +42,21 @@ export function useLineage({
     setRetryTrigger((prev) => prev + 1);
   }, []);
 
-  // 1. Identify active note
-  const activeNote = report?.source_notes?.find((n) => n.note_no === noteNo) ?? null;
-
-  // 2. Identify active fact
+  // 1. Identify active fact
   let effectiveFactId = factId;
-  if (!effectiveFactId && activeNote?.fact_ids?.length) {
-    effectiveFactId = activeNote.fact_ids[0];
+  if (!effectiveFactId && noteNo != null) {
+    const note = report?.source_notes?.find((n) => n.note_no === noteNo);
+    if (note?.fact_ids?.length) {
+      effectiveFactId = note.fact_ids[0];
+    }
   }
   const activeFact = report?.facts?.find((f) => f.fact_id === effectiveFactId) ?? null;
+
+  // 2. Identify active note (by noteNo, or reverse lookup by effectiveFactId)
+  const activeNote =
+    report?.source_notes?.find((n) => noteNo != null && n.note_no === noteNo) ??
+    (effectiveFactId ? report?.source_notes?.find((n) => n.fact_ids?.includes(effectiveFactId)) : null) ??
+    null;
 
   // 3. Identify active sentence & audit verdict from narrative_audit
   let activeSentence: SentenceItem | null = null;
@@ -58,8 +65,22 @@ export function useLineage({
   if (report) {
     // Search narrative blocks for a sentence citing activeFact or noteNo
     const blocks = report.report_spec?.blocks ?? report.blocks ?? [];
-    for (const b of blocks) {
-      const sents = b.sentences ?? (b.sentence ? [b.sentence] : []);
+    for (const rawB of blocks) {
+      const b = rawB as ReportBlockItem;
+      const sents = [
+        ...(b.sentences ?? (b.sentence ? [b.sentence] : [])),
+        ...(b.takeaway ? [b.takeaway] : []),
+      ];
+      if (b.items && Array.isArray(b.items)) {
+        for (const item of b.items) {
+          if (item.sentences) sents.push(...item.sentences);
+        }
+      }
+      if (b.subsections && Array.isArray(b.subsections)) {
+        for (const sub of b.subsections) {
+          if (sub.sentences) sents.push(...sub.sentences);
+        }
+      }
       for (const s of sents) {
         if (
           (effectiveFactId && s.fact_ids?.includes(effectiveFactId)) ||

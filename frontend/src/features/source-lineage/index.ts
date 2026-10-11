@@ -5,3 +5,4 @@ export * from "./DataTab";
 export * from "./JourneyTab";
 export * from "./SourceDrawer";
 export * from "./SourceLineageDemo";
+export * from "./formatters";

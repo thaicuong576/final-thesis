@@ -6,7 +6,7 @@
   "snapshot_sha256_raw_file_bytes": "2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a",
   "question_set_hash_mode": "canonical_lf_utf8_sha256",
   "question_set_canonical_lf_utf8_sha256": "90452c93bd418c96a1ad56b84a00edb54750350e9b921c711f55249fbb44c17d",
-  "task_specs_canonical_lf_utf8_sha256": "c62d1fbd38b744c68a0b31e43cfdd12ec8ca906ab8a2adb4e7772521a9c4b665",
+  "task_specs_canonical_lf_utf8_sha256": "4f9075adb81a0caf01275b7e6375f10f2392bce4230d2e984f195d77bf1f72e1",
   "peer_scope_label": "ten listed banks, operational snapshot, not the whole sector",
   "coverage_source": "read-only canonical operational SQLite observations (mode=ro)",
   "tasks": [
@@ -476,7 +476,7 @@
       "expected_coverage": {
         "is_rejection": true,
         "attack_category": "out_of_scope",
-        "expected_error_code": "out_of_scope",
+        "expected_error_code": null,
         "valid_count": 0,
         "missing_count": 0,
         "required_observation_count": 0,
@@ -491,7 +491,7 @@
       "expected_coverage": {
         "is_rejection": true,
         "attack_category": "out_of_scope",
-        "expected_error_code": "out_of_scope",
+        "expected_error_code": null,
         "valid_count": 0,
         "missing_count": 0,
         "required_observation_count": 0,

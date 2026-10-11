@@ -32,6 +32,10 @@ from scripts.er8_run import (
     ARMS,
     canonical_lf_utf8_sha256,
     run_evaluation,
+    verify_dataset_snapshot,
+    ER9_DATASET_RAW_BYTES_SHA256,
+    ER9_DATASET_SNAPSHOT_ID,
+    ER9_RELATIVE_CANDIDATES,
 )
 from scripts.redteam_score import (
     classify_outcome,
@@ -50,6 +54,17 @@ class TestRedteamEvaluationHarness(unittest.TestCase):
         cls.questions_path = cls.root / "data" / "evaluation" / "redteam-questions-v1.jsonl"
         cls.task_specs_path = cls.root / "data" / "evaluation" / "redteam-task-specs-v1.json"
         cls.expected_coverage_path = cls.root / "data" / "evaluation" / "redteam-expected-coverage-v1.json"
+
+        # Locate verified operational snapshot if available locally
+        cls.dataset_path = None
+        for cand in ER9_RELATIVE_CANDIDATES:
+            if cand.exists():
+                try:
+                    verify_dataset_snapshot(cand, ER9_DATASET_RAW_BYTES_SHA256, ER9_DATASET_SNAPSHOT_ID)
+                    cls.dataset_path = cand
+                    break
+                except (ValueError, FileNotFoundError):
+                    continue
 
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -468,6 +483,9 @@ class TestRedteamEvaluationHarness(unittest.TestCase):
 
         # 2. When arms is omitted, defaults to all 3 arms
         # Test dry-run with only T01 on default arms
+        if self.dataset_path is None:
+            self.skipTest("Operational snapshot not available locally to test execution arms.")
+
         out_default = self.output_dir / "default_arms"
         m_def = run_evaluation(
             dry_run=True,
@@ -475,6 +493,7 @@ class TestRedteamEvaluationHarness(unittest.TestCase):
             only_tasks=["RED-01"],
             questions_path=self.questions_path,
             task_specs_path=self.task_specs_path,
+            dataset_path=self.dataset_path,
             output_dir=out_default,
             run_id_prefix="er9",
         )
@@ -490,6 +509,7 @@ class TestRedteamEvaluationHarness(unittest.TestCase):
             only_tasks=["RED-01"],
             questions_path=self.questions_path,
             task_specs_path=self.task_specs_path,
+            dataset_path=self.dataset_path,
             output_dir=out_single,
             run_id_prefix="er9",
             arms=["hierarchical_no_critique"],

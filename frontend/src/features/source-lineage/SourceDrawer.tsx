@@ -7,6 +7,10 @@ import { useLineage } from "./useLineage";
 import { formatPeriod } from "./formatters";
 import type { SourceDrawerProps, LineageTab } from "./types";
 
+/**
+ * SourceDrawer provides a 3-tab side drawer (Tài liệu, Dữ liệu, Hành trình)
+ * tracing an equity report fact or citation note recursively back to primary filings.
+ */
 export const SourceDrawer: React.FC<SourceDrawerProps> = ({
   isOpen,
   onClose,

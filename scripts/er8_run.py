@@ -487,8 +487,14 @@ def run_evaluation(
     expected_snapshot_id: str | None = None,
     run_id_prefix: str = "er8",
     manifest_id: str | None = None,
+    arms: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     effective_dataset = dataset_path or gold_path
+
+    effective_arms = tuple(arms) if arms is not None else ARMS
+    for a in effective_arms:
+        if a not in ARMS:
+            raise ValueError(f"Invalid arm '{a}'. Allowed arms: {ARMS}")
 
     if run_id_prefix == "er9":
         if output_dir is None:
@@ -506,8 +512,13 @@ def run_evaluation(
             authority_path = None
         questions_path = questions_path or (ROOT / "data" / "evaluation" / "er9-questions-v1.jsonl")
         task_specs_path = task_specs_path or (ROOT / "data" / "evaluation" / "er9-task-specs-v1.json")
-        expected_coverage_path = expected_coverage_path or (ROOT / "data" / "evaluation" / "er9-expected-coverage-v1.json")
-        manifest_id = manifest_id or "er9-evaluation-manifest-v1"
+        if expected_coverage_path is None:
+            if "redteam" in str(questions_path):
+                rt_cov = ROOT / "data" / "evaluation" / "redteam-expected-coverage-v1.json"
+                expected_coverage_path = rt_cov if rt_cov.exists() else None
+            else:
+                expected_coverage_path = ROOT / "data" / "evaluation" / "er9-expected-coverage-v1.json"
+        manifest_id = manifest_id or ("redteam-evaluation-manifest-v1" if "redteam" in str(questions_path) else "er9-evaluation-manifest-v1")
     else:
         if output_dir is None:
             output_dir = (ROOT / "experiments" / "er8" / "dry-run") if dry_run else (ROOT / "experiments" / "er8")
@@ -540,10 +551,10 @@ def run_evaluation(
     # Hashes of input files
     q_content = questions_path.read_bytes()
     specs_content = task_specs_path.read_bytes()
-    cov_content = expected_coverage_path.read_bytes()
+    cov_content = expected_coverage_path.read_bytes() if (expected_coverage_path and expected_coverage_path.exists()) else None
     questions_hash = canonical_lf_utf8_sha256(q_content)
     specs_hash = canonical_lf_utf8_sha256(specs_content)
-    cov_hash = canonical_lf_utf8_sha256(cov_content)
+    cov_hash = canonical_lf_utf8_sha256(cov_content) if cov_content else None
 
     # Load questions
     all_questions: list[dict[str, str]] = []
@@ -560,7 +571,7 @@ def run_evaluation(
     planned_runs = []
     for rep in range(reps):
         for q in all_questions:
-            for arm in ARMS:
+            for arm in effective_arms:
                 planned_runs.append({
                     "task_id": q["task_id"],
                     "question_text": q["question_text"],
@@ -823,6 +834,7 @@ def run_evaluation(
         "seed": seed,
         "reps": reps,
         "concurrency": effective_concurrency,
+        "arms": list(effective_arms),
         "max_tokens_budget": max_tokens,
         "accumulated_tokens": accumulated_tokens,
         "budget_exceeded": budget_exceeded,
@@ -835,7 +847,7 @@ def run_evaluation(
         "questions_canonical_lf_utf8_sha256": questions_hash,
         "task_specs_file": _relpath_str(task_specs_path),
         "task_specs_canonical_lf_utf8_sha256": specs_hash,
-        "expected_coverage_file": _relpath_str(expected_coverage_path),
+        "expected_coverage_file": _relpath_str(expected_coverage_path) if (expected_coverage_path and expected_coverage_path.exists()) else None,
         "expected_coverage_canonical_lf_utf8_sha256": cov_hash,
         "total_planned_runs": len(planned_runs),
         "total_executed_runs": len(run_records),
@@ -893,11 +905,17 @@ def main() -> None:
     parser.add_argument("--resume", action="store_true", help="Skip runs whose files already exist with status completed/blocked")
     parser.add_argument("--run-id-prefix", type=str, default=None, help="Run ID prefix (er8 or er9)")
     parser.add_argument("--er9", action="store_true", help="Preset: run ER-9 on the ten-bank quarterly operational snapshot")
+    parser.add_argument("--arms", type=str, default=None, help=f"Comma-separated arms to run (default: all three; options: {','.join(ARMS)})")
 
     args = parser.parse_args()
 
     only_tasks = [t.strip() for t in args.only.split(",")] if args.only else None
     run_id_prefix = args.run_id_prefix or ("er9" if args.er9 else "er8")
+    arms = [a.strip() for a in args.arms.split(",") if a.strip()] if args.arms else None
+    if arms:
+        for a in arms:
+            if a not in ARMS:
+                parser.error(f"Invalid arm '{a}'. Allowed arms: {', '.join(ARMS)}")
 
     run_evaluation(
         dry_run=args.dry_run,
@@ -918,6 +936,7 @@ def main() -> None:
         expected_raw_sha256=args.expected_hash,
         expected_snapshot_id=args.expected_snapshot_id,
         run_id_prefix=run_id_prefix,
+        arms=arms,
     )
 
 

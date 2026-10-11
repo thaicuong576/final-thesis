@@ -866,6 +866,7 @@ Because `"dropped_sentences"` was never found in real run files, the scorer sile
 
 ---
 
+<<<<<<< HEAD
 ## [LESSON-045] Narrative Verifier Mutation Recall & Semantic Escape Modes in Financial Sentence Auditing
 
 - Date: 2026-10-11
@@ -894,7 +895,25 @@ Systematic mutation testing across 12 error-injection operators on 129 accepted 
 
 ---
 
-## [LESSON-046] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
+## [LESSON-046] Redteam Adversarial Evaluation: --arms Option, Deterministic Scorer & Verification Context Isolation
+
+- Date: 2026-10-11
+- Scope: `scripts/er8_run.py`, `scripts/er9_run.py`, `scripts/redteam_score.py`, `scripts/generate_redteam_data.py`, `tests/test_redteam_harness.py`
+- Status: ACTIVE
+
+### 1. Verification Context Fact Reconstruction Isolation
+- **Symptom**: In `scripts/redteam_score.py`, reconstructing `Fact` instances for audit or validation threw `TypeError: Fact.__init__() got an unexpected keyword argument 'display_value'`.
+- **Root Cause**: `Fact` in `src/thesis_data/narrative_verification.py` is a dataclass with strict field definitions (`FACT_FIELDS`). Run manifests or mock audit entries serialize additional context fields like `display_value` or raw metadata that are not constructor parameters.
+- **Solution**: Implement `build_verification_context_for_redteam` in `scripts/redteam_score.py` to filter dictionary keys strictly against `FACT_FIELDS` and default missing required fields (`fact_type="value"`), ensuring robust verification across offline doubles and real runs.
+
+### 2. Evaluation Runner Arm Filtering (`--arms`)
+- **Symptom**: Running targeted evaluation subsets (e.g. single arm or specific combinations) required executing all 3 arms or hacking runner scripts.
+- **Root Cause**: `run_evaluation` hard-coded iteration over `ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")`.
+- **Solution**: Add `--arms` CLI parameter with strict validation against `ARMS`, plumbing `effective_arms` into planned runs, token budget estimation, resume mechanics, and the final run manifest (`manifest["arms"]`). Preserve default 3-arm behavior when omitted.
+
+---
+
+## [LESSON-047] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
 
 - Date: 2026-10-11
 - Scope: `src/thesis_api/analysis_tools.py`, `src/thesis_api/lineage.py`, `src/thesis_data/evidence_contract.py`, `frontend/src/features/source-lineage/`
@@ -916,7 +935,7 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 
 ---
 
-## [LESSON-047] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries (LIN-1)
+## [LESSON-048] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries (LIN-1)
 
 - Date: 2026-10-11
 - Scope: `frontend/src/features/source-lineage/`, `tests/sourceLineageDrawer.test.tsx`
@@ -936,7 +955,7 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 
 ---
 
-## [LESSON-048] Deep Wiring of Provenance Drawers into Adaptive Equity Reports & Dropped Sentences Auditing (LIN-1 Phase 2)
+## [LESSON-049] Deep Wiring of Provenance Drawers into Adaptive Equity Reports & Dropped Sentences Auditing (LIN-1 Phase 2)
 
 - Date: 2026-10-11
 - Scope: `frontend/src/features/equity-report/`, `frontend/src/features/source-lineage/`, `frontend/vite.config.ts`

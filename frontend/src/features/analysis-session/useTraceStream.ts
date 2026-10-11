@@ -16,6 +16,69 @@ export interface UseTraceStreamOptions {
   onError?: (error: Error) => void;
 }
 
+export interface ToolCallItem {
+  tool: string;
+  arguments?: {
+    entities?: string[];
+    metrics?: string[];
+    periods?: string[];
+    [key: string]: unknown;
+  };
+  resultCount?: number;
+  durationMs?: number;
+  role?: string;
+  status: 'running' | 'completed';
+}
+
+export interface SentenceVerdictItem {
+  sentence: string;
+  verdict: 'kept' | 'dropped';
+  dropReason?: string | null;
+  explanationVi?: string;
+  factIds?: string[];
+  role?: string;
+}
+
+export interface ReviewIssueItem {
+  issueType?: string;
+  targetSentence?: string;
+  requiredAction?: string;
+  description?: string;
+}
+
+export interface SentenceRevisionItem {
+  before?: string;
+  after?: string;
+  verified?: boolean;
+}
+
+export interface LiveWorkState {
+  draftsByRole: Record<string, string>;
+  activeWriterRole: string | null;
+  toolCallsByRole: Record<string, ToolCallItem[]>;
+  verdictsByRole: Record<string, SentenceVerdictItem[]>;
+  reviewIssues: ReviewIssueItem[];
+  revisions: SentenceRevisionItem[];
+  planSummary?: {
+    questionType?: string;
+    entities?: string[];
+    metrics?: string[];
+    periods?: string[];
+    specialistsCalled?: string[];
+    tools?: string[];
+    planSummary?: string;
+  };
+}
+
+export const initialLiveWorkState: LiveWorkState = {
+  draftsByRole: {},
+  activeWriterRole: null,
+  toolCallsByRole: {},
+  verdictsByRole: {},
+  reviewIssues: [],
+  revisions: []
+};
+
 export interface UseTraceStreamReturn {
   steps: TraceStep[];
   isStreaming: boolean;
@@ -25,6 +88,7 @@ export interface UseTraceStreamReturn {
   isDisconnected: boolean;
   error: Error | null;
   reportId: string | null;
+  liveWorkState: LiveWorkState;
   startStream: (req?: { query: string; upload_id?: string }) => Promise<void>;
   cancelStream: () => void;
   retry: () => void;
@@ -206,6 +270,36 @@ export function parseTraceSseBlock(
   }
 }
 
+/**
+ * Parses any raw SSE block into its event type and payload object.
+ */
+export function parseSseBlockRaw(block: string): { type: string; payload: Record<string, unknown> } | null {
+  let eventType = '';
+  const dataLines: string[] = [];
+
+  const lines = block.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('event:')) {
+      eventType = trimmed.slice(6).trim();
+    } else if (trimmed.startsWith('data:')) {
+      dataLines.push(trimmed.slice(5).trim());
+    }
+  }
+
+  if (dataLines.length === 0) return null;
+
+  try {
+    const rawData = dataLines.join('\n');
+    const parsed = JSON.parse(rawData) as Record<string, unknown>;
+    const resolvedType = eventType || (parsed.type as string) || '';
+    const payload = (parsed.payload ?? parsed) as Record<string, unknown>;
+    return { type: resolvedType, payload };
+  } catch {
+    return null;
+  }
+}
+
 export function useTraceStream({
   request,
   autoStart = true,
@@ -218,6 +312,7 @@ export function useTraceStream({
   onError
 }: UseTraceStreamOptions = {}): UseTraceStreamReturn {
   const [steps, setSteps] = useState<TraceStep[]>(initialSteps ?? []);
+  const [liveWorkState, setLiveWorkState] = useState<LiveWorkState>(initialLiveWorkState);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -228,12 +323,139 @@ export function useTraceStream({
 
   const query = request?.query?.trim() ?? '';
   const abortControllerRef = useRef<AbortController | null>(null);
+  const liveWorkRef = useRef<LiveWorkState>(initialLiveWorkState);
 
   const getEndpoint = useCallback(() => {
     if (apiEndpoint) return apiEndpoint;
     const base = getApiBaseUrl();
     return base ? `${base}/api/analyze/stream` : '/api/analyze/stream';
   }, [apiEndpoint]);
+
+  const handleLiveEvent = useCallback((raw: { type: string; payload: Record<string, unknown> }) => {
+    const { type, payload } = raw;
+    let updated = false;
+
+    if (type === 'WRITER_DRAFT_DELTA') {
+      const delta = String(payload.delta || '');
+      const role = String(payload.role || 'orchestrator');
+      if (delta) {
+        liveWorkRef.current = {
+          ...liveWorkRef.current,
+          draftsByRole: {
+            ...liveWorkRef.current.draftsByRole,
+            [role]: (liveWorkRef.current.draftsByRole[role] || '') + delta
+          },
+          activeWriterRole: role
+        };
+        updated = true;
+      }
+    } else if (type === 'SENTENCE_VERDICT') {
+      const sentence = String(payload.sentence || '');
+      const verdict = payload.verdict === 'kept' ? 'kept' : 'dropped';
+      const dropReason = (payload.dropReason ?? payload.drop_reason) as string | null | undefined;
+      const explanationVi = (payload.explanationVi ?? payload.explanation_vi) as string | undefined;
+      const factIds = (payload.factIds ?? payload.fact_ids) as string[] | undefined;
+      const role = String(payload.role || 'verifier');
+      const item: SentenceVerdictItem = { sentence, verdict, dropReason, explanationVi, factIds, role };
+
+      const existingRoleVerdicts = liveWorkRef.current.verdictsByRole[role] || [];
+      const updatedRoleVerdicts = {
+        ...liveWorkRef.current.verdictsByRole,
+        [role]: [...existingRoleVerdicts, item]
+      };
+      if (role !== 'verifier') {
+        const verifierVerdicts = liveWorkRef.current.verdictsByRole.verifier || [];
+        updatedRoleVerdicts.verifier = [...verifierVerdicts, item];
+      }
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        verdictsByRole: updatedRoleVerdicts
+      };
+      updated = true;
+    } else if (type === 'TOOL_STARTED') {
+      const tool = String(payload.tool || '');
+      const role = String(payload.role || 'specialist');
+      const args = payload.arguments as ToolCallItem['arguments'];
+      const item: ToolCallItem = { tool, arguments: args, status: 'running', role };
+      const roleTools = liveWorkRef.current.toolCallsByRole[role] || [];
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        toolCallsByRole: {
+          ...liveWorkRef.current.toolCallsByRole,
+          [role]: [...roleTools, item]
+        }
+      };
+      updated = true;
+    } else if (type === 'TOOL_COMPLETED') {
+      const tool = String(payload.tool || '');
+      const role = String(payload.role || 'specialist');
+      const resultCount = Number(payload.resultCount ?? payload.result_count ?? 0);
+      const durationMs = Number(payload.durationMs ?? payload.duration_ms ?? 0);
+      const roleTools = liveWorkRef.current.toolCallsByRole[role] || [];
+      const runningIdx = roleTools.findIndex((t) => t.tool === tool && t.status === 'running');
+      if (runningIdx >= 0) {
+        const nextList = [...roleTools];
+        nextList[runningIdx] = {
+          ...nextList[runningIdx],
+          status: 'completed',
+          resultCount,
+          durationMs
+        };
+        liveWorkRef.current = {
+          ...liveWorkRef.current,
+          toolCallsByRole: {
+            ...liveWorkRef.current.toolCallsByRole,
+            [role]: nextList
+          }
+        };
+      } else {
+        liveWorkRef.current = {
+          ...liveWorkRef.current,
+          toolCallsByRole: {
+            ...liveWorkRef.current.toolCallsByRole,
+            [role]: [...roleTools, { tool, resultCount, durationMs, status: 'completed', role }]
+          }
+        };
+      }
+      updated = true;
+    } else if (type === 'REVIEW_FEEDBACK_CREATED') {
+      const issues = (payload.issues as ReviewIssueItem[]) || [];
+      if (issues.length > 0) {
+        liveWorkRef.current = {
+          ...liveWorkRef.current,
+          reviewIssues: [...liveWorkRef.current.reviewIssues, ...issues]
+        };
+        updated = true;
+      }
+    } else if (type === 'REVISION_COMPLETED') {
+      const revs = (payload.revisions as SentenceRevisionItem[]) || [];
+      if (revs.length > 0) {
+        liveWorkRef.current = {
+          ...liveWorkRef.current,
+          revisions: [...liveWorkRef.current.revisions, ...revs]
+        };
+        updated = true;
+      }
+    } else if (type === 'PLAN_CREATED') {
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        planSummary: {
+          questionType: payload.questionType as string | undefined,
+          entities: payload.entities as string[] | undefined,
+          metrics: payload.metrics as string[] | undefined,
+          periods: payload.periods as string[] | undefined,
+          specialistsCalled: payload.specialistsCalled as string[] | undefined,
+          tools: payload.tools as string[] | undefined,
+          planSummary: payload.planSummary as string | undefined
+        }
+      };
+      updated = true;
+    }
+
+    if (updated) {
+      setLiveWorkState({ ...liveWorkRef.current });
+    }
+  }, []);
 
   const startStream = useCallback(
     async (requestOverride?: { query: string; upload_id?: string }) => {
@@ -263,6 +485,15 @@ export function useTraceStream({
       setError(null);
       setSteps([]);
       setReportId(null);
+      liveWorkRef.current = {
+        draftsByRole: {},
+        activeWriterRole: null,
+        toolCallsByRole: {},
+        verdictsByRole: {},
+        reviewIssues: [],
+        revisions: []
+      };
+      setLiveWorkState({ ...liveWorkRef.current });
 
       const accumulatedSteps: TraceStep[] = [];
 
@@ -303,11 +534,24 @@ export function useTraceStream({
 
           for (const block of parts) {
             if (!block.trim()) continue;
+
+            const rawEvent = parseSseBlockRaw(block);
+            if (rawEvent) {
+              handleLiveEvent(rawEvent);
+            }
+
             const parsedStep = parseTraceSseBlock(block, capabilities);
             if (parsedStep) {
               accumulatedSteps.push(parsedStep);
               setSteps([...accumulatedSteps]);
               onStep?.(parsedStep);
+
+              if (parsedStep.kind === 'draft' || parsedStep.kind === 'compose' || parsedStep.kind === 'revision') {
+                if (liveWorkRef.current.activeWriterRole) {
+                  liveWorkRef.current = { ...liveWorkRef.current, activeWriterRole: null };
+                  setLiveWorkState({ ...liveWorkRef.current });
+                }
+              }
 
               if (parsedStep.kind === 'report_ready') {
                 const repId = (parsedStep.detail?.report_id as string) || '';
@@ -333,6 +577,11 @@ export function useTraceStream({
 
         // Residual buffer
         if (buffer.trim()) {
+          const rawEvent = parseSseBlockRaw(buffer);
+          if (rawEvent) {
+            handleLiveEvent(rawEvent);
+          }
+
           const parsedStep = parseTraceSseBlock(buffer, capabilities);
           if (parsedStep) {
             accumulatedSteps.push(parsedStep);
@@ -385,7 +634,7 @@ export function useTraceStream({
         onError?.(errorObj);
       }
     },
-    [query, request?.upload_id, getEndpoint, capabilities, onStep, onReportReady, onBlocked, onError]
+    [query, request?.upload_id, getEndpoint, capabilities, handleLiveEvent, onStep, onReportReady, onBlocked, onError]
   );
 
   const cancelStream = useCallback(() => {
@@ -429,6 +678,7 @@ export function useTraceStream({
     isDisconnected,
     error,
     reportId,
+    liveWorkState,
     startStream,
     cancelStream,
     retry

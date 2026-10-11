@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
-from typing import Any, Mapping, Protocol, Sequence
+import time
+from typing import Any, Callable, Mapping, Protocol, Sequence
 
 from thesis_data.report_spec import normalize_report_spec_dict
+
+logger = logging.getLogger(__name__)
 
 
 _INLINE_FACT_REF_RE = re.compile(
@@ -41,6 +45,127 @@ def _clean_json_text(text: str) -> str:
         cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
         cleaned = re.sub(r"\s*```$", "", cleaned)
     return cleaned.strip()
+
+
+class ThrottledDeltaEmitter:
+    """Coalesces streamed text deltas to at most ~8 events per second (~125 ms interval)."""
+
+    def __init__(self, callback: Callable[[str], None], min_interval_sec: float = 0.125) -> None:
+        self.callback = callback
+        self.min_interval_sec = min_interval_sec
+        self._buffer: list[str] = []
+        self._last_emit_time = 0.0
+
+    def feed(self, delta: str) -> None:
+        if not delta:
+            return
+        self._buffer.append(delta)
+        now = time.monotonic()
+        if now - self._last_emit_time >= self.min_interval_sec:
+            self.flush(now)
+
+    def flush(self, now: float | None = None) -> None:
+        if not self._buffer:
+            return
+        text = "".join(self._buffer)
+        self._buffer.clear()
+        self._last_emit_time = now if now is not None else time.monotonic()
+        self.callback(text)
+
+
+class StreamingJsonTextExtractor:
+    """Incremental extractor that pulls human-readable prose (values of 'text', 'title', 'headline')
+
+    from partial JSON chunks without emitting JSON syntax, braces, or technical keys.
+    """
+
+    def __init__(self, on_delta: Callable[[str], None], target_keys: set[str] | None = None) -> None:
+        self.on_delta = on_delta
+        self.target_keys = target_keys or {"text", "title", "headline"}
+        self._in_string = False
+        self._escape = False
+        self._in_unicode_escape = False
+        self._unicode_hex: list[str] = []
+        self._current_string: list[str] = []
+        self._candidate_key: str | None = None
+        self._last_key: str | None = None
+        self._in_target_value = False
+        self._had_previous_sentence = False
+
+    def feed(self, chunk: str) -> None:
+        delta_buffer: list[str] = []
+        for char in chunk:
+            if not self._in_string:
+                if char == '"':
+                    self._in_string = True
+                    self._escape = False
+                    self._in_unicode_escape = False
+                    self._unicode_hex = []
+                    self._current_string = []
+                    # Check if this string is the value for a target key
+                    if self._last_key in self.target_keys:
+                        self._in_target_value = True
+                        if self._had_previous_sentence:
+                            delta_buffer.append(" ")
+                    else:
+                        self._in_target_value = False
+                elif char == ':':
+                    self._last_key = self._candidate_key
+                    self._candidate_key = None
+                elif char in ('{', '}', '[', ']', ','):
+                    if char in ('{', '[', '}', ']'):
+                        self._last_key = None
+                        self._candidate_key = None
+            else:
+                if self._in_unicode_escape:
+                    self._unicode_hex.append(char)
+                    if len(self._unicode_hex) == 4:
+                        try:
+                            unescaped_char = chr(int("".join(self._unicode_hex), 16))
+                        except ValueError:
+                            unescaped_char = ""
+                        self._in_unicode_escape = False
+                        self._unicode_hex = []
+                        self._escape = False
+                        self._current_string.append(unescaped_char)
+                        if self._in_target_value:
+                            delta_buffer.append(unescaped_char)
+                elif self._escape:
+                    if char == 'u':
+                        self._in_unicode_escape = True
+                        self._unicode_hex = []
+                    else:
+                        unescaped_char = {
+                            '"': '"',
+                            '\\': '\\',
+                            '/': '/',
+                            'b': '\b',
+                            'f': '\f',
+                            'n': '\n',
+                            'r': '\r',
+                            't': '\t',
+                        }.get(char, char)
+                        self._escape = False
+                        self._current_string.append(unescaped_char)
+                        if self._in_target_value:
+                            delta_buffer.append(unescaped_char)
+                elif char == '\\':
+                    self._escape = True
+                elif char == '"':
+                    self._in_string = False
+                    if self._in_target_value:
+                        self._in_target_value = False
+                        self._last_key = None
+                        self._had_previous_sentence = True
+                    else:
+                        self._candidate_key = "".join(self._current_string)
+                else:
+                    self._current_string.append(char)
+                    if self._in_target_value:
+                        delta_buffer.append(char)
+
+        if delta_buffer:
+            self.on_delta("".join(delta_buffer))
 
 
 class AnalysisWriterError(ValueError):
@@ -292,6 +417,7 @@ class AnalysisWriter(Protocol):
         datasets_summary: Sequence[Mapping[str, Any]],
         candidates: Sequence[Mapping[str, Any]] | None = None,
         max_sentences: int = 4,
+        on_delta: Callable[[str], None] | None = None,
     ) -> list[dict[str, Any]]: ...
 
     def compose_report(
@@ -304,6 +430,7 @@ class AnalysisWriter(Protocol):
         signals: Sequence[Mapping[str, Any]] | None = None,
         findings: Sequence[Mapping[str, Any]] | None = None,
         facts: Sequence[Mapping[str, Any]] | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]: ...
 
     def rewrite_sentence(
@@ -314,6 +441,7 @@ class AnalysisWriter(Protocol):
         sentence: Mapping[str, Any],
         issue: Mapping[str, Any],
         facts: Sequence[Mapping[str, Any]],
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]: ...
 
 
@@ -349,6 +477,7 @@ class OpenAIAnalysisWriter:
         datasets_summary: Sequence[Any],
         candidates: Sequence[Any] | None = None,
         max_sentences: int = 4,
+        on_delta: Callable[[str], None] | None = None,
     ) -> list[dict[str, Any]]:
         self._current_role = role
         try:
@@ -360,6 +489,7 @@ class OpenAIAnalysisWriter:
                 datasets_summary=datasets_summary,
                 candidates=candidates,
                 max_sentences=max_sentences,
+                on_delta=on_delta,
             )
         finally:
             self._current_role = "orchestrator"
@@ -374,6 +504,7 @@ class OpenAIAnalysisWriter:
         datasets_summary: Sequence[Any],
         candidates: Sequence[Any] | None = None,
         max_sentences: int = 4,
+        on_delta: Callable[[str], None] | None = None,
     ) -> list[dict[str, Any]]:
         role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
         q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
@@ -420,6 +551,7 @@ class OpenAIAnalysisWriter:
             instructions=instructions,
             payload=payload,
             schema=schema,
+            on_delta=on_delta,
         )
         sentences = decoded.get("sentences")
         if not isinstance(sentences, list):
@@ -436,6 +568,7 @@ class OpenAIAnalysisWriter:
         signals: Sequence[Any] | None = None,
         findings: Sequence[Any] | None = None,
         facts: Sequence[Any] | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
         instructions = COMPOSE_REPORT_PROMPT_TEMPLATE.format(
@@ -456,6 +589,7 @@ class OpenAIAnalysisWriter:
             instructions=instructions,
             payload=payload,
             schema=_COMPOSE_REPORT_SCHEMA,
+            on_delta=on_delta,
         )
         if not isinstance(decoded, dict):
             raise AnalysisWriterError("analysis_writer_compose_output_invalid")
@@ -469,6 +603,7 @@ class OpenAIAnalysisWriter:
         sentence: Mapping[str, Any],
         issue: Mapping[str, Any],
         facts: Sequence[Any],
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         self._current_role = role
         try:
@@ -478,6 +613,7 @@ class OpenAIAnalysisWriter:
                 sentence=sentence,
                 issue=issue,
                 facts=facts,
+                on_delta=on_delta,
             )
         finally:
             self._current_role = "orchestrator"
@@ -490,6 +626,7 @@ class OpenAIAnalysisWriter:
         sentence: Mapping[str, Any],
         issue: Mapping[str, Any],
         facts: Sequence[Any],
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
         desc = issue.get("description", "")
@@ -524,6 +661,7 @@ class OpenAIAnalysisWriter:
             instructions=instructions,
             payload=payload,
             schema=schema,
+            on_delta=on_delta,
         )
         text = decoded.get("text")
         fact_ids = decoded.get("fact_ids")
@@ -538,7 +676,54 @@ class OpenAIAnalysisWriter:
         instructions: str,
         payload: Mapping[str, Any],
         schema: dict[str, Any] | None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
+        if on_delta is not None and not hasattr(self.client, "responses"):
+            try:
+                messages = [
+                    {"role": "system", "content": instructions},
+                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
+                ]
+                kwargs: dict[str, Any] = {
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": self.max_output_tokens,
+                    "stream": True,
+                }
+                if schema is not None:
+                    kwargs["response_format"] = {
+                        "type": "json_schema",
+                        "json_schema": {"name": name, "schema": schema, "strict": True},
+                    }
+                else:
+                    kwargs["response_format"] = {"type": "json_object"}
+                stream_resp = self.client.chat.completions.create(**kwargs)
+                emitter = ThrottledDeltaEmitter(on_delta)
+                extractor = StreamingJsonTextExtractor(emitter.feed)
+                accumulated_chunks: list[str] = []
+                for chunk in stream_resp:
+                    chunk_text = ""
+                    if hasattr(chunk, "choices") and chunk.choices:
+                        delta_obj = getattr(chunk.choices[0], "delta", None)
+                        if delta_obj:
+                            chunk_text = getattr(delta_obj, "content", "") or ""
+                    elif isinstance(chunk, dict):
+                        choices = chunk.get("choices", [])
+                        if choices:
+                            chunk_text = choices[0].get("delta", {}).get("content", "") or ""
+                    if chunk_text:
+                        accumulated_chunks.append(chunk_text)
+                        extractor.feed(chunk_text)
+                emitter.flush()
+                output_text = "".join(accumulated_chunks)
+                if output_text.strip():
+                    clean_text = _clean_json_text(output_text)
+                    decoded = json.loads(clean_text)
+                    if isinstance(decoded, dict):
+                        return _strip_inline_fact_refs(decoded)
+            except Exception as stream_exc:
+                logger.debug("Writer streaming attempt failed; falling back to non-streamed call: %s", stream_exc)
+
         last_exc: Exception | None = None
         for attempt in range(3):
             try:

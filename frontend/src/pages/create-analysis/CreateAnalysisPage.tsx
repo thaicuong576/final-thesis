@@ -102,7 +102,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
   return (
     <WorkspaceShell activeSection="analysis">
       <div className="min-h-[calc(100vh-56px)] px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[780px]">
+        <div className={mode === 'ASK' ? 'mx-auto max-w-[780px]' : 'mx-auto max-w-[1240px]'}>
           {mode === 'ASK' ? (
             <div className="pt-[6vh] sm:pt-[9vh]">
               <h1 className="font-display m-0 text-[36px] font-bold leading-[1.1] text-balance text-text-primary sm:text-[44px]">

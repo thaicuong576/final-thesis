@@ -80,8 +80,17 @@ export interface StageModel {
  * hand-offs, so the stage infers the busy agent between them: an assignee works until it replies,
  * a specialist that returned data is drafting until its draft arrives, and so on.
  */
-export function deriveStage(steps: TraceStep[]): StageModel {
-  const plan = steps.find((s) => s.kind === 'plan');
+export function deriveStage(
+  steps: TraceStep[],
+  allSteps?: TraceStep[],
+  liveWorkState?: {
+    draftsByRole?: Record<string, string>;
+    toolCallsByRole?: Record<string, unknown>;
+    verdictsByRole?: Record<string, unknown>;
+  }
+): StageModel {
+  const full = allSteps && allSteps.length > 0 ? allSteps : steps;
+  const plan = full.find((s) => s.kind === 'plan') || steps.find((s) => s.kind === 'plan');
   const planned = ((plan?.detail?.agents as Array<{ agent: string; decision: string }> | undefined) || [])
     .filter((a) => a.decision === 'run')
     .map((a) => a.agent.toLowerCase());
@@ -91,6 +100,20 @@ export function deriveStage(steps: TraceStep[]): StageModel {
   for (const s of steps) {
     if (isStageAgent(s.actor)) seen.add(s.actor);
     if (isStageAgent(s.recipient)) seen.add(s.recipient);
+  }
+  for (const s of full) {
+    if (isStageAgent(s.actor)) seen.add(s.actor);
+    if (isStageAgent(s.recipient)) seen.add(s.recipient);
+  }
+  if (liveWorkState?.draftsByRole) {
+    for (const id of Object.keys(liveWorkState.draftsByRole)) {
+      if (isStageAgent(id)) seen.add(id);
+    }
+  }
+  if (liveWorkState?.toolCallsByRole) {
+    for (const id of Object.keys(liveWorkState.toolCallsByRole)) {
+      if (isStageAgent(id)) seen.add(id);
+    }
   }
   const order: StageAgentId[] = ['orchestrator', 'sector', 'company', 'macro', 'verifier', 'critic'];
   const agents = order.filter((id) => seen.has(id));
@@ -199,4 +222,242 @@ export function stepEndpoints(step: TraceStep): [StageAgentId, StageAgentId] | n
   const to = step.kind === 'draft' ? 'orchestrator' : step.recipient;
   if (!isStageAgent(from) || !isStageAgent(to) || from === to) return null;
   return [from, to];
+}
+
+export interface AgentWorkData {
+  agentId: StageAgentId;
+  draftText: string;
+  isTyping: boolean;
+  toolCalls: Array<{
+    tool: string;
+    arguments?: {
+      entities?: string[];
+      metrics?: string[];
+      periods?: string[];
+      [key: string]: unknown;
+    };
+    resultCount?: number;
+    durationMs?: number;
+    role?: string;
+    status: 'running' | 'completed';
+  }>;
+  verdicts: Array<{
+    sentence: string;
+    verdict: 'kept' | 'dropped';
+    dropReason?: string | null;
+    explanationVi?: string;
+    factIds?: string[];
+    role?: string;
+  }>;
+  issues: Array<{
+    issueType?: string;
+    targetSentence?: string;
+    requiredAction?: string;
+    description?: string;
+  }>;
+  revisions: Array<{
+    before?: string;
+    after?: string;
+    verified?: boolean;
+  }>;
+  planSummary?: {
+    questionType?: string;
+    entities?: string[];
+    metrics?: string[];
+    periods?: string[];
+    specialistsCalled?: string[];
+    tools?: string[];
+    planSummary?: string;
+  };
+}
+
+export function deriveAgentWork(
+  agentId: StageAgentId,
+  steps: TraceStep[],
+  liveWorkState?: {
+    draftsByRole: Record<string, string>;
+    activeWriterRole: string | null;
+    toolCallsByRole: Record<string, Array<{ tool: string; arguments?: Record<string, unknown>; resultCount?: number; durationMs?: number; role?: string; status: 'running' | 'completed' }>>;
+    verdictsByRole: Record<string, Array<{ sentence: string; verdict: 'kept' | 'dropped'; dropReason?: string | null; explanationVi?: string; factIds?: string[]; role?: string }>>;
+    reviewIssues: Array<{ issueType?: string; targetSentence?: string; requiredAction?: string; description?: string }>;
+    revisions: Array<{ before?: string; after?: string; verified?: boolean }>;
+    planSummary?: { questionType?: string; entities?: string[]; metrics?: string[]; periods?: string[]; specialistsCalled?: string[]; tools?: string[]; planSummary?: string };
+  }
+): AgentWorkData {
+  // 1. Draft text
+  let draftText = liveWorkState?.draftsByRole[agentId] || '';
+  if (!draftText) {
+    if (agentId === 'company' || agentId === 'sector' || agentId === 'macro') {
+      const draftStep = [...steps].reverse().find((s) => s.actor === agentId && s.kind === 'draft');
+      if (draftStep?.detail?.draft_text && typeof draftStep.detail.draft_text === 'string') {
+        draftText = draftStep.detail.draft_text;
+      } else if (Array.isArray(draftStep?.detail?.sentences)) {
+        draftText = (draftStep.detail.sentences as Array<{ text?: string }>)
+          .map((s) => s.text || '')
+          .filter(Boolean)
+          .join('\n\n');
+      }
+    } else if (agentId === 'orchestrator') {
+      const composeStep = [...steps].reverse().find((s) => s.kind === 'compose');
+      if (composeStep?.detail?.draft_text && typeof composeStep.detail.draft_text === 'string') {
+        draftText = composeStep.detail.draft_text;
+      }
+    }
+  }
+
+  // 2. Typing indicator
+  const isTyping = liveWorkState?.activeWriterRole === agentId;
+
+  // 3. Tool calls
+  const toolCalls = [...(liveWorkState?.toolCallsByRole[agentId] || [])];
+  if (toolCalls.length === 0) {
+    for (const s of steps) {
+      if (s.actor === agentId && s.kind === 'tool_result') {
+        if (Array.isArray(s.detail?.tools)) {
+          for (const t of s.detail.tools as Array<{ tool?: string; arguments?: Record<string, unknown>; result_count?: number; duration_ms?: number }>) {
+            toolCalls.push({
+              tool: t.tool || 'query_data',
+              arguments: t.arguments,
+              resultCount: t.result_count,
+              durationMs: t.duration_ms,
+              status: 'completed',
+              role: agentId
+            });
+          }
+        } else if (s.detail?.tool) {
+          toolCalls.push({
+            tool: String(s.detail.tool),
+            arguments: {
+              label: s.detail.label as string | undefined
+            },
+            resultCount: Array.isArray(s.detail.facts)
+              ? s.detail.facts.length
+              : Array.isArray(s.detail.datasets)
+                ? s.detail.datasets.length
+                : undefined,
+            status: 'completed',
+            role: agentId
+          });
+        }
+      }
+    }
+  }
+
+  // 4. Sentence verdicts
+  let verdicts = [...(liveWorkState?.verdictsByRole[agentId] || [])];
+  if (verdicts.length === 0 && agentId === 'verifier') {
+    verdicts = [...(liveWorkState?.verdictsByRole.verifier || [])];
+  }
+  if (verdicts.length === 0) {
+    if (agentId === 'verifier') {
+      for (const s of steps) {
+        if (s.kind === 'verify') {
+          if (Array.isArray(s.detail?.verdicts)) {
+            verdicts.push(
+              ...(s.detail.verdicts as Array<{
+                sentence: string;
+                verdict: 'kept' | 'dropped';
+                dropReason?: string | null;
+                explanationVi?: string;
+                factIds?: string[];
+              }>)
+            );
+          } else if (Number(s.detail?.numbers_checked) > 0) {
+            verdicts.push({
+              sentence: readerText(s.summary),
+              verdict: 'kept',
+              explanationVi: `Đã đối chiếu ${s.detail.numbers_matched}/${s.detail.numbers_checked} số liệu khớp dữ liệu gốc`,
+              factIds: []
+            });
+          }
+        }
+      }
+    } else {
+      // Check if any verify step has verdicts for this agent's sentences
+      const agentDraft = steps.find((s) => s.actor === agentId && s.kind === 'draft');
+      if (Array.isArray(agentDraft?.detail?.sentences)) {
+        for (const sent of agentDraft.detail.sentences as Array<{ text: string; fact_ids?: string[] }>) {
+          verdicts.push({
+            sentence: sent.text,
+            verdict: sent.fact_ids && sent.fact_ids.length > 0 ? 'kept' : 'dropped',
+            explanationVi:
+              sent.fact_ids && sent.fact_ids.length > 0
+                ? 'Đã đối chiếu dữ liệu gốc'
+                : 'Chưa đủ số liệu kiểm chứng',
+            factIds: sent.fact_ids || []
+          });
+        }
+      }
+    }
+  }
+
+  // 5. Issues (criticism)
+  const issues = [...(liveWorkState?.reviewIssues || [])];
+  if (issues.length === 0) {
+    for (const s of steps) {
+      if (s.kind === 'critique_issue') {
+        if (Array.isArray(s.detail?.issues)) {
+          issues.push(...(s.detail.issues as Array<{ issueType?: string; targetSentence?: string; requiredAction?: string; description?: string }>));
+        } else {
+          issues.push({
+            issueType: 'critique',
+            description: readerText(s.summary),
+            requiredAction: 'Hiệu chỉnh câu nhận định theo yêu cầu'
+          });
+        }
+      }
+    }
+  }
+
+  // 6. Revisions
+  const revisions = [...(liveWorkState?.revisions || [])];
+  if (revisions.length === 0) {
+    for (const s of steps) {
+      if (s.kind === 'revision') {
+        if (Array.isArray(s.detail?.revisions)) {
+          revisions.push(...(s.detail.revisions as Array<{ before?: string; after?: string; verified?: boolean }>));
+        } else if (s.detail?.before && s.detail?.after) {
+          revisions.push({
+            before: String(s.detail.before),
+            after: String(s.detail.after),
+            verified: true
+          });
+        }
+      }
+    }
+  }
+
+  // 7. Plan summary (especially for orchestrator)
+  let planSummary = liveWorkState?.planSummary;
+  if (!planSummary) {
+    const planStep = steps.find((s) => s.kind === 'plan');
+    if (planStep) {
+      const planDetail = planStep.detail || {};
+      const plannedAgents = (
+        (planDetail.agents as Array<{ agent: string; decision: string }>) || []
+      )
+        .filter((a) => a.decision === 'run')
+        .map((a) => a.agent);
+
+      planSummary = {
+        questionType: (planDetail.question_type as string) || undefined,
+        entities: (planDetail.entities as string[]) || undefined,
+        metrics: ((planDetail.metric_ids || planDetail.metrics) as string[]) || undefined,
+        periods: (planDetail.periods as string[]) || undefined,
+        specialistsCalled: plannedAgents.length > 0 ? plannedAgents : undefined,
+        planSummary: readerText(planStep.summary)
+      };
+    }
+  }
+
+  return {
+    agentId,
+    draftText,
+    isTyping,
+    toolCalls,
+    verdicts,
+    issues,
+    revisions,
+    planSummary
+  };
 }

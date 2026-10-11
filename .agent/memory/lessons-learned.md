@@ -866,7 +866,6 @@ Because `"dropped_sentences"` was never found in real run files, the scorer sile
 
 ---
 
-<<<<<<< HEAD
 ## [LESSON-045] Narrative Verifier Mutation Recall & Semantic Escape Modes in Financial Sentence Auditing
 
 - Date: 2026-10-11
@@ -911,6 +910,23 @@ Systematic mutation testing across 12 error-injection operators on 129 accepted 
 - **Root Cause**: `run_evaluation` hard-coded iteration over `ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")`.
 - **Solution**: Add `--arms` CLI parameter with strict validation against `ARMS`, plumbing `effective_arms` into planned runs, token budget estimation, resume mechanics, and the final run manifest (`manifest["arms"]`). Preserve default 3-arm behavior when omitted.
 
+---
 
+## [LESSON-047] Live Agent Streaming & Responsive Stage Flow Architecture
+
+- Date: 2026-10-11
+- Scope: `src/thesis_api/analysis_writer.py`, `src/thesis_api/adaptive_runtime.py`, `frontend/src/features/analysis-session/*`, `contracts/openapi.json`
+- Status: ACTIVE
+
+### 1. Card Overlap Elimination via Pure Responsive Grid Flow
+In the live agent session view (`AgentStage.tsx`), absolute percentage coordinates caused agent cards to visually collide and overlap at standard viewport widths (1024px–1920px), leaving canvas space underutilized.
+- **Root Cause**: Absolute positioning within responsive flex containers fails when node counts dynamically vary (1 to 4 agents) across desktop breakpoints.
+- **Solution**: Replaced absolute node placement with a responsive CSS Grid pipeline (`Điều phối viên` → `Chuyên viên` → `Kiểm tra số liệu` → `Phản biện`) with selection states, busy timers, and a visible handoff banner. Structured the main area as a two-column layout: left column dedicated to the active agent's `LiveWorkPane` (draft text, verdicts, tool queries, revisions diff), right column dedicated to the chronological communication feed.
+
+### 2. Streaming Writer Output vs. Hidden Model Reasoning Guardrail
+Per `docs/ARCHITECTURAL-GUARDRAILS.md` (line 264), internal scratchpads, system prompts, or private model reasoning must NEVER be exposed or streamed over public trace events.
+- **Implementation**: The analysis writer (`analysis_writer.py`) streams human-readable sentence prose (`stream=True`) through `ThrottledDeltaEmitter` (~8 events/s, 125ms debounce) and `StreamingJsonTextExtractor`. Partial JSON syntax (braces, field names) is filtered out in flight, emitting clean narrative text deltas via `WRITER_DRAFT_DELTA`.
+- **Verdict & Tool Substance**: Dispatched granular `SENTENCE_VERDICT` (with kept/dropped status, reason code, localized Vietnamese explanation, and cited fact IDs) and `TOOL_STARTED`/`TOOL_COMPLETED` (carrying public tool name, entities, metrics, periods, and result counts).
+- **Completed-Run Replay**: Run trace steps persist full draft text and verdict arrays, allowing completed-run sessions to faithfully replay the full stage state without requiring active stream sockets.
 
 

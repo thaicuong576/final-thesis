@@ -1,5 +1,6 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertCircle,
   ArrowRight,
   BookOpenCheck,
   Building2,
@@ -15,12 +16,15 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TraceStep } from '../model/types';
+import type { LiveWorkState } from '../useTraceStream';
 import {
   PHASES,
   STAGE_AGENTS,
   deriveStage,
+  deriveAgentWork,
   readerText,
   stepEndpoints,
+  type AgentWorkData,
   type StageAgentId,
   type StageAgentState
 } from '../model/agentStage';
@@ -31,6 +35,7 @@ export interface AgentStageProps {
   live?: boolean;
   reportId?: string | null;
   isDisconnected?: boolean;
+  liveWorkState?: LiveWorkState;
   onOpenReport?: (reportId: string) => void;
   onRetry?: () => void;
 }
@@ -73,17 +78,32 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Node centres as fractions of the stage box: orchestrator in the middle, specialists left, checks right. */
-function layout(agents: StageAgentId[]): Record<string, { x: number; y: number }> {
-  const pos: Record<string, { x: number; y: number }> = { orchestrator: { x: 0.5, y: 0.5 } };
-  const place = (ids: StageAgentId[], x: number) => {
-    ids.forEach((id, i) => {
-      pos[id] = { x, y: ids.length === 1 ? 0.5 : 0.2 + (0.6 * i) / (ids.length - 1) };
-    });
-  };
-  place(agents.filter((a) => STAGE_AGENTS[a].side === 'left'), 0.15);
-  place(agents.filter((a) => STAGE_AGENTS[a].side === 'right'), 0.85);
-  return pos;
+function packetLabel(step: TraceStep): string {
+  switch (step.kind) {
+    case 'assign':
+      return 'Giao việc';
+    case 'tool_result':
+      return 'Số liệu';
+    case 'draft':
+      return 'Nhận định';
+    case 'verify':
+      return 'Kết quả kiểm tra';
+    case 'compose':
+      return 'Bản nháp';
+    case 'critique_issue':
+      return 'Yêu cầu sửa';
+    case 'revision':
+      return 'Bản sửa';
+    case 'accept':
+      return 'Duyệt';
+    default:
+      return '';
+  }
+}
+
+function who(id: string | null | undefined): string {
+  if (!id) return '';
+  return id in STAGE_AGENTS ? STAGE_AGENTS[id as StageAgentId].name : id === 'system' ? 'Hệ thống' : id;
 }
 
 export const AgentStage: React.FC<AgentStageProps> = ({
@@ -92,6 +112,7 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   live = true,
   reportId,
   isDisconnected = false,
+  liveWorkState,
   onOpenReport,
   onRetry
 }) => {
@@ -105,7 +126,7 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   }, [shown, steps.length, live]);
 
   const visible = useMemo(() => steps.slice(0, shown), [steps, shown]);
-  const model = useMemo(() => deriveStage(visible), [visible]);
+  const model = useMemo(() => deriveStage(visible, steps, liveWorkState), [visible, steps, liveWorkState]);
   const last = visible[visible.length - 1];
 
   // Local seconds counter while the run is live, so waiting on a model still reads as work in progress.
@@ -138,6 +159,36 @@ export const AgentStage: React.FC<AgentStageProps> = ({
     const t = setTimeout(() => onOpenReport(effectiveReportId), prefersReducedMotion() ? 0 : 1800);
     return () => clearTimeout(t);
   }, [ready, effectiveReportId, stay, onOpenReport, live]);
+
+  // Selected agent for inspection; defaults to currently active agent
+  const [selectedAgentId, setSelectedAgentId] = useState<StageAgentId | null>(null);
+
+  const activeAgentId: StageAgentId = useMemo(() => {
+    if (selectedAgentId && model.agents.includes(selectedAgentId)) {
+      return selectedAgentId;
+    }
+    if (liveWorkState?.activeWriterRole && model.agents.includes(liveWorkState.activeWriterRole as StageAgentId)) {
+      return liveWorkState.activeWriterRole as StageAgentId;
+    }
+    // Find first busy or fixing agent
+    const working = model.agents.find(
+      (a) => model.snapshots[a].state === 'busy' || model.snapshots[a].state === 'fixing'
+    );
+    if (working) return working;
+
+    // If all done, prefer specialist or orchestrator
+    const specialist = model.agents.find((a) => a === 'company' || a === 'sector');
+    if (specialist && model.snapshots[specialist].state === 'done') return specialist;
+
+    return model.agents[0] || 'orchestrator';
+  }, [selectedAgentId, liveWorkState?.activeWriterRole, model.agents, model.snapshots]);
+
+  const currentWork = useMemo(
+    () => deriveAgentWork(activeAgentId, visible, liveWorkState),
+    [activeAgentId, visible, liveWorkState]
+  );
+
+  const lastEnds = last ? stepEndpoints(last) : null;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-primary shadow-[0_1px_2px_rgba(29,28,26,0.04),0_20px_44px_-28px_rgba(60,45,20,0.35)]">
@@ -194,8 +245,58 @@ export const AgentStage: React.FC<AgentStageProps> = ({
         </ol>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <Stage agents={model.agents} snapshots={model.snapshots} last={last} elapsed={elapsed} live={live && !model.done && !isDisconnected} />
+      {/* Agent Pipeline Flow: Non-overlapping responsive cards with clear handoff indication */}
+      <div className="border-b border-border-subtle bg-surface-secondary/20 p-4 sm:p-6">
+        <div className="flex items-center justify-between pb-3">
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Luồng xử lý giữa các tác tử
+          </span>
+          <span className="text-xs text-text-tertiary">
+            Nhấn vào tác tử để xem chi tiết
+          </span>
+        </div>
+
+        <div
+          className={`grid gap-3 ${
+            model.agents.length <= 2
+              ? 'grid-cols-1 sm:grid-cols-2'
+              : model.agents.length === 3
+              ? 'grid-cols-1 sm:grid-cols-3'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+          }`}
+        >
+          {model.agents.map((id) => (
+            <AgentCardNode
+              key={id}
+              id={id}
+              snap={model.snapshots[id]}
+              elapsed={elapsed}
+              isSelected={id === activeAgentId}
+              onClick={() => setSelectedAgentId(id)}
+            />
+          ))}
+        </div>
+
+        {/* Visible Handoff Indicator */}
+        {lastEnds && live && !model.done && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-border-subtle bg-surface-secondary/70 px-3 py-1.5 text-xs text-text-secondary">
+            <span className="font-semibold text-text-primary">{who(lastEnds[0])}</span>
+            <ArrowRight className="size-3.5 text-accent shrink-0" aria-hidden="true" />
+            <span className="font-semibold text-text-primary">{who(lastEnds[1])}</span>
+            <span className="text-text-tertiary">·</span>
+            <span className="truncate">{packetLabel(last)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content: Left = Live Work Pane of selected agent; Right = Chronological Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <LiveWorkPane
+          agentId={activeAgentId}
+          work={currentWork}
+          meta={STAGE_AGENTS[activeAgentId]}
+          live={live && !model.done && !isDisconnected}
+        />
         <Feed steps={visible} live={live && !model.done && !isDisconnected} />
       </div>
 
@@ -242,171 +343,81 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   );
 };
 
-function Stage({
-  agents,
-  snapshots,
-  last,
-  elapsed,
-  live
-}: {
-  agents: StageAgentId[];
-  snapshots: ReturnType<typeof deriveStage>['snapshots'];
-  last?: TraceStep;
-  elapsed: number;
-  live: boolean;
-}) {
-  const boxRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  useLayoutEffect(() => {
-    const el = boxRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([entry]) => setSize({ w: entry.contentRect.width, h: entry.contentRect.height }));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const pos = layout(agents);
-  const ends = last ? stepEndpoints(last) : null;
-  const half = (id: StageAgentId) => (id === 'orchestrator' ? 106 : 94) + 8;
-  const cx = (id: StageAgentId) =>
-    Math.min(Math.max((pos[id]?.x ?? 0.5) * size.w, half(id)), Math.max(size.w - half(id), half(id)));
-  const px = (id: StageAgentId) => ({ x: cx(id), y: (pos[id]?.y ?? 0.5) * size.h });
-
-  return (
-    <div className="border-b border-border-subtle p-4 sm:p-6 lg:border-b-0 lg:border-r">
-      {/* Hub-and-spoke stage on wide screens (hand-offs travel along the links); a plain list on phones. */}
-      <div ref={boxRef} className="relative grid gap-2 md:block md:h-[400px]">
-        <svg className="absolute inset-0 hidden size-full md:block" aria-hidden="true">
-          {agents
-            .filter((a) => a !== 'orchestrator')
-            .map((a) => {
-              const p = px(a);
-              const c = px('orchestrator');
-              const hot = Boolean(ends && ends.includes(a));
-              return (
-                <line
-                  key={a}
-                  x1={c.x}
-                  y1={c.y}
-                  x2={p.x}
-                  y2={p.y}
-                  stroke={hot ? 'var(--accent)' : 'var(--border-default)'}
-                  strokeWidth={hot ? 2 : 1}
-                  strokeDasharray={hot ? undefined : '3 5'}
-                />
-              );
-            })}
-        </svg>
-        {ends && size.w > 0 && live && (
-          <div className="hidden md:block">
-            <Packet key={last!.step_id} from={px(ends[0])} to={px(ends[1])} label={packetLabel(last!)} />
-          </div>
-        )}
-        {agents.map((a) => (
-          <div
-            key={a}
-            className="md:absolute md:-translate-x-1/2 md:-translate-y-1/2"
-            style={size.w > 0 ? { left: `${cx(a)}px`, top: `${(pos[a]?.y ?? 0.5) * 100}%` } : undefined}
-          >
-            <AgentNode id={a} snap={snapshots[a]} elapsed={elapsed} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function packetLabel(step: TraceStep): string {
-  switch (step.kind) {
-    case 'assign':
-      return 'Giao việc';
-    case 'tool_result':
-      return 'Số liệu';
-    case 'draft':
-      return 'Nhận định';
-    case 'verify':
-      return 'Kết quả kiểm tra';
-    case 'compose':
-      return 'Bản nháp';
-    case 'critique_issue':
-      return 'Yêu cầu sửa';
-    case 'revision':
-      return 'Bản sửa';
-    case 'accept':
-      return 'Duyệt';
-    default:
-      return '';
-  }
-}
-
-function Packet({ from, to, label }: { from: { x: number; y: number }; to: { x: number; y: number }; label: string }) {
-  const style = {
-    '--fx': `${from.x}px`,
-    '--fy': `${from.y}px`,
-    '--tx': `${to.x}px`,
-    '--ty': `${to.y}px`
-  } as React.CSSProperties;
-  return (
-    <div className="agent-packet pointer-events-none absolute left-0 top-0 z-10" style={style} aria-hidden="true">
-      <span className="flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-ink-inverse shadow-[0_6px_14px_-6px_rgba(0,0,0,0.5)]">
-        <span className="size-1.5 rounded-full bg-amber" />
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function AgentNode({
+function AgentCardNode({
   id,
   snap,
-  elapsed
+  elapsed,
+  isSelected,
+  onClick
 }: {
   id: StageAgentId;
   snap: ReturnType<typeof deriveStage>['snapshots'][StageAgentId];
   elapsed: number;
+  isSelected: boolean;
+  onClick: () => void;
 }) {
   const meta = STAGE_AGENTS[id];
   const Icon = ICONS[id];
   const busy = snap.state === 'busy' || snap.state === 'fixing';
   const hub = id === 'orchestrator';
-  const tone =
-    snap.state === 'fixing'
-      ? 'border-warning'
-      : busy
-        ? 'border-amber'
-        : snap.state === 'done'
-          ? 'border-border-default'
-          : 'border-border-subtle';
+
+  const tone = isSelected
+    ? 'border-accent ring-2 ring-accent/30 bg-surface-primary shadow-sm'
+    : snap.state === 'fixing'
+    ? 'border-warning bg-surface-primary'
+    : busy
+    ? 'border-amber bg-surface-primary'
+    : snap.state === 'done'
+    ? 'border-border-default bg-surface-primary hover:border-border-strong'
+    : 'border-border-subtle bg-surface-secondary/30 hover:border-border-default';
+
   return (
     <div
       role="region"
       aria-label={meta.ariaName}
-      className={`relative rounded-xl border bg-surface-primary p-3 transition-[border-color,opacity] duration-200 ${tone} ${
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`relative cursor-pointer rounded-xl border p-3.5 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${tone} ${
         snap.state === 'unused' ? 'opacity-50' : ''
-      } ${hub ? 'w-full md:w-[212px]' : 'w-full md:w-[188px]'} ${busy ? 'agent-busy' : ''} ${
-        hub ? 'shadow-[0_10px_30px_-18px_rgba(29,28,26,0.55)]' : 'shadow-[0_1px_2px_rgba(29,28,26,0.05)]'
       }`}
     >
       <div className="flex items-center gap-2.5">
         <span
           className={`grid size-8 shrink-0 place-items-center rounded-lg ${
-            hub ? 'bg-ink text-amber' : busy ? 'bg-amber-soft text-text-accent' : 'bg-surface-secondary text-text-secondary'
+            isSelected
+              ? 'bg-accent text-white'
+              : hub
+              ? 'bg-ink text-amber'
+              : busy
+              ? 'bg-amber-soft text-text-accent'
+              : 'bg-surface-secondary text-text-secondary'
           }`}
         >
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="m-0 truncate text-[13px] font-semibold text-text-primary">{meta.name}</p>
+          <div className="flex items-center justify-between gap-1">
+            <p className="m-0 truncate text-[13px] font-semibold text-text-primary">{meta.name}</p>
+            {isSelected && (
+              <span className="size-1.5 rounded-full bg-accent shrink-0" title="Đang xem" />
+            )}
+          </div>
           <p className="m-0 flex items-center gap-1.5 text-xs">
             <span
               className={
                 snap.state === 'done'
-                  ? 'text-text-success'
+                  ? 'text-text-success font-medium'
                   : snap.state === 'fixing'
-                    ? 'text-text-warning'
-                    : busy
-                      ? 'text-text-accent'
-                      : 'text-text-tertiary'
+                  ? 'text-text-warning font-medium'
+                  : busy
+                  ? 'text-text-accent font-medium'
+                  : 'text-text-tertiary'
               }
             >
               {STATE_LABEL[snap.state]}
@@ -426,10 +437,265 @@ function AgentNode({
       {snap.stats.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
           {snap.stats.map((s) => (
-            <span key={s} className="rounded-md bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-text-primary">
+            <span
+              key={s}
+              className="rounded-md bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-text-primary"
+            >
               {s}
             </span>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LiveWorkPane({
+  agentId,
+  work,
+  meta,
+  live
+}: {
+  agentId: StageAgentId;
+  work: AgentWorkData;
+  meta: typeof STAGE_AGENTS[StageAgentId];
+  live: boolean;
+}) {
+  const Icon = ICONS[agentId];
+  const hasContent =
+    Boolean(work.draftText) ||
+    work.verdicts.length > 0 ||
+    work.toolCalls.length > 0 ||
+    work.issues.length > 0 ||
+    work.revisions.length > 0 ||
+    Boolean(work.planSummary && agentId === 'orchestrator');
+
+  return (
+    <div
+      role="region"
+      aria-label={`Chi tiết hoạt động của ${meta.name}`}
+      className="border-b border-border-subtle p-4 sm:p-6 lg:border-b-0 lg:border-r space-y-4"
+    >
+      {/* Pane Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-3">
+        <div className="flex items-center gap-2">
+          <span className="grid size-7 place-items-center rounded-lg bg-surface-secondary text-text-primary">
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <div>
+            <h3 className="m-0 text-sm font-semibold text-text-primary">{meta.name}</h3>
+            <p className="m-0 text-xs text-text-secondary">{meta.role}</p>
+          </div>
+        </div>
+        {work.isTyping && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-soft px-2.5 py-1 text-xs font-semibold text-text-accent" aria-live="polite">
+            <span className="size-1.5 rounded-full bg-amber animate-ping" />
+            Đang viết trực tiếp...
+          </span>
+        )}
+      </div>
+
+      {/* 1. Plan summary (for Orchestrator) */}
+      {agentId === 'orchestrator' && work.planSummary && (
+        <div className="space-y-2 rounded-xl border border-border-subtle bg-surface-secondary/30 p-3 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-text-primary">Kế hoạch phân tích</span>
+            {work.planSummary.questionType && (
+              <span className="rounded bg-surface-secondary px-1.5 py-0.5 font-medium text-text-secondary">
+                {QUESTION_TYPES[work.planSummary.questionType] || work.planSummary.questionType}
+              </span>
+            )}
+          </div>
+          {work.planSummary.entities && work.planSummary.entities.length > 0 && (
+            <p className="m-0 text-text-secondary">
+              <span className="text-text-tertiary">Ngân hàng: </span>
+              <span className="font-medium text-text-primary">{work.planSummary.entities.join(', ')}</span>
+            </p>
+          )}
+          {work.planSummary.metrics && work.planSummary.metrics.length > 0 && (
+            <p className="m-0 text-text-secondary">
+              <span className="text-text-tertiary">Chỉ tiêu: </span>
+              <span className="font-medium text-text-primary">{work.planSummary.metrics.join(', ')}</span>
+            </p>
+          )}
+          {work.planSummary.periods && work.planSummary.periods.length > 0 && (
+            <p className="m-0 text-text-secondary">
+              <span className="text-text-tertiary">Kỳ: </span>
+              <span className="font-medium text-text-primary">{work.planSummary.periods.join(', ')}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 2. Draft Prose Streaming */}
+      {work.draftText && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="m-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+              Bản nháp nhận định
+            </h4>
+            {work.isTyping && (
+              <span className="text-[11px] text-text-accent font-medium" aria-live="polite">
+                đang truyền dòng văn bản...
+              </span>
+            )}
+          </div>
+          <div
+            className="rounded-xl border border-border-subtle bg-surface-secondary/40 p-4 text-[13px] leading-relaxed text-text-primary whitespace-pre-wrap font-sans select-text"
+            aria-live="polite"
+          >
+            {work.draftText}
+            {work.isTyping && (
+              <span className="inline-block w-1.5 h-3.5 ml-1 bg-amber animate-pulse align-middle" aria-hidden="true" />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 3. Sentence Verdicts */}
+      {work.verdicts.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="m-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+              Kết quả kiểm định từng câu ({work.verdicts.length})
+            </h4>
+            <span className="text-[11px] text-text-tertiary">
+              ✓ Giữ nguyên · ✗ Loại bỏ
+            </span>
+          </div>
+          <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+            {work.verdicts.map((v, i) => (
+              <div
+                key={i}
+                className={`rounded-lg border p-2.5 text-xs transition-colors ${
+                  v.verdict === 'kept'
+                    ? 'border-success/30 bg-success-soft/20 text-text-primary'
+                    : 'border-danger/30 bg-danger-soft/20 text-text-tertiary'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <span
+                    className={`mt-0.5 grid size-4 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
+                      v.verdict === 'kept' ? 'bg-success text-white' : 'bg-danger text-white'
+                    }`}
+                  >
+                    {v.verdict === 'kept' ? '✓' : '✗'}
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className={`m-0 leading-snug ${v.verdict === 'dropped' ? 'line-through decoration-danger/60' : ''}`}>
+                      {v.sentence}
+                    </p>
+                    {v.verdict === 'dropped' && (
+                      <p className="m-0 text-[11px] font-medium text-danger">
+                        Lý do: {v.explanationVi || v.dropReason || 'Không đủ căn cứ kiểm chứng'}
+                      </p>
+                    )}
+                    {v.factIds && v.factIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {v.factIds.map((fid) => (
+                          <span
+                            key={fid}
+                            className="rounded bg-surface-primary border border-border-subtle px-1.5 py-px text-[10px] font-mono text-text-secondary"
+                          >
+                            {fid}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Tool Calls */}
+      {work.toolCalls.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="m-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+              Truy vấn dữ liệu ({work.toolCalls.length})
+            </h4>
+          </div>
+          <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
+            {work.toolCalls.map((t, idx) => (
+              <div
+                key={idx}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border-subtle bg-surface-secondary/40 px-3 py-2 text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-medium text-text-primary">{t.tool}</span>
+                  {t.status === 'running' && (
+                    <span className="rounded bg-amber-soft px-1.5 py-0.5 text-[10px] font-medium text-text-accent">
+                      Đang chạy
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-text-tertiary">
+                  {t.arguments?.entities && (
+                    <span>NH: {t.arguments.entities.join(', ')}</span>
+                  )}
+                  {t.resultCount !== undefined && (
+                    <span className="font-semibold text-text-primary tabular-nums">
+                      {t.resultCount} số liệu
+                    </span>
+                  )}
+                  {t.durationMs !== undefined && (
+                    <span className="font-mono tabular-nums">{t.durationMs}ms</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Critique Issues & Revisions */}
+      {(work.issues.length > 0 || work.revisions.length > 0) && (
+        <div className="space-y-2">
+          <h4 className="m-0 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+            Phản biện & Hiệu chỉnh
+          </h4>
+          {work.issues.map((iss, i) => (
+            <div key={i} className="rounded-lg border border-warning/40 bg-warning-soft/20 p-2.5 text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-medium text-warning">
+                <AlertCircle className="size-3.5" />
+                <span>Yêu cầu sửa: {iss.description || iss.requiredAction}</span>
+              </div>
+              {iss.targetSentence && (
+                <p className="m-0 text-text-secondary text-[11px] italic">
+                  &ldquo;{iss.targetSentence}&rdquo;
+                </p>
+              )}
+            </div>
+          ))}
+          {work.revisions.map((rev, i) => (
+            <div key={i} className="space-y-1 rounded-lg border border-border-subtle bg-surface-secondary/40 p-2.5 text-xs">
+              <span className="text-[10px] font-semibold text-text-tertiary uppercase">Hiệu chỉnh câu</span>
+              {rev.before && (
+                <p className="m-0 text-text-tertiary line-through decoration-danger/60">{readerText(rev.before)}</p>
+              )}
+              {rev.after && (
+                <p className="m-0 font-medium text-text-primary">{readerText(rev.after)}</p>
+              )}
+              {rev.verified && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success">
+                  <Check className="size-3" />
+                  Đã kiểm định lại
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!hasContent && (
+        <div className="rounded-xl border border-dashed border-border-default p-6 text-center text-xs text-text-secondary">
+          {live
+            ? `${meta.name} đang chờ nhiệm vụ từ tiến trình phân tích...`
+            : `Không có dữ liệu chi tiết cho ${meta.name} trong phiên này.`}
         </div>
       )}
     </div>
@@ -449,11 +715,6 @@ const KIND_ICON: Partial<Record<TraceStep['kind'], LucideIcon>> = {
   report_ready: Check
 };
 
-function who(id: string | null | undefined): string {
-  if (!id) return '';
-  return id in STAGE_AGENTS ? STAGE_AGENTS[id as StageAgentId].name : id === 'system' ? 'Hệ thống' : id;
-}
-
 function Feed({ steps, live }: { steps: TraceStep[]; live: boolean }) {
   const listRef = useRef<HTMLOListElement>(null);
   useEffect(() => {
@@ -464,10 +725,10 @@ function Feed({ steps, live }: { steps: TraceStep[]; live: boolean }) {
   return (
     <div className="flex min-h-0 flex-col">
       <div className="flex items-center justify-between px-5 pt-4 pb-2 sm:px-6">
-        <h3 className="m-0 text-[13px] font-semibold text-text-primary">Trao đổi giữa các tác tử</h3>
+        <h3 className="m-0 text-[13px] font-semibold text-text-primary">Nhật ký trao đổi</h3>
         <span className="text-xs tabular-nums text-text-tertiary">{steps.length} bước</span>
       </div>
-      <ol ref={listRef} className="m-0 max-h-[420px] list-none space-y-3 overflow-y-auto px-5 pb-5 sm:px-6" aria-live="polite">
+      <ol ref={listRef} className="m-0 max-h-[440px] list-none space-y-3 overflow-y-auto px-5 pb-5 sm:px-6" aria-live="polite">
         {steps.length === 0 && (
           <li className="rounded-xl border border-dashed border-border-default p-4 text-sm text-text-secondary">
             Điều phối viên đang đọc câu hỏi và chọn chuyên viên phù hợp…

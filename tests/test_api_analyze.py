@@ -142,6 +142,7 @@ class _ExplicitOfflineAnalysisWriter:
         datasets_summary: Sequence[Mapping[str, Any]],
         candidates: Sequence[Mapping[str, Any]] | None = None,
         max_sentences: int = 4,
+        on_delta: Any = None,
     ) -> list[dict[str, Any]]:
         self.specialist_calls.append({
             "role": role,
@@ -204,6 +205,7 @@ class _ExplicitOfflineAnalysisWriter:
         signals: Sequence[Mapping[str, Any]] | None = None,
         findings: Sequence[Mapping[str, Any]] | None = None,
         facts: Sequence[Mapping[str, Any]] | None = None,
+        on_delta: Any = None,
     ) -> dict[str, Any]:
         self.synthesis_calls.append({
             "question": question,
@@ -298,6 +300,7 @@ class _ExplicitOfflineAnalysisWriter:
         sentence: Mapping[str, Any],
         issue: Mapping[str, Any],
         facts: Sequence[Mapping[str, Any]],
+        on_delta: Any = None,
     ) -> dict[str, Any]:
         self.rewrite_sentence_calls.append({
             "role": role,

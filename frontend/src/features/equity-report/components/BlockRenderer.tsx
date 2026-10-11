@@ -1,5 +1,6 @@
 import React from 'react';
-import type { NormalizedBlock } from '../model/normalizeBlocks';
+import type { NormalizedBlock, NormalizedFigureBlock } from '../model/normalizeBlocks';
+import type { SectionBlock } from '../model/types';
 import { useEquityReport } from './useEquityReport';
 import { AnswerBlock } from './AnswerBlock';
 import { Headline } from './Headline';
@@ -7,9 +8,18 @@ import { KeyPoints } from './KeyPoints';
 import { Section } from './Section';
 import { Figure } from './Figure';
 import { Callout } from './Callout';
+import { SectionFigureUnit } from './SectionFigureUnit';
 import { DataTable } from '../charts';
 
-export const BlockRenderer: React.FC<{ block: NormalizedBlock; compact?: boolean }> = ({ block, compact = false }) => {
+export type SectionFigureBlock = {
+  type: 'section_figure';
+  section: SectionBlock;
+  figure: NormalizedFigureBlock;
+};
+
+export type RenderableBlock = NormalizedBlock | SectionFigureBlock;
+
+export const BlockRenderer: React.FC<{ block: RenderableBlock; compact?: boolean }> = ({ block, compact = false }) => {
   const { datasets, metrics, highlight } = useEquityReport();
 
   switch (block.type) {
@@ -27,6 +37,9 @@ export const BlockRenderer: React.FC<{ block: NormalizedBlock; compact?: boolean
 
     case 'figure':
       return <Figure block={block} />;
+
+    case 'section_figure':
+      return <SectionFigureUnit section={block.section} figure={block.figure} compact={compact} />;
 
     case 'callout':
       return <Callout block={block} />;

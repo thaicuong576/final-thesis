@@ -23,6 +23,14 @@ import { ReportErrorBoundary } from './ReportErrorBoundary';
 
 type ReportUnion = (AnalysisReport & { report_version?: string }) | AdaptiveReportResponse;
 
+const FIXTURE_LOADERS: Record<string, () => Promise<unknown>> = {
+  t01: () => import('../../../../experiments/er9/runs/er9-T01-hierarchical_with_critique-r0.json'),
+  t03: () => import('../../../../experiments/er9/runs/er9-T03-hierarchical_with_critique-r0.json'),
+  t05: () => import('../../../../experiments/er9/runs/er9-T05-hierarchical_with_critique-r0.json'),
+  t07: () => import('../../../../experiments/er9/runs/er9-T07-hierarchical_with_critique-r0.json'),
+  t09: () => import('../../../../experiments/er9/runs/er9-T09-hierarchical_with_critique-r0.json'),
+};
+
 interface ReportPageProps {
   report?: ReportUnion;
 }
@@ -133,6 +141,32 @@ function ReportPageContent({
       }));
 
       try {
+        const cleanId = (id || '').toLowerCase().replace(/^er9-/, '');
+        if (cleanId in FIXTURE_LOADERS) {
+          const mod = (await FIXTURE_LOADERS[cleanId]()) as {
+            default?: { response?: unknown; report_version?: string };
+            response?: unknown;
+            report_version?: string;
+          };
+          const loaded = mod.default?.response || mod.default || mod.response || mod;
+          const reportData = loaded as Record<string, unknown>;
+          const normalized: ReportUnion =
+            reportData.report_version === 'er-report-v1'
+              ? (reportData as unknown as AdaptiveReportResponse)
+              : normalizeAnalysisResponseToReport(reportData);
+
+          if (isMounted) {
+            setFetchState({
+              id,
+              report: normalized,
+              isLoading: false,
+              isNotFound: false,
+              isError: false
+            });
+          }
+          return;
+        }
+
         const baseUrl = getApiBaseUrl();
         const origin =
           typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Info } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEquityReport } from './useEquityReport';
 import { cleanReaderLimitations, formatDisplayText, humanizeLocator } from '@/shared/lib/formatting';
+import type { SourceNote } from '../model/types';
 
 // Runtime limitation strings that describe provenance mechanics rather than the answer itself.
 const PLAIN_LIMITATIONS: Array<[RegExp, string]> = [
@@ -18,8 +19,28 @@ function plainLimitation(text: string): string {
   return text;
 }
 
+interface FilingGroup {
+  filingTitle: string;
+  url?: string | null;
+  notes: SourceNote[];
+}
+
 export const SourceNotes: React.FC = () => {
-  const { report, sourceNotes, datasets } = useEquityReport();
+  const { report, sourceNotes, datasets, onOpenSource } = useEquityReport();
+  const [isExpanded, setIsExpanded] = useState(
+    () => typeof window !== 'undefined' && Boolean(window.location.hash?.startsWith('#note-'))
+  );
+
+  // Auto-expand if user navigates to an anchor hash (e.g. #note-1)
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window !== 'undefined' && window.location.hash.startsWith('#note-')) {
+        setIsExpanded(true);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   const allEntities = new Set<string>();
   for (const ds of datasets) {
@@ -35,37 +56,110 @@ export const SourceNotes: React.FC = () => {
     new Set(cleanReaderLimitations((report.limitations as string[] | undefined) || []).map(plainLimitation))
   );
 
+  // Group notes by bank filing (one line per bank filing)
+  const filingGroups = useMemo<FilingGroup[]>(() => {
+    if (!sourceNotes || sourceNotes.length === 0) return [];
+    const map = new Map<string, FilingGroup>();
+    for (const note of sourceNotes) {
+      const key = (note.title || 'Báo cáo tài chính').trim();
+      const existing = map.get(key);
+      if (existing) {
+        existing.notes.push(note);
+        if (!existing.url && note.url) existing.url = note.url;
+      } else {
+        map.set(key, {
+          filingTitle: key,
+          url: note.url,
+          notes: [note]
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [sourceNotes]);
+
   return (
     <footer className="mt-6 pt-5 border-t border-border-subtle font-sans">
       {sourceNotes && sourceNotes.length > 0 && (
         <section id="source-notes" aria-label="Nguồn số liệu" className="scroll-mt-20">
-          <h2 id="sources" className="text-[13px] font-semibold text-text-primary mb-2">Nguồn</h2>
-          <ol className="space-y-1.5 text-[12.5px] leading-relaxed text-text-secondary list-none p-0 m-0">
-            {sourceNotes.map((note) => {
-              const displayLocator = humanizeLocator(note.locator);
-              return (
-                <li id={`note-${note.note_no}`} key={note.note_no} className="scroll-mt-20 flex gap-2">
-                  <span className="shrink-0 w-4 text-right tabular-nums text-text-tertiary">{note.note_no}</span>
-                  <span className="min-w-0">
-                    {note.url ? (
-                      <a
-                        href={note.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-text-primary font-medium underline decoration-border-default underline-offset-2 hover:decoration-text-primary"
+          <div className="flex items-center justify-between mb-2">
+            <h2 id="sources" className="text-[13px] font-semibold text-text-primary m-0">
+              <button
+                type="button"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                className="text-left font-semibold text-text-primary hover:text-text-accent cursor-pointer bg-transparent border-none p-0 inline-flex items-center gap-1.5 transition-colors"
+                aria-expanded={isExpanded}
+              >
+                <span>
+                  Nguồn: {filingGroups.length} báo cáo tài chính, {sourceNotes.length} số liệu — {isExpanded ? 'thu gọn' : 'xem'}
+                </span>
+                {isExpanded ? (
+                  <ChevronUp className="size-4 text-text-tertiary shrink-0" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="size-4 text-text-tertiary shrink-0" aria-hidden="true" />
+                )}
+              </button>
+            </h2>
+          </div>
+
+          <ol
+            className={
+              isExpanded
+                ? 'mt-3 space-y-2.5 text-[12.5px] leading-relaxed text-text-secondary list-none p-0 m-0 divide-y divide-border-subtle/60'
+                : 'hidden'
+            }
+          >
+            {filingGroups.map((group, gIdx) => (
+              <li
+                key={group.filingTitle || gIdx}
+                className={`pt-2 flex flex-col sm:flex-row sm:items-baseline gap-1.5 ${gIdx === 0 ? 'pt-0' : ''}`}
+              >
+                <div className="shrink-0 font-medium text-text-primary">
+                  {group.url ? (
+                    <a
+                      href={group.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-border-default underline-offset-2 hover:decoration-text-primary"
+                    >
+                      {formatDisplayText(group.filingTitle)}
+                    </a>
+                  ) : (
+                    formatDisplayText(group.filingTitle)
+                  )}
+                  <span className="text-text-tertiary font-normal"> · </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {group.notes.map((note) => {
+                    const displayLocator = humanizeLocator(note.locator);
+                    return (
+                      <span
+                        id={`note-${note.note_no}`}
+                        key={note.note_no}
+                        className="scroll-mt-24 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-secondary text-[11.5px] border border-border-subtle text-text-secondary"
                       >
-                        {formatDisplayText(note.title)}
-                      </a>
-                    ) : (
-                      <span className="font-medium text-text-primary">{formatDisplayText(note.title)}</span>
-                    )}
-                    {displayLocator && (
-                      <span title={note.locator || undefined}> · {formatDisplayText(displayLocator)}</span>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
+                        <a
+                          href={`#note-${note.note_no}`}
+                          onClick={(e) => {
+                            if (onOpenSource) {
+                              e.preventDefault();
+                              onOpenSource(note.note_no);
+                            }
+                          }}
+                          className="text-text-accent font-semibold hover:underline font-mono"
+                          title={`Số liệu #${note.note_no}`}
+                        >
+                          #{note.note_no}
+                        </a>
+                        {displayLocator && (
+                          <span className="text-text-secondary">{formatDisplayText(displayLocator)}</span>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              </li>
+            ))}
           </ol>
         </section>
       )}

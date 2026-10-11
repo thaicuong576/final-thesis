@@ -844,7 +844,57 @@ Because `"dropped_sentences"` was never found in real run files, the scorer sile
 
 ---
 
-## [LESSON-044] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
+## [LESSON-044] Visual Report Layout: TooltipProvider Scope, DOM Preservation in Collapsible Citations & Heatmap Fallback
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/equity-report/`, `frontend/src/pages/reports/`
+- Status: ACTIVE
+
+### 1. Radix Tooltip Context in Standalone Components (`SentenceView`)
+- **Symptom**: Rendering `SentenceView` in component-level unit tests or isolated story blocks threw `Error: Tooltip must be used within TooltipProvider`.
+- **Root Cause**: `@radix-ui/react-tooltip` requires an ambient `TooltipProvider`. When components containing citation tooltips are rendered outside the top-level app tree (e.g. in targeted tests or isolated sub-trees), the context is absent.
+- **Solution**: Wrap the citation superscript block inside `SentenceView` directly with `<TooltipProvider delayDuration={200}>`. Radix UI allows nested providers, ensuring self-contained reliability in both app and test contexts.
+
+### 2. DOM Node Preservation in Collapsible Source Notes
+- **Symptom**: Unmounting collapsible source notes (`{isExpanded && <ol>...}`) broke citation target lookups (`#note-n` returned `null`) and failed text content inspections for citation locators.
+- **Root Cause**: In React, conditionally unmounted children are completely excised from the DOM tree. Native browser hash jumps (`#note-1`) cannot scroll to missing elements, and accessible assistive tools cannot locate target citations.
+- **Solution**: Keep `<ol>` mounted in the DOM using CSS visibility (`className={isExpanded ? '...' : 'hidden'}`). This preserves anchor targets (`id="note-n"`), ensures immediate locator availability in tests and accessibility trees, while maintaining clean visual collapsing for the reader.
+
+### 3. Metric Fallback in Peer Rank Heatmap Pivot
+- **Symptom**: When rendering ad-hoc or partially-formed datasets where `dataset.metric_ids` was not explicitly populated at the dataset root, the pivoted heatmap failed to render columns.
+- **Solution**: In `RankHeatmap.tsx`, compute `metricIds` by defaulting to `dataset.metric_ids` if present and non-empty, otherwise dynamically extracting unique `metric_id`s from `dataset.rows`. Always format missing cells with `—` and explicit `missing_reason`, never `0` or `0%`.
+
+---
+
+## [LESSON-045] Narrative Verifier Mutation Recall & Semantic Escape Modes in Financial Sentence Auditing
+
+- Date: 2026-10-11
+- Scope: `scripts/verifier_mutation.py`, `scripts/eval_regression.py`, `src/thesis_data/narrative_verification.py`, `experiments/mut1/`
+- Status: ACTIVE
+
+### 1. High Numeric Rigor vs Semantic Escape Modes
+Systematic mutation testing across 12 error-injection operators on 129 accepted sentences from real ER-9 evaluation runs (1,210 total mutants generated) established the exact recall profile of the deterministic sentence verifier:
+- **100% Catch Rate (Zero Escapes)**:
+  - `number_small` (1-5% alteration): 96/96 caught (100.0%, 95% CI: [0.9615, 1.0000])
+  - `number_large` (x2 or /2): 96/96 caught (100.0%, 95% CI: [0.9615, 1.0000])
+  - `digit_swap`: 96/96 caught (100.0%, 95% CI: [0.9615, 1.0000])
+  - `rank` (hạng x/y altered): 46/46 caught (100.0%, 95% CI: [0.9229, 1.0000])
+  - `denominator` (x/10 -> x/9): 52/52 caught (100.0%, 95% CI: [0.9312, 1.0000])
+  - `unsupported_number` (ungrounded clause): 129/129 caught (100.0%, 95% CI: [0.9711, 1.0000])
+  - `causal_claim` (forbidden causal language): 129/129 caught (100.0%, 95% CI: [0.9711, 1.0000])
+  - `recommendation` (investment advice): 129/129 caught (100.0%, 95% CI: [0.9711, 1.0000])
+- **Measured Semantic Escapes**:
+  - `period` (quarter swap): 98/118 caught (83.0%, 95% CI: [0.7527, 0.8875]). Escape mode: When a sentence cites multi-quarter facts (e.g. delta from Q1 to Q2), both Q1 and Q2 are in `valid_periods`. Changing the named quarter from Q2 to Q1 passes Check 5 because Q1 is in `valid_periods`, and Check 9 does not cross-check period binding on numbers without explicit adjacent period tokens.
+  - `entity_swap`: 106/123 caught (86.2%, 95% CI: [0.7898, 0.9119]). Escape mode: In pairwise/peer comparisons (e.g. TCB vs MBB) where both banks exist in plan scope and have facts cited in the sentence, swapping entity references can escape if both entities have cited facts that satisfy proximity heuristic bounds.
+  - `direction_flip`: 67/76 caught (88.2%, 95% CI: [0.7900, 0.9364]). Escape mode: Symmetrical spread descriptions ("Chênh lệch cao nhất – thấp nhất...") masked by regex escape if mutated into phrasing that bypasses spread masks without triggering directional triggers.
+  - `metric_swap`: 95/120 caught (79.2%, 95% CI: [0.7105, 0.8547]). Escape mode: In qualitative trend sentences without explicit numbers (e.g. "Tỷ lệ bao phủ nợ xấu của STB đi ngang từ quý 1/2025 đến quý 2/2025"), swapping "bao phủ nợ xấu" to "nợ xấu" passes Check 10 because a delta fact is cited and Check 10 does not strictly filter metric ID when only one delta fact is present.
+
+### 2. Regression Gate in CI (< 2s Execution)
+`scripts/eval_regression.py` re-verifies all 168 sentences in ER-9 runs (129 accepted controls, 39 dropped sentences) and re-runs the 1,210-mutant suite against `experiments/mut1/baseline.json`. It runs fully offline in ~1.5s (target < 60s), halting CI with non-zero exit if any recorded sentence verdict flips or if any operator's catch rate falls below committed baselines.
+
+---
+
+## [LESSON-046] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
 
 - Date: 2026-10-11
 - Scope: `src/thesis_api/analysis_tools.py`, `src/thesis_api/lineage.py`, `src/thesis_data/evidence_contract.py`, `frontend/src/features/source-lineage/`
@@ -866,7 +916,7 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 
 ---
 
-## [LESSON-045] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries
+## [LESSON-047] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries (LIN-1)
 
 - Date: 2026-10-11
 - Scope: `frontend/src/features/source-lineage/`, `tests/sourceLineageDrawer.test.tsx`
@@ -883,7 +933,6 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 ### 3. Leaf-Level Locator Integrity and Cross-Origin PDF Sandboxing
 - In recursive lineage trees, each leaf's PDF page must come from that specific leaf's own locator (e.g. provisions on page 7, NPL groups on page 30 for VCB 2026_Q2). It must never fall back to the note's page or page 1.
 - Many public financial filing CDNs (e.g. Vietstock) restrict cross-origin iframe embedding in modern browsers. Rather than presenting a broken iframe, render a first-class document card presenting extracted metadata (row label, value, reading mode) and an actionable primary link directly navigating to `url#page=N`.
-
 
 
 

@@ -29,12 +29,107 @@ def _file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _create_synthetic_test_db(path: Path) -> None:
+    """Create a minimal synthetic SQLite database mimicking the quarterly snapshot for CI."""
+    import sqlite3
+    conn = sqlite3.connect(path)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE metrics (
+            metric_id TEXT PRIMARY KEY,
+            display_name TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE sources (
+            source_ref TEXT PRIMARY KEY,
+            source_url TEXT,
+            publisher TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE documents (
+            source_ref TEXT PRIMARY KEY,
+            title TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE observations (
+            observation_id TEXT PRIMARY KEY,
+            entity_id TEXT,
+            period_id TEXT,
+            metric_id TEXT,
+            value REAL,
+            unit TEXT,
+            derivation_method TEXT,
+            input_observation_ids_json TEXT,
+            metadata_json TEXT,
+            source_ref TEXT,
+            source_locator TEXT
+        )
+    """)
+    # Insert metrics
+    cur.executemany("INSERT INTO metrics VALUES (?, ?)", [
+        ("bank.llr_coverage", "Tỷ lệ bao phủ nợ xấu (LLR)"),
+        ("bank.input.loan_loss_provisions", "Dự phòng rủi ro cho vay khách hàng"),
+        ("bank.input.npl_g35_balance", "Tổng nợ xấu (nhóm 3–5)"),
+        ("bank.input.npl_group_3_balance", "Nợ dưới tiêu chuẩn (nhóm 3)"),
+        ("bank.input.npl_group_4_balance", "Nợ nghi ngờ (nhóm 4)"),
+        ("bank.input.npl_group_5_balance", "Nợ có khả năng mất vốn (nhóm 5)"),
+    ])
+    # Insert sources and documents
+    cur.execute("INSERT INTO sources VALUES (?, ?, ?)", (
+        "src_vcb_bctc_2026_q2", "https://static2.vietstock.vn/vcb_2026_q2.pdf", "Vietcombank"
+    ))
+    cur.execute("INSERT INTO documents VALUES (?, ?)", (
+        "src_vcb_bctc_2026_q2", "Báo cáo tài chính hợp nhất Quý 2/2026 - VCB"
+    ))
+    # Insert observations
+    vcb_llr_meta = json.dumps({"__derived_calculation_receipt_v1": {"result": "passed", "tolerance": "0.00005"}})
+    cur.executemany("INSERT INTO observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+        (
+            "observation-3a26e363c78be87d85d2c7b3a34d4121cc5b718647425d8b3017678fb966e936",
+            "VCB", "2026_Q2", "bank.llr_coverage", 279.2775704532222, "%", "llr-coverage-v1",
+            json.dumps(["obs_vcb_prov_2026_q2", "obs_vcb_npl_g35_2026_q2"]), vcb_llr_meta, None, None
+        ),
+        (
+            "obs_vcb_prov_2026_q2",
+            "VCB", "2026_Q2", "bank.input.loan_loss_provisions", 29984.695, "VND", None,
+            None, None, "src_vcb_bctc_2026_q2", "pdf_page=7; section=Thuyet minh; row=Du phong rui ro cho vay khach hang; reading=single"
+        ),
+        (
+            "obs_vcb_npl_g35_2026_q2",
+            "VCB", "2026_Q2", "bank.input.npl_g35_balance", 10736.521, "VND", "npl-g35-balance-v1",
+            json.dumps(["obs_vcb_npl_g3_2026_q2", "obs_vcb_npl_g4_2026_q2", "obs_vcb_npl_g5_2026_q2"]), None, None, None
+        ),
+        (
+            "obs_vcb_npl_g3_2026_q2",
+            "VCB", "2026_Q2", "bank.input.npl_group_3_balance", 2000.0, "VND", None,
+            None, None, "src_vcb_bctc_2026_q2", "pdf_page=30; section=Thuyet minh; row=No duoi tieu chuan; reading=single"
+        ),
+        (
+            "obs_vcb_npl_g4_2026_q2",
+            "VCB", "2026_Q2", "bank.input.npl_group_4_balance", 3000.0, "VND", None,
+            None, None, "src_vcb_bctc_2026_q2", "pdf_page=30; section=Thuyet minh; row=No nghi ngo; reading=single"
+        ),
+        (
+            "obs_vcb_npl_g5_2026_q2",
+            "VCB", "2026_Q2", "bank.input.npl_group_5_balance", 5736.521, "VND", None,
+            None, None, "src_vcb_bctc_2026_q2", "pdf_page=30; section=Thuyet minh; row=No co kha nang mat von; reading=single"
+        ),
+    ])
+    conn.commit()
+    conn.close()
+
+
 class TestLineageApi(unittest.TestCase):
     """Test suite for observation lineage endpoint and tree building."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.temp_dir = tempfile.mkdtemp()
+        cls.temp_db_path = Path(cls.temp_dir) / "test_snapshot.sqlite"
+
         candidates = [
             Path("data/processed/bank-quarterly-top10-operational-v1.sqlite"),
             Path(__file__).resolve().parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1.sqlite",
@@ -42,11 +137,11 @@ class TestLineageApi(unittest.TestCase):
             Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1.sqlite"),
         ]
         src_db = next((p for p in candidates if p.exists()), None)
-        if not src_db:
-            raise FileNotFoundError("Source quarterly snapshot not found in candidates")
+        if src_db:
+            shutil.copyfile(src_db, cls.temp_db_path)
+        else:
+            _create_synthetic_test_db(cls.temp_db_path)
 
-        cls.temp_db_path = Path(cls.temp_dir) / "test_snapshot.sqlite"
-        shutil.copyfile(src_db, cls.temp_db_path)
         cls.initial_hash = _file_sha256(cls.temp_db_path)
 
         cls.settings = Settings(

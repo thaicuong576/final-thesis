@@ -241,4 +241,48 @@ describe('Report Visual Layout Invariants (Task RPT-1)', () => {
       expect(fullRenderedText).toContain(sample);
     }
   });
+
+  it('T07-like ranking facts render no "—" and no "Ngang trung vị", and render the spread tile', () => {
+    // T07 has value, peer_rank, spread for HDB; no peer_median fact
+    const { container } = render(
+      <MemoryRouter>
+        <AdaptiveReport report={t07Response} />
+      </MemoryRouter>
+    );
+
+    // KpiBand group for HDB
+    const kpiBand = container.querySelector('[aria-label="Chỉ số chính của HDB"]');
+    expect(kpiBand).not.toBeNull();
+    const kpiText = kpiBand?.textContent || '';
+
+    // Must render the spread tile with label and formatted spread value
+    expect(kpiText).toContain('Chênh lệch cao – thấp');
+    expect(kpiText).toContain('15,1 điểm %');
+
+    // Must NOT render any em-dash "—" or "Ngang trung vị" claim
+    expect(kpiText).not.toContain('—');
+    expect(kpiText).not.toContain('Ngang trung vị');
+    expect(kpiText).not.toContain('ngang trung vị');
+
+    // Value and rank tiles must be present
+    expect(kpiText).toContain('25,4%');
+    expect(kpiText).toContain('#1/10');
+  });
+
+  it('T01-like profile facts still render median and gap', () => {
+    // T01 has peer_median, gap_to_median facts for BID
+    const { container } = render(
+      <MemoryRouter>
+        <AdaptiveReport report={t01Response} />
+      </MemoryRouter>
+    );
+
+    const kpiBand = container.querySelector('[aria-label="Chỉ số chính của BID"]');
+    expect(kpiBand).not.toBeNull();
+    const kpiText = kpiBand?.textContent || '';
+
+    // Must render median and gap information
+    expect(kpiText).toContain('TV:');
+    expect(kpiText).toMatch(/[▲▼]\s*[-+]?[0-9,.]+\s*điểm\s*%/);
+  });
 });

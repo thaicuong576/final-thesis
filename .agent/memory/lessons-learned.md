@@ -842,4 +842,27 @@ Because `"dropped_sentences"` was never found in real run files, the scorer sile
 2. **Composition Fallback Metric**:
    When report spec validation fails during runtime sweeps, the pipeline reverts to deterministic template layout (`composition_source == "deterministic_fallback"`). The scorer now reports `composition_fallback = 1` for such runs (0 for normal runs, blank `None` for refused/un-audited runs), and `er8_analyze.py` exports its mean in `arm_summary.csv` and Chapter 5 `RESULTS.md` summary tables.
 
+---
+
+## [LESSON-044] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
+
+- Date: 2026-10-11
+- Scope: `src/thesis_api/analysis_tools.py`, `src/thesis_api/lineage.py`, `src/thesis_data/evidence_contract.py`, `frontend/src/features/source-lineage/`
+- Status: ACTIVE
+
+### 1. Windows Path Regex Trap in Evidence Guardrails
+In `src/thesis_data/evidence_contract.py`, `_WINDOWS_PATH = re.compile(r"[A-Za-z]:[\\/]")` was used to detect local disk paths (like `C:/` or `D:\`). However, this pattern inadvertently matched `s:/` inside valid web URLs like `https://static2.vietstock.vn/` when passed as `source_url`.
+- **Solution**: Explicitly check for and allow `http://` and `https://` schemas before testing for local filesystem drive letters.
+
+### 2. Multi-Level Recursive Lineage Traversal to Leaf Sources
+Financial ratios like `bank.llr_coverage` depend on inputs like `bank.input.npl_g35_balance`, which itself is derived (sum of NPL groups 3, 4, 5) without a direct `source_ref`. 
+- **Solution**: The lineage walker (`get_lineage_tree`) recursively parses `input_observation_ids_json` and `metadata_json.__derived_calculation_receipt_v1` down to leaf observations with physical filing locators (`pdf_page`, `section`, `row_label`, `reading`), exposing clean integer `page` fields alongside the raw locators.
+
+### 3. Read-Only SQLite Guarantee
+To ensure the operational snapshot file hash is never mutated during lineage API queries, the SQLite connection is established using `uri=True` with `mode=ro` (`file:{path}?mode=ro`). This completely eliminates WAL/SHM sidecars and file modification timestamps.
+
+### 4. Interactive Test Harness Modal Backdrops
+When building demo harnesses with slide-out side drawers, modal backdrops (`fixed inset-0 z-50`) intercept pointer clicks for background controls like report selectors during automated browser tests. Automated scripts should use event-level targeting or explicit drawer state controls when switching harness fixtures.
+
+
 

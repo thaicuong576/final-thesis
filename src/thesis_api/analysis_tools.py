@@ -1252,6 +1252,8 @@ def build_source_notes(
     facts: Sequence[Fact],
 ) -> list[SourceNoteDTO]:
     """Aggregate primary source notes from verified facts."""
+    import re
+
     obs_to_facts: dict[str, list[str]] = {}
     for f in facts:
         for obs_id in f.input_observation_ids:
@@ -1259,7 +1261,48 @@ def build_source_notes(
 
     source_notes: list[SourceNoteDTO] = []
     note_no = 1
-    seen_sources: set[str] = set()
+    seen_sources: dict[str, SourceNoteDTO] = {}
+
+    def _extract_page(raw: str | None) -> int | None:
+        if not raw:
+            return None
+        m = re.search(r'(?:pdf_pages?|printed_pages?|pages?|tr\.)\s*[:=.]?\s*(\d+)', raw, re.IGNORECASE)
+        if m:
+            return int(m.group(1))
+        return None
+
+    def _find_primary_provenance(target_obs: Any, visited: set[str]) -> tuple[Any, str | None, int | None]:
+        obs_ident = getattr(target_obs, "observation_id", None) or str(id(target_obs))
+        if obs_ident in visited:
+            return None, None, None
+        visited.add(obs_ident)
+
+        s_ref = getattr(target_obs, "source_ref", None)
+        loc = getattr(target_obs, "source_locator", None) or (getattr(target_obs, "metadata", None) or {}).get("source_locator") or ""
+        pg = _extract_page(loc)
+        if s_ref:
+            s_obj = provider.get_source(dataset_ref, s_ref) if hasattr(provider, "get_source") else None
+            if s_obj is not None:
+                return s_obj, loc, pg
+
+        child_ids = getattr(target_obs, "input_observation_ids", None)
+        if child_ids:
+            for cid in child_ids:
+                try:
+                    c_obs = (
+                        provider.resolve_observation(dataset_ref, cid)
+                        if hasattr(provider, "resolve_observation")
+                        else (provider.get_observation(dataset_ref, cid) if hasattr(provider, "get_observation") else None)
+                    )
+                    if c_obs is not None:
+                        found_src, found_loc, found_pg = _find_primary_provenance(c_obs, visited.copy())
+                        if found_src is not None:
+                            eff_loc = loc or found_loc
+                            eff_pg = pg or found_pg or _extract_page(eff_loc)
+                            return found_src, eff_loc, eff_pg
+                except Exception:
+                    continue
+        return None, loc, pg
 
     for obs_id, f_ids in obs_to_facts.items():
         try:
@@ -1270,19 +1313,30 @@ def build_source_notes(
             )
             if obs is None:
                 continue
+
+            src, effective_locator, page_val = _find_primary_provenance(obs, set())
+
             src_ref = obs.source_ref
-            # F1: when source_ref is None, derive source_id from obs_id convention:
-            # obs_id = "<source_id>:<period>:<metric_id>:<variant>"
+            if not src_ref and src is not None:
+                src_ref = getattr(src, "source_ref", None) or getattr(src, "source_id", None)
             if not src_ref:
+                # F1: when source_ref is None and no primary source found, derive from obs_id
                 src_ref = obs_id.split(":")[0]
-            if src_ref in seen_sources:
-                continue
-            src = provider.get_source(dataset_ref, src_ref) if hasattr(provider, "get_source") else None
-            # Even if get_source fails, produce a minimal note so source_notes is non-empty
-            seen_sources.add(src_ref)
 
             raw_locator = getattr(obs, "source_locator", None) or (obs.metadata or {}).get("source_locator") or ""
+            if not raw_locator and effective_locator:
+                raw_locator = effective_locator
             locator = humanize_locator(raw_locator)
+            if page_val is None:
+                page_val = _extract_page(raw_locator)
+
+            dedup_key = f"{src_ref}::p{page_val}" if page_val is not None else src_ref
+            if dedup_key in seen_sources:
+                existing = seen_sources[dedup_key]
+                for fid in f_ids:
+                    if fid not in existing.fact_ids:
+                        existing.fact_ids.append(fid)
+                continue
 
             # Title formatted per D-073 and PR-3 §2
             entity = obs.entity_id
@@ -1298,22 +1352,23 @@ def build_source_notes(
                 title = f"{entity} · BCTC Q{q_str}/{y_str}"
 
             if src is not None:
-                source_id_val = src.source_id if hasattr(src, "source_id") else src_ref
+                source_id_val = getattr(src, "source_id", None) or getattr(src, "source_ref", None) or src_ref
                 url_val = getattr(src, "source_url", None)
             else:
                 source_id_val = src_ref
                 url_val = None
 
-            source_notes.append(
-                SourceNoteDTO(
-                    note_no=note_no,
-                    source_id=source_id_val,
-                    title=title,
-                    url=url_val,
-                    locator=locator or None,
-                    fact_ids=list(dict.fromkeys(f_ids)),
-                )
+            note_dto = SourceNoteDTO(
+                note_no=note_no,
+                source_id=source_id_val,
+                title=title,
+                url=url_val,
+                locator=locator or None,
+                page=page_val,
+                fact_ids=list(dict.fromkeys(f_ids)),
             )
+            seen_sources[dedup_key] = note_dto
+            source_notes.append(note_dto)
             note_no += 1
         except Exception:
             continue

@@ -802,7 +802,34 @@ class SourceNoteDTO(BaseModel):
     title: str
     url: Optional[str] = None
     locator: Optional[str] = None
+    page: Optional[int] = None
     fact_ids: List[str] = Field(default_factory=list)
+
+
+class LineageNodeDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    observation_id: str
+    entity: str
+    entity_id: Optional[str] = None
+    metric: str
+    metric_id: Optional[str] = None
+    metric_name: Optional[str] = None
+    period: str
+    period_id: Optional[str] = None
+    value: Optional[float] = None
+    unit: Optional[str] = None
+    formula_version: Optional[str] = None
+    receipt_result: Optional[str] = None
+    receipt_tolerance: Optional[str] = None
+    calculation_receipt: Optional[dict[str, Any]] = None
+    source_title: Optional[str] = None
+    source_url: Optional[str] = None
+    page: Optional[int] = None
+    section: Optional[str] = None
+    row_label: Optional[str] = None
+    reading: Optional[str] = None
+    children: List["LineageNodeDTO"] = Field(default_factory=list)
 
 
 class ErrorInfoDTO(BaseModel):

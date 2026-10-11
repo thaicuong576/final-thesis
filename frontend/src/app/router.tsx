@@ -4,6 +4,7 @@ import { CreateAnalysisPage } from '../pages/create-analysis/CreateAnalysisPage'
 import { ReportPage } from '../pages/reports/ReportPage';
 import { ReportsListPage } from '../pages/reports/ReportsListPage';
 import { RouteErrorElement } from './RouteErrorElement';
+import { SourceLineageDemo } from '../features/source-lineage';
 
 export const router = createBrowserRouter([
   {
@@ -39,5 +40,9 @@ export const router = createBrowserRouter([
     path: '/reports/:id',
     element: <ReportPage />,
     errorElement: <RouteErrorElement section="reports" />
+  },
+  {
+    path: '/demo/lineage',
+    element: <SourceLineageDemo />
   }
 ]);

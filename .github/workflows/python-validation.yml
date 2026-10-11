@@ -9,6 +9,7 @@ on:
       - 'scripts/**'
       - 'contracts/**'
       - 'data/evaluation/**'
+      - 'experiments/mut1/**'
       - 'reports/data-foundation/**'
       - 'docs/**'
       - '.agent/**'
@@ -23,6 +24,7 @@ on:
       - 'scripts/**'
       - 'contracts/**'
       - 'data/evaluation/**'
+      - 'experiments/mut1/**'
       - 'reports/data-foundation/**'
       - 'docs/**'
       - '.agent/**'
@@ -58,5 +60,7 @@ jobs:
         run: python scripts/check_architecture_guardrails.py
       - name: Run Python suite
         run: python -m unittest discover -s tests -q
+      - name: Run eval regression gate
+        run: python scripts/eval_regression.py
       - name: Compile Python modules
         run: python -m compileall -q src scripts tests

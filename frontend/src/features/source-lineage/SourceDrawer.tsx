@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, FileText, TableProperties, Milestone, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { DocumentTab } from "./DocumentTab";
 import { DataTab } from "./DataTab";
 import { JourneyTab } from "./JourneyTab";
 import { useLineage } from "./useLineage";
-import { formatPeriod } from "./formatters";
+import { formatPeriod, getMetricDisplayName } from "./formatters";
 import type { SourceDrawerProps, LineageTab } from "./types";
 
 /**
@@ -53,13 +54,14 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
   if (!isOpen) return null;
 
   const entity = node?.entity || activeFact?.entity_id || "VCB";
-  const metricName = node?.metric_name || activeFact?.metric_id || "Chỉ số tài chính";
+  const rawMetricId = node?.metric || activeFact?.metric_id;
+  const metricName = node?.metric_name || getMetricDisplayName(rawMetricId);
   const rawPeriod = node?.period || activeFact?.period || "2026_Q2";
   const period = formatPeriod(rawPeriod);
 
-  return (
+  const drawerElement = (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-2xs transition-opacity animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-2xs transition-opacity animate-in fade-in duration-200"
       aria-modal="true"
       role="dialog"
       aria-label="Ngăn truy vết nguồn số liệu"
@@ -209,4 +211,8 @@ export const SourceDrawer: React.FC<SourceDrawerProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(drawerElement, document.body)
+    : drawerElement;
 };

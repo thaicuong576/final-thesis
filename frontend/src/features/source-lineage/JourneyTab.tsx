@@ -54,7 +54,7 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
   // Fact description
   const factDesc = (() => {
     if (activeFact?.fact_type === "peer_rank") {
-      return `Xếp hạng ${activeFact.value}/${activeFact.denominator || 5} trong nhóm ngành`;
+      return `Xếp hạng ${activeFact.value}/${activeFact.denominator || 10} trong nhóm ngành`;
     }
     if (activeFact?.fact_type === "peer_median") {
       return `Trung vị ngành ${formatPeriod(activeFact.period)}: ${formatNumber(activeFact.value, 1)}%`;
@@ -62,6 +62,14 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
     if (activeFact?.fact_type === "gap_to_median") {
       const val = typeof activeFact.value === "number" ? activeFact.value : 0;
       return `Chênh lệch so với trung vị: ${val > 0 ? "+" : ""}${formatNumber(val, 1)} điểm %`;
+    }
+    if (activeFact?.fact_type === "spread" || node.formula_version?.includes("spread")) {
+      const val = node.value ?? activeFact?.value ?? 0;
+      return `Chênh lệch cao – thấp toàn nhóm: ${formatNumber(val, 1)} điểm %`;
+    }
+    if (activeFact?.fact_type === "delta" || node.formula_version?.includes("delta")) {
+      const val = node.value ?? activeFact?.value ?? 0;
+      return `Biến động kỳ: ${val > 0 ? "+" : ""}${formatNumber(val, 1)} điểm %`;
     }
     return `${node.entity} đạt ${ratioValue} ${periodVi}`;
   })();

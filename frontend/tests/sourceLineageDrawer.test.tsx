@@ -519,4 +519,176 @@ describe("SourceDrawer Component (LIN-1)", () => {
       ).toBeInTheDocument();
     });
   });
+
+  describe("Items 1b & 2: Robust fact_id priority & aggregate constituent bank lineage", () => {
+    const mockAggregateSpreadNode: LineageNode = {
+      observation_id: "fact:spread:peer_top10:2026_Q2:bank.llr_coverage",
+      entity: "VCB",
+      metric: "bank.llr_coverage",
+      metric_name: "Tỷ lệ bao phủ nợ xấu (LLR)",
+      period: "2026_Q2",
+      period_id: "2026_Q2",
+      value: 203.4,
+      unit: "%",
+      formula_version: "spread-v1",
+      receipt_result: "passed",
+      children: [
+        {
+          observation_id: "obs_vcb_llr_2026q2",
+          entity: "VCB",
+          metric: "bank.llr_coverage",
+          metric_name: "Tỷ lệ bao phủ nợ xấu (LLR)",
+          period: "2026_Q2",
+          period_id: "2026_Q2",
+          value: 279.3,
+          unit: "%",
+          calculation_receipt: {
+            formula_version: "llr-coverage-v1",
+            ordered_inputs: [
+              {
+                observation_id: "obs_prov",
+                metric_id: "bank.input.loan_loss_provisions",
+                value: "29984.7",
+                unit: "VND",
+                period_id: "2026_Q2",
+              },
+              {
+                observation_id: "obs_npl",
+                metric_id: "bank.input.npl_g35_balance",
+                value: "10736.5",
+                unit: "VND",
+                period_id: "2026_Q2",
+              },
+            ],
+            calculated_output: "279.3",
+            unit: "percent",
+            result: "passed",
+          },
+          children: [
+            {
+              observation_id: "obs_prov",
+              entity: "VCB",
+              metric: "bank.input.loan_loss_provisions",
+              metric_name: "Dự phòng rủi ro cho vay khách hàng",
+              period: "2026_Q2",
+              period_id: "2026_Q2",
+              value: 29984.7,
+              unit: "VND",
+              page: 7,
+              children: [],
+            },
+          ],
+        },
+        {
+          observation_id: "obs_bid_llr_2026q2",
+          entity: "BID",
+          metric: "bank.llr_coverage",
+          metric_name: "Tỷ lệ bao phủ nợ xấu (LLR)",
+          period: "2026_Q2",
+          period_id: "2026_Q2",
+          value: 75.9,
+          unit: "%",
+          children: [
+            {
+              observation_id: "obs_bid_prov",
+              entity: "BID",
+              metric: "bank.input.loan_loss_provisions",
+              metric_name: "Dự phòng rủi ro cho vay khách hàng",
+              period: "2026_Q2",
+              period_id: "2026_Q2",
+              value: 15000.0,
+              unit: "VND",
+              page: 12,
+              children: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    it("Item 1b: prioritizes fact_id first before falling back to observation_id", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => mockVCBLineageNode,
+      } as Response);
+
+      render(
+        <SourceDrawer
+          isOpen={true}
+          onClose={vi.fn()}
+          report={mockReport}
+          factId="fact-1"
+          observationId="obs-vcb-llr-2026q2"
+          noteNo={1}
+        />
+      );
+
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalled();
+      });
+
+      // The very first call to fetch must be with fact_id 'fact-1' to survive snapshot rebuilds
+      expect(fetchSpy.mock.calls[0][0]).toBe("/api/lineage/fact-1");
+    });
+
+    it("Item 1b: citation note resolves using note fact_ids first", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => mockVCBLineageNode,
+      } as Response);
+
+      render(
+        <SourceDrawer
+          isOpen={true}
+          onClose={vi.fn()}
+          report={mockReport}
+          noteNo={1}
+        />
+      );
+
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalled();
+      });
+
+      // Note 1 has fact_ids: ["fact-1"], which must be requested first
+      expect(fetchSpy.mock.calls[0][0]).toBe("/api/lineage/fact-1");
+    });
+
+    it("Item 2: aggregate facts render constituent banks list with focal bank first and expandable lineage", () => {
+      render(
+        <DataTab
+          node={mockAggregateSpreadNode}
+          activeFact={{
+            fact_id: "fact:spread:peer_top10:2026_Q2:bank.llr_coverage",
+            fact_type: "spread",
+            entity_id: "VCB",
+            other_entity_id: "BID",
+            metric_id: "bank.llr_coverage",
+            period: "2026_Q2",
+            value: 203.4,
+          }}
+        />
+      );
+
+      // Header indicates aggregate constituent bank count
+      expect(screen.getByText("Danh sách ngân hàng cấu thành (2)")).toBeInTheDocument();
+
+      // Focal bank (VCB) is first with "Trọng tâm" badge
+      expect(screen.getByText("Trọng tâm")).toBeInTheDocument();
+      expect(screen.getByText("VCB")).toBeInTheDocument();
+      expect(screen.getByText("BID")).toBeInTheDocument();
+
+      // First bank (VCB) is expanded by default, showing its formula and page
+      expect(screen.getByText("Bao phủ = Dự phòng 29.984,7 / Nợ xấu 10.736,5 = 279,3%")).toBeInTheDocument();
+      expect(screen.getByText("tr. 7")).toBeInTheDocument();
+
+      // Second bank (BID) has "Chi tiết" toggle button
+      const bidToggle = screen.getByRole("button", { name: /Chi tiết/i });
+      expect(bidToggle).toBeInTheDocument();
+
+      // Clicking "Chi tiết" expands BID's lineage and shows BID's leaf page tr. 12
+      fireEvent.click(bidToggle);
+      expect(screen.getByText("tr. 12")).toBeInTheDocument();
+    });
+  });
 });

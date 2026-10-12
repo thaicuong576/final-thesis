@@ -973,6 +973,23 @@ When building demo harnesses with slide-out side drawers, modal backdrops (`fixe
 ### 3. Vite Serving Whitelist for Cross-Directory Fixtures
 - In Vite dev mode, importing fixtures residing outside the `frontend/` root (e.g. `experiments/er9/runs/`) triggers 403 Forbidden errors unless explicitly allowed in `vite.config.ts` (`server.fs.allow: ['..']`). Production builds (`tsc -b && vite build`) bundle dynamic imports seamlessly, but local dev workflows require this whitelist to enable deep-linking to experimental run fixtures.
 
+---
 
+## [LESSON-050] Snapshot-Invariant Fact Resolution, Aggregate Multi-Bank Lineage Trees & Portaled Drawer Stacking Context (LIN-1 Round 3)
 
+- Date: 2026-10-12
+- Scope: `src/thesis_api/lineage.py`, `frontend/src/features/source-lineage/`, `tests/test_lineage_api.py`
+- Status: ACTIVE
 
+### 1. Snapshot-Invariant Fact ID Resolution vs Volatile Observation IDs
+- Operational snapshots rebuilt across revisions (e.g. `r1` vs `r4`) regenerate distinct observation hashes. Saved reports referencing older observation IDs will return 404 if queried directly by observation hash.
+- **Invariant**: The lineage endpoint and client hook (`useLineage`) strictly prioritize domain fact keys (`fact_id`) such as `fact:value:<bank>:<period>:<metric>` or `fact:spread:...`. Fact IDs resolve deterministically by `(entity_id, period_id, metric_id)` in the active operational database, completely decoupling report persistence from snapshot regeneration.
+
+### 2. Recursive Lineage for Aggregate Multi-Bank Facts
+- Aggregate metrics (`spread`, `peer_median`, `peer_rank`, `gap_to_median`, `delta`) represent multi-bank or multi-period calculations rather than single bank observations.
+- Lineage trees for aggregate facts must retrieve all constituent bank observations, structure them with the focal bank strictly at index 0 (`focal_entity` priority), and sort peer banks deterministically. Each constituent bank node is recursively populated with its own formula, calculation receipt, and primary filing locators.
+- In the UI (`DataTab`), aggregate nodes display an interactive constituent bank list (`Danh sách ngân hàng cấu thành (N)`), allowing analysts to expand each peer bank's formula and filing page independently.
+
+### 3. React Portals for Drawer Stacking Context Isolation
+- Deeply nested components inside complex layouts (such as `WorkspaceShell` with sticky headers at `z-20` and parent overflow constraints) can cause stacking context collisions where sticky header pills or toolbars render over full-height drawers.
+- Portaling modal side drawers directly to `document.body` via `createPortal(drawerElement, document.body)` with `z-[100]` isolates the drawer into the top-level document stacking context, eliminating visual overlaps and header clippings across all viewports.

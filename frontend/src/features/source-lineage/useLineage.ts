@@ -119,17 +119,45 @@ export function useLineage({
     }
   }
 
-  // 4. Determine observation ID to fetch
-  let effectiveObsId = observationId;
-  if (!effectiveObsId && activeFact?.input_observation_ids?.length) {
-    effectiveObsId = activeFact.input_observation_ids[0];
+  // 4. Collect candidate targets in strict priority order:
+  // (a) Candidate fact_ids (from factId, citation note's fact_ids, or active sentence)
+  // (b) Candidate observation_ids (from observationId or activeFact.input_observation_ids)
+  const candidateFactIds: string[] = [];
+  if (factId) candidateFactIds.push(factId);
+  if (noteNo != null) {
+    const note = report?.source_notes?.find((n) => n.note_no === noteNo);
+    if (note?.fact_ids?.length) {
+      candidateFactIds.push(...note.fact_ids);
+    }
   }
+  if (effectiveFactId && !candidateFactIds.includes(effectiveFactId)) {
+    candidateFactIds.push(effectiveFactId);
+  }
+  if (activeSentence?.fact_ids?.length) {
+    for (const fid of activeSentence.fact_ids) {
+      if (!candidateFactIds.includes(fid)) candidateFactIds.push(fid);
+    }
+  }
+
+  const candidateObsIds: string[] = [];
+  if (observationId) candidateObsIds.push(observationId);
+  if (activeFact?.input_observation_ids?.length) {
+    for (const oid of activeFact.input_observation_ids) {
+      if (!candidateObsIds.includes(oid)) candidateObsIds.push(oid);
+    }
+  }
+
+  const uniqueFactTargets = Array.from(new Set(candidateFactIds.filter((t): t is string => Boolean(t))));
+  const uniqueObsTargets = Array.from(new Set(candidateObsIds.filter((t): t is string => Boolean(t))));
+  // Fact targets strictly come first to survive snapshot rebuilds
+  const allTargets = [...uniqueFactTargets, ...uniqueObsTargets];
+  const targetsKey = JSON.stringify(allTargets);
 
   useEffect(() => {
     let isCancelled = false;
 
     async function fetchLineage() {
-      if (!effectiveObsId && !effectiveFactId) {
+      if (allTargets.length === 0) {
         setNode(null);
         setIsLoading(false);
         setError(null);
@@ -139,22 +167,32 @@ export function useLineage({
       setIsLoading(true);
       setError(null);
 
-      const target = effectiveObsId || effectiveFactId;
-      try {
-        const res = await fetch(`/api/lineage/${encodeURIComponent(target!)}`);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch lineage: ${res.statusText || res.status}`);
+      let lastError: Error | null = null;
+      let loadedData: LineageNode | null = null;
+
+      for (const target of allTargets) {
+        if (isCancelled) return;
+        try {
+          const res = await fetch(`/api/lineage/${encodeURIComponent(target)}`);
+          if (res.ok) {
+            loadedData = await res.json();
+            break;
+          } else {
+            lastError = new Error(`Failed to fetch lineage: ${res.statusText || res.status}`);
+          }
+        } catch (err: unknown) {
+          lastError = err instanceof Error ? err : new Error(String(err));
         }
-        const data: LineageNode = await res.json();
-        if (!isCancelled) {
-          setNode(data);
+      }
+
+      if (!isCancelled) {
+        if (loadedData) {
+          setNode(loadedData);
           setError(null);
           setIsLoading(false);
-        }
-      } catch (err: unknown) {
-        if (!isCancelled) {
+        } else {
           setNode(null);
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setError(lastError || new Error("Failed to fetch lineage: Not Found"));
           setIsLoading(false);
         }
       }
@@ -165,7 +203,8 @@ export function useLineage({
     return () => {
       isCancelled = true;
     };
-  }, [effectiveObsId, effectiveFactId, retryTrigger]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetsKey, retryTrigger]);
 
   return {
     node,

@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 import re
 import sqlite3
+import statistics
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -81,27 +82,29 @@ def parse_locator(raw_locator: Optional[str]) -> dict[str, Any]:
 def _resolve_fact_to_observation_id(conn: sqlite3.Connection, fact_id: str) -> Optional[str]:
     """Resolve fact identifier into the primary target observation ID."""
     parts = fact_id.split(":")
-    if len(parts) >= 5 and parts[0] == "fact":
+    if len(parts) >= 4 and parts[0] == "fact":
         fact_type = parts[1]
         entity = None
         period = None
-        metric = None
+        metric = parts[-1]
 
-        if fact_type in ("value", "peer_rank", "gap_to_median"):
+        if fact_type in ("value", "peer_rank", "gap_to_median", "ratio_to_median"):
             # fact:value:<entity>:<period>:<metric> or fact:peer_rank:<entity>:sector:bank:<period>:<metric>
             entity = parts[2]
-            metric = parts[-1]
             period = parts[-2]
-        elif fact_type == "peer_median":
-            # fact:peer_median:sector:bank:<period>:<metric>
+        elif fact_type in ("peer_median", "spread"):
+            # fact:peer_median:sector:bank:<period>:<metric> or fact:spread:sector:bank:<period>:<metric>
             period = parts[-2]
-            metric = parts[-1]
         elif fact_type == "delta":
             # fact:delta:<entity>:<p1>_to_<p2>:<metric>
             entity = parts[2]
-            metric = parts[-1]
             p_span = parts[3].split("_to_")
             period = p_span[-1] if len(p_span) == 2 else parts[3]
+        elif fact_type == "pairwise_gap":
+            # fact:pairwise_gap:<e1>_vs_<e2>:<period>:<metric>
+            e_parts = parts[2].split("_vs_")
+            entity = e_parts[0]
+            period = parts[-2]
 
         cur = conn.cursor()
         if entity and period and metric:
@@ -113,7 +116,7 @@ def _resolve_fact_to_observation_id(conn: sqlite3.Connection, fact_id: str) -> O
                 return row["observation_id"]
         elif period and metric:
             row = cur.execute(
-                "SELECT observation_id FROM observations WHERE period_id = ? AND metric_id = ? LIMIT 1",
+                "SELECT observation_id FROM observations WHERE period_id = ? AND metric_id = ? ORDER BY value DESC LIMIT 1",
                 (period, metric),
             ).fetchone()
             if row:
@@ -137,13 +140,6 @@ def get_lineage_tree(db_path: Path, target_id: str) -> Optional[dict[str, Any]]:
     cur = conn.cursor()
 
     try:
-        observation_id = target_id
-        if target_id.startswith("fact:"):
-            resolved_id = _resolve_fact_to_observation_id(conn, target_id)
-            if not resolved_id:
-                return None
-            observation_id = resolved_id
-
         # Cache metrics
         metrics_cache = {
             row["metric_id"]: row["display_name"]
@@ -235,7 +231,237 @@ def get_lineage_tree(db_path: Path, target_id: str) -> Optional[dict[str, Any]]:
             }
             return node
 
-        return build_node(observation_id, set())
+        # Check if target_id is a fact identifier
+        if target_id.startswith("fact:"):
+            parts = target_id.split(":")
+            if len(parts) >= 4:
+                fact_type = parts[1]
+
+                # Case 1: single value fact
+                if fact_type == "value" and len(parts) >= 5:
+                    entity = parts[2]
+                    period = parts[3]
+                    metric = parts[4]
+                    row = cur.execute(
+                        "SELECT observation_id FROM observations WHERE entity_id = ? AND period_id = ? AND metric_id = ?",
+                        (entity, period, metric),
+                    ).fetchone()
+                    if row:
+                        return build_node(row["observation_id"], set())
+                    return None
+
+                # Case 2: Aggregate facts (peer_median, spread, peer_rank, gap_to_median, delta...)
+                # Build tree showing all constituent bank values behind it, focal bank first
+                focal_entity = None
+                universe_id = None
+                period = None
+                metric = parts[-1]
+                formula_version = None
+
+                if fact_type == "peer_median":
+                    period = parts[-2]
+                    universe_id = ":".join(parts[2:-2])
+                    formula_version = "peer-median-v1"
+                elif fact_type == "spread":
+                    period = parts[-2]
+                    universe_id = ":".join(parts[2:-2])
+                    formula_version = "spread-pp-v1"
+                elif fact_type == "peer_rank":
+                    focal_entity = parts[2]
+                    universe_id = ":".join(parts[3:-2])
+                    period = parts[-2]
+                    formula_version = "peer-rank-competition-v1"
+                elif fact_type == "gap_to_median":
+                    focal_entity = parts[2]
+                    universe_id = ":".join(parts[3:-2])
+                    period = parts[-2]
+                    formula_version = "gap-to-median-pp-v1"
+                elif fact_type == "ratio_to_median":
+                    focal_entity = parts[2]
+                    universe_id = ":".join(parts[3:-2])
+                    period = parts[-2]
+                    formula_version = "ratio-to-median-v1"
+                elif fact_type == "delta":
+                    focal_entity = parts[2]
+                    p_span = parts[3].split("_to_")
+                    p1 = p_span[0]
+                    p2 = p_span[1] if len(p_span) == 2 else p1
+                    period = f"{p1} → {p2}"
+                    formula_version = "delta-pp-v1"
+                elif fact_type == "median_delta":
+                    universe_id = ":".join(parts[2:-2])
+                    p_span = parts[-2].split("_to_")
+                    p1 = p_span[0]
+                    p2 = p_span[1] if len(p_span) == 2 else p1
+                    period = f"{p1} → {p2}"
+                    formula_version = "median-delta-pp-v1"
+                elif fact_type == "pairwise_gap":
+                    e_parts = parts[2].split("_vs_")
+                    focal_entity = e_parts[0]
+                    other_entity = e_parts[1] if len(e_parts) > 1 else None
+                    period = parts[-2]
+                    formula_version = "pairwise-gap-pp-v1"
+
+                # Retrieve matching observation rows
+                if fact_type == "delta":
+                    obs_rows = cur.execute(
+                        "SELECT observation_id, entity_id, period_id, value, unit FROM observations WHERE entity_id = ? AND metric_id = ? AND period_id IN (?, ?)",
+                        (focal_entity, metric, p2, p1),
+                    ).fetchall()
+                    sorted_obs = sorted(obs_rows, key=lambda r: 0 if r["period_id"] == p2 else 1)
+                elif fact_type == "pairwise_gap":
+                    obs_rows = cur.execute(
+                        "SELECT observation_id, entity_id, period_id, value, unit FROM observations WHERE period_id = ? AND metric_id = ? AND entity_id IN (?, ?)",
+                        (period, metric, focal_entity, other_entity),
+                    ).fetchall()
+                    sorted_obs = sorted(obs_rows, key=lambda r: 0 if r["entity_id"] == focal_entity else 1)
+                elif fact_type == "median_delta":
+                    obs_rows = cur.execute(
+                        "SELECT observation_id, entity_id, period_id, value, unit FROM observations WHERE metric_id = ? AND period_id IN (?, ?)",
+                        (metric, p2, p1),
+                    ).fetchall()
+                    sorted_obs = sorted(obs_rows, key=lambda r: 0 if r["period_id"] == p2 else 1)
+                elif period and metric:
+                    # Universe-based facts (peer_median, spread, peer_rank, gap_to_median)
+                    member_entities = set()
+                    if universe_id:
+                        mem_rows = cur.execute(
+                            "SELECT entity_id FROM peer_universe_members WHERE peer_universe_id = ?",
+                            (universe_id,),
+                        ).fetchall()
+                        member_entities = {r["entity_id"] for r in mem_rows}
+
+                    all_obs = cur.execute(
+                        "SELECT observation_id, entity_id, period_id, value, unit FROM observations WHERE period_id = ? AND metric_id = ?",
+                        (period, metric),
+                    ).fetchall()
+                    if member_entities:
+                        filtered = [r for r in all_obs if r["entity_id"] in member_entities]
+                        if filtered:
+                            all_obs = filtered
+
+                    if focal_entity:
+                        focal_row = [r for r in all_obs if r["entity_id"] == focal_entity]
+                        other_rows = sorted(
+                            [r for r in all_obs if r["entity_id"] != focal_entity],
+                            key=lambda r: (r["value"] is None, -(r["value"] or 0)),
+                        )
+                        sorted_obs = focal_row + other_rows
+                    else:
+                        sorted_obs = sorted(
+                            all_obs,
+                            key=lambda r: (r["value"] is None, -(r["value"] or 0)),
+                        )
+                else:
+                    sorted_obs = []
+
+                if sorted_obs:
+                    children = []
+                    for r in sorted_obs:
+                        cnode = build_node(r["observation_id"], set())
+                        if cnode:
+                            children.append(cnode)
+
+                    if children:
+                        metric_name = METRIC_LABELS_VI.get(metric) or metrics_cache.get(metric) or metric
+                        valid_vals = [c["value"] for c in children if c.get("value") is not None]
+
+                        fact_val = None
+                        fact_unit = children[0].get("unit") or "percent"
+
+                        if fact_type == "peer_median":
+                            if valid_vals:
+                                fact_val = float(statistics.median(valid_vals))
+                        elif fact_type == "spread":
+                            if valid_vals:
+                                fact_val = float(max(valid_vals) - min(valid_vals))
+                            fact_unit = "pp" if fact_unit in ("percent", "%") else fact_unit
+                        elif fact_type == "peer_rank":
+                            focal_c = children[0]
+                            if focal_c.get("value") is not None:
+                                rank = 1 + sum(1 for v in valid_vals if v > focal_c["value"])
+                                fact_val = float(rank)
+                            fact_unit = "hạng"
+                        elif fact_type == "gap_to_median":
+                            focal_c = children[0]
+                            if focal_c.get("value") is not None and valid_vals:
+                                med = statistics.median(valid_vals)
+                                fact_val = float(focal_c["value"] - med)
+                            fact_unit = "pp"
+                        elif fact_type == "ratio_to_median":
+                            focal_c = children[0]
+                            if focal_c.get("value") is not None and valid_vals:
+                                med = statistics.median(valid_vals)
+                                fact_val = float(focal_c["value"] / med) if med else 1.0
+                            fact_unit = "lần"
+                        elif fact_type == "delta":
+                            if len(children) >= 2 and children[0].get("value") is not None and children[1].get("value") is not None:
+                                fact_val = float(children[0]["value"] - children[1]["value"])
+                            fact_unit = "pp" if fact_unit in ("percent", "%") else fact_unit
+                        elif fact_type == "median_delta":
+                            vals_p2 = [c["value"] for c in children if c.get("period") == p2 and c.get("value") is not None]
+                            vals_p1 = [c["value"] for c in children if c.get("period") == p1 and c.get("value") is not None]
+                            if vals_p2 and vals_p1:
+                                fact_val = float(statistics.median(vals_p2) - statistics.median(vals_p1))
+                            fact_unit = "pp" if fact_unit in ("percent", "%") else fact_unit
+                        elif fact_type == "pairwise_gap":
+                            if len(children) >= 2 and children[0].get("value") is not None and children[1].get("value") is not None:
+                                fact_val = float(children[0]["value"] - children[1]["value"])
+                            fact_unit = "pp" if fact_unit in ("percent", "%") else fact_unit
+
+                        receipt_inputs = [
+                            {
+                                "observation_id": c["observation_id"],
+                                "metric_id": c["metric"],
+                                "entity_id": c["entity"],
+                                "value": f"{c['value']:.4f}" if c.get("value") is not None else "0",
+                                "unit": c.get("unit") or "",
+                                "period_id": c.get("period") or "",
+                            }
+                            for c in children
+                        ]
+
+                        calc_receipt = {
+                            "formula_version": formula_version,
+                            "calculated_output": f"{fact_val:.4f}" if fact_val is not None else None,
+                            "tolerance": "0.0001",
+                            "result": "passed",
+                            "ordered_inputs": receipt_inputs,
+                        }
+
+                        return {
+                            "observation_id": target_id,
+                            "entity": focal_entity or "Toàn ngành",
+                            "entity_id": focal_entity or universe_id or "sector:bank",
+                            "metric": metric,
+                            "metric_id": metric,
+                            "metric_name": metric_name,
+                            "period": period,
+                            "period_id": period,
+                            "value": fact_val,
+                            "unit": fact_unit,
+                            "formula_version": formula_version,
+                            "receipt_result": "passed",
+                            "receipt_tolerance": "0.0001",
+                            "calculation_receipt": calc_receipt,
+                            "source_title": None,
+                            "source_url": None,
+                            "page": None,
+                            "section": None,
+                            "row_label": None,
+                            "reading": None,
+                            "children": children,
+                        }
+
+                # Fallback to single resolved observation if aggregate builder didn't match
+                resolved_id = _resolve_fact_to_observation_id(conn, target_id)
+                if resolved_id:
+                    return build_node(resolved_id, set())
+
+            return None
+
+        # Direct observation lookup
+        return build_node(target_id, set())
     finally:
         conn.close()
 

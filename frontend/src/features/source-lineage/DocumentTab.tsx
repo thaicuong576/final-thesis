@@ -10,6 +10,7 @@ interface DocumentTabProps {
 
 interface LeafItem {
   id: string;
+  entity: string;
   metric: string;
   metricName: string;
   value?: number | null;
@@ -35,11 +36,12 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({ node, activeNote }) =>
     } else {
       leaves.push({
         id: curr.observation_id,
+        entity: curr.entity,
         metric: curr.metric,
         metricName: curr.metric_name || curr.metric,
         value: curr.value,
         unit: curr.unit,
-        title: curr.source_title || activeNote?.title || "Báo cáo tài chính",
+        title: curr.source_title || activeNote?.title || `${curr.entity} · Báo cáo tài chính`,
         url: curr.source_url || activeNote?.url || null,
         page: curr.page ?? null, // leaf's own page strictly, never note's page or 1
         section: curr.section,
@@ -78,6 +80,11 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({ node, activeNote }) =>
         <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#F4F3EF] dark:bg-[#252525] rounded-md border border-[#E5E3DC] dark:border-[#333]">
           {leaves.map((leaf, idx) => {
             const isSelected = selectedIndex === idx;
+            const hasMultipleBanks = new Set(leaves.map((l) => l.entity)).size > 1;
+            const label = hasMultipleBanks
+              ? `[${leaf.entity}] ${leaf.metricName}`
+              : leaf.metricName;
+
             return (
               <button
                 key={leaf.id + idx}
@@ -89,7 +96,7 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({ node, activeNote }) =>
                     : "bg-white dark:bg-[#1E1E1E] text-[#1C1B18] dark:text-[#D0D0D0] border border-[#E5E3DC] dark:border-[#444] hover:border-[#B45309]"
                 }`}
               >
-                <span>{leaf.metricName}</span>
+                <span>{label}</span>
                 {leaf.page != null && (
                   <span
                     className={`text-[10px] px-1 py-0.2 rounded font-mono ${

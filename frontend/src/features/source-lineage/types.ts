@@ -8,6 +8,8 @@ export interface LineageReceiptInput {
   value: string;
   unit: string;
   period_id: string;
+  entity_id?: string;
+  entity?: string;
   reporting_scope?: string;
   period_basis?: string;
 }
@@ -75,13 +77,19 @@ export interface FactItem {
   fact_id: string;
   fact_type: string;
   entity_id?: string | null;
+  other_entity_id?: string | null;
+  universe_id?: string | null;
   metric_id?: string | null;
   period?: string | null;
+  from_period?: string | null;
   value?: number | null;
   unit?: string | null;
+  rank_better?: number | null;
+  rank_desc?: number | null;
   denominator?: number | null;
   formula_version?: string | null;
   input_observation_ids?: string[];
+  input_fact_ids?: string[];
 }
 
 export interface SentenceItem {

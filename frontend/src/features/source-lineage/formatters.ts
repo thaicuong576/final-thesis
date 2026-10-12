@@ -118,7 +118,85 @@ export function buildSubstitutedFormula(
     return `${parts.join(" + ")} = ${outputVal}${unitSuffix}`;
   }
 
-  // 3. Generic formula based on ordered inputs
+  // 3. Aggregate formulas (spread, peer_median, peer_rank, gap_to_median, delta)
+  if (version.includes("spread")) {
+    if (inputs.length >= 2) {
+      const maxInp = inputs[0];
+      const minInp = inputs[inputs.length - 1];
+      const maxVal = formatNumber(parseFloat(maxInp.value), 1);
+      const minVal = formatNumber(parseFloat(minInp.value), 1);
+      const maxEntity = maxInp.entity_id || "";
+      const minEntity = minInp.entity_id || "";
+      return `Chênh lệch = Cao nhất ${maxVal}% (${maxEntity}) - Thấp nhất ${minVal}% (${minEntity}) = ${outputVal}${unitSuffix}`;
+    }
+    return `Chênh lệch toàn nhóm = ${outputVal}${unitSuffix}`;
+  }
+
+  if (version.includes("peer-median")) {
+    return `Trung vị ngành (${inputs.length} ngân hàng) = ${outputVal}${unitSuffix}`;
+  }
+
+  if (version.includes("peer-rank")) {
+    const focalInp = inputs[0];
+    const focalVal = formatNumber(parseFloat(focalInp.value), 1);
+    const focalEntity = focalInp.entity_id || "";
+    return `Xếp hạng: ${focalEntity} đạt ${focalVal}% (hạng ${outputVal}/${inputs.length})`;
+  }
+
+  if (version.includes("gap-to-median")) {
+    const focalInp = inputs[0];
+    const focalVal = formatNumber(parseFloat(focalInp.value), 1);
+    const focalEntity = focalInp.entity_id || "";
+    return `Chênh lệch trung vị = ${focalEntity} ${focalVal}% - TV = ${outputVal}${unitSuffix}`;
+  }
+
+  if (version.includes("delta")) {
+    if (inputs.length >= 2) {
+      const v2 = formatNumber(parseFloat(inputs[0].value), 1);
+      const v1 = formatNumber(parseFloat(inputs[1].value), 1);
+      return `Biến động kỳ = ${v2} - ${v1} = ${outputVal}${unitSuffix}`;
+    }
+    return `Biến động kỳ = ${outputVal}${unitSuffix}`;
+  }
+
+  // 4. Generic formula based on ordered inputs
   const formattedInputs = inputs.map((inp) => formatNumber(parseFloat(inp.value), 1));
   return `${formattedInputs.join(" / ")} = ${outputVal}${unitSuffix}`;
 }
+
+/**
+ * Standard Vietnamese display names for metrics.
+ */
+export const METRIC_DISPLAY_NAMES_VI: Record<string, string> = {
+  "bank.llr_coverage": "Tỷ lệ bao phủ nợ xấu (LLR)",
+  "bank.npl_g35": "Tỷ lệ nợ xấu (nhóm 3–5)",
+  "bank.roa": "Tỷ suất sinh lời trên tổng tài sản (ROA)",
+  "bank.roe": "Tỷ suất sinh lời trên vốn chủ sở hữu (ROE)",
+  "bank.nim": "Tỷ lệ thu nhập lãi thuần (NIM)",
+  "bank.cir": "Tỷ lệ chi phí trên thu nhập (CIR)",
+  "bank.ldr": "Tỷ lệ cho vay trên huy động (LDR)",
+  "bank.input.loan_loss_provisions": "Dự phòng rủi ro cho vay khách hàng",
+  "bank.input.npl_g35_balance": "Tổng nợ xấu (nhóm 3–5)",
+  "bank.input.npl_group_3_balance": "Nợ dưới tiêu chuẩn (nhóm 3)",
+  "bank.input.npl_group_4_balance": "Nợ nghi ngờ (nhóm 4)",
+  "bank.input.npl_group_5_balance": "Nợ có khả năng mất vốn (nhóm 5)",
+  "bank.input.gross_customer_loans": "Cho vay khách hàng",
+  "bank.input.total_assets": "Tổng tài sản",
+  "bank.input.total_equity": "Vốn chủ sở hữu",
+  "bank.input.parent_attributable_equity": "Vốn chủ sở hữu của ngân hàng mẹ",
+  "bank.input.profit_after_tax": "Lợi nhuận sau thuế",
+  "bank.input.parent_attributable_profit": "Lợi nhuận sau thuế của ngân hàng mẹ",
+};
+
+/**
+ * Safely resolve metric display name, never leaking raw identifiers like "bank.roe".
+ */
+export function getMetricDisplayName(metricId?: string | null): string {
+  if (!metricId) return "Chỉ số tài chính";
+  if (METRIC_DISPLAY_NAMES_VI[metricId]) {
+    return METRIC_DISPLAY_NAMES_VI[metricId];
+  }
+  const stripped = metricId.replace(/^bank\.(input\.)?/, "").replace(/_/g, " ");
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+}
+

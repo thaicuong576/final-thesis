@@ -126,11 +126,18 @@ def inject_harness_banner(page):
 
 
 def assert_no_horizontal_scroll(page, label: str):
-    has_scroll = page.evaluate("() => document.documentElement.scrollWidth > document.documentElement.clientWidth")
-    if has_scroll:
-        scroll_w = page.evaluate("() => document.documentElement.scrollWidth")
-        client_w = page.evaluate("() => document.documentElement.clientWidth")
-        raise AssertionError(f"HORIZONTAL SCROLL DETECTED on {label}: scrollWidth={scroll_w} > clientWidth={client_w}")
+    info = page.evaluate("""() => {
+        const docScroll = document.documentElement.scrollWidth;
+        const docClient = document.documentElement.clientWidth;
+        const bodyScroll = document.body.scrollWidth;
+        const winWidth = window.innerWidth;
+        const maxScroll = Math.max(docScroll, bodyScroll);
+        return { docScroll, docClient, bodyScroll, winWidth, maxScroll, hasScroll: maxScroll > docClient };
+    }""")
+    if info["hasScroll"]:
+        raise AssertionError(
+            f"HORIZONTAL SCROLL DETECTED on {label}: maxScroll={info['maxScroll']} (doc={info['docScroll']}, body={info['bodyScroll']}) > clientWidth={info['docClient']} (win={info['winWidth']})"
+        )
 
 
 def main():
@@ -170,6 +177,7 @@ def main():
             page.wait_for_selector("text=Giá đóng cửa")
             page.wait_for_selector("text=P/B (Định giá)")
             page.wait_for_timeout(1000)
+            assert_no_horizontal_scroll(page, "01_library_report_with_new_row_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "01_library_report_with_new_row_1440.png"))
             page.close()
@@ -205,25 +213,24 @@ def main():
                     body=sse_body.encode("utf-8")
                 )
 
-            # Desktop 1440
+            # Desktop 1440 - Capture real state at top of page (item 3)
             page = browser.new_page(viewport={"width": 1440, "height": 900})
             page.route("**/api/analyze/stream", mock_analyze_stream)
             page.goto("http://127.0.0.1:5173/analysis")
             page.wait_for_selector("textarea[aria-label='Câu hỏi phân tích']")
             page.fill("textarea[aria-label='Câu hỏi phân tích']", "Phân tích ROE của VCB")
             page.click("button:has-text('Phân tích')")
-            # Wait for stream to finish and report to render inline
             page.wait_for_selector("text=Báo cáo đã sẵn sàng")
             page.wait_for_selector("text=Thị trường")
             page.wait_for_selector("text=Giá đóng cửa")
-            page.locator(".report-sheet").evaluate("el => el.scrollIntoView({ block: 'start' })")
-            page.evaluate("window.scrollBy(0, -60)")
+            page.evaluate("window.scrollTo(0, 0)")
             page.wait_for_timeout(1000)
+            assert_no_horizontal_scroll(page, "02_freshly_generated_result_view_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "02_freshly_generated_result_view_1440.png"))
             page.close()
 
-            # Mobile 390
+            # Mobile 390 - Capture real state at top of page (item 3)
             page = browser.new_page(viewport={"width": 390, "height": 844})
             page.route("**/api/analyze/stream", mock_analyze_stream)
             page.goto("http://127.0.0.1:5173/analysis")
@@ -233,8 +240,7 @@ def main():
             page.wait_for_selector("text=Báo cáo đã sẵn sàng")
             page.wait_for_selector("text=Thị trường")
             page.wait_for_selector("text=Giá đóng cửa")
-            page.locator(".report-sheet").evaluate("el => el.scrollIntoView({ block: 'start' })")
-            page.evaluate("window.scrollBy(0, -60)")
+            page.evaluate("window.scrollTo(0, 0)")
             page.wait_for_timeout(1000)
             assert_no_horizontal_scroll(page, "02_freshly_generated_result_view_390")
             inject_harness_banner(page)
@@ -255,6 +261,7 @@ def main():
             page.wait_for_selector("text=Bảng giá & định giá 10 ngân hàng HOSE")
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_timeout(1000)
+            assert_no_horizontal_scroll(page, "03_sector_report_with_chips_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "03_sector_report_with_chips_1440.png"))
             page.close()
@@ -287,6 +294,7 @@ def main():
             page.goto("http://127.0.0.1:5173/reports/er9-t01")
             page.locator(".report-sheet").get_by_text("dữ liệu trễ").wait_for(state="visible")
             page.wait_for_timeout(1000)
+            assert_no_horizontal_scroll(page, "04_stale_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "04_stale_1440.png"))
             page.close()
@@ -313,6 +321,7 @@ def main():
             page = browser.new_page(viewport={"width": 1440, "height": 900})
             page.goto("http://127.0.0.1:5173/reports/er9-t01")
             page.wait_for_timeout(1500)
+            assert_no_horizontal_scroll(page, "05_unconfigured_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "05_unconfigured_1440.png"))
             page.close()
@@ -340,6 +349,7 @@ def main():
             page.wait_for_selector("text=HOSE")
             page.wait_for_selector("text=VCB")
             page.wait_for_timeout(1000)
+            assert_no_horizontal_scroll(page, "06_shell_ticker_alone_1440")
             inject_harness_banner(page)
             page.screenshot(path=str(SHOTS_DIR / "06_shell_ticker_alone_1440.png"))
             page.close()

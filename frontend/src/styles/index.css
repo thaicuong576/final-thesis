@@ -227,6 +227,10 @@ textarea::placeholder, input::placeholder { color: var(--text-tertiary); opacity
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }
 }
+.ticker-container {
+  min-width: 0;
+  contain: inline-size;
+}
 .ticker-track {
   display: flex;
   width: max-content;

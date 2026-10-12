@@ -64,54 +64,52 @@ export const MarketPriceStrip: React.FC<MarketPriceStripProps> = ({ className = 
     <div
       role="region"
       aria-label="Bảng giá thị trường SSI 10 ngân hàng HOSE"
-      className={`ticker-container w-full border-t border-border-subtle/80 bg-surface-primary/95 text-xs text-text-primary select-none overflow-hidden hidden sm:block ${className}`}
+      className={`ticker-container min-w-0 flex-1 flex items-center gap-2 overflow-hidden text-xs text-text-primary select-none [contain:inline-size] ${className}`}
     >
-      <div className="flex items-center justify-between px-4 sm:px-6 py-1 gap-3">
-        {/* Left prefix badge */}
-        <div className="flex items-center gap-2 shrink-0 pr-2 border-r border-border-subtle z-10 bg-surface-primary/95">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-accent font-mono">
-            HOSE
+      {/* Left prefix badge */}
+      <div className="flex items-center gap-1.5 shrink-0 pl-1">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-accent font-mono">
+          HOSE
+        </span>
+        {stale && (
+          <span
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-soft text-text-accent border border-amber/30 text-[10px] font-sans font-medium shrink-0"
+            title={stale_reason ? `Dữ liệu trễ: ${stale_reason}` : 'Dữ liệu phiên trước hoặc kết nối trễ'}
+          >
+            <AlertCircle className="w-2.5 h-2.5 text-accent" />
+            <span>dữ liệu trễ</span>
           </span>
-          {stale && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-soft text-text-accent border border-amber/30 text-[10px] font-sans font-medium shrink-0"
-              title={stale_reason ? `Dữ liệu trễ: ${stale_reason}` : 'Dữ liệu phiên trước hoặc kết nối trễ'}
-            >
-              <AlertCircle className="w-2.5 h-2.5 text-accent" />
-              <span>dữ liệu trễ</span>
-            </span>
-          )}
-        </div>
+        )}
+      </div>
 
-        {/* Marquee ticker track */}
-        <div className="flex-1 overflow-hidden font-mono text-[11px] relative">
-          <div className="ticker-track items-center">
-            {/* First copy */}
-            <div className="flex items-center gap-2 shrink-0">
-              {quotes.map((q, idx) => renderQuoteItem(q, idx, 'a'))}
-            </div>
-            <span className="text-text-tertiary px-2" aria-hidden="true">·</span>
-            {/* Duplicate copy for continuous seamless marquee */}
-            <div className="flex items-center gap-2 shrink-0" aria-hidden="true">
-              {quotes.map((q, idx) => renderQuoteItem(q, idx, 'b'))}
-            </div>
+      {/* Marquee ticker track with fade masks at both ends */}
+      <div className="relative min-w-0 flex-1 overflow-hidden font-mono text-[11px] [contain:inline-size] [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-20px),transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-20px),transparent)]">
+        <div className="ticker-track items-center">
+          {/* First copy */}
+          <div className="flex items-center gap-2 shrink-0">
+            {quotes.map((q, idx) => renderQuoteItem(q, idx, 'a'))}
+          </div>
+          <span className="text-text-tertiary px-2" aria-hidden="true">·</span>
+          {/* Duplicate copy for continuous seamless marquee */}
+          <div className="flex items-center gap-2 shrink-0" aria-hidden="true">
+            {quotes.map((q, idx) => renderQuoteItem(q, idx, 'b'))}
           </div>
         </div>
+      </div>
 
-        {/* Right meta info */}
-        <div className="flex items-center gap-2 shrink-0 text-[10px] text-text-tertiary font-mono pl-3 border-l border-border-subtle z-10 bg-surface-primary/95">
-          {tradingDate && (
-            <span className="hidden md:inline">
-              Phiên {tradingDate}
-            </span>
-          )}
-          {updatedTime && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5 text-text-tertiary" />
-              <span>cập nhật {updatedTime}</span>
-            </span>
-          )}
-        </div>
+      {/* Right meta info */}
+      <div className="flex items-center gap-2 shrink-0 text-[10px] text-text-tertiary font-mono pr-1">
+        {tradingDate && (
+          <span className="hidden xl:inline">
+            Phiên {tradingDate}
+          </span>
+        )}
+        {updatedTime && (
+          <span className="inline-flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5 text-text-tertiary" />
+            <span>cập nhật {updatedTime}</span>
+          </span>
+        )}
       </div>
     </div>
   );

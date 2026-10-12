@@ -284,7 +284,7 @@ describe('WorkspaceShell ticker integration', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders shell marquee ticker once in the header', async () => {
+  it('renders shell marquee ticker merged into the header row on the right with containment', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);
       if (url.includes('/api/market/quotes')) {
@@ -305,6 +305,12 @@ describe('WorkspaceShell ticker integration', () => {
       name: /Bảng giá thị trường SSI 10 ngân hàng HOSE/i
     });
     expect(tickers).toHaveLength(1);
+    const ticker = tickers[0];
+    expect(ticker).toHaveClass('ticker-container');
+    expect(ticker).toHaveClass('overflow-hidden');
+    expect(ticker.parentElement).toHaveClass('overflow-hidden');
+    expect(ticker.parentElement).toHaveClass('hidden');
+    expect(ticker.parentElement).toHaveClass('lg:flex');
     expect(screen.getByTestId('page-content')).toBeInTheDocument();
   });
 });

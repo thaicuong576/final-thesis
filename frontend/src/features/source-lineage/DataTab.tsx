@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, Calculator, Database, AlertTriangle, ChevronDown, ChevronUp, Building2 } from "lucide-react";
 import { formatNumber, formatPeriod, formatUnit, buildSubstitutedFormula } from "./formatters";
+import { formatReadingMethod } from "./readingWording";
 import type { LineageNode, FactItem } from "./types";
 
 interface DataTabProps {
@@ -16,6 +17,9 @@ interface FlattenedRow {
   value?: number | null;
   unit?: string | null;
   page?: number | null;
+  section?: string | null;
+  rowLabel?: string | null;
+  reading?: string | null;
   isLeaf: boolean;
 }
 
@@ -67,6 +71,9 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
         value: curr.value,
         unit: curr.unit,
         page: curr.page,
+        section: curr.section,
+        rowLabel: curr.row_label,
+        reading: curr.reading,
         isLeaf: !curr.children || curr.children.length === 0,
       });
     }
@@ -89,6 +96,9 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
       value: node.value,
       unit: node.unit,
       page: node.page,
+      section: node.section,
+      rowLabel: node.row_label,
+      reading: node.reading,
       isLeaf: true,
     });
   }
@@ -173,9 +183,11 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
             <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>
-                {receiptResult === "passed"
+                {receiptResult && receiptResult !== "passed"
+                  ? `Kết quả: ${receiptResult}`
+                  : tolerance
                   ? `Khớp định mức (sai lệch ≤ ${tolerance})`
-                  : `Kết quả: ${receiptResult}`}
+                  : ""}
               </span>
             </div>
             {receipt?.calculated_output && (
@@ -197,7 +209,11 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
             {formatUnit(node.unit)}
           </div>
           <p className="text-[11px] text-[#8C8A82]">
-            Số liệu trích xuất trực tiếp từ báo cáo tài chính, không qua bước tính toán dẫn xuất.
+            {node.row_label || node.reading
+              ? `Số liệu trích xuất từ chỉ tiêu '${node.row_label || ""}'${
+                  node.reading ? ` (${formatReadingMethod(node.reading)})` : ""
+                }.`
+              : "Số liệu trích xuất từ báo cáo tài chính đã công bố."}
           </p>
         </div>
       )}
@@ -239,6 +255,9 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
                     value: sub.value,
                     unit: sub.unit,
                     page: sub.page,
+                    section: sub.section,
+                    rowLabel: sub.row_label,
+                    reading: sub.reading,
                     isLeaf: !sub.children || sub.children.length === 0,
                   });
                 }
@@ -321,7 +340,18 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
                               {childInputs.map((inp, i) => (
                                 <tr key={inp.metric + i}>
                                   <td className="py-1.5 px-2.5 font-medium text-[#1C1B18] dark:text-[#E0E0E0]">
-                                    {inp.metricName}
+                                    <div className="flex flex-col">
+                                      <span>{inp.metricName}</span>
+                                      {(inp.rowLabel || inp.reading || inp.section) && (
+                                        <span className="text-[10px] text-[#8C8A82] font-normal truncate">
+                                          {inp.section ? `Mục: ${inp.section}` : ""}
+                                          {inp.section && inp.rowLabel ? " · " : ""}
+                                          {inp.rowLabel ? `Dòng: ${inp.rowLabel}` : ""}
+                                          {(inp.section || inp.rowLabel) && inp.reading ? " · " : ""}
+                                          {inp.reading ? formatReadingMethod(inp.reading) : ""}
+                                        </span>
+                                      )}
+                                    </div>
                                   </td>
                                   <td className="py-1.5 px-2 text-right font-mono font-semibold text-[#1C1B18] dark:text-[#F0F0F0]">
                                     {formatNumber(inp.value, 1)}
@@ -386,7 +416,18 @@ export const DataTab: React.FC<DataTabProps> = ({ node, activeFact }) => {
                       {r.entity}
                     </td>
                     <td className="py-2 px-3 font-medium text-[#1C1B18] dark:text-[#E0E0E0]">
-                      {r.metricName}
+                      <div className="flex flex-col">
+                        <span>{r.metricName}</span>
+                        {(r.rowLabel || r.reading || r.section) && (
+                          <span className="text-[10px] text-[#8C8A82] font-normal truncate">
+                            {r.section ? `Mục: ${r.section}` : ""}
+                            {r.section && r.rowLabel ? " · " : ""}
+                            {r.rowLabel ? `Dòng: ${r.rowLabel}` : ""}
+                            {(r.section || r.rowLabel) && r.reading ? " · " : ""}
+                            {r.reading ? formatReadingMethod(r.reading) : ""}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-2 px-2 font-mono text-[11px] text-[#6B6960] dark:text-[#A0A0A0]">
                       {formatPeriod(r.period)}

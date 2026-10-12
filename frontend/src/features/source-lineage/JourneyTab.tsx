@@ -19,6 +19,11 @@ import type {
   AuditVerdictItem,
 } from "./types";
 import { formatNumber, formatPeriod, formatUnit } from "./formatters";
+import {
+  findLeafSourceMetadata,
+  buildInputStepDetail,
+  buildAuditVerdictPresentation,
+} from "./readingWording";
 
 interface JourneyTabProps {
   node: LineageNode | null;
@@ -45,8 +50,13 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
     );
   }
 
-  const page = node.page ?? (node.children?.[0]?.page ?? 7);
-  const filingTitle = activeNote?.title || node.source_title || `${node.entity} · Báo cáo tài chính`;
+  const leafMeta = findLeafSourceMetadata(node);
+  const page = leafMeta.page ?? node.page ?? (node.children?.[0]?.page ?? null);
+  const section = leafMeta.section || node.section || null;
+  const filingTitle =
+    activeNote?.title ||
+    node.source_title ||
+    (section ? `${node.entity} · ${section}` : `${node.entity} · Báo cáo tài chính`);
   const formula = node.formula_version || activeFact?.formula_version || "primary-calculation-v1";
   const ratioValue = `${formatNumber(node.value, 1)} ${formatUnit(node.unit) || "%"}`;
   const periodVi = formatPeriod(node.period);
@@ -79,22 +89,25 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
     activeSentence?.text ||
     `${node.entity} ghi nhận ${node.metric_name || node.metric} đạt ${ratioValue} trong ${periodVi}, thể hiện chất lượng số liệu đã thẩm định.`;
 
-  // Verdict details
-  const isAccepted = auditVerdict?.status !== "dropped";
-  const verdictText =
-    auditVerdict?.reason ||
-    "Kiểm định đối soát thành công: Toàn bộ số liệu khớp tuyệt đối với BCTC và dữ liệu gốc.";
+  // Dynamic step details
+  const inputDetail = buildInputStepDetail(
+    leafMeta.rowLabel || node.row_label,
+    leafMeta.reading || node.reading
+  );
+  const verdictPres = buildAuditVerdictPresentation(auditVerdict);
 
-  const steps: JourneyStep[] = [
+  const rawSteps: JourneyStep[] = [
     {
       id: "step-1-filing",
       stepNumber: 1,
       label: "BCTC & Trang công bố",
-      title: `${filingTitle} (Trang ${page})`,
-      detail: `Điểm xuất phát: Thuyết minh BCTC gốc công bố công khai của ${node.entity}.`,
+      title: page ? `${filingTitle} (Trang ${page})` : filingTitle,
+      detail: section
+        ? `Điểm xuất phát: ${section} của ${node.entity}.`
+        : `Điểm xuất phát: BCTC gốc công bố công khai của ${node.entity}.`,
       meta: "Nguồn dữ liệu ban đầu",
       tabTarget: "document",
-      badge: `Trang ${page}`,
+      badge: page ? `Trang ${page}` : undefined,
       badgeType: "neutral",
     },
     {
@@ -102,7 +115,7 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
       stepNumber: 2,
       label: "Dòng dữ liệu đầu vào",
       title: "Các dòng số liệu trích xuất",
-      detail: `Trích xuất từ chỉ tiêu '${node.row_label || "Thuyết minh nợ & dự phòng"}' (phương thức: ${node.reading || "OCR đã kiểm tra"}).`,
+      detail: inputDetail,
       meta: `${node.children?.length || 1} chỉ tiêu thành phần`,
       tabTarget: "data",
       badge: "Đã trích xuất",
@@ -150,17 +163,22 @@ export const JourneyTab: React.FC<JourneyTabProps> = ({
       badge: "Trích dẫn báo cáo",
       badgeType: "neutral",
     },
-    {
+  ];
+
+  if (verdictPres) {
+    rawSteps.push({
       id: "step-7-verdict",
       stepNumber: 7,
       label: "Thẩm định chất lượng (Verifier)",
-      title: isAccepted ? "Kiểm định đạt chuẩn 100%" : "Cảnh báo kiểm định",
-      detail: verdictText,
+      title: verdictPres.title,
+      detail: verdictPres.detail,
       meta: "Narrative Audit Engine",
-      badge: isAccepted ? "Passed" : "Audit Review",
-      badgeType: isAccepted ? "success" : "warning",
-    },
-  ];
+      badge: verdictPres.badge,
+      badgeType: verdictPres.badgeType,
+    });
+  }
+
+  const steps = rawSteps.map((st, idx) => ({ ...st, stepNumber: idx + 1 }));
 
   const getStepIcon = (num: number) => {
     switch (num) {

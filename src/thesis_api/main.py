@@ -22,6 +22,7 @@ from .database import (
     list_analysis_runs,
 )
 from .lineage import router as lineage_router
+from .market_data import router as market_router
 from .run_history_storage import hydrate_run_history
 from .schemas import (
     AnalysisRequest,
@@ -105,6 +106,7 @@ def create_app(
     app.add_middleware(CORSMiddleware, **cors_kwargs)
     app.state.sqlite_path = sqlite_path
     app.include_router(lineage_router)
+    app.include_router(market_router)
 
     def analysis_runs_path():
         try:

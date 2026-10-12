@@ -1631,3 +1631,26 @@ However, `docs/ARCHITECTURAL-GUARDRAILS.md` line 264 strictly prohibits exposing
 4. **Critique and Revision**: `REVIEW_FEEDBACK_CREATED` exposes structured review issues with issue type, target sentence, required action, and description. `REVISION_COMPLETED` carries before and after sentence text.
 5. **No Model Reasoning**: The UI and event bus stream observable writer prose and verifier verdicts only. Model scratchpads, chain-of-thought, system prompts, or raw private tokens remain forbidden across all public event payloads. Completed run traces persist final writer prose and verifier verdicts per step, enabling deterministic replay without streaming raw token deltas.
 
+## D-081: Market context from SSI FastConnect Data beside verified reports
+
+Status: accepted (2026-10-12). Scope: market context display and valuation ratios; evaluation benchmark and core analysis boundary are unchanged.
+
+### Context
+
+Analyst users reviewing audited bank performance frequently need current trading context (closing price, session changes, and valuation multiples such as Price-to-Book compared to Return on Equity) alongside audited quarterly statements. However, market prices fluctuate intraday, are sourced from market data providers rather than audited corporate filings, and must not compromise the integrity, deterministic verification, or provenance graphs of the core multi-agent financial analysis.
+
+### Decision
+
+1. **Display-Only Market Context Outside Verified Boundary (Rule 3)**:
+   Market quotes and P/B multiples are rendered exclusively as secondary, non-authoritative context (top price strip on reports list/report view, focal valuation summary card, and collapsible P/B vs ROE scatter chart). They are strictly excluded from the analytical event graph, atomic facts, Stage-1 verification, LLM reasoning prompts, and synthesis narratives.
+2. **Read-Only SSI FastConnect Integration**:
+   Backend exposes two lightweight read-only endpoints: `GET /api/market/quotes` (10 HOSE banks) and `GET /api/market/valuation` (P/B and ROE). Both communicate with SSI FastConnect via a token-refreshing client. Concurrency is bounded (`asyncio.Semaphore(3)`), and stampedes are prevented via an `asyncio.Lock`.
+3. **In-Memory Caching & Stale Policy**:
+   Responses are cached in-memory with a 30-second TTL during HOSE trading hours (Monday–Friday, 09:00–15:00 Asia/Ho_Chi_Minh) and 15 minutes outside trading hours. If a refresh fails, the last good response is served with `stale: true` and an explicit `stale_reason`. The UI highlights this with an amber "dữ liệu trễ" badge and hover explanation.
+4. **Deterministic P/B Calculation & Lineage**:
+   P/B is computed as:
+   `P/B = close_vnd / (parent_attributable_equity_billion_vnd * 1e9 / listed_shares)`.
+   Listed shares are cached for 24 hours. Parent attributable equity and ROE are retrieved directly from the active operational snapshot. If any input is missing, P/B returns `null` with an explanatory reason (never 0 or invented). The response preserves all input terms, sources, dates, and the formula string.
+5. **Graceful Degradation When Unconfigured**:
+   If SSI credentials (`SSI_FC_URL`, `SSI_CONSUMER_ID`, `SSI_CONSUMER_SECRET`) are missing or empty, endpoints return HTTP 200 with `configured: false`. The frontend hides the price strip, valuation cards, and scatter chart completely with zero layout shifts or error banners. The `/api/ready` readiness probe never depends on SSI.
+

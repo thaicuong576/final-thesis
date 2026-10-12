@@ -15,12 +15,15 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import sqlite3
+import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 import httpx
 
+from thesis_data.storage import create_gold_snapshot_schema
 from thesis_api.main import create_app
 from thesis_api.market_data import (
     HOSE_BANK_SYMBOLS,
@@ -41,6 +44,9 @@ class TestMarketData(unittest.TestCase):
         clear_market_data_cache()
         set_market_data_client(None)
 
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+
         # Candidate paths for operational snapshot
         candidate_paths = [
             Path("data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
@@ -48,9 +54,22 @@ class TestMarketData(unittest.TestCase):
             Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
         ]
         self.db_path = next((p for p in candidate_paths if p.exists()), None)
+        if self.db_path is None:
+            # Create isolated test fixture for CI environments without checked-in operational snapshots
+            fixture_path = Path(self.temp_dir.name) / "test_market_fixture.sqlite"
+            create_gold_snapshot_schema(fixture_path)
+            conn = sqlite3.connect(fixture_path)
+            conn.execute("INSERT INTO snapshot_metadata VALUES (?, ?, ?, ?)", ("gold-snapshot-fixture", "2026-09-24T00:00:00Z", "gold", "{}"))
+            conn.execute("INSERT INTO source_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("src-1", "filing", "primary", "http://example.com", "2026-01-01", "a.pdf", "hash", "VCB", "f", "valid", None))
+            conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-1", "VCB", "bank", "bank.input.parent_attributable_equity", 248490.506, "billion_vnd", "2024_Q4", "2024-12-31", "point_in_time", "src-1", "loc", "valid", None))
+            conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-2", "VCB", "bank", "bank.roe", 19.5, "percent", "2024_Q4", "2024-12-31", "point_in_time", "src-1", "loc", "valid", None))
+            conn.commit()
+            conn.close()
+            self.db_path = fixture_path
+
         self.settings = Settings(
             _env_file=None,
-            sqlite_db_path=str(self.db_path) if self.db_path else "data/processed/finance_master_v2.sqlite",
+            sqlite_db_path=str(self.db_path),
             app_env="test",
         )
         self.app = create_app(self.settings)

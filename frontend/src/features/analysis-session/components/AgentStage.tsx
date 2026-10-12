@@ -38,6 +38,7 @@ export interface AgentStageProps {
   liveWorkState?: LiveWorkState;
   onOpenReport?: (reportId: string) => void;
   onRetry?: () => void;
+  autoRedirect?: boolean;
 }
 
 const ICONS: Record<StageAgentId, LucideIcon> = {
@@ -114,7 +115,8 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   isDisconnected = false,
   liveWorkState,
   onOpenReport,
-  onRetry
+  onRetry,
+  autoRedirect = true
 }) => {
   // Steps often arrive in bursts; reveal them one by one so every hand-off is visible.
   const [shown, setShown] = useState(() => (live ? 0 : steps.length));
@@ -155,10 +157,10 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   const ready = model.done && Boolean(effectiveReportId);
   const [stay, setStay] = useState(false);
   useEffect(() => {
-    if (!ready || !effectiveReportId || stay || !onOpenReport || !live) return;
+    if (!ready || !effectiveReportId || stay || !onOpenReport || !live || autoRedirect === false) return;
     const t = setTimeout(() => onOpenReport(effectiveReportId), prefersReducedMotion() ? 0 : 1800);
     return () => clearTimeout(t);
-  }, [ready, effectiveReportId, stay, onOpenReport, live]);
+  }, [ready, effectiveReportId, stay, onOpenReport, live, autoRedirect]);
 
   // Selected agent for inspection; defaults to currently active agent
   const [selectedAgentId, setSelectedAgentId] = useState<StageAgentId | null>(null);
@@ -320,7 +322,7 @@ export const AgentStage: React.FC<AgentStageProps> = ({
             <>
               <span className="flex items-center gap-2 text-sm text-text-primary">
                 <Check className="size-4 text-success" aria-hidden="true" />
-                Báo cáo đã sẵn sàng{live && !stay ? ' — đang mở…' : ''}
+                Báo cáo đã sẵn sàng{live && !stay && autoRedirect !== false ? ' — đang mở…' : ''}
               </span>
               {effectiveReportId && (
                 <button

@@ -1,9 +1,15 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MarketPriceStrip } from '../src/features/market-context/MarketPriceStrip';
-import { FocalValuationCard } from '../src/features/market-context/FocalValuationCard';
+import { ReportMarketRow } from '../src/features/market-context/ReportMarketRow';
 import { ValuationScatterChart } from '../src/features/market-context/ValuationScatterChart';
+import { WorkspaceShell } from '../src/components/layout/WorkspaceShell';
+import { AnalysisSessionWorkspace } from '../src/features/analysis-session/components/AnalysisSessionWorkspace';
+import { AdaptiveReport } from '../src/features/equity-report';
+import type { AdaptiveReportResponse } from '../src/features/equity-report/model/types';
 import {
   formatReadingMethod,
   buildAuditVerdictPresentation,
@@ -21,7 +27,9 @@ function createWrapper() {
     }
   });
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -100,6 +108,25 @@ const mockValuationConfigured: MarketValuationResponse = {
         roe_period: '2024_Q4',
         formula: 'P/B = close_vnd / (parent_attributable_equity_billion_vnd * 1e9 / listed_shares)'
       }
+    },
+    {
+      ticker: 'STB',
+      close: 31500,
+      pb: 1.10,
+      roe: 10.2, // > 8 points below median of ~19.5%
+      inputs: {
+        close_vnd: 31500,
+        close_source: 'SSI FastConnect Data',
+        close_date: '12/10/2026',
+        listed_shares: 1885000000,
+        shares_source: 'SSI FastConnect Data (SecuritiesDetails)',
+        parent_attributable_equity_billion_vnd: 54000,
+        equity_period: '2024_Q4',
+        equity_source: 'BCTC Hợp nhất Q4/2024 STB',
+        roe_percent: 10.2,
+        roe_period: '2024_Q4',
+        formula: 'P/B = close_vnd / (parent_attributable_equity_billion_vnd * 1e9 / listed_shares)'
+      }
     }
   ]
 };
@@ -110,6 +137,86 @@ const mockValuationUnconfigured: MarketValuationResponse = {
   stale: false,
   items: []
 };
+
+const mockReportVCB: AdaptiveReportResponse = {
+  report_version: 'er-report-v1',
+  report_spec: {
+    kind: 'note',
+    target_ticker: 'VCB',
+    blocks: [
+      {
+        type: 'headline',
+        sentence: {
+          sentence_id: 's1',
+          text: 'VCB đạt tăng trưởng ổn định với tỷ suất sinh lời vượt trội.',
+          fact_ids: ['f1'],
+          author: 'orchestrator',
+          source: 'model',
+          revision: 1
+        }
+      }
+    ]
+  },
+  target_ticker: 'VCB',
+  question_type: 'company_profile',
+  facts: [
+    {
+      fact_id: 'f1',
+      entity_id: 'VCB',
+      metric_id: 'roe',
+      period: '2024_Q4',
+      value: 19.5,
+      fact_type: 'value'
+    }
+  ],
+  datasets: [],
+  source_notes: []
+} as unknown as AdaptiveReportResponse;
+
+const mockSectorReport: AdaptiveReportResponse = {
+  report_version: 'er-report-v1',
+  report_spec: {
+    kind: 'note',
+    blocks: [
+      {
+        type: 'headline',
+        sentence: {
+          sentence_id: 's2',
+          text: 'Toàn cảnh chất lượng tài sản và định giá các ngân hàng HOSE.',
+          fact_ids: ['f_top', 'f_bot'],
+          author: 'orchestrator',
+          source: 'model',
+          revision: 1
+        }
+      }
+    ]
+  },
+  question_type: 'ranking',
+  facts: [
+    {
+      fact_id: 'f_top',
+      entity_id: 'ACB',
+      metric_id: 'roe',
+      period: '2024_Q4',
+      value: 1,
+      rank_better: 1,
+      denominator: 10,
+      fact_type: 'peer_rank'
+    },
+    {
+      fact_id: 'f_bot',
+      entity_id: 'STB',
+      metric_id: 'roe',
+      period: '2024_Q4',
+      value: 10,
+      rank_better: 10,
+      denominator: 10,
+      fact_type: 'peer_rank'
+    }
+  ],
+  datasets: [],
+  source_notes: []
+} as unknown as AdaptiveReportResponse;
 
 describe('MarketPriceStrip', () => {
   beforeEach(() => {
@@ -127,20 +234,20 @@ describe('MarketPriceStrip', () => {
 
     render(<MarketPriceStrip />, { wrapper: createWrapper() });
 
-    expect(await screen.findByText('VCB')).toBeInTheDocument();
-    expect(screen.getByText('ACB')).toBeInTheDocument();
-    expect(screen.getByText('BID')).toBeInTheDocument();
-    expect(screen.getByText('CTG')).toBeInTheDocument();
-    expect(screen.getByText('HDB')).toBeInTheDocument();
-    expect(screen.getByText('MBB')).toBeInTheDocument();
-    expect(screen.getByText('SHB')).toBeInTheDocument();
-    expect(screen.getByText('STB')).toBeInTheDocument();
-    expect(screen.getByText('TCB')).toBeInTheDocument();
-    expect(screen.getByText('VPB')).toBeInTheDocument();
+    expect(await screen.findAllByText('VCB')).toHaveLength(2); // Double copy for marquee
+    expect(screen.getAllByText('ACB')).toHaveLength(2);
+    expect(screen.getAllByText('BID')).toHaveLength(2);
+    expect(screen.getAllByText('CTG')).toHaveLength(2);
+    expect(screen.getAllByText('HDB')).toHaveLength(2);
+    expect(screen.getAllByText('MBB')).toHaveLength(2);
+    expect(screen.getAllByText('SHB')).toHaveLength(2);
+    expect(screen.getAllByText('STB')).toHaveLength(2);
+    expect(screen.getAllByText('TCB')).toHaveLength(2);
+    expect(screen.getAllByText('VPB')).toHaveLength(2);
 
-    expect(screen.getByText('91.800')).toBeInTheDocument();
-    expect(screen.getByText('+0.33%')).toBeInTheDocument();
-    expect(screen.getByText('-0.62%')).toBeInTheDocument();
+    expect(screen.getAllByText('91.800')).toHaveLength(2);
+    expect(screen.getAllByText('+0.33%')).toHaveLength(2);
+    expect(screen.getAllByText('-0.62%')).toHaveLength(2);
   });
 
   it('displays amber badge "dữ liệu trễ" when stale: true', async () => {
@@ -157,34 +264,7 @@ describe('MarketPriceStrip', () => {
     expect(await screen.findByText('dữ liệu trễ')).toBeInTheDocument();
   });
 
-  it('renders one-line unavailable message and nothing that looks like prices when configured: true, stale: true, quotes: []', async () => {
-    const mockQuotesEmptyStale: MarketQuotesResponse = {
-      configured: true,
-      source: 'SSI FastConnect Data',
-      fetched_at: '2026-10-12T14:30:00+07:00',
-      stale: true,
-      stale_reason: 'Nguồn dữ liệu không phản hồi',
-      quotes: []
-    };
-
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const url = String(input);
-      if (url.includes('/api/market/quotes')) {
-        return Promise.resolve(new Response(JSON.stringify(mockQuotesEmptyStale), { status: 200 }));
-      }
-      return Promise.reject(new Error('not handled'));
-    });
-
-    render(<MarketPriceStrip />, { wrapper: createWrapper() });
-
-    expect(await screen.findByText('Dữ liệu thị trường tạm thời không khả dụng')).toBeInTheDocument();
-    expect(screen.queryByText('VCB')).not.toBeInTheDocument();
-    expect(screen.queryByText('ACB')).not.toBeInTheDocument();
-    expect(screen.queryByText('BID')).not.toBeInTheDocument();
-    expect(screen.queryByText(/VND/)).not.toBeInTheDocument();
-  });
-
-  it('hides cleanly without rendering anything when configured: false', async () => {
+  it('hides cleanly without rendering anything when quotes: [] or unconfigured', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);
       if (url.includes('/api/market/quotes')) {
@@ -194,19 +274,53 @@ describe('MarketPriceStrip', () => {
     });
 
     const { container } = render(<MarketPriceStrip />, { wrapper: createWrapper() });
-
-    // Wait microtask
     await new Promise((r) => setTimeout(r, 50));
     expect(container).toBeEmptyDOMElement();
   });
 });
 
-describe('FocalValuationCard', () => {
+describe('WorkspaceShell ticker integration', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('displays focal ticker price, change, P/B and ROE', async () => {
+  it('renders shell marquee ticker merged into the header row on the right with containment', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(
+      <WorkspaceShell activeSection="analysis">
+        <div data-testid="page-content">Trang phân tích</div>
+      </WorkspaceShell>,
+      { wrapper: createWrapper() }
+    );
+
+    // Header has the ticker region once
+    const tickers = await screen.findAllByRole('region', {
+      name: /Bảng giá thị trường SSI 10 ngân hàng HOSE/i
+    });
+    expect(tickers).toHaveLength(1);
+    const ticker = tickers[0];
+    expect(ticker).toHaveClass('ticker-container');
+    expect(ticker).toHaveClass('overflow-hidden');
+    expect(ticker.parentElement).toHaveClass('overflow-hidden');
+    expect(ticker.parentElement).toHaveClass('hidden');
+    expect(ticker.parentElement).toHaveClass('lg:flex');
+    expect(screen.getByTestId('page-content')).toBeInTheDocument();
+  });
+});
+
+describe('ReportMarketRow', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders market row inside report with 4 tiles and quiet footer for focal bank', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);
       if (url.includes('/api/market/quotes')) {
@@ -218,17 +332,53 @@ describe('FocalValuationCard', () => {
       return Promise.reject(new Error('not handled'));
     });
 
-    render(<FocalValuationCard ticker="VCB" />, { wrapper: createWrapper() });
+    render(<ReportMarketRow report={mockReportVCB} />, { wrapper: createWrapper() });
 
-    expect(await screen.findByText('Bối cảnh thị trường & Định giá')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: /Bối cảnh thị trường trong báo cáo/i })).toBeInTheDocument();
+    expect(screen.getByText('Thị trường')).toBeInTheDocument();
     expect(screen.getByText('VCB')).toBeInTheDocument();
+
+    // 4 tiles
+    expect(screen.getByText('Giá đóng cửa')).toBeInTheDocument();
     expect(screen.getByText('91.800 đ')).toBeInTheDocument();
+
+    expect(screen.getByText('Biến động phiên')).toBeInTheDocument();
+    expect(screen.getByText('+0.33%')).toBeInTheDocument();
+
+    expect(screen.getByText('P/B (Định giá)')).toBeInTheDocument();
     expect(screen.getByText('1.91x')).toBeInTheDocument();
+
+    expect(screen.getByText('ROE (BCTC)')).toBeInTheDocument();
     expect(screen.getByText('19.50%')).toBeInTheDocument();
-    expect(screen.getByText(/Nguồn: SSI FastConnect Data/)).toBeInTheDocument();
+
+    // Quiet footer
+    expect(
+      screen.getByText(/Nguồn: SSI FastConnect Data · Phiên 12\/10\/2026 .* Tham khảo ngoài báo cáo thẩm định/)
+    ).toBeInTheDocument();
   });
 
-  it('hides cleanly when unconfigured', async () => {
+  it('renders top and bottom ranking banks for sector/ranking report', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
+      if (url.includes('/api/market/valuation')) {
+        return Promise.resolve(new Response(JSON.stringify(mockValuationConfigured), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(<ReportMarketRow report={mockSectorReport} />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('ACB')).toBeInTheDocument();
+    expect(screen.getByText('(Đầu nhóm)')).toBeInTheDocument();
+
+    expect(screen.getByText('STB')).toBeInTheDocument();
+    expect(screen.getByText('(Cuối nhóm)')).toBeInTheDocument();
+  });
+
+  it('hides cleanly when unconfigured or empty-down with zero empty frames', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);
       if (url.includes('/api/market/quotes')) {
@@ -240,9 +390,99 @@ describe('FocalValuationCard', () => {
       return Promise.reject(new Error('not handled'));
     });
 
-    const { container } = render(<FocalValuationCard ticker="VCB" />, { wrapper: createWrapper() });
+    const { container } = render(<ReportMarketRow report={mockReportVCB} />, { wrapper: createWrapper() });
     await new Promise((r) => setTimeout(r, 50));
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows stale badge when market data is stale', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesStale), { status: 200 }));
+      }
+      if (url.includes('/api/market/valuation')) {
+        return Promise.resolve(new Response(JSON.stringify({ ...mockValuationConfigured, stale: true }), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(<ReportMarketRow report={mockReportVCB} />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('dữ liệu trễ')).toBeInTheDocument();
+  });
+});
+
+describe('AdaptiveReport integration', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders ReportMarketRow directly inside the report under KPI band and removes old floating card', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
+      if (url.includes('/api/market/valuation')) {
+        return Promise.resolve(new Response(JSON.stringify(mockValuationConfigured), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(<AdaptiveReport report={mockReportVCB} />, { wrapper: createWrapper() });
+
+    // The old floating black card title does NOT exist
+    expect(screen.queryByText('Bối cảnh thị trường & Định giá')).not.toBeInTheDocument();
+
+    // The new ReportMarketRow is inside
+    expect(await screen.findByRole('region', { name: /Bối cảnh thị trường trong báo cáo/i })).toBeInTheDocument();
+    expect(screen.getByText('Giá đóng cửa')).toBeInTheDocument();
+    expect(screen.getByText('91.800 đ')).toBeInTheDocument();
+  });
+});
+
+describe('Fresh result view in AnalysisSessionWorkspace', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders freshly generated report with market row immediately without extra clicks', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
+      if (url.includes('/api/market/valuation')) {
+        return Promise.resolve(new Response(JSON.stringify(mockValuationConfigured), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(
+      <AnalysisSessionWorkspace
+        isLiveStream={false}
+        report={mockReportVCB}
+        steps={[
+          {
+            step_id: 'step-done',
+            seq: 1,
+            t_ms: 1000,
+            kind: 'report_ready',
+            actor: 'orchestrator',
+            recipient: null,
+            summary: 'Báo cáo sẵn sàng',
+            detail: { report_id: 'rep-fresh-1' }
+          }
+        ]}
+      />,
+      { wrapper: createWrapper() }
+    );
+
+    // Fresh result section is immediately visible
+    expect(await screen.findByRole('region', { name: /Bối cảnh thị trường trong báo cáo/i })).toBeInTheDocument();
+    expect(screen.getByText('91.800 đ')).toBeInTheDocument();
+    expect(screen.getByText('+0.33%')).toBeInTheDocument();
   });
 });
 
@@ -251,9 +491,12 @@ describe('ValuationScatterChart', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders scatter chart with footnote and focal ticker highlight', async () => {
+  it('renders scatter chart with light styling, formula footnote, and STB footnote when ROE is > 8 points below median', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
       if (url.includes('/api/market/valuation')) {
         return Promise.resolve(new Response(JSON.stringify(mockValuationConfigured), { status: 200 }));
       }
@@ -271,6 +514,27 @@ describe('ValuationScatterChart', () => {
     // Footnote formula is visible
     expect(screen.getByText(/Công thức: P\/B = Giá đóng cửa/)).toBeInTheDocument();
     expect(screen.getByText(/Bối cảnh thị trường tham khảo bên cạnh báo cáo thẩm định/)).toBeInTheDocument();
+
+    // STB footnote is displayed because STB ROE (10.2%) is > 8 points below median (19.5%)
+    expect(screen.getByText('* STB: ROE thấp hơn nhóm.')).toBeInTheDocument();
+  });
+
+  it('displays 10-ticker compact chips for sector/ranking reports without a single focal bank', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesConfigured), { status: 200 }));
+      }
+      if (url.includes('/api/market/valuation')) {
+        return Promise.resolve(new Response(JSON.stringify(mockValuationConfigured), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(<ValuationScatterChart defaultExpanded={true} report={mockSectorReport} />, { wrapper: createWrapper() });
+
+    expect(await screen.findByRole('group', { name: /Thống kê định giá 10 ngân hàng/i })).toBeInTheDocument();
+    expect(screen.getByText('Bảng giá & định giá 10 ngân hàng HOSE')).toBeInTheDocument();
   });
 
   it('hides cleanly when unconfigured', async () => {

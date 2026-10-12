@@ -19,7 +19,6 @@ import {
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 import { normalizeAnalysisResponseToReport } from '@/features/analysis-report';
-import { MarketPriceStrip } from '@/features/market-context';
 import { ReportErrorBoundary } from './ReportErrorBoundary';
 
 type ReportUnion = (AnalysisReport & { report_version?: string }) | AdaptiveReportResponse;
@@ -451,7 +450,6 @@ function ReportPageContent({
         />
       }
     >
-      <MarketPriceStrip />
       {isAdaptive ? (
         <AdaptiveReport report={adaptiveReport} metrics={capabilityMetrics} />
       ) : (

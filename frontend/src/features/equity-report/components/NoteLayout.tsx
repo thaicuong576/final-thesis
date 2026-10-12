@@ -8,6 +8,7 @@ import { SourceNotes } from './SourceNotes';
 import { TechnicalDetails } from './TechnicalDetails';
 import { normalizeBlocks, type NormalizedBlock } from '../model/normalizeBlocks';
 import { KpiBand } from './KpiBand';
+import { ReportMarketRow } from '../../market-context';
 
 function groupBlocksWithFigures(items: NormalizedBlock[]): RenderableBlock[] {
   const result: RenderableBlock[] = [];
@@ -54,6 +55,7 @@ export const NoteLayout: React.FC = () => {
 
       {headline && <BlockRenderer block={headline} />}
       <KpiBand />
+      <ReportMarketRow />
 
       {isProfile && lead.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-x-8 gap-y-5 items-start mt-2">

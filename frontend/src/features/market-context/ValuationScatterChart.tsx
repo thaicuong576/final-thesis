@@ -1,22 +1,37 @@
-import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Info, HelpCircle } from "lucide-react";
-import { useMarketValuation } from "./useMarketData";
-import type { BankValuation } from "./types";
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Info, HelpCircle } from 'lucide-react';
+import { useMarketValuation, useMarketQuotes } from './useMarketData';
+import { useEquityReport } from '../equity-report/components/useEquityReport';
+import type { AdaptiveReportResponse } from '../equity-report/model/types';
+import type { BankValuation } from './types';
 
-interface ValuationScatterChartProps {
+export interface ValuationScatterChartProps {
   focalTicker?: string | null;
+  report?: AdaptiveReportResponse | null;
   className?: string;
   defaultExpanded?: boolean;
 }
 
 export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
-  focalTicker,
-  className = "",
+  focalTicker: propFocalTicker,
+  report: propReport,
+  className = '',
   defaultExpanded = false,
 }) => {
   const { data: valData } = useMarketValuation();
+  const { data: quotesData } = useMarketQuotes();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [hoveredBank, setHoveredBank] = useState<BankValuation | null>(null);
+
+  let contextReport: AdaptiveReportResponse | null = null;
+  try {
+    const ctx = useEquityReport();
+    contextReport = ctx.report;
+  } catch {
+    // Rendered outside EquityReportProvider
+  }
+
+  const report = propReport || contextReport;
 
   if (!valData || !valData.configured || !valData.items || valData.items.length === 0) {
     return null;
@@ -31,7 +46,15 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
     return null;
   }
 
-  const focalUpper = focalTicker?.toUpperCase() || null;
+  const targetTicker =
+    propFocalTicker ||
+    (typeof report?.target_ticker === 'string' && report.target_ticker.trim()) ||
+    (report as { report_spec?: { target_ticker?: string } })?.report_spec?.target_ticker ||
+    null;
+
+  const focalUpper = targetTicker ? targetTicker.toUpperCase() : null;
+  const questionType = report?.question_type || '';
+  const isRankingOrSector = questionType === 'ranking' || questionType === 'sector_theme';
 
   // Chart layout dimensions
   const chartW = 560;
@@ -65,31 +88,42 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
   const xTicks = [minRoe, Math.round((minRoe + maxRoe) / 2), maxRoe];
   const yTicks = [minPb, Math.round(((minPb + maxPb) / 2) * 10) / 10, maxPb];
 
+  // STB Footnote logic:
+  // Data-driven: show the note only when ROE is more than 8 points below the peer median
+  const sortedRoes = [...roeValues].sort((a, b) => a - b);
+  const medianRoe =
+    sortedRoes.length % 2 === 0
+      ? (sortedRoes[sortedRoes.length / 2 - 1] + sortedRoes[sortedRoes.length / 2]) / 2
+      : sortedRoes[Math.floor(sortedRoes.length / 2)];
+
+  const stbPoint = validPoints.find((p) => p.ticker.toUpperCase() === 'STB');
+  const showStbFootnote = Boolean(stbPoint && stbPoint.roe != null && medianRoe - stbPoint.roe > 8);
+
   return (
     <section
       aria-label="Bối cảnh thị trường: P/B so với ROE"
-      className={`border border-[#E5E3DC] dark:border-[#333] bg-white dark:bg-[#1E1E1E] rounded-lg shadow-2xs overflow-hidden ${className}`}
+      className={`border border-border-subtle bg-surface-primary rounded-xl shadow-2xs overflow-hidden ${className}`}
     >
       {/* Collapsible Header */}
       <button
         type="button"
         onClick={() => setIsExpanded((prev) => !prev)}
-        className="w-full px-4 py-3 bg-[#FAF9F5] dark:bg-[#222] border-b border-[#E5E3DC] dark:border-[#333] flex items-center justify-between gap-3 text-left transition-colors hover:bg-[#F4F3EF] dark:hover:bg-[#282828] cursor-pointer"
+        className="w-full px-4 py-3 bg-surface-secondary border-b border-border-subtle flex items-center justify-between gap-3 text-left transition-colors hover:bg-surface-tertiary/60 cursor-pointer"
         aria-expanded={isExpanded}
       >
         <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-[#B45309] shrink-0" />
+          <Info className="w-4 h-4 text-amber shrink-0" />
           <div>
-            <h4 className="text-xs font-semibold text-[#1C1B18] dark:text-[#F0F0F0]">
+            <h4 className="text-xs font-semibold text-text-primary">
               Bối cảnh thị trường: Định giá P/B so với ROE 10 ngân hàng HOSE
             </h4>
-            <p className="text-[11px] text-[#8C8A82]">
+            <p className="text-[11px] text-text-tertiary">
               Dữ liệu giá thị trường SSI FastConnect và BCTC kỳ gần nhất · Tham khảo ngoài báo cáo thẩm định
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-[#B45309] font-medium shrink-0">
-          <span>{isExpanded ? "Thu gọn" : "Xem đồ thị"}</span>
+        <div className="flex items-center gap-1.5 text-xs text-text-accent font-medium shrink-0">
+          <span>{isExpanded ? 'Thu gọn' : 'Xem đồ thị'}</span>
           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
@@ -97,6 +131,56 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
       {/* Expanded Chart Body */}
       {isExpanded && (
         <div className="p-4 space-y-4">
+          {/* Sector / Ranking reports without a single focal bank: compact 10-ticker chips */}
+          {(!focalUpper || isRankingOrSector) && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-text-secondary">
+                Bảng giá &amp; định giá 10 ngân hàng HOSE
+              </p>
+              <div
+                className="grid grid-cols-2 sm:grid-cols-5 gap-2"
+                role="group"
+                aria-label="Thống kê định giá 10 ngân hàng"
+              >
+                {valData.items.map((b) => {
+                  const q = quotesData?.quotes?.find(
+                    (quote) => quote.ticker.toUpperCase() === b.ticker.toUpperCase()
+                  );
+                  const changePct = q?.change_percent ?? 0;
+                  const isUp = changePct > 0;
+                  const isDown = changePct < 0;
+                  const changeColor = isUp
+                    ? 'text-text-success'
+                    : isDown
+                    ? 'text-danger'
+                    : 'text-text-tertiary';
+
+                  return (
+                    <div
+                      key={b.ticker}
+                      className="flex flex-col p-2.5 rounded-lg bg-surface-secondary border border-border-subtle text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-text-primary">{b.ticker}</span>
+                        <span className={`font-mono text-[11px] font-medium ${changeColor}`}>
+                          {isUp ? '+' : ''}
+                          {changePct.toFixed(2)}%
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1 text-[11px] tabular-nums font-mono text-text-secondary">
+                        <span>{b.close != null ? `${b.close.toLocaleString('vi-VN')} đ` : '—'}</span>
+                        <span className="text-text-accent font-semibold">
+                          {b.pb != null ? `${b.pb.toFixed(2)}x` : '—'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Scatter Plot SVG */}
           <div className="relative overflow-x-auto">
             <svg
               viewBox={`0 0 ${chartW} ${chartH}`}
@@ -108,18 +192,16 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                 y1={topM + plotH}
                 x2={leftM + plotW}
                 y2={topM + plotH}
-                stroke="#E5E3DC"
+                stroke="#D6D3D1"
                 strokeWidth={1}
-                className="dark:stroke-[#333]"
               />
               <line
                 x1={leftM}
                 y1={topM}
                 x2={leftM}
                 y2={topM + plotH}
-                stroke="#E5E3DC"
+                stroke="#D6D3D1"
                 strokeWidth={1}
-                className="dark:stroke-[#333]"
               />
 
               {/* Y Axis Ticks */}
@@ -130,9 +212,8 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                     y1={scaleY(yVal)}
                     x2={leftM + plotW}
                     y2={scaleY(yVal)}
-                    stroke="#F0EFEA"
+                    stroke="#F5F5F4"
                     strokeDasharray="2,2"
-                    className="dark:stroke-[#2A2A2A]"
                   />
                   <text
                     x={leftM - 8}
@@ -140,7 +221,7 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                     textAnchor="end"
                     fontSize={10}
                     fontFamily="monospace"
-                    fill="#8C8A82"
+                    fill="#78716C"
                   >
                     {yVal.toFixed(1)}x
                   </text>
@@ -155,9 +236,8 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                     y1={topM}
                     x2={scaleX(xVal)}
                     y2={topM + plotH + 4}
-                    stroke="#F0EFEA"
+                    stroke="#F5F5F4"
                     strokeDasharray="2,2"
-                    className="dark:stroke-[#2A2A2A]"
                   />
                   <text
                     x={scaleX(xVal)}
@@ -165,7 +245,7 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                     textAnchor="middle"
                     fontSize={10}
                     fontFamily="monospace"
-                    fill="#8C8A82"
+                    fill="#78716C"
                   >
                     {xVal}%
                   </text>
@@ -179,8 +259,7 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                 textAnchor="middle"
                 fontSize={10}
                 fontWeight="bold"
-                fill="#6B6960"
-                className="dark:fill-[#A0A0A0]"
+                fill="#44403C"
               >
                 ROE (% - Báo cáo tài chính)
               </text>
@@ -191,8 +270,7 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                 transform={`rotate(-90, 12, ${topM + plotH / 2})`}
                 fontSize={10}
                 fontWeight="bold"
-                fill="#6B6960"
-                className="dark:fill-[#A0A0A0]"
+                fill="#44403C"
               >
                 P/B (lần)
               </text>
@@ -230,7 +308,7 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                       cx={cx}
                       cy={cy}
                       r={isFocal ? 7 : isHovered ? 6 : 4.5}
-                      fill={isFocal ? "#B45309" : "#FAF9F5"}
+                      fill={isFocal ? '#B45309' : '#FFFFFF'}
                       stroke="#B45309"
                       strokeWidth={isFocal ? 2.5 : 1.5}
                       className="transition-all motion-reduce:transition-none"
@@ -241,10 +319,9 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
                       x={cx + 8}
                       y={cy + 3}
                       fontSize={isFocal ? 11 : 9.5}
-                      fontWeight={isFocal ? "bold" : "normal"}
+                      fontWeight={isFocal ? 'bold' : 'normal'}
                       fontFamily="monospace"
-                      fill={isFocal ? "#B45309" : "#1C1B18"}
-                      className="dark:fill-[#E0E0E0]"
+                      fill={isFocal ? '#B45309' : '#1C1917'}
                     >
                       {b.ticker}
                     </text>
@@ -256,41 +333,49 @@ export const ValuationScatterChart: React.FC<ValuationScatterChartProps> = ({
 
           {/* Hover / Focal Bank Details Box */}
           {hoveredBank && (
-            <div className="p-3 bg-[#FAF9F5] dark:bg-[#252525] border border-[#E5E3DC] dark:border-[#333] rounded-md text-xs space-y-1.5 animate-in fade-in duration-100">
+            <div className="p-3 bg-surface-secondary border border-border-subtle rounded-lg text-xs space-y-1.5 animate-in fade-in duration-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold font-mono px-1.5 py-0.2 bg-[#B45309] text-white rounded text-[11px]">
+                  <span className="font-bold font-mono px-1.5 py-0.5 bg-amber text-white rounded text-[11px]">
                     {hoveredBank.ticker}
                   </span>
-                  <span className="font-semibold text-[#1C1B18] dark:text-[#F0F0F0]">
+                  <span className="font-semibold text-text-primary">
                     P/B: {hoveredBank.pb?.toFixed(2)}x · ROE: {hoveredBank.roe?.toFixed(2)}%
                   </span>
                 </div>
                 {hoveredBank.ticker.toUpperCase() === focalUpper && (
-                  <span className="text-[10px] text-[#B45309] font-bold">Ngân hàng trọng tâm</span>
+                  <span className="text-[10px] text-text-accent font-bold">Ngân hàng trọng tâm</span>
                 )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-[#6B6960] dark:text-[#A0A0A0] font-mono pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-text-secondary font-mono pt-1">
                 <div>
-                  Giá: <strong className="text-[#1C1B18] dark:text-[#E0E0E0]">{hoveredBank.close?.toLocaleString("vi-VN")} đ</strong>
+                  Giá: <strong className="text-text-primary">{hoveredBank.close?.toLocaleString('vi-VN')} đ</strong>
                 </div>
                 <div>
-                  Số CP: <strong className="text-[#1C1B18] dark:text-[#E0E0E0]">{hoveredBank.listed_shares?.toLocaleString("vi-VN")}</strong>
+                  Số CP: <strong className="text-text-primary">{hoveredBank.listed_shares?.toLocaleString('vi-VN')}</strong>
                 </div>
                 <div>
-                  Vốn CSH mẹ: <strong className="text-[#1C1B18] dark:text-[#E0E0E0]">{hoveredBank.parent_attributable_equity?.toLocaleString("vi-VN")} tỷ đ</strong>
+                  Vốn CSH mẹ:{' '}
+                  <strong className="text-text-primary">
+                    {hoveredBank.parent_attributable_equity?.toLocaleString('vi-VN')} tỷ đ
+                  </strong>
                 </div>
                 <div>
-                  BVPS: <strong className="text-[#1C1B18] dark:text-[#E0E0E0]">{hoveredBank.bvps?.toLocaleString("vi-VN")} đ</strong>
+                  BVPS: <strong className="text-text-primary">{hoveredBank.bvps?.toLocaleString('vi-VN')} đ</strong>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Footnote */}
-          <div className="pt-2 border-t border-[#F0EFEA] dark:border-[#2A2A2A] text-[10px] text-[#8C8A82] dark:text-[#888] space-y-1">
+          {/* Footnotes */}
+          <div className="pt-2 border-t border-border-subtle text-[10px] text-text-tertiary space-y-1">
+            {showStbFootnote && (
+              <p className="leading-relaxed font-sans text-text-secondary font-medium">
+                * STB: ROE thấp hơn nhóm.
+              </p>
+            )}
             <p className="flex items-start gap-1">
-              <HelpCircle className="w-3 h-3 text-[#B45309] shrink-0 mt-0.5" />
+              <HelpCircle className="w-3 h-3 text-amber shrink-0 mt-0.5" />
               <span>
                 Công thức: P/B = Giá đóng cửa / (Vốn CSH ngân hàng mẹ × 10⁹ / Số cổ phiếu niêm yết). Số cổ phiếu niêm yết, chưa trừ cổ phiếu quỹ.
               </span>

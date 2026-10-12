@@ -5,6 +5,7 @@ import { BarChart3, Database, FileText, MessageSquareText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { analyticalPeriodIds } from '@/entities/capability/model/coverage';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
+import { MarketPriceStrip } from '@/features/market-context';
 import {
   Sidebar,
   SidebarContent,
@@ -78,12 +79,17 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset className="min-h-screen bg-workspace">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border-subtle bg-surface-primary/90 px-4 backdrop-blur-sm sm:px-6 print:hidden">
-          <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1 text-ink-secondary" />
-          <Separator orientation="vertical" className="h-5 bg-border-subtle" />
-          <div className="min-w-0 flex-1">
-            {context ?? <span className="text-[13px] font-semibold text-ink">Phân tích mới</span>}
+      <SidebarInset className="min-h-screen bg-workspace min-w-0">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border-subtle bg-surface-primary/95 px-4 backdrop-blur-sm sm:px-6 print:hidden min-w-0 overflow-hidden [contain:inline-size]">
+          <div className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
+            <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1 shrink-0 text-ink-secondary" />
+            <Separator orientation="vertical" className="h-5 shrink-0 bg-border-subtle" />
+            <div className="flex min-w-0 shrink items-center">
+              {context ?? <span className="text-[13px] font-semibold text-ink">Phân tích mới</span>}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1 overflow-hidden [contain:inline-size] hidden lg:flex items-center justify-end pl-3">
+            <MarketPriceStrip />
           </div>
         </header>
 

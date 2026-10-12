@@ -272,6 +272,18 @@ services:
         sync: false
 ```
 
+### Optional SSI FastConnect Market Data Environment Variables (MKT-1)
+
+To enable real-time market price context and P/B valuation beside verified financial reports, configure the following optional variables in the Render Web Service Environment settings:
+
+| Variable Name | Required | Description & Source |
+|---|---|---|
+| `SSI_FC_URL` | No | Base URL for SSI FastConnect API (e.g. `https://fc-data.ssi.com.vn`). Any trailing `/api/v2` is automatically stripped. |
+| `SSI_CONSUMER_ID` | No | Consumer ID issued in the SSI FastConnect iBoard developer portal. |
+| `SSI_CONSUMER_SECRET` | No | Consumer Secret issued in the SSI FastConnect iBoard developer portal. |
+
+> **Graceful Degradation Note**: If any of these 3 variables are empty or unset, the backend market endpoints (`/api/market/quotes`, `/api/market/valuation`) return HTTP 200 with `{"configured": false, "quotes": []}` / `{"configured": false, "items": []}`. The frontend price strip and valuation cards stay cleanly hidden with zero error banners or layout breaks. The application health and readiness probe (`/api/ready`) does NOT depend on SSI availability.
+
 ---
 
 ## 6. Vercel Frontend Deployment

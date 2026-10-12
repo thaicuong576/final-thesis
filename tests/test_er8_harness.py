@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -698,6 +699,35 @@ class TestER8EvaluationHarness(unittest.TestCase):
         obs = load_gold_observations(real_gold)
         self.assertGreater(len(obs), 0)
         self.assertTrue(any(o["ticker"] == "MBB" and o["period"] == "2024_Q4" for o in obs.values()))
+
+    def test_14_harness_settings_reports_model_value(self) -> None:
+        """Verify build_harness_settings prioritizes --model over .env or OPENAI_MODEL alias."""
+        from scripts.er8_run import build_harness_settings
+        with patch.dict(os.environ, {"OPENAI_MODEL": "env-model-default"}, clear=False):
+            settings = build_harness_settings(model="gpt-test-override-model")
+            self.assertEqual(settings.openai_model, "gpt-test-override-model")
+
+    def test_15_preflight_uses_max_completion_tokens_for_openai_base_url(self) -> None:
+        """Verify preflight check passes max_completion_tokens when base_url is api.openai.com."""
+        from scripts.er8_run import check_live_model_preflight
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False):
+            with patch("thesis_api.llm.get_llm_client") as mock_get_client:
+                mock_client = unittest.mock.MagicMock()
+                mock_get_client.return_value = mock_client
+                with patch("scripts.er8_run.build_harness_settings") as mock_bhs:
+                    mock_settings = unittest.mock.MagicMock()
+                    mock_settings.openai_api_key = "test-key"
+                    mock_settings.openai_base_url = "https://api.openai.com/v1"
+                    mock_settings.openai_model = "gpt-4o"
+                    mock_bhs.return_value = mock_settings
+
+                    check_live_model_preflight(model="gpt-4o")
+
+                    mock_client.chat.completions.create.assert_called_once()
+                    _, kwargs = mock_client.chat.completions.create.call_args
+                    self.assertIn("max_completion_tokens", kwargs)
+                    self.assertEqual(kwargs["max_completion_tokens"], 5)
+                    self.assertNotIn("max_tokens", kwargs)
 
 
 if __name__ == "__main__":

@@ -464,6 +464,42 @@
           }
         }
       }
+    },
+    "/api/market/quotes": {
+      "get": {
+        "summary": "Retrieve quotes for the 10 HOSE banks",
+        "description": "Returns latest price, reference, change, and trading volume for 10 HOSE banks from SSI FastConnect Data.",
+        "responses": {
+          "200": {
+            "description": "Quotes response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketQuotesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/market/valuation": {
+      "get": {
+        "summary": "Retrieve P/B vs ROE valuation metrics for 10 HOSE banks",
+        "description": "Returns close price, listed shares, parent attributable equity, BVPS, P/B, and ROE for 10 HOSE banks.",
+        "responses": {
+          "200": {
+            "description": "Valuation response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketValuationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2425,6 +2461,108 @@
           },
           "metrics_count": {
             "type": "integer"
+          }
+        }
+      },
+      "MarketQuoteItem": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "close",
+          "reference",
+          "change",
+          "change_percent",
+          "volume",
+          "trading_date",
+          "fetched_at",
+          "source",
+          "stale"
+        ],
+        "properties": {
+          "ticker": { "type": "string" },
+          "close": { "type": "number" },
+          "reference": { "type": "number" },
+          "change": { "type": "number" },
+          "change_percent": { "type": "number" },
+          "volume": { "type": "integer" },
+          "trading_date": { "type": "string" },
+          "fetched_at": { "type": "string" },
+          "source": { "type": "string" },
+          "stale": { "type": "boolean" },
+          "stale_reason": { "type": ["string", "null"] }
+        }
+      },
+      "MarketQuotesResponse": {
+        "type": "object",
+        "required": [
+          "configured",
+          "source",
+          "stale",
+          "quotes"
+        ],
+        "properties": {
+          "configured": { "type": "boolean" },
+          "source": { "type": "string" },
+          "fetched_at": { "type": ["string", "null"] },
+          "stale": { "type": "boolean" },
+          "stale_reason": { "type": ["string", "null"] },
+          "quotes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MarketQuoteItem" }
+          }
+        }
+      },
+      "MarketValuationInputs": {
+        "type": "object",
+        "properties": {
+          "close_vnd": { "type": ["number", "null"] },
+          "close_source": { "type": "string" },
+          "close_date": { "type": ["string", "null"] },
+          "listed_shares": { "type": ["integer", "null"] },
+          "shares_source": { "type": "string" },
+          "parent_attributable_equity_billion_vnd": { "type": ["number", "null"] },
+          "equity_period": { "type": ["string", "null"] },
+          "equity_source": { "type": ["string", "null"] },
+          "roe_percent": { "type": ["number", "null"] },
+          "roe_period": { "type": ["string", "null"] },
+          "formula": { "type": "string" }
+        }
+      },
+      "MarketValuationItem": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "inputs"
+        ],
+        "properties": {
+          "ticker": { "type": "string" },
+          "close": { "type": ["number", "null"] },
+          "listed_shares": { "type": ["integer", "null"] },
+          "parent_attributable_equity": { "type": ["number", "null"] },
+          "bvps": { "type": ["number", "null"] },
+          "pb": { "type": ["number", "null"] },
+          "roe": { "type": ["number", "null"] },
+          "inputs": { "$ref": "#/components/schemas/MarketValuationInputs" },
+          "missing_reason": { "type": ["string", "null"] }
+        }
+      },
+      "MarketValuationResponse": {
+        "type": "object",
+        "required": [
+          "configured",
+          "source",
+          "stale",
+          "items"
+        ],
+        "properties": {
+          "configured": { "type": "boolean" },
+          "source": { "type": "string" },
+          "fetched_at": { "type": ["string", "null"] },
+          "stale": { "type": "boolean" },
+          "stale_reason": { "type": ["string", "null"] },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MarketValuationItem" }
           }
         }
       }

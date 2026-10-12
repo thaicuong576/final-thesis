@@ -5,6 +5,7 @@ import { AnswerCardLayout } from './AnswerCardLayout';
 import { NoteLayout } from './NoteLayout';
 import { SourceDrawer } from '../../source-lineage/SourceDrawer';
 import type { LineageTab } from '../../source-lineage/types';
+import { FocalValuationCard, ValuationScatterChart } from '../../market-context';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -55,6 +56,11 @@ export const AdaptiveReport: React.FC<AdaptiveReportProps> = ({
     setDrawerState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
+  const focalTicker: string | null =
+    (typeof report.target_ticker === 'string' ? report.target_ticker : null) ||
+    report.facts?.find((f) => Boolean(f.entity_id))?.entity_id ||
+    null;
+
   return (
     <TooltipProvider delayDuration={200}>
       <EquityReportProvider
@@ -64,7 +70,15 @@ export const AdaptiveReport: React.FC<AdaptiveReportProps> = ({
         onOpenFact={handleOpenFact}
       >
         <div className={`w-full max-w-full overflow-x-hidden py-4 sm:py-6 px-3 sm:px-6 lg:px-8 text-text-primary ${className}`}>
+          {focalTicker && (
+            <div className="max-w-4xl mx-auto mb-4">
+              <FocalValuationCard ticker={focalTicker} />
+            </div>
+          )}
           {isAnswerCard ? <AnswerCardLayout /> : <NoteLayout />}
+          <div className="max-w-4xl mx-auto mt-6">
+            <ValuationScatterChart focalTicker={focalTicker} />
+          </div>
         </div>
         <SourceDrawer
           isOpen={drawerState.isOpen}

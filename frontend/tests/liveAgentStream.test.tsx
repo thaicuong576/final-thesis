@@ -55,6 +55,15 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
       expect(completed?.payload.resultCount).toBe(32);
       expect(completed?.payload.durationMs).toBe(145);
     });
+
+    it('parses WRITER_DRAFT_DISCARDED event when draft is reset', () => {
+      const discardBlock = `event: WRITER_DRAFT_DISCARDED\ndata: {"role":"company","kind":"findings","reason":"stream_failed_retry"}`;
+      const raw = parseSseBlockRaw(discardBlock);
+      expect(raw).not.toBeNull();
+      expect(raw?.type).toBe('WRITER_DRAFT_DISCARDED');
+      expect(raw?.payload.role).toBe('company');
+      expect(raw?.payload.kind).toBe('findings');
+    });
   });
 
   describe('AgentStage Layout: No Card Overlap & Responsive Flow', () => {

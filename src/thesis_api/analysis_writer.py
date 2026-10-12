@@ -418,6 +418,7 @@ class AnalysisWriter(Protocol):
         candidates: Sequence[Mapping[str, Any]] | None = None,
         max_sentences: int = 4,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> list[dict[str, Any]]: ...
 
     def compose_report(
@@ -431,6 +432,7 @@ class AnalysisWriter(Protocol):
         findings: Sequence[Mapping[str, Any]] | None = None,
         facts: Sequence[Mapping[str, Any]] | None = None,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]: ...
 
     def rewrite_sentence(
@@ -442,6 +444,7 @@ class AnalysisWriter(Protocol):
         issue: Mapping[str, Any],
         facts: Sequence[Mapping[str, Any]],
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]: ...
 
 
@@ -460,6 +463,8 @@ class OpenAIAnalysisWriter:
         self.client = client
         self.model = model.strip()
         self._current_role: str = "orchestrator"
+        self.retry_count: int = 0
+        self.retries: list[dict[str, Any]] = []
         if max_output_tokens is None:
             from thesis_api.settings import get_settings
 
@@ -478,6 +483,7 @@ class OpenAIAnalysisWriter:
         candidates: Sequence[Any] | None = None,
         max_sentences: int = 4,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> list[dict[str, Any]]:
         self._current_role = role
         try:
@@ -490,6 +496,7 @@ class OpenAIAnalysisWriter:
                 candidates=candidates,
                 max_sentences=max_sentences,
                 on_delta=on_delta,
+                on_discard=on_discard,
             )
         finally:
             self._current_role = "orchestrator"
@@ -505,6 +512,7 @@ class OpenAIAnalysisWriter:
         candidates: Sequence[Any] | None = None,
         max_sentences: int = 4,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> list[dict[str, Any]]:
         role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
         q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
@@ -552,6 +560,7 @@ class OpenAIAnalysisWriter:
             payload=payload,
             schema=schema,
             on_delta=on_delta,
+            on_discard=on_discard,
         )
         sentences = decoded.get("sentences")
         if not isinstance(sentences, list):
@@ -569,6 +578,7 @@ class OpenAIAnalysisWriter:
         findings: Sequence[Any] | None = None,
         facts: Sequence[Any] | None = None,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
         q_label = QUESTION_TYPE_LABELS.get(question_type, question_type)
         instructions = COMPOSE_REPORT_PROMPT_TEMPLATE.format(
@@ -590,6 +600,7 @@ class OpenAIAnalysisWriter:
             payload=payload,
             schema=_COMPOSE_REPORT_SCHEMA,
             on_delta=on_delta,
+            on_discard=on_discard,
         )
         if not isinstance(decoded, dict):
             raise AnalysisWriterError("analysis_writer_compose_output_invalid")
@@ -604,6 +615,7 @@ class OpenAIAnalysisWriter:
         issue: Mapping[str, Any],
         facts: Sequence[Any],
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
         self._current_role = role
         try:
@@ -614,6 +626,7 @@ class OpenAIAnalysisWriter:
                 issue=issue,
                 facts=facts,
                 on_delta=on_delta,
+                on_discard=on_discard,
             )
         finally:
             self._current_role = "orchestrator"
@@ -627,6 +640,7 @@ class OpenAIAnalysisWriter:
         issue: Mapping[str, Any],
         facts: Sequence[Any],
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
         role_label = "doanh nghiệp" if role in ("company", "doanh nghiệp") else "so sánh nhóm ngành"
         desc = issue.get("description", "")
@@ -662,6 +676,7 @@ class OpenAIAnalysisWriter:
             payload=payload,
             schema=schema,
             on_delta=on_delta,
+            on_discard=on_discard,
         )
         text = decoded.get("text")
         fact_ids = decoded.get("fact_ids")
@@ -677,52 +692,129 @@ class OpenAIAnalysisWriter:
         payload: Mapping[str, Any],
         schema: dict[str, Any] | None,
         on_delta: Callable[[str], None] | None = None,
+        on_discard: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
-        if on_delta is not None and not hasattr(self.client, "responses"):
+        deltas_emitted = False
+
+        def _track_delta(delta: str) -> None:
+            nonlocal deltas_emitted
+            if delta:
+                deltas_emitted = True
+                if on_delta is not None:
+                    on_delta(delta)
+
+        if on_delta is not None:
             try:
-                messages = [
-                    {"role": "system", "content": instructions},
-                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
-                ]
-                kwargs: dict[str, Any] = {
-                    "model": self.model,
-                    "messages": messages,
-                    "max_tokens": self.max_output_tokens,
-                    "stream": True,
-                }
-                if schema is not None:
-                    kwargs["response_format"] = {
-                        "type": "json_schema",
-                        "json_schema": {"name": name, "schema": schema, "strict": True},
+                if hasattr(self.client, "responses"):
+                    request_kwargs: dict[str, Any] = {
+                        "model": self.model,
+                        "instructions": instructions,
+                        "input": json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                        "max_output_tokens": self.max_output_tokens,
+                        "store": False,
+                        "stream": True,
                     }
-                else:
-                    kwargs["response_format"] = {"type": "json_object"}
-                stream_resp = self.client.chat.completions.create(**kwargs)
-                emitter = ThrottledDeltaEmitter(on_delta)
-                extractor = StreamingJsonTextExtractor(emitter.feed)
-                accumulated_chunks: list[str] = []
-                for chunk in stream_resp:
-                    chunk_text = ""
-                    if hasattr(chunk, "choices") and chunk.choices:
-                        delta_obj = getattr(chunk.choices[0], "delta", None)
-                        if delta_obj:
-                            chunk_text = getattr(delta_obj, "content", "") or ""
-                    elif isinstance(chunk, dict):
-                        choices = chunk.get("choices", [])
-                        if choices:
-                            chunk_text = choices[0].get("delta", {}).get("content", "") or ""
-                    if chunk_text:
-                        accumulated_chunks.append(chunk_text)
-                        extractor.feed(chunk_text)
-                emitter.flush()
-                output_text = "".join(accumulated_chunks)
-                if output_text.strip():
+                    if schema is not None:
+                        request_kwargs["text"] = {
+                            "format": {
+                                "type": "json_schema",
+                                "name": name,
+                                "strict": True,
+                                "schema": schema,
+                            }
+                        }
+                    else:
+                        request_kwargs["text"] = {
+                            "format": {
+                                "type": "json_object",
+                            }
+                        }
+                    stream_resp = self.client.responses.create(**request_kwargs)
+                    emitter = ThrottledDeltaEmitter(_track_delta)
+                    extractor = StreamingJsonTextExtractor(emitter.feed)
+                    accumulated_chunks: list[str] = []
+                    completed_response = None
+                    for event in stream_resp:
+                        event_type = getattr(event, "type", None)
+                        if event_type == "response.output_text.delta":
+                            chunk_text = getattr(event, "delta", "") or ""
+                            if chunk_text:
+                                accumulated_chunks.append(chunk_text)
+                                extractor.feed(chunk_text)
+                        elif event_type == "response.completed":
+                            completed_response = getattr(event, "response", None)
+                    emitter.flush()
+
+                    status = getattr(completed_response, "status", None)
+                    if status not in (None, "completed"):
+                        raise AnalysisWriterError("analysis_writer_response_incomplete")
+
+                    output_text = getattr(completed_response, "output_text", None) if completed_response is not None else None
+                    if not output_text:
+                        output_text = "".join(accumulated_chunks)
+
+                    if not isinstance(output_text, str) or not output_text.strip():
+                        raise AnalysisWriterError("analysis_writer_output_missing")
+
                     clean_text = _clean_json_text(output_text)
                     decoded = json.loads(clean_text)
                     if isinstance(decoded, dict):
                         return _strip_inline_fact_refs(decoded)
+                    raise AnalysisWriterError("analysis_writer_output_invalid")
+                else:
+                    messages = [
+                        {"role": "system", "content": instructions},
+                        {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)},
+                    ]
+                    kwargs: dict[str, Any] = {
+                        "model": self.model,
+                        "messages": messages,
+                        "max_tokens": self.max_output_tokens,
+                        "stream": True,
+                    }
+                    if schema is not None:
+                        kwargs["response_format"] = {
+                            "type": "json_schema",
+                            "json_schema": {"name": name, "schema": schema, "strict": True},
+                        }
+                    else:
+                        kwargs["response_format"] = {"type": "json_object"}
+                    stream_resp = self.client.chat.completions.create(**kwargs)
+                    emitter = ThrottledDeltaEmitter(_track_delta)
+                    extractor = StreamingJsonTextExtractor(emitter.feed)
+                    accumulated_chunks: list[str] = []
+                    for chunk in stream_resp:
+                        chunk_text = ""
+                        if hasattr(chunk, "choices") and chunk.choices:
+                            delta_obj = getattr(chunk.choices[0], "delta", None)
+                            if delta_obj:
+                                chunk_text = getattr(delta_obj, "content", "") or ""
+                        elif isinstance(chunk, dict):
+                            choices = chunk.get("choices", [])
+                            if choices:
+                                chunk_text = choices[0].get("delta", {}).get("content", "") or ""
+                        if chunk_text:
+                            accumulated_chunks.append(chunk_text)
+                            extractor.feed(chunk_text)
+                    emitter.flush()
+                    output_text = "".join(accumulated_chunks)
+                    if output_text.strip():
+                        clean_text = _clean_json_text(output_text)
+                        decoded = json.loads(clean_text)
+                        if isinstance(decoded, dict):
+                            return _strip_inline_fact_refs(decoded)
+                        raise AnalysisWriterError("analysis_writer_output_invalid")
             except Exception as stream_exc:
-                logger.debug("Writer streaming attempt failed; falling back to non-streamed call: %s", stream_exc)
+                logger.warning("Writer streaming attempt failed; falling back to non-streamed call: %s", stream_exc)
+                self.retry_count += 1
+                self.retries.append({"name": name, "error": str(stream_exc)})
+                if hasattr(self.client, "_tracker"):
+                    getattr(self.client, "_tracker").discard_last_call(reason=f"stream_failed: {stream_exc}")
+                if deltas_emitted and on_discard is not None:
+                    try:
+                        on_discard()
+                    except Exception as discard_exc:
+                        logger.warning("on_discard failed: %s", discard_exc)
 
         last_exc: Exception | None = None
         for attempt in range(3):

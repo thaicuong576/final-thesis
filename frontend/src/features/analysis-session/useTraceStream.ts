@@ -336,19 +336,40 @@ export function useTraceStream({
     let updated = false;
 
     if (type === 'WRITER_DRAFT_DELTA') {
-      const delta = String(payload.delta || '');
       const role = String(payload.role || 'orchestrator');
-      if (delta) {
+      if (payload.discard) {
         liveWorkRef.current = {
           ...liveWorkRef.current,
           draftsByRole: {
             ...liveWorkRef.current.draftsByRole,
-            [role]: (liveWorkRef.current.draftsByRole[role] || '') + delta
-          },
-          activeWriterRole: role
+            [role]: ''
+          }
         };
         updated = true;
+      } else {
+        const delta = String(payload.delta || '');
+        if (delta) {
+          liveWorkRef.current = {
+            ...liveWorkRef.current,
+            draftsByRole: {
+              ...liveWorkRef.current.draftsByRole,
+              [role]: (liveWorkRef.current.draftsByRole[role] || '') + delta
+            },
+            activeWriterRole: role
+          };
+          updated = true;
+        }
       }
+    } else if (type === 'WRITER_DRAFT_DISCARDED') {
+      const role = String(payload.role || 'orchestrator');
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        draftsByRole: {
+          ...liveWorkRef.current.draftsByRole,
+          [role]: ''
+        }
+      };
+      updated = true;
     } else if (type === 'SENTENCE_VERDICT') {
       const sentence = String(payload.sentence || '');
       const verdict = payload.verdict === 'kept' ? 'kept' : 'dropped';

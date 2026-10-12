@@ -190,8 +190,16 @@ export interface ToolCompletedPayload {
 export interface WriterDraftDeltaPayload {
   delta: string;
   role: string;
-  callKind: string;
+  callKind?: string;
+  kind?: string;
   seq?: number;
+  discard?: boolean;
+}
+
+export interface WriterDraftDiscardedPayload {
+  role: string;
+  kind?: string;
+  reason?: string;
 }
 
 export interface SentenceVerdictPayload {
@@ -320,6 +328,7 @@ export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'TOOL_STARTED'; payload: ToolStartedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'TOOL_COMPLETED'; payload: ToolCompletedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'WRITER_DRAFT_DELTA'; payload: WriterDraftDeltaPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'WRITER_DRAFT_DISCARDED'; payload: WriterDraftDiscardedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SENTENCE_VERDICT'; payload: SentenceVerdictPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'TRACE_STEP'; payload: TraceStep };
 

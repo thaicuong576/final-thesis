@@ -1755,6 +1755,17 @@ class _AdaptiveRun:
                         },
                     )
 
+                def _on_findings_discard(ag_role: str = role) -> None:
+                    draft_chunks.clear()
+                    self.emit(
+                        "WRITER_DRAFT_DISCARDED",
+                        {
+                            "role": ag_role,
+                            "kind": "findings",
+                            "reason": "stream_failed_retry",
+                        },
+                    )
+
                 try:
                     try:
                         findings_raw = self.writer.write_findings(
@@ -1765,9 +1776,10 @@ class _AdaptiveRun:
                             datasets_summary=self._datasets_summary(role_datasets_map[role]),
                             candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
                             on_delta=_on_findings_delta,
+                            on_discard=_on_findings_discard,
                         )
                     except TypeError as t_err:
-                        if "on_delta" in str(t_err):
+                        if "on_delta" in str(t_err) or "on_discard" in str(t_err):
                             findings_raw = self.writer.write_findings(
                                 role=role,
                                 question=self.request.query,
@@ -1911,6 +1923,17 @@ class _AdaptiveRun:
                 },
             )
 
+        def _on_compose_discard() -> None:
+            compose_draft_chunks.clear()
+            self.emit(
+                "WRITER_DRAFT_DISCARDED",
+                {
+                    "role": "orchestrator",
+                    "kind": "compose",
+                    "reason": "stream_failed_retry",
+                },
+            )
+
         try:
             try:
                 raw_spec_dict = self.writer.compose_report(
@@ -1925,9 +1948,10 @@ class _AdaptiveRun:
                     findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
                     facts=self._facts_payload(verified_facts),
                     on_delta=_on_compose_delta,
+                    on_discard=_on_compose_discard,
                 )
             except TypeError as t_err:
-                if "on_delta" in str(t_err):
+                if "on_delta" in str(t_err) or "on_discard" in str(t_err):
                     raw_spec_dict = self.writer.compose_report(
                         question=self.request.query,
                         question_type=q_type,
@@ -2626,6 +2650,17 @@ class _AdaptiveRun:
                                                 },
                                             )
 
+                                        def _on_rewrite_discard(ag_role: str = orig_s.author) -> None:
+                                            rev_draft_chunks.clear()
+                                            self.emit(
+                                                "WRITER_DRAFT_DISCARDED",
+                                                {
+                                                    "role": ag_role,
+                                                    "kind": "rewrite",
+                                                    "reason": "stream_failed_retry",
+                                                },
+                                            )
+
                                         try:
                                             try:
                                                 revised_dict = self.writer.rewrite_sentence(
@@ -2635,9 +2670,10 @@ class _AdaptiveRun:
                                                     issue=issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__,
                                                     facts=self._facts_payload(verified_facts),
                                                     on_delta=_on_rewrite_delta,
+                                                    on_discard=_on_rewrite_discard,
                                                 )
                                             except TypeError as t_err:
-                                                if "on_delta" in str(t_err):
+                                                if "on_delta" in str(t_err) or "on_discard" in str(t_err):
                                                     revised_dict = self.writer.rewrite_sentence(
                                                         role=orig_s.author,
                                                         question=self.request.query,

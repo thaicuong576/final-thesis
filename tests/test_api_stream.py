@@ -87,7 +87,7 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         self.assertIn("SENTENCE_VERDICT", event_types)
         coarse_lifecycle = [
             item[0] for item in events
-            if item[0] not in ("TRACE_STEP", "TOOL_STARTED", "TOOL_COMPLETED", "WRITER_DRAFT_DELTA", "SENTENCE_VERDICT")
+            if item[0] not in ("TRACE_STEP", "TOOL_STARTED", "TOOL_COMPLETED", "WRITER_DRAFT_DELTA", "WRITER_DRAFT_DISCARDED", "SENTENCE_VERDICT")
         ]
         self.assertEqual(
             coarse_lifecycle,

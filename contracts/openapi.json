@@ -1436,6 +1436,7 @@
               "TOOL_STARTED",
               "TOOL_COMPLETED",
               "WRITER_DRAFT_DELTA",
+              "WRITER_DRAFT_DISCARDED",
               "SENTENCE_VERDICT",
               "REVIEW_STARTED",
               "REVIEW_FEEDBACK_CREATED",

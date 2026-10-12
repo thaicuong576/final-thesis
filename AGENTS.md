@@ -170,6 +170,15 @@ research → specification → plan → data foundation → baseline → hierarc
 
 Each phase must leave a durable handoff and a verified state update before the next phase begins.
 
+## Session start — read first (2026-10-13)
+
+An orchestrator session MUST read `.fleet/STATE.md` (local, gitignored; the live handoff
+with running work, pending decisions and next steps), then `PLAN.md`, `.fleet/REPO_MAP.md` and
+`.fleet/baseline.md`, before acting, and continue from "Việc tiếp theo" without waiting for
+the user to restate context. If `.fleet/STATE.md` is missing, say so. It supersedes the
+2026-09-27 handoff below, which is kept as history. CI runs `python -m unittest discover -s tests -q`
+(not pytest). Update `.fleet/STATE.md` before ending a session or when context is about to be compacted.
+
 ## Active handoff — 2026-09-27
 
 The current durable state is recorded in

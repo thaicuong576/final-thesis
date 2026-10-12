@@ -271,6 +271,7 @@ class RealSSIMarketDataClient:
         *,
         http_client: httpx.AsyncClient | None = None,
         timeout: float = 10.0,
+        retry_delay: float = 1.0,
     ) -> None:
         url = base_url.strip().rstrip("/")
         if url.endswith("/api/v2"):
@@ -279,6 +280,7 @@ class RealSSIMarketDataClient:
         self.consumer_id = consumer_id
         self.consumer_secret = consumer_secret
         self.timeout = timeout
+        self.retry_delay = retry_delay
         self._custom_client = http_client
         self._token: str | None = None
         self._token_lock = asyncio.Lock()
@@ -288,14 +290,55 @@ class RealSSIMarketDataClient:
             return self._custom_client
         return httpx.AsyncClient(timeout=self.timeout)
 
-    async def _obtain_token(self, client: httpx.AsyncClient) -> str:
+    async def _obtain_token(
+        self,
+        client: httpx.AsyncClient,
+        stale_token: str | None = None,
+        *,
+        force: bool = False,
+    ) -> str:
         async with self._token_lock:
+            # Return existing token if refreshed by another request while waiting
+            if not force and self._token and self._token != stale_token:
+                return self._token
+
             token_url = f"{self.base_url}/api/v2/Market/AccessToken"
             payload = {
                 "consumerID": self.consumer_id,
                 "consumerSecret": self.consumer_secret,
             }
-            resp = await client.post(token_url, json=payload)
+
+            resp: httpx.Response | None = None
+            last_exc: Exception | None = None
+            for attempt in range(2):
+                try:
+                    resp = await client.post(token_url, json=payload)
+                    if resp.status_code >= 500:
+                        resp.raise_for_status()
+                    break
+                except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+                    is_5xx = (
+                        isinstance(exc, httpx.HTTPStatusError)
+                        and exc.response is not None
+                        and exc.response.status_code >= 500
+                    )
+                    is_connect = isinstance(exc, httpx.RequestError)
+                    if attempt == 0 and (is_5xx or is_connect):
+                        logger.warning(
+                            "SSI AccessToken request failed (%s); retrying once after %.1fs...",
+                            exc,
+                            self.retry_delay,
+                        )
+                        last_exc = exc
+                        await asyncio.sleep(self.retry_delay)
+                        continue
+                    raise
+
+            if resp is None:
+                if last_exc:
+                    raise last_exc
+                raise RuntimeError("Failed to obtain response from SSI AccessToken endpoint")
+
             resp.raise_for_status()
             data = resp.json()
             token = data.get("data", {}).get("accessToken")
@@ -315,7 +358,7 @@ class RealSSIMarketDataClient:
         try:
             token = self._token
             if not token:
-                token = await self._obtain_token(client)
+                token = await self._obtain_token(client, stale_token=token)
 
             headers = {"Authorization": f"Bearer {token}"}
             url = f"{self.base_url}{endpoint}"
@@ -323,7 +366,7 @@ class RealSSIMarketDataClient:
 
             if resp.status_code == 401:
                 # Token expired; refresh once and retry
-                token = await self._obtain_token(client)
+                token = await self._obtain_token(client, stale_token=token)
                 headers["Authorization"] = f"Bearer {token}"
                 resp = await client.request(method, url, params=params, headers=headers)
 
@@ -499,9 +542,18 @@ async def get_or_refresh_quotes(
                 return await fetch_single_quote(client, sym, fetched_at_iso)
 
         try:
-            tasks = [_bounded_fetch(sym) for sym in HOSE_BANK_SYMBOLS]
-            results = await asyncio.gather(*tasks)
-            _cached_quotes = list(results)
+            if not HOSE_BANK_SYMBOLS:
+                return [], fetched_at_iso, False, None
+
+            # Fetch the first quote alone to obtain the token, then run the rest concurrently
+            first_sym = HOSE_BANK_SYMBOLS[0]
+            first_quote = await fetch_single_quote(client, first_sym, fetched_at_iso)
+
+            remaining_syms = HOSE_BANK_SYMBOLS[1:]
+            tasks = [_bounded_fetch(sym) for sym in remaining_syms]
+            remaining_quotes = await asyncio.gather(*tasks)
+
+            _cached_quotes = [first_quote, *remaining_quotes]
             _quotes_fetched_at = fetched_at_iso
             _quotes_timestamp = now
             return _cached_quotes, fetched_at_iso, False, None

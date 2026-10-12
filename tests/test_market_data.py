@@ -30,6 +30,7 @@ from thesis_api.market_data import (
     FakeSSIMarketDataClient,
     RealSSIMarketDataClient,
     clear_market_data_cache,
+    get_or_refresh_quotes,
     get_quotes_cache_ttl,
     is_hose_open,
     set_market_data_client,
@@ -247,6 +248,189 @@ class TestMarketData(unittest.TestCase):
         self.assertEqual(result["status"], 200)
         self.assertEqual(mock_http.post.call_count, 2)
         self.assertEqual(mock_http.request.call_count, 2)
+
+    def test_real_client_concurrent_fetches_single_access_token_call(self) -> None:
+        """When 10 requests start concurrently, only ONE AccessToken POST is issued."""
+        token_calls = 0
+        stock_price_calls = 0
+
+        def transport_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal token_calls, stock_price_calls
+            url_str = str(request.url)
+            if "AccessToken" in url_str:
+                token_calls += 1
+                return httpx.Response(
+                    200,
+                    json={"status": 200, "data": {"accessToken": "tok-concurrent-unique"}},
+                    request=request,
+                )
+            if "DailyStockPrice" in url_str:
+                stock_price_calls += 1
+                return httpx.Response(
+                    200,
+                    json={
+                        "status": 200,
+                        "data": [
+                            {
+                                "ClosePrice": "20200",
+                                "RefPrice": "20000",
+                                "PriceChange": "200",
+                                "PerPriceChange": "1.00",
+                                "TotalMatchVol": "1000",
+                                "TradingDate": "12/10/2026",
+                            }
+                        ],
+                    },
+                    request=request,
+                )
+            return httpx.Response(404, request=request)
+
+        transport = httpx.MockTransport(transport_handler)
+        mock_http = httpx.AsyncClient(transport=transport)
+
+        client = RealSSIMarketDataClient(
+            base_url="https://fc-data.ssi.com.vn",
+            consumer_id="test_id",
+            consumer_secret="test_secret",
+            http_client=mock_http,
+        )
+
+        async def fetch_all_10() -> list[dict[str, Any]]:
+            tasks = [client.get_daily_stock_price(sym) for sym in HOSE_BANK_SYMBOLS]
+            return await asyncio.gather(*tasks)
+
+        results = asyncio.run(fetch_all_10())
+        self.assertEqual(len(results), 10)
+        self.assertEqual(token_calls, 1, "Expected exactly 1 AccessToken POST for 10 concurrent fetches")
+        self.assertEqual(stock_price_calls, 10)
+
+    def test_real_client_access_token_retry_once_on_502(self) -> None:
+        """AccessToken POST retries once after ~1s on 502 and succeeds on second attempt."""
+        token_attempts = 0
+
+        def transport_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal token_attempts
+            url_str = str(request.url)
+            if "AccessToken" in url_str:
+                token_attempts += 1
+                if token_attempts == 1:
+                    return httpx.Response(502, request=request)
+                return httpx.Response(
+                    200,
+                    json={"status": 200, "data": {"accessToken": "tok-retried-ok"}},
+                    request=request,
+                )
+            if "DailyStockPrice" in url_str:
+                return httpx.Response(
+                    200,
+                    json={
+                        "status": 200,
+                        "data": [
+                            {
+                                "ClosePrice": "33950",
+                                "RefPrice": "33900",
+                                "PriceChange": "50",
+                                "PerPriceChange": "0.15",
+                                "TotalMatchVol": "1000",
+                                "TradingDate": "12/10/2026",
+                            }
+                        ],
+                    },
+                    request=request,
+                )
+            return httpx.Response(404, request=request)
+
+        transport = httpx.MockTransport(transport_handler)
+        mock_http = httpx.AsyncClient(transport=transport)
+
+        client = RealSSIMarketDataClient(
+            base_url="https://fc-data.ssi.com.vn",
+            consumer_id="test_id",
+            consumer_secret="test_secret",
+            http_client=mock_http,
+            retry_delay=0.01,
+        )
+
+        result = asyncio.run(client.get_daily_stock_price("BID"))
+        self.assertEqual(result["status"], 200)
+        self.assertEqual(token_attempts, 2, "Expected exactly 2 AccessToken attempts (1 retry on 502)")
+        self.assertEqual(client._token, "tok-retried-ok")
+
+    def test_real_client_access_token_raises_after_two_failed_attempts_on_502(self) -> None:
+        """When 502 persists, AccessToken raises HTTPStatusError after 2 attempts."""
+        token_attempts = 0
+
+        def transport_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal token_attempts
+            if "AccessToken" in str(request.url):
+                token_attempts += 1
+                return httpx.Response(502, request=request)
+            return httpx.Response(200, json={"status": 200, "data": []}, request=request)
+
+        transport = httpx.MockTransport(transport_handler)
+        mock_http = httpx.AsyncClient(transport=transport)
+
+        client = RealSSIMarketDataClient(
+            base_url="https://fc-data.ssi.com.vn",
+            consumer_id="test_id",
+            consumer_secret="test_secret",
+            http_client=mock_http,
+            retry_delay=0.01,
+        )
+
+        with self.assertRaises(httpx.HTTPStatusError) as ctx:
+            asyncio.run(client.get_daily_stock_price("BID"))
+        self.assertEqual(ctx.exception.response.status_code, 502)
+        self.assertEqual(token_attempts, 2)
+
+    def test_get_or_refresh_quotes_warms_token_with_first_quote_alone(self) -> None:
+        """get_or_refresh_quotes fetches first quote alone to warm token, then remaining 9 concurrently."""
+        token_calls = 0
+        sequence: list[str] = []
+
+        def transport_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal token_calls
+            url_str = str(request.url)
+            if "AccessToken" in url_str:
+                token_calls += 1
+                return httpx.Response(200, json={"status": 200, "data": {"accessToken": "tok-warm"}}, request=request)
+            if "DailyStockPrice" in url_str:
+                symbol = request.url.params.get("symbol", "")
+                sequence.append(symbol)
+                return httpx.Response(
+                    200,
+                    json={
+                        "status": 200,
+                        "data": [
+                            {
+                                "ClosePrice": "20000",
+                                "RefPrice": "20000",
+                                "PriceChange": "0",
+                                "PerPriceChange": "0.0",
+                                "TotalMatchVol": "1000",
+                                "TradingDate": "12/10/2026",
+                            }
+                        ],
+                    },
+                    request=request,
+                )
+            return httpx.Response(404, request=request)
+
+        transport = httpx.MockTransport(transport_handler)
+        mock_http = httpx.AsyncClient(transport=transport)
+        client = RealSSIMarketDataClient(
+            base_url="https://fc-data.ssi.com.vn",
+            consumer_id="test_id",
+            consumer_secret="test_secret",
+            http_client=mock_http,
+        )
+
+        clear_market_data_cache()
+        quotes, _, stale, _ = asyncio.run(get_or_refresh_quotes(client, force_refresh=True))
+        self.assertFalse(stale)
+        self.assertEqual(len(quotes), 10)
+        self.assertEqual(token_calls, 1)
+        self.assertEqual(sequence[0], HOSE_BANK_SYMBOLS[0], "First symbol must be fetched alone before rest")
 
     def test_error_sanitization_no_url_or_raw_exception_in_responses(self) -> None:
         """SSI upstream errors (e.g. 502 Bad Gateway) must never leak URLs or raw exception text."""

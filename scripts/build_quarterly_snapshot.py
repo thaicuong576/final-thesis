@@ -83,6 +83,12 @@ LABELS = {
     "bank.roa": "ROA",
     "bank.roe": "ROE",
 }
+VERIFIED_QUARTERLY_LOSSES = {
+    # STB incurred an audited net loss of (2,752.462) billion VND in Q4 2025 due to
+    # 9,232.152 billion VND in credit provisions in Q4 alone, reducing 9-month YTD profit
+    # from 8,691.573 billion VND to full-year 5,939.111 billion VND (B03/TCTD-HN, B03a/TCTD).
+    ("STB", "2025_Q4"),
+}
 
 
 class BuildError(RuntimeError):
@@ -148,6 +154,32 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
         cells[key] = {"value": Decimal(r["value"]), "basis": basis, "loc": r["source_locator"].strip(),
                       "source": sources[skey]}
 
+    entities = sorted({k[0] for k in cells})
+    periods = sorted({k[2] for k in cells})
+
+    # Validate intra-year YTD profit monotonicity:
+    # Cumulative year-to-date profit within a single calendar year must be non-decreasing,
+    # unless an audited quarterly net loss is verified and documented with primary filing provenance.
+    for entity in entities:
+        for metric in sorted(YTD):
+            by_year: dict[str, list[str]] = {}
+            for (e, m, p) in cells:
+                if e == entity and m == metric:
+                    y = p.split("_Q")[0]
+                    by_year.setdefault(y, []).append(p)
+            for y, pers in by_year.items():
+                pers.sort()
+                for idx in range(len(pers) - 1):
+                    p_prev, p_curr = pers[idx], pers[idx + 1]
+                    v_prev = cells[(entity, metric, p_prev)]["value"]
+                    v_curr = cells[(entity, metric, p_curr)]["value"]
+                    if v_curr < v_prev:
+                        if (entity, p_curr) in VERIFIED_QUARTERLY_LOSSES:
+                            continue
+                        raise BuildError(
+                            f"non-monotonic YTD profit: {entity} {metric} decreased from {v_prev} in {p_prev} to {v_curr} in {p_curr}"
+                        )
+
     observations: list[CanonicalObservation] = []
     evidence: list[DatasetEvidence] = []
     ids: dict[tuple[str, str, str], str] = {}
@@ -200,8 +232,6 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
 
     derived_cells: dict[tuple[str, str, str], dict] = {}
     v = lambda e, m, p: (cells.get((e, m, p)) or derived_cells.get((e, m, p)) or {}).get("value")  # noqa: E731
-    entities = sorted({k[0] for k in cells})
-    periods = sorted({k[2] for k in cells})
     for e in entities:
         for p in periods:
             g = [v(e, f"bank.input.npl_group_{n}_balance", p) for n in (3, 4, 5)]

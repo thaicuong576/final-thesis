@@ -102,6 +102,36 @@ class QuarterlySnapshotTest(unittest.TestCase):
         with self.assertRaises(builder.BuildError):
             builder.build(bad, self.tmp / "ops.sqlite")
 
+    def test_ytd_profit_monotonicity_validation_fails_on_unverified_decrease(self) -> None:
+        bad = self.tmp / "decreasing_ytd.csv"
+        # In self.inputs, AAA 2024_Q2 pat is 50, 2024_Q4 is 110. Make 2024_Q4 fall to 30.
+        content = self.inputs.read_text(encoding="utf-8").replace("AAA,bank.input.profit_after_tax,2024_Q4,110",
+                                                                  "AAA,bank.input.profit_after_tax,2024_Q4,30")
+        bad.write_text(content, encoding="utf-8")
+        with self.assertRaises(builder.BuildError) as ctx:
+            builder.build(bad, self.tmp / "ops_bad.sqlite")
+        self.assertIn("non-monotonic YTD profit", str(ctx.exception))
+        self.assertIn("AAA", str(ctx.exception))
+
+    def test_ytd_profit_verified_quarterly_loss_allowed(self) -> None:
+        self.assertIn(("STB", "2025_Q4"), builder.VERIFIED_QUARTERLY_LOSSES)
+        # Create an input set with STB where 2025_Q4 is lower than 2025_Q3
+        stb_inputs = self.tmp / "stb_verified.csv"
+        rows = [
+            ["entity_id", "metric_id", "period_id", "value", "unit", "period_basis", "source_locator", "source_url", "source_sha256"],
+            ["STB", "bank.input.profit_after_tax", "2025_Q3", "8691.573", "billion_vnd", "ytd", "pdf_page=4; reading=confirmed", URL.format(b="STB", p="2025_Q3"), ""],
+            ["STB", "bank.input.parent_attributable_profit", "2025_Q3", "8691.573", "billion_vnd", "ytd", "pdf_page=4; reading=confirmed", URL.format(b="STB", p="2025_Q3"), ""],
+            ["STB", "bank.input.profit_after_tax", "2025_Q4", "5939.111", "billion_vnd", "ytd", "pdf_page=11; reading=confirmed", URL.format(b="STB", p="2025_Q4"), ""],
+            ["STB", "bank.input.parent_attributable_profit", "2025_Q4", "5939.111", "billion_vnd", "ytd", "pdf_page=11; reading=confirmed", URL.format(b="STB", p="2025_Q4"), ""],
+        ]
+        with stb_inputs.open("w", encoding="utf-8", newline="") as f:
+            csv.writer(f).writerows(rows)
+        # Should build without error for STB 2025_Q4
+        out = self.tmp / "stb_ops.sqlite"
+        m = builder.build(stb_inputs, out)
+        self.assertEqual(m["banks"], ["STB"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

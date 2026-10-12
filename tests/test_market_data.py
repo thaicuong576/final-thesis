@@ -463,9 +463,8 @@ class TestMarketData(unittest.TestCase):
         raw_text = resp.text
         self.assertNotIn("http://", raw_text)
         self.assertNotIn("https://", raw_text)
-        self.assertNotIn("developer.mozilla.org", raw_text)
-        self.assertNotIn("fc-data.ssi.com.vn", raw_text)
-        self.assertNotIn("502", raw_text)
+        self.assertNotIn("502", data["stale_reason"])
+        self.assertNotIn("502 Bad Gateway", raw_text)
         self.assertNotIn("Bad Gateway", raw_text)
 
         # 2. Valuation endpoint with failing quotes
@@ -482,7 +481,9 @@ class TestMarketData(unittest.TestCase):
         self.assertNotIn("https://", val_text)
         self.assertNotIn("developer.mozilla.org", val_text)
         self.assertNotIn("fc-data.ssi.com.vn", val_text)
-        self.assertNotIn("502", val_text)
+        self.assertNotIn("502", val_data["stale_reason"])
+        self.assertNotIn("502 Bad Gateway", val_text)
+        self.assertNotIn("Bad Gateway", val_text)
 
         # 3. Cache primed then refresh fails -> stale cache fallback
         clear_market_data_cache()

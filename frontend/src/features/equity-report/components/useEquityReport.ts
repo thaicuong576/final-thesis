@@ -10,6 +10,7 @@ export interface EquityReportContextValue {
   highlight: string[];
   getNoteNumbersForFactIds: (factIds: string[]) => number[];
   onOpenSource?: (noteNo: number) => void;
+  onOpenFact?: (factId: string) => void;
 }
 
 export const EquityReportContext = createContext<EquityReportContextValue | null>(null);
@@ -20,4 +21,8 @@ export const useEquityReport = (): EquityReportContextValue => {
     throw new Error('useEquityReport must be used within an EquityReportProvider');
   }
   return ctx;
+};
+
+export const useSafeEquityReport = (): EquityReportContextValue | null => {
+  return useContext(EquityReportContext);
 };

@@ -48,8 +48,9 @@ export const SentenceView: React.FC<SentenceViewProps> = ({
                   <TooltipTrigger asChild>
                     <a
                       href={`#note-${no}`}
-                      onClick={() => {
+                      onClick={(e) => {
                         if (onOpenSource) {
+                          e.preventDefault();
                           onOpenSource(no);
                         }
                       }}

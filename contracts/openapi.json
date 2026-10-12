@@ -432,6 +432,38 @@
           }
         }
       }
+    },
+    "/api/lineage/{observation_id}": {
+      "get": {
+        "summary": "Retrieve recursive lineage tree for an observation",
+        "description": "Returns observation details, calculation receipts, input nodes recursively, and filing metadata (PDF url, page, section, row label) on leaf nodes.",
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "description": "Canonical observation identifier or fact identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recursive lineage tree",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineageNode"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Observation or fact not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2051,7 +2083,44 @@
           "title": { "type": "string" },
           "url": { "type": ["string", "null"] },
           "locator": { "type": ["string", "null"] },
+          "page": { "type": ["integer", "null"] },
           "fact_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "LineageNode": {
+        "type": "object",
+        "required": [
+          "observation_id",
+          "entity",
+          "metric",
+          "period",
+          "children"
+        ],
+        "properties": {
+          "observation_id": { "type": "string" },
+          "entity": { "type": "string" },
+          "entity_id": { "type": ["string", "null"] },
+          "metric": { "type": "string" },
+          "metric_id": { "type": ["string", "null"] },
+          "metric_name": { "type": ["string", "null"] },
+          "period": { "type": "string" },
+          "period_id": { "type": ["string", "null"] },
+          "value": { "type": ["number", "null"] },
+          "unit": { "type": ["string", "null"] },
+          "formula_version": { "type": ["string", "null"] },
+          "receipt_result": { "type": ["string", "null"] },
+          "receipt_tolerance": { "type": ["string", "null"] },
+          "calculation_receipt": { "type": ["object", "null"] },
+          "source_title": { "type": ["string", "null"] },
+          "source_url": { "type": ["string", "null"] },
+          "page": { "type": ["integer", "null"] },
+          "section": { "type": ["string", "null"] },
+          "row_label": { "type": ["string", "null"] },
+          "reading": { "type": ["string", "null"] },
+          "children": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LineageNode" }
+          }
         }
       },
       "ErrorInfo": {

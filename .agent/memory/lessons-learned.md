@@ -911,6 +911,85 @@ Systematic mutation testing across 12 error-injection operators on 129 accepted 
 - **Root Cause**: `run_evaluation` hard-coded iteration over `ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")`.
 - **Solution**: Add `--arms` CLI parameter with strict validation against `ARMS`, plumbing `effective_arms` into planned runs, token budget estimation, resume mechanics, and the final run manifest (`manifest["arms"]`). Preserve default 3-arm behavior when omitted.
 
+---
 
+## [LESSON-047] Source Citation Lineage, PDF Locators, and Public Data Guard Patterns (LIN-1)
 
+- Date: 2026-10-11
+- Scope: `src/thesis_api/analysis_tools.py`, `src/thesis_api/lineage.py`, `src/thesis_data/evidence_contract.py`, `frontend/src/features/source-lineage/`
+- Status: ACTIVE
 
+### 1. Windows Path Regex Trap in Evidence Guardrails
+In `src/thesis_data/evidence_contract.py`, `_WINDOWS_PATH = re.compile(r"[A-Za-z]:[\\/]")` was used to detect local disk paths (like `C:/` or `D:\`). However, this pattern inadvertently matched `s:/` inside valid web URLs like `https://static2.vietstock.vn/` when passed as `source_url`.
+- **Solution**: Explicitly check for and allow `http://` and `https://` schemas before testing for local filesystem drive letters.
+
+### 2. Multi-Level Recursive Lineage Traversal to Leaf Sources
+Financial ratios like `bank.llr_coverage` depend on inputs like `bank.input.npl_g35_balance`, which itself is derived (sum of NPL groups 3, 4, 5) without a direct `source_ref`. 
+- **Solution**: The lineage walker (`get_lineage_tree`) recursively parses `input_observation_ids_json` and `metadata_json.__derived_calculation_receipt_v1` down to leaf observations with physical filing locators (`pdf_page`, `section`, `row_label`, `reading`), exposing clean integer `page` fields alongside the raw locators.
+
+### 3. Read-Only SQLite Guarantee
+To ensure the operational snapshot file hash is never mutated during lineage API queries, the SQLite connection is established using `uri=True` with `mode=ro` (`file:{path}?mode=ro`). This completely eliminates WAL/SHM sidecars and file modification timestamps.
+
+### 4. Interactive Test Harness Modal Backdrops and Deterministic URL Deep-linking
+When building demo harnesses with slide-out side drawers, modal backdrops (`fixed inset-0 z-50`) intercept pointer clicks for background controls like report selectors during automated browser tests. Automated scripts and harnesses should support URL search parameters (e.g. `?report=ranking&tab=data`) for direct, deterministic deep-linking without relying on fragile multi-step click sequences across backdrop layers.
+
+---
+
+## [LESSON-048] Authentic Lineage UI Gates: Zero Mock Fallbacks, Receipt Arithmetic Lineage, and Cross-Origin PDF Embed Boundaries (LIN-1)
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/source-lineage/`, `tests/sourceLineageDrawer.test.tsx`
+- Status: ACTIVE
+
+### 1. Strict Enforcement of AGENTS.md Rule 5 (No Synthesized / Mocked Fallbacks)
+- Synthesizing mock fallback lineage trees when API queries fail or return 404 creates misleading illusions of validation and arithmetic discrepancies (e.g. mixing 2024_Q4 mock numbers with 2026_Q2 reports, yielding 223,3% instead of the authentic 279,3%).
+- **Rule**: When `/api/lineage` fails, the UI must strictly render a clean error state (`Không tải được truy vết nguồn`) with an explicit retry action. It must never fabricate nodes, values, formula receipts, or locators.
+
+### 2. Pure Derivation from Calculation Receipts
+- Never hardcode metric-specific formula strings or numbers. Formula substitutions must be constructed dynamically and solely from `receipt.ordered_inputs` and `receipt.calculated_output`. The formula version label must be taken directly from `receipt.formula_version`.
+- If no calculation receipt exists (e.g. direct filing observation), the UI renders the observation as a primary filing record without a formula. If the reported fact value diverges from the lineage root value beyond the receipt tolerance, a prominent warning banner is displayed.
+
+### 3. Leaf-Level Locator Integrity and Cross-Origin PDF Sandboxing
+- In recursive lineage trees, each leaf's PDF page must come from that specific leaf's own locator (e.g. provisions on page 7, NPL groups on page 30 for VCB 2026_Q2). It must never fall back to the note's page or page 1.
+- Many public financial filing CDNs (e.g. Vietstock) restrict cross-origin iframe embedding in modern browsers. Rather than presenting a broken iframe, render a first-class document card presenting extracted metadata (row label, value, reading mode) and an actionable primary link directly navigating to `url#page=N`.
+
+---
+
+## [LESSON-049] Deep Wiring of Provenance Drawers into Adaptive Equity Reports & Dropped Sentences Auditing (LIN-1 Phase 2)
+
+- Date: 2026-10-11
+- Scope: `frontend/src/features/equity-report/`, `frontend/src/features/source-lineage/`, `frontend/vite.config.ts`
+- Status: ACTIVE
+
+### 1. Two-Way Fact and Citation Lineage Dispatch
+- **Requirement**: Reports must allow drilldown both from narrative citations (opening the Document tab for a specific `note_no`) and directly from numerical elements (KPI bands, charts, tables with a known `fact_id` opening the Data tab).
+- **Architecture**: `EquityReportContext` exposes both `onOpenSource(noteNo)` and `onOpenFact(factId)`. `AdaptiveReport` hosts the `<SourceDrawer>` instance and provides unified state management (`isOpen`, `noteNo`, `factId`, `defaultTab`).
+- **Tooltips & DOM Sanitization**: Tooltips and hover elements for clickable numbers must use neutral human-readable copy (`Xem nguồn gốc số liệu`) rather than serializing raw machine tokens (`fact:value:...`), preventing DOM text leaks in end-user presentations and test assertions.
+
+### 2. Collapsible Audit Panel for Dropped Sentences (Requirement 5)
+- Under multi-agent audit contracts, narrative verification drops sentences failing Stage-1 assertions (`narrative_audit.sentences_dropped`).
+- Rather than hiding dropped sentences or cluttering the executive report, `TechnicalDetails` renders an accordion panel (`Câu bị loại`) that is collapsed by default. Expanding reveals rejected statements with strikethrough styling, author specialty (`Chuyên viên Doanh nghiệp`, `Chuyên viên Ngành`), and human-friendly Vietnamese reasons mapped via `REASON_VI_MAP`.
+
+### 3. Vite Serving Whitelist for Cross-Directory Fixtures
+- In Vite dev mode, importing fixtures residing outside the `frontend/` root (e.g. `experiments/er9/runs/`) triggers 403 Forbidden errors unless explicitly allowed in `vite.config.ts` (`server.fs.allow: ['..']`). Production builds (`tsc -b && vite build`) bundle dynamic imports seamlessly, but local dev workflows require this whitelist to enable deep-linking to experimental run fixtures.
+
+---
+
+## [LESSON-050] Snapshot-Invariant Fact Resolution, Aggregate Multi-Bank Lineage Trees & Portaled Drawer Stacking Context (LIN-1 Round 3)
+
+- Date: 2026-10-12
+- Scope: `src/thesis_api/lineage.py`, `frontend/src/features/source-lineage/`, `tests/test_lineage_api.py`
+- Status: ACTIVE
+
+### 1. Snapshot-Invariant Fact ID Resolution vs Volatile Observation IDs
+- Operational snapshots rebuilt across revisions (e.g. `r1` vs `r4`) regenerate distinct observation hashes. Saved reports referencing older observation IDs will return 404 if queried directly by observation hash.
+- **Invariant**: The lineage endpoint and client hook (`useLineage`) strictly prioritize domain fact keys (`fact_id`) such as `fact:value:<bank>:<period>:<metric>` or `fact:spread:...`. Fact IDs resolve deterministically by `(entity_id, period_id, metric_id)` in the active operational database, completely decoupling report persistence from snapshot regeneration.
+
+### 2. Recursive Lineage for Aggregate Multi-Bank Facts
+- Aggregate metrics (`spread`, `peer_median`, `peer_rank`, `gap_to_median`, `delta`) represent multi-bank or multi-period calculations rather than single bank observations.
+- Lineage trees for aggregate facts must retrieve all constituent bank observations, structure them with the focal bank strictly at index 0 (`focal_entity` priority), and sort peer banks deterministically. Each constituent bank node is recursively populated with its own formula, calculation receipt, and primary filing locators.
+- In the UI (`DataTab`), aggregate nodes display an interactive constituent bank list (`Danh sách ngân hàng cấu thành (N)`), allowing analysts to expand each peer bank's formula and filing page independently.
+
+### 3. React Portals for Drawer Stacking Context Isolation
+- Deeply nested components inside complex layouts (such as `WorkspaceShell` with sticky headers at `z-20` and parent overflow constraints) can cause stacking context collisions where sticky header pills or toolbars render over full-height drawers.
+- Portaling modal side drawers directly to `document.body` via `createPortal(drawerElement, document.body)` with `z-[100]` isolates the drawer into the top-level document stacking context, eliminating visual overlaps and header clippings across all viewports.

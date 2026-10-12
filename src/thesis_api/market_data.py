@@ -42,7 +42,7 @@ SSI_SOURCE_NAME = "SSI FastConnect Data"
 # Recorded fixtures for offline testing & fake transport (2026-10-12)
 RECORDED_QUOTES_2026_10_12: dict[str, dict[str, Any]] = {
     "ACB": {"close": 20200.0, "reference": 20150.0, "change": 50.0, "change_percent": 0.25, "volume": 12500000, "trading_date": "12/10/2026"},
-    "BID": {"close": 39400.0, "reference": 39200.0, "change": 200.0, "change_percent": 0.51, "volume": 1800000, "trading_date": "12/10/2026"},
+    "BID": {"close": 33950.0, "reference": 33900.0, "change": 50.0, "change_percent": 0.15, "volume": 1800000, "trading_date": "12/10/2026"},
     "CTG": {"close": 34200.0, "reference": 34000.0, "change": 200.0, "change_percent": 0.59, "volume": 5400000, "trading_date": "12/10/2026"},
     "HDB": {"close": 26100.0, "reference": 26000.0, "change": 100.0, "change_percent": 0.38, "volume": 4200000, "trading_date": "12/10/2026"},
     "MBB": {"close": 24500.0, "reference": 24300.0, "change": 200.0, "change_percent": 0.82, "volume": 11000000, "trading_date": "12/10/2026"},
@@ -148,6 +148,37 @@ def is_hose_open(dt: datetime | None = None) -> bool:
 def get_quotes_cache_ttl(dt: datetime | None = None) -> float:
     """Return cache TTL: 30 seconds during trading hours, 15 minutes (900s) otherwise."""
     return 30.0 if is_hose_open(dt) else 900.0
+
+
+def sanitize_market_error_reason(exc: Any) -> str:
+    """Map any internal or upstream error to a fixed Vietnamese reason string.
+
+    Strictly never leaks URLs, upstream error tracebacks, or English exception
+    text to the public JSON response. Technical details are logged server-side only.
+    """
+    if exc is None:
+        return "Nguồn dữ liệu không phản hồi"
+
+    text = str(exc).lower()
+
+    # Upstream server / gateway / network error (even if URL contains AccessToken)
+    if any(k in text for k in ("502", "503", "504", "500", "bad gateway", "service unavailable", "gateway timeout", "connecterror", "timeoutexception")):
+        return "Nguồn dữ liệu không phản hồi"
+
+    # Unconfigured / missing credentials
+    if any(k in text for k in ("chưa cấu hình", "unconfigured", "missing credentials", "not configured")):
+        return "Chưa cấu hình"
+
+    # Token / auth failure: 401/403 Unauthorized or expired token
+    if any(k in text for k in ("401", "403", "unauthorized", "forbidden", "hết hạn token", "expired token", "invalid token")):
+        return "Hết hạn token"
+
+    # Market closed / outside trading hours
+    if any(k in text for k in ("ngoài giờ", "closed", "weekend", "off-hours")):
+        return "Dữ liệu ngoài giờ"
+
+    # Default upstream network / gateway failure
+    return "Nguồn dữ liệu không phản hồi"
 
 
 # ---------------------------------------------------------------------------
@@ -476,13 +507,14 @@ async def get_or_refresh_quotes(
             return _cached_quotes, fetched_at_iso, False, None
         except Exception as exc:
             logger.warning("Market quotes refresh failed: %s", exc)
+            sanitized_reason = sanitize_market_error_reason(exc)
             if _cached_quotes:
                 # Stale fallback: serve last cached value labelled stale
                 stale_items = [
-                    item.model_copy(update={"stale": True, "stale_reason": str(exc)})
+                    item.model_copy(update={"stale": True, "stale_reason": sanitized_reason})
                     for item in _cached_quotes
                 ]
-                return stale_items, _quotes_fetched_at or fetched_at_iso, True, f"Lỗi làm mới: {str(exc)}"
+                return stale_items, _quotes_fetched_at or fetched_at_iso, True, sanitized_reason
             raise
 
 
@@ -514,7 +546,7 @@ async def get_market_quotes() -> QuotesResponse:
             source=SSI_SOURCE_NAME,
             fetched_at=datetime.now(timezone.utc).isoformat(),
             stale=True,
-            stale_reason=f"Không thể tải dữ liệu: {str(exc)}",
+            stale_reason=sanitize_market_error_reason(exc),
             quotes=[],
         )
 
@@ -536,7 +568,7 @@ async def get_market_valuation(request: Request) -> ValuationResponse:
             source=f"{SSI_SOURCE_NAME} & Accepted Financial Snapshot",
             fetched_at=datetime.now(timezone.utc).isoformat(),
             stale=True,
-            stale_reason=f"Không thể tải báo giá: {str(exc)}",
+            stale_reason=sanitize_market_error_reason(exc),
             items=[],
         )
 

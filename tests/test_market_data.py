@@ -63,6 +63,8 @@ class TestMarketData(unittest.TestCase):
             conn.execute("INSERT INTO source_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("src-1", "filing", "primary", "http://example.com", "2026-01-01", "a.pdf", "hash", "VCB", "f", "valid", None))
             conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-1", "VCB", "bank", "bank.input.parent_attributable_equity", 248490.506, "billion_vnd", "2024_Q4", "2024-12-31", "point_in_time", "src-1", "loc", "valid", None))
             conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-2", "VCB", "bank", "bank.roe", 19.5, "percent", "2024_Q4", "2024-12-31", "point_in_time", "src-1", "loc", "valid", None))
+            conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-bid-1", "BID", "bank", "bank.input.parent_attributable_equity", 193049.829, "billion_vnd", "2026_Q2", "2026-06-30", "point_in_time", "src-1", "loc", "valid", None))
+            conn.execute("INSERT INTO metric_observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("obs-bid-2", "BID", "bank", "bank.roe", 17.868, "percent", "2026_Q2", "2026-06-30", "point_in_time", "src-1", "loc", "valid", None))
             conn.commit()
             conn.close()
             self.db_path = fixture_path
@@ -245,3 +247,86 @@ class TestMarketData(unittest.TestCase):
         self.assertEqual(result["status"], 200)
         self.assertEqual(mock_http.post.call_count, 2)
         self.assertEqual(mock_http.request.call_count, 2)
+
+    def test_error_sanitization_no_url_or_raw_exception_in_responses(self) -> None:
+        """SSI upstream errors (e.g. 502 Bad Gateway) must never leak URLs or raw exception text."""
+        # 1. Empty cache + SSI down (502 Bad Gateway with Mozilla link and upstream URL in exc)
+        failing_client = FakeSSIMarketDataClient()
+        fake_req = httpx.Request("POST", "https://fc-data.ssi.com.vn/api/v2/Market/AccessToken")
+        fake_resp = httpx.Response(502, request=fake_req)
+        upstream_exc = httpx.HTTPStatusError(
+            "Server error '502 Bad Gateway' for url 'https://fc-data.ssi.com.vn/api/v2/Market/AccessToken' For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/502",
+            request=fake_req,
+            response=fake_resp,
+        )
+
+        async def fail_daily(sym: str) -> dict:
+            raise upstream_exc
+
+        failing_client.get_daily_stock_price = fail_daily  # type: ignore[assignment]
+        set_market_data_client(failing_client)
+
+        resp = self.client.get("/api/market/quotes")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["configured"])
+        self.assertTrue(data["stale"])
+        self.assertEqual(data["quotes"], [])
+        self.assertEqual(data["stale_reason"], "Nguồn dữ liệu không phản hồi")
+
+        raw_text = resp.text
+        self.assertNotIn("http://", raw_text)
+        self.assertNotIn("https://", raw_text)
+        self.assertNotIn("developer.mozilla.org", raw_text)
+        self.assertNotIn("fc-data.ssi.com.vn", raw_text)
+        self.assertNotIn("502", raw_text)
+        self.assertNotIn("Bad Gateway", raw_text)
+
+        # 2. Valuation endpoint with failing quotes
+        val_resp = self.client.get("/api/market/valuation")
+        self.assertEqual(val_resp.status_code, 200)
+        val_data = val_resp.json()
+        self.assertTrue(val_data["configured"])
+        self.assertTrue(val_data["stale"])
+        self.assertEqual(val_data["items"], [])
+        self.assertEqual(val_data["stale_reason"], "Nguồn dữ liệu không phản hồi")
+
+        val_text = val_resp.text
+        self.assertNotIn("http://", val_text)
+        self.assertNotIn("https://", val_text)
+        self.assertNotIn("developer.mozilla.org", val_text)
+        self.assertNotIn("fc-data.ssi.com.vn", val_text)
+        self.assertNotIn("502", val_text)
+
+        # 3. Cache primed then refresh fails -> stale cache fallback
+        clear_market_data_cache()
+        good_client = FakeSSIMarketDataClient()
+        set_market_data_client(good_client)
+        resp_good = self.client.get("/api/market/quotes")
+        self.assertFalse(resp_good.json()["stale"])
+
+        set_market_data_client(failing_client)
+        from thesis_api.market_data import get_or_refresh_quotes
+        quotes, fetched_at, stale, stale_reason = asyncio.run(get_or_refresh_quotes(failing_client, force_refresh=True))
+        self.assertTrue(stale)
+        self.assertEqual(stale_reason, "Nguồn dữ liệu không phản hồi")
+        for q in quotes:
+            self.assertTrue(q.stale)
+            self.assertEqual(q.stale_reason, "Nguồn dữ liệu không phản hồi")
+            self.assertNotIn("http", str(q.stale_reason))
+
+    def test_valuation_roe_for_bid_matches_snapshot_value_17_87(self) -> None:
+        """Valuation endpoint must report BID ROE matching snapshot value 17.87 and recorded close 33950."""
+        fake_client = FakeSSIMarketDataClient()
+        set_market_data_client(fake_client)
+
+        resp = self.client.get("/api/market/valuation")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        bid_item = next((item for item in data["items"] if item["ticker"] == "BID"), None)
+        self.assertIsNotNone(bid_item, "BID must be present in valuation items")
+        self.assertEqual(bid_item["close"], 33950.0)
+        self.assertEqual(bid_item["roe"], 17.87, "valuation.roe for BID must equal the snapshot value 17.87")
+        self.assertAlmostEqual(bid_item["pb"], 1.002, places=3)
+        self.assertIsNone(bid_item["missing_reason"])

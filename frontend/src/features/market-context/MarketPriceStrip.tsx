@@ -11,8 +11,33 @@ export const MarketPriceStrip: React.FC<MarketPriceStripProps> = ({ className = 
   const { data } = useMarketQuotes();
 
   // If unconfigured or loading with no data yet, do not render (no layout shift)
-  if (!data || !data.configured || !data.quotes || data.quotes.length === 0) {
+  if (!data || !data.configured) {
     return null;
+  }
+
+  // First load with SSI down / empty cache: show one-line message and nothing that looks like prices
+  if (!data.quotes || data.quotes.length === 0) {
+    return (
+      <div
+        role="region"
+        aria-label="Thông báo dữ liệu thị trường"
+        className={`w-full bg-[#FAF9F5] dark:bg-[#1E1E1E] border-b border-[#E5E3DC] dark:border-[#333] px-3 sm:px-6 py-1.5 text-xs text-[#6B6960] dark:text-[#999] select-none transition-colors motion-reduce:transition-none ${className}`}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="font-medium text-[#1C1B18] dark:text-[#E0E0E0]">
+              Dữ liệu thị trường tạm thời không khả dụng
+            </span>
+          </div>
+          {data.stale_reason && (
+            <span className="text-[11px] text-[#8C8A82] dark:text-[#777] hidden sm:inline font-mono">
+              ({data.stale_reason})
+            </span>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const { quotes, stale, stale_reason, fetched_at } = data;

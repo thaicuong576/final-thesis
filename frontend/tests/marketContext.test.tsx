@@ -157,6 +157,33 @@ describe('MarketPriceStrip', () => {
     expect(await screen.findByText('dữ liệu trễ')).toBeInTheDocument();
   });
 
+  it('renders one-line unavailable message and nothing that looks like prices when configured: true, stale: true, quotes: []', async () => {
+    const mockQuotesEmptyStale: MarketQuotesResponse = {
+      configured: true,
+      source: 'SSI FastConnect Data',
+      fetched_at: '2026-10-12T14:30:00+07:00',
+      stale: true,
+      stale_reason: 'Nguồn dữ liệu không phản hồi',
+      quotes: []
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/market/quotes')) {
+        return Promise.resolve(new Response(JSON.stringify(mockQuotesEmptyStale), { status: 200 }));
+      }
+      return Promise.reject(new Error('not handled'));
+    });
+
+    render(<MarketPriceStrip />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('Dữ liệu thị trường tạm thời không khả dụng')).toBeInTheDocument();
+    expect(screen.queryByText('VCB')).not.toBeInTheDocument();
+    expect(screen.queryByText('ACB')).not.toBeInTheDocument();
+    expect(screen.queryByText('BID')).not.toBeInTheDocument();
+    expect(screen.queryByText(/VND/)).not.toBeInTheDocument();
+  });
+
   it('hides cleanly without rendering anything when configured: false', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const url = String(input);

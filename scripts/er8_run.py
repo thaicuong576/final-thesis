@@ -178,12 +178,47 @@ def find_gold_path_or_none(explicit_path: Path | None = None, *, verify_hash: bo
         return None
 
 
+def build_harness_settings(
+    *,
+    model: str | None = None,
+    sqlite_db_path: str | None = None,
+    analysis_runs_db_path: str | None = None,
+    planner_mode: str | None = None,
+    analysis_arm: str | None = None,
+    gold_scope_authority_path: str | None = None,
+    dry_run: bool = False,
+    app_name: str | None = None,
+    **extra_kwargs: Any,
+) -> Settings:
+    """Build a Settings instance for the harness ensuring --model overrides any .env setting."""
+    kwargs: dict[str, Any] = dict(extra_kwargs)
+    if app_name is not None:
+        kwargs["app_name"] = app_name
+    if sqlite_db_path is not None:
+        kwargs["sqlite_db_path"] = sqlite_db_path
+    if analysis_runs_db_path is not None:
+        kwargs["analysis_runs_db_path"] = analysis_runs_db_path
+    if planner_mode is not None:
+        kwargs["planner_mode"] = planner_mode
+    if analysis_arm is not None:
+        kwargs["analysis_arm"] = analysis_arm
+    if gold_scope_authority_path is not None:
+        kwargs["gold_scope_authority_path"] = gold_scope_authority_path
+    if dry_run:
+        kwargs["openai_api_key"] = "dry-run-key"
+    if model:
+        os.environ["OPENAI_MODEL"] = model
+        kwargs["OPENAI_MODEL"] = model
+        kwargs["openai_model"] = model
+    return Settings(**kwargs)
+
+
 def check_live_model_preflight(model: str | None = None) -> None:
     """Pre-flight check: send a minimal request to the model before running evaluation.
 
     If it fails, abort with a clear error message instead of failing all 36 runs.
     """
-    settings = Settings()
+    settings = build_harness_settings(model=model)
     if not settings.openai_api_key or not settings.openai_api_key.strip():
         raise SystemExit(
             "ERROR: OPENAI_API_KEY is not set or empty in environment / .env. "
@@ -194,11 +229,15 @@ def check_live_model_preflight(model: str | None = None) -> None:
     try:
         from thesis_api.llm import get_llm_client
         client = get_llm_client(settings)
-        client.chat.completions.create(
-            model=eff_model,
-            messages=[{"role": "user", "content": "ping"}],
-            max_tokens=5,
-        )
+        create_kwargs: dict[str, Any] = {
+            "model": eff_model,
+            "messages": [{"role": "user", "content": "ping"}],
+        }
+        if "api.openai.com" in (settings.openai_base_url or ""):
+            create_kwargs["max_completion_tokens"] = 5
+        else:
+            create_kwargs["max_tokens"] = 5
+        client.chat.completions.create(**create_kwargs)
         logger.info("Preflight check succeeded. Model '%s' is responsive.", eff_model)
     except Exception as exc:
         raise SystemExit(
@@ -651,21 +690,16 @@ def run_evaluation(
                     return aborted_record
 
             run_db_path = runs_dbs_dir / f"{run_id}.sqlite"
-            settings_kwargs: dict[str, Any] = {
-                "app_name": f"{run_id_prefix}-evaluation-harness",
-                "sqlite_db_path": str(temp_db),
-                "analysis_runs_db_path": str(run_db_path),
-                "planner_mode": "rules_only",
-                "analysis_arm": arm,
-            }
-            if authority_path:
-                settings_kwargs["gold_scope_authority_path"] = str(authority_path)
-            if model:
-                settings_kwargs["openai_model"] = model
-            if dry_run:
-                settings_kwargs["openai_api_key"] = "dry-run-key"
-
-            settings = Settings(**settings_kwargs)
+            settings = build_harness_settings(
+                app_name=f"{run_id_prefix}-evaluation-harness",
+                sqlite_db_path=str(temp_db),
+                analysis_runs_db_path=str(run_db_path),
+                planner_mode="rules_only",
+                analysis_arm=arm,
+                gold_scope_authority_path=str(authority_path) if authority_path else None,
+                model=model,
+                dry_run=dry_run,
+            )
             writer_double = DryRunOfflineWriter() if dry_run else None
             critic_double = DryRunOfflineCritic() if dry_run else None
 

@@ -6,8 +6,9 @@ export const EquityReportProvider: React.FC<{
   report: AdaptiveReportResponse;
   metrics?: MetricPresentation[];
   onOpenSource?: (noteNo: number) => void;
+  onOpenFact?: (factId: string) => void;
   children: React.ReactNode;
-}> = ({ report, metrics = [], onOpenSource, children }) => {
+}> = ({ report, metrics = [], onOpenSource, onOpenFact, children }) => {
   const sourceNotes = useMemo(() => report.source_notes || [], [report.source_notes]);
   const facts = useMemo(() => report.facts || [], [report.facts]);
   const datasets = useMemo(() => report.datasets || [], [report.datasets]);
@@ -45,9 +46,10 @@ export const EquityReportProvider: React.FC<{
       metrics,
       highlight,
       getNoteNumbersForFactIds,
-      onOpenSource
+      onOpenSource,
+      onOpenFact
     }),
-    [report, sourceNotes, facts, datasets, metrics, highlight, getNoteNumbersForFactIds, onOpenSource]
+    [report, sourceNotes, facts, datasets, metrics, highlight, getNoteNumbersForFactIds, onOpenSource, onOpenFact]
   );
 
   return <EquityReportContext.Provider value={value}>{children}</EquityReportContext.Provider>;

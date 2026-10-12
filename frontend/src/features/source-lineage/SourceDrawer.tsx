@@ -1,0 +1,218 @@
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
+import { X, FileText, TableProperties, Milestone, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { DocumentTab } from "./DocumentTab";
+import { DataTab } from "./DataTab";
+import { JourneyTab } from "./JourneyTab";
+import { useLineage } from "./useLineage";
+import { formatPeriod, getMetricDisplayName } from "./formatters";
+import type { SourceDrawerProps, LineageTab } from "./types";
+
+/**
+ * SourceDrawer provides a 3-tab side drawer (Tài liệu, Dữ liệu, Hành trình)
+ * tracing an equity report fact or citation note recursively back to primary filings.
+ */
+export const SourceDrawer: React.FC<SourceDrawerProps> = ({
+  isOpen,
+  onClose,
+  noteNo,
+  factId,
+  observationId,
+  report,
+  defaultTab = "document",
+}) => {
+  const [selectedTab, setSelectedTab] = useState<LineageTab | null>(null);
+  const [prevTargetKey, setPrevTargetKey] = useState<string>(
+    `${noteNo}-${factId}-${defaultTab}`
+  );
+
+  const currentTargetKey = `${noteNo}-${factId}-${defaultTab}`;
+  if (prevTargetKey !== currentTargetKey) {
+    setPrevTargetKey(currentTargetKey);
+    setSelectedTab(null);
+  }
+
+  const activeTab = selectedTab ?? defaultTab;
+  const setActiveTab = setSelectedTab;
+
+  const {
+    node,
+    isLoading,
+    error,
+    retry,
+    activeNote,
+    activeFact,
+    activeSentence,
+    auditVerdict,
+  } = useLineage({
+    observationId,
+    factId,
+    noteNo,
+    report,
+  });
+
+  if (!isOpen) return null;
+
+  const entity = node?.entity || activeFact?.entity_id || "VCB";
+  const rawMetricId = node?.metric || activeFact?.metric_id;
+  const metricName = node?.metric_name || getMetricDisplayName(rawMetricId);
+  const rawPeriod = node?.period || activeFact?.period || "2026_Q2";
+  const period = formatPeriod(rawPeriod);
+
+  const drawerElement = (
+    <div
+      className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-2xs transition-opacity animate-in fade-in duration-200"
+      aria-modal="true"
+      role="dialog"
+      aria-label="Ngăn truy vết nguồn số liệu"
+    >
+      {/* Backdrop click to close */}
+      <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
+
+      {/* Drawer content surface */}
+      <div
+        className="relative z-10 flex flex-col w-full sm:w-[580px] lg:w-[640px] h-full bg-[#FBFBFA] dark:bg-[#1C1B18] border-l border-[#E5E3DC] dark:border-[#333] shadow-xl animate-in slide-in-from-right duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-5 py-4 bg-white dark:bg-[#1E1E1E] border-b border-[#E5E3DC] dark:border-[#333] flex items-start justify-between gap-3 shrink-0">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 text-xs font-bold font-mono bg-[#B45309] text-white rounded">
+                {entity}
+              </span>
+              <h3 className="text-base font-bold text-[#1C1B18] dark:text-[#F0F0F0] truncate">
+                {metricName}
+              </h3>
+            </div>
+            <p className="text-xs text-[#6B6960] dark:text-[#A0A0A0] flex items-center gap-2">
+              <span>Kỳ công bố: {period}</span>
+              {noteNo != null && (
+                <>
+                  <span>•</span>
+                  <span className="font-medium text-[#B45309] dark:text-[#F59E0B]">
+                    Chú thích [{noteNo}]
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-[#6B6960] hover:text-[#1C1B18] dark:hover:text-white rounded-md hover:bg-[#F4F3EF] dark:hover:bg-[#2C2C2C] transition-colors"
+            aria-label="Đóng ngăn chi tiết"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tab navigation bar */}
+        <div
+          role="tablist"
+          aria-label="Các góc nhìn nguồn gốc số liệu"
+          className="px-5 bg-white dark:bg-[#1E1E1E] border-b border-[#E5E3DC] dark:border-[#333] flex gap-2 shrink-0"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "document"}
+            onClick={() => setActiveTab("document")}
+            className={`flex items-center gap-1.5 py-2.5 px-3 text-xs font-medium border-b-2 transition-colors ${
+              activeTab === "document"
+                ? "border-[#B45309] text-[#B45309] dark:text-[#F59E0B] font-semibold"
+                : "border-transparent text-[#6B6960] dark:text-[#999] hover:text-[#1C1B18]"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Tài liệu
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "data"}
+            onClick={() => setActiveTab("data")}
+            className={`flex items-center gap-1.5 py-2.5 px-3 text-xs font-medium border-b-2 transition-colors ${
+              activeTab === "data"
+                ? "border-[#B45309] text-[#B45309] dark:text-[#F59E0B] font-semibold"
+                : "border-transparent text-[#6B6960] dark:text-[#999] hover:text-[#1C1B18]"
+            }`}
+          >
+            <TableProperties className="w-3.5 h-3.5" />
+            Dữ liệu
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "journey"}
+            onClick={() => setActiveTab("journey")}
+            className={`flex items-center gap-1.5 py-2.5 px-3 text-xs font-medium border-b-2 transition-colors ${
+              activeTab === "journey"
+                ? "border-[#B45309] text-[#B45309] dark:text-[#F59E0B] font-semibold"
+                : "border-transparent text-[#6B6960] dark:text-[#999] hover:text-[#1C1B18]"
+            }`}
+          >
+            <Milestone className="w-3.5 h-3.5" />
+            Hành trình
+          </button>
+        </div>
+
+        {/* Main Tab Body */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {isLoading && !node ? (
+            <div className="flex flex-col items-center justify-center h-48 space-y-2 text-[#8C8A82]">
+              <Loader2 className="w-6 h-6 animate-spin text-[#B45309]" />
+              <span className="text-xs">Đang tải nguồn gốc và dữ liệu thẩm định...</span>
+            </div>
+          ) : error || !node ? (
+            <div className="flex flex-col items-center justify-center h-48 space-y-3 p-6 text-center">
+              <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-500" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-[#1C1B18] dark:text-[#F0F0F0]">
+                  Không tải được truy vết nguồn
+                </h4>
+                <p className="text-xs text-[#6B6960] dark:text-[#A0A0A0] max-w-sm">
+                  {error?.message || "Không tìm thấy cấu trúc truy vết số liệu cho chỉ tiêu này trong cơ sở dữ liệu chấp thuận."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={retry}
+                className="px-3.5 py-1.5 text-xs font-medium rounded-md bg-[#FAF9F5] dark:bg-[#2A2A2A] border border-[#E5E3DC] dark:border-[#444] text-[#1C1B18] dark:text-[#E0E0E0] hover:border-[#B45309] flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Thử lại
+              </button>
+            </div>
+          ) : (
+            <>
+              {activeTab === "document" && (
+                <DocumentTab node={node} activeNote={activeNote} />
+              )}
+              {activeTab === "data" && (
+                <DataTab node={node} activeFact={activeFact} />
+              )}
+              {activeTab === "journey" && (
+                <JourneyTab
+                  node={node}
+                  activeFact={activeFact}
+                  activeNote={activeNote}
+                  activeSentence={activeSentence}
+                  auditVerdict={auditVerdict}
+                  onSelectTab={setActiveTab}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return typeof document !== "undefined"
+    ? createPortal(drawerElement, document.body)
+    : drawerElement;
+};

@@ -21,6 +21,7 @@ from .database import (
     get_analysis_run_trace,
     list_analysis_runs,
 )
+from .lineage import router as lineage_router
 from .run_history_storage import hydrate_run_history
 from .schemas import (
     AnalysisRequest,
@@ -102,6 +103,8 @@ def create_app(
         cors_kwargs["allow_origin_regex"] = current_settings.cors_origin_regex
 
     app.add_middleware(CORSMiddleware, **cors_kwargs)
+    app.state.sqlite_path = sqlite_path
+    app.include_router(lineage_router)
 
     def analysis_runs_path():
         try:

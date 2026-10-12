@@ -1,8 +1,12 @@
 import React from 'react';
 import type { ChartProps } from './types';
 import { getMetricPresentation, formatMetricValue } from '../model/metricRegistry';
+import { useSafeEquityReport } from '../components/useEquityReport';
 
 export const ComparisonTable: React.FC<ChartProps> = ({ dataset, metrics, className = '' }) => {
+  const equityCtx = useSafeEquityReport();
+  const onOpenFact = equityCtx?.onOpenFact;
+  const facts = equityCtx?.facts || [];
   const metricIds = dataset.metric_ids || [];
   const rows = dataset.rows || [];
 
@@ -73,12 +77,25 @@ export const ComparisonTable: React.FC<ChartProps> = ({ dataset, metrics, classN
                   const isBest = entity === bestEntity;
                   const displayVal = isMissing ? '—' : formatMetricValue(row.value, meta);
 
+                  const matchedFact =
+                    row &&
+                    (facts.find((f) => f.entity_id === entity && f.metric_id === mId && f.fact_type === 'value') ||
+                     facts.find((f) => f.entity_id === entity && f.metric_id === mId) ||
+                     facts.find((f) => row.observation_id && f.input_observation_ids?.includes(row.observation_id)));
+                  const factId = matchedFact?.fact_id;
+
                   return (
                     <td
                       key={entity}
                       className={`py-2 px-2 text-right font-mono text-xs ${
                         isBest ? 'font-semibold text-text-primary' : 'text-text-secondary'
-                      }`}
+                      } ${!isMissing && factId && onOpenFact ? 'cursor-pointer hover:text-text-accent transition-colors' : ''}`}
+                      onClick={() => {
+                        if (!isMissing && factId && onOpenFact) {
+                          onOpenFact(factId);
+                        }
+                      }}
+                      title={!isMissing && factId ? 'Xem nguồn gốc số liệu' : undefined}
                     >
                       <span>{displayVal}</span>
                       {isBest && (

@@ -27,10 +27,10 @@ PYTHONPATH=src python scripts/build_quarterly_snapshot.py \
 | VCB | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | VPB | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-That is 100 of 100 bank-quarters and 400 ratio values (revision r4, 2026-10-02).
+That is 100 of 100 bank-quarters and 400 ratio values (revision r5, 2026-10-12).
 Revisions r1 and r2 had 92 bank-quarters: eight consolidated filings were missing from
 the usual Vietstock path. They were found elsewhere (see Sources) and added in r3.
-The 368 ratio values of r2 are unchanged in r3 and r4. No value is imputed anywhere; if a
+The 368 ratio values of r2 are unchanged in r3, r4, and r5. No value is imputed anywhere; if a
 quarter is ever missing, medians and ranks use fewer banks and the reports say so
 (for example, "hạng 2/7").
 
@@ -75,9 +75,15 @@ quarter is ever missing, medians and ranks use fewer banks and the reports say s
 5. `comparative_only` (26 cells) were taken from the prior-period column of a later
    filing, mainly for 2023 profits needed by TTM.
 
-Locators use Vietnamese statement/row labels (since revision r2). The current revision is r4,
-snapshot `snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e`.
-r4 differs from r3 in three provision cells only (see Definitions).
+Locators use Vietnamese statement/row labels (since revision r2). The current revision is r5,
+snapshot `snapshot-de0345858c2b4add8f1e7d50034f5ebfa656309ad8cc97c845b5bc49b5a69264`,
+file `bank-quarterly-top10-operational-v1-r5.sqlite` (SHA-256 `89aa5c70cf3d1507fac05564fa6ffeb588820794f7383203d42768277c4921dd`).
+r5 verified the STB (Sacombank) YTD profit series against primary filings (proving that the
+decrease from 9M YTD 8,691.573 B VND to full-year 5,939.111 B VND was an audited quarterly
+net loss of -2,752.462 B VND incurred in 2025 Q4 due to 9,232.152 B VND in quarterly provisions),
+updated STB profit locators to `reading=confirmed`, and added intra-year YTD profit monotonicity
+validation to `scripts/build_quarterly_snapshot.py`.
+r4 differed from r3 in three provision cells only (see Definitions).
 In r3 the 80 input cells of the eight added quarters are `reading=confirmed`: each was read from
 the page text (text layer for ACB, Tesseract otherwise) and accepted only because an identity
 held. The five loan groups add to the printed total, liabilities plus equity equal total assets,

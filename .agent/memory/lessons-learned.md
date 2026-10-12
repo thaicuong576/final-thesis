@@ -1016,3 +1016,27 @@ Per `docs/ARCHITECTURAL-GUARDRAILS.md` (line 264), internal scratchpads, system 
 - Real OpenAI-compatible gateways expose `.responses` with `response.output_text.delta` events rather than legacy `chat.completions`. Streaming calls must use the exact same request format (`text.format = json_schema`) with `stream=True`.
 - On stream interruption or socket failure after text deltas have been emitted to the frontend, the runtime fires an `on_discard` callback emitting `WRITER_DRAFT_DISCARDED`, prompting the UI to immediately reset partial text so the user never sees phantom content not present in the final synthesized output.
 - Token tracking wraps the stream generator, attributing tokens upon stream completion, or logging a retry without double-counting tokens when stream abort occurs.
+
+---
+
+## [LESSON-052] Accounting Quarterly Loss vs Cumulative YTD Profit Monotonicity (STB-1)
+
+- Date: 2026-10-12
+- Scope: `data/onboarding/quarterly-top10/inputs.csv`, `scripts/build_quarterly_snapshot.py`, `tests/test_quarterly_snapshot.py`
+- Status: ACTIVE
+
+### 1. Cumulative Revenue vs Cumulative Net Profit Invariant
+When validating financial time series, intuitive sanity checks assume cumulative Year-To-Date (YTD) metrics within a calendar year must be strictly non-decreasing (monotonic). For revenue or gross income, this invariant strictly holds because top-line revenue cannot be negative.
+However, for **Net Profit After Tax** (`bank.input.profit_after_tax` / `bank.input.parent_attributable_profit`), cumulative YTD profit **can legally decrease** if the company incurs a net loss in any subsequent quarter:
+$$\text{YTD}_{Q(t)} = \text{YTD}_{Q(t-1)} + \text{Net Income}_{Q(t)}$$
+When $\text{Net Income}_{Q(t)} < 0$, $\text{YTD}_{Q(t)} < \text{YTD}_{Q(t-1)}$.
+
+### 2. The Sacombank (STB) 2025 Case Study
+- **Symptom**: In `inputs.csv`, STB 2025 YTD profit was Q1: 2,896.692 B, Q2: 5,790.290 B, Q3: 8,691.573 B, and Q4: 5,939.111 B VND. A non-monotonic drop of 2,752.462 B VND between Q3 and Q4 raised suspicion of a transcription bug (e.g. taking a single-quarter figure or wrong column).
+- **Primary-Filing Audit**: Cross-examination of the audited consolidated report (`STB_2025_audited_consolidated.pdf` p11 row XII col 2025) and Q4 quarterly statement (`STB_2025Q4.pdf` p4 row XIII col 3) proved that 5,939.111 B VND is the exact audited full-year figure.
+- **Root Cause**: In Q4 2025, Sacombank recognized an extraordinary credit provision expense of **9,232.152 billion VND** (p4 row 11 'Chi phí dự phòng rủi ro tín dụng'), resulting in a standalone Q4 net loss of **(2,752.462) billion VND**. Subtracting this loss from the 9-month YTD profit of 8,691.573 B yields exactly 5,939.111 B VND. Furthermore, STB 2026 Q1 (1,584.404 B) and Q2 (2,931.095 B) reflect continuation of elevated provisioning (2,024 B in Q1, 5,095 B in Q2).
+
+### 3. Rigorous Validation Policy in Snapshot Builders
+- Never alter primary financial data to satisfy a naive monotonic expectation. Modifying verified figures to fit intuitive assumptions violates Spec Zero and data integrity.
+- Builders should enforce intra-year YTD profit monotonicity by default to catch genuine transcription mistakes, but must include a whitelist (`VERIFIED_QUARTERLY_LOSSES`) requiring explicit justification and primary filing provenance for legitimate audited quarterly losses.
+

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, time, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 import logging
 import os
 from pathlib import Path
@@ -254,7 +255,7 @@ class FakeSSIMarketDataClient:
                 {
                     "Symbol": symbol.upper(),
                     "Market": "HOSE",
-                    "RepeatedInfo": [{"ListedShare": str(sh)}],
+                    "RepeatedInfo": [{"ListedShare": f"{float(sh):.1f}"}],
                 }
             ],
         }
@@ -481,6 +482,23 @@ async def fetch_single_quote(
     )
 
 
+def parse_listed_shares(raw_val: Any) -> int | None:
+    """Parse ListedShare from SSI SecuritiesDetails via Decimal (no precision loss for ~1e10).
+
+    Safely handles decimal strings (e.g. '4593703838.0', '8355675094.0', '7021361917.0').
+    Rejects non-positive, NaN, infinite, or unparseable values.
+    """
+    if raw_val is None:
+        return None
+    try:
+        dec = Decimal(str(raw_val).strip())
+        if not dec.is_finite() or dec <= 0:
+            return None
+        return int(dec)
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+
+
 async def get_listed_shares(client: SSIMarketDataClient, symbol: str) -> int | None:
     """Get listed shares for a bank, using a 24-hour in-memory cache."""
     now = datetime.now(timezone.utc)
@@ -500,9 +518,9 @@ async def get_listed_shares(client: SSIMarketDataClient, symbol: str) -> int | N
         if not info:
             return None
         raw_val = info[0].get("ListedShare")
-        if raw_val is None:
+        shares = parse_listed_shares(raw_val)
+        if shares is None:
             return None
-        shares = int(raw_val)
         async with _shares_lock:
             _shares_cache[sym] = (shares, now)
         return shares

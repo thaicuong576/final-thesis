@@ -30,9 +30,11 @@ from thesis_api.market_data import (
     FakeSSIMarketDataClient,
     RealSSIMarketDataClient,
     clear_market_data_cache,
+    get_listed_shares,
     get_or_refresh_quotes,
     get_quotes_cache_ttl,
     is_hose_open,
+    parse_listed_shares,
     set_market_data_client,
 )
 from thesis_api.settings import Settings
@@ -514,3 +516,43 @@ class TestMarketData(unittest.TestCase):
         self.assertEqual(bid_item["roe"], 17.87, "valuation.roe for BID must equal the snapshot value 17.87")
         self.assertAlmostEqual(bid_item["pb"], 1.002, places=3)
         self.assertIsNone(bid_item["missing_reason"])
+
+    def test_parse_listed_shares_decimal_strings_and_validation(self) -> None:
+        """ListedShare decimal strings like '8355675094.0' parse exactly to int, rejecting non-positive and NaN."""
+        # Recorded strings from live SSI check
+        self.assertEqual(parse_listed_shares("8355675094.0"), 8355675094)
+        self.assertEqual(parse_listed_shares("7021361917.0"), 7021361917)
+        self.assertEqual(parse_listed_shares("4593703838.0"), 4593703838)
+
+        # Standard integer strings and numeric inputs
+        self.assertEqual(parse_listed_shares("8355675094"), 8355675094)
+        self.assertEqual(parse_listed_shares(8355675094), 8355675094)
+
+        # Rejection of NaN, infinite, non-positive, and invalid values
+        self.assertIsNone(parse_listed_shares("NaN"))
+        self.assertIsNone(parse_listed_shares("Infinity"))
+        self.assertIsNone(parse_listed_shares("-Infinity"))
+        self.assertIsNone(parse_listed_shares("0"))
+        self.assertIsNone(parse_listed_shares("0.0"))
+        self.assertIsNone(parse_listed_shares("-8355675094.0"))
+        self.assertIsNone(parse_listed_shares("invalid"))
+        self.assertIsNone(parse_listed_shares(None))
+
+    def test_get_listed_shares_with_decimal_string_from_securities_details(self) -> None:
+        """get_listed_shares handles live SSI decimal string format '8355675094.0' and '7021361917.0'."""
+        class DecimalStringSSIClient:
+            async def get_securities_details(self, symbol: str) -> dict[str, Any]:
+                val = "8355675094.0" if symbol == "VCB" else "7021361917.0"
+                return {
+                    "status": 200,
+                    "data": [{"Symbol": symbol, "RepeatedInfo": [{"ListedShare": val}]}],
+                }
+
+        clear_market_data_cache()
+        client = DecimalStringSSIClient()
+        vcb_shares = asyncio.run(get_listed_shares(client, "VCB"))  # type: ignore[arg-type]
+        self.assertEqual(vcb_shares, 8355675094)
+
+        tcb_shares = asyncio.run(get_listed_shares(client, "TCB"))  # type: ignore[arg-type]
+        self.assertEqual(tcb_shares, 7021361917)
+

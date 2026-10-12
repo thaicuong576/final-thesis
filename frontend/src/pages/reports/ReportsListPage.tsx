@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, FileSearch, Plus, RotateCw, Search } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PageCrumbs, StatusPill } from '@/components/layout/PageCrumbs';
-import { MarketPriceStrip } from '@/features/market-context';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
 import { dedupeRunTickers } from './reportTickers';
 
@@ -103,7 +102,6 @@ export function ReportsListPage() {
 
   return (
     <WorkspaceShell activeSection="reports" context={<PageCrumbs items={[{ label: 'Thư viện báo cáo' }]} />}>
-      <MarketPriceStrip />
       <div className="mx-auto w-full max-w-[1040px] px-4 py-8 sm:px-8 sm:py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>

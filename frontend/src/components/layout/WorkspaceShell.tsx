@@ -5,6 +5,7 @@ import { BarChart3, Database, FileText, MessageSquareText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { analyticalPeriodIds } from '@/entities/capability/model/coverage';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
+import { MarketPriceStrip } from '@/features/market-context';
 import {
   Sidebar,
   SidebarContent,
@@ -79,12 +80,15 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
       </Sidebar>
 
       <SidebarInset className="min-h-screen bg-workspace">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border-subtle bg-surface-primary/90 px-4 backdrop-blur-sm sm:px-6 print:hidden">
-          <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1 text-ink-secondary" />
-          <Separator orientation="vertical" className="h-5 bg-border-subtle" />
-          <div className="min-w-0 flex-1">
-            {context ?? <span className="text-[13px] font-semibold text-ink">Phân tích mới</span>}
+        <header className="sticky top-0 z-20 flex flex-col border-b border-border-subtle bg-surface-primary/95 backdrop-blur-sm print:hidden">
+          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+            <SidebarTrigger aria-label="Đóng/mở thanh điều hướng" className="-ml-1 text-ink-secondary" />
+            <Separator orientation="vertical" className="h-5 bg-border-subtle" />
+            <div className="min-w-0 flex-1">
+              {context ?? <span className="text-[13px] font-semibold text-ink">Phân tích mới</span>}
+            </div>
           </div>
+          <MarketPriceStrip />
         </header>
 
         <main className="paper-grid min-w-0 flex-1">{children}</main>

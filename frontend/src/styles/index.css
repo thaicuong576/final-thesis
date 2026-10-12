@@ -221,3 +221,28 @@ textarea::placeholder, input::placeholder { color: var(--text-tertiary); opacity
   .agent-packet, .agent-busy::after, .agent-typing i, .agent-msg, .agent-live-dot, .agent-phase-now { animation: none !important; }
   .agent-packet { display: none; }
 }
+
+/* MKT-2: slim marquee ticker for the shell header */
+@keyframes ticker-marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-marquee 45s linear infinite;
+  will-change: transform;
+}
+.ticker-container:hover .ticker-track,
+.ticker-container:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none !important;
+    transform: none !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+}
+

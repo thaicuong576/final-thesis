@@ -226,7 +226,7 @@ export function parseTraceSseBlock(
         actor: 'orchestrator',
         recipient: null,
         summary: 'Báo cáo sẵn sàng',
-        detail: { report_id: reportId }
+        detail: { report_id: reportId, report: payload.report || parsed.report || (payload.report_data as Record<string, unknown>) }
       };
     }
 

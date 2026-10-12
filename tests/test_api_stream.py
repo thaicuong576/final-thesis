@@ -82,9 +82,15 @@ class ApiStreamIntegrationTests(unittest.TestCase):
         events = self._parse(streamed.text)
         event_types = [item[0] for item in events]
         self.assertIn("TRACE_STEP", event_types)
-        lifecycle_event_types = [item[0] for item in events if item[0] != "TRACE_STEP"]
+        self.assertIn("TOOL_STARTED", event_types)
+        self.assertIn("TOOL_COMPLETED", event_types)
+        self.assertIn("SENTENCE_VERDICT", event_types)
+        coarse_lifecycle = [
+            item[0] for item in events
+            if item[0] not in ("TRACE_STEP", "TOOL_STARTED", "TOOL_COMPLETED", "WRITER_DRAFT_DELTA", "WRITER_DRAFT_DISCARDED", "SENTENCE_VERDICT")
+        ]
         self.assertEqual(
-            lifecycle_event_types,
+            coarse_lifecycle,
             [
                 "USER_REQUEST_CONFIRMED",
                 "PLANNING_STARTED",

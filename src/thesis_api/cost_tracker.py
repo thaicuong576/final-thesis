@@ -19,6 +19,8 @@ class LLMCallRecord:
     input_tokens: int | None
     output_tokens: int | None
     cost: float | None = None
+    is_retry: bool = False
+    is_discarded: bool = False
 
 
 def _extract_cost(response: Any) -> float | None:
@@ -81,6 +83,7 @@ class LLMUsageTracker:
 
     def __init__(self) -> None:
         self.calls: list[LLMCallRecord] = []
+        self.retries: list[dict[str, Any]] = []
 
     def record_call(
         self,
@@ -89,6 +92,9 @@ class LLMUsageTracker:
         input_tokens: int | None,
         output_tokens: int | None,
         cost: float | None = None,
+        *,
+        is_retry: bool = False,
+        is_discarded: bool = False,
     ) -> None:
         self.calls.append(
             LLMCallRecord(
@@ -97,26 +103,62 @@ class LLMUsageTracker:
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
                 cost=cost,
+                is_retry=is_retry,
+                is_discarded=is_discarded,
             )
         )
 
+    def record_retry(
+        self,
+        *,
+        role: str,
+        reason: str,
+        attempt: int = 1,
+    ) -> None:
+        self.retries.append({
+            "role": role,
+            "reason": reason,
+            "attempt": attempt,
+            "timestamp": time.time(),
+        })
+
+    def discard_last_call(self, *, reason: str = "") -> None:
+        if self.calls:
+            last = self.calls.pop()
+            self.calls.append(
+                LLMCallRecord(
+                    role=last.role,
+                    latency_ms=last.latency_ms,
+                    input_tokens=last.input_tokens,
+                    output_tokens=last.output_tokens,
+                    cost=last.cost,
+                    is_retry=last.is_retry,
+                    is_discarded=True,
+                )
+            )
+            self.record_retry(role=last.role, reason=reason or "discarded_last_call")
+
     @property
     def model_calls(self) -> int:
-        return len(self.calls)
+        return len([c for c in self.calls if not c.is_discarded])
+
+    @property
+    def total_retries(self) -> int:
+        return len(self.retries)
 
     @property
     def total_input_tokens(self) -> int | None:
-        tokens = [c.input_tokens for c in self.calls if c.input_tokens is not None]
+        tokens = [c.input_tokens for c in self.calls if not c.is_discarded and c.input_tokens is not None]
         return sum(tokens) if tokens else None
 
     @property
     def total_output_tokens(self) -> int | None:
-        tokens = [c.output_tokens for c in self.calls if c.output_tokens is not None]
+        tokens = [c.output_tokens for c in self.calls if not c.is_discarded and c.output_tokens is not None]
         return sum(tokens) if tokens else None
 
     @property
     def total_cost(self) -> float | None:
-        costs = [c.cost for c in self.calls if c.cost is not None]
+        costs = [c.cost for c in self.calls if not c.is_discarded and c.cost is not None]
         return sum(costs) if costs else None
 
 
@@ -160,18 +202,48 @@ class _TrackingResponsesNamespace:
 
     def create(self, *args: Any, **kwargs: Any) -> Any:
         start = time.monotonic()
+        is_stream = bool(kwargs.get("stream"))
         response = self._target.create(*args, **kwargs)
-        duration_ms = max(0, int((time.monotonic() - start) * 1000))
-        input_tokens, output_tokens = _extract_usage(response)
+        if not is_stream:
+            duration_ms = max(0, int((time.monotonic() - start) * 1000))
+            input_tokens, output_tokens = _extract_usage(response)
+            role = self._get_role()
+            self._tracker.record_call(
+                role=role,
+                latency_ms=duration_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cost=_extract_cost(response),
+            )
+            return response
+
         role = self._get_role()
-        self._tracker.record_call(
-            role=role,
-            latency_ms=duration_ms,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            cost=_extract_cost(response),
-        )
-        return response
+        tracker = self._tracker
+
+        def _stream_generator() -> Any:
+            completed_resp = None
+            try:
+                for event in response:
+                    if getattr(event, "type", None) == "response.completed":
+                        completed_resp = getattr(event, "response", None)
+                    yield event
+                duration_ms = max(0, int((time.monotonic() - start) * 1000))
+                input_tokens, output_tokens = _extract_usage(completed_resp)
+                tracker.record_call(
+                    role=role,
+                    latency_ms=duration_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost=_extract_cost(completed_resp),
+                )
+            except Exception as stream_err:
+                tracker.record_retry(
+                    role=role,
+                    reason=f"stream_failed: {type(stream_err).__name__}",
+                )
+                raise
+
+        return _stream_generator()
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._target, name)
@@ -190,18 +262,47 @@ class _TrackingChatCompletionsNamespace:
 
     def create(self, *args: Any, **kwargs: Any) -> Any:
         start = time.monotonic()
+        is_stream = bool(kwargs.get("stream"))
         response = self._target.create(*args, **kwargs)
-        duration_ms = max(0, int((time.monotonic() - start) * 1000))
-        input_tokens, output_tokens = _extract_usage(response)
+        if not is_stream:
+            duration_ms = max(0, int((time.monotonic() - start) * 1000))
+            input_tokens, output_tokens = _extract_usage(response)
+            role = self._get_role()
+            self._tracker.record_call(
+                role=role,
+                latency_ms=duration_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cost=_extract_cost(response),
+            )
+            return response
+
         role = self._get_role()
-        self._tracker.record_call(
-            role=role,
-            latency_ms=duration_ms,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            cost=_extract_cost(response),
-        )
-        return response
+        tracker = self._tracker
+
+        def _stream_generator() -> Any:
+            last_chunk = None
+            try:
+                for chunk in response:
+                    last_chunk = chunk
+                    yield chunk
+                duration_ms = max(0, int((time.monotonic() - start) * 1000))
+                input_tokens, output_tokens = _extract_usage(last_chunk)
+                tracker.record_call(
+                    role=role,
+                    latency_ms=duration_ms,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost=_extract_cost(last_chunk),
+                )
+            except Exception as stream_err:
+                tracker.record_retry(
+                    role=role,
+                    reason=f"stream_failed: {type(stream_err).__name__}",
+                )
+                raise
+
+        return _stream_generator()
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._target, name)

@@ -158,6 +158,256 @@ class OpenAIAnalysisWriterTests(unittest.TestCase):
         self.assertEqual(res[0]["text"], "Fenced text")
 
 
+class _ChunkedResponses:
+    def __init__(
+        self,
+        chunks: list[str],
+        *,
+        fail_stream: bool = False,
+        fail_after_deltas: int | None = None,
+    ) -> None:
+        self.chunks = chunks
+        self.fail_stream = fail_stream
+        self.fail_after_deltas = fail_after_deltas
+        self.calls: list[dict] = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        if kwargs.get("stream"):
+            if self.fail_stream:
+                raise RuntimeError("Responses stream error simulation")
+
+            def _event_generator():
+                for idx, c in enumerate(self.chunks):
+                    if self.fail_after_deltas is not None and idx >= self.fail_after_deltas:
+                        raise RuntimeError("Simulated mid-stream failure after deltas")
+                    yield SimpleNamespace(type="response.output_text.delta", delta=c)
+                full_text = "".join(self.chunks)
+                yield SimpleNamespace(
+                    type="response.completed",
+                    response=SimpleNamespace(output_text=full_text, status="completed"),
+                )
+
+            return _event_generator()
+
+        full_text = "".join(self.chunks)
+        return SimpleNamespace(output_text=full_text, status="completed")
+
+
+class _ChunkedChatCompletions:
+    def __init__(self, chunks: list[str], *, fail_stream: bool = False) -> None:
+        self.chunks = chunks
+        self.fail_stream = fail_stream
+        self.calls: list[dict] = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        if kwargs.get("stream"):
+            if self.fail_stream:
+                raise RuntimeError("Stream error simulation")
+            return [
+                SimpleNamespace(
+                    choices=[SimpleNamespace(delta=SimpleNamespace(content=c))]
+                )
+                for c in self.chunks
+            ]
+        # Non-streamed response
+        full_text = "".join(self.chunks)
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content=full_text))]
+        )
+
+
+class StreamingWriterTests(unittest.TestCase):
+    def test_streaming_json_text_extractor_extracts_only_prose(self) -> None:
+        from thesis_api.analysis_writer import StreamingJsonTextExtractor
+
+        emitted: list[str] = []
+        extractor = StreamingJsonTextExtractor(emitted.append)
+
+        # Feed JSON in arbitrary chunks
+        raw_chunks = [
+            '{"sentences": [{"text": "ACB ',
+            'đạt ROE 21,75%',
+            ' trong năm 2024.", "fact_ids": ["fact-1"]}',
+            ', {"text": "Tỷ lệ nợ xấu ở mức thấp.", ',
+            '"fact_ids": ["fact-2"]}]}',
+        ]
+        for c in raw_chunks:
+            extractor.feed(c)
+
+        full_prose = "".join(emitted)
+        self.assertIn("ACB đạt ROE 21,75% trong năm 2024.", full_prose)
+        self.assertIn("Tỷ lệ nợ xấu ở mức thấp.", full_prose)
+        self.assertNotIn("{", full_prose)
+        self.assertNotIn("}", full_prose)
+        self.assertNotIn("fact_ids", full_prose)
+        self.assertNotIn("fact-1", full_prose)
+        self.assertNotIn("sentences", full_prose)
+
+    def test_writer_stream_produces_byte_identical_result_to_non_streamed(self) -> None:
+        findings_resp = {
+            "sentences": [
+                {
+                    "text": "ACB đạt ROE 21,75% trong năm 2024.",
+                    "fact_ids": ["fact-1"],
+                }
+            ]
+        }
+        json_str = json.dumps(findings_resp)
+        # Split into 5-char chunks
+        chunks = [json_str[i:i+5] for i in range(0, len(json_str), 5)]
+
+        # 1. Non-streamed
+        client_non_stream = SimpleNamespace(
+            chat=SimpleNamespace(completions=_ChunkedChatCompletions(chunks))
+        )
+        writer_non_stream = OpenAIAnalysisWriter(client=client_non_stream, model="test-model")
+        facts = [{"fact_id": "fact-1", "mo_ta": "ROE", "hien_thi": "21,75%"}]
+        res_non_stream = writer_non_stream.write_findings(
+            role="company",
+            question="Đánh giá ACB?",
+            question_type="lookup",
+            facts=facts,
+            datasets_summary=[],
+        )
+
+        # 2. Streamed with on_delta
+        deltas: list[str] = []
+        client_stream = SimpleNamespace(
+            chat=SimpleNamespace(completions=_ChunkedChatCompletions(chunks))
+        )
+        writer_stream = OpenAIAnalysisWriter(client=client_stream, model="test-model")
+        res_stream = writer_stream.write_findings(
+            role="company",
+            question="Đánh giá ACB?",
+            question_type="lookup",
+            facts=facts,
+            datasets_summary=[],
+            on_delta=deltas.append,
+        )
+
+        # Parsed output must be identical
+        self.assertEqual(res_stream, res_non_stream)
+        # on_delta must have been called
+        self.assertGreater(len(deltas), 0)
+        streamed_text = "".join(deltas)
+        self.assertIn("ACB đạt ROE 21,75% trong năm 2024.", streamed_text)
+        self.assertNotIn("{", streamed_text)
+        self.assertNotIn("fact_ids", streamed_text)
+
+    def test_writer_streaming_failure_falls_back_silently_to_non_stream(self) -> None:
+        findings_resp = {"sentences": [{"text": "Fallback text", "fact_ids": ["f1"]}]}
+        json_str = json.dumps(findings_resp)
+        chunks = [json_str]
+
+        # Fails when stream=True is requested
+        client_failing_stream = SimpleNamespace(
+            chat=SimpleNamespace(completions=_ChunkedChatCompletions(chunks, fail_stream=True))
+        )
+        writer = OpenAIAnalysisWriter(client=client_failing_stream, model="test-model")
+        deltas: list[str] = []
+        res = writer.write_findings(
+            role="company",
+            question="q",
+            question_type="lookup",
+            facts=[{"fact_id": "f1", "mo_ta": "m", "hien_thi": "1"}],
+            datasets_summary=[],
+            on_delta=deltas.append,
+        )
+        # Seamlessly falls back and succeeds
+        self.assertEqual(res[0]["text"], "Fallback text")
+
+    def test_writer_responses_streaming_produces_identical_result_and_emits_deltas(self) -> None:
+        findings_resp = {
+            "sentences": [
+                {
+                    "text": "VCB có tỷ lệ bao phủ nợ xấu đạt 279,3% trong quý 2/2026.",
+                    "fact_ids": ["fact-vcb-1"],
+                }
+            ]
+        }
+        json_str = json.dumps(findings_resp)
+        chunks = [json_str[i:i+6] for i in range(0, len(json_str), 6)]
+
+        # 1. Non-streamed call with a client that HAS .responses
+        client_non_stream = SimpleNamespace(
+            responses=_ChunkedResponses(chunks)
+        )
+        writer_non_stream = OpenAIAnalysisWriter(client=client_non_stream, model="test-model")
+        facts = [{"fact_id": "fact-vcb-1", "mo_ta": "LLR", "hien_thi": "279,3%"}]
+        res_non_stream = writer_non_stream.write_findings(
+            role="company",
+            question="Xếp hạng nợ xấu?",
+            question_type="ranking",
+            facts=facts,
+            datasets_summary=[],
+        )
+
+        # 2. Streamed call with a client that HAS .responses
+        deltas: list[str] = []
+        client_stream = SimpleNamespace(
+            responses=_ChunkedResponses(chunks)
+        )
+        writer_stream = OpenAIAnalysisWriter(client=client_stream, model="test-model")
+        res_stream = writer_stream.write_findings(
+            role="company",
+            question="Xếp hạng nợ xấu?",
+            question_type="ranking",
+            facts=facts,
+            datasets_summary=[],
+            on_delta=deltas.append,
+        )
+
+        # Assertions
+        self.assertEqual(res_stream, res_non_stream)
+        self.assertGreater(len(deltas), 0)
+        streamed_text = "".join(deltas)
+        self.assertIn("VCB có tỷ lệ bao phủ nợ xấu đạt 279,3% trong quý 2/2026.", streamed_text)
+        self.assertNotIn("{", streamed_text)
+        self.assertNotIn("fact_ids", streamed_text)
+
+    def test_writer_responses_streaming_failure_discards_draft_and_records_retry(self) -> None:
+        findings_resp = {
+            "sentences": [
+                {
+                    "text": "VCB dẫn đầu sau khi thử lại.",
+                    "fact_ids": ["fact-1"],
+                }
+            ]
+        }
+        json_str = json.dumps(findings_resp)
+        chunks = [json_str[i:i+5] for i in range(0, len(json_str), 5)]
+
+        # Fails after emitting text chunks (so deltas WERE emitted)
+        client_failing = SimpleNamespace(
+            responses=_ChunkedResponses(chunks, fail_after_deltas=7)
+        )
+        writer = OpenAIAnalysisWriter(client=client_failing, model="test-model")
+        deltas: list[str] = []
+        discard_called = []
+
+        res = writer.write_findings(
+            role="company",
+            question="q",
+            question_type="ranking",
+            facts=[{"fact_id": "fact-1", "mo_ta": "m", "hien_thi": "1"}],
+            datasets_summary=[],
+            on_delta=deltas.append,
+            on_discard=lambda: discard_called.append(True),
+        )
+
+        # Deltas were emitted before the failure
+        self.assertGreater(len(deltas), 0)
+        # Discard callback was invoked
+        self.assertEqual(len(discard_called), 1)
+        # Retry was recorded
+        self.assertEqual(writer.retry_count, 1)
+        self.assertEqual(len(writer.retries), 1)
+        # Fallback non-streamed succeeded
+        self.assertEqual(res[0]["text"], "VCB dẫn đầu sau khi thử lại.")
+
+
 if __name__ == "__main__":
     unittest.main()
 

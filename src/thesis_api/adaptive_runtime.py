@@ -176,6 +176,30 @@ from thesis_data.report_spec import normalize_report_spec_dict, validate_report_
 
 logger = logging.getLogger(__name__)
 
+VERDICT_REASON_EXPLANATIONS_VI: dict[str, str] = {
+    "missing_fact_citation": "Thiếu trích dẫn nguồn số liệu (fact_id)",
+    "unknown_fact": "Trích dẫn fact không tồn tại trong dữ liệu đã kiểm tra",
+    "causal_language": "Dùng từ ngữ suy diễn nguyên nhân (do, vì, nhờ, khiến...)",
+    "investment_advice": "Chứa khuyến nghị đầu tư hoặc mua/bán",
+    "entity_not_in_plan": "Nêu ngân hàng ngoài kế hoạch phân tích",
+    "number_mismatch": "Số liệu không khớp với báo cáo tài chính đã xác thực",
+    "period_not_cited": "Kỳ báo cáo không khớp với dữ liệu nguồn",
+    "count_mismatch": "Số lượng đối tượng so sánh không khớp",
+    "rank_mismatch": "Thứ hạng xếp hạng không khớp với kết quả tính toán",
+    "unit_mismatch": "Đơn vị tính không khớp với định dạng chuẩn",
+    "trend_without_delta": "Nhận định xu hướng nhưng thiếu số liệu biến động",
+    "trend_direction_mismatch": "Chiều xu hướng (tăng/giảm/đi ngang) không khớp dữ liệu",
+    "comparison_direction_mismatch": "Chiều so sánh (cao hơn/thấp hơn) không khớp dữ liệu",
+}
+
+
+def _get_verdict_explanation_vi(v_res: Any) -> str:
+    if getattr(v_res, "ok", False):
+        return "Số liệu và chiều so sánh khớp dữ liệu gốc"
+    code = getattr(v_res, "reason_code", None) or ""
+    return VERDICT_REASON_EXPLANATIONS_VI.get(code) or getattr(v_res, "reason", None) or "Không đạt tiêu chuẩn kiểm tra"
+
+
 _COMPARE_TERMS = (
     "so sánh", "so sanh", "đối thủ", "doi thu", "đối chuẩn", "doi chuan",
     "peer", "compare", "comparison", "sector", "benchmark", "trung vị", "trung vi",
@@ -1165,22 +1189,6 @@ class _AdaptiveRun:
             raise AnalysisBlocked("peer_benchmark_unavailable", "The accepted provider cannot resolve peer benchmarks.")
 
         # Plan and capability validation are complete before any role retrieves observations.
-        plan_created_payload = {
-            "requiredSpecialists": self._active_roles(plan),
-            "period": period,
-            "periods": list(periods),
-            "planSummary": "Frozen provider-bound plan with exact ordered period scope and accepted snapshot identity.",
-            "message": f"Bound to accepted snapshot {self.dataset_ref.dataset_snapshot_id}.",
-        }
-        if self.spec is not None:
-            plan_created_payload["questionType"] = self.spec.question_type
-            plan_created_payload["plannerSource"] = self.planner_source
-            plan_created_payload["plannerFallbackReasons"] = list(self.fallback_reasons)
-            plan_created_payload["rationaleVi"] = self.spec.rationale
-            plan_created_payload["tools"] = [{"tool": t.tool, "params": t.params} for t in self.spec.tools]
-        self.emit("PLAN_CREATED", plan_created_payload)
-
-        # Trace plan step
         active_specialists = self._active_roles(plan)
         q_type_str = self.spec.question_type if self.spec else (getattr(plan, "question_type", None) or "lookup")
         plan_tools_detail = [
@@ -1191,14 +1199,36 @@ class _AdaptiveRun:
             }
             for t in (self.spec.tools if self.spec and getattr(self.spec, "tools", None) else [])
         ]
+        plan_summary_text = summary_plan(
+            question_type=q_type_str,
+            tools=plan_tools_detail,
+            active_agents=active_specialists,
+        )
+
+        plan_created_payload = {
+            "questionType": q_type_str,
+            "entities": list(plan.scope.entities),
+            "metrics": list(plan.scope.metric_ids),
+            "period": period,
+            "periods": list(periods),
+            "specialistsCalled": active_specialists,
+            "requiredSpecialists": active_specialists,
+            "planSummary": plan_summary_text,
+            "message": f"Bound to accepted snapshot {self.dataset_ref.dataset_snapshot_id}.",
+            "tools": plan_tools_detail,
+        }
+        if self.spec is not None:
+            plan_created_payload["plannerSource"] = self.planner_source
+            plan_created_payload["plannerFallbackReasons"] = list(self.fallback_reasons)
+            plan_created_payload["rationaleVi"] = self.spec.rationale
+            plan_created_payload["rawTools"] = [{"tool": t.tool, "params": t.params} for t in self.spec.tools]
+        self.emit("PLAN_CREATED", plan_created_payload)
+
+        # Trace plan step
         self._trace(
             kind="plan",
             actor="orchestrator",
-            summary=summary_plan(
-                question_type=q_type_str,
-                tools=plan_tools_detail,
-                active_agents=active_specialists,
-            ),
+            summary=plan_summary_text,
             detail={
                 "question_type": q_type_str,
                 "planner_source": self.planner_source or "rules",
@@ -1437,15 +1467,60 @@ class _AdaptiveRun:
                 for tool_call in ag_tools:
                     tool_fn = TOOLS.get(tool_call.tool)
                     if tool_fn is not None:
+                        p = tool_call.params if isinstance(tool_call.params, dict) else (tool_call.params.__dict__ if hasattr(tool_call.params, "__dict__") else {})
+                        ents = []
+                        if p.get("entity_id"): ents.append(str(p["entity_id"]))
+                        if p.get("target_entity"): ents.append(str(p["target_entity"]))
+                        if p.get("compare_entity"): ents.append(str(p["compare_entity"]))
+                        if isinstance(p.get("entities"), (list, tuple)): ents.extend(str(x) for x in p["entities"])
+                        if isinstance(p.get("peers"), (list, tuple)): ents.extend(str(x) for x in p["peers"])
+                        entities_arg = list(dict.fromkeys(ents))
+
+                        mets = []
+                        if p.get("metric_id"): mets.append(str(p["metric_id"]))
+                        if isinstance(p.get("metrics"), (list, tuple)): mets.extend(str(x) for x in p["metrics"])
+                        if isinstance(p.get("metric_ids"), (list, tuple)): mets.extend(str(x) for x in p["metric_ids"])
+                        metrics_arg = list(dict.fromkeys(mets))
+
+                        pers = []
+                        if p.get("period"): pers.append(str(p["period"]))
+                        if isinstance(p.get("periods"), (list, tuple)): pers.extend(str(x) for x in p["periods"])
+                        periods_arg = list(dict.fromkeys(pers))
+
+                        public_arguments = {
+                            "entities": entities_arg,
+                            "metrics": metrics_arg,
+                            "periods": periods_arg,
+                        }
+                        t_label = TOOL_LABELS_VI.get(tool_call.tool, tool_call.tool)
+
+                        self.emit("TOOL_STARTED", {
+                            "tool": tool_call.tool,
+                            "agent": ag,
+                            "label": t_label,
+                            "arguments": public_arguments,
+                        })
+                        t_start = time.monotonic()
                         try:
                             res = tool_fn(tool_ctx, tool_call.params)
+                            duration_ms = max(0, int((time.monotonic() - t_start) * 1000))
+                            self.emit("TOOL_COMPLETED", {
+                                "tool": tool_call.tool,
+                                "agent": ag,
+                                "label": t_label,
+                                "arguments": public_arguments,
+                                "result_count": len(res.facts),
+                                "fact_count": len(res.facts),
+                                "dataset_count": len(res.datasets),
+                                "missing_count": len(res.missing),
+                                "duration_ms": duration_ms,
+                            })
                             tool_facts.extend(res.facts)
                             tool_datasets.extend(res.datasets)
                             tool_missing.extend(res.missing)
                             tool_facts_by_agent[ag].extend(res.facts)
                             tool_datasets_by_agent[ag].extend(res.datasets)
 
-                            t_label = TOOL_LABELS_VI.get(tool_call.tool, tool_call.tool)
                             self._trace(
                                 kind="tool_result",
                                 actor=ag,  # type: ignore
@@ -1453,6 +1528,9 @@ class _AdaptiveRun:
                                 detail={
                                     "tool": tool_call.tool,
                                     "label": t_label,
+                                    "arguments": public_arguments,
+                                    "result_count": len(res.facts),
+                                    "duration_ms": duration_ms,
                                     "facts": [
                                         {
                                             "fact_id": f.fact_id,
@@ -1664,15 +1742,54 @@ class _AdaptiveRun:
                 r_facts = role_facts_map[role]
                 if not r_facts:
                     continue
-                try:
-                    findings_raw = self.writer.write_findings(
-                        role=role,
-                        question=self.request.query,
-                        question_type=q_type,
-                        facts=self._facts_payload(r_facts),
-                        datasets_summary=self._datasets_summary(role_datasets_map[role]),
-                        candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
+                draft_chunks: list[str] = []
+
+                def _on_findings_delta(delta: str, ag_role: str = role) -> None:
+                    draft_chunks.append(delta)
+                    self.emit(
+                        "WRITER_DRAFT_DELTA",
+                        {
+                            "role": ag_role,
+                            "kind": "findings",
+                            "delta": delta,
+                        },
                     )
+
+                def _on_findings_discard(ag_role: str = role) -> None:
+                    draft_chunks.clear()
+                    self.emit(
+                        "WRITER_DRAFT_DISCARDED",
+                        {
+                            "role": ag_role,
+                            "kind": "findings",
+                            "reason": "stream_failed_retry",
+                        },
+                    )
+
+                try:
+                    try:
+                        findings_raw = self.writer.write_findings(
+                            role=role,
+                            question=self.request.query,
+                            question_type=q_type,
+                            facts=self._facts_payload(r_facts),
+                            datasets_summary=self._datasets_summary(role_datasets_map[role]),
+                            candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
+                            on_delta=_on_findings_delta,
+                            on_discard=_on_findings_discard,
+                        )
+                    except TypeError as t_err:
+                        if "on_delta" in str(t_err) or "on_discard" in str(t_err):
+                            findings_raw = self.writer.write_findings(
+                                role=role,
+                                question=self.request.query,
+                                question_type=q_type,
+                                facts=self._facts_payload(r_facts),
+                                datasets_summary=self._datasets_summary(role_datasets_map[role]),
+                                candidates=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates] if role == "company" else [],
+                            )
+                        else:
+                            raise
                 except Exception as exc:
                     orig = exc.__cause__ or exc
                     logger.warning("Writer write_findings for %s failed: %s (%s: %s)", role, exc, type(orig).__name__, orig)
@@ -1693,11 +1810,13 @@ class _AdaptiveRun:
 
                 # Emit draft step for this role
                 if role_sentences:
+                    full_draft_text = "".join(draft_chunks).strip() or "\n".join(s.text for s in role_sentences)
                     self._trace(
                         kind="draft",
                         actor=role,  # type: ignore
                         summary=summary_draft(role, len(role_sentences)),
                         detail={
+                            "draft_text": full_draft_text,
                             "sentences": [
                                 {
                                     "sentence_id": s.sentence_id,
@@ -1712,6 +1831,7 @@ class _AdaptiveRun:
 
                 # Verify specialist sentences
                 role_dropped: list[SentenceDroppedDTO] = []
+                role_verdicts: list[dict[str, Any]] = []
                 role_numbers_checked = 0
                 role_numbers_matched = 0
                 for sent in role_sentences:
@@ -1720,6 +1840,19 @@ class _AdaptiveRun:
                     role_numbers_matched += v_res.numbers_matched
                     if v_res.ok:
                         accepted_specialist_sentences.append(sent)
+                        v_payload = {
+                            "sentence_id": sent.sentence_id,
+                            "author": sent.author,
+                            "text": sent.text,
+                            "verdict": "kept",
+                            "reason_code": None,
+                            "explanation": "Số liệu và chiều so sánh khớp dữ liệu gốc",
+                            "fact_ids": list(getattr(sent, "fact_ids", ())),
+                            "numbers_checked": v_res.numbers_checked,
+                            "numbers_matched": v_res.numbers_matched,
+                        }
+                        self.emit("SENTENCE_VERDICT", v_payload)
+                        role_verdicts.append(v_payload)
                     else:
                         drop_dto = SentenceDroppedDTO(
                             sentence_id=sent.sentence_id,
@@ -1733,6 +1866,19 @@ class _AdaptiveRun:
                         role_dropped.append(drop_dto)
                         early_dropped_numbers_checked += v_res.numbers_checked
                         early_dropped_numbers_matched += v_res.numbers_matched
+                        v_payload = {
+                            "sentence_id": sent.sentence_id,
+                            "author": sent.author,
+                            "text": sent.text,
+                            "verdict": "dropped",
+                            "reason_code": v_res.reason_code or "unknown_fact",
+                            "explanation": _get_verdict_explanation_vi(v_res),
+                            "fact_ids": list(getattr(sent, "fact_ids", ())),
+                            "numbers_checked": v_res.numbers_checked,
+                            "numbers_matched": v_res.numbers_matched,
+                        }
+                        self.emit("SENTENCE_VERDICT", v_payload)
+                        role_verdicts.append(v_payload)
 
                 if role_sentences:
                     self._trace(
@@ -1747,6 +1893,7 @@ class _AdaptiveRun:
                             "sentences_checked": len(role_sentences),
                             "numbers_checked": role_numbers_checked,
                             "numbers_matched": role_numbers_matched,
+                            "verdicts": role_verdicts,
                             "dropped": [
                                 {
                                     "sentence_id": d.sentence_id,
@@ -1763,19 +1910,62 @@ class _AdaptiveRun:
         # 2. Orchestrator compose report
         self.emit("SYNTHESIS_STARTED", {"periods": list(periods), "message": "The orchestrator is composing the block-structured report."})
         raw_spec_dict = None
-        try:
-            raw_spec_dict = self.writer.compose_report(
-                question=self.request.query,
-                question_type=q_type,
-                sentences=[
-                    {"sentence_id": s.sentence_id, "author": s.author, "text": s.text, "fact_ids": list(s.fact_ids)}
-                    for s in accepted_specialist_sentences
-                ],
-                datasets_summary=self._datasets_summary(tool_datasets),
-                signals=[s.model_dump() for s in signals],
-                findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
-                facts=self._facts_payload(verified_facts),
+        compose_draft_chunks: list[str] = []
+
+        def _on_compose_delta(delta: str) -> None:
+            compose_draft_chunks.append(delta)
+            self.emit(
+                "WRITER_DRAFT_DELTA",
+                {
+                    "role": "orchestrator",
+                    "kind": "compose",
+                    "delta": delta,
+                },
             )
+
+        def _on_compose_discard() -> None:
+            compose_draft_chunks.clear()
+            self.emit(
+                "WRITER_DRAFT_DISCARDED",
+                {
+                    "role": "orchestrator",
+                    "kind": "compose",
+                    "reason": "stream_failed_retry",
+                },
+            )
+
+        try:
+            try:
+                raw_spec_dict = self.writer.compose_report(
+                    question=self.request.query,
+                    question_type=q_type,
+                    sentences=[
+                        {"sentence_id": s.sentence_id, "author": s.author, "text": s.text, "fact_ids": list(s.fact_ids)}
+                        for s in accepted_specialist_sentences
+                    ],
+                    datasets_summary=self._datasets_summary(tool_datasets),
+                    signals=[s.model_dump() for s in signals],
+                    findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
+                    facts=self._facts_payload(verified_facts),
+                    on_delta=_on_compose_delta,
+                    on_discard=_on_compose_discard,
+                )
+            except TypeError as t_err:
+                if "on_delta" in str(t_err) or "on_discard" in str(t_err):
+                    raw_spec_dict = self.writer.compose_report(
+                        question=self.request.query,
+                        question_type=q_type,
+                        sentences=[
+                            {"sentence_id": s.sentence_id, "author": s.author, "text": s.text, "fact_ids": list(s.fact_ids)}
+                            for s in accepted_specialist_sentences
+                        ],
+                        datasets_summary=self._datasets_summary(tool_datasets),
+                        signals=[s.model_dump() for s in signals],
+                        findings=[c.__dict__ if hasattr(c, "__dict__") else c for c in candidates],
+                        facts=self._facts_payload(verified_facts),
+                    )
+                else:
+                    raise
         except Exception as exc:
             orig = exc.__cause__ or exc
             logger.warning("Orchestrator compose_report failed: %s (%s: %s)", exc, type(orig).__name__, orig)
@@ -1826,6 +2016,20 @@ class _AdaptiveRun:
                     if v_res.ok:
                         spec_sentences.append(new_sent)
                         known_sentences_by_id[s_id] = new_sent
+                        self.emit(
+                            "SENTENCE_VERDICT",
+                            {
+                                "sentence_id": new_sent.sentence_id,
+                                "author": new_sent.author,
+                                "text": new_sent.text,
+                                "verdict": "kept",
+                                "reason_code": None,
+                                "explanation": "Số liệu và chiều so sánh khớp dữ liệu gốc",
+                                "fact_ids": list(new_sent.fact_ids),
+                                "numbers_checked": v_res.numbers_checked,
+                                "numbers_matched": v_res.numbers_matched,
+                            },
+                        )
                         return {
                             "sentence_id": new_sent.sentence_id,
                             "text": new_sent.text,
@@ -1845,6 +2049,20 @@ class _AdaptiveRun:
                         ))
                         early_dropped_numbers_checked += v_res.numbers_checked
                         early_dropped_numbers_matched += v_res.numbers_matched
+                        self.emit(
+                            "SENTENCE_VERDICT",
+                            {
+                                "sentence_id": s_id,
+                                "author": author,
+                                "text": text,
+                                "verdict": "dropped",
+                                "reason_code": v_res.reason_code or "unknown_fact",
+                                "explanation": _get_verdict_explanation_vi(v_res),
+                                "fact_ids": list(fact_ids),
+                                "numbers_checked": v_res.numbers_checked,
+                                "numbers_matched": v_res.numbers_matched,
+                            },
+                        )
                         return None
 
                 if b_type == "headline":
@@ -2113,6 +2331,7 @@ class _AdaptiveRun:
                 "kind": active_report_spec.kind,
                 "blocks": blocks_detail,
                 "composition_source": composition_source,
+                "draft_text": "".join(compose_draft_chunks).strip(),
             },
             recipient="critic" if arm == "hierarchical_with_critique" else "system",
         )
@@ -2192,12 +2411,26 @@ class _AdaptiveRun:
                     tool_limitations.append("Không thực hiện được phản biện tự động.")
 
                 if critic_result is not None:
+                    review_issues_payload = [
+                        {
+                            "issue_id": issue.issue_id,
+                            "issue_type": issue.issue_type.value if hasattr(issue.issue_type, "value") else str(issue.issue_type),
+                            "severity": issue.severity.value if hasattr(issue.severity, "value") else str(issue.severity),
+                            "target_sentence": getattr(issue, "target_text", "") or "",
+                            "target_sentence_id": getattr(issue, "target_sentence_id", None) or (issue.affected_sentence_ids[0] if getattr(issue, "affected_sentence_ids", None) else None),
+                            "required_action": issue.required_action.value if hasattr(issue.required_action, "value") else str(issue.required_action),
+                            "description": issue.description,
+                            "affected_agent": issue.affected_agent,
+                        }
+                        for issue in critic_result.critique_issues
+                    ]
                     self.emit("REVIEW_FEEDBACK_CREATED", {
                         "round": 1,
                         "periods": list(plan.scope.periods),
                         "issueCount": len(critic_result.critique_issues),
                         "openIssueCount": sum(issue.resolution_status is CritiqueIssueStatus.OPEN for issue in critic_result.critique_issues),
                         "message": "Structured semantic review completed.",
+                        "issues": review_issues_payload,
                     })
 
                     # Trace critique issues
@@ -2298,6 +2531,7 @@ class _AdaptiveRun:
 
                     # Perform round 1 revision if open issues
                     if open_issues:
+                        round1_revisions: list[dict[str, Any]] = []
                         self.emit("REVISION_REQUESTED", {
                             "round": 1,
                             "periods": list(plan.scope.periods),
@@ -2333,6 +2567,17 @@ class _AdaptiveRun:
                                                 reason_code="unresolved_critique",
                                                 reason=issue.description,
                                             ))
+                                            self.emit("SENTENCE_VERDICT", {
+                                                "sentence_id": drop_target.sentence_id,
+                                                "author": drop_target.author,
+                                                "text": drop_target.text,
+                                                "verdict": "dropped",
+                                                "reason_code": "unresolved_critique",
+                                                "explanation": f"Phản biện yêu cầu bỏ câu: {issue.description}",
+                                                "fact_ids": list(getattr(drop_target, "fact_ids", ())),
+                                                "numbers_checked": 0,
+                                                "numbers_matched": 0,
+                                            })
                                 if issue.affected_block_index is not None and issue.affected_block_index < len(active_report_spec.blocks):
                                     all_dropped_blocks.append(BlockDroppedDTO(
                                         type=active_report_spec.blocks[issue.affected_block_index].type,
@@ -2392,14 +2637,52 @@ class _AdaptiveRun:
                                 for s_id in affected_s_ids:
                                     orig_s = next((s for s in current_sentences if s.sentence_id == s_id), None)
                                     if orig_s:
-                                        try:
-                                            revised_dict = self.writer.rewrite_sentence(
-                                                role=orig_s.author,
-                                                question=self.request.query,
-                                                sentence={"text": orig_s.text, "fact_ids": list(orig_s.fact_ids)},
-                                                issue=issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__,
-                                                facts=self._facts_payload(verified_facts),
+                                        rev_draft_chunks: list[str] = []
+
+                                        def _on_rewrite_delta(delta: str, ag_role: str = orig_s.author) -> None:
+                                            rev_draft_chunks.append(delta)
+                                            self.emit(
+                                                "WRITER_DRAFT_DELTA",
+                                                {
+                                                    "role": ag_role,
+                                                    "kind": "rewrite",
+                                                    "delta": delta,
+                                                },
                                             )
+
+                                        def _on_rewrite_discard(ag_role: str = orig_s.author) -> None:
+                                            rev_draft_chunks.clear()
+                                            self.emit(
+                                                "WRITER_DRAFT_DISCARDED",
+                                                {
+                                                    "role": ag_role,
+                                                    "kind": "rewrite",
+                                                    "reason": "stream_failed_retry",
+                                                },
+                                            )
+
+                                        try:
+                                            try:
+                                                revised_dict = self.writer.rewrite_sentence(
+                                                    role=orig_s.author,
+                                                    question=self.request.query,
+                                                    sentence={"text": orig_s.text, "fact_ids": list(orig_s.fact_ids)},
+                                                    issue=issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__,
+                                                    facts=self._facts_payload(verified_facts),
+                                                    on_delta=_on_rewrite_delta,
+                                                    on_discard=_on_rewrite_discard,
+                                                )
+                                            except TypeError as t_err:
+                                                if "on_delta" in str(t_err) or "on_discard" in str(t_err):
+                                                    revised_dict = self.writer.rewrite_sentence(
+                                                        role=orig_s.author,
+                                                        question=self.request.query,
+                                                        sentence={"text": orig_s.text, "fact_ids": list(orig_s.fact_ids)},
+                                                        issue=issue.model_dump() if hasattr(issue, "model_dump") else issue.__dict__,
+                                                        facts=self._facts_payload(verified_facts),
+                                                    )
+                                                else:
+                                                    raise
                                             rev_s = NarrativeSentence(
                                                 sentence_id=orig_s.sentence_id,
                                                 author=orig_s.author,
@@ -2409,6 +2692,13 @@ class _AdaptiveRun:
                                                 revision=orig_s.revision + 1,
                                             )
                                             rev_v = verify_sentence(rev_s, v_ctx)
+                                            round1_revisions.append({
+                                                "sentence_id": orig_s.sentence_id,
+                                                "author": orig_s.author,
+                                                "before": orig_s.text,
+                                                "after": rev_s.text,
+                                                "verified": rev_v.ok,
+                                            })
                                             self._trace(
                                                 kind="revision",
                                                 actor=orig_s.author,  # type: ignore
@@ -2419,10 +2709,25 @@ class _AdaptiveRun:
                                                     "before": orig_s.text,
                                                     "after": rev_s.text,
                                                     "verified": rev_v.ok,
+                                                    "draft_text": "".join(rev_draft_chunks).strip() or rev_s.text,
                                                 },
                                                 recipient="verifier",
                                             )
                                             if rev_v.ok:
+                                                self.emit(
+                                                    "SENTENCE_VERDICT",
+                                                    {
+                                                        "sentence_id": rev_s.sentence_id,
+                                                        "author": rev_s.author,
+                                                        "text": rev_s.text,
+                                                        "verdict": "kept",
+                                                        "reason_code": None,
+                                                        "explanation": "Số liệu và chiều so sánh khớp dữ liệu gốc",
+                                                        "fact_ids": list(rev_s.fact_ids),
+                                                        "numbers_checked": rev_v.numbers_checked,
+                                                        "numbers_matched": rev_v.numbers_matched,
+                                                    },
+                                                )
                                                 # Replace sentence in spec
                                                 current_sentences = [
                                                     rev_s if s.sentence_id == orig_s.sentence_id else s
@@ -2473,6 +2778,20 @@ class _AdaptiveRun:
                                                         )
                                             else:
                                                 # Dropped
+                                                self.emit(
+                                                    "SENTENCE_VERDICT",
+                                                    {
+                                                        "sentence_id": rev_s.sentence_id,
+                                                        "author": rev_s.author,
+                                                        "text": rev_s.text,
+                                                        "verdict": "dropped",
+                                                        "reason_code": rev_v.reason_code or "unknown_fact",
+                                                        "explanation": _get_verdict_explanation_vi(rev_v),
+                                                        "fact_ids": list(rev_s.fact_ids),
+                                                        "numbers_checked": rev_v.numbers_checked,
+                                                        "numbers_matched": rev_v.numbers_matched,
+                                                    },
+                                                )
                                                 all_dropped_sentences.append(SentenceDroppedDTO(
                                                     sentence_id=orig_s.sentence_id,
                                                     author=orig_s.author,
@@ -2532,6 +2851,7 @@ class _AdaptiveRun:
                             "periods": list(plan.scope.periods),
                             "revisedSpecialists": sorted({i.affected_agent for i in open_issues}),
                             "synthesisRevised": True,
+                            "revisions": round1_revisions,
                         })
 
                         # Re-evaluate Stage-1 on current claims
@@ -2672,6 +2992,17 @@ class _AdaptiveRun:
                                             reason_code="unresolved_critique",
                                             reason=i.description,
                                         ))
+                                        self.emit("SENTENCE_VERDICT", {
+                                            "sentence_id": drop_target.sentence_id,
+                                            "author": drop_target.author,
+                                            "text": drop_target.text,
+                                            "verdict": "dropped",
+                                            "reason_code": "unresolved_critique",
+                                            "explanation": f"Chưa giải quyết phản biện: {i.description}",
+                                            "fact_ids": list(getattr(drop_target, "fact_ids", ())),
+                                            "numbers_checked": 0,
+                                            "numbers_matched": 0,
+                                        })
 
                         # Re-validate spec after round 2
                         val_after, drop_after = validate_report_spec(active_report_spec.model_dump(), tool_datasets, verified_facts)
@@ -2766,6 +3097,29 @@ class _AdaptiveRun:
             sweep_mat = 0
             verified_blks: list[Any] = []
 
+            def _handle_sweep_drop(sent_obj: Any, v_result: Any) -> None:
+                all_dropped_sentences.append(
+                    SentenceDroppedDTO(
+                        sentence_id=sent_obj.sentence_id,
+                        author=sent_obj.author,
+                        text=sent_obj.text,
+                        fact_ids=list(getattr(sent_obj, "fact_ids", ())),
+                        reason_code=v_result.reason_code or "unknown_fact",  # type: ignore
+                        reason=v_result.reason or "",
+                    )
+                )
+                self.emit("SENTENCE_VERDICT", {
+                    "sentence_id": sent_obj.sentence_id,
+                    "author": sent_obj.author,
+                    "text": sent_obj.text,
+                    "verdict": "dropped",
+                    "reason_code": v_result.reason_code or "unknown_fact",
+                    "explanation": _get_verdict_explanation_vi(v_result),
+                    "fact_ids": list(getattr(sent_obj, "fact_ids", ())),
+                    "numbers_checked": v_result.numbers_checked,
+                    "numbers_matched": v_result.numbers_matched,
+                })
+
             for blk in spec.blocks:
                 if blk.type == "headline":
                     n_sent = NarrativeSentence(
@@ -2782,16 +3136,7 @@ class _AdaptiveRun:
                     if v_res.ok:
                         verified_blks.append(blk)
                     else:
-                        all_dropped_sentences.append(
-                            SentenceDroppedDTO(
-                                sentence_id=blk.sentence.sentence_id,
-                                author=blk.sentence.author,
-                                text=blk.sentence.text,
-                                fact_ids=list(getattr(blk.sentence, "fact_ids", ())),
-                                reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                reason=v_res.reason or "",
-                            )
-                        )
+                        _handle_sweep_drop(blk.sentence, v_res)
                         replacement = _verified_required_sentences("headline")
                         blk.sentence = replacement[0] if replacement else SentenceDTO(
                             sentence_id="sent-fb-hl-safe",
@@ -2820,16 +3165,7 @@ class _AdaptiveRun:
                         if v_res.ok:
                             val_sents.append(s)
                         else:
-                            all_dropped_sentences.append(
-                                SentenceDroppedDTO(
-                                    sentence_id=s.sentence_id,
-                                    author=s.author,
-                                    text=s.text,
-                                    fact_ids=list(getattr(s, "fact_ids", ())),
-                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                    reason=v_res.reason or "",
-                                )
-                            )
+                            _handle_sweep_drop(s, v_res)
                     if not val_sents:
                         val_sents = _verified_required_sentences("answer")
                     blk.sentences = val_sents
@@ -2854,16 +3190,7 @@ class _AdaptiveRun:
                             if v_res.ok:
                                 it_sents.append(s)
                             else:
-                                all_dropped_sentences.append(
-                                    SentenceDroppedDTO(
-                                        sentence_id=s.sentence_id,
-                                        author=s.author,
-                                        text=s.text,
-                                        fact_ids=list(getattr(s, "fact_ids", ())),
-                                        reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                        reason=v_res.reason or "",
-                                    )
-                                )
+                                _handle_sweep_drop(s, v_res)
                         if it_sents:
                             item.sentences = it_sents
                             val_items.append(item)
@@ -2890,16 +3217,7 @@ class _AdaptiveRun:
                         if v_res.ok:
                             sec_sents.append(s)
                         else:
-                            all_dropped_sentences.append(
-                                SentenceDroppedDTO(
-                                    sentence_id=s.sentence_id,
-                                    author=s.author,
-                                    text=s.text,
-                                    fact_ids=list(getattr(s, "fact_ids", ())),
-                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                    reason=v_res.reason or "",
-                                )
-                            )
+                            _handle_sweep_drop(s, v_res)
                     if sec_sents:
                         blk.sentences = sec_sents
                         verified_blks.append(blk)
@@ -2923,16 +3241,7 @@ class _AdaptiveRun:
                         if v_res.ok:
                             c_sents.append(s)
                         else:
-                            all_dropped_sentences.append(
-                                SentenceDroppedDTO(
-                                    sentence_id=s.sentence_id,
-                                    author=s.author,
-                                    text=s.text,
-                                    fact_ids=list(getattr(s, "fact_ids", ())),
-                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                    reason=v_res.reason or "",
-                                )
-                            )
+                            _handle_sweep_drop(s, v_res)
                     if c_sents:
                         blk.sentences = c_sents
                         verified_blks.append(blk)
@@ -2953,16 +3262,7 @@ class _AdaptiveRun:
                         sweep_chk += v_res.numbers_checked
                         sweep_mat += v_res.numbers_matched
                         if not v_res.ok:
-                            all_dropped_sentences.append(
-                                SentenceDroppedDTO(
-                                    sentence_id=blk.takeaway.sentence_id,
-                                    author=blk.takeaway.author,
-                                    text=blk.takeaway.text,
-                                    fact_ids=list(getattr(blk.takeaway, "fact_ids", ())),
-                                    reason_code=v_res.reason_code or "unknown_fact",  # type: ignore
-                                    reason=v_res.reason or "",
-                                )
-                            )
+                            _handle_sweep_drop(blk.takeaway, v_res)
                             blk.takeaway = None
                     verified_blks.append(blk)
 

@@ -79,6 +79,7 @@ function AnalysisSessionWorkspaceContent({
     isStreaming,
     isDisconnected,
     reportId,
+    liveWorkState,
     retry
   } = useTraceStream({
     request: isLiveStream && activeRequest ? { query: activeRequest.query, upload_id: activeRequest.upload_id } : null,
@@ -86,7 +87,6 @@ function AnalysisSessionWorkspaceContent({
     apiEndpoint,
     capabilities,
     initialSteps: propSteps,
-    onReportReady: onViewReport,
     onBlocked
   });
 
@@ -120,6 +120,7 @@ function AnalysisSessionWorkspaceContent({
         live={isStreaming || (isLiveStream && !propSteps?.length)}
         reportId={reportId}
         isDisconnected={isDisconnected}
+        liveWorkState={liveWorkState}
         onOpenReport={onViewReport}
         onRetry={retry}
       />

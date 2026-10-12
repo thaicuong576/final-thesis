@@ -130,6 +130,12 @@ export interface PlanCreatedPayload {
   requiredSpecialists: SpecialistId[];
   planSummary: string;
   message: string;
+  questionType?: string;
+  entities?: string[];
+  metrics?: string[];
+  periods?: string[];
+  specialistsCalled?: string[];
+  tools?: string[];
 }
 
 export interface SpecialistInvokedPayload {
@@ -161,9 +167,69 @@ export interface ReviewStartedPayload {
   message?: string;
 }
 
+export interface ToolStartedPayload {
+  tool: string;
+  arguments?: {
+    entities?: string[];
+    metrics?: string[];
+    periods?: string[];
+    [key: string]: unknown;
+  };
+  role?: string;
+  message?: string;
+}
+
+export interface ToolCompletedPayload {
+  tool: string;
+  resultCount?: number;
+  durationMs?: number;
+  role?: string;
+  message?: string;
+}
+
+export interface WriterDraftDeltaPayload {
+  delta: string;
+  role: string;
+  callKind?: string;
+  kind?: string;
+  seq?: number;
+  discard?: boolean;
+}
+
+export interface WriterDraftDiscardedPayload {
+  role: string;
+  kind?: string;
+  reason?: string;
+}
+
+export interface SentenceVerdictPayload {
+  sentence: string;
+  verdict: 'kept' | 'dropped';
+  dropReason?: string | null;
+  explanationVi?: string;
+  factIds?: string[];
+  role?: string;
+}
+
+export interface ReviewIssue {
+  issue_type?: string;
+  target_sentence?: string;
+  required_action?: string;
+  description?: string;
+}
+
+export interface SentenceRevision {
+  before?: string;
+  after?: string;
+  verified?: boolean;
+}
+
 export interface ReviewFeedbackCreatedPayload {
-  invocationId: string;
-  review: ReviewFeedback;
+  invocationId?: string;
+  review?: ReviewFeedback;
+  issues?: ReviewIssue[];
+  round?: number;
+  message?: string;
 }
 
 export interface RevisionRequestedPayload {
@@ -180,8 +246,11 @@ export interface RevisionActivityPayload {
 }
 
 export interface RevisionCompletedPayload {
-  invocationId: string;
+  invocationId?: string;
   artifact?: SpecialistArtifactSummary;
+  revisions?: SentenceRevision[];
+  round?: number;
+  message?: string;
 }
 
 export interface SynthesisStartedPayload {
@@ -256,6 +325,11 @@ export type AnalysisSessionEvent =
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'SYNTHESIS_COMPLETED'; payload: SynthesisCompletedPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'REPORT_READY'; payload: ReportReadyPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'RUN_BLOCKED'; payload: RunBlockedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'TOOL_STARTED'; payload: ToolStartedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'TOOL_COMPLETED'; payload: ToolCompletedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'WRITER_DRAFT_DELTA'; payload: WriterDraftDeltaPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'WRITER_DRAFT_DISCARDED'; payload: WriterDraftDiscardedPayload }
+  | { eventId: string; sequence: number; occurredAtMs: number; type: 'SENTENCE_VERDICT'; payload: SentenceVerdictPayload }
   | { eventId: string; sequence: number; occurredAtMs: number; type: 'TRACE_STEP'; payload: TraceStep };
 
 export type AnalysisSessionEventType = AnalysisSessionEvent['type'];

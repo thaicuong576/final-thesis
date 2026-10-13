@@ -1,6 +1,6 @@
 # CHƯƠNG 3. PHƯƠNG PHÁP NGHIÊN CỨU
 
-Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng và kiểm soát dữ liệu, và thiết kế thực nghiệm so sánh ba cách tổ chức tác tử.
+Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng và kiểm soát dữ liệu, thiết kế thực nghiệm so sánh ba cách tổ chức tác tử, và bốn thực nghiệm bổ sung đo độ tin cậy của chính các cơ chế kiểm soát.
 
 ## 3.1. Cách tiếp cận nghiên cứu
 
@@ -16,7 +16,7 @@ Quy trình nghiên cứu gồm sáu bước (Hình 3.1):
 2. **Chuyển thành yêu cầu thiết kế:** chương trình tính mọi con số, mô hình ngôn ngữ chỉ diễn giải; mỗi số liệu truy được về trang báo cáo gốc; mọi câu nhận định qua bộ kiểm tra theo quy tắc; phản biện có giới hạn.
 3. **Xây dựng sản phẩm:** tầng lõi (tính chỉ tiêu, kiểm tra câu, kiểm tra cấu trúc báo cáo) và tầng ứng dụng (hiểu câu hỏi, lập kế hoạch, điều phối tác tử, giao diện web).
 4. **Kiểm tra kỹ thuật:** hơn 900 bài kiểm thử tự động, kiểm tra ranh giới kiến trúc và hợp đồng giao diện trước mỗi lần hợp nhất mã nguồn.
-5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước.
+5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước; bốn thực nghiệm bổ sung (E1, E2, E3, E5, mục 3.3.5) đo độ nhạy của bộ kiểm chứng, sự phụ thuộc vào mô hình, khả năng chống chịu trước câu hỏi đối kháng và khả năng số hóa từ báo cáo gốc.
 6. **Đánh giá:** chấm tự động theo quy tắc về độ chính xác số liệu, khả năng truy nguồn, độ bao phủ, khả năng từ chối câu hỏi ngoài phạm vi và chi phí (thời gian, lượt gọi mô hình, token).
 
 ```mermaid
@@ -36,6 +36,8 @@ flowchart TD
 - **RQ1 (thiết kế và truy nguồn)** được trả lời bằng kiến trúc và sản phẩm ở Chương 4: luồng đi từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt chuỗi bằng chứng.
 - **RQ2 (chia việc cho nhiều tác tử)** được trả lời bằng so sánh cấu hình B với A trên cùng kế hoạch và dữ liệu, đo cả chất lượng lẫn chi phí.
 - **RQ3 (phản biện và sửa đổi)** được trả lời bằng so sánh cấu hình C với B.
+
+Các thực nghiệm bổ sung ở mục 3.3.5 không trả lời một câu hỏi nghiên cứu riêng mà kiểm tra độ tin cậy của kết luận: bộ kiểm chứng câu có thật sự bắt được câu sai hay không (E1), kết luận có đổi theo mô hình hay không (E2), hệ thống có giữ được ranh giới trước câu hỏi đối kháng hay không (E3), và quy trình đưa số liệu vào hệ thống khó ở bước nào (E5).
 
 Nghiên cứu không mặc định nhiều tác tử hay phản biện luôn tốt hơn; kết luận dựa trên số liệu thực nghiệm.
 
@@ -162,11 +164,27 @@ Kết quả được chấm tự động theo quy tắc cố định, không dù
 
 Thực nghiệm chạy một lần cho mỗi cặp câu hỏi – cấu hình (36 lượt). Để rút ngắn thời gian, các lượt được chạy đồng thời; thời gian xử lý của mỗi lượt vì vậy được đo trong điều kiện máy chủ mô hình phục vụ nhiều yêu cầu cùng lúc và chỉ dùng để so sánh tương đối giữa các cấu hình.
 
+### 3.3.5. Các thực nghiệm bổ sung
+
+Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nhằm kiểm tra độ tin cậy của các cơ chế kiểm soát mà kết luận ở trên dựa vào. Cả bốn được chấm hoàn toàn bằng chương trình theo quy tắc cố định, không dùng mô hình ngôn ngữ tự chấm; E2 và E3 dùng bộ chỉ số ở Bảng 3.5, còn E1 và E5 dùng chỉ số riêng (tỷ lệ bắt được lỗi cài vào; tỷ lệ giá trị có mặt và được trích đúng).
+
+*Bảng 3.6: Các thực nghiệm bổ sung.*
+
+| Mã | Câu hỏi | Cách làm | Gọi mô hình |
+|---|---|---|---|
+| E1 – đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
+| E2 – nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với ba mô hình OpenAI, mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên mã mới để kiểm tra độ ổn định | Có |
+| E3 – đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
+| E5 – số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
+
+Để các lần chạy bổ sung không làm lệch kết luận chính, bốn nguyên tắc được áp dụng. Thứ nhất, mỗi thực nghiệm ghi rõ mô hình, phiên bản mã nguồn, số câu, số lần chạy và số token; E2 chỉ so sánh các mô hình trong cùng một phiên bản mã nguồn. Thứ hai, lần chạy bị lỗi cấu hình (chạy nhầm mô hình, gateway trả lỗi) được tách riêng và không đưa vào bảng kết quả nào. Thứ ba, khi chỉ chạy ít lần (ba lần), báo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy. Thứ tư, khi một thực nghiệm phát hiện lỗi của hệ thống, lỗi được sửa và chạy lại có kiểm soát, và kết quả trước và sau sửa được báo cùng nhau chứ không thay thế nhau (E3, Chương 5).
+
 ## 3.4. Giới hạn của phương pháp
 
 1. **Mẫu ngân hàng:** mười ngân hàng niêm yết lớn nhất là mẫu chọn có chủ đích, không đại diện cho toàn bộ ngân hàng thương mại Việt Nam. Số liệu do tác giả đối soát với sự hỗ trợ của công cụ, chưa qua kiểm tra của người thứ hai.
 2. **Chỉ tiêu:** chỉ có bốn chỉ tiêu về chất lượng tài sản và sinh lời; CAR, LDR, CASA, NIM chưa có trong dữ liệu.
 3. **Dữ liệu thiếu:** bộ dữ liệu đủ 100/100 ô nên thực nghiệm không có tình huống thiếu số liệu; khả năng xử lý ô thiếu chỉ được kiểm tra bằng bài kiểm thử tự động.
 4. **Chấm tự động:** bộ chấm kiểm tra tốt tính đúng của số liệu và cấu trúc, nhưng không đo văn phong, tính thuyết phục hay chiều sâu phân tích; không có chuyên gia chấm.
-5. **Một lần chạy, một mô hình:** đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
-6. **Không khuyến nghị đầu tư:** hệ thống chỉ tổng hợp thông tin và phân tích cơ bản; định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.
+5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên một mô hình; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
+6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** E1 đo trên các lỗi do chương trình sinh ra từ câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát.
+7. **Không khuyến nghị đầu tư:** hệ thống chỉ tổng hợp thông tin và phân tích cơ bản; định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.

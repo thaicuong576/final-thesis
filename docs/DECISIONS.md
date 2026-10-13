@@ -1749,7 +1749,7 @@ Evaluation runs across verifier mutation sensitivity (E1), model capability comp
    - Multi-run token volumes: E3 initial pass consumed 462,802 tokens; E3 post-fix consumed 210,080 tokens; E2 luna 3-rep reruns consumed 359,298 tokens.
 
 4. **Quarantine of Defective Runs**:
-   - An attempted DeepSeek gateway run failed due to an empty gateway wallet balance (zero responses returned) and was quarantined under `INVALID-deepseek-gateway-wallet-empty`.
+   - CORRECTION (2026-10-13, orchestrator, after re-reading the score files): the DeepSeek E2 runs (`deepseek-v4-flash-0731`, `deepseek-v4-pro-0813`, code `06611d9`, arm `hierarchical_no_critique`, 1 rep) are NOT invalid. Each has 12 run files with 10 non-error statuses plus the 2 expected refusals (flash: 3 completed, 7 accepted_with_limitations, 2 error; pro: 4 completed, 6 accepted_with_limitations, 2 error), numbers matched/checked 46/46 (flash, 219,356 tokens) and 32/32 (pro, 110,006 tokens). They are excluded from the E2 comparison table only by the user's decision (2026-10-13) to limit E2 to official-OpenAI runs. The directory was renamed `deepseek-e2-excluded-by-decision`. The empty-wallet failures were the E3 run (`e3-INVALID-gateway-wallet-empty`), not these E2 runs. The thesis' only A/B/C experiment (ER-9) used `deepseek-v4-pro-0813` and is unaffected.
    - Associated runs experiencing model environment overrides or 404 responses were quarantined under `INVALID-mislabeled-gateway`, `e3-INVALID-ran-flash`, and `e3-INVALID-gateway-wallet-empty`.
    - All invalid runs are cataloged in `experiments/RESULTS-INDEX.md` by SHA-256 and byte size; their run records are excluded from git to prevent polluting clean benchmarks.
 

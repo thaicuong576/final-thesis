@@ -1098,5 +1098,12 @@ Instead of brittle keyword blacklists or calling an LLM classifier, enforce a st
 - **Symptom**: During long-running evaluation campaigns with high concurrency (e.g. concurrent LLM calls and evaluation parsers), background watchers or subshell processes monitoring logs can be silently terminated or dropped by the operating system due to memory exhaustion.
 - **Prevention**: Run evaluation campaigns with bounded concurrency (concurrency 3 rather than 6 on local machines), avoid tight polling loops in monitoring shells, and persist progress markers directly into durable files (`manifest.json`, `run_r2.log`) to enable clean `--resume` without losing state.
 
+## [LESSON-055] Do not quarantine a run from the first rows of a score file
 
+- Date: 2026-10-13
+- Scope: `experiments/RESULTS-INDEX.md`, `docs/DECISIONS.md` (E2 DeepSeek rows)
+- Status: ACTIVE
 
+The two DeepSeek E2 runs were labelled `INVALID-deepseek-gateway-wallet-empty` after looking only at `head -3` of each `deterministic.csv`. Those first rows are R1/R2, the expected refusals, which have `status=error` in every valid run. Counting statuses and reading the manifest showed 10 of 12 non-error runs and matched numbers 46/46 and 32/32, i.e. the runs were valid; the empty-wallet failure belonged to the E3 run.
+
+Rule: classify a run as invalid only from a status count over all rows plus the manifest fields (model, tokens, completed/error counts) and the raw error text, never from the first rows. Excluding a valid run from a table is a recorded decision, not an invalidity.

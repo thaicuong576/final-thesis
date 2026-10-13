@@ -24,6 +24,7 @@ MESSAGES: dict[str, str] = {
     "upload_unaccepted": "Tệp tải lên chưa được chấp nhận hoặc có lỗi xác thực.",
     "upload_question_type_unsupported": "Dữ liệu tải lên chỉ hỗ trợ các dạng câu hỏi: tra cứu chỉ tiêu (lookup), hồ sơ ngân hàng (company_profile), và so sánh trực tiếp với 1 ngân hàng Gold (head_to_head).",
     "upload_period_mismatch": "Dữ liệu ngân hàng tải lên chỉ có số liệu cho kỳ được tải, không hỗ trợ kỳ khác.",
+    "out_of_scope": "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ.",
 }
 
 

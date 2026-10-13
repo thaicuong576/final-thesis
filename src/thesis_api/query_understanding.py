@@ -27,6 +27,7 @@ class ResolvedQuery:
     topic_metrics: tuple[str, ...]
     flags: frozenset[str]
     defaults_applied: tuple[str, ...]
+    raw_query: str = ""
 
 
 _MACRO_KEYWORDS = (
@@ -646,4 +647,5 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
         topic_metrics=tuple(topic_metrics_list),
         flags=frozenset(flags),
         defaults_applied=tuple(defaults_applied),
+        raw_query=query,
     )

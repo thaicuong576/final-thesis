@@ -258,7 +258,7 @@ A numeric claim must pass Stage-1. A numeric claim requires an accepted
 observation, accepted source, the observation's metric-specific source locator,
 and resolvable evidence. Missing locator/evidence or unsupported scope blocks
 the claim. SSE emits `REPORT_READY` only for the accepted runtime result and
-`RUN_BLOCKED` for errors; review/revision events reflect actual transitions. Readiness requires a runnable
+`RUN_BLOCKED` for errors; review/revision events reflect actual transitions. Queries outside the banking analysis domain are deterministically rejected with `out_of_scope` before planning or retrieval (D-083): inquiries pass if they specify banking entities, metrics, macro scope, or combine a banking-sector scope term with an analytic-intent cue (e.g. ranking or situation inquiries lacking explicit metrics), while non-analytic overrides (creative writing, translation, coding, non-catalog forecasting) fail closed even if banking terms are present; this gate is a deterministic keyword and parameter check, not an intent classifier. Readiness requires a runnable
 accepted snapshot. `SQLITE_DB_PATH` must point to an explicitly supplied
 validated snapshot; the ignored local Gold artifact is not packaged by Git or
 implicitly available on Render/Vercel. Do not infer consolidated or parent-only

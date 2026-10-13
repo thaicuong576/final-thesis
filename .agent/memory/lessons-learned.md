@@ -1057,3 +1057,23 @@ When $\text{Net Income}_{Q(t)} < 0$, $\text{YTD}_{Q(t)} < \text{YTD}_{Q(t-1)}$.
 - **Problem**: PDF extraction and OCR runners rely on platform-dependent binaries (`tesseract.exe`) and optional heavy C extensions (`PyMuPDF` / `fitz`). If unit tests or module-level imports require these binaries, CI test suites (`python -m unittest discover -s tests -q`) fail on environments lacking them.
 - **Solution**: Decouple parsing heuristics (`fold`, `candidates`, `classify_text_match`, `find_best_row_match`, `classify_extracted_value`) into pure Python functions that operate on strings and numbers. Import heavy libraries (`fitz`) lazily only within CLI execution entrypoints, and test all parsing behaviors via pure synthetic fixtures in `tests/test_e5_scripts.py`.
 
+---
+
+## [LESSON-054] Deterministic Query Scope Gating vs Permissive Default Fallback (SCOPE-1)
+
+- Date: 2026-10-13
+- Scope: `src/thesis_api/analysis_planner.py`, `src/thesis_api/messages_vi.py`, `contracts/openapi.json`, `tests/test_scope_gate.py`
+- Status: ACTIVE
+
+### 1. Root Cause of Out-of-Scope Escape
+In query planning architectures where query-type selection defaults to a fallback mode (e.g. `num_entities == 0` defaulting to `question_type = "ranking"` with the first catalog metric), out-of-scope or non-analytical user queries (such as poetry generation mentioning "ngân hàng" or commodity price forecasts like gold price) silently bypass domain boundaries and execute as arbitrary industry ranking reports. In E3 redteam testing, this caused 0/2 passing for the `out_of_scope` attack category (RED-13, RED-14).
+
+### 2. Deterministic Scope Gate Implementation
+Instead of brittle keyword blacklists or calling an LLM classifier, enforce a strict, fail-closed scope check (`validate_scope`) immediately following parameter resolution:
+- An input query is in-scope if and only if it declares at least one recognized bank entity, unknown potential ticker token, explicit financial metric, domain topic group, or macroeconomic scope.
+- If none of these conditions hold, fail closed with `AnalysisBlocked("out_of_scope", ...)` before invoking any model proposal (`model_plan`) or retrieving data.
+- The gate must be invoked in both `plan_question` (preventing model execution) and `rules_plan` (preventing rules fallback execution).
+- Isolated domain words such as "ngân hàng" alone must never be sufficient to cross the boundary.
+- Both synchronous `/api/analyze` and streaming `/api/analyze/stream` must propagate the failure: standard endpoints return error status, while SSE streams emit `RUN_BLOCKED` and never emit `REPORT_READY`.
+
+

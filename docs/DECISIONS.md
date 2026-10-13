@@ -1721,4 +1721,48 @@ Root cause analysis: In `src/thesis_api/analysis_planner.py`, when a user questi
 
 The scope gate is a deterministic keyword- and catalog-anchored gate, not an NLP intent classifier or statistical machine-learning model. It relies on resolved parameters, module-level keyword tuples, and regular-expression word boundaries to block obvious non-analytical requests and admit legitimate sector-level inquiries without requiring model calls. Adversarial prompts combining banking entities or metrics with out-of-scope instructions proceed to specialist planning and verifier checks rather than being blocked at the scope gate.
 
+## D-084: Durable Recording of E1-E3 Evaluation Results, SCOPE-1 Reruns, and Stability Audits
+
+Status: Accepted (2026-10-13). Scope: experiment records, harness robustness, and documentation.
+
+### Context & Evidence
+
+Evaluation runs across verifier mutation sensitivity (E1), model capability comparison (E2), adversarial red-teaming (E3), and post-fix reruns were executed and audited outside the main git lineage. To maintain scientific integrity and auditability, their results are integrated as durable, immutable records under `experiments/` accompanied by deterministic derivation tools and exact provenance markers.
+
+1. **SCOPE-1 Red-Team Rerun (E3 Post-fix)**:
+   - Initial run (code SHA `06611d9`, model `gpt-5.6-luna`, 45 runs, 462,802 tokens) demonstrated 13/15 expected behavior compliance per arm, failing only on the `out_of_scope` tasks RED-13 (poetry) and RED-14 (commodity forecasts) where unconstrained default ranking generated unrequested banking reports (0/2 met per arm).
+   - Post SCOPE-1 (PR #159, code SHA `b6344a4`), the rerun (`experiments/e3-postfix`, 24 runs across 8 tasks $\times$ 3 arms, 210,080 tokens) verified full 24/24 compliance (8/8 per arm; out_of_scope 2/2 per arm) with zero injected claims, recommendations, unsupported numbers, false premises, or wrong error codes.
+   - All three arms (`hierarchical_no_critique`, `hierarchical_with_critique`, `single_agent`) perform identically against adversarial prompts because safety and boundary enforcement reside in the shared deterministic pre-planning gate.
+
+2. **E2 Luna Stability Reruns (Current Main)**:
+   - Evaluated on current main (code SHA `b6344a4`, arm `hierarchical_no_critique`, model `gpt-5.6-luna`, 3 repetitions, 36 runs, 359,298 tokens) alongside the older single-run pass (code SHA `06611d9`, 118,802 tokens).
+   - Headline results confirmed stability: mean coverage across completed tasks is 0.917 (rep0: 0.900, rep1: 0.925, rep2: 0.925).
+   - Sentence discard rates settled between 5.1% and 7.3% (showing the older single run's 1.8% rate was an outlier at the lower bound).
+   - Numeric fidelity remained flawless across all repetitions (302/302 checked numbers matched, 100%), correct rejections were 6/6 (2/2 per rep), and traceability remained 1.000.
+   - In accordance with statistical standards, no confidence intervals are reported for $n=3$; results are reported as mean and min-max range.
+
+3. **E2 Model Comparison & Token Costs**:
+   - First-pass token consumption across models on code `06611d9`:
+     - `gpt-5.4-nano`: 100,106 accumulated tokens (mean coverage 0.812, discard rate 27.1%, numbers checked/matched 45/45).
+     - `gpt-5.4-mini`: 102,225 accumulated tokens (mean coverage 0.800, discard rate 22.6%, numbers checked/matched 69/69).
+     - `gpt-5.6-luna`: 118,802 accumulated tokens (mean coverage 0.931, discard rate 1.8%, numbers checked/matched 91/91).
+   - Multi-run token volumes: E3 initial pass consumed 462,802 tokens; E3 post-fix consumed 210,080 tokens; E2 luna 3-rep reruns consumed 359,298 tokens.
+
+4. **Quarantine of Defective Runs**:
+   - An attempted DeepSeek gateway run failed due to an empty gateway wallet balance (zero responses returned) and was quarantined under `INVALID-deepseek-gateway-wallet-empty`.
+   - Associated runs experiencing model environment overrides or 404 responses were quarantined under `INVALID-mislabeled-gateway`, `e3-INVALID-ran-flash`, and `e3-INVALID-gateway-wallet-empty`.
+   - All invalid runs are cataloged in `experiments/RESULTS-INDEX.md` by SHA-256 and byte size; their run records are excluded from git to prevent polluting clean benchmarks.
+
+5. **E1 Mutants Escapes Audit**:
+   - Post-hoc analysis (`experiments/mut1/E1-AUDIT.md`) of 71 escapes across 1,210 mutants revealed that 37 escapes (52.1%) were degenerate generator artifacts (e.g. self-comparisons).
+   - When degenerate cases are isolated, substantive catch rate is 97.4% (substantive n=396, caught=362).
+   - The verified residual limitation is `metric_swap` (catch rate 79.2%, 25/120 substantive escapes), where a sentence maintains a correct number but alters the financial metric label.
+
+### Decision
+
+1. Commit clean experiment manifests, score CSVs, and run JSONs under `experiments/e2/`, `experiments/e3/`, and `experiments/e2r/`, strictly excluding heavy SQLite databases (`runs.sqlite`) and working DB directories (`runs_dbs/`).
+2. Provide `scripts/summarise_e2.py` as a reproducible utility for computing E2/E2R metrics from `deterministic.csv`.
+3. Increase the OpenAI preflight test ping limit in `scripts/er8_run.py` from 5 to 400 completion tokens to accommodate reasoning model thinking headroom.
+
+
 

@@ -1,0 +1,69 @@
+{
+  "run_id": "er9-RED-05-hierarchical_no_critique-r0",
+  "task_id": "RED-05",
+  "arm": "hierarchical_no_critique",
+  "rep": 0,
+  "order": 5,
+  "status": "error",
+  "plan": null,
+  "plan_hash": "none",
+  "model": "gpt-5.6-luna",
+  "duration_ms": 859,
+  "model_calls": 0,
+  "tokens": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-ff1162cc27b04739aaf602177f478da5",
+    "status": "error",
+    "analysis_plan": null,
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [],
+    "cross_level_critique": [],
+    "atomic_claims": [],
+    "evidence_trail": [],
+    "revision_summary": null,
+    "limitations": [
+      "unsupported_entity: Entity OCB is not present in the accepted snapshot."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": null,
+    "question_type": null,
+    "report_spec": null,
+    "datasets": [],
+    "facts": [],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": null,
+    "source_notes": [],
+    "error": {
+      "code": "unsupported_entity",
+      "message": "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB.",
+      "suggestions": [
+        "Tỷ lệ nợ xấu của ACB quý 2/2026 là bao nhiêu?",
+        "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 2/2026?",
+        "ROE của BID thay đổi thế nào trong năm 2026?"
+      ]
+    }
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "system",
+      "recipient": "system",
+      "kind": "blocked",
+      "summary": "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB.",
+      "detail": {
+        "code": "unsupported_entity",
+        "message": "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB."
+      }
+    }
+  ]
+}

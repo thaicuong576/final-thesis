@@ -1,0 +1,897 @@
+{
+  "run_id": "er9-RED-08-hierarchical_with_critique-r0",
+  "task_id": "RED-08",
+  "arm": "hierarchical_with_critique",
+  "rep": 0,
+  "order": 14,
+  "status": "accepted_with_limitations",
+  "plan": {
+    "plan_id": "plan-c9951619a1e7",
+    "query": "Tỷ lệ nợ xấu và chỉ số P/E của VCB trong quý 2/2026 là bao nhiêu?",
+    "target_ticker": "VCB",
+    "peer_tickers": [],
+    "period": "2026_Q2",
+    "periods": [
+      "2026_Q2"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng lookup cho VCB với 1 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "lookup",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng lookup cho VCB với 1 công cụ.",
+    "tools": [
+      {
+        "tool": "lookup",
+        "params": {
+          "entities": [
+            "VCB"
+          ],
+          "metrics": [
+            "bank.npl_g35"
+          ],
+          "period": "2026_Q2"
+        }
+      }
+    ],
+    "context_periods": [
+      "2026_Q1",
+      "2026_Q2"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:VCB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for VCB at 2026_Q2.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "VCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "44c1cdb569860ba64620bd49adb1533168e20b5da85e434e443682e2fadab141",
+  "model": "gpt-5.6-luna",
+  "duration_ms": 53813,
+  "model_calls": 6,
+  "tokens": {
+    "input_tokens": 12199,
+    "output_tokens": 5042,
+    "total_tokens": 17241
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-27cc7119c8d140aca797035d8382fa0a",
+    "status": "accepted_with_limitations",
+    "analysis_plan": {
+      "plan_id": "plan-c9951619a1e7",
+      "query": "Tỷ lệ nợ xấu và chỉ số P/E của VCB trong quý 2/2026 là bao nhiêu?",
+      "target_ticker": "VCB",
+      "peer_tickers": [],
+      "period": "2026_Q2",
+      "periods": [
+        "2026_Q2"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng lookup cho VCB với 1 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "lookup",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng lookup cho VCB với 1 công cụ.",
+      "tools": [
+        {
+          "tool": "lookup",
+          "params": {
+            "entities": [
+              "VCB"
+            ],
+            "metrics": [
+              "bank.npl_g35"
+            ],
+            "period": "2026_Q2"
+          }
+        }
+      ],
+      "context_periods": [
+        "2026_Q1",
+        "2026_Q2"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:VCB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for VCB at 2026_Q2.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "VCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "VCB",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Tỷ lệ nợ xấu của VCB đạt 0,61% trong quý 2/2026, xếp hạng 1/10 (thấp nhất nhóm).",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "input_observation_ids": [
+          "observation-39001787e93add4d44c33472ea472241eb1711a35c0b53570417c11d6b3781ba",
+          "observation-87c81437b2f97499d8d9b23a2a5e1505bb3be0e6c29dfa24d768d956e1e68a0b",
+          "observation-62c4fb305b771ffd0216757745cbe4f4415463b3750c0992dbd451fa5f4adc7c",
+          "observation-91fcd65b438e04293d153cf53dae909e3169c74737e9266365eb8a48fb965331"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "company",
+        "ticker": "VCB",
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "VCB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=0.6106652267057302 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-39001787e93add4d44c33472ea472241eb1711a35c0b53570417c11d6b3781ba",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1185.589,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-87c81437b2f97499d8d9b23a2a5e1505bb3be0e6c29dfa24d768d956e1e68a0b",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1226.793,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-62c4fb305b771ffd0216757745cbe4f4415463b3750c0992dbd451fa5f4adc7c",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 8324.139,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-91fcd65b438e04293d153cf53dae909e3169c74737e9266365eb8a48fb965331",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1758168.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 2,
+      "max_rounds": 2,
+      "status": "accepted_with_limitations",
+      "reason": "issue-missing-pe [incomplete_synthesis/MAJOR/OPEN/REVISE_CLAIM]: Khối trả lời đầu tiên chỉ nêu tỷ lệ nợ xấu và không trả lời phần chỉ số P/E, trong khi câu hỏi yêu cầu cả hai chỉ tiêu của VCB trong quý 2/2026. Cần nêu P/E nếu có dữ liệu được cung cấp, hoặc nói rõ P/E chưa có trong dữ liệu hiện tại.; issue-unsupported-rank [unsupported_claim/MAJOR/RESOLVED/REVISE_CLAIM]: Ở phiên bản narrative hiện tại không còn nhận định “hạng 1/10”; vấn đề về thứ hạng không còn xuất hiện trong câu trả lời cần đánh giá.; issue-unsupported-qoq [unsupported_claim/MAJOR/OPEN/REVISE_CLAIM]: Câu “đi ngang so với quý 1/2026” đưa ra so sánh theo quý, nhưng payload hiện tại không cung cấp fact hoặc claim có giá trị tỷ lệ nợ xấu quý 1/2026 để hỗ trợ nhận định này. Cần bổ sung bằng chứng tương ứng hoặc chỉ giữ lại giá trị quý 2/2026 và nêu rõ giới hạn dữ liệu.",
+      "revised_capabilities": [],
+      "synthesis_revised": true
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "lookup",
+    "report_spec": {
+      "kind": "answer_card",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "answer",
+          "value_fact_id": "fact:value:VCB:2026_Q2:bank.npl_g35",
+          "sentences": [
+            {
+              "sentence_id": "sent-fb-1",
+              "text": "Tỷ lệ nợ xấu của VCB đạt 0,61% trong quý 2/2026, xếp hạng 1/10 (thấp nhất nhóm).",
+              "fact_ids": [
+                "fact:value:VCB:2026_Q2:bank.npl_g35",
+                "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+              ],
+              "author": "company",
+              "source": "deterministic_fallback",
+              "revision": 0
+            },
+            {
+              "sentence_id": "sent-fb-2",
+              "text": "Tỷ lệ nợ xấu của VCB đi ngang từ quý 1/2026 đến quý 2/2026.",
+              "fact_ids": [
+                "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35"
+              ],
+              "author": "company",
+              "source": "deterministic_fallback",
+              "revision": 0
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [],
+    "facts": [
+      {
+        "fact_id": "fact:value:VCB:2026_Q2:bank.npl_g35",
+        "fact_type": "value",
+        "entity_id": "VCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 0.6106652267057302,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+        "fact_type": "peer_rank",
+        "entity_id": "VCB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 1.0,
+        "unit": "rank",
+        "rank_better": 1,
+        "rank_desc": 10,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35",
+        "fact_type": "delta",
+        "entity_id": "VCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": "2026_Q1",
+        "value": -0.008623697175144773,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "observation-e049f61232dcb679824b230b6e1c0051d62deba3e7978b82bc516706bf91f78e",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 5,
+      "sentences_accepted": 2,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-company-2",
+          "author": "company",
+          "text": "Dữ liệu được cung cấp chưa có chỉ số P/E của VCB trong quý 2/2026.",
+          "fact_ids": [],
+          "reason_code": "missing_fact_citation",
+          "reason": "Thiếu trích dẫn fact_id."
+        },
+        {
+          "sentence_id": "sent-orchestrator-fb06b3",
+          "author": "orchestrator",
+          "text": "Chưa có dữ liệu chỉ số P/E của VCB trong quý 2/2026.",
+          "fact_ids": [],
+          "reason_code": "missing_fact_citation",
+          "reason": "Thiếu trích dẫn fact_id."
+        },
+        {
+          "sentence_id": "sent-company-1",
+          "author": "company",
+          "text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61%, đi ngang so với quý 1/2026.",
+          "fact_ids": [
+            "fact:value:VCB:2026_Q2:bank.npl_g35",
+            "fact:value:VCB:2026_Q1:bank.npl_g35",
+            "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35"
+          ],
+          "reason_code": "unresolved_critique",
+          "reason": "Câu “đi ngang so với quý 1/2026” đưa ra so sánh theo quý, nhưng payload hiện tại không cung cấp fact hoặc claim có giá trị tỷ lệ nợ xấu quý 1/2026 để hỗ trợ nhận định này. Cần bổ sung bằng chứng tương ứng hoặc chỉ giữ lại giá trị quý 2/2026 và nêu rõ giới hạn dữ liệu."
+        }
+      ],
+      "numbers_checked": 0,
+      "numbers_matched": 0,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "source:vcb:7e0318cb09a4",
+        "title": "VCB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 30 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 30,
+        "fact_ids": [
+          "fact:value:VCB:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "source:acb:54a88d9eade5",
+        "title": "ACB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 18 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 18,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "source:bid:13be78f55982",
+        "title": "BID · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 22 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 22,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "title": "CTG · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 39 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 39,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 5,
+        "source_id": "source:hdb:4f1789da7223",
+        "title": "HDB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 26 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 26,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 6,
+        "source_id": "source:mbb:67d9791a4e64",
+        "title": "MBB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 31 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 31,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 7,
+        "source_id": "source:shb:49ce28c89d3d",
+        "title": "SHB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 26 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 26,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 8,
+        "source_id": "source:stb:812801c68520",
+        "title": "STB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 28 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 28,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 9,
+        "source_id": "source:tcb:d1192dd0cec2",
+        "title": "TCB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "locator": "tr. 42 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 42,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 10,
+        "source_id": "source:vpb:87200371b40b",
+        "title": "VPB · BCTC hợp nhất Q2/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "locator": "tr. 46 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 46,
+        "fact_ids": [
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 11,
+        "source_id": "source:vcb:50b3ba92d41c",
+        "title": "VCB · BCTC hợp nhất Q1/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/VCB_Baocaotaichinh_Q1_2026_Hopnhat.pdf",
+        "locator": "tr. 28 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "page": 28,
+        "fact_ids": [
+          "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 46,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Tra cứu. Gọi Doanh nghiệp với 1 phép phân tích",
+      "detail": {
+        "question_type": "lookup",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng lookup cho VCB với 1 công cụ.",
+        "entities": [
+          "VCB"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "anchor_period": "2026_Q2",
+        "periods": [
+          "2026_Q2"
+        ],
+        "tools": [
+          {
+            "tool": "lookup",
+            "agent": "company",
+            "label": "tra cứu chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 94,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: tra cứu chỉ tiêu",
+      "detail": {
+        "task": "lookup",
+        "tools": [
+          "tra cứu chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 156,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 5 số liệu có nguồn từ phép phân tích tra cứu chỉ tiêu",
+      "detail": {
+        "tool": "lookup",
+        "label": "tra cứu chỉ tiêu",
+        "arguments": {
+          "entities": [
+            "VCB"
+          ],
+          "metrics": [
+            "bank.npl_g35"
+          ],
+          "periods": [
+            "2026_Q2"
+          ]
+        },
+        "result_count": 5,
+        "duration_ms": 61,
+        "facts": [
+          {
+            "fact_id": "fact:value:VCB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VCB trong quý 2/2026",
+            "display_value": "0,61%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "1,64%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 1/10 về tỷ lệ nợ xấu của VCB trong quý 2/2026",
+            "display_value": "hạng 1/10",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:VCB:2026_Q1:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VCB trong quý 1/2026",
+            "display_value": "0,62%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:VCB:2026_Q1_to_2026_Q2:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của VCB từ quý 1/2026 đến quý 2/2026",
+            "display_value": "-0,01 điểm %",
+            "source_note_no": 1
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-lookup-vcb-npl_g35-2026q2",
+            "title": "Tra cứu chỉ tiêu · VCB Q2/2026"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 5078,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 2 nhận định nháp",
+      "detail": {
+        "draft_text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10). Dữ liệu được cung cấp chưa có chỉ số P/E của VCB trong quý 2/2026.",
+        "sentences": [
+          {
+            "sentence_id": "sent-company-1",
+            "text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+            "fact_ids": [
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-2",
+            "text": "Dữ liệu được cung cấp chưa có chỉ số P/E của VCB trong quý 2/2026.",
+            "fact_ids": []
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 5078,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "1/1 số khớp dữ liệu gốc; loại 1 câu",
+      "detail": {
+        "sentences_checked": 2,
+        "numbers_checked": 1,
+        "numbers_matched": 1,
+        "verdicts": [
+          {
+            "sentence_id": "sent-company-1",
+            "author": "company",
+            "text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+            "verdict": "kept",
+            "reason_code": null,
+            "explanation": "Số liệu và chiều so sánh khớp dữ liệu gốc",
+            "fact_ids": [
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+            ],
+            "numbers_checked": 1,
+            "numbers_matched": 1
+          },
+          {
+            "sentence_id": "sent-company-2",
+            "author": "company",
+            "text": "Dữ liệu được cung cấp chưa có chỉ số P/E của VCB trong quý 2/2026.",
+            "verdict": "dropped",
+            "reason_code": "missing_fact_citation",
+            "explanation": "Thiếu trích dẫn nguồn số liệu (fact_id)",
+            "fact_ids": [],
+            "numbers_checked": 0,
+            "numbers_matched": 0
+          }
+        ],
+        "dropped": [
+          {
+            "sentence_id": "sent-company-2",
+            "text": "Dữ liệu được cung cấp chưa có chỉ số P/E của VCB trong quý 2/2026.",
+            "reason_code": "missing_fact_citation",
+            "reason": "Thiếu trích dẫn fact_id."
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 15250,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "compose",
+      "summary": "Dựng báo cáo tổng hợp: 1 luận điểm",
+      "detail": {
+        "kind": "answer_card",
+        "blocks": [
+          {
+            "type": "answer",
+            "title": "Khối answer"
+          }
+        ],
+        "composition_source": "model",
+        "draft_text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10). Chưa có dữ liệu chỉ số P/E của VCB trong quý 2/2026."
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 15250,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "assign",
+      "summary": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+      "detail": {
+        "task": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+        "tools": [
+          "semantic_critique"
+        ]
+      }
+    },
+    {
+      "step_id": "t-8",
+      "seq": 8,
+      "t_ms": 27734,
+      "actor": "critic",
+      "recipient": "orchestrator",
+      "kind": "critique_issue",
+      "summary": "Yêu cầu sửa: Khối trả lời đầu tiên chỉ nêu tỷ lệ nợ xấu và không trả lời phần chỉ số P/E, ...",
+      "detail": {
+        "issue_id": "issue-missing-pe",
+        "round": 1,
+        "issue_type": "incomplete_synthesis",
+        "severity": "MAJOR",
+        "target_sentence_id": "sent-company-1",
+        "target_text": "",
+        "evidence": "",
+        "evidence_fact_ids": [],
+        "required_action": "REVISE_CLAIM"
+      }
+    },
+    {
+      "step_id": "t-9",
+      "seq": 9,
+      "t_ms": 27734,
+      "actor": "critic",
+      "recipient": "orchestrator",
+      "kind": "critique_issue",
+      "summary": "Yêu cầu sửa: Câu nhận định thêm “hạng 1/10”, nhưng payload không cung cấp claim hoặc fact ...",
+      "detail": {
+        "issue_id": "issue-unsupported-rank",
+        "round": 1,
+        "issue_type": "unsupported_claim",
+        "severity": "MAJOR",
+        "target_sentence_id": "sent-company-1",
+        "target_text": "",
+        "evidence": "",
+        "evidence_fact_ids": [],
+        "required_action": "REVISE_CLAIM"
+      }
+    },
+    {
+      "step_id": "t-10",
+      "seq": 10,
+      "t_ms": 31719,
+      "actor": "company",
+      "recipient": "verifier",
+      "kind": "revision",
+      "summary": "Đã sửa theo phản biện",
+      "detail": {
+        "round": 1,
+        "sentence_id": "sent-company-1",
+        "before": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+        "after": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10); dữ liệu hiện tại chưa cung cấp chỉ số P/E.",
+        "verified": true,
+        "draft_text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10); dữ liệu hiện tại chưa cung cấp chỉ số P/E."
+      }
+    },
+    {
+      "step_id": "t-11",
+      "seq": 11,
+      "t_ms": 36203,
+      "actor": "company",
+      "recipient": "verifier",
+      "kind": "revision",
+      "summary": "Đã sửa theo phản biện",
+      "detail": {
+        "round": 1,
+        "sentence_id": "sent-company-1",
+        "before": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10); dữ liệu hiện tại chưa cung cấp chỉ số P/E.",
+        "after": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61%, đi ngang so với quý 1/2026.",
+        "verified": true,
+        "draft_text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61%, đi ngang so với quý 1/2026."
+      }
+    },
+    {
+      "step_id": "t-12",
+      "seq": 12,
+      "t_ms": 36234,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "assign",
+      "summary": "Gửi bản nháp để kiểm tra chéo (vòng 2)",
+      "detail": {
+        "task": "Gửi bản nháp để kiểm tra chéo (vòng 2)",
+        "tools": [
+          "semantic_critique"
+        ]
+      }
+    },
+    {
+      "step_id": "t-13",
+      "seq": 13,
+      "t_ms": 53328,
+      "actor": "critic",
+      "recipient": "orchestrator",
+      "kind": "accept",
+      "summary": "Vòng 2: hoàn tất kiểm tra chéo (2 vấn đề chưa giải quyết)",
+      "detail": {
+        "round": 2,
+        "open_issues": 2
+      }
+    },
+    {
+      "step_id": "t-14",
+      "seq": 14,
+      "t_ms": 53375,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-27cc7119c8d140aca797035d8382fa0a",
+        "duration_ms": 53375,
+        "model_calls": 6
+      }
+    }
+  ]
+}

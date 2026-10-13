@@ -2168,7 +2168,10 @@
         "type": "object",
         "required": ["code", "message", "suggestions"],
         "properties": {
-          "code": { "type": "string" },
+          "code": {
+            "type": "string",
+            "description": "Deterministic error code identifier (e.g. out_of_scope, unsupported_entity, unsupported_metric, unsupported_period, metric_required, unsupported_macro_scope, provider_failure)."
+          },
           "message": { "type": "string" },
           "suggestions": { "type": "array", "items": { "type": "string" } }
         }

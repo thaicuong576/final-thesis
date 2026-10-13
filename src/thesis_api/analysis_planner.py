@@ -71,8 +71,34 @@ _MODEL_PLAN_PROMPT = (
 )
 
 
+def validate_scope(resolved: ResolvedQuery, catalog: DatasetCapabilityCatalog) -> None:
+    """Validate that the query falls within the banking financial analysis domain.
+
+    A query is in-scope if at least one of the following holds:
+    1. It mentions at least one recognized banking entity or unrecognized potential ticker token.
+    2. It specifies at least one explicit financial metric or domain topic.
+    3. It targets supported or domain-level macroeconomic scope.
+
+    Otherwise, the query is rejected deterministically as out_of_scope before planning,
+    model invocation, or data retrieval.
+    """
+    has_entities = bool(resolved.entities) or bool(resolved.unknown_entity_tokens)
+    has_metrics = bool(resolved.explicit_metrics) or bool(resolved.topic_metrics)
+    has_macro = "macro" in resolved.flags
+
+    if not (has_entities or has_metrics or has_macro):
+        from .messages_vi import get_error_message
+
+        raise AnalysisBlocked(
+            "out_of_scope",
+            get_error_message("out_of_scope", catalog),
+        )
+
+
 def rules_plan(resolved: ResolvedQuery, catalog: DatasetCapabilityCatalog) -> PlanSpec:
     """Generate a deterministic plan based on the resolved query and domain rules."""
+    validate_scope(resolved, catalog)
+
     # 1. Unknown entity tokens
     if resolved.unknown_entity_tokens:
         labels = ", ".join(resolved.unknown_entity_tokens)
@@ -608,6 +634,7 @@ def plan_question(
     from .query_understanding import resolve_query
 
     resolved = resolve_query(question, catalog)
+    validate_scope(resolved, catalog)
     planner_mode = getattr(settings, "planner_mode", "model_with_fallback")
 
     fallback_reasons: list[str] = []

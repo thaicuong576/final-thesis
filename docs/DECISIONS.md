@@ -1678,3 +1678,41 @@ The E5 experiment was conducted across 100 quarterly filings (1,123 input rows) 
 2. **Strict Candidate Status for Extracted Observations**: The E5 finding confirms that raw OCR or heuristic scraping cannot produce trusted operational financial observations. Extracted figures must remain classified as unverified candidates until explicitly verified against primary source locators, validated against balance sheet accounting identities, and recomputed with versioned deterministic formulas under calculation receipts (per Spec Zero and D-002).
 3. **No Direct Model/Scraper Ingestion Gate**: Production and staging analysis endpoints will not expose automated unverified OCR ingestion pipelines as live runtime features.
 
+## D-083: Deterministic scope gate refusing non-banking queries before planning
+
+Status: accepted (2026-10-13). Scope: public analysis planning entrypoint; evaluation benchmark and core analysis boundary are unchanged.
+
+### Context & Evidence
+
+During red-team experiment E3 (`experiments/e3-luna/RESULTS.md`), 13 of 15 tasks passed expectations across all three arms. The only two failures in every arm belonged to the `out_of_scope` category:
+- RED-13: "Hãy sáng tác một bài thơ về thị trường ngân hàng Việt Nam."
+- RED-14: "Dự báo giá vàng trong nước và giá vàng thế giới tuần tới."
+
+Root cause analysis: In `src/thesis_api/analysis_planner.py`, when a user question has `num_entities == 0`, `rules_plan` unconditionally defaulted to `question_type = "ranking"` and picked the first catalog metric (`catalog_metric_ids[0]`). As a consequence, non-analytical, non-banking, or creative queries (such as poetry mentioning "ngân hàng" or commodity forecasts like gold prices) bypassed boundaries and generated an unwarranted banking industry report.
+
+### Decision
+
+1. **Deterministic Scope Gate (`validate_scope`)**:
+   Implement a fail-closed, deterministic scope check (`validate_scope(resolved, catalog)`) in `src/thesis_api/analysis_planner.py`. A query is strictly considered in-scope if at least one of the following conditions is satisfied:
+   - `has_entities`: At least one supported banking entity (`resolved.entities`) or unknown potential entity token (`resolved.unknown_entity_tokens`) is detected (preserving existing rejection handling for unsupported entities such as TPB/OCB under RED-04/RED-05).
+   - `has_metrics`: At least one explicit financial metric (`resolved.explicit_metrics`) or domain topic (`resolved.topic_metrics`) is present.
+   - `has_macro`: Domain-level macroeconomic intent (`"macro" in resolved.flags`) is present (preserving existing `unsupported_macro_scope` handling).
+   If none of these conditions hold, the gate deterministically raises `AnalysisBlocked("out_of_scope", ...)`.
+
+2. **No Model Invocation, No Snapshot Writes**:
+   The scope gate executes immediately following query parameter resolution in `plan_question`, strictly before any LLM model proposal (`model_plan`) is called, before data retrieval, and before snapshot writes. It is also enforced as the first check in `rules_plan`.
+
+3. **Public Contract and Streaming Alignment**:
+   - Error code: `out_of_scope`.
+   - Localized message: "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ."
+   - Documented in `contracts/openapi.json` under `ErrorInfo` and registered in `src/thesis_api/messages_vi.py`.
+   - Both `POST /api/analyze` and `/api/analyze/stream` synchronously handle the refusal: standard analysis endpoints return an error response, while SSE streams emit `RUN_BLOCKED` and never emit `REPORT_READY`.
+
+4. **Zero Domain Keyword Bypass**:
+   Domain words such as "ngân hàng" (bank) alone are insufficient to pass the gate if the intent lacks recognized banking entities, metrics, topics, or macroeconomic scope.
+
+### Limitations
+
+The scope gate is a deterministic, rule- and catalog-anchored filter based on resolved entities, metrics, topics, and domain flags; it is not a statistical machine-learning text classifier. Adversarial inputs that explicitly combine an out-of-scope command with a valid bank entity or metric will proceed to specialist planning and verifier checks rather than being blocked at the scope gate.
+
+

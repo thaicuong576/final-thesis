@@ -1,0 +1,3669 @@
+{
+  "run_id": "er9-T02-hierarchical_no_critique-r0",
+  "task_id": "T02",
+  "arm": "hierarchical_no_critique",
+  "rep": 0,
+  "order": 3,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-fe1b3c6b041d",
+    "query": "Đánh giá chất lượng tài sản và khả năng sinh lời của STB trong quý 4/2025.",
+    "target_ticker": "STB",
+    "peer_tickers": [],
+    "period": "2025_Q4",
+    "periods": [
+      "2025_Q4"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng company_profile cho STB với 3 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "company_profile",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng company_profile cho STB với 3 công cụ.",
+    "tools": [
+      {
+        "tool": "peer_position",
+        "params": {
+          "entity": "STB",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "period": "2025_Q4"
+        }
+      },
+      {
+        "tool": "trend",
+        "params": {
+          "entity": "STB",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35",
+            "bank.roa",
+            "bank.roe"
+          ],
+          "periods": [
+            "2025_Q1",
+            "2025_Q2",
+            "2025_Q3",
+            "2025_Q4"
+          ]
+        }
+      },
+      {
+        "tool": "decomposition",
+        "params": {
+          "entities": [
+            "STB"
+          ],
+          "period": "2025_Q4",
+          "formula": "derived.roe_over_roa"
+        }
+      }
+    ],
+    "context_periods": [
+      "2025_Q1",
+      "2025_Q2",
+      "2025_Q3",
+      "2025_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:STB:2025_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for STB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:STB:2025_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for STB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:STB:2025_Q4:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for STB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:STB:2025_Q4:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for STB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "bbae48aae8a7943765a2a2966fea39d993a91c88f23273cbdf47d203cf0aa18a",
+  "model": "gpt-5.4-mini",
+  "duration_ms": 13594,
+  "model_calls": 3,
+  "tokens": {
+    "input_tokens": 17650,
+    "output_tokens": 1512,
+    "total_tokens": 19162
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-ebc537d307e445aca183cd425ae719fb",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-fe1b3c6b041d",
+      "query": "Đánh giá chất lượng tài sản và khả năng sinh lời của STB trong quý 4/2025.",
+      "target_ticker": "STB",
+      "peer_tickers": [],
+      "period": "2025_Q4",
+      "periods": [
+        "2025_Q4"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng company_profile cho STB với 3 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "company_profile",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng company_profile cho STB với 3 công cụ.",
+      "tools": [
+        {
+          "tool": "peer_position",
+          "params": {
+            "entity": "STB",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "period": "2025_Q4"
+          }
+        },
+        {
+          "tool": "trend",
+          "params": {
+            "entity": "STB",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35",
+              "bank.roa",
+              "bank.roe"
+            ],
+            "periods": [
+              "2025_Q1",
+              "2025_Q2",
+              "2025_Q3",
+              "2025_Q4"
+            ]
+          }
+        },
+        {
+          "tool": "decomposition",
+          "params": {
+            "entities": [
+              "STB"
+            ],
+            "period": "2025_Q4",
+            "formula": "derived.roe_over_roa"
+          }
+        }
+      ],
+      "context_periods": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:STB:2025_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for STB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:STB:2025_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for STB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:STB:2025_Q4:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for STB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:STB:2025_Q4:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for STB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "STB",
+        "roe": 10.3434,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Quý 4/2025, STB có tỷ lệ nợ xấu 6,41% (hạng 10/10), cao hơn trung vị nhóm 1,38% và hàm ý chất lượng tài sản yếu.",
+        "metric_period_records": [],
+        "roa": 0.7133
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "observation_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "input_observation_ids": [
+          "observation-37ce06c5b8e8d1d93bd08354a6091b9fd5736979d4c17b1c65250fdf10dc5519",
+          "observation-0d7c15cdf33f5b1417ca70c52a1f3cb5483d1f10f7275ba3ed63852548f63194"
+        ],
+        "formula_version": "llr-coverage-v1",
+        "capability": "company",
+        "ticker": "STB",
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2025_Q4",
+        "statement": "STB has provider-backed Tỷ lệ bao phủ nợ xấu=49.969020915939446 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "observation_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "input_observation_ids": [
+          "observation-29d48fcd55a6ca360e5c6247b872c8c1d4d5cfac2e5ac09f8489691536a2d769",
+          "observation-1a8fd7ff3f3f7ca6578b42a69ad183b8fc7f6d0fd90f1522692f466c752de54e",
+          "observation-00a7bba22d25e88d8c05ee1ffaa6edd15c2fcece662d924e83c460db3dcd3303",
+          "observation-09743b06a5b4ceaa8cdad2c47edec7fd08d8c0cd64175cf95901fcf52647654f"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "company",
+        "ticker": "STB",
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2025_Q4",
+        "statement": "STB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=6.407606813375827 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "observation_id": "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "input_observation_ids": [
+          "observation-cd12e6c606100b4381d8a2a0bcfcafc3cfad1663e2093b3895ec850f9f434fb3",
+          "observation-6ccc3176258252cd1beb84f85691cc68c446f1a8d51f3f0c410d3c38f8ddcd6d",
+          "observation-9d7638f3b739dd3f39bee57df0764bf1f3cd14e355720cb858f6be2ab80948dd"
+        ],
+        "formula_version": "roa-ttm-annual-ytd-v1",
+        "capability": "company",
+        "ticker": "STB",
+        "metric": "ROA",
+        "period": "2025_Q4",
+        "statement": "STB has provider-backed ROA=0.7133 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "input_observation_ids": [
+          "observation-14741d0d56c03376b25be36ef2f0d034f5ecce1da646fd4a0bf62b8601749b81",
+          "observation-446857987de5351b68de91f8721fc59544e2d32fb46961bcf143e91e5b219ff4",
+          "observation-ef8375b56281ece8b4c820e1d5281aa2c49aa91a8acf157b2250bde05616a114"
+        ],
+        "formula_version": "roe-ttm-annual-ytd-v1",
+        "capability": "company",
+        "ticker": "STB",
+        "metric": "ROE",
+        "period": "2025_Q4",
+        "statement": "STB has provider-backed ROE=10.3434 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "observation_id": "observation-37ce06c5b8e8d1d93bd08354a6091b9fd5736979d4c17b1c65250fdf10dc5519",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 20055.945,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=47; printed_page=46; section=Thuyết minh 9 Dự phòng rủi ro cho vay khách hàng; row=Tổng (chung 4.473.516 + cụ thể 15.582.429); column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "observation_id": "observation-29d48fcd55a6ca360e5c6247b872c8c1d4d5cfac2e5ac09f8489691536a2d769",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 6920.385,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "observation_id": "observation-1a8fd7ff3f3f7ca6578b42a69ad183b8fc7f6d0fd90f1522692f466c752de54e",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 3310.299,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 4 - Nợ nghi ngờ; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "observation_id": "observation-00a7bba22d25e88d8c05ee1ffaa6edd15c2fcece662d924e83c460db3dcd3303",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 29906.074,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 5 - Nợ có khả năng mất vốn; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "observation_id": "observation-29d48fcd55a6ca360e5c6247b872c8c1d4d5cfac2e5ac09f8489691536a2d769",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 6920.385,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "observation_id": "observation-1a8fd7ff3f3f7ca6578b42a69ad183b8fc7f6d0fd90f1522692f466c752de54e",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 3310.299,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 4 - Nợ nghi ngờ; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "observation_id": "observation-00a7bba22d25e88d8c05ee1ffaa6edd15c2fcece662d924e83c460db3dcd3303",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 29906.074,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Nhóm 5 - Nợ có khả năng mất vốn; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "observation_id": "observation-09743b06a5b4ceaa8cdad2c47edec7fd08d8c0cd64175cf95901fcf52647654f",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 626392.336,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=43; section=Thuyết minh 8 Phân tích chất lượng dư nợ cho vay; row=Tổng cộng; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "observation_id": "observation-cd12e6c606100b4381d8a2a0bcfcafc3cfad1663e2093b3895ec850f9f434fb3",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 5939.111,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN; column=2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "observation_id": "observation-6ccc3176258252cd1beb84f85691cc68c446f1a8d51f3f0c410d3c38f8ddcd6d",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 917119.803,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=7; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "observation_id": "observation-9d7638f3b739dd3f39bee57df0764bf1f3cd14e355720cb858f6be2ab80948dd",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "STB",
+        "period": "2024_Q4",
+        "value": 748094.546,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=7; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản; column=31/12/2024",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-14741d0d56c03376b25be36ef2f0d034f5ecce1da646fd4a0bf62b8601749b81",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 5939.111,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=11; printed_page=10; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN (không có lợi ích CĐKKS); column=2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-6c7b655e8ee84924aef1203b4e03461c0d02344179a4430762e20fed3f941d28",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 59866.744,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu; column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-6bb05ffc6a793b63cf7252acd4bf059c9a47f918807467e00b567498f461633f",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "STB",
+        "period": "2025_Q4",
+        "value": 0.0,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát (không trình bày); column=31/12/2025",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-fb8b8defbf687a371b0ff4b22a7346a99db28278bfb630488768fce5d72136ba",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "STB",
+        "period": "2024_Q4",
+        "value": 54972.07,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng vốn chủ sở hữu; column=31/12/2024",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+        "observation_id": "observation-0117180a5270f5d8aaa813f25ccc47c058ea7dbd22face6a30e8d04d39f0f679",
+        "source_id": "source:stb:387a562940ed",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "STB",
+        "period": "2024_Q4",
+        "value": 0.0,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/STB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=7; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát (không trình bày); column=31/12/2024",
+        "provenance_hash": "522e518939e87349893073c53af75ddadb073683a21c69e799fe1be3b42241dd"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Hierarchical execution without semantic critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "company_profile",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-company-1",
+            "text": "Quý 4/2025, STB có tỷ lệ nợ xấu 6,41% (hạng 10/10), cao hơn trung vị nhóm 1,38% và hàm ý chất lượng tài sản yếu.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.npl_g35",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+              "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+            ],
+            "author": "company",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "section",
+          "title": "Chi tiết phân tích",
+          "sentences": [
+            {
+              "sentence_id": "sent-company-2",
+              "text": "STB có tỷ lệ bao phủ nợ xấu 50,0% (hạng 10/10), thấp hơn trung vị nhóm 96,8%, cho thấy bộ đệm dự phòng mỏng.",
+              "fact_ids": [
+                "fact:value:STB:2025_Q4:bank.llr_coverage",
+                "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+                "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+                "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+              ],
+              "author": "company",
+              "source": "model",
+              "revision": 0
+            },
+            {
+              "sentence_id": "sent-company-3",
+              "text": "STB có ROA 0,71% (hạng 10/10), thấp hơn trung vị nhóm 1,60%, phản ánh hiệu quả sinh lời trên tài sản yếu.",
+              "fact_ids": [
+                "fact:value:STB:2025_Q4:bank.roa",
+                "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+                "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+                "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+              ],
+              "author": "company",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "rank_heatmap",
+          "dataset_id": "ds-peer-position-stb-2025q4",
+          "title": "Vị thế nhóm · STB Q4/2025",
+          "takeaway": {
+            "sentence_id": "sent-fb-5",
+            "text": "STB xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu trong quý 4/2025.",
+            "fact_ids": [
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 2,
+          "chart": "scatter",
+          "dataset_id": "ds-paired-stb-2025q4",
+          "title": "Tương quan Bao phủ và Nợ xấu · Q4/2025",
+          "takeaway": {
+            "sentence_id": "sent-fb-6",
+            "text": "Tỷ lệ bao phủ nợ xấu của STB đạt 50,0% trong quý 4/2025.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 3,
+          "chart": "small_multiples",
+          "dataset_id": "ds-series-multi-stb",
+          "title": "Diễn biến các chỉ tiêu tài chính · STB",
+          "takeaway": {
+            "sentence_id": "sent-fb-7",
+            "text": "Tỷ lệ bao phủ nợ xấu của STB đi ngang từ quý 1/2025 đến quý 2/2025.",
+            "fact_ids": [
+              "fact:delta:STB:2025_Q1_to_2025_Q2:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "deterministic_fallback",
+            "revision": 0
+          }
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+          "finding_id": "f-counter-trend-1",
+          "sentences": [
+            {
+              "sentence_id": "sent-fb-8",
+              "text": "Tỷ lệ bao phủ nợ xấu của STB giảm 43,3 điểm % từ quý 3/2025 đến quý 4/2025.",
+              "fact_ids": [
+                "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage"
+              ],
+              "author": "critic",
+              "source": "deterministic_fallback",
+              "revision": 0
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+          "finding_id": "f-counter-trend-2",
+          "sentences": [
+            {
+              "sentence_id": "sent-fb-9",
+              "text": "Tỷ lệ nợ xấu của STB tăng 3,66 điểm % từ quý 3/2025 đến quý 4/2025.",
+              "fact_ids": [
+                "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35"
+              ],
+              "author": "critic",
+              "source": "deterministic_fallback",
+              "revision": 0
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-peer-position-stb-2025q4",
+        "shape": "peer_table",
+        "title": "Vị thế nhóm · STB Q4/2025",
+        "produced_by": {
+          "tool": "peer_position",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "STB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 112.52911875746378,
+            "observation_id": "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 99.91060936673514,
+            "observation_id": "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 158.83397374252357,
+            "observation_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.79945739907856,
+            "observation_id": "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 93.74868472605517,
+            "observation_id": "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 72.01983843948732,
+            "observation_id": "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 49.969020915939446,
+            "observation_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 127.89876042508423,
+            "observation_id": "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 258.2919172598946,
+            "observation_id": "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.878496397789206,
+            "observation_id": "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.9965673420923429,
+            "observation_id": "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+            "rank_better": 2,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.4739772945233602,
+            "observation_id": "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+            "rank_better": 6,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1000599542371523,
+            "observation_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+            "rank_better": 3,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.437957429637722,
+            "observation_id": "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+            "rank_better": 8,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.2940263235333147,
+            "observation_id": "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+            "rank_better": 5,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.370768314541094,
+            "observation_id": "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+            "rank_better": 7,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 6.407606813375827,
+            "observation_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+            "rank_better": 10,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1327518079929206,
+            "observation_id": "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+            "rank_better": 4,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.5777954377664388,
+            "observation_id": "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+            "rank_better": 1,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 3.4583880100004922,
+            "observation_id": "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475",
+            "rank_better": 9,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.6535,
+            "observation_id": "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.9991,
+            "observation_id": "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.3534,
+            "observation_id": "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.0969,
+            "observation_id": "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.9954,
+            "observation_id": "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.459,
+            "observation_id": "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.7133,
+            "observation_id": "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.3909,
+            "observation_id": "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.5546,
+            "observation_id": "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.2303,
+            "observation_id": "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 17.5577,
+            "observation_id": "observation-9b6df191c3383834103673d4c33a8436266a96fa6163ea7e0b7d58eec1bbe591",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 19.4349,
+            "observation_id": "observation-3fff49311a6212de4cbc2277d134bd433177a58fe64928273531c2f2ae0893df",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 21.2309,
+            "observation_id": "observation-aedbf3e0f3b65ca50730294d968d70e06e228bb9660ef14f883f92561d7e318c",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 25.4102,
+            "observation_id": "observation-91dde2c25620a9bf6b441d27548bbb12ffc1accd0fb729c8c83275e3217798f5",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 21.5712,
+            "observation_id": "observation-d9cd0af05127d4632af893a6c94997fb1fc96ef759181678e4e608478a19d67a",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 18.9548,
+            "observation_id": "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 10.3434,
+            "observation_id": "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 16.0337,
+            "observation_id": "observation-aa469049cd59c91d579c8872e2a32bebf72b2f3339eddba0c4f3f891711cc24a",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 16.7274,
+            "observation_id": "observation-77514213ec4ddc546d0a267abeb826edc23afe342e2069041504184104b85848",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 15.487,
+            "observation_id": "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "value": 96.82964704639517,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "value": 1.3840018090283375,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "value": 1.60405,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "value": 18.25625,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe"
+          }
+        ],
+        "allowed_charts": [
+          "rank_heatmap",
+          "comparison_table"
+        ]
+      },
+      {
+        "dataset_id": "ds-paired-stb-2025q4",
+        "shape": "paired",
+        "title": "Tương quan Bao phủ và Nợ xấu · Q4/2025",
+        "produced_by": {
+          "tool": "peer_position",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "STB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 112.52911875746378,
+            "observation_id": "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 99.91060936673514,
+            "observation_id": "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 158.83397374252357,
+            "observation_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.79945739907856,
+            "observation_id": "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 93.74868472605517,
+            "observation_id": "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 72.01983843948732,
+            "observation_id": "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 49.969020915939446,
+            "observation_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 127.89876042508423,
+            "observation_id": "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 258.2919172598946,
+            "observation_id": "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.878496397789206,
+            "observation_id": "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.9965673420923429,
+            "observation_id": "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+            "rank_better": 2,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.4739772945233602,
+            "observation_id": "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+            "rank_better": 6,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1000599542371523,
+            "observation_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+            "rank_better": 3,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.437957429637722,
+            "observation_id": "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+            "rank_better": 8,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.2940263235333147,
+            "observation_id": "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+            "rank_better": 5,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.370768314541094,
+            "observation_id": "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+            "rank_better": 7,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 6.407606813375827,
+            "observation_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+            "rank_better": 10,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1327518079929206,
+            "observation_id": "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+            "rank_better": 4,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.5777954377664388,
+            "observation_id": "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+            "rank_better": 1,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 3.4583880100004922,
+            "observation_id": "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475",
+            "rank_better": 9,
+            "rank_desc": 2,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "value": 96.82964704639517,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "value": 1.3840018090283375,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35"
+          }
+        ],
+        "allowed_charts": [
+          "scatter"
+        ]
+      },
+      {
+        "dataset_id": "ds-series-multi-stb",
+        "shape": "series_multi",
+        "title": "Diễn biến các chỉ tiêu tài chính · STB",
+        "produced_by": {
+          "tool": "trend",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "STB"
+        ],
+        "rows": [
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 74.6698677181244,
+            "observation_id": "observation-2a9aa483429dcb9a0f1e9cf1236007ca0ba17002b33170076fd6623ca4016414",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 75.43938927854506,
+            "observation_id": "observation-71ec91c359b676f41f161ceb346bdd11eee57be417cf2c63945ba8a09527a657",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 93.26321150822329,
+            "observation_id": "observation-6427acb1974817d0bd49f8560511fca4848474fcd39605b9ce369998e32b5c86",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 49.969020915939446,
+            "observation_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 2.507546504036051,
+            "observation_id": "observation-a7bb6e81bf8c129f259bb19bdea9da0834422faba755edb1cc5cd12cd5ee4707",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 2.4614918168187248,
+            "observation_id": "observation-ff6e314e61b3caf402be6ba9431b36350fdec463882c46e52d13a206898f59a1",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 2.7497964501846788,
+            "observation_id": "observation-c46bcbc6ca116d6f34e491cdf04d7b97d3b933c0ddc4d57efda7b9ef01f18c43",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 6.407606813375827,
+            "observation_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 1.4447,
+            "observation_id": "observation-2ba5385ce7d95a4c9aaf70d1ec5c79a3b3a63550d2149066bd94ff2195ea4efa",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 1.4902,
+            "observation_id": "observation-942581068b605358ad075a24836f284ecf07cd6e9e28cf7d699020193b10d49a",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 1.5391,
+            "observation_id": "observation-d9ffa8080c05dd06346854366dcb6bc8b047b5326d45a7827db6a6441122f315",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.7133,
+            "observation_id": "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 19.2721,
+            "observation_id": "observation-29d10936656fdfc06738823909fb0f636cf1871c17867772f9a7d44fc1502308",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 20.192,
+            "observation_id": "observation-f117d4987a37c8c211023f420a9eed9262e55c9a08da65eeb1a0d4b3216e478e",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 20.8871,
+            "observation_id": "observation-9fcf851d5a1609aa9f943bc8fa8e4bc56eaa5214204abdc04649c413991ff9c2",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 10.3434,
+            "observation_id": "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "small_multiples"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+        "fact_type": "peer_median",
+        "entity_id": null,
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 96.82964704639517,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 10,
+        "formula_version": "peer-median-v1",
+        "input_observation_ids": [
+          "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+          "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+          "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+          "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+          "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+          "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+          "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+          "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:STB:2025_Q4:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 49.969020915939446,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+        "fact_type": "peer_rank",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 10.0,
+        "unit": "rank",
+        "rank_better": 10,
+        "rank_desc": 10,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+          "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+          "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+          "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+          "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+          "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+          "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+          "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+        "fact_type": "gap_to_median",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": -46.86062613045572,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "gap-to-median-pp-v1",
+        "input_observation_ids": [
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+          "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+          "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+          "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+          "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+          "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+          "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+          "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+          "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d"
+        ],
+        "input_fact_ids": [
+          "fact:value:STB:2025_Q4:bank.llr_coverage",
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+        "fact_type": "peer_median",
+        "entity_id": null,
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 1.3840018090283375,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 10,
+        "formula_version": "peer-median-v1",
+        "input_observation_ids": [
+          "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+          "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+          "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+          "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+          "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+          "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+          "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+          "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:STB:2025_Q4:bank.npl_g35",
+        "fact_type": "value",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 6.407606813375827,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+        "fact_type": "peer_rank",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 10.0,
+        "unit": "rank",
+        "rank_better": 10,
+        "rank_desc": 1,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+          "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+          "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+          "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+          "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+          "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+          "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+          "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+        "fact_type": "gap_to_median",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 5.023605004347489,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "gap-to-median-pp-v1",
+        "input_observation_ids": [
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+          "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+          "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+          "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+          "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+          "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+          "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+          "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+          "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+          "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475"
+        ],
+        "input_fact_ids": [
+          "fact:value:STB:2025_Q4:bank.npl_g35",
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+        "fact_type": "peer_median",
+        "entity_id": null,
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.roa",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 1.60405,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 10,
+        "formula_version": "peer-median-v1",
+        "input_observation_ids": [
+          "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+          "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+          "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+          "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+          "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+          "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+          "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+          "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:STB:2025_Q4:bank.roa",
+        "fact_type": "value",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 0.7133,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+        "fact_type": "peer_rank",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.roa",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 10.0,
+        "unit": "rank",
+        "rank_better": 10,
+        "rank_desc": 10,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+          "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+          "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+          "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+          "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+          "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+          "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+          "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa",
+        "fact_type": "gap_to_median",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.roa",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": -0.8907499999999999,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "gap-to-median-pp-v1",
+        "input_observation_ids": [
+          "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+          "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+          "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+          "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+          "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+          "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+          "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+          "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+          "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e"
+        ],
+        "input_fact_ids": [
+          "fact:value:STB:2025_Q4:bank.roa",
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q2:bank.llr_coverage",
+        "fact_type": "delta",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q2",
+        "from_period": "2025_Q1",
+        "value": 0.7695215604206709,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "observation-2a9aa483429dcb9a0f1e9cf1236007ca0ba17002b33170076fd6623ca4016414",
+          "observation-71ec91c359b676f41f161ceb346bdd11eee57be417cf2c63945ba8a09527a657"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage",
+        "fact_type": "delta",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": "2025_Q3",
+        "value": -43.29419059228385,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "observation-6427acb1974817d0bd49f8560511fca4848474fcd39605b9ce369998e32b5c86",
+          "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35",
+        "fact_type": "delta",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2025_Q4",
+        "from_period": "2025_Q3",
+        "value": 3.657810363191148,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "observation-c46bcbc6ca116d6f34e491cdf04d7b97d3b933c0ddc4d57efda7b9ef01f18c43",
+          "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [
+      {
+        "group": "provisioning",
+        "label": "Đệm dự phòng",
+        "verdict": "below_peers",
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "fact_ids": [
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "group": "asset_quality",
+        "label": "Chất lượng nợ",
+        "verdict": "below_peers",
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "fact_ids": [
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "group": "profitability",
+        "label": "Sinh lời & Đòn bẩy",
+        "verdict": "below_peers",
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe",
+          "derived.roe_over_roa"
+        ],
+        "fact_ids": [
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roe",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe"
+        ]
+      }
+    ],
+    "cross_level_findings": [
+      {
+        "finding_id": "f-counter-trend-1",
+        "kind": "counter_trend",
+        "severity": "warning",
+        "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage",
+          "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ],
+        "status": "confirmed"
+      },
+      {
+        "finding_id": "f-counter-trend-2",
+        "kind": "counter_trend",
+        "severity": "warning",
+        "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35",
+          "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.npl_g35"
+        ],
+        "status": "confirmed"
+      },
+      {
+        "finding_id": "f-extreme-3",
+        "kind": "cross_metric_extreme",
+        "severity": "notice",
+        "text": "Doanh nghiệp ghi nhận vị thế phân cực trên các chỉ tiêu đánh giá.",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe"
+        ],
+        "status": "confirmed"
+      }
+    ],
+    "narrative_audit": {
+      "sentences_checked": 9,
+      "sentences_accepted": 8,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-company-4",
+          "author": "company",
+          "text": "STB có ROE 10,3% (hạng 10/10), thấp hơn trung vị nhóm 18,3%; tỷ lệ ROE/ROA đạt 14,50 lần, hàm ý đòn bẩy lợi nhuận vẫn cao.",
+          "fact_ids": [
+            "fact:value:STB:2025_Q4:bank.roe",
+            "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe",
+            "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+            "fact:derived_ratio:STB:2025_Q4:derived.roe_over_roa",
+            "fact:peer_median:sector:bank:2025_Q4:derived.roe_over_roa"
+          ],
+          "reason_code": "rank_mismatch",
+          "reason": "Thứ hạng 'hạng 10/10' không khớp giá trị xếp hạng trong fact peer_rank."
+        }
+      ],
+      "numbers_checked": 10,
+      "numbers_matched": 9,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+        "title": "ACB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 49 · Thuyết minh 9.7 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+        "title": "BID · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 39 · Thuyết minh 13 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "title": "CTG · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 42 · Thuyết minh 8.6 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+        "title": "HDB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 5 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 5,
+        "source_id": "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+        "title": "MBB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 49 · Thuyết minh 10 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 6,
+        "source_id": "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+        "title": "SHB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 5 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 7,
+        "source_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+        "title": "STB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 46 · Thuyết minh 9 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:value:STB:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 8,
+        "source_id": "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+        "title": "TCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 48 · Thuyết minh 10 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 9,
+        "source_id": "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+        "title": "VCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 39 · Thuyết minh 10 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 10,
+        "source_id": "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d",
+        "title": "VPB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 45 · Thuyết minh 11 Dự phòng rủi ro cho vay khách hàng",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 11,
+        "source_id": "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+        "title": "ACB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 48 · Thuyết minh 9.3 Theo chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 12,
+        "source_id": "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+        "title": "BID · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 38 · Thuyết minh 12 Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 13,
+        "source_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "title": "CTG · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 41 · Thuyết minh 8.3 Theo chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 14,
+        "source_id": "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+        "title": "HDB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 34 · Thuyết minh 10 Phân tích dư nợ cho vay theo chất lượng nợ",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 15,
+        "source_id": "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+        "title": "MBB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 47 · Thuyết minh 9.1 Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 16,
+        "source_id": "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+        "title": "SHB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 32 · Thuyết minh 11 Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 17,
+        "source_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+        "title": "STB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 43 · Thuyết minh 8 Phân tích chất lượng dư nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:value:STB:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 18,
+        "source_id": "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+        "title": "TCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 46 · Thuyết minh 9.1 Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 19,
+        "source_id": "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+        "title": "VCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 37 · Thuyết minh 9 Phân tích dư nợ theo chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 20,
+        "source_id": "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475",
+        "title": "VPB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 42 · Thuyết minh 10.1 Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 21,
+        "source_id": "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+        "title": "ACB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 22,
+        "source_id": "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+        "title": "BID · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 23,
+        "source_id": "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+        "title": "CTG · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 9 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 24,
+        "source_id": "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+        "title": "HDB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 25,
+        "source_id": "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+        "title": "MBB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 9 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 26,
+        "source_id": "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "title": "SHB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 27,
+        "source_id": "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+        "title": "STB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 10 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:value:STB:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 28,
+        "source_id": "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+        "title": "TCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 9 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 29,
+        "source_id": "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+        "title": "VCB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 10 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 30,
+        "source_id": "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e",
+        "title": "VPB · BCTC hợp nhất Q4/2025",
+        "url": null,
+        "locator": "tr. 9 · Báo cáo kết quả hoạt động hợp nhất",
+        "fact_ids": [
+          "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+          "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+          "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+        ]
+      },
+      {
+        "note_no": 31,
+        "source_id": "observation-2a9aa483429dcb9a0f1e9cf1236007ca0ba17002b33170076fd6623ca4016414",
+        "title": "STB · BCTC hợp nhất Q1/2025",
+        "url": null,
+        "locator": "tr. 2 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q1_to_2025_Q2:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 32,
+        "source_id": "observation-71ec91c359b676f41f161ceb346bdd11eee57be417cf2c63945ba8a09527a657",
+        "title": "STB · BCTC hợp nhất Q2/2025",
+        "url": null,
+        "locator": "tr. 2 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q1_to_2025_Q2:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 33,
+        "source_id": "observation-6427acb1974817d0bd49f8560511fca4848474fcd39605b9ce369998e32b5c86",
+        "title": "STB · BCTC hợp nhất Q3/2025",
+        "url": null,
+        "locator": "tr. 2 · Báo cáo tình hình tài chính hợp nhất",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 34,
+        "source_id": "observation-c46bcbc6ca116d6f34e491cdf04d7b97d3b933c0ddc4d57efda7b9ef01f18c43",
+        "title": "STB · BCTC hợp nhất Q3/2025",
+        "url": null,
+        "locator": "tr. 30 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 47,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Hồ sơ doanh nghiệp. Gọi Doanh nghiệp với 3 phép phân tích",
+      "detail": {
+        "question_type": "company_profile",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng company_profile cho STB với 3 công cụ.",
+        "entities": [
+          "STB"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35",
+          "bank.roa",
+          "bank.roe"
+        ],
+        "anchor_period": "2025_Q4",
+        "periods": [
+          "2025_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "peer_position",
+            "agent": "sector",
+            "label": "vị thế nhóm ngành"
+          },
+          {
+            "tool": "trend",
+            "agent": "company",
+            "label": "diễn biến chuỗi thời gian"
+          },
+          {
+            "tool": "decomposition",
+            "agent": "company",
+            "label": "phân rã chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 530,
+      "actor": "orchestrator",
+      "recipient": "sector",
+      "kind": "assign",
+      "summary": "Giao việc: vị thế nhóm ngành",
+      "detail": {
+        "task": "peer_position",
+        "tools": [
+          "vị thế nhóm ngành"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 952,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 20 số liệu có nguồn từ phép phân tích vị thế nhóm ngành",
+      "detail": {
+        "tool": "peer_position",
+        "label": "vị thế nhóm ngành",
+        "facts": [
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "96,8%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của STB trong quý 4/2025",
+            "display_value": "50,0%",
+            "source_note_no": 7
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-46,9 điểm %",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:ratio_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ tỷ lệ bao phủ nợ xấu của STB bằng 0,5 lần trung vị trong quý 4/2025",
+            "display_value": "0,5 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,38%",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 4/2025",
+            "display_value": "6,41%",
+            "source_note_no": 17
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Xếp hạng 10/10 về tỷ lệ nợ xấu của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+5,02 điểm %",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:ratio_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ tỷ lệ nợ xấu của STB gấp 4,6 lần trung vị trong quý 4/2025",
+            "display_value": "4,6 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,60%",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.roa",
+            "label": "ROA của STB trong quý 4/2025",
+            "display_value": "0,71%",
+            "source_note_no": 27
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+            "label": "Xếp hạng 10/10 về ROA của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa",
+            "label": "Chênh lệch ROA của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,89 điểm %",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:ratio_to_median:STB:sector:bank:2025_Q4:bank.roa",
+            "label": "Tỷ lệ ROA của STB bằng 0,4 lần trung vị trong quý 4/2025",
+            "display_value": "0,4 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "18,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.roe",
+            "label": "ROE của STB trong quý 4/2025",
+            "display_value": "10,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe",
+            "label": "Xếp hạng 10/10 về ROE của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roe",
+            "label": "Chênh lệch ROE của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-7,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:STB:sector:bank:2025_Q4:bank.roe",
+            "label": "Tỷ lệ ROE của STB bằng 0,6 lần trung vị trong quý 4/2025",
+            "display_value": "0,6 lần",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-peer-position-stb-2025q4",
+            "title": "Vị thế nhóm · STB Q4/2025"
+          },
+          {
+            "dataset_id": "ds-paired-stb-2025q4",
+            "title": "Tương quan Bao phủ và Nợ xấu · Q4/2025"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 952,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: diễn biến chuỗi thời gian · phân rã chỉ tiêu",
+      "detail": {
+        "task": "trend, decomposition",
+        "tools": [
+          "diễn biến chuỗi thời gian",
+          "phân rã chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 2109,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 80 số liệu có nguồn từ phép phân tích diễn biến chuỗi thời gian",
+      "detail": {
+        "tool": "trend",
+        "label": "diễn biến chuỗi thời gian",
+        "facts": [
+          {
+            "fact_id": "fact:value:STB:2025_Q1:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của STB trong quý 1/2025",
+            "display_value": "74,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q2:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của STB trong quý 2/2025",
+            "display_value": "75,4%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q3:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của STB trong quý 3/2025",
+            "display_value": "93,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của STB trong quý 4/2025",
+            "display_value": "50,0%",
+            "source_note_no": 7
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q2:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của STB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,8 điểm %",
+            "source_note_no": 31
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q2_to_2025_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của STB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+17,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của STB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-43,3 điểm %",
+            "source_note_no": 7
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của STB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "-24,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "75,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q1:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của STB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "-0,3 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "82,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q2:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của STB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "-7,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "88,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q3:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của STB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "+4,6 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "96,8%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-46,9 điểm %",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+7,6 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+6,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 3/2025 đến quý 4/2025",
+            "display_value": "+8,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q1:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 1/2025",
+            "display_value": "2,51%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 2/2025",
+            "display_value": "2,46%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q3:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 3/2025",
+            "display_value": "2,75%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 4/2025",
+            "display_value": "6,41%",
+            "source_note_no": 17
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q2:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của STB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "-0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q2_to_2025_Q3:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của STB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,29 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của STB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "+3,66 điểm %",
+            "source_note_no": 17
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của STB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "+3,90 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "1,87%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q1:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của STB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "+0,64 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "1,79%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q2:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của STB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "+0,67 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "1,87%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q3:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của STB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "+0,88 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,38%",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+5,02 điểm %",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 1/2025 đến quý 2/2025",
+            "display_value": "-0,08 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,08 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,49 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Xếp hạng 10/10 về tỷ lệ nợ xấu của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 11
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q1:bank.roa",
+            "label": "ROA của STB trong quý 1/2025",
+            "display_value": "1,44%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q2:bank.roa",
+            "label": "ROA của STB trong quý 2/2025",
+            "display_value": "1,49%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q3:bank.roa",
+            "label": "ROA của STB trong quý 3/2025",
+            "display_value": "1,54%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.roa",
+            "label": "ROA của STB trong quý 4/2025",
+            "display_value": "0,71%",
+            "source_note_no": 27
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q2:bank.roa",
+            "label": "Mức thay đổi ROA của STB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q2_to_2025_Q3:bank.roa",
+            "label": "Mức thay đổi ROA của STB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của STB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,83 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của STB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "-0,73 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "1,68%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q1:bank.roa",
+            "label": "Chênh lệch ROA của STB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "-0,24 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "1,70%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q2:bank.roa",
+            "label": "Chênh lệch ROA của STB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "-0,21 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "1,75%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q3:bank.roa",
+            "label": "Chênh lệch ROA của STB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "-0,21 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,60%",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa",
+            "label": "Chênh lệch ROA của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,89 điểm %",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,01 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,14 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+            "label": "Xếp hạng 10/10 về ROA của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": 21
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q1:bank.roe",
+            "label": "ROE của STB trong quý 1/2025",
+            "display_value": "19,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q2:bank.roe",
+            "label": "ROE của STB trong quý 2/2025",
+            "display_value": "20,2%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q3:bank.roe",
+            "label": "ROE của STB trong quý 3/2025",
+            "display_value": "20,9%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2025_Q4:bank.roe",
+            "label": "ROE của STB trong quý 4/2025",
+            "display_value": "10,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q2:bank.roe",
+            "label": "Mức thay đổi ROE của STB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q2_to_2025_Q3:bank.roe",
+            "label": "Mức thay đổi ROE của STB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q3_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của STB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-10,5 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:STB:2025_Q1_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của STB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "-8,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "17,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q1:bank.roe",
+            "label": "Chênh lệch ROE của STB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "+1,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "18,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q2:bank.roe",
+            "label": "Chênh lệch ROE của STB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "+1,5 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "19,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q3:bank.roe",
+            "label": "Chênh lệch ROE của STB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "+1,4 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "18,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roe",
+            "label": "Chênh lệch ROE của STB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-7,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+1,4 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-1,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe",
+            "label": "Xếp hạng 10/10 về ROE của STB trong quý 4/2025",
+            "display_value": "hạng 10/10",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-series-multi-stb",
+            "title": "Diễn biến các chỉ tiêu tài chính · STB"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 2109,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 2 số liệu có nguồn từ phép phân tích phân rã chỉ tiêu",
+      "detail": {
+        "tool": "decomposition",
+        "label": "phân rã chỉ tiêu",
+        "facts": [
+          {
+            "fact_id": "fact:derived_ratio:STB:2025_Q4:derived.roe_over_roa",
+            "label": "Tỷ lệ ROE/ROA của STB trong quý 4/2025",
+            "display_value": "14,50 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:derived.roe_over_roa",
+            "label": "Trung vị ROE/ROA nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "11,46%",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-decomp-stb-2025q4",
+            "title": "Phân rã đòn bẩy ROE/ROA · Q4/2025"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 5952,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 4 nhận định nháp",
+      "detail": {
+        "sentences": [
+          {
+            "sentence_id": "sent-company-1",
+            "text": "Quý 4/2025, STB có tỷ lệ nợ xấu 6,41% (hạng 10/10), cao hơn trung vị nhóm 1,38% và hàm ý chất lượng tài sản yếu.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.npl_g35",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+              "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-2",
+            "text": "STB có tỷ lệ bao phủ nợ xấu 50,0% (hạng 10/10), thấp hơn trung vị nhóm 96,8%, cho thấy bộ đệm dự phòng mỏng.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.llr_coverage",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+              "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-3",
+            "text": "STB có ROA 0,71% (hạng 10/10), thấp hơn trung vị nhóm 1,60%, phản ánh hiệu quả sinh lời trên tài sản yếu.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.roa",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+              "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+            ]
+          },
+          {
+            "sentence_id": "sent-company-4",
+            "text": "STB có ROE 10,3% (hạng 10/10), thấp hơn trung vị nhóm 18,3%; tỷ lệ ROE/ROA đạt 14,50 lần, hàm ý đòn bẩy lợi nhuận vẫn cao.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.roe",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe",
+              "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+              "fact:derived_ratio:STB:2025_Q4:derived.roe_over_roa",
+              "fact:peer_median:sector:bank:2025_Q4:derived.roe_over_roa"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-8",
+      "seq": 8,
+      "t_ms": 5952,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "6/7 số khớp dữ liệu gốc; loại 1 câu",
+      "detail": {
+        "sentences_checked": 4,
+        "numbers_checked": 7,
+        "numbers_matched": 6,
+        "dropped": [
+          {
+            "sentence_id": "sent-company-4",
+            "text": "STB có ROE 10,3% (hạng 10/10), thấp hơn trung vị nhóm 18,3%; tỷ lệ ROE/ROA đạt 14,50 lần, hàm ý đòn bẩy lợi nhuận vẫn cao.",
+            "reason_code": "rank_mismatch",
+            "reason": "Thứ hạng 'hạng 10/10' không khớp giá trị xếp hạng trong fact peer_rank."
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-9",
+      "seq": 9,
+      "t_ms": 9172,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 4 nhận định nháp",
+      "detail": {
+        "sentences": [
+          {
+            "sentence_id": "sent-sector-1",
+            "text": "Chất lượng tài sản STB trong quý 4/2025 yếu, khi tỷ lệ nợ xấu của STB 6,41% hạng 10/10, cao hơn trung vị nhóm 5,02 điểm %.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.npl_g35",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.npl_g35",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.npl_g35"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-2",
+            "text": "Tỷ lệ bao phủ nợ xấu của STB 50,0% hạng 10/10, thấp hơn trung vị nhóm 46,9 điểm %, cho thấy bộ đệm dự phòng mỏng.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.llr_coverage",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.llr_coverage",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.llr_coverage"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-3",
+            "text": "Khả năng sinh lời của STB còn thấp, với ROA 0,71% hạng 10/10, thấp hơn trung vị nhóm 0,89 điểm %.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.roa",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roa",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roa"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-4",
+            "text": "ROE của STB 10,3% hạng 10/10, thấp hơn trung vị nhóm 7,9 điểm %, hàm ý hiệu quả vốn cũng yếu.",
+            "fact_ids": [
+              "fact:value:STB:2025_Q4:bank.roe",
+              "fact:peer_rank:STB:sector:bank:2025_Q4:bank.roe",
+              "fact:gap_to_median:STB:sector:bank:2025_Q4:bank.roe"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-10",
+      "seq": 10,
+      "t_ms": 9187,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "8/8 số khớp dữ liệu gốc; tất cả câu đều đạt",
+      "detail": {
+        "sentences_checked": 4,
+        "numbers_checked": 8,
+        "numbers_matched": 8,
+        "dropped": []
+      }
+    },
+    {
+      "step_id": "t-11",
+      "seq": 11,
+      "t_ms": 12562,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 3 hình, 2 lưu ý",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "section",
+            "title": "Chi tiết phân tích"
+          },
+          {
+            "type": "figure",
+            "title": "Vị thế nhóm · STB Q4/2025"
+          },
+          {
+            "type": "figure",
+            "title": "Tương quan Bao phủ và Nợ xấu · Q4/2025"
+          },
+          {
+            "type": "figure",
+            "title": "Diễn biến các chỉ tiêu tài chính · STB"
+          },
+          {
+            "type": "callout",
+            "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng."
+          },
+          {
+            "type": "callout",
+            "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng."
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-12",
+      "seq": 12,
+      "t_ms": 12702,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-ebc537d307e445aca183cd425ae719fb",
+        "duration_ms": 12702,
+        "model_calls": 3
+      }
+    }
+  ]
+}

@@ -1076,4 +1076,27 @@ Instead of brittle keyword blacklists or calling an LLM classifier, enforce a st
 - Isolated domain words such as "ngân hàng" alone must never be sufficient to cross the boundary.
 - Both synchronous `/api/analyze` and streaming `/api/analyze/stream` must propagate the failure: standard endpoints return error status, while SSE streams emit `RUN_BLOCKED` and never emit `REPORT_READY`.
 
+---
+
+## [LESSON-055] Evaluation Runner Preflight Limits, NTFS Hardlinks, and Memory Watcher Resilience
+
+- Date: 2026-10-13
+- Scope: `scripts/er8_run.py`, `scripts/worker-start.ps1`, orchestration tooling
+- Status: ACTIVE
+
+### 1. Preflight Ping Token Limits on Reasoning Models
+- **Symptom**: In evaluation runners (`scripts/er8_run.py`, `scripts/er9_run.py`), a preflight check verifies API connectivity before dispatching tens of evaluation runs. When testing reasoning models (`o1`, `gpt-5.6-luna`) via `api.openai.com` with `max_completion_tokens = 5`, the API rejects the request or fails because reasoning models allocate reasoning tokens before emitting visible completion tokens.
+- **Root Cause**: Modern OpenAI reasoning models require token headroom (internal thought tokens) even for trivial inputs like "ping". An ultra-tight limit of 5 tokens starves the reasoning stage.
+- **Solution**: Set `max_completion_tokens = 400` for `api.openai.com` endpoints during preflight checks, while non-reasoning gateways retain standard compact limits.
+
+### 2. Windows NTFS Hardlinked `.env` Synchronization
+- **Symptom / Context**: When spinning up Git Worktrees on Windows via `worker-start.ps1`, `.env` is linked from root using NTFS hardlinks (`cmd /c mklink /H`).
+- **Mechanism**: Hardlinks link to the same NTFS MFT file record without requiring Administrator privileges. Any in-place modification in the root or worktree updates both contexts simultaneously, eliminating desynchronized API keys or model settings.
+- **Precaution**: Editors or scripts that atomic-replace files by deleting and recreating the file break the hardlink; scripts must update `.env` in-place or verify link preservation.
+
+### 3. Dropped Background Watchers under High Memory Pressure
+- **Symptom**: During long-running evaluation campaigns with high concurrency (e.g. concurrent LLM calls and evaluation parsers), background watchers or subshell processes monitoring logs can be silently terminated or dropped by the operating system due to memory exhaustion.
+- **Prevention**: Run evaluation campaigns with bounded concurrency (concurrency 3 rather than 6 on local machines), avoid tight polling loops in monitoring shells, and persist progress markers directly into durable files (`manifest.json`, `run_r2.log`) to enable clean `--resume` without losing state.
+
+
 

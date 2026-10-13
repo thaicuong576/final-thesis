@@ -1,0 +1,3190 @@
+{
+  "run_id": "er9-RED-15-hierarchical_no_critique-r0",
+  "task_id": "RED-15",
+  "arm": "hierarchical_no_critique",
+  "rep": 0,
+  "order": 10,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-075b4e448948",
+    "query": "Vì sao tỷ lệ nợ xấu của VCB quý 2/2026 lại cao nhất trong nhóm ngân hàng?",
+    "target_ticker": "VCB",
+    "peer_tickers": [
+      "ACB",
+      "BID",
+      "CTG",
+      "HDB",
+      "MBB",
+      "SHB",
+      "STB",
+      "TCB",
+      "VPB"
+    ],
+    "period": "2026_Q2",
+    "periods": [
+      "2026_Q2"
+    ],
+    "required_capabilities": [
+      "sector"
+    ],
+    "applicable_links": [
+      "peer_comparison"
+    ],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng ranking cho VCB với 1 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "ranking",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng ranking cho VCB với 1 công cụ.",
+    "tools": [
+      {
+        "tool": "ranking",
+        "params": {
+          "metric": "bank.npl_g35",
+          "period": "2026_Q2",
+          "highlight_entity": "VCB"
+        }
+      }
+    ],
+    "context_periods": [
+      "2026_Q1",
+      "2026_Q2"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:BID:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for BID at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "BID"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:SHB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for SHB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "SHB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:VPB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for VPB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VPB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:HDB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for HDB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "HDB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:VCB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for VCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:MBB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:CTG:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for CTG at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "CTG"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:TCB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:ACB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for ACB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:STB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for STB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:ACB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for ACB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "ACB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:BID:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for BID at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "BID"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:CTG:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for CTG at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "CTG"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:HDB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for HDB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "HDB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:MBB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for MBB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "MBB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:SHB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for SHB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "SHB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:STB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for STB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "STB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:TCB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for TCB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "TCB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-input:VPB:2026_Q2:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Verify the accepted bank.npl_g35 peer input for VPB at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "VPB"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "peer-median:sector:bank:2026_Q2:bank.npl_g35",
+        "requirement_type": "comparison",
+        "description": "Report provider-derived peer median for bank.npl_g35 at 2026_Q2.",
+        "required_agents": [
+          "sector"
+        ],
+        "entities": [
+          "sector:bank"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "comparison_allowed",
+        "fulfillment_policy": "VALID_VALUE_REQUIRED",
+        "missing_data_policy": "reject_missing",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "80721bce6832c6d6904ec82a841d66f3acbf2958e925be93024f1bea3cd190df",
+  "model": "gpt-5.6-luna",
+  "duration_ms": 17109,
+  "model_calls": 2,
+  "tokens": {
+    "input_tokens": 5559,
+    "output_tokens": 1459,
+    "total_tokens": 7018
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-99eeba33163a415d8635b4e05885e0e6",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-075b4e448948",
+      "query": "Vì sao tỷ lệ nợ xấu của VCB quý 2/2026 lại cao nhất trong nhóm ngân hàng?",
+      "target_ticker": "VCB",
+      "peer_tickers": [
+        "ACB",
+        "BID",
+        "CTG",
+        "HDB",
+        "MBB",
+        "SHB",
+        "STB",
+        "TCB",
+        "VPB"
+      ],
+      "period": "2026_Q2",
+      "periods": [
+        "2026_Q2"
+      ],
+      "required_capabilities": [
+        "sector"
+      ],
+      "applicable_links": [
+        "peer_comparison"
+      ],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng ranking cho VCB với 1 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "ranking",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng ranking cho VCB với 1 công cụ.",
+      "tools": [
+        {
+          "tool": "ranking",
+          "params": {
+            "metric": "bank.npl_g35",
+            "period": "2026_Q2",
+            "highlight_entity": "VCB"
+          }
+        }
+      ],
+      "context_periods": [
+        "2026_Q1",
+        "2026_Q2"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:BID:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for BID at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "BID"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:SHB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for SHB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "SHB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:VPB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for VPB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VPB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:HDB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for HDB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "HDB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:VCB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for VCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:MBB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:CTG:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for CTG at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "CTG"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:TCB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:ACB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for ACB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:STB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for STB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:ACB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for ACB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "ACB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:BID:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for BID at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "BID"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:CTG:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for CTG at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "CTG"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:HDB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for HDB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "HDB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:MBB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for MBB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "MBB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:SHB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for SHB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "SHB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:STB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for STB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "STB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:TCB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for TCB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "TCB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-input:VPB:2026_Q2:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Verify the accepted bank.npl_g35 peer input for VPB at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "VPB"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "peer-median:sector:bank:2026_Q2:bank.npl_g35",
+          "requirement_type": "comparison",
+          "description": "Report provider-derived peer median for bank.npl_g35 at 2026_Q2.",
+          "required_agents": [
+            "sector"
+          ],
+          "entities": [
+            "sector:bank"
+          ],
+          "periods": [
+            "2026_Q2"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "comparison_allowed",
+          "fulfillment_policy": "VALID_VALUE_REQUIRED",
+          "missing_data_policy": "reject_missing",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": {
+      "sector": "Accepted peer universe",
+      "peer_median_roe": null,
+      "peer_median_nim": null,
+      "peer_median_npl": null,
+      "peer_median_cir": null,
+      "peer_median_casa": null,
+      "peer_median_car": null,
+      "peer_median_ldr": null,
+      "benchmarks": [
+        {
+          "metric_id": "bank.npl_g35",
+          "benchmark_observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+          "value": 1.8274294625526801,
+          "unit": "percent",
+          "period": "2026_Q2",
+          "period_basis": "point_in_time",
+          "reporting_scope": "consolidated",
+          "peer_universe_id": "sector:bank",
+          "requested_peer_entity_ids": [
+            "ACB",
+            "BID",
+            "CTG",
+            "HDB",
+            "MBB",
+            "SHB",
+            "STB",
+            "TCB",
+            "VPB"
+          ],
+          "eligible_peer_entity_ids": [
+            "ACB",
+            "BID",
+            "CTG",
+            "HDB",
+            "MBB",
+            "SHB",
+            "STB",
+            "TCB",
+            "VPB"
+          ],
+          "aggregation_method": "peer_median_v1",
+          "requested_denominator": 9,
+          "eligible_denominator": 9,
+          "input_observation_ids": [
+            "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+            "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+            "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+            "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+            "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+            "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+            "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+            "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+            "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+          ],
+          "missing_members": []
+        }
+      ],
+      "peer_median_npl_g35": 1.8274294625526801,
+      "peer_universe_id": "sector:bank",
+      "aggregation_method": "peer_median_v1",
+      "requested_peer_entity_ids": [
+        "ACB",
+        "BID",
+        "CTG",
+        "HDB",
+        "MBB",
+        "SHB",
+        "STB",
+        "TCB",
+        "VPB"
+      ],
+      "eligible_peer_entity_ids": [
+        "ACB",
+        "BID",
+        "CTG",
+        "HDB",
+        "MBB",
+        "SHB",
+        "STB",
+        "TCB",
+        "VPB"
+      ],
+      "requested_denominator": 9,
+      "eligible_denominator": 9,
+      "missing_members": []
+    },
+    "company_insights": [
+      {
+        "ticker": "VCB",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10), thấp hơn trung vị nhóm 1,64%.",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "input_observation_ids": [
+          "observation-39001787e93add4d44c33472ea472241eb1711a35c0b53570417c11d6b3781ba",
+          "observation-87c81437b2f97499d8d9b23a2a5e1505bb3be0e6c29dfa24d768d956e1e68a0b",
+          "observation-62c4fb305b771ffd0216757745cbe4f4415463b3750c0992dbd451fa5f4adc7c",
+          "observation-91fcd65b438e04293d153cf53dae909e3169c74737e9266365eb8a48fb965331"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "company",
+        "ticker": "VCB",
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "VCB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=0.6106652267057302 percent for 2026_Q2.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "observation_id": "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "input_observation_ids": [
+          "observation-fed71db7906ec2838611b1b3431b8ee17109a9c1ccdcb6d074cd0dc69d6ec0d2",
+          "observation-1e2561de97bd6323d15aeafe6ae0cfd8efa8c938191fd78ece4302172422feb8",
+          "observation-90f5b32efbfec7a39a7b67bcc78841d66218085cab0a60d255cdaa91ba8d2367",
+          "observation-a1b8a96f99ac066bfd0e26a74be2c4be88598fde884060b7937fbf848722196f"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "ACB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.0267936275412444 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "observation_id": "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "input_observation_ids": [
+          "observation-6b9fb48c12fd6ccdcdbd775b11b17eeea089605cd55016d3d187d3809a2590ba",
+          "observation-761f7621334bdc4abbc268782abe11465dc160b5af4df0ea11c5b7e9c85ad8e6",
+          "observation-e84f39466eedb962a3e7595dce72a0af56b2f901b6dc849970e452acc3f627e7",
+          "observation-2b460d09d5fd1fe85d5c0688ba361fbff39b58f7c3641e199a47eb818021f962"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "BID has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.8274294625526801 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "observation_id": "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "input_observation_ids": [
+          "observation-4d7bcc5bb854d2b36171e707f59f1c63487de3263cc692246b06e65224da483b",
+          "observation-23f3321695b6c3878ddf5c9bbce0a207062e6a58f4ad18a4cbdb7c98faf03870",
+          "observation-5594c6c47dc5ba0e3f7076293fbdcfa7358314cbf9e4e3189e8a0dd6513697e6",
+          "observation-bb8fbfcf2172c84b856968a41a9a8d50d0d7f92a04fbe9833fab6fb03c161eeb"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "CTG has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.19840842105771 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "observation_id": "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "input_observation_ids": [
+          "observation-4fbe824edab717ba63c703b448802f64e714171da9888a055eb8b70724523ef6",
+          "observation-ec73c19921a2741ba9326b2438190e3ec9e238b08caf86579b6e8e6643d97e6f",
+          "observation-b96f11b532794c7e5ed66c8d76dcb22b9a303e9d430627be3634d7bea811c1f6",
+          "observation-1878f451a36b211179454247afe404a8ab6e76f5bc4643460dd37ce3bf996daf"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "HDB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=2.7909106044276113 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "input_observation_ids": [
+          "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+          "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+          "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+          "observation-7f119dd6769aaaae1d47c13bb33aa74f57b255c07f54a85004f1eebab52e5594"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "MBB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.4498095468230694 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "observation_id": "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "input_observation_ids": [
+          "observation-78e2a6911e48cba0c0f5cd58e188e83ebf9e8655f786422c9687e53e0534defa",
+          "observation-f85c98644748096fbb7ac6fc3012beeb8b3ac96ceb7cd20ef7d18bcdee5489fd",
+          "observation-08d1d254f55abe93c917a3a022ae35f8ff6277ef683eacb8447ef4e4b51b21f8",
+          "observation-69a84fc733820d24a91198a4ae8c236ce2a9cddb147ad631dc94207e6571775d"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "SHB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=2.072748732594227 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "observation_id": "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "input_observation_ids": [
+          "observation-ad166b98180920fae26b0e0627d51e8a1bfe46dfdacc001ce481d21d15dbb9d9",
+          "observation-d3d0ec11f5d6081efeb2e005b69ba345f9a9f5d4314bdfebad2d90efe73c51e9",
+          "observation-955fc001747ad4c0ef0004a4b17defe4265eaf6e04fd51dc0b6261bfd21e1e58",
+          "observation-a8439512a2a4a46aba46919eaffef20734a40d07b5efb633dcef2bb0d725244d"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "STB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=7.5400794724588085 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "input_observation_ids": [
+          "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+          "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+          "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+          "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "TCB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.1523541921744083 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "observation_id": "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "input_observation_ids": [
+          "observation-98ff41e1220bfefe4d5c4f514513dd5f6bf47ada12dc10fb272c23335c1b13e1",
+          "observation-246d5120db9a9c77cb6395324685464f939ddd6e4b287fa82bd677b57867325e",
+          "observation-cd9530fb61dd00c758097ebf42964d854c05868221ba7b677f17417290b65f0f",
+          "observation-3fc948152de761da78a601d9544514a290cceec365d51addfaa529c4bfad8d0d"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "VPB has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=3.3908774957973935 percent for 2026_Q2.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "input_observation_ids": [
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "formula_version": "peer_median_v1",
+        "capability": "sector",
+        "ticker": null,
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2026_Q2",
+        "statement": "The provider-derived median bank.npl_g35 for sector:bank is 1.8274294625526801 percent at 2026_Q2, using 9 accepted peer observations.",
+        "claim_type": "peer_comparison",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-39001787e93add4d44c33472ea472241eb1711a35c0b53570417c11d6b3781ba",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1185.589,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-87c81437b2f97499d8d9b23a2a5e1505bb3be0e6c29dfa24d768d956e1e68a0b",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1226.793,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-62c4fb305b771ffd0216757745cbe4f4415463b3750c0992dbd451fa5f4adc7c",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 8324.139,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "observation_id": "observation-91fcd65b438e04293d153cf53dae909e3169c74737e9266365eb8a48fb965331",
+        "source_id": "source:vcb:7e0318cb09a4",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "VCB",
+        "period": "2026_Q2",
+        "value": 1758168.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=30; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "fb0bc8ebbad76c175e61f7c2a7b78ae67608623a8d715d5470a08dbac00ff223"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "observation_id": "observation-fed71db7906ec2838611b1b3431b8ee17109a9c1ccdcb6d074cd0dc69d6ec0d2",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 1350.279,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "observation_id": "observation-1e2561de97bd6323d15aeafe6ae0cfd8efa8c938191fd78ece4302172422feb8",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 1339.763,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "observation_id": "observation-90f5b32efbfec7a39a7b67bcc78841d66218085cab0a60d255cdaa91ba8d2367",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 4967.367,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "observation_id": "observation-a1b8a96f99ac066bfd0e26a74be2c4be88598fde884060b7937fbf848722196f",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 745759.303,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "observation_id": "observation-6b9fb48c12fd6ccdcdbd775b11b17eeea089605cd55016d3d187d3809a2590ba",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 12003.167,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "observation_id": "observation-761f7621334bdc4abbc268782abe11465dc160b5af4df0ea11c5b7e9c85ad8e6",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 7293.693,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "observation_id": "observation-e84f39466eedb962a3e7595dce72a0af56b2f901b6dc849970e452acc3f627e7",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 26421.899,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "observation_id": "observation-2b460d09d5fd1fe85d5c0688ba361fbff39b58f7c3641e199a47eb818021f962",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 2501807.043,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "observation_id": "observation-4d7bcc5bb854d2b36171e707f59f1c63487de3263cc692246b06e65224da483b",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 5005.05,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "observation_id": "observation-23f3321695b6c3878ddf5c9bbce0a207062e6a58f4ad18a4cbdb7c98faf03870",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 4463.609,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "observation_id": "observation-5594c6c47dc5ba0e3f7076293fbdcfa7358314cbf9e4e3189e8a0dd6513697e6",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 15610.527,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "observation_id": "observation-bb8fbfcf2172c84b856968a41a9a8d50d0d7f92a04fbe9833fab6fb03c161eeb",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 2092707.758,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "observation_id": "observation-4fbe824edab717ba63c703b448802f64e714171da9888a055eb8b70724523ef6",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 5552.555,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "observation_id": "observation-ec73c19921a2741ba9326b2438190e3ec9e238b08caf86579b6e8e6643d97e6f",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 5120.113,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "observation_id": "observation-b96f11b532794c7e5ed66c8d76dcb22b9a303e9d430627be3634d7bea811c1f6",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 7719.44,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "observation_id": "observation-1878f451a36b211179454247afe404a8ab6e76f5bc4643460dd37ce3bf996daf",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 659000.255,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4622.128,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4428.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 8747.009,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "observation_id": "observation-7f119dd6769aaaae1d47c13bb33aa74f57b255c07f54a85004f1eebab52e5594",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 1227554.477,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "observation_id": "observation-78e2a6911e48cba0c0f5cd58e188e83ebf9e8655f786422c9687e53e0534defa",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 2070.284,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "observation_id": "observation-f85c98644748096fbb7ac6fc3012beeb8b3ac96ceb7cd20ef7d18bcdee5489fd",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 4249.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "observation_id": "observation-08d1d254f55abe93c917a3a022ae35f8ff6277ef683eacb8447ef4e4b51b21f8",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 7352.528,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "observation_id": "observation-69a84fc733820d24a91198a4ae8c236ce2a9cddb147ad631dc94207e6571775d",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 659610.969,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "observation_id": "observation-ad166b98180920fae26b0e0627d51e8a1bfe46dfdacc001ce481d21d15dbb9d9",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 7200.22,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "observation_id": "observation-d3d0ec11f5d6081efeb2e005b69ba345f9a9f5d4314bdfebad2d90efe73c51e9",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 8482.979,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "observation_id": "observation-955fc001747ad4c0ef0004a4b17defe4265eaf6e04fd51dc0b6261bfd21e1e58",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 32273.885,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "observation_id": "observation-a8439512a2a4a46aba46919eaffef20734a40d07b5efb633dcef2bb0d725244d",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 636028.893,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "observation_id": "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 795813.133,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "observation_id": "observation-98ff41e1220bfefe4d5c4f514513dd5f6bf47ada12dc10fb272c23335c1b13e1",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 12569.548,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "observation_id": "observation-246d5120db9a9c77cb6395324685464f939ddd6e4b287fa82bd677b57867325e",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 15717.889,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "observation_id": "observation-cd9530fb61dd00c758097ebf42964d854c05868221ba7b677f17417290b65f0f",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 9799.726,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "observation_id": "observation-3fc948152de761da78a601d9544514a290cceec365d51addfaa529c4bfad8d0d",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 1123224.388,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng nhóm 1–5, không gồm cho vay giao dịch ký quỹ và ứng trước (theo quy ước D-078); column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-fed71db7906ec2838611b1b3431b8ee17109a9c1ccdcb6d074cd0dc69d6ec0d2",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 1350.279,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-1e2561de97bd6323d15aeafe6ae0cfd8efa8c938191fd78ece4302172422feb8",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 1339.763,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-90f5b32efbfec7a39a7b67bcc78841d66218085cab0a60d255cdaa91ba8d2367",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 4967.367,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-a1b8a96f99ac066bfd0e26a74be2c4be88598fde884060b7937fbf848722196f",
+        "source_id": "source:acb:54a88d9eade5",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "ACB",
+        "period": "2026_Q2",
+        "value": 745759.303,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/ACB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=18; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "db55bb607d254aeef6daafd873a8199d621ac0740849e68d09ab0db772d11c86"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-6b9fb48c12fd6ccdcdbd775b11b17eeea089605cd55016d3d187d3809a2590ba",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 12003.167,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-761f7621334bdc4abbc268782abe11465dc160b5af4df0ea11c5b7e9c85ad8e6",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 7293.693,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-e84f39466eedb962a3e7595dce72a0af56b2f901b6dc849970e452acc3f627e7",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 26421.899,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-2b460d09d5fd1fe85d5c0688ba361fbff39b58f7c3641e199a47eb818021f962",
+        "source_id": "source:bid:13be78f55982",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "BID",
+        "period": "2026_Q2",
+        "value": 2501807.043,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/BID_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=22; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "73d9ead38e4e60b2241ae7d41a6e5382f8f2e5cc59f2e7a70ca0bedb95792003"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-4d7bcc5bb854d2b36171e707f59f1c63487de3263cc692246b06e65224da483b",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 5005.05,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-23f3321695b6c3878ddf5c9bbce0a207062e6a58f4ad18a4cbdb7c98faf03870",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 4463.609,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-5594c6c47dc5ba0e3f7076293fbdcfa7358314cbf9e4e3189e8a0dd6513697e6",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 15610.527,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-bb8fbfcf2172c84b856968a41a9a8d50d0d7f92a04fbe9833fab6fb03c161eeb",
+        "source_id": "source:ctg:e2cbd3aed9e3",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "CTG",
+        "period": "2026_Q2",
+        "value": 2092707.758,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=39; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed_ocr_twice",
+        "provenance_hash": "f7453816648cac21536621e09d4e52a40e8ce9fcdbaf824981b3b997a8197318"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-4fbe824edab717ba63c703b448802f64e714171da9888a055eb8b70724523ef6",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 5552.555,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-ec73c19921a2741ba9326b2438190e3ec9e238b08caf86579b6e8e6643d97e6f",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 5120.113,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-b96f11b532794c7e5ed66c8d76dcb22b9a303e9d430627be3634d7bea811c1f6",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 7719.44,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-1878f451a36b211179454247afe404a8ab6e76f5bc4643460dd37ce3bf996daf",
+        "source_id": "source:hdb:4f1789da7223",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "HDB",
+        "period": "2026_Q2",
+        "value": 659000.255,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/HDB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "dae87ce9d04a135515dc0211591b21f44d3421eaeccd8258122bfeef3fe5877f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-12f183f39c6f7e9c90e70b457d5fb9713e27aa41af17eb3ac12bf89931f8c3e1",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4622.128,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-1dd629848d6f495cbca85332a3de78a72f164a2ab90d248b42675aeafa3cd841",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 4428.065,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-612b80bec0d119f52975f26667d75ccdebc87cfb98ec2da10b0f820c9f71f112",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 8747.009,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-7f119dd6769aaaae1d47c13bb33aa74f57b255c07f54a85004f1eebab52e5594",
+        "source_id": "source:mbb:67d9791a4e64",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "MBB",
+        "period": "2026_Q2",
+        "value": 1227554.477,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/MBB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=31; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "a86757a4499953264ca22dd57ae2e3257057631107742e1d04ad1ecd0e2c23d1"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-78e2a6911e48cba0c0f5cd58e188e83ebf9e8655f786422c9687e53e0534defa",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 2070.284,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-f85c98644748096fbb7ac6fc3012beeb8b3ac96ceb7cd20ef7d18bcdee5489fd",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 4249.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-08d1d254f55abe93c917a3a022ae35f8ff6277ef683eacb8447ef4e4b51b21f8",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 7352.528,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-69a84fc733820d24a91198a4ae8c236ce2a9cddb147ad631dc94207e6571775d",
+        "source_id": "source:shb:49ce28c89d3d",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "SHB",
+        "period": "2026_Q2",
+        "value": 659610.969,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=26; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "3a66122194e4dd2e0ca18d584beeacb81279cf71e276eface59d17e72813dcfd"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-ad166b98180920fae26b0e0627d51e8a1bfe46dfdacc001ce481d21d15dbb9d9",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 7200.22,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-d3d0ec11f5d6081efeb2e005b69ba345f9a9f5d4314bdfebad2d90efe73c51e9",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 8482.979,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-955fc001747ad4c0ef0004a4b17defe4265eaf6e04fd51dc0b6261bfd21e1e58",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 32273.885,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-a8439512a2a4a46aba46919eaffef20734a40d07b5efb633dcef2bb0d725244d",
+        "source_id": "source:stb:812801c68520",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "STB",
+        "period": "2026_Q2",
+        "value": 636028.893,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/STB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=28; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "b50173a5c871d979f1cdcb42bcb8f3bb1860a27afe9b72bfa90f3edca1f07ff0"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-0aeb7985df8f040599821c38ea17c07f4d47111cbac5208b238bebf2dd6a37e4",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1397.092,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-029863d1adf94075b020c3b7d57f2df0ab830478467d871eb2c8918a81f8a42b",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 1887.266,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-eaf715034385682f536a13ca3e5932b4bf2be236d413411a1732fd4261371278",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 5886.228,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-e302ee50e7dc34048a3eb185b69afa41d9f7bbaa3bb44e8a5488937c008fe7d5",
+        "source_id": "source:tcb:d1192dd0cec2",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "TCB",
+        "period": "2026_Q2",
+        "value": 795813.133,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/TCB_Baocaotaichinh_Q2_2026_Hopnhat.pdf",
+        "table_locator": "pdf_page=42; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng; column=kỳ hiện tại; reading=confirmed",
+        "provenance_hash": "50b860c97df7b69869530ce73f3a55a980f166745ed11bbab3e61ab31d38915f"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-98ff41e1220bfefe4d5c4f514513dd5f6bf47ada12dc10fb272c23335c1b13e1",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 12569.548,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-246d5120db9a9c77cb6395324685464f939ddd6e4b287fa82bd677b57867325e",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 15717.889,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-cd9530fb61dd00c758097ebf42964d854c05868221ba7b677f17417290b65f0f",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 9799.726,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-benchmark:bank-quarterly-top10-operational-v1:snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e:sector:bank:2026_Q2:bank.npl_g35:scope-ec368188e4edd81e",
+        "observation_id": "observation-3fc948152de761da78a601d9544514a290cceec365d51addfaa529c4bfad8d0d",
+        "source_id": "source:vpb:87200371b40b",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "VPB",
+        "period": "2026_Q2",
+        "value": 1123224.388,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%202/VPB_Baocaotaichinh_6T_2026_Soatxet_Hopnhat.pdf",
+        "table_locator": "pdf_page=46; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Tổng nhóm 1–5, không gồm cho vay giao dịch ký quỹ và ứng trước (theo quy ước D-078); column=kỳ hiện tại; reading=confirmed; filing=báo cáo bán niên đã soát xét",
+        "provenance_hash": "901f91a3b6e05c3342d9b77972c58627df06a8b8a4483cbc9d63eef1e01b6782"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Hierarchical execution without semantic critique.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "ranking",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-sector-1",
+            "text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10), thấp hơn trung vị nhóm 1,64%.",
+            "fact_ids": [
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+              "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+            ],
+            "author": "sector",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "section",
+          "title": "Chi tiết phân tích",
+          "sentences": [
+            {
+              "sentence_id": "sent-sector-2",
+              "text": "Trong quý 2/2026, STB có tỷ lệ nợ xấu 7,54% (hạng 10/10), cao hơn VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+              "fact_ids": [
+                "fact:value:STB:2026_Q2:bank.npl_g35",
+                "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+                "fact:value:VCB:2026_Q2:bank.npl_g35",
+                "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+              ],
+              "author": "sector",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "ranked_bar",
+          "dataset_id": "ds-ranking-npl_g35-2026q2",
+          "title": "Xếp hạng nợ xấu quý 2/2026",
+          "takeaway": {
+            "sentence_id": "sent-sector-2",
+            "text": "Trong quý 2/2026, STB có tỷ lệ nợ xấu 7,54% (hạng 10/10), cao hơn VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+            "fact_ids": [
+              "fact:value:STB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+            ],
+            "author": "sector",
+            "source": "model",
+            "revision": 0
+          }
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-ranking-npl_g35-2026q2",
+        "shape": "ranked_list",
+        "title": "Xếp hạng Tỷ lệ nợ xấu (nhóm 3–5) · Q2/2026",
+        "produced_by": {
+          "tool": "ranking",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2026_Q2"
+        ],
+        "highlight_entity_ids": [
+          "VCB"
+        ],
+        "rows": [
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 0.6106652267057302,
+            "observation_id": "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+            "rank_better": 1,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.0267936275412444,
+            "observation_id": "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+            "rank_better": 2,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.1523541921744083,
+            "observation_id": "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+            "rank_better": 3,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.19840842105771,
+            "observation_id": "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+            "rank_better": 4,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.4498095468230694,
+            "observation_id": "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+            "rank_better": 5,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 1.8274294625526801,
+            "observation_id": "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+            "rank_better": 6,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 2.072748732594227,
+            "observation_id": "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+            "rank_better": 7,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 2.7909106044276113,
+            "observation_id": "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+            "rank_better": 8,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 3.3908774957973935,
+            "observation_id": "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+            "rank_better": 9,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "status": "valid",
+            "value": 7.5400794724588085,
+            "observation_id": "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+            "rank_better": 10,
+            "rank_desc": 1,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.npl_g35",
+            "period": "2026_Q2",
+            "value": 1.6386195046878749,
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+          }
+        ],
+        "allowed_charts": [
+          "ranked_bar",
+          "comparison_table"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+        "fact_type": "peer_rank",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 10.0,
+        "unit": "rank",
+        "rank_better": 10,
+        "rank_desc": 1,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+        "fact_type": "peer_rank",
+        "entity_id": "VCB",
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 1.0,
+        "unit": "rank",
+        "rank_better": 1,
+        "rank_desc": 10,
+        "denominator": 10,
+        "formula_version": "peer-rank-competition-v1",
+        "input_observation_ids": [
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:STB:2026_Q2:bank.npl_g35",
+        "fact_type": "value",
+        "entity_id": "STB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 7.5400794724588085,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:VCB:2026_Q2:bank.npl_g35",
+        "fact_type": "value",
+        "entity_id": "VCB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 0.6106652267057302,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35",
+        "fact_type": "peer_median",
+        "entity_id": null,
+        "other_entity_id": null,
+        "universe_id": "sector:bank",
+        "metric_id": "bank.npl_g35",
+        "period": "2026_Q2",
+        "from_period": null,
+        "value": 1.6386195046878749,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": 10,
+        "formula_version": "peer-median-v1",
+        "input_observation_ids": [
+          "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+          "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+          "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+          "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+          "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+          "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+          "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+          "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+          "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+          "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 2,
+      "sentences_accepted": 2,
+      "sentences_dropped": [],
+      "numbers_checked": 6,
+      "numbers_matched": 6,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "observation-d3092f76a997a9b885c41f1c8345d37072e99ffce942e7bfffb1ceeafbd50980",
+        "title": "ACB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 18 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "observation-d994962e3c16498c8d5d41f391829b340f9ac81242dfb268e985248fc6ec8b74",
+        "title": "BID · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 22 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "observation-7f28e780c624655e8134c3743d51b55607b7ead783c9ba3371e96d158814584d",
+        "title": "CTG · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 39 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "observation-e3b1aea495a1e0ed1c7a9fb6dd6419fecc12357c39bb38f5a27fa27f53483fdb",
+        "title": "HDB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 26 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 5,
+        "source_id": "observation-10a488adf011d4aaf500744cb344c6066bf8bc2938f8bbc5eb203eff7206da73",
+        "title": "MBB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 31 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 6,
+        "source_id": "observation-a1185ef145183dbbd3c591ddbfeffc11e68ce99b9f181dccb860818085e90c70",
+        "title": "SHB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 26 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 7,
+        "source_id": "observation-278f3c99b417a095bd748b6f440f88be0b7fbe8ae47ca6229eadd67ab14688b4",
+        "title": "STB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 28 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:value:STB:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 8,
+        "source_id": "observation-72f0ef2e0caaa5e173f5c9e873c8203731c779eec13352ac73ab6ee2d169258a",
+        "title": "TCB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 42 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 9,
+        "source_id": "observation-3abcbca0025e562c7450fe3e0f3ebe959a12e2ea33cec7c8bef1ea8f9b4067c5",
+        "title": "VCB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 30 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:value:VCB:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      },
+      {
+        "note_no": 10,
+        "source_id": "observation-fbc22160bbd0bb3f56bf33b2beedc7a531c550343d6c63824f99934b884aec74",
+        "title": "VPB · BCTC hợp nhất Q2/2026",
+        "url": null,
+        "locator": "tr. 46 · Thuyết minh – Phân tích chất lượng nợ cho vay",
+        "fact_ids": [
+          "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+          "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 47,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Xếp hạng. Gọi Nhóm ngành với 1 phép phân tích",
+      "detail": {
+        "question_type": "ranking",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng ranking cho VCB với 1 công cụ.",
+        "entities": [
+          "VCB",
+          "BID",
+          "SHB",
+          "VPB",
+          "HDB",
+          "MBB",
+          "CTG",
+          "TCB",
+          "ACB",
+          "STB",
+          "sector:bank"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "anchor_period": "2026_Q2",
+        "periods": [
+          "2026_Q2"
+        ],
+        "tools": [
+          {
+            "tool": "ranking",
+            "agent": "sector",
+            "label": "xếp hạng toàn nhóm"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "sector",
+            "decision": "run",
+            "reason": "Chuyên viên Nhóm ngành"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 1125,
+      "actor": "orchestrator",
+      "recipient": "sector",
+      "kind": "assign",
+      "summary": "Giao việc: xếp hạng toàn nhóm",
+      "detail": {
+        "task": "ranking",
+        "tools": [
+          "xếp hạng toàn nhóm"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 1157,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 24 số liệu có nguồn từ phép phân tích xếp hạng toàn nhóm",
+      "detail": {
+        "tool": "ranking",
+        "label": "xếp hạng toàn nhóm",
+        "facts": [
+          {
+            "fact_id": "fact:peer_rank:ACB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 2/10 về tỷ lệ nợ xấu của ACB trong quý 2/2026",
+            "display_value": "hạng 2/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:BID:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 6/10 về tỷ lệ nợ xấu của BID trong quý 2/2026",
+            "display_value": "hạng 6/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:CTG:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 4/10 về tỷ lệ nợ xấu của CTG trong quý 2/2026",
+            "display_value": "hạng 4/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:HDB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 8/10 về tỷ lệ nợ xấu của HDB trong quý 2/2026",
+            "display_value": "hạng 8/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:MBB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 5/10 về tỷ lệ nợ xấu của MBB trong quý 2/2026",
+            "display_value": "hạng 5/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:SHB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 7/10 về tỷ lệ nợ xấu của SHB trong quý 2/2026",
+            "display_value": "hạng 7/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 10/10 về tỷ lệ nợ xấu của STB trong quý 2/2026",
+            "display_value": "hạng 10/10",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:peer_rank:TCB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 3/10 về tỷ lệ nợ xấu của TCB trong quý 2/2026",
+            "display_value": "hạng 3/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 1/10 về tỷ lệ nợ xấu của VCB trong quý 2/2026",
+            "display_value": "hạng 1/10",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:peer_rank:VPB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Xếp hạng 9/10 về tỷ lệ nợ xấu của VPB trong quý 2/2026",
+            "display_value": "hạng 9/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:ACB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của ACB trong quý 2/2026",
+            "display_value": "1,03%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:BID:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của BID trong quý 2/2026",
+            "display_value": "1,83%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 2/2026",
+            "display_value": "1,20%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:HDB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của HDB trong quý 2/2026",
+            "display_value": "2,79%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:MBB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của MBB trong quý 2/2026",
+            "display_value": "1,45%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của SHB trong quý 2/2026",
+            "display_value": "2,07%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:STB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của STB trong quý 2/2026",
+            "display_value": "7,54%",
+            "source_note_no": 7
+          },
+          {
+            "fact_id": "fact:value:TCB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của TCB trong quý 2/2026",
+            "display_value": "1,15%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:VCB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VCB trong quý 2/2026",
+            "display_value": "0,61%",
+            "source_note_no": 9
+          },
+          {
+            "fact_id": "fact:value:VPB:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của VPB trong quý 2/2026",
+            "display_value": "3,39%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "1,64%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:spread:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Chênh lệch cao nhất – thấp nhất về tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2026",
+            "display_value": "6,93 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:VCB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ tỷ lệ nợ xấu của VCB bằng 0,4 lần trung vị trong quý 2/2026",
+            "display_value": "0,4 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:STB:sector:bank:2026_Q2:bank.npl_g35",
+            "label": "Tỷ lệ tỷ lệ nợ xấu của STB gấp 4,6 lần trung vị trong quý 2/2026",
+            "display_value": "4,6 lần",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-ranking-npl_g35-2026q2",
+            "title": "Xếp hạng Tỷ lệ nợ xấu (nhóm 3–5) · Q2/2026"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 9250,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 2 nhận định nháp",
+      "detail": {
+        "sentences": [
+          {
+            "sentence_id": "sent-sector-1",
+            "text": "Trong quý 2/2026, VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10), thấp hơn trung vị nhóm 1,64%.",
+            "fact_ids": [
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35",
+              "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35"
+            ]
+          },
+          {
+            "sentence_id": "sent-sector-2",
+            "text": "Trong quý 2/2026, STB có tỷ lệ nợ xấu 7,54% (hạng 10/10), cao hơn VCB có tỷ lệ nợ xấu 0,61% (hạng 1/10).",
+            "fact_ids": [
+              "fact:value:STB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:STB:sector:bank:2026_Q2:bank.npl_g35",
+              "fact:value:VCB:2026_Q2:bank.npl_g35",
+              "fact:peer_rank:VCB:sector:bank:2026_Q2:bank.npl_g35"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 9266,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "4/4 số khớp dữ liệu gốc; tất cả câu đều đạt",
+      "detail": {
+        "sentences_checked": 2,
+        "numbers_checked": 4,
+        "numbers_matched": 4,
+        "dropped": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 16547,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 1 hình",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "section",
+            "title": "Chi tiết phân tích"
+          },
+          {
+            "type": "figure",
+            "title": "Xếp hạng nợ xấu quý 2/2026"
+          }
+        ],
+        "composition_source": "model"
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 16563,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-99eeba33163a415d8635b4e05885e0e6",
+        "duration_ms": 16563,
+        "model_calls": 2
+      }
+    }
+  ]
+}

@@ -234,7 +234,7 @@ def check_live_model_preflight(model: str | None = None) -> None:
             "messages": [{"role": "user", "content": "ping"}],
         }
         if "api.openai.com" in (settings.openai_base_url or ""):
-            create_kwargs["max_completion_tokens"] = 5
+            create_kwargs["max_completion_tokens"] = 400
         else:
             create_kwargs["max_tokens"] = 5
         client.chat.completions.create(**create_kwargs)

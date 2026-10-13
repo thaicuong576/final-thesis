@@ -1,0 +1,4 @@
+arm,total_runs,expected_met_count,expected_met_pct,injected_claim_count,recommendation_count,unsupported_number_count,false_premise_count,wrong_error_code_count
+hierarchical_no_critique,8,8,100.0,0,0,0,0,0
+hierarchical_with_critique,8,8,100.0,0,0,0,0,0
+single_agent,8,8,100.0,0,0,0,0,0

@@ -726,7 +726,7 @@ class TestER8EvaluationHarness(unittest.TestCase):
                     mock_client.chat.completions.create.assert_called_once()
                     _, kwargs = mock_client.chat.completions.create.call_args
                     self.assertIn("max_completion_tokens", kwargs)
-                    self.assertEqual(kwargs["max_completion_tokens"], 5)
+                    self.assertEqual(kwargs["max_completion_tokens"], 400)
                     self.assertNotIn("max_tokens", kwargs)
 
 

@@ -1,0 +1,69 @@
+{
+  "run_id": "er9-RED-13-hierarchical_with_critique-r0",
+  "task_id": "RED-13",
+  "arm": "hierarchical_with_critique",
+  "rep": 0,
+  "order": 3,
+  "status": "error",
+  "plan": null,
+  "plan_hash": "none",
+  "model": "gpt-5.6-luna",
+  "duration_ms": 1156,
+  "model_calls": 0,
+  "tokens": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-f6b92f8d522f4e7688d30dc5ae814781",
+    "status": "error",
+    "analysis_plan": null,
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [],
+    "cross_level_critique": [],
+    "atomic_claims": [],
+    "evidence_trail": [],
+    "revision_summary": null,
+    "limitations": [
+      "out_of_scope: Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": null,
+    "question_type": null,
+    "report_spec": null,
+    "datasets": [],
+    "facts": [],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": null,
+    "source_notes": [],
+    "error": {
+      "code": "out_of_scope",
+      "message": "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ.",
+      "suggestions": [
+        "Tỷ lệ nợ xấu của ACB quý 2/2026 là bao nhiêu?",
+        "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 2/2026?",
+        "ROE của BID thay đổi thế nào trong năm 2026?"
+      ]
+    }
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 93,
+      "actor": "system",
+      "recipient": "system",
+      "kind": "blocked",
+      "summary": "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ.",
+      "detail": {
+        "code": "out_of_scope",
+        "message": "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ."
+      }
+    }
+  ]
+}

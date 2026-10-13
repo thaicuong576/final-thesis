@@ -1,8 +1,8 @@
-flowchart TD
-    S1["<b>1. Xác định vấn đề</b><br/>Số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số,<br/>chi phí phối hợp nhiều tác tử"]
-    S2["<b>2. Yêu cầu thiết kế</b><br/>Code tính số, mô hình diễn giải;<br/>truy nguồn tới trang; kiểm tra từng câu"]
-    S3["<b>3. Xây dựng sản phẩm</b><br/>Tầng lõi + tầng ứng dụng + giao diện web"]
-    S4["<b>4. Kiểm tra kỹ thuật</b><br/>hơn 900 bài kiểm thử tự động,<br/>kiểm tra ranh giới kiến trúc"]
-    S5["<b>5. Thực nghiệm A/B/C</b><br/>12 câu hỏi, 10 ngân hàng,<br/>kế hoạch cố định dùng chung"]
-    S6["<b>6. Đánh giá</b><br/>Chấm theo quy tắc: đúng số, truy nguồn,<br/>độ phủ, từ chối, chi phí"]
+flowchart TB
+    S1["<b>1. Xác định vấn đề</b>: số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số, chi phí phối hợp nhiều tác tử"]
+    S2["<b>2. Yêu cầu thiết kế</b>: code tính số, mô hình diễn giải; truy nguồn tới trang; kiểm tra từng câu"]
+    S3["<b>3. Xây dựng sản phẩm</b>: tầng lõi, tầng ứng dụng và giao diện web"]
+    S4["<b>4. Kiểm tra kỹ thuật</b>: kiểm thử tự động và kiểm tra ranh giới kiến trúc"]
+    S5["<b>5. Thực nghiệm</b>: A/B/C trên 12 câu hỏi, 10 ngân hàng; thực nghiệm bổ sung E1, E2, E3, E5"]
+    S6["<b>6. Đánh giá</b>: chấm theo quy tắc về khớp số, truy nguồn, độ phủ, từ chối, chi phí"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6

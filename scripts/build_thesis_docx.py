@@ -65,7 +65,9 @@ def ensure_mermaid_pngs(figures_dir: Path) -> dict[str, Path]:
     pngs: dict[str, Path] = {}
     for mmd_file in sorted(figures_dir.glob("*.mmd")):
         png_path = figures_dir / (mmd_file.stem + ".png")
-        if not png_path.exists() or png_path.stat().st_mtime < mmd_file.stat().st_mtime:
+        # Prefer the PNG produced by scripts/render_thesis_mermaid.py (real Mermaid, monochrome);
+        # the matplotlib fallback only runs when no PNG exists.
+        if not png_path.exists():
             render(mmd_file, png_path)
         pngs[mmd_file.stem] = png_path
     return pngs

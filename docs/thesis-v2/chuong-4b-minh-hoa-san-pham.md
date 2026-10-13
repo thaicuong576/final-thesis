@@ -1,6 +1,6 @@
 ## 4.5. Sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh Hình 4.4, 4.6, 4.7 và 4.8 được chụp ngày 14/10/2026 từ mã nguồn giao diện hiện hành, kết nối với máy chủ phân tích đang vận hành (các báo cáo đã lưu trong Thư viện báo cáo, bộ dữ liệu mười ngân hàng, mô hình ngôn ngữ thật); các ảnh còn lại được chụp từ bản vận hành ngày 02/10/2026 và chưa chụp lại.
+Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
 
 **Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô); nếu một quý chưa có báo cáo, ô đó được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức của từng chỉ tiêu và khu vực tải lên ngân hàng mới. Thông tin được lấy trực tiếp từ máy chủ nên luôn khớp với dữ liệu thực sự dùng để phân tích.
 
@@ -32,11 +32,11 @@ Hình 4.7: Báo cáo so sánh trực diện ACB và TCB
 
 Hình 4.8: Quá trình phân tích – các bước của từng tác tử, kết quả kiểm tra số liệu và yêu cầu của bộ phản biện
 
-**Câu hỏi ngoài phạm vi.** Khi người dùng hỏi về ngân hàng hoặc kỳ chưa có trong dữ liệu, hệ thống từ chối ngay, trước khi gọi mô hình ngôn ngữ, và nêu dữ liệu đang có.
+**Câu hỏi ngoài phạm vi.** Khi người dùng hỏi về ngân hàng hoặc kỳ chưa có trong dữ liệu, hoặc đặt một yêu cầu không phải phân tích ngân hàng như sáng tác, dịch thuật, hệ thống từ chối ngay, trước khi gọi mô hình ngôn ngữ, nêu dữ liệu đang có và gợi ý các câu hỏi có thể hỏi.
 
 ![](docs/thesis-v2/screenshots/11-tu-choi.png)
 
-Hình 4.9: Thông báo khi câu hỏi về một ngân hàng chưa có trong dữ liệu
+Hình 4.9: Thông báo khi câu hỏi nằm ngoài phạm vi (yêu cầu sáng tác thơ về thị trường ngân hàng)
 
 **Thêm ngân hàng mới.** Trên trang Dữ liệu, người dùng chọn tệp CSV và bấm "Kiểm tra và tải lên". Hệ thống kiểm tra cấu trúc và vị trí nguồn của từng dòng, tự tính lại bốn chỉ tiêu rồi đối chiếu với giá trị người dùng khai (Hình 4.10, tệp mẫu của VIB quý 4/2025: cả bốn chỉ tiêu khớp). Tệp có dòng thiếu vị trí nguồn, sai đơn vị, tỷ lệ khai lệch, hoặc của một ngân hàng đã có sẵn đều bị từ chối kèm dòng sai.
 
@@ -44,7 +44,7 @@ Hình 4.9: Thông báo khi câu hỏi về một ngân hàng chưa có trong d�
 
 Hình 4.10: Kết quả kiểm tra tệp tải lên của VIB quý 4/2025
 
-Sau khi tệp được chấp nhận, người dùng hỏi về ngân hàng mới như các ngân hàng khác. Báo cáo ở Hình 4.11 đặt VIB cạnh nhóm mười ngân hàng: thứ hạng tính trên mười một ngân hàng (ví dụ hạng 11/11 về bao phủ nợ xấu), còn trung vị nhóm vẫn chỉ tính trên mười ngân hàng đã đối soát, và dải thông báo đầu báo cáo ghi rõ số liệu của VIB do người dùng cung cấp.
+Sau khi tệp được chấp nhận, người dùng hỏi về ngân hàng mới như các ngân hàng khác. Báo cáo ở Hình 4.11 (câu tra cứu tỷ lệ nợ xấu của VIB) đặt VIB cạnh nhóm mười ngân hàng: thứ hạng tính trên mười một ngân hàng (hạng 9/11), còn trung vị nhóm vẫn chỉ tính trên mười ngân hàng đã đối soát, và dải thông báo đầu báo cáo ghi rõ số liệu của VIB do người dùng cung cấp.
 
 ![](docs/thesis-v2/screenshots/14-bao-cao-vib.png)
 

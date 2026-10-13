@@ -134,16 +134,7 @@ Hai mô hình DeepSeek (`deepseek-v4-flash-0731`, `deepseek-v4-pro-0813`) cũng 
 
 Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên phiên bản mã mới `b6344a4` (sau các nâng cấp ở mục 5.12). Vì mã nguồn khác lần đầu, đây là kiểm tra ổn định chứ không phải phép lặp thuần túy.
 
-*Bảng 5.5: `gpt-5.6-luna`, cấu hình B, một lần chạy cũ và ba lần chạy trên mã mới.*
-
-| Lần chạy | Mã | Số khớp / đã kiểm | Độ phủ trung bình | Câu bị loại / được viết | Từ chối đúng |
-|---|---|:---:|:---:|:---:|:---:|
-| Cũ | `06611d9` | 91/91 | 0,931 | 1/55 (1,8%) | 2/2 |
-| Mới, lần 0 | `b6344a4` | 93/93 | 0,900 | 4/56 (7,1%) | 2/2 |
-| Mới, lần 1 | `b6344a4` | 101/101 | 0,925 | 3/59 (5,1%) | 2/2 |
-| Mới, lần 2 | `b6344a4` | 108/108 | 0,925 | 4/55 (7,3%) | 2/2 |
-
-Ba lần chạy mới có độ phủ trung bình 0,917 (nhỏ nhất 0,900, lớn nhất 0,925), mọi con số được kiểm đều khớp (302/302) và truy vết luôn đạt 1,0. Kết luận về mô hình `gpt-5.6-luna` vì vậy ổn định, nhưng tỷ lệ câu bị loại 1,8% của lần chạy đầu nằm ở mức thấp nhất; giá trị tiêu biểu hơn là 5–7%. Với ba lần chạy, báo cáo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy.
+Ba lần chạy mới cho độ phủ 0,900, 0,925 và 0,925 (trung bình 0,917), tỷ lệ câu bị loại 7,1%, 5,1% và 7,3% (so với 1,8% của lần chạy cũ), từ chối đúng 2/2 và truy vết 1,0 ở cả ba lần. Mọi con số được kiểm đều khớp (302/302) và truy vết luôn đạt 1,0. Kết luận về mô hình `gpt-5.6-luna` vì vậy ổn định, nhưng tỷ lệ câu bị loại 1,8% của lần chạy đầu nằm ở mức thấp nhất; giá trị tiêu biểu hơn là 5–7%. Với ba lần chạy, báo cáo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy.
 
 ## 5.9. Kiểm tra đối kháng (E3)
 
@@ -187,13 +178,7 @@ Khi đối soát dữ liệu quý của mười ngân hàng, một bất thườ
 
 Sau khi ER-9 (05/10/2026), E1–E3 và E5 chạy trên mã `06611d9`, sản phẩm được nâng cấp thêm. Các nâng cấp dưới đây xảy ra sau các số liệu ở mục 5.3–5.10 và không được tính trong chúng, trừ E2r và E3 sau sửa chạy trên mã `b6344a4`.
 
-| Mã | Nội dung | Ghi chú |
-|---|---|---|
-| SSE-1 | Phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi | không đổi kết quả phân tích |
-| LIN-1 | Ngăn kéo nguồn: trang PDF, các hàng dữ liệu và đường truy vết của từng con số | không đổi kết quả phân tích |
-| MKT-1, MKT-2 | Bối cảnh thị trường (giá cổ phiếu, P/B so với ROE) từ nguồn dữ liệu thị trường, hiển thị trong báo cáo | dữ liệu thị trường được gắn nhãn riêng, không trộn với số liệu báo cáo |
-| STB-1 | Kiểm tra đơn điệu lợi nhuận lũy kế và hiệu chỉnh dữ liệu đầu vào STB | mục 5.11 |
-| SCOPE-1 | Cổng phạm vi: từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng | mục 5.9 |
+Gồm: phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi (SSE-1); ngăn kéo nguồn hiển thị trang PDF, các hàng dữ liệu và đường truy vết của từng con số (LIN-1); bối cảnh thị trường như giá cổ phiếu và P/B so với ROE, gắn nhãn riêng để không trộn với số liệu báo cáo (MKT-1, MKT-2); kiểm tra tính đơn điệu của lợi nhuận lũy kế (STB-1, mục 5.11); và cổng phạm vi từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng (SCOPE-1, mục 5.9). Ngoài cổng phạm vi, các nâng cấp này không làm đổi kết quả phân tích.
 
 ## 5.13. Thảo luận
 
@@ -203,9 +188,7 @@ Thứ hai, chính kiến trúc kiểm soát đó có giới hạn mà E1 đo đ�
 
 Thứ ba, chuyên môn hóa (B) cải thiện độ đầy đủ với chi phí vừa phải, còn phản biện (C) tốn kém và trong thiết kế hiện tại có thể làm báo cáo ngắn đi. Với chuyên viên phân tích dùng hệ thống theo thời gian thực, B là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới thay vì chỉ sửa hoặc loại câu cũ. Việc đổi mô hình làm thay đổi độ đầy đủ nhiều hơn việc đổi cấu hình trong E2, nên kết luận về B và C không nên được hiểu là độc lập với mô hình.
 
-Thứ tư, một thực nghiệm thử trước đó trên bộ Gold v5 (năm ngân hàng, bốn quý năm 2024, ngày 30/9/2026) cho cùng xu hướng: B có độ phủ cao hơn A, C không cải thiện độ phủ, chi phí tăng theo thứ tự A < B < C, và không có báo cáo nào của C hoàn thành trọn vẹn. Sự nhất quán giữa hai bộ dữ liệu khác nhau làm các nhận định trên đáng tin hơn, dù mỗi thực nghiệm chỉ chạy một lần.
-
-Thứ năm, chất lượng câu phụ thuộc nhiều vào việc lời nhắc nêu đủ quy tắc của bộ kiểm tra. Trong lần chạy thử với các mô hình khác trước khi sửa lời nhắc, gần một nửa số câu đúng bị loại vì vi phạm những quy tắc không được nêu ra; sau khi ghi rõ quy tắc vào lời nhắc, tỷ lệ câu được giữ của cùng mô hình tăng từ khoảng 49% lên 84%. Bộ kiểm tra khắt khe là chủ ý của thiết kế, nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
+Thứ tư, một thực nghiệm thử trước đó trên bộ Gold v5 (năm ngân hàng, bốn quý năm 2024, ngày 30/9/2026) cho cùng xu hướng: B có độ phủ cao hơn A, C không cải thiện độ phủ và chi phí tăng theo thứ tự A < B < C. Cuối cùng, chất lượng câu phụ thuộc nhiều vào việc lời nhắc nêu đủ quy tắc của bộ kiểm tra: trong lần chạy thử với các mô hình khác, tỷ lệ câu được giữ của cùng mô hình tăng từ khoảng 49% lên 84% sau khi ghi rõ quy tắc vào lời nhắc, nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
 
 ## 5.14. Các yếu tố ảnh hưởng tới tính hợp lệ của kết quả
 

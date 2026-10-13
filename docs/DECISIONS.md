@@ -1660,3 +1660,21 @@ Analyst users reviewing audited bank performance frequently need current trading
 5. **Graceful Degradation When Unconfigured**:
    If SSI credentials (`SSI_FC_URL`, `SSI_CONSUMER_ID`, `SSI_CONSUMER_SECRET`) are missing or empty, endpoints return HTTP 200 with `configured: false`. The frontend hides the price strip, valuation cards, and scatter chart completely with zero layout shifts or error banners. The `/api/ready` readiness probe never depends on SSI.
 
+## D-082: E5 OCR and digitisation measurement as an evaluation instrument
+
+Status: Accepted (2026-10-13). Scope: Evaluation instrument & methodology boundary; not a product feature.
+
+### Context
+
+Extending banking analysis to wider historical periods or new issuers requires digitising financial filings, many of which exist only as scanned Vietnamese PDF reports. A central empirical question for the thesis is identifying where the data extraction bottleneck truly lies: in optical character recognition (OCR) or in table structure and semantic accounting interpretation.
+
+The E5 experiment was conducted across 100 quarterly filings (1,123 input rows) from the Top 10 bank universe:
+1. **E5a (Legibility)**: Tested whether accepted values appear anywhere in the plain page text (PDF text layer or single-pass Tesseract at 200 dpi). Legibility is high: 96% on text-layer filings (178/185) and 93% on scanned filings (652/700). Character recognition itself is not the primary bottleneck.
+2. **E5b (Structure)**: Tested a naive automatic extractor that matches row labels via fuzzy string matching and picks values by column position without accounting layout models. The naive extractor achieved only 52% correctness (463/885), failing 48% of the time (27% row not found, 21% wrong value/column). Failures stemmed from multi-column interim layouts (quarter vs YTD profit), subtotal variants, and terminology differences across banks.
+
+### Decision
+
+1. **Evaluation Instrument, Not Product Feature**: E5 scripts (`scripts/e5_ocr_measure.py`, `scripts/e5_naive_extract.py`, `scripts/e5_ocr_pages.py`) and empirical results (`experiments/e5/RESULTS.md`, `e5_rows.json`, `e5b_rows.json`) are committed as an offline evaluation instrument and reproducible experimental evidence for the thesis, strictly decoupled from the live product runtime (`src/thesis_api`, `src/thesis_agents`).
+2. **Strict Candidate Status for Extracted Observations**: The E5 finding confirms that raw OCR or heuristic scraping cannot produce trusted operational financial observations. Extracted figures must remain classified as unverified candidates until explicitly verified against primary source locators, validated against balance sheet accounting identities, and recomputed with versioned deterministic formulas under calculation receipts (per Spec Zero and D-002).
+3. **No Direct Model/Scraper Ingestion Gate**: Production and staging analysis endpoints will not expose automated unverified OCR ingestion pipelines as live runtime features.
+

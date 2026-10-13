@@ -1040,3 +1040,20 @@ When $\text{Net Income}_{Q(t)} < 0$, $\text{YTD}_{Q(t)} < \text{YTD}_{Q(t-1)}$.
 - Never alter primary financial data to satisfy a naive monotonic expectation. Modifying verified figures to fit intuitive assumptions violates Spec Zero and data integrity.
 - Builders should enforce intra-year YTD profit monotonicity by default to catch genuine transcription mistakes, but must include a whitelist (`VERIFIED_QUARTERLY_LOSSES`) requiring explicit justification and primary filing provenance for legitimate audited quarterly losses.
 
+---
+
+## [LESSON-053] OCR Legibility vs Structural Extraction Bottleneck (E5)
+
+- Date: 2026-10-13
+- Scope: `scripts/e5_*.py`, `experiments/e5/`, `tests/test_e5_scripts.py`
+- Status: ACTIVE
+
+### 1. The True Bottleneck of Financial Digitisation
+- **Symptom / Hypothesis**: Initial assumptions often anticipate that optical character recognition (OCR) error rates on scanned Vietnamese corporate filings constitute the main bottleneck in financial statement digitisation.
+- **Empirical Measurement**: The E5 experiment proved that 93% of accepted values on scanned pages (and 96% on text layers) are already legible and present in plain text from a single standard Tesseract pass. In contrast, naive structural extraction (matching row labels and selecting column numbers) fails nearly half the time (48% failure: 27% row not found, 21% wrong column/row).
+- **Architectural Implication**: OCR character accuracy is largely a solved baseline; tabular disambiguation (distinguishing quarter vs YTD profit, comparative period columns, and section subtotals) is the primary obstacle. This empirically confirms why raw extraction cannot bypass deterministic accounting identities, Stage-1 verification, or versioned calculation receipts.
+
+### 2. Decoupling Core Evaluation Logic from External Heavy Binaries in CI
+- **Problem**: PDF extraction and OCR runners rely on platform-dependent binaries (`tesseract.exe`) and optional heavy C extensions (`PyMuPDF` / `fitz`). If unit tests or module-level imports require these binaries, CI test suites (`python -m unittest discover -s tests -q`) fail on environments lacking them.
+- **Solution**: Decouple parsing heuristics (`fold`, `candidates`, `classify_text_match`, `find_best_row_match`, `classify_extracted_value`) into pure Python functions that operate on strings and numbers. Import heavy libraries (`fitz`) lazily only within CLI execution entrypoints, and test all parsing behaviors via pure synthetic fixtures in `tests/test_e5_scripts.py`.
+

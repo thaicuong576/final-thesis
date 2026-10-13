@@ -1,0 +1,5312 @@
+[
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "comparative_only",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "column_missing"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "comparative_only",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "comparative_only",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "single",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "comparative_only",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "comparative_only",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "confirmed",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "confirmed_ocr_twice",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "single",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "confirmed_ocr_twice",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "confirmed",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "confirmed",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "correct"
+  },
+  {
+    "layer": "scanned",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "wrong_value"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.gross_customer_loans",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.loan_loss_provisions",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.non_controlling_interests",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_3_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_4_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.npl_group_5_balance",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.parent_attributable_profit",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.profit_after_tax",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_assets",
+    "reading": "visual",
+    "status": "row_not_found"
+  },
+  {
+    "layer": "text_layer",
+    "metric": "bank.input.total_equity",
+    "reading": "visual",
+    "status": "row_not_found"
+  }
+]

@@ -1,23 +1,18 @@
 flowchart TB
-    UI["<b>Giao diện web</b><br/>Hỏi · Điều phối · Báo cáo · Quá trình · Dữ liệu"]
+    UI["<b>Giao diện web</b>: Hỏi, Điều phối, Báo cáo, Quá trình, Dữ liệu"]
     subgraph App ["Tầng ứng dụng"]
-        API["API phân tích + luồng sự kiện thời gian thực"]
-        QP["Hiểu câu hỏi → Lập kế hoạch"]
-        AG["Chuyên viên viết nhận định · Điều phối viên · Phản biện"]
+        direction LR
+        API["API phân tích<br/>và luồng sự kiện"]
+        GATE["Cổng phạm vi, hiểu<br/>câu hỏi, lập kế hoạch"]
+        AG["Chuyên viên, điều phối<br/>viên, phản biện"]
+        API --> GATE --> AG
     end
-    subgraph Core ["Tầng lõi (không phụ thuộc CSDL, mô hình)"]
-        F["Dữ kiện, tín hiệu,<br/>phát hiện liên tầng"]
-        V["Kiểm tra câu theo quy tắc"]
-        S["Kiểm tra cấu trúc báo cáo"]
-        R["Phản biện – sửa đổi có giới hạn"]
+    subgraph Core ["Tầng lõi (không phụ thuộc CSDL và mô hình)"]
+        CORE["Dữ kiện, tín hiệu, phát hiện liên tầng<br/>Kiểm tra câu theo quy tắc<br/>Kiểm tra cấu trúc báo cáo"]
     end
-    DB[("Bộ dữ liệu phân tích<br/>chỉ đọc, khóa mã băm")]
-    RUNS[("Lịch sử lượt chạy<br/>có quyền ghi")]
-    UI <--> API
-    API --> QP --> AG
-    QP --> F
-    AG --> V
-    AG --> S
-    AG --> R
-    F --> DB
-    API --> RUNS
+    DB[("Bộ dữ liệu phân tích: chỉ đọc, khóa mã băm")]
+    RUNS[("Lịch sử lượt chạy: có quyền ghi")]
+    UI <--> App
+    App --> Core
+    Core --> DB
+    App --> RUNS

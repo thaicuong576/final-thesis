@@ -20,13 +20,13 @@ Quy trình nghiên cứu gồm sáu bước (Hình 3.1):
 6. **Đánh giá:** chấm tự động theo quy tắc về độ chính xác số liệu, khả năng truy nguồn, độ bao phủ, khả năng từ chối câu hỏi ngoài phạm vi và chi phí (thời gian, lượt gọi mô hình, token).
 
 ```mermaid
-flowchart TD
-    S1["<b>1. Xác định vấn đề</b><br/>Số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số,<br/>chi phí phối hợp nhiều tác tử"]
-    S2["<b>2. Yêu cầu thiết kế</b><br/>Code tính số, mô hình diễn giải;<br/>truy nguồn tới trang; kiểm tra từng câu"]
-    S3["<b>3. Xây dựng sản phẩm</b><br/>Tầng lõi + tầng ứng dụng + giao diện web"]
-    S4["<b>4. Kiểm tra kỹ thuật</b><br/>hơn 900 bài kiểm thử tự động,<br/>kiểm tra ranh giới kiến trúc"]
-    S5["<b>5. Thực nghiệm A/B/C</b><br/>12 câu hỏi, 10 ngân hàng,<br/>kế hoạch cố định dùng chung"]
-    S6["<b>6. Đánh giá</b><br/>Chấm theo quy tắc: đúng số, truy nguồn,<br/>độ phủ, từ chối, chi phí"]
+flowchart TB
+    S1["<b>1. Xác định vấn đề</b>: số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số, chi phí phối hợp nhiều tác tử"]
+    S2["<b>2. Yêu cầu thiết kế</b>: code tính số, mô hình diễn giải; truy nguồn tới trang; kiểm tra từng câu"]
+    S3["<b>3. Xây dựng sản phẩm</b>: tầng lõi, tầng ứng dụng và giao diện web"]
+    S4["<b>4. Kiểm tra kỹ thuật</b>: kiểm thử tự động và kiểm tra ranh giới kiến trúc"]
+    S5["<b>5. Thực nghiệm</b>: A/B/C trên 12 câu hỏi, 10 ngân hàng; thực nghiệm bổ sung E1, E2, E3, E5"]
+    S6["<b>6. Đánh giá</b>: chấm theo quy tắc về khớp số, truy nguồn, độ phủ, từ chối, chi phí"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6
 ```
 *Hình 3.1: Quy trình nghiên cứu theo khung Design Science Research.*
@@ -49,13 +49,13 @@ Dữ liệu đi qua bốn trạng thái (Hình 3.2, Bảng 3.1); hệ thống kh
 
 ```mermaid
 flowchart LR
-    Raw["<b>1. Nguồn thô</b><br/>PDF báo cáo tài chính<br/>gắn mã băm SHA-256"]
-    Candidate["<b>2. Dữ liệu ứng viên</b><br/>Trích xuất tự động / OCR<br/>chưa đối soát"]
-    Operational["<b>3. Bộ dữ liệu vận hành</b><br/>Đối soát từng ô với báo cáo gốc<br/>vị trí nguồn + biên nhận tính toán"]
-    Locked["<b>4. Bộ dữ liệu khóa cho thực nghiệm</b><br/>Cố định bằng mã băm,<br/>dùng chung cho cả ba cấu hình"]
-    Raw -->|"Trích xuất"| Candidate
-    Candidate -->|"Đối soát + tính lại chỉ tiêu"| Operational
-    Operational -->|"Khóa mã băm"| Locked
+    Raw["<b>1. Nguồn thô</b><br/>PDF báo cáo tài chính,<br/>mã băm SHA-256"]
+    Candidate["<b>2. Dữ liệu ứng viên</b><br/>trích xuất tự động,<br/>chưa đối soát"]
+    Operational["<b>3. Dữ liệu vận hành</b><br/>đối soát từng ô, có vị trí<br/>nguồn và biên nhận tính"]
+    Locked["<b>4. Dữ liệu khóa</b><br/>cố định bằng mã băm,<br/>dùng chung các cấu hình"]
+    Raw -->|"trích xuất"| Candidate
+    Candidate -->|"đối soát, tính lại"| Operational
+    Operational -->|"khóa mã băm"| Locked
 ```
 *Hình 3.2: Bốn trạng thái dữ liệu và các cổng kiểm soát.*
 

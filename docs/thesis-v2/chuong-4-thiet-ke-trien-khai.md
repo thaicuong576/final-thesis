@@ -12,28 +12,23 @@ Hệ thống tách logic tính toán và kiểm tra khỏi hạ tầng ứng d�
 
 ```mermaid
 flowchart TB
-    UI["<b>Giao diện web</b><br/>Hỏi · Điều phối · Báo cáo · Quá trình · Dữ liệu"]
+    UI["<b>Giao diện web</b>: Hỏi, Điều phối, Báo cáo, Quá trình, Dữ liệu"]
     subgraph App ["Tầng ứng dụng"]
-        API["API phân tích + luồng sự kiện thời gian thực"]
-        QP["Hiểu câu hỏi → Lập kế hoạch"]
-        AG["Chuyên viên viết nhận định · Điều phối viên · Phản biện"]
+        direction LR
+        API["API phân tích<br/>và luồng sự kiện"]
+        GATE["Cổng phạm vi, hiểu<br/>câu hỏi, lập kế hoạch"]
+        AG["Chuyên viên, điều phối<br/>viên, phản biện"]
+        API --> GATE --> AG
     end
-    subgraph Core ["Tầng lõi (không phụ thuộc CSDL, mô hình)"]
-        F["Dữ kiện, tín hiệu,<br/>phát hiện liên tầng"]
-        V["Kiểm tra câu theo quy tắc"]
-        S["Kiểm tra cấu trúc báo cáo"]
-        R["Phản biện – sửa đổi có giới hạn"]
+    subgraph Core ["Tầng lõi (không phụ thuộc CSDL và mô hình)"]
+        CORE["Dữ kiện, tín hiệu, phát hiện liên tầng<br/>Kiểm tra câu theo quy tắc<br/>Kiểm tra cấu trúc báo cáo"]
     end
-    DB[("Bộ dữ liệu phân tích<br/>chỉ đọc, khóa mã băm")]
-    RUNS[("Lịch sử lượt chạy<br/>có quyền ghi")]
-    UI <--> API
-    API --> QP --> AG
-    QP --> F
-    AG --> V
-    AG --> S
-    AG --> R
-    F --> DB
-    API --> RUNS
+    DB[("Bộ dữ liệu phân tích: chỉ đọc, khóa mã băm")]
+    RUNS[("Lịch sử lượt chạy: có quyền ghi")]
+    UI <--> App
+    App --> Core
+    Core --> DB
+    App --> RUNS
 ```
 *Hình 4.1: Kiến trúc phân tầng của hệ thống.*
 
@@ -42,18 +37,28 @@ flowchart TB
 Một lượt phân tích đi từ câu hỏi tiếng Việt đến báo cáo qua các bước trong Hình 4.2.
 
 ```mermaid
-flowchart TD
-    Q(["<b>Câu hỏi tiếng Việt</b><br/>VD: So sánh ACB và TCB quý 4/2025"])
-    P["<b>1. Hiểu câu hỏi và lập kế hoạch</b><br/>Ngân hàng, kỳ, chỉ tiêu, dạng câu hỏi;<br/>kế hoạch được kiểm tra rồi khóa lại"]
-    T["<b>2. Công cụ tính toán</b><br/>Dữ kiện có công thức và mã quan sát đầu vào;<br/>dữ liệu cho biểu đồ"]
-    G["<b>3. Tín hiệu và phát hiện liên tầng</b>"]
-    W["<b>4. Chuyên viên viết nhận định</b><br/>Mỗi câu trích dẫn dữ kiện"]
-    V["<b>5. Kiểm tra câu theo quy tắc</b><br/>Câu sai bị loại riêng, không hủy lượt chạy"]
-    A["<b>6. Lắp báo cáo theo khối</b><br/>Kiểm tra cấu trúc, biểu đồ phù hợp dữ liệu"]
-    C["<b>7. Phản biện và sửa đổi</b><br/>Tối đa 2 vòng, câu sửa được kiểm tra lại"]
-    O(["<b>Báo cáo + nhật ký từng bước</b>"])
-    Q --> P --> T --> G --> W --> V --> A --> C --> O
-    C -.->|"Câu cần sửa"| W
+flowchart TB
+    Q(["<b>Câu hỏi tiếng Việt</b>"])
+    subgraph PRE ["Chuẩn bị"]
+        direction LR
+        P["<b>1. Kiểm tra phạm vi,<br/>hiểu câu hỏi, lập kế hoạch</b><br/>kế hoạch được khóa"]
+        T["<b>2. Công cụ tính toán</b><br/>dữ kiện có công thức<br/>và mã quan sát"]
+        G["<b>3. Tín hiệu và<br/>phát hiện liên tầng</b>"]
+        P --> T --> G
+    end
+    subgraph WRI ["Viết và kiểm tra"]
+        direction LR
+        W["<b>4. Chuyên viên viết</b><br/>mỗi câu trích dẫn dữ kiện"]
+        V["<b>5. Kiểm tra câu</b><br/>câu sai bị loại riêng"]
+        A["<b>6. Lắp báo cáo</b><br/>theo khối, kiểm tra cấu trúc"]
+        C["<b>7. Phản biện, sửa đổi</b><br/>tối đa 2 vòng"]
+        W --> V --> A --> C
+        C -.->|"câu cần sửa"| W
+    end
+    O(["<b>Báo cáo và nhật ký từng bước</b>"])
+    Q --> PRE
+    PRE --> WRI
+    WRI --> O
 ```
 *Hình 4.2: Luồng một lượt phân tích.*
 
@@ -65,6 +70,8 @@ Câu hỏi được chuẩn hóa (bảng mã Unicode, chữ thường, khoảng 
 - **Kỳ:** "quý 4/2025", "Q4/2025", "quý 4 năm 2025"; "năm 2025" được mở thành bốn quý của năm. Nếu câu hỏi không nêu kỳ, hệ thống dùng kỳ mới nhất có dữ liệu và ghi nhận việc áp dụng mặc định này.
 - **Chỉ tiêu:** tên tiếng Việt và viết tắt (nợ xấu, NPL, bao phủ nợ xấu, ROA, ROE) hoặc nhóm chủ đề (chất lượng tài sản, khả năng sinh lời).
 - **Ý định:** các từ khóa tra cứu ("bao nhiêu"), xếp hạng ("nhất", "xếp hạng"), so sánh ("so với", "cùng nhóm"), xu hướng ("diễn biến", "qua các quý").
+
+Trước khi lập kế hoạch, một cổng phạm vi theo dấu hiệu từ khóa kiểm tra câu hỏi có thực thể ngân hàng, chỉ tiêu hoặc ý định phân tích hợp lệ hay không. Câu hỏi sáng tác, dịch thuật hay dự báo giá tài sản ngoài danh mục bị từ chối ngay, không gọi mô hình; đây là bộ lọc theo từ khóa chứ không phải bộ phân loại ý định, nên câu diễn đạt lạ có thể bị chặn nhầm hoặc lọt qua.
 
 Từ đó, câu hỏi được xếp vào một trong năm dạng: **tra cứu** một con số, **hồ sơ doanh nghiệp** so với nhóm, **xếp hạng** các ngân hàng, **xu hướng** qua hai đến bốn quý, và **so sánh trực diện** hai ngân hàng. Kế hoạch gồm dạng câu hỏi và tối đa năm lệnh gọi công cụ. Mô hình ngôn ngữ có thể đề xuất kế hoạch, nhưng chương trình chỉ chấp nhận ngân hàng, kỳ và chỉ tiêu có thật trong dữ liệu; nếu đề xuất sai hoặc mô hình lỗi, hệ thống dùng kế hoạch theo quy tắc. Kế hoạch được khóa trước khi truy xuất dữ liệu, và các bước sau chỉ làm việc trong phạm vi đã duyệt.
 
@@ -126,19 +133,21 @@ Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gi
 
 ## 4.4. Triển khai và kiểm thử
 
-Hệ thống được triển khai trên nền tảng đám mây và có thể dùng trực tiếp tại https://fin-ai.eddiephung.me (Hình 4.3). Giao diện web (React) chạy trên Vercel; máy chủ phân tích (Python, FastAPI) chạy trên Render và gọi mô hình ngôn ngữ qua giao diện tương thích OpenAI. Máy chủ miễn phí mất dữ liệu cục bộ mỗi lần khởi động lại, nên bộ dữ liệu được lưu trong kho riêng tư Supabase Storage và được tải về khi khởi động. Trước khi nhận yêu cầu, máy chủ kiểm tra mã băm SHA-256 của tệp, tính toàn vẹn cơ sở dữ liệu và mã phiên bản bộ dữ liệu; nếu một trong ba không khớp, máy chủ từ chối phục vụ. Lịch sử lượt chạy cũng được lưu sang kho này để không mất khi máy chủ khởi động lại. Khóa truy cập kho chỉ nằm trên máy chủ, không đến trình duyệt.
+Hệ thống được triển khai trên nền tảng đám mây và có thể dùng trực tiếp tại https://fin-ai.eddiephung.me (Hình 4.3). Giao diện web (React) chạy trên Vercel; máy chủ phân tích (Python, FastAPI) chạy trên Render và gọi mô hình ngôn ngữ qua giao diện tương thích OpenAI. Máy chủ cũng lấy giá cổ phiếu và hệ số P/B từ một nguồn dữ liệu thị trường bên ngoài để đưa vào báo cáo như một phần bối cảnh, có nhãn nguồn riêng và không trộn với số liệu báo cáo tài chính. Máy chủ miễn phí mất dữ liệu cục bộ mỗi lần khởi động lại, nên bộ dữ liệu được lưu trong kho riêng tư Supabase Storage và được tải về khi khởi động. Trước khi nhận yêu cầu, máy chủ kiểm tra mã băm SHA-256 của tệp, tính toàn vẹn cơ sở dữ liệu và mã phiên bản bộ dữ liệu; nếu một trong ba không khớp, máy chủ từ chối phục vụ. Lịch sử lượt chạy cũng được lưu sang kho này để không mất khi máy chủ khởi động lại. Khóa truy cập kho chỉ nằm trên máy chủ, không đến trình duyệt.
 
 ```mermaid
 flowchart LR
     B["<b>Trình duyệt</b><br/>fin-ai.eddiephung.me"]
-    FE["<b>Vercel</b><br/>Giao diện React"]
-    BE["<b>Render</b><br/>Máy chủ phân tích FastAPI"]
-    ST[("<b>Supabase Storage</b><br/>Bộ dữ liệu khóa mã băm,<br/>lịch sử lượt chạy")]
+    FE["<b>Vercel</b><br/>giao diện React"]
+    BE["<b>Render</b><br/>máy chủ phân tích FastAPI"]
+    ST[("<b>Supabase Storage</b><br/>bộ dữ liệu khóa mã băm,<br/>lịch sử lượt chạy")]
     LLM["<b>Mô hình ngôn ngữ</b><br/>API tương thích OpenAI"]
+    MK["<b>Dữ liệu thị trường</b><br/>nguồn giá, gắn nhãn riêng"]
     B <--> FE
-    FE <-->|"REST + luồng sự kiện"| BE
-    BE -->|"Khởi động: tải + kiểm tra mã băm"| ST
+    FE <-->|"REST và luồng sự kiện"| BE
+    BE -->|"khởi động: tải, kiểm tra mã băm"| ST
     BE <--> LLM
+    BE -->|"giá, P/B"| MK
 ```
 *Hình 4.3: Kiến trúc triển khai.*
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from typing import Any, Sequence
 
@@ -71,33 +72,180 @@ _MODEL_PLAN_PROMPT = (
 )
 
 
-def validate_scope(resolved: ResolvedQuery, catalog: DatasetCapabilityCatalog) -> None:
+# BANKING_SECTOR_TERMS: Canonical scope terms denoting the Vietnamese banking industry.
+BANKING_SECTOR_TERMS: tuple[str, ...] = (
+    "ngân hàng",
+    "ngành ngân hàng",
+    "nhóm ngân hàng",
+    "các ngân hàng",
+    "toàn ngành",
+    "hệ thống ngân hàng",
+)
+
+# ANALYTIC_INTENT_CUES: Deterministic domain keywords indicating analytical financial intent
+# (e.g. ranking, health, comparison, operational overview) for sector-level queries lacking
+# an explicit entity or catalog metric name.
+ANALYTIC_INTENT_CUES: tuple[str, ...] = (
+    "tốt nhất",
+    "tốt hơn",
+    "an toàn",
+    "tình hình",
+    "so sánh",
+    "xếp hạng",
+    "đánh giá",
+    "hoạt động",
+    "sức khỏe",
+    "chất lượng",
+    "hiệu quả",
+)
+
+# NON_ANALYTIC_OVERRIDES: Deterministic keyword patterns for queries outside analytical scope
+# (creative writing, translation, programming, non-catalog forecasting) that must fail closed
+# even when a banking sector term is present.
+NON_ANALYTIC_CREATIVE_CUES: tuple[str, ...] = (
+    "sáng tác",
+    "bài thơ",
+    "làm thơ",
+    "bài hát",
+    "viết văn",
+    "tiểu thuyết",
+)
+
+NON_ANALYTIC_TRANSLATION_CUES: tuple[str, ...] = (
+    "dịch sang",
+    "dịch đoạn",
+    "dịch câu",
+    "dịch bài",
+    "dịch từ",
+    "dịch văn",
+    "tiếng anh",
+    "translate",
+    "translation",
+)
+
+NON_ANALYTIC_CODING_CUES: tuple[str, ...] = (
+    "viết code",
+    "code python",
+    "lập trình",
+    "viết hàm",
+    "viết script",
+    "script",
+)
+
+NON_ANALYTIC_FORECAST_CUES: tuple[str, ...] = (
+    "dự báo",
+    "tuần tới",
+    "sẽ ra sao",
+    "giá vàng",
+    "giá xăng",
+    "giá dầu",
+)
+
+
+def _has_non_analytic_override(raw_query: str, has_metrics: bool) -> bool:
+    """Check if the query matches non-analytic intents that must fail closed."""
+    if not raw_query:
+        return False
+    from .query_understanding import normalize_text, strip_accents
+
+    norm = normalize_text(raw_query)
+    norm_no_accents = strip_accents(norm)
+
+    # 1. Creative writing: sáng tác, thơ, truyện, bài hát, viết văn, tiểu thuyết
+    for cue in NON_ANALYTIC_CREATIVE_CUES:
+        if cue in norm or strip_accents(cue) in norm_no_accents:
+            return True
+    if re.search(r"\b(?:thơ|tho|truyện|truyen)\b", norm_no_accents):
+        return True
+
+    # 2. Translation: dịch (excluding 'giao dịch'), tiếng anh, translate
+    for cue in NON_ANALYTIC_TRANSLATION_CUES:
+        if cue in norm or strip_accents(cue) in norm_no_accents:
+            return True
+    if re.search(r"(?<!giao\s)(?<!biến\s)(?<!dịch\s)\b(?:dịch|dich)\b", norm_no_accents):
+        return True
+
+    # 3. Coding: viết code, code python, lập trình, viết hàm, script
+    for cue in NON_ANALYTIC_CODING_CUES:
+        if cue in norm or strip_accents(cue) in norm_no_accents:
+            return True
+
+    # 4. Forecasting/prediction outside the catalog (active only when no catalog metric is present)
+    if not has_metrics:
+        for cue in NON_ANALYTIC_FORECAST_CUES:
+            if cue in norm or strip_accents(cue) in norm_no_accents:
+                return True
+
+    return False
+
+
+def validate_scope(
+    resolved: ResolvedQuery,
+    catalog: DatasetCapabilityCatalog,
+    raw_query: str | None = None,
+) -> None:
     """Validate that the query falls within the banking financial analysis domain.
 
-    A query is in-scope if at least one of the following holds:
+    A query is in-scope if all non-analytic overrides pass AND at least one holds:
     1. It mentions at least one recognized banking entity or unrecognized potential ticker token.
     2. It specifies at least one explicit financial metric or domain topic.
     3. It targets supported or domain-level macroeconomic scope.
+    4. It contains a banking-sector scope term AND an analytic-intent cue (allowing sector-level
+       ranking/overview questions without explicit metrics to proceed to default planning).
 
-    Otherwise, the query is rejected deterministically as out_of_scope before planning,
-    model invocation, or data retrieval.
+    Queries matching non-analytic overrides (creative writing, translation, programming,
+    non-catalog forecasting) fail closed immediately even if banking terms are present.
     """
+    query_text = raw_query if raw_query is not None else getattr(resolved, "raw_query", "")
+
     has_entities = bool(resolved.entities) or bool(resolved.unknown_entity_tokens)
     has_metrics = bool(resolved.explicit_metrics) or bool(resolved.topic_metrics)
     has_macro = "macro" in resolved.flags
 
-    if not (has_entities or has_metrics or has_macro):
-        from .messages_vi import get_error_message
+    from .messages_vi import get_error_message
 
+    # Check non-analytic overrides first (overrides win over cues)
+    if query_text and _has_non_analytic_override(query_text, has_metrics):
         raise AnalysisBlocked(
             "out_of_scope",
             get_error_message("out_of_scope", catalog),
         )
 
+    # Condition 1: Entity, Metric, or Macro presence
+    if has_entities or has_metrics or has_macro:
+        return
 
-def rules_plan(resolved: ResolvedQuery, catalog: DatasetCapabilityCatalog) -> PlanSpec:
+    # Condition 2: Sector-level banking scope term + analytic-intent cue
+    if query_text:
+        from .query_understanding import normalize_text, strip_accents
+
+        norm = normalize_text(query_text)
+        norm_no_accents = strip_accents(norm)
+
+        has_banking_term = any(
+            term in norm or strip_accents(term) in norm_no_accents
+            for term in BANKING_SECTOR_TERMS
+        )
+        has_analytic_cue = any(
+            cue in norm or strip_accents(cue) in norm_no_accents
+            for cue in ANALYTIC_INTENT_CUES
+        )
+        if has_banking_term and has_analytic_cue:
+            return
+
+    raise AnalysisBlocked(
+        "out_of_scope",
+        get_error_message("out_of_scope", catalog),
+    )
+
+
+def rules_plan(
+    resolved: ResolvedQuery,
+    catalog: DatasetCapabilityCatalog,
+    raw_query: str | None = None,
+) -> PlanSpec:
     """Generate a deterministic plan based on the resolved query and domain rules."""
-    validate_scope(resolved, catalog)
+    validate_scope(resolved, catalog, raw_query=raw_query)
 
     # 1. Unknown entity tokens
     if resolved.unknown_entity_tokens:
@@ -634,7 +782,7 @@ def plan_question(
     from .query_understanding import resolve_query
 
     resolved = resolve_query(question, catalog)
-    validate_scope(resolved, catalog)
+    validate_scope(resolved, catalog, raw_query=question)
     planner_mode = getattr(settings, "planner_mode", "model_with_fallback")
 
     fallback_reasons: list[str] = []
@@ -668,7 +816,7 @@ def plan_question(
             else:
                 fallback_reasons = ["model_error"]
 
-    rules_result = rules_plan(resolved, catalog)
+    rules_result = rules_plan(resolved, catalog, raw_query=question)
     return rules_result, "rules", fallback_reasons, resolved
 
 

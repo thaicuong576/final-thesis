@@ -178,7 +178,7 @@ class ScopeGateUnitTests(unittest.TestCase):
                 self.assertEqual(ctx_plan.exception.code, "out_of_scope")
 
     def test_valid_queries_of_different_types_pass_scope_gate(self) -> None:
-        """Verify at least 6 diverse valid queries pass through the scope gate without error."""
+        """Verify valid queries (including sector queries without explicit metrics) pass through the scope gate."""
         valid_queries = [
             # 1. Ranking by metric without entities
             "Xếp hạng ROE các ngân hàng năm 2024",
@@ -194,6 +194,12 @@ class ScopeGateUnitTests(unittest.TestCase):
             "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 4 2024?",
             # 7. Company profile overview
             "Sức khỏe tài chính của ACB quý 4 2024",
+            # 8-12. Sector-level analytic queries without explicit metrics (SCOPE-1 FIX1)
+            "Ngân hàng nào tốt nhất?",
+            "Ngân hàng nào an toàn nhất?",
+            "So sánh các ngân hàng",
+            "Tình hình ngành ngân hàng quý 2/2024 thế nào?",
+            "Các ngân hàng lớn đang hoạt động ra sao?",
         ]
 
         for query in valid_queries:
@@ -208,12 +214,15 @@ class ScopeGateUnitTests(unittest.TestCase):
                 self.assertTrue(len(spec.tools) > 0)
 
     def test_domain_keyword_alone_insufficient_to_bypass_scope_gate(self) -> None:
-        """Single domain keyword 'ngân hàng' alone must not bypass the scope gate."""
+        """Domain keyword 'ngân hàng' alone must not bypass scope gate when intent is non-analytic."""
         queries_with_bank_keyword = [
             "Làm một bài thơ về các cô gái làm việc tại ngân hàng.",
             "Truyện cười về giao dịch viên ngân hàng.",
             "Tuyển dụng nhân viên ngân hàng tại Đà Nẵng cần điều kiện gì?",
             "Lịch nghỉ tết của các ngân hàng năm nay ra sao?",
+            "Dịch câu này sang tiếng Anh: Ngân hàng đã đóng cửa",
+            "viết code Python tính lãi ngân hàng",
+            "dự báo lãi suất huy động tuần tới",
         ]
         for query in queries_with_bank_keyword:
             with self.subTest(query=query):
@@ -221,6 +230,10 @@ class ScopeGateUnitTests(unittest.TestCase):
                 with self.assertRaises(AnalysisBlocked) as ctx:
                     validate_scope(resolved, self.catalog)
                 self.assertEqual(ctx.exception.code, "out_of_scope")
+
+                with self.assertRaises(AnalysisBlocked) as ctx_plan:
+                    plan_question(query, self.catalog)
+                self.assertEqual(ctx_plan.exception.code, "out_of_scope")
 
 
 class FrozenEvalSetsScopeGateTests(unittest.TestCase):

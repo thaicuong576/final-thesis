@@ -1693,26 +1693,32 @@ Root cause analysis: In `src/thesis_api/analysis_planner.py`, when a user questi
 ### Decision
 
 1. **Deterministic Scope Gate (`validate_scope`)**:
-   Implement a fail-closed, deterministic scope check (`validate_scope(resolved, catalog)`) in `src/thesis_api/analysis_planner.py`. A query is strictly considered in-scope if at least one of the following conditions is satisfied:
+   Implement a fail-closed, deterministic scope check (`validate_scope(resolved, catalog, raw_query)`) in `src/thesis_api/analysis_planner.py`. A query is considered in-scope if all non-analytic overrides pass AND at least one of the following conditions is satisfied:
    - `has_entities`: At least one supported banking entity (`resolved.entities`) or unknown potential entity token (`resolved.unknown_entity_tokens`) is detected (preserving existing rejection handling for unsupported entities such as TPB/OCB under RED-04/RED-05).
    - `has_metrics`: At least one explicit financial metric (`resolved.explicit_metrics`) or domain topic (`resolved.topic_metrics`) is present.
    - `has_macro`: Domain-level macroeconomic intent (`"macro" in resolved.flags`) is present (preserving existing `unsupported_macro_scope` handling).
+   - `sector_cue_scope`: The question contains a canonical banking-sector scope term (`BANKING_SECTOR_TERMS`: "ngân hàng", "ngành ngân hàng", "nhóm ngân hàng", "các ngân hàng", "toàn ngành", "hệ thống ngân hàng") AND an analytic-intent cue (`ANALYTIC_INTENT_CUES`: "tốt nhất", "tốt hơn", "an toàn", "tình hình", "so sánh", "xếp hạng", "đánh giá", "hoạt động", "sức khỏe", "chất lượng", "hiệu quả"). This allows valid sector-level questions lacking an explicit entity or metric (e.g. "Ngân hàng nào tốt nhất?", "So sánh các ngân hàng", "Tình hình ngành ngân hàng quý 2/2024 thế nào?") to proceed to default ranking/sector planning.
    If none of these conditions hold, the gate deterministically raises `AnalysisBlocked("out_of_scope", ...)`.
 
-2. **No Model Invocation, No Snapshot Writes**:
+2. **Non-Analytic Overrides (Fail Closed)**:
+   Non-analytic intent overrides win over domain cues and fail closed with `out_of_scope` even when banking terms are present:
+   - Creative writing: "sáng tác", "thơ", "truyện", "bài hát", "viết văn", "tiểu thuyết" (RED-13 stays strictly blocked).
+   - Translation: "dịch" (excluding "giao dịch"), "tiếng anh", "translate", "translation".
+   - Coding: "viết code", "code python", "lập trình", "viết hàm", "script".
+   - Non-catalog forecasting: "dự báo", "tuần tới", "sẽ ra sao", "giá vàng", "giá xăng", "giá dầu" when combined with no catalog metric (RED-14 stays blocked).
+   - Advice-to-trade is deliberately not handled at this gate and is deferred to existing downstream causal claim and investment advice policies.
+
+3. **No Model Invocation, No Snapshot Writes**:
    The scope gate executes immediately following query parameter resolution in `plan_question`, strictly before any LLM model proposal (`model_plan`) is called, before data retrieval, and before snapshot writes. It is also enforced as the first check in `rules_plan`.
 
-3. **Public Contract and Streaming Alignment**:
+4. **Public Contract and Streaming Alignment**:
    - Error code: `out_of_scope`.
    - Localized message: "Yêu cầu nằm ngoài phạm vi phân tích tài chính ngân hàng. Hệ thống chỉ hỗ trợ tra cứu, so sánh, xếp hạng và đánh giá theo các ngân hàng và chỉ tiêu tài chính được hỗ trợ."
    - Documented in `contracts/openapi.json` under `ErrorInfo` and registered in `src/thesis_api/messages_vi.py`.
    - Both `POST /api/analyze` and `/api/analyze/stream` synchronously handle the refusal: standard analysis endpoints return an error response, while SSE streams emit `RUN_BLOCKED` and never emit `REPORT_READY`.
 
-4. **Zero Domain Keyword Bypass**:
-   Domain words such as "ngân hàng" (bank) alone are insufficient to pass the gate if the intent lacks recognized banking entities, metrics, topics, or macroeconomic scope.
-
 ### Limitations
 
-The scope gate is a deterministic, rule- and catalog-anchored filter based on resolved entities, metrics, topics, and domain flags; it is not a statistical machine-learning text classifier. Adversarial inputs that explicitly combine an out-of-scope command with a valid bank entity or metric will proceed to specialist planning and verifier checks rather than being blocked at the scope gate.
+The scope gate is a deterministic keyword- and catalog-anchored gate, not an NLP intent classifier or statistical machine-learning model. It relies on resolved parameters, module-level keyword tuples, and regular-expression word boundaries to block obvious non-analytical requests and admit legitimate sector-level inquiries without requiring model calls. Adversarial prompts combining banking entities or metrics with out-of-scope instructions proceed to specialist planning and verifier checks rather than being blocked at the scope gate.
 
 

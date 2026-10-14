@@ -23,8 +23,10 @@ def setUpModule() -> None:
 
 from thesis_api.auth import (
     AuthConfigurationError,
+    InMemoryRateLimiter,
     create_access_token,
     default_rate_limiter,
+    get_client_ip,
     is_public_path,
     verify_access_token,
     verify_credentials,
@@ -368,7 +370,121 @@ class AuthApiTests(unittest.TestCase):
         finally:
             root_logger.removeHandler(handler)
 
+    def test_rate_limit_spoofing_uses_last_forwarded_ip_and_shares_counter(self) -> None:
+        """Rotating leftmost X-Forwarded-For does not bypass rate limiter; last IP is used."""
+        app = create_app(self.auth_enabled_settings)
+        with TestClient(app) as client:
+            real_client_ip = "203.0.113.195"
+            # 5 failed attempts with different leftmost IPs but same real last IP
+            for i in range(5):
+                headers = {"x-forwarded-for": f"10.0.0.{i+1}, {real_client_ip}"}
+                res = client.post(
+                    "/api/auth/login",
+                    json={"username": self.test_user, "password": "wrong_password"},
+                    headers=headers,
+                )
+                self.assertEqual(res.status_code, 401, f"Attempt {i+1} should fail with 401")
+
+            # 6th attempt with another leftmost IP but same last IP gets 429
+            res6 = client.post(
+                "/api/auth/login",
+                json={"username": self.test_user, "password": "wrong_password"},
+                headers={"x-forwarded-for": f"10.0.0.99, {real_client_ip}"},
+            )
+            self.assertEqual(res6.status_code, 429)
+            self.assertEqual(res6.json().get("code"), "too_many_attempts")
+
+    def test_rate_limiter_table_capacity_cap(self) -> None:
+        """In-memory rate limiter prunes expired entries first and caps total entries at max_entries."""
+        limiter = InMemoryRateLimiter(max_attempts=5, window_seconds=60.0, max_entries=10)
+        now = time.time()
+        # Add 5 expired entries (older than 60s)
+        with limiter._lock:
+            for i in range(5):
+                limiter._failures[f"expired_{i}"] = [now - 120.0]
+
+        # Add 8 active entries
+        for i in range(8):
+            limiter.record_failure(f"active_{i}")
+
+        # Total was 5 expired + 8 active = 13. Cap is 10.
+        # Pruning dropped the 5 expired keys, leaving 8 active keys <= 10.
+        self.assertLessEqual(len(limiter._failures), 10)
+        for i in range(5):
+            self.assertNotIn(f"expired_{i}", limiter._failures)
+
+        # Now add 10 more active entries (total active > 10).
+        # Should drop oldest active entries to maintain <= 10 keys.
+        for i in range(8, 18):
+            limiter.record_failure(f"active_{i}")
+
+        self.assertEqual(len(limiter._failures), 10)
+
+        # Also verify default_rate_limiter or large limiter caps at 10,000
+        limiter_large = InMemoryRateLimiter(max_entries=10000)
+        for i in range(10005):
+            limiter_large.record_failure(f"ip_{i}")
+        self.assertEqual(len(limiter_large._failures), 10000)
+
+    def test_public_path_traversal_rejection(self) -> None:
+        """Paths containing directory traversal or unsafe encodings are rejected from public exemption."""
+        app = create_app(self.auth_enabled_settings)
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path, **kw: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            with TestClient(app) as client:
+                # 1. Directory traversal ../..
+                res_dotdot = client.get("/api/onboarding/samples/../../runs")
+                self.assertEqual(res_dotdot.status_code, 401)
+                self.assertEqual(res_dotdot.json().get("code"), "auth_required")
+
+                # 2. Percent-encoded traversal %2e%2e
+                res_encoded = client.get("/api/onboarding/samples/%2e%2e/runs")
+                self.assertEqual(res_encoded.status_code, 401)
+                self.assertEqual(res_encoded.json().get("code"), "auth_required")
+
+                # 3. Duplicate slashes //
+                res_slash = client.get("/api/onboarding/samples//x.csv")
+                self.assertEqual(res_slash.status_code, 401)
+                self.assertEqual(res_slash.json().get("code"), "auth_required")
+
+                # Direct unit verification of is_public_path
+                self.assertFalse(is_public_path("/api/onboarding/samples/../../runs"))
+                self.assertFalse(is_public_path("/api/onboarding/samples/%2e%2e/runs"))
+                self.assertFalse(is_public_path("/api/onboarding/samples/%2E%2E/runs"))
+                self.assertFalse(is_public_path("/api/onboarding/samples//x.csv"))
+                self.assertFalse(is_public_path("/api/onboarding/samples\\x.csv"))
+                self.assertFalse(is_public_path("/api/onboarding/samples/%5cx.csv"))
+                self.assertFalse(is_public_path("/api/onboarding/samples/%2fx.csv"))
+
+    def test_docs_and_non_api_paths_under_auth(self) -> None:
+        """Non-/api/ routes (except '/') including /docs, /redoc, /openapi.json require auth when enabled."""
+        app = create_app(self.auth_enabled_settings)
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=lambda path, **kw: _fixture_provider_binding(path, expose_locator=True),
+        ):
+            with TestClient(app) as client:
+                # Without token: 401
+                self.assertEqual(client.get("/docs").status_code, 401)
+                self.assertEqual(client.get("/redoc").status_code, 401)
+                self.assertEqual(client.get("/openapi.json").status_code, 401)
+
+                # Root path '/' is public (not 401; returns 404 because no root route is registered)
+                root_res = client.get("/")
+                self.assertNotEqual(root_res.status_code, 401)
+
+                # With valid token: 200
+                token, _ = create_access_token(
+                    username=self.test_user,
+                    secret=self.test_token_secret,
+                )
+                headers = {"Authorization": f"Bearer {token}"}
+                self.assertEqual(client.get("/docs", headers=headers).status_code, 200)
+                self.assertEqual(client.get("/openapi.json", headers=headers).status_code, 200)
 
 
 if __name__ == "__main__":
     unittest.main()
+

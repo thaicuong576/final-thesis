@@ -51,13 +51,49 @@ class AuthErrorResponse(BaseModel):
 
 
 class InMemoryRateLimiter:
-    """Thread-safe in-memory sliding-window rate limiter by client IP."""
+    """Thread-safe in-memory sliding-window rate limiter by client IP with bounded capacity."""
 
-    def __init__(self, max_attempts: int = 5, window_seconds: float = 60.0) -> None:
+    def __init__(
+        self,
+        max_attempts: int = 5,
+        window_seconds: float = 60.0,
+        max_entries: int = 10000,
+    ) -> None:
         self.max_attempts = max_attempts
         self.window_seconds = window_seconds
+        self.max_entries = max_entries
         self._failures: dict[str, list[float]] = {}
         self._lock = threading.Lock()
+
+    def _prune_locked(self, now: float) -> None:
+        """Prune expired timestamps, remove empty entries, and enforce max_entries cap."""
+        cutoff = now - self.window_seconds
+        # 1. Drop expired keys first
+        expired_keys = [
+            ip
+            for ip, attempts in self._failures.items()
+            if not [t for t in attempts if t > cutoff]
+        ]
+        for ip in expired_keys:
+            self._failures.pop(ip, None)
+
+        # Retain only active timestamps for surviving keys
+        for ip, attempts in list(self._failures.items()):
+            valid_attempts = [t for t in attempts if t > cutoff]
+            if not valid_attempts:
+                self._failures.pop(ip, None)
+            else:
+                self._failures[ip] = valid_attempts
+
+        # 2. If still above cap, drop oldest entries (keys with oldest recent activity)
+        if len(self._failures) > self.max_entries:
+            sorted_keys = sorted(
+                self._failures.keys(),
+                key=lambda k: max(self._failures[k]) if self._failures[k] else 0.0,
+            )
+            excess = len(self._failures) - self.max_entries
+            for k in sorted_keys[:excess]:
+                self._failures.pop(k, None)
 
     def is_rate_limited(self, ip: str) -> bool:
         """Check whether the client IP has exceeded maximum failed attempts in the window."""
@@ -65,20 +101,25 @@ class InMemoryRateLimiter:
         cutoff = now - self.window_seconds
         with self._lock:
             attempts = [t for t in self._failures.get(ip, []) if t > cutoff]
+            if not attempts:
+                self._failures.pop(ip, None)
+                return False
             self._failures[ip] = attempts
             return len(attempts) >= self.max_attempts
 
     def record_failure(self, ip: str) -> None:
-        """Record a failed login attempt for the client IP."""
+        """Record a failed login attempt for the client IP and enforce capacity cap."""
         now = time.time()
         cutoff = now - self.window_seconds
         with self._lock:
             attempts = [t for t in self._failures.get(ip, []) if t > cutoff]
             attempts.append(now)
             self._failures[ip] = attempts
+            if len(self._failures) > self.max_entries:
+                self._prune_locked(now)
 
     def record_success(self, ip: str) -> None:
-        """Optionally clear failures on successful login."""
+        """Clear failures on successful login."""
         with self._lock:
             self._failures.pop(ip, None)
 
@@ -92,11 +133,17 @@ default_rate_limiter = InMemoryRateLimiter()
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP from request, taking proxy forward headers into account."""
+    """Extract client IP from request, taking proxy forward headers into account.
+
+    Uses the LAST non-empty entry of X-Forwarded-For because reverse proxies (such as
+    Render) append the real client IP to the end of the chain, preventing spoofing
+    from client-supplied initial entries.
+    """
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        # First IP in X-Forwarded-For is client
-        return forwarded.split(",")[0].strip()
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if parts:
+            return parts[-1]
     if request.client and request.client.host:
         return request.client.host.strip()
     return "unknown"
@@ -208,22 +255,29 @@ def is_public_path(path: str, method: str = "GET") -> bool:
 
     Public endpoints:
     - Any OPTIONS method (CORS preflight)
-    - Non-API routes (if any)
+    - Root path: "/"
     - /api/version
     - /api/ready
     - /api/health
     - /api/auth/status
     - /api/auth/login
-    - /api/onboarding/samples/*
+    - /api/onboarding/samples/* (safe filenames without directory traversal)
+
+    All other paths (including /docs, /redoc, /openapi.json) require authentication when enabled.
     """
     if method == "OPTIONS":
         return True
 
-    if not path.startswith("/api/"):
-        return True
+    # Security check: reject paths with directory traversal, duplicate slashes, backslashes,
+    # or percent-encoded traversal sequences (%2e, %2f, %5c).
+    lower_path = path.lower()
+    if any(bad in lower_path for bad in ("..", "//", "\\", "%2e", "%2f", "%5c")):
+        return False
 
-    clean_path = path.rstrip("/")
+    clean_path = path.rstrip("/") if path != "/" else "/"
+
     if clean_path in (
+        "/",
         "/api/version",
         "/api/ready",
         "/api/health",
@@ -232,7 +286,7 @@ def is_public_path(path: str, method: str = "GET") -> bool:
     ):
         return True
 
-    if clean_path.startswith("/api/onboarding/samples/") or path.startswith("/api/onboarding/samples/"):
+    if clean_path.startswith("/api/onboarding/samples/"):
         return True
 
     return False

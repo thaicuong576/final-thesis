@@ -5,6 +5,7 @@ import { ChevronRight, FileSearch, Plus, RotateCw, Search } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
 import { PageCrumbs, StatusPill } from '@/components/layout/PageCrumbs';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 import { dedupeRunTickers } from './reportTickers';
 
 /** Mirrors `AnalysisRunSummary` in contracts/openapi.json. */
@@ -65,7 +66,7 @@ function formatWhen(iso: string): string {
 }
 
 async function fetchRuns(): Promise<RunSummary[]> {
-  const res = await fetch(`${getApiBaseUrl()}/api/runs?limit=100`, { headers: { Accept: 'application/json' } });
+  const res = await apiFetch(`${getApiBaseUrl()}/api/runs?limit=100`, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = (await res.json()) as unknown;
   return Array.isArray(data) ? (data as RunSummary[]) : [];

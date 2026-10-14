@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { apiFetch } from "@/shared/api/apiClient";
 import { SourceDrawer } from "./SourceDrawer";
 import { formatNumber, formatPeriod, formatUnit } from "./formatters";
 import { formatDisplayText } from "@/shared/lib/formatting";
@@ -31,7 +32,7 @@ export const SourceLineageDemo: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/lineage/observation-3a26e363c78be87d85d2c7b3a34d4121cc5b718647425d8b3017678fb966e936")
+    apiFetch("/api/lineage/observation-3a26e363c78be87d85d2c7b3a34d4121cc5b718647425d8b3017678fb966e936")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (active && data && data.value != null) {

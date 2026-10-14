@@ -1,5 +1,6 @@
 import type { AnalysisCapabilities } from '../model/types';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 
 export interface CapabilityService {
   getCapabilities(): Promise<AnalysisCapabilities>;
@@ -8,7 +9,7 @@ export interface CapabilityService {
 export const capabilityService: CapabilityService = {
   async getCapabilities(): Promise<AnalysisCapabilities> {
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/api/capabilities`, {
+    const response = await apiFetch(`${baseUrl}/api/capabilities`, {
       headers: { Accept: 'application/json' }
     });
     if (!response.ok) {

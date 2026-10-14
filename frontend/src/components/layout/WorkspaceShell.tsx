@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { BarChart3, Database, FileText, MessageSquareText } from 'lucide-react';
+import { BarChart3, Database, FileText, MessageSquareText, LogOut } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { analyticalPeriodIds } from '@/entities/capability/model/coverage';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { MarketPriceStrip } from '@/features/market-context';
+import { useAuth } from '@/features/auth/AuthContext';
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +31,13 @@ interface WorkspaceShellProps {
 }
 
 export function WorkspaceShell({ activeSection, context, children }: WorkspaceShellProps) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
   return (
     <SidebarProvider defaultOpen className="min-h-screen bg-workspace text-ink">
       <Sidebar collapsible="icon" className="border-r-0 bg-sidebar text-sidebar-foreground print:hidden">
@@ -62,17 +70,28 @@ export function WorkspaceShell({ activeSection, context, children }: WorkspaceSh
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-0">
-          <div className="flex items-center gap-3 px-4 py-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-            <span
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-white"
-              title="Phùng Thái Cường"
-            >
-              PC
-            </span>
-            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-[13px] font-medium text-white">Phùng Thái Cường</p>
-              <p className="truncate text-xs text-[#8f8a7f]">Chuyên viên phân tích</p>
+          <div className="flex items-center justify-between gap-2 px-3 py-2.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-2">
+            <div className="flex min-w-0 items-center gap-2.5 group-data-[collapsible=icon]:justify-center">
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-white"
+                title="Phùng Thái Cường"
+              >
+                PC
+              </span>
+              <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                <p className="truncate text-[13px] font-medium text-white">Phùng Thái Cường</p>
+                <p className="truncate text-xs text-[#8f8a7f]">Chuyên viên phân tích</p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Đăng xuất"
+              title="Đăng xuất"
+              className="grid size-8 shrink-0 place-items-center rounded-md text-[#9c978c] transition-colors hover:bg-sidebar-accent hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:size-8"
+            >
+              <LogOut className="size-4 stroke-[1.8]" />
+            </button>
           </div>
         </SidebarFooter>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { apiFetch } from "@/shared/api/apiClient";
 import type {
   LineageNode,
   ReportItem,
@@ -173,7 +174,7 @@ export function useLineage({
       for (const target of allTargets) {
         if (isCancelled) return;
         try {
-          const res = await fetch(`/api/lineage/${encodeURIComponent(target)}`);
+          const res = await apiFetch(`/api/lineage/${encodeURIComponent(target)}`);
           if (res.ok) {
             loadedData = await res.json();
             break;

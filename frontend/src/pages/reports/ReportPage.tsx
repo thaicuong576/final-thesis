@@ -18,6 +18,7 @@ import {
 } from '@/features/equity-report';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 import { normalizeAnalysisResponseToReport } from '@/features/analysis-report';
 import { ReportErrorBoundary } from './ReportErrorBoundary';
 
@@ -175,13 +176,13 @@ function ReportPageContent({
         const base = baseUrl || origin;
 
         // 1. Try GET /api/reports/{id}
-        let res = await fetch(`${base}/api/reports/${id}`, {
+        let res = await apiFetch(`${base}/api/reports/${id}`, {
           headers: { Accept: 'application/json' }
         });
 
         // 2. Fallback to GET /api/runs/{id}
         if (!res.ok) {
-          res = await fetch(`${base}/api/runs/${id}`, {
+          res = await apiFetch(`${base}/api/runs/${id}`, {
             headers: { Accept: 'application/json' }
           });
         }

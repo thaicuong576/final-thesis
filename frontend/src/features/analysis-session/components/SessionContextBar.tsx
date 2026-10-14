@@ -43,7 +43,7 @@ export function SessionContextBar({
           <div className="flex items-center gap-2 flex-wrap">
             <Database className="w-3.5 h-3.5 text-muted" aria-hidden="true" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
-              Phiên phân tích đa tác tử
+              Phiên phân tích đa agent
             </span>
             <Badge
               variant="outline"

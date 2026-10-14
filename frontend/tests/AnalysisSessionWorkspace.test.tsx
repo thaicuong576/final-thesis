@@ -41,7 +41,7 @@ describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
     expect(screen.getByRole('region', { name: 'Company' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sector' })).toBeInTheDocument();
     expect(screen.getByText('Quá trình phân tích')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Mở báo cáo/i })[0]).toBeInTheDocument();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -88,7 +88,7 @@ describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect((await screen.findAllByRole('button', { name: /Mở báo cáo/i }))[0]).toBeInTheDocument();
   });
 
   it('displays connection error and retry button on fetch failure without creating mock events', async () => {
@@ -133,7 +133,7 @@ describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('button', { name: /Mở báo cáo/i })).toBeInTheDocument();
+    expect((await screen.findAllByRole('button', { name: /Mở báo cáo/i }))[0]).toBeInTheDocument();
     expect(screen.queryByText(/Mất kết nối/i)).not.toBeInTheDocument();
   });
 

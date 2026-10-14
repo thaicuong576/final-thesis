@@ -110,7 +110,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 Bạn muốn phân tích gì?
               </h1>
               <p className="mt-3 mb-0 max-w-[62ch] text-[15px] leading-relaxed text-text-secondary">
-                Hỏi bằng tiếng Việt về các ngân hàng niêm yết. Các tác tử chia việc, chương trình tính số liệu, và mỗi
+                Hỏi bằng tiếng Việt về các ngân hàng niêm yết. Các agent chia việc, chương trình tính số liệu, và mỗi
                 con số trong báo cáo đều dẫn về trang báo cáo tài chính gốc.
               </p>
 
@@ -291,8 +291,10 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                   ? mapErrorCodeToMessage(info.code, capabilities)
                   : info.message;
                 setErrorInfo({ ...info, message: message || info.message });
-                setMode('ASK');
-                setSearchParams({});
+                if (initialMode !== 'SESSION') {
+                  setMode('ASK');
+                  setSearchParams({});
+                }
               }}
             />
           )}

@@ -11,9 +11,24 @@ from pathlib import Path
 from typing import Any, Optional
 import uuid
 
-from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+
+from .auth import (
+    AuthConfigurationError,
+    AuthErrorResponse,
+    AuthStatusResponse,
+    LoginRequest,
+    LoginResponse,
+    create_access_token,
+    default_rate_limiter,
+    get_client_ip,
+    is_public_path,
+    verify_access_token,
+    verify_credentials,
+)
+
 
 from .database import (
     get_analysis_report,
@@ -65,6 +80,13 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         """Hydrate an explicitly configured private snapshot and run history before serving traffic."""
+        if current_settings.auth_enabled:
+            try:
+                current_settings.validate_auth_configuration()
+            except ValueError as exc:
+                logger.exception("Auth configuration invalid; refusing application startup.")
+                raise AuthConfigurationError(str(exc)) from exc
+
         try:
             ensure_snapshot_from_settings(current_settings)
         except SnapshotBootstrapError:
@@ -104,6 +126,44 @@ def create_app(
         cors_kwargs["allow_origin_regex"] = current_settings.cors_origin_regex
 
     app.add_middleware(CORSMiddleware, **cors_kwargs)
+
+    @app.middleware("http")
+    async def auth_middleware(request: Request, call_next):
+        if not current_settings.auth_enabled:
+            return await call_next(request)
+
+        if is_public_path(request.url.path, request.method):
+            return await call_next(request)
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.lower().startswith("bearer "):
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "detail": "Yêu cầu đăng nhập để truy cập tài nguyên này.",
+                    "code": "auth_required",
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        token = auth_header[7:].strip()
+        payload = verify_access_token(
+            token,
+            secret=current_settings.auth_token_secret,
+            expected_username=current_settings.app_login_user,
+        )
+        if not payload:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "detail": "Token xác thực không hợp lệ hoặc đã hết hạn.",
+                    "code": "auth_required",
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return await call_next(request)
+
     app.state.sqlite_path = sqlite_path
     app.include_router(lineage_router)
     app.include_router(market_router)
@@ -130,20 +190,101 @@ def create_app(
         """Readiness requires a runnable accepted snapshot for company claims."""
         capabilities = engine.get_capabilities()
         is_ready = bool(capabilities.get("analysis_available"))
+        auth_valid = True
+        if current_settings.auth_enabled:
+            try:
+                current_settings.validate_auth_configuration()
+            except ValueError:
+                auth_valid = False
+
         payload: dict[str, Any] = {
-            "status": "ready" if is_ready else "unavailable",
+            "status": "ready" if (is_ready and auth_valid) else "unavailable",
             "database": capabilities.get("database_status", "disconnected"),
             "dataset_snapshot_id": capabilities.get("datasetSnapshotId"),
+            "auth_required": bool(current_settings.auth_enabled),
         }
         if not is_ready:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             payload["detail"] = capabilities.get("readiness", "Accepted snapshot unavailable.")
+        elif not auth_valid:
+            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+            payload["detail"] = "Authentication configuration is invalid."
         return payload
 
     @app.get("/api/version", summary="Safe deployment version metadata")
     def version() -> dict[str, str]:
         """Safe deployment metadata reporting environment and revision without secrets."""
         return current_settings.get_version_metadata()
+
+    @app.get(
+        "/api/auth/status",
+        response_model=AuthStatusResponse,
+        summary="Get authentication gate status",
+    )
+    def auth_status() -> AuthStatusResponse:
+        """Return whether authentication is required for protected endpoints."""
+        return AuthStatusResponse(required=bool(current_settings.auth_enabled))
+
+    @app.post(
+        "/api/auth/login",
+        response_model=LoginResponse,
+        responses={
+            401: {"model": AuthErrorResponse, "description": "Invalid credentials"},
+            429: {"model": AuthErrorResponse, "description": "Too many failed attempts"},
+        },
+        summary="Shared-credential login",
+    )
+    def auth_login(request: Request, body: LoginRequest) -> Response:
+        """Authenticate with shared credentials and receive an access token."""
+        client_ip = get_client_ip(request)
+        if default_rate_limiter.is_rate_limited(client_ip):
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={
+                    "detail": "Quá nhiều lần thử không thành công. Vui lòng thử lại sau.",
+                    "code": "too_many_attempts",
+                },
+            )
+
+        valid = False
+        if (
+            current_settings.app_login_user
+            and current_settings.app_login_password
+            and current_settings.auth_token_secret
+        ):
+            valid = verify_credentials(
+                body.username,
+                body.password,
+                expected_user=current_settings.app_login_user,
+                expected_password=current_settings.app_login_password,
+            )
+
+        if not valid:
+            default_rate_limiter.record_failure(client_ip)
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "detail": "Tên đăng nhập hoặc mật khẩu không chính xác.",
+                    "code": "invalid_credentials",
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        default_rate_limiter.record_success(client_ip)
+        token, expires_at = create_access_token(
+            username=current_settings.app_login_user,
+            secret=current_settings.auth_token_secret,
+            ttl_hours=current_settings.auth_token_ttl_hours,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "access_token": token,
+                "token_type": "bearer",
+                "expires_at": expires_at,
+            },
+        )
+
 
     @app.get(
         "/api/capabilities",

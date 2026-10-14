@@ -97,6 +97,27 @@ class Settings(BaseSettings):
         default_factory=lambda: os.path.join(tempfile.gettempdir(), "user_uploads"),
         alias="USER_UPLOADS_DIR",
     )
+    auth_enabled: bool = Field(default=False, alias="AUTH_ENABLED")
+    app_login_user: str | None = Field(default=None, alias="APP_LOGIN_USER")
+    app_login_password: SecretStr | None = Field(default=None, alias="APP_LOGIN_PASSWORD")
+    auth_token_secret: SecretStr | None = Field(default=None, alias="AUTH_TOKEN_SECRET")
+    auth_token_ttl_hours: int = Field(default=12, alias="AUTH_TOKEN_TTL_HOURS")
+
+    def validate_auth_configuration(self) -> None:
+        """Validate auth configuration if enabled; fail-closed on missing or weak settings."""
+        if not self.auth_enabled:
+            return
+        if not self.app_login_user or not self.app_login_user.strip():
+            raise ValueError("APP_LOGIN_USER must be set and non-empty when AUTH_ENABLED is true.")
+        pwd = self.app_login_password.get_secret_value() if self.app_login_password else ""
+        if not pwd or not pwd.strip():
+            raise ValueError("APP_LOGIN_PASSWORD must be set and non-empty when AUTH_ENABLED is true.")
+        sec = self.auth_token_secret.get_secret_value() if self.auth_token_secret else ""
+        if not sec or len(sec.strip()) < 32:
+            raise ValueError("AUTH_TOKEN_SECRET must be at least 32 characters when AUTH_ENABLED is true.")
+        if self.auth_token_ttl_hours <= 0:
+            raise ValueError("AUTH_TOKEN_TTL_HOURS must be greater than 0.")
+
 
     def get_user_uploads_dir(self) -> Path:
         """Resolve writable directory for user-supplied onboarding uploads."""

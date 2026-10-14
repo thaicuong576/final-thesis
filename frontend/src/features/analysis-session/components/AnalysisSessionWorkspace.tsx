@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { TraceStep } from '../model/types';
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { useTraceStream } from '../useTraceStream';
-import { AgentStage } from './AgentStage';
+import { ReasoningTimeline } from './ReasoningTimeline';
 import { ProcessTrace } from './ProcessTrace';
 import { AdaptiveReport, type AdaptiveReportResponse } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
@@ -193,8 +193,8 @@ function AnalysisSessionWorkspaceContent({
         </div>
       )}
 
-      {/* Screen B: Orchestrator & child agents board */}
-      <AgentStage
+      {/* One chronological timeline ("Dòng suy luận") */}
+      <ReasoningTimeline
         steps={activeSteps}
         query={query}
         live={isStreaming || (isLiveStream && !propSteps?.length)}

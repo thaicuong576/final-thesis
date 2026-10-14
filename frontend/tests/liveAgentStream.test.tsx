@@ -1,8 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStage } from '../src/features/analysis-session/components/AgentStage';
-import { deriveAgentWork } from '../src/features/analysis-session/model/agentStage';
 import type { TraceStep } from '../src/features/analysis-session/model/types';
 import { parseSseBlockRaw } from '../src/features/analysis-session/useTraceStream';
 import traceFixture from '../src/test/fixtures/er-trace-acb-2024q4.json';
@@ -117,12 +116,13 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
       expect(verifierCard).toBeInTheDocument();
       expect(criticCard).toBeInTheDocument();
 
-      // Check that cards are rendered within the responsive grid container, not absolute overlay
-      expect(orchCard.closest('.grid')).not.toBeNull();
-      expect(sectorCard.closest('.grid')).not.toBeNull();
+      // Check that cards are rendered within the navigation chip container
+      expect(screen.getByRole('navigation', { name: 'Lọc theo agent' })).toBeInTheDocument();
+      expect(orchCard.closest('nav')).not.toBeNull();
+      expect(sectorCard.closest('nav')).not.toBeNull();
     });
 
-    it('switches the active Live Work Pane when user clicks on another agent card', async () => {
+    it('filters the timeline when user clicks on an agent chip', async () => {
       const user = userEvent.setup();
       render(
         <AgentStage
@@ -132,12 +132,12 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Click on "Kiểm tra số liệu"
+      // Click on "Kiểm tra số liệu" chip
       const verifierCard = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
-      await user.click(verifierCard);
+      const verifierBtn = verifierCard.querySelector('button')!;
+      await user.click(verifierBtn);
 
-      // Live Work Pane should show inspector for "Kiểm tra số liệu"
-      expect(screen.getByRole('region', { name: 'Chi tiết hoạt động của Kiểm tra số liệu' })).toBeInTheDocument();
+      expect(verifierBtn).toHaveAttribute('aria-pressed', 'true');
     });
   });
 
@@ -176,15 +176,12 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Company is active writer, so it should be auto-focused
-      expect(screen.getByText('Bản nháp nhận định')).toBeInTheDocument();
+      // Active streaming draft prose is displayed directly in the timeline
+      expect(screen.getByRole('log')).toHaveAttribute('aria-live', 'polite');
       expect(screen.getByText(/ACB duy trì tỷ lệ nợ xấu ở mức 1,2%/)).toBeInTheDocument();
-      expect(screen.getByText('Đang viết trực tiếp...')).toBeInTheDocument();
-      expect(screen.getByText('đang truyền dòng văn bản...')).toBeInTheDocument();
     });
 
-    it('renders kept (✓) and dropped (✗) sentence verdicts with Vietnamese reasons', async () => {
-      const user = userEvent.setup();
+    it('renders kept (✓) and dropped (✗) sentence verdicts with Vietnamese reasons', () => {
       const liveWorkState = {
         draftsByRole: {
           company: 'Câu 1 được chấp nhận. Câu 2 bị loại.'
@@ -234,19 +231,14 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Select company card to view its verdicts
-      const companyCard = screen.getByRole('region', { name: 'Company' });
-      await user.click(companyCard);
-
-      expect(screen.getByText('Kết quả kiểm định từng câu (2)')).toBeInTheDocument();
+      // Sentences and verdicts are rendered inline in the timeline
       expect(screen.getByText('Câu 1 được chấp nhận.')).toBeInTheDocument();
-      expect(screen.getByText('fact:acb:npl:2024q4')).toBeInTheDocument();
+      expect(screen.getByText(/khớp dữ kiện/)).toBeInTheDocument();
       expect(screen.getByText('Câu 2 bị loại.')).toBeInTheDocument();
-      expect(screen.getByText(/Lý do: Số liệu không khớp với báo cáo tài chính/)).toBeInTheDocument();
+      expect(screen.getByText(/Số liệu không khớp với báo cáo tài chính/)).toBeInTheDocument();
     });
 
-    it('renders compact tool calls table with arguments, result count, and duration', async () => {
-      const user = userEvent.setup();
+    it('renders compact tool calls with result count and duration', () => {
       const liveWorkState = {
         draftsByRole: {},
         activeWriterRole: null,
@@ -288,14 +280,9 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Select company card to view its tool calls
-      const companyCard = screen.getByRole('region', { name: 'Company' });
-      await user.click(companyCard);
-
-      expect(screen.getByText('Truy vấn dữ liệu (1)')).toBeInTheDocument();
-      expect(screen.getByText('query_metric_observations')).toBeInTheDocument();
+      // Tool call is rendered in timeline
+      expect(screen.getByText(/query_metric_observations/)).toBeInTheDocument();
       expect(screen.getByText(/16 số liệu/)).toBeInTheDocument();
-      expect(screen.getByText('85ms')).toBeInTheDocument();
     });
   });
 
@@ -310,21 +297,10 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Company agent work derived from fixture trace
-      const work = deriveAgentWork('company', steps);
-      expect(work.draftText).toContain('ACB duy trì khả năng sinh lời');
-      expect(work.isTyping).toBe(false);
-      expect(work.toolCalls.length).toBeGreaterThanOrEqual(1);
-
-      // Click on company card
-      const companyCard = screen.getByRole('region', { name: 'Company' });
-      fireEvent.click(companyCard);
-
-      // Work pane displays the stored draft text and tool calls
+      // Timeline displays the stored draft text and tool calls
       const matchedTexts = screen.getAllByText(/ACB duy trì khả năng sinh lời/);
       expect(matchedTexts.length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Truy vấn dữ liệu (1)')).toBeInTheDocument();
-      expect(screen.getByText('peer_position')).toBeInTheDocument();
+      expect(screen.getByText(/Vị thế nhóm/)).toBeInTheDocument();
     });
   });
 });

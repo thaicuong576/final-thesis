@@ -7,7 +7,6 @@ import {
   type StageAgentState,
   type SourcedFact,
   type SentenceVerdictDetail,
-  type ToolCallDetail,
   type ReviewIssueDetail,
   type SentenceRevisionDetail,
   type PlanSummaryDetail,
@@ -86,6 +85,7 @@ export interface LiveTailItem {
 export interface ParticipatingAgentChip {
   id: StageAgentId;
   name: string;
+  ariaName: string;
   countLabel: string;
   state: StageAgentState;
 }
@@ -157,8 +157,15 @@ export function deriveTimeline(
 
   for (const s of steps) {
     if (s.kind === 'verify' && Array.isArray(s.detail?.verdicts)) {
-      for (const v of s.detail.verdicts as SentenceVerdictDetail[]) {
-        if (v.sentence) {
+      for (const rawV of s.detail.verdicts as Array<Record<string, unknown>>) {
+        if (rawV.sentence) {
+          const v: SentenceVerdictDetail = {
+            sentence: String(rawV.sentence),
+            verdict: (rawV.verdict as 'kept' | 'dropped') || 'kept',
+            dropReason: (rawV.dropReason || rawV.drop_reason) as string | undefined,
+            explanationVi: (rawV.explanationVi || rawV.explanation_vi) as string | undefined,
+            factIds: (rawV.factIds || rawV.fact_ids) as string[] | undefined
+          };
           verdictsBySentence.set(v.sentence.trim(), v);
         }
       }
@@ -433,7 +440,6 @@ export function deriveTimeline(
     }
   }
 
-  // Handle active streaming draft delta if any
   const hasCompletedDraftOrComposeForWriter = (role: StageAgentId) => {
     return steps.some(
       (s) =>
@@ -442,23 +448,70 @@ export function deriveTimeline(
     );
   };
 
-  if (activeWriter && liveWorkState?.draftsByRole?.[activeWriter] && isStreaming) {
-    const streamingText = liveWorkState.draftsByRole[activeWriter];
-    // If no finished step exists yet for this draft in the current stage, show streaming entry
-    if (!hasCompletedDraftOrComposeForWriter(activeWriter)) {
-      entries.push({
-        id: `live-draft-${activeWriter}`,
-        tMs: nowMs,
-        formattedTime: formatClock(nowMs),
-        agentId: activeWriter,
-        agentName: getAgentName(activeWriter),
-        kind: 'draft',
-        prose: 'Bản nháp nhận định (đang viết):',
-        draftDetail: {
-          text: streamingText,
-          isStreaming: true
+  // Handle live drafts and live tool calls from liveWorkState if any
+  if (liveWorkState?.toolCallsByRole) {
+    for (const [role, tList] of Object.entries(liveWorkState.toolCallsByRole)) {
+      for (const t of tList) {
+        const alreadyInEntries = entries.some(
+          (e) => e.kind === 'data' && e.agentId === role && e.toolDetail?.tool === t.tool
+        );
+        if (!alreadyInEntries) {
+          const facts: SourcedFact[] = Array.isArray(t.facts) ? t.facts : [];
+          entries.push({
+            id: `live-tool-${role}-${t.tool}`,
+            tMs: nowMs,
+            formattedTime: formatClock(nowMs),
+            agentId: role as StageAgentId,
+            agentName: getAgentName(role as StageAgentId),
+            kind: 'data',
+            prose: `Đã lấy ${t.resultCount ?? 0} số liệu có nguồn từ phép phân tích ${t.tool}.`,
+            facts,
+            toolDetail: {
+              tool: t.tool,
+              label: t.tool,
+              durationMs: t.durationMs,
+              resultCount: t.resultCount
+            }
+          });
         }
-      });
+      }
+    }
+  }
+
+  if (liveWorkState?.draftsByRole) {
+    for (const [role, dText] of Object.entries(liveWorkState.draftsByRole)) {
+      if (
+        dText &&
+        !hasCompletedDraftOrComposeForWriter(role as StageAgentId) &&
+        !entries.some((e) => e.agentId === role && e.kind === 'draft')
+      ) {
+        const sentenceVerdicts: SentenceVerdictDetail[] = [];
+        const roleVerdicts = liveWorkState?.verdictsByRole?.[role] || [];
+        for (const rv of roleVerdicts) {
+          sentenceVerdicts.push({
+            sentence: rv.sentence,
+            verdict: rv.verdict,
+            dropReason: rv.dropReason || undefined,
+            explanationVi: rv.explanationVi || (rv.verdict === 'kept' ? 'Khớp dữ liệu gốc' : 'Bị loại'),
+            factIds: rv.factIds
+          });
+        }
+
+        entries.push({
+          id: `live-draft-${role}`,
+          tMs: nowMs,
+          formattedTime: formatClock(nowMs),
+          agentId: role as StageAgentId,
+          agentName: getAgentName(role as StageAgentId),
+          kind: 'draft',
+          prose: 'Bản nháp nhận định:',
+          draftDetail: {
+            text: dText,
+            isStreaming: activeWriter === role,
+            verdicts: sentenceVerdicts.length > 0 ? sentenceVerdicts : undefined
+          }
+        });
+      }
     }
   }
 
@@ -553,6 +606,20 @@ export function deriveTimeline(
     if (s.recipient && s.recipient in STAGE_AGENTS) {
       participatingIds.add(s.recipient as StageAgentId);
     }
+    if (s.kind === 'plan' && Array.isArray(s.detail?.agents)) {
+      for (const a of s.detail.agents as Array<{ agent?: string; decision?: string }>) {
+        if (a.agent && a.decision === 'run' && a.agent in STAGE_AGENTS) {
+          participatingIds.add(a.agent as StageAgentId);
+        }
+      }
+    }
+  }
+  if (Array.isArray(liveWorkState?.planSummary?.specialistsCalled)) {
+    for (const sp of liveWorkState.planSummary.specialistsCalled) {
+      if (sp in STAGE_AGENTS) {
+        participatingIds.add(sp as StageAgentId);
+      }
+    }
   }
   if (activeWriter && activeWriter in STAGE_AGENTS) {
     participatingIds.add(activeWriter);
@@ -603,6 +670,7 @@ export function deriveTimeline(
       participatingAgents.push({
         id,
         name: STAGE_AGENTS[id].name,
+        ariaName: STAGE_AGENTS[id].ariaName,
         countLabel,
         state
       });

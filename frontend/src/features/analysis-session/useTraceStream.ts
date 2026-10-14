@@ -29,6 +29,13 @@ export interface ToolCallItem {
   durationMs?: number;
   role?: string;
   status: 'running' | 'completed';
+  facts?: Array<{
+    factId: string;
+    label: string;
+    displayValue: string;
+    sourceNoteNo?: number | null;
+    sourceLocator?: string;
+  }>;
 }
 
 export interface SentenceVerdictItem {
@@ -70,6 +77,8 @@ export interface LiveWorkState {
     planSummary?: string;
     rationale?: string;
   };
+  isBlocked?: boolean;
+  blockedInfo?: { code?: string; message: string; suggestions?: string[] } | null;
 }
 
 export const initialLiveWorkState: LiveWorkState = {
@@ -392,6 +401,7 @@ export function useTraceStream({
       }
       liveWorkRef.current = {
         ...liveWorkRef.current,
+        activeWriterRole: 'verifier',
         verdictsByRole: updatedRoleVerdicts
       };
       updated = true;
@@ -403,6 +413,7 @@ export function useTraceStream({
       const roleTools = liveWorkRef.current.toolCallsByRole[role] || [];
       liveWorkRef.current = {
         ...liveWorkRef.current,
+        activeWriterRole: role,
         toolCallsByRole: {
           ...liveWorkRef.current.toolCallsByRole,
           [role]: [...roleTools, item]
@@ -414,6 +425,16 @@ export function useTraceStream({
       const role = String(payload.role || 'specialist');
       const resultCount = Number(payload.resultCount ?? payload.result_count ?? 0);
       const durationMs = Number(payload.durationMs ?? payload.duration_ms ?? 0);
+      const facts = Array.isArray(payload.facts)
+        ? (payload.facts as Array<Record<string, unknown>>).map((f) => ({
+            factId: String(f.fact_id || f.factId || ''),
+            label: String(f.label || ''),
+            displayValue: String(f.display_value || f.displayValue || f.value || ''),
+            sourceNoteNo: typeof f.source_note_no === 'number' ? f.source_note_no : (typeof f.sourceNoteNo === 'number' ? f.sourceNoteNo : null),
+            sourceLocator: (f.source_locator || f.sourceLocator || f.source) as string | undefined
+          }))
+        : undefined;
+
       const roleTools = liveWorkRef.current.toolCallsByRole[role] || [];
       const runningIdx = roleTools.findIndex((t) => t.tool === tool && t.status === 'running');
       if (runningIdx >= 0) {
@@ -422,10 +443,12 @@ export function useTraceStream({
           ...nextList[runningIdx],
           status: 'completed',
           resultCount,
-          durationMs
+          durationMs,
+          facts
         };
         liveWorkRef.current = {
           ...liveWorkRef.current,
+          activeWriterRole: role,
           toolCallsByRole: {
             ...liveWorkRef.current.toolCallsByRole,
             [role]: nextList
@@ -434,41 +457,76 @@ export function useTraceStream({
       } else {
         liveWorkRef.current = {
           ...liveWorkRef.current,
+          activeWriterRole: role,
           toolCallsByRole: {
             ...liveWorkRef.current.toolCallsByRole,
-            [role]: [...roleTools, { tool, resultCount, durationMs, status: 'completed', role }]
+            [role]: [...roleTools, { tool, resultCount, durationMs, status: 'completed', role, facts }]
           }
         };
       }
+      updated = true;
+    } else if (type === 'SPECIALIST_STARTED' || type === 'SPECIALIST_INVOKED' || type === 'SPECIALIST_ACTIVITY') {
+      const role = String(payload.specialist || payload.role || 'company');
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        activeWriterRole: role
+      };
+      updated = true;
+    } else if (type === 'SYNTHESIS_STARTED' || type === 'SYNTHESIS_ACTIVITY') {
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        activeWriterRole: 'orchestrator'
+      };
+      updated = true;
+    } else if (type === 'REVIEW_STARTED') {
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        activeWriterRole: 'critic'
+      };
       updated = true;
     } else if (type === 'REVIEW_FEEDBACK_CREATED') {
       const issues = (payload.issues as ReviewIssueItem[]) || [];
       if (issues.length > 0) {
         liveWorkRef.current = {
           ...liveWorkRef.current,
+          activeWriterRole: 'critic',
           reviewIssues: [...liveWorkRef.current.reviewIssues, ...issues]
         };
         updated = true;
       }
+    } else if (type === 'REVISION_REQUESTED' || type === 'REVISION_ACTIVITY') {
+      const role = String(payload.role || 'company');
+      liveWorkRef.current = {
+        ...liveWorkRef.current,
+        activeWriterRole: role
+      };
+      updated = true;
     } else if (type === 'REVISION_COMPLETED') {
       const revs = (payload.revisions as SentenceRevisionItem[]) || [];
       if (revs.length > 0) {
         liveWorkRef.current = {
           ...liveWorkRef.current,
+          activeWriterRole: 'verifier',
           revisions: [...liveWorkRef.current.revisions, ...revs]
         };
         updated = true;
       }
     } else if (type === 'PLAN_CREATED') {
+      const rawTools = payload.tools as unknown[];
+      const normalizedTools = Array.isArray(rawTools)
+        ? rawTools.map((t) => (typeof t === 'string' ? t : (t as { label?: string; tool?: string }).label || (t as { label?: string; tool?: string }).tool || String(t)))
+        : undefined;
+
       liveWorkRef.current = {
         ...liveWorkRef.current,
+        activeWriterRole: 'orchestrator',
         planSummary: {
           questionType: (payload.questionType || payload.question_type) as string | undefined,
           entities: payload.entities as string[] | undefined,
           metrics: (payload.metrics || payload.metric_ids) as string[] | undefined,
           periods: payload.periods as string[] | undefined,
           specialistsCalled: (payload.specialistsCalled || payload.specialists_called) as string[] | undefined,
-          tools: payload.tools as string[] | undefined,
+          tools: normalizedTools,
           planSummary: (payload.planSummary || payload.plan_summary || payload.message) as string | undefined,
           rationale: (payload.rationale_vi || payload.rationale) as string | undefined
         }
@@ -579,6 +637,11 @@ export function useTraceStream({
 
               if (parsedStep.kind === 'report_ready') {
                 const repId = (parsedStep.detail?.report_id as string) || '';
+                liveWorkRef.current = {
+                  ...liveWorkRef.current,
+                  activeWriterRole: null
+                };
+                setLiveWorkState({ ...liveWorkRef.current });
                 if (repId) {
                   setReportId(repId);
                   onReportReady?.(repId);
@@ -593,6 +656,12 @@ export function useTraceStream({
                 };
                 setIsBlocked(true);
                 setBlockedInfo(info);
+                liveWorkRef.current = {
+                  ...liveWorkRef.current,
+                  isBlocked: true,
+                  blockedInfo: info
+                };
+                setLiveWorkState({ ...liveWorkRef.current });
                 onBlocked?.(info);
               }
             }
@@ -614,6 +683,11 @@ export function useTraceStream({
 
             if (parsedStep.kind === 'report_ready') {
               const repId = (parsedStep.detail?.report_id as string) || '';
+              liveWorkRef.current = {
+                ...liveWorkRef.current,
+                activeWriterRole: null
+              };
+              setLiveWorkState({ ...liveWorkRef.current });
               if (repId) {
                 setReportId(repId);
                 onReportReady?.(repId);
@@ -628,6 +702,12 @@ export function useTraceStream({
               };
               setIsBlocked(true);
               setBlockedInfo(info);
+              liveWorkRef.current = {
+                ...liveWorkRef.current,
+                isBlocked: true,
+                blockedInfo: info
+              };
+              setLiveWorkState({ ...liveWorkRef.current });
               onBlocked?.(info);
             }
           }

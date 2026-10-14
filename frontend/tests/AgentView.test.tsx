@@ -461,4 +461,217 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
       expect(screen.queryByRole('button', { name: /Mở báo cáo/i })).not.toBeInTheDocument();
     });
   });
+
+  describe('FIX1: Single Source of Truth, Unused Agents, and Blocked Summary', () => {
+    it('completed run marks participating agents as "Xong" and non-participating as "Không tham gia", NOT "Chờ"', () => {
+      // In sampleCompleteSteps, macro was NOT in the plan and did NOT take part
+      render(
+        <AgentStage
+          steps={sampleCompleteSteps}
+          query="Phân tích chất lượng tài sản của BID"
+          live={false}
+        />
+      );
+
+      // Orchestrator card shows "Xong"
+      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
+      expect(within(orchCard).getByText('Xong')).toBeInTheDocument();
+      expect(within(orchCard).getByText('Kế hoạch Hồ sơ doanh nghiệp: BID')).toBeInTheDocument();
+
+      // Company card shows "Xong"
+      const companyCard = screen.getByRole('region', { name: 'Company' });
+      expect(within(companyCard).getByText('Xong')).toBeInTheDocument();
+      expect(within(companyCard).getByText('Viết 2 nhận định, 1 bị loại')).toBeInTheDocument();
+
+      // Verifier card shows "Xong"
+      const verifierCard = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
+      expect(within(verifierCard).getByText('Xong')).toBeInTheDocument();
+      expect(within(verifierCard).getByText('Đã kiểm 2 số, 1 khớp (1 câu bị loại)')).toBeInTheDocument();
+
+      // Critic card shows "Xong"
+      const criticCard = screen.getByRole('region', { name: 'Phản biện' });
+      expect(within(criticCard).getByText('Xong')).toBeInTheDocument();
+      expect(within(criticCard).getByText('1 vòng, 1 yêu cầu sửa')).toBeInTheDocument();
+
+      // None of the cards say "Chờ" when completed
+      expect(screen.queryByText('Chờ')).not.toBeInTheDocument();
+    });
+
+    it('rejected/blocked run shows refusal reason and "Từ chối" across cards, NEVER "Chờ"', () => {
+      const refusalReason = 'Yêu cầu nằm ngoài phạm vi phân tích ngành ngân hàng.';
+      const blockedSteps: TraceStep[] = [
+        {
+          step_id: 'step-block',
+          seq: 1,
+          t_ms: 100,
+          actor: 'system',
+          recipient: null,
+          kind: 'blocked',
+          summary: refusalReason,
+          detail: {
+            code: 'out_of_scope',
+            message: refusalReason
+          }
+        }
+      ];
+
+      render(
+        <AgentStage
+          steps={blockedSteps}
+          query="Thời tiết Hà Nội hôm nay thế nào?"
+          live={false}
+        />
+      );
+
+      // Card must show "Từ chối", NOT "Chờ"
+      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
+      expect(within(orchCard).getByText('Từ chối')).toBeInTheDocument();
+      expect(within(orchCard).getAllByText(refusalReason).length).toBeGreaterThanOrEqual(1);
+
+      // None of the cards say "Chờ"
+      expect(screen.queryByText('Chờ')).not.toBeInTheDocument();
+
+      // Detail pane shows refusal reason alert
+      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Điều phối viên' });
+      expect(within(pane).getByText(/Yêu cầu bị từ chối \/ Ngoài phạm vi phân tích/i)).toBeInTheDocument();
+      expect(within(pane).getByText(refusalReason)).toBeInTheDocument();
+    });
+  });
+
+  describe('FIX2: Live SSE Streaming, Viewport Stability, and Auto-Follow', () => {
+    it('appends live streaming draft text, sentence verdicts, and tool facts as events arrive', () => {
+      const partialLiveState = {
+        activeWriterRole: 'company',
+        draftsByRole: {
+          company: 'ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026. Tỷ lệ bao phủ nợ xấu đạt 105,3%.'
+        },
+        verdictsByRole: {
+          company: [
+            {
+              sentence: 'ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026.',
+              verdict: 'kept' as const,
+              explanationVi: 'Số liệu khớp với BCTC Q2/2026'
+            },
+            {
+              sentence: 'Tỷ lệ bao phủ nợ xấu đạt 105,3%.',
+              verdict: 'kept' as const,
+              explanationVi: 'Số liệu khớp với BCTC Q2/2026'
+            }
+          ]
+        },
+        toolCallsByRole: {
+          company: [
+            {
+              tool: 'head_to_head',
+              status: 'completed' as const,
+              resultCount: 2,
+              durationMs: 120,
+              role: 'company',
+              facts: [
+                {
+                  factId: 'f-1',
+                  label: 'Tỷ lệ nợ xấu ACB Q2/2026',
+                  displayValue: '1,03%',
+                  sourceNoteNo: 15
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      const steps: TraceStep[] = [
+        {
+          step_id: 's-1',
+          seq: 1,
+          t_ms: 100,
+          actor: 'orchestrator',
+          recipient: 'company',
+          kind: 'assign',
+          summary: 'Giao việc cho Company',
+          detail: {}
+        }
+      ];
+
+      render(
+        <AgentStage
+          steps={steps}
+          query="So sánh ACB và TCB"
+          live={true}
+          liveWorkState={partialLiveState}
+        />
+      );
+
+      // Auto-follows company since activeWriterRole is 'company'
+      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' });
+      expect(pane).toBeInTheDocument();
+
+      // Check tool call fact rendered immediately
+      expect(within(pane).getByText('1,03%')).toBeInTheDocument();
+      expect(within(pane).getByText('Ghi chú 15')).toBeInTheDocument();
+
+      // Check verdicts rendered immediately
+      expect(within(pane).getByText('ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026.')).toBeInTheDocument();
+      expect(within(pane).getByText('Tỷ lệ bao phủ nợ xấu đạt 105,3%.')).toBeInTheDocument();
+      expect(within(pane).getByText('2 đạt · 0 loại')).toBeInTheDocument();
+    });
+
+    it('auto-follows active writer, but if user clicks another agent it pins user choice and shows resume hint', async () => {
+      const user = userEvent.setup();
+      const liveState = {
+        activeWriterRole: 'company',
+        draftsByRole: { company: 'Đang viết nhận định...' }
+      };
+
+      const steps: TraceStep[] = [
+        {
+          step_id: 's-1',
+          seq: 1,
+          t_ms: 100,
+          actor: 'orchestrator',
+          recipient: 'company',
+          kind: 'assign',
+          summary: 'Giao việc cho Company',
+          detail: {}
+        }
+      ];
+
+      render(
+        <AgentStage
+          steps={steps}
+          query="So sánh ACB và TCB"
+          live={true}
+          liveWorkState={liveState}
+        />
+      );
+
+      // Initially auto-follows 'company'
+      expect(
+        screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' })
+      ).toBeInTheDocument();
+
+      // User explicitly clicks 'Điều phối viên' card
+      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
+      await user.click(orchCard);
+
+      // Detail panel switched to user's choice (Orchestrator)
+      expect(
+        screen.getByRole('region', { name: 'Chi tiết hoạt động của Điều phối viên' })
+      ).toBeInTheDocument();
+
+      // Shows hint: "Đang chạy ở Chuyên viên doanh nghiệp · Nhấn để theo dõi"
+      const resumeBtn = screen.getByRole('button', { name: /Đang chạy ở Chuyên viên doanh nghiệp/i });
+      expect(resumeBtn).toBeInTheDocument();
+      expect(within(resumeBtn).getByText('Nhấn để theo dõi')).toBeInTheDocument();
+
+      // User clicks resume hint
+      await user.click(resumeBtn);
+
+      // View resumes auto-follow back to 'company'
+      expect(
+        screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' })
+      ).toBeInTheDocument();
+    });
+  });
 });
+

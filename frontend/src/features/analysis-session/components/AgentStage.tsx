@@ -28,7 +28,8 @@ import {
   stepEndpoints,
   type AgentWorkData,
   type StageAgentId,
-  type StageAgentState
+  type StageAgentState,
+  type LiveWorkStateInput
 } from '../model/agentStage';
 
 export interface AgentStageProps {
@@ -37,7 +38,7 @@ export interface AgentStageProps {
   live?: boolean;
   reportId?: string | null;
   isDisconnected?: boolean;
-  liveWorkState?: LiveWorkState;
+  liveWorkState?: LiveWorkState | LiveWorkStateInput;
   onOpenReport?: (reportId: string) => void;
   onRetry?: () => void;
   autoRedirect?: boolean;
@@ -57,7 +58,8 @@ const STATE_LABEL: Record<StageAgentState, string> = {
   busy: 'Đang làm',
   fixing: 'Đang sửa',
   done: 'Xong',
-  unused: 'Không dùng đến'
+  unused: 'Không tham gia',
+  blocked: 'Từ chối'
 };
 
 function clock(ms: number): string {
@@ -111,13 +113,14 @@ export const AgentStage: React.FC<AgentStageProps> = ({
   autoRedirect = true
 }) => {
   // Steps often arrive in bursts; reveal them one by one so every hand-off is visible.
-  const [shown, setShown] = useState(() => (live ? 0 : steps.length));
+  const isTerminal = steps.some((s) => s.kind === 'blocked' || s.kind === 'report_ready') || Boolean(liveWorkState?.isBlocked);
+  const [shown, setShown] = useState(() => (live && !isTerminal ? 0 : steps.length));
   useEffect(() => {
     if (shown >= steps.length) return;
-    const delay = prefersReducedMotion() || !live ? 0 : shown === 0 ? 120 : 700;
+    const delay = prefersReducedMotion() || !live || isTerminal ? 0 : shown === 0 ? 120 : 700;
     const t = setTimeout(() => setShown((n) => Math.min(n + 1, steps.length)), delay);
     return () => clearTimeout(t);
-  }, [shown, steps.length, live]);
+  }, [shown, steps.length, live, isTerminal]);
 
   const visible = useMemo(() => steps.slice(0, shown), [steps, shown]);
   const model = useMemo(() => deriveStage(visible, steps, liveWorkState), [visible, steps, liveWorkState]);
@@ -146,7 +149,7 @@ export const AgentStage: React.FC<AgentStageProps> = ({
 
   const effectiveReportId =
     reportId || (steps.find((s) => s.kind === 'report_ready')?.detail?.report_id as string | undefined) || null;
-  const isBlocked = steps.some((s) => s.kind === 'blocked');
+  const isBlocked = steps.some((s) => s.kind === 'blocked') || Boolean(liveWorkState?.isBlocked) || Boolean(model.isBlocked);
   const ready = model.done && Boolean(effectiveReportId) && !isBlocked;
   const [stay, setStay] = useState(false);
 
@@ -156,28 +159,43 @@ export const AgentStage: React.FC<AgentStageProps> = ({
     return () => clearTimeout(t);
   }, [ready, effectiveReportId, stay, onOpenReport, live, autoRedirect]);
 
-  // Selected agent for inspection; defaults to currently active agent
+  // Active agent currently running in the multi-agent pipeline
+  const currentlyRunningAgent: StageAgentId = useMemo(() => {
+    if (liveWorkState?.activeWriterRole && model.agents.includes(liveWorkState.activeWriterRole as StageAgentId)) {
+      return liveWorkState.activeWriterRole as StageAgentId;
+    }
+    const working = model.agents.find(
+      (a) => model.snapshots[a].state === 'busy' || model.snapshots[a].state === 'fixing'
+    );
+    if (working) return working;
+
+    const specialist = model.agents.find(
+      (a) => (a === 'company' || a === 'sector') && model.snapshots[a].state === 'done'
+    );
+    if (specialist) return specialist;
+
+    return model.agents[0] || 'orchestrator';
+  }, [liveWorkState?.activeWriterRole, model.agents, model.snapshots]);
+
+  // Selected agent for inspection; if user selected an agent manually, stick to their choice
   const [selectedAgentId, setSelectedAgentId] = useState<StageAgentId | null>(null);
 
   const activeAgentId: StageAgentId = useMemo(() => {
     if (selectedAgentId && model.agents.includes(selectedAgentId)) {
       return selectedAgentId;
     }
-    if (liveWorkState?.activeWriterRole && model.agents.includes(liveWorkState.activeWriterRole as StageAgentId)) {
-      return liveWorkState.activeWriterRole as StageAgentId;
-    }
-    // Find first busy or fixing agent
-    const working = model.agents.find(
-      (a) => model.snapshots[a].state === 'busy' || model.snapshots[a].state === 'fixing'
-    );
-    if (working) return working;
+    return currentlyRunningAgent;
+  }, [selectedAgentId, currentlyRunningAgent, model.agents]);
 
-    // If all done, prefer specialist or orchestrator
-    const specialist = model.agents.find((a) => a === 'company' || a === 'sector');
-    if (specialist && model.snapshots[specialist].state === 'done') return specialist;
-
-    return model.agents[0] || 'orchestrator';
-  }, [selectedAgentId, liveWorkState?.activeWriterRole, model.agents, model.snapshots]);
+  const runningAgentHint =
+    selectedAgentId &&
+    selectedAgentId !== currentlyRunningAgent &&
+    live &&
+    !model.done &&
+    !isBlocked &&
+    !isDisconnected
+      ? currentlyRunningAgent
+      : null;
 
   const currentWork = useMemo(
     () => deriveAgentWork(activeAgentId, visible, liveWorkState),
@@ -316,6 +334,8 @@ export const AgentStage: React.FC<AgentStageProps> = ({
           work={currentWork}
           meta={STAGE_AGENTS[activeAgentId]}
           live={live && !model.done && !isDisconnected}
+          runningAgentHint={runningAgentHint}
+          onResumeAutoFollow={() => setSelectedAgentId(null)}
         />
         <Feed
           steps={visible}
@@ -390,6 +410,8 @@ function AgentCardNode({
 
   const tone = isSelected
     ? 'border-accent ring-2 ring-accent/30 bg-surface-primary shadow-sm'
+    : snap.state === 'blocked'
+    ? 'border-danger/60 bg-danger/5'
     : snap.state === 'fixing'
     ? 'border-warning bg-surface-primary'
     : busy
@@ -419,6 +441,8 @@ function AgentCardNode({
           className={`grid size-8 shrink-0 place-items-center rounded-lg ${
             isSelected
               ? 'bg-accent text-white'
+              : snap.state === 'blocked'
+              ? 'bg-danger/15 text-danger'
               : hub
               ? 'bg-ink text-amber'
               : busy
@@ -440,6 +464,8 @@ function AgentCardNode({
               className={
                 snap.state === 'done'
                   ? 'text-text-success font-medium'
+                  : snap.state === 'blocked'
+                  ? 'text-text-danger font-medium'
                   : snap.state === 'fixing'
                   ? 'text-text-warning font-medium'
                   : busy
@@ -489,12 +515,16 @@ function LiveWorkPane({
   agentId,
   work,
   meta,
-  live
+  live,
+  runningAgentHint,
+  onResumeAutoFollow
 }: {
   agentId: StageAgentId;
   work: AgentWorkData;
   meta: (typeof STAGE_AGENTS)[StageAgentId];
   live: boolean;
+  runningAgentHint?: StageAgentId | null;
+  onResumeAutoFollow?: () => void;
 }) {
   const Icon = ICONS[agentId];
 
@@ -504,6 +534,20 @@ function LiveWorkPane({
       aria-label={`Chi tiết hoạt động của ${meta.name}`}
       className="border-b border-border-subtle p-4 sm:p-6 lg:border-b-0 lg:border-r space-y-4"
     >
+      {/* Auto-follow switch hint */}
+      {runningAgentHint && (
+        <button
+          type="button"
+          onClick={onResumeAutoFollow}
+          className="flex w-full items-center justify-between rounded-xl border border-amber/40 bg-amber-soft/40 px-3.5 py-2 text-xs text-text-accent transition-colors hover:bg-amber-soft"
+        >
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="size-1.5 rounded-full bg-amber animate-ping" />
+            Đang chạy ở {STAGE_AGENTS[runningAgentHint].name}
+          </span>
+          <span className="text-[11px] font-semibold underline">Nhấn để theo dõi</span>
+        </button>
+      )}
       {/* Pane Header */}
       <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-3">
         <div className="flex items-center gap-2.5">
@@ -526,7 +570,7 @@ function LiveWorkPane({
             <p className="m-0 text-xs text-text-secondary">{meta.role}</p>
           </div>
         </div>
-        {work.isTyping && (
+        {live && work.isTyping && (
           <span
             className="inline-flex items-center gap-1.5 rounded-full bg-amber-soft px-2.5 py-1 text-xs font-semibold text-text-accent"
             aria-live="polite"
@@ -537,13 +581,31 @@ function LiveWorkPane({
         )}
       </div>
 
-      {/* Structured views per agent role */}
-      {agentId === 'orchestrator' && <OrchestratorView work={work} live={live} />}
-      {(agentId === 'company' || agentId === 'sector' || agentId === 'macro') && (
+      {/* Refusal / Blocked Notice */}
+      {work.refusalReason && (
+        <div className="rounded-xl border border-danger/30 bg-danger/5 p-4 text-xs space-y-1.5">
+          <div className="flex items-center gap-2 text-text-danger font-semibold">
+            <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+            <span>Yêu cầu bị từ chối / Ngoài phạm vi phân tích</span>
+          </div>
+          <p className="m-0 text-text-primary leading-relaxed">{work.refusalReason}</p>
+        </div>
+      )}
+
+      {/* Unused Agent Notice */}
+      {work.isUnused && !work.refusalReason && (
+        <div className="rounded-xl border border-border-subtle bg-surface-secondary/40 p-4 text-xs text-text-secondary leading-relaxed">
+          Agent này không tham gia vào câu hỏi này (không yêu cầu nhiệm vụ trong kế hoạch phân tích).
+        </div>
+      )}
+
+      {/* Structured views per agent role (hidden when refused/blocked to avoid misleading placeholders) */}
+      {!work.refusalReason && agentId === 'orchestrator' && <OrchestratorView work={work} live={live} />}
+      {!work.refusalReason && (agentId === 'company' || agentId === 'sector' || agentId === 'macro') && (
         <SpecialistView work={work} live={live} />
       )}
-      {agentId === 'verifier' && <VerifierView work={work} />}
-      {agentId === 'critic' && <CriticView work={work} live={live} />}
+      {!work.refusalReason && agentId === 'verifier' && <VerifierView work={work} />}
+      {!work.refusalReason && agentId === 'critic' && <CriticView work={work} live={live} />}
     </div>
   );
 }
@@ -666,14 +728,17 @@ function OrchestratorView({ work, live }: { work: AgentWorkData; live: boolean }
                   <p className="m-0 text-text-secondary">{asgn.task}</p>
                   {asgn.tools && asgn.tools.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
-                      {asgn.tools.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] font-mono text-text-tertiary"
-                        >
-                          {t}
-                        </span>
-                      ))}
+                      {asgn.tools.map((t, idx) => {
+                        const label = typeof t === 'string' ? t : (t as { label?: string; tool?: string }).label || (t as { label?: string; tool?: string }).tool || String(t);
+                        return (
+                          <span
+                            key={idx}
+                            className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] font-mono text-text-tertiary"
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -683,14 +748,17 @@ function OrchestratorView({ work, live }: { work: AgentWorkData; live: boolean }
             <div className="space-y-1.5">
               <span className="text-[11px] font-medium text-text-tertiary block">Công cụ được giao:</span>
               <div className="flex flex-wrap gap-1.5">
-                {plan.tools.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded bg-surface-primary border border-border-subtle px-2 py-0.5 text-xs font-mono text-text-primary"
-                  >
-                    {t}
-                  </span>
-                ))}
+                {plan.tools.map((t, idx) => {
+                  const label = typeof t === 'string' ? t : (t as { label?: string; tool?: string }).label || (t as { label?: string; tool?: string }).tool || String(t);
+                  return (
+                    <span
+                      key={idx}
+                      className="rounded bg-surface-primary border border-border-subtle px-2 py-0.5 text-xs font-mono text-text-primary"
+                    >
+                      {label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -1246,9 +1314,20 @@ function Feed({
   onStay?: () => void;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
+  const isAtBottomRef = useRef(true);
+
+  const handleScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isAtBottomRef.current = distanceToBottom < 30;
+  };
+
   useEffect(() => {
     const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el && isAtBottomRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [steps.length]);
 
   return (
@@ -1257,7 +1336,12 @@ function Feed({
         <h3 className="m-0 text-[13px] font-semibold text-text-primary">Nhật ký trao đổi</h3>
         <span className="text-xs tabular-nums text-text-tertiary">{steps.length} bước</span>
       </div>
-      <ol ref={listRef} className="m-0 max-h-[440px] list-none space-y-3 overflow-y-auto px-5 pb-5 sm:px-6" aria-live="polite">
+      <ol
+        ref={listRef}
+        onScroll={handleScroll}
+        className="m-0 max-h-[440px] list-none space-y-3 overflow-y-auto px-5 pb-5 sm:px-6"
+        aria-live="polite"
+      >
         {steps.length === 0 && (
           <li className="rounded-xl border border-dashed border-border-default p-4 text-sm text-text-secondary">
             Điều phối viên đang đọc câu hỏi và chọn chuyên viên phù hợp…

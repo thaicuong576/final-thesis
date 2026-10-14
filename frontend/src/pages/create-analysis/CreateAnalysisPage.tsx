@@ -291,8 +291,10 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                   ? mapErrorCodeToMessage(info.code, capabilities)
                   : info.message;
                 setErrorInfo({ ...info, message: message || info.message });
-                setMode('ASK');
-                setSearchParams({});
+                if (initialMode !== 'SESSION') {
+                  setMode('ASK');
+                  setSearchParams({});
+                }
               }}
             />
           )}

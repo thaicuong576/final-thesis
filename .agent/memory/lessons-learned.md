@@ -1107,3 +1107,24 @@ Instead of brittle keyword blacklists or calling an LLM classifier, enforce a st
 The two DeepSeek E2 runs were labelled `INVALID-deepseek-gateway-wallet-empty` after looking only at `head -3` of each `deterministic.csv`. Those first rows are R1/R2, the expected refusals, which have `status=error` in every valid run. Counting statuses and reading the manifest showed 10 of 12 non-error runs and matched numbers 46/46 and 32/32, i.e. the runs were valid; the empty-wallet failure belonged to the E3 run.
 
 Rule: classify a run as invalid only from a status count over all rows plus the manifest fields (model, tokens, completed/error counts) and the raw error text, never from the first rows. Excluding a valid run from a table is a recorded decision, not an invalidity.
+
+## [LESSON-056] Multi-Database Worktree Snapshot Isolation & Pydantic-Settings Dotenv Override
+
+- Date: 2026-10-14
+- Scope: `scripts/worker-start.*`, `src/thesis_api/settings.py`, test suites
+- Status: ACTIVE
+
+### 1. Worktree Snapshot Provisioning vs Configured `.env`
+- **Symptom**: Unittest execution inside freshly provisioned Git Worktrees failed with `accepted_snapshot_unavailable` across multiple test suites (`test_scope_gate`, `test_run_trace`).
+- **Root Cause**: `scripts/worker-start.ps1` only snapshot-copied `finance_master_v2.sqlite`, while root `.env` had been updated to point `SQLITE_DB_PATH` to `data/processed/bank-quarterly-top10-operational-v1-r4.sqlite`. The hardlinked `.env` in the worktree pointed to a missing database file.
+- **Solution**: Any active SQLite database referenced by `.env` must be cloned into the worktree via `scripts/copy_sqlite_snapshot.py` before executing full regression suites.
+
+### 2. Pydantic-Settings Field Alias Precedence
+- **Mechanism**: In `pydantic-settings`, if a setting defines an alias (`Field(alias="SQLITE_DB_PATH")`) and `.env` provides that alias key, keyword arguments provided by field name (`Settings(sqlite_db_path="custom.sqlite")`) are deprioritized relative to the dotenv alias match.
+- **Solution**: Tests instantiating `Settings` with programmatic overrides must pass `_env_file=None` or pass parameters using the exact alias key (`Settings(SQLITE_DB_PATH=...)`).
+
+### 3. PowerShell `$ref` Variable Interpolation in JSON Scripts
+- **Symptom**: Manipulating OpenAPI JSON schemas via PowerShell inline scripts (`python -c "..."`) resulted in `ValueError: empty contract key at #/paths//api/auth/...`.
+- **Root Cause**: PowerShell string interpolation expands `$ref` as an undefined PowerShell variable (evaluating to empty string `""`), erasing the JSON key.
+- **Solution**: Use dedicated script files (`scripts/*.py`) or single-quoted PowerShell strings without interpolation when dealing with JSON Schema `$ref` keys.
+

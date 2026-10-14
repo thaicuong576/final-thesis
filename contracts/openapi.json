@@ -61,8 +61,78 @@
                     "database": {
                       "type": "string",
                       "example": "connected"
+                    },
+                    "auth_required": {
+                      "type": "boolean",
+                      "description": "Whether authentication is required"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/status": {
+      "get": {
+        "summary": "Check authentication gate requirement",
+        "description": "Returns whether the application requires authentication.",
+        "responses": {
+          "200": {
+            "description": "Auth gate status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login with shared credentials",
+        "description": "Authenticates against shared credentials and returns a signed bearer access token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many failed attempts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
                 }
               }
             }
@@ -100,8 +170,23 @@
           },
           "500": {
             "description": "Internal analytical engine or verification failure"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/analyze/stream": {
@@ -132,8 +217,23 @@
           },
           "400": {
             "description": "Invalid analytical query or scope parameters"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/capabilities": {
@@ -150,8 +250,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/runs": {
@@ -183,8 +298,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/runs/{run_id}": {
@@ -215,8 +345,23 @@
           },
           "404": {
             "description": "Analysis run not found"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/runs/{run_id}/trace": {
@@ -247,8 +392,23 @@
           },
           "404": {
             "description": "Analysis run or trace not found"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/reports/{report_id}": {
@@ -279,8 +439,23 @@
           },
           "404": {
             "description": "Report not found"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/onboarding/uploads": {
@@ -326,8 +501,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
         "summary": "List user-supplied bank uploads",
@@ -346,8 +536,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/onboarding/uploads/{upload_id}": {
@@ -378,8 +583,23 @@
           },
           "404": {
             "description": "Upload not found"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/onboarding/template.csv": {
@@ -397,8 +617,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/onboarding/samples/{name}.csv": {
@@ -461,8 +696,23 @@
           },
           "404": {
             "description": "Observation or fact not found"
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/market/quotes": {
@@ -479,8 +729,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/market/valuation": {
@@ -497,8 +762,23 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
@@ -1664,15 +1944,46 @@
           "groupLabel"
         ],
         "properties": {
-          "id": { "type": "string", "example": "bank.npl_g35" },
-          "acronym": { "type": "string", "example": "NPL_G35" },
-          "label": { "type": "string", "example": "Tỷ lệ nợ xấu (nhóm 3–5)" },
-          "shortLabel": { "type": "string", "example": "Nợ xấu" },
-          "unit": { "type": "string", "example": "%" },
-          "direction": { "type": "string", "enum": ["higher_is_better", "lower_is_better", "neutral"] },
-          "decimals": { "type": "integer", "example": 2 },
-          "group": { "type": "string", "example": "asset_quality" },
-          "groupLabel": { "type": "string", "example": "Chất lượng nợ" }
+          "id": {
+            "type": "string",
+            "example": "bank.npl_g35"
+          },
+          "acronym": {
+            "type": "string",
+            "example": "NPL_G35"
+          },
+          "label": {
+            "type": "string",
+            "example": "Tỷ lệ nợ xấu (nhóm 3–5)"
+          },
+          "shortLabel": {
+            "type": "string",
+            "example": "Nợ xấu"
+          },
+          "unit": {
+            "type": "string",
+            "example": "%"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "higher_is_better",
+              "lower_is_better",
+              "neutral"
+            ]
+          },
+          "decimals": {
+            "type": "integer",
+            "example": 2
+          },
+          "group": {
+            "type": "string",
+            "example": "asset_quality"
+          },
+          "groupLabel": {
+            "type": "string",
+            "example": "Chất lượng nợ"
+          }
         }
       },
       "QuestionType": {
@@ -1689,36 +2000,122 @@
       },
       "QuestionTypeInfo": {
         "type": "object",
-        "required": ["id", "label", "example"],
+        "required": [
+          "id",
+          "label",
+          "example"
+        ],
         "properties": {
-          "id": { "$ref": "#/components/schemas/QuestionType" },
-          "label": { "type": "string" },
-          "example": { "type": "string" }
+          "id": {
+            "$ref": "#/components/schemas/QuestionType"
+          },
+          "label": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string"
+          }
         }
       },
       "Capabilities": {
         "type": "object",
         "properties": {
-          "snapshotId": { "type": ["string", "null"] },
-          "datasetId": { "type": ["string", "null"] },
-          "datasetSnapshotId": { "type": ["string", "null"] },
-          "dataset_snapshot_id": { "type": ["string", "null"] },
-          "analysis_available": { "type": "boolean" },
-          "implemented_capabilities": { "type": "array", "items": { "type": "string" } },
-          "database_status": { "type": "string" },
-          "entities": { "type": "array", "items": { "type": "object" } },
-          "periods": { "type": "array", "items": { "type": "object" } },
-          "metrics": { "type": "array", "items": { "$ref": "#/components/schemas/MetricPresentation" } },
+          "snapshotId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "datasetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "datasetSnapshotId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dataset_snapshot_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "analysis_available": {
+            "type": "boolean"
+          },
+          "implemented_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "database_status": {
+            "type": "string"
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricPresentation"
+            }
+          },
           "coverage": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CoverageItem" }
+            "items": {
+              "$ref": "#/components/schemas/CoverageItem"
+            }
           },
-          "topics": { "type": "array", "items": { "type": "object" } },
-          "peerUniverse": { "type": ["object", "null"] },
-          "macro": { "type": ["object", "null"] },
-          "suggestedQuestions": { "type": "array", "items": { "type": "string" } },
-          "questionTypes": { "type": "array", "items": { "$ref": "#/components/schemas/QuestionTypeInfo" } },
-          "readiness": { "type": ["string", "null"] }
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "peerUniverse": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "macro": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "suggestedQuestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "questionTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionTypeInfo"
+            }
+          },
+          "readiness": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "CoverageItem": {
@@ -1729,11 +2126,17 @@
           "metrics"
         ],
         "properties": {
-          "entity_id": { "type": "string" },
-          "period_id": { "type": "string" },
+          "entity_id": {
+            "type": "string"
+          },
+          "period_id": {
+            "type": "string"
+          },
           "metrics": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -1758,7 +2161,9 @@
           "input_fact_ids"
         ],
         "properties": {
-          "fact_id": { "type": "string" },
+          "fact_id": {
+            "type": "string"
+          },
           "fact_type": {
             "type": "string",
             "enum": [
@@ -1776,28 +2181,93 @@
               "outlier"
             ]
           },
-          "entity_id": { "type": ["string", "null"] },
-          "other_entity_id": { "type": ["string", "null"] },
-          "universe_id": { "type": ["string", "null"] },
-          "metric_id": { "type": "string" },
-          "period": { "type": "string" },
-          "from_period": { "type": ["string", "null"] },
-          "value": { "type": ["number", "null"] },
-          "unit": { "type": "string" },
-          "rank_better": { "type": ["integer", "null"] },
-          "rank_desc": { "type": ["integer", "null"] },
-          "denominator": { "type": ["integer", "null"] },
-          "formula_version": { "type": "string" },
-          "input_observation_ids": { "type": "array", "items": { "type": "string" } },
-          "input_fact_ids": { "type": "array", "items": { "type": "string" } }
+          "entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "other_entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "universe_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metric_id": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "from_period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "rank_better": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rank_desc": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "denominator": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "formula_version": {
+            "type": "string"
+          },
+          "input_observation_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "input_fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "ProducedBy": {
         "type": "object",
-        "required": ["tool", "agent"],
+        "required": [
+          "tool",
+          "agent"
+        ],
         "properties": {
-          "tool": { "type": "string" },
-          "agent": { "type": "string" }
+          "tool": {
+            "type": "string"
+          },
+          "agent": {
+            "type": "string"
+          }
         }
       },
       "DatasetRow": {
@@ -1814,15 +2284,52 @@
           "missing_reason"
         ],
         "properties": {
-          "entity_id": { "type": "string" },
-          "metric_id": { "type": "string" },
-          "period": { "type": "string" },
-          "status": { "type": "string", "enum": ["valid", "missing"] },
-          "value": { "type": ["number", "null"] },
-          "observation_id": { "type": ["string", "null"] },
-          "rank_better": { "type": ["integer", "null"] },
-          "rank_desc": { "type": ["integer", "null"] },
-          "missing_reason": { "type": ["string", "null"] }
+          "entity_id": {
+            "type": "string"
+          },
+          "metric_id": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "missing"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "observation_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rank_better": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rank_desc": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "missing_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "ReferenceLine": {
@@ -1835,11 +2342,24 @@
           "fact_id"
         ],
         "properties": {
-          "kind": { "type": "string" },
-          "metric_id": { "type": "string" },
-          "period": { "type": "string" },
-          "value": { "type": "number" },
-          "fact_id": { "type": ["string", "null"] }
+          "kind": {
+            "type": "string"
+          },
+          "metric_id": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "fact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "Dataset": {
@@ -1857,7 +2377,9 @@
           "allowed_charts"
         ],
         "properties": {
-          "dataset_id": { "type": "string" },
+          "dataset_id": {
+            "type": "string"
+          },
           "shape": {
             "type": "string",
             "enum": [
@@ -1870,14 +2392,48 @@
               "paired"
             ]
           },
-          "title": { "type": "string" },
-          "produced_by": { "$ref": "#/components/schemas/ProducedBy" },
-          "metric_ids": { "type": "array", "items": { "type": "string" } },
-          "periods": { "type": "array", "items": { "type": "string" } },
-          "highlight_entity_ids": { "type": "array", "items": { "type": "string" } },
-          "rows": { "type": "array", "items": { "$ref": "#/components/schemas/DatasetRow" } },
-          "reference_lines": { "type": "array", "items": { "$ref": "#/components/schemas/ReferenceLine" } },
-          "allowed_charts": { "type": "array", "items": { "type": "string" } }
+          "title": {
+            "type": "string"
+          },
+          "produced_by": {
+            "$ref": "#/components/schemas/ProducedBy"
+          },
+          "metric_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "highlight_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatasetRow"
+            }
+          },
+          "reference_lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceLine"
+            }
+          },
+          "allowed_charts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "Sentence": {
@@ -1891,9 +2447,18 @@
           "revision"
         ],
         "properties": {
-          "sentence_id": { "type": "string" },
-          "text": { "type": "string" },
-          "fact_ids": { "type": "array", "items": { "type": "string" } },
+          "sentence_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "author": {
             "type": "string",
             "enum": [
@@ -1912,57 +2477,138 @@
               "deterministic_fallback"
             ]
           },
-          "revision": { "type": "integer" }
+          "revision": {
+            "type": "integer"
+          }
         }
       },
       "AnswerBlock": {
         "type": "object",
-        "required": ["type", "value_fact_id", "sentences"],
+        "required": [
+          "type",
+          "value_fact_id",
+          "sentences"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["answer"] },
-          "value_fact_id": { "type": "string" },
-          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
+          "type": {
+            "type": "string",
+            "enum": [
+              "answer"
+            ]
+          },
+          "value_fact_id": {
+            "type": "string"
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sentence"
+            }
+          }
         }
       },
       "HeadlineBlock": {
         "type": "object",
-        "required": ["type", "sentence"],
+        "required": [
+          "type",
+          "sentence"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["headline"] },
-          "sentence": { "$ref": "#/components/schemas/Sentence" }
+          "type": {
+            "type": "string",
+            "enum": [
+              "headline"
+            ]
+          },
+          "sentence": {
+            "$ref": "#/components/schemas/Sentence"
+          }
         }
       },
       "KeyPointItem": {
         "type": "object",
-        "required": ["title", "sentences"],
+        "required": [
+          "title",
+          "sentences"
+        ],
         "properties": {
-          "title": { "type": "string" },
-          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
+          "title": {
+            "type": "string"
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sentence"
+            }
+          }
         }
       },
       "KeyPointsBlock": {
         "type": "object",
-        "required": ["type", "items"],
+        "required": [
+          "type",
+          "items"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["key_points"] },
-          "items": { "type": "array", "items": { "$ref": "#/components/schemas/KeyPointItem" } }
+          "type": {
+            "type": "string",
+            "enum": [
+              "key_points"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyPointItem"
+            }
+          }
         }
       },
       "SectionBlock": {
         "type": "object",
-        "required": ["type", "title", "sentences"],
+        "required": [
+          "type",
+          "title",
+          "sentences"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["section"] },
-          "title": { "type": "string" },
-          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
+          "type": {
+            "type": "string",
+            "enum": [
+              "section"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sentence"
+            }
+          }
         }
       },
       "FigureBlock": {
         "type": "object",
-        "required": ["type", "figure_no", "chart", "dataset_id", "title", "takeaway"],
+        "required": [
+          "type",
+          "figure_no",
+          "chart",
+          "dataset_id",
+          "title",
+          "takeaway"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["figure"] },
-          "figure_no": { "type": "integer" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "figure"
+            ]
+          },
+          "figure_no": {
+            "type": "integer"
+          },
           "chart": {
             "type": "string",
             "enum": [
@@ -1976,29 +2622,77 @@
               "comparison_table"
             ]
           },
-          "dataset_id": { "type": "string" },
-          "title": { "type": "string" },
-          "takeaway": { "$ref": "#/components/schemas/Sentence" }
+          "dataset_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "takeaway": {
+            "$ref": "#/components/schemas/Sentence"
+          }
         }
       },
       "CalloutBlock": {
         "type": "object",
-        "required": ["type", "tone", "title", "finding_id", "sentences"],
+        "required": [
+          "type",
+          "tone",
+          "title",
+          "finding_id",
+          "sentences"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["callout"] },
-          "tone": { "type": "string", "enum": ["notice", "warning"] },
-          "title": { "type": "string" },
-          "finding_id": { "type": ["string", "null"] },
-          "sentences": { "type": "array", "items": { "$ref": "#/components/schemas/Sentence" } }
+          "type": {
+            "type": "string",
+            "enum": [
+              "callout"
+            ]
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "notice",
+              "warning"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "finding_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sentence"
+            }
+          }
         }
       },
       "TableBlock": {
         "type": "object",
-        "required": ["type", "dataset_id", "title"],
+        "required": [
+          "type",
+          "dataset_id",
+          "title"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["table"] },
-          "dataset_id": { "type": "string" },
-          "title": { "type": "string" }
+          "type": {
+            "type": "string",
+            "enum": [
+              "table"
+            ]
+          },
+          "dataset_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
         }
       },
       "ReportBlock": {
@@ -2007,62 +2701,181 @@
           "propertyName": "type"
         },
         "oneOf": [
-          { "$ref": "#/components/schemas/AnswerBlock" },
-          { "$ref": "#/components/schemas/HeadlineBlock" },
-          { "$ref": "#/components/schemas/KeyPointsBlock" },
-          { "$ref": "#/components/schemas/SectionBlock" },
-          { "$ref": "#/components/schemas/FigureBlock" },
-          { "$ref": "#/components/schemas/CalloutBlock" },
-          { "$ref": "#/components/schemas/TableBlock" }
+          {
+            "$ref": "#/components/schemas/AnswerBlock"
+          },
+          {
+            "$ref": "#/components/schemas/HeadlineBlock"
+          },
+          {
+            "$ref": "#/components/schemas/KeyPointsBlock"
+          },
+          {
+            "$ref": "#/components/schemas/SectionBlock"
+          },
+          {
+            "$ref": "#/components/schemas/FigureBlock"
+          },
+          {
+            "$ref": "#/components/schemas/CalloutBlock"
+          },
+          {
+            "$ref": "#/components/schemas/TableBlock"
+          }
         ]
       },
       "ReportSpec": {
         "type": "object",
-        "required": ["kind", "note_label", "blocks"],
+        "required": [
+          "kind",
+          "note_label",
+          "blocks"
+        ],
         "properties": {
-          "kind": { "type": "string", "enum": ["answer_card", "note"] },
-          "note_label": { "type": ["string", "null"] },
-          "composition_source": {
-            "type": ["string", "null"],
-            "enum": ["model", "deterministic_fallback", null]
+          "kind": {
+            "type": "string",
+            "enum": [
+              "answer_card",
+              "note"
+            ]
           },
-          "blocks": { "type": "array", "items": { "$ref": "#/components/schemas/ReportBlock" } }
+          "note_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "composition_source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "model",
+              "deterministic_fallback",
+              null
+            ]
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportBlock"
+            }
+          }
         }
       },
       "Signal": {
         "type": "object",
-        "required": ["group", "label", "verdict", "metric_ids", "fact_ids"],
+        "required": [
+          "group",
+          "label",
+          "verdict",
+          "metric_ids",
+          "fact_ids"
+        ],
         "properties": {
-          "group": { "type": "string" },
-          "label": { "type": "string" },
+          "group": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
           "verdict": {
             "type": "string",
-            "enum": ["above_peers", "in_line", "below_peers", "mixed", "insufficient_data"]
+            "enum": [
+              "above_peers",
+              "in_line",
+              "below_peers",
+              "mixed",
+              "insufficient_data"
+            ]
           },
-          "metric_ids": { "type": "array", "items": { "type": "string" } },
-          "fact_ids": { "type": "array", "items": { "type": "string" } }
+          "metric_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "CrossLevelFinding": {
         "type": "object",
-        "required": ["finding_id", "kind", "severity", "text", "fact_ids", "status"],
+        "required": [
+          "finding_id",
+          "kind",
+          "severity",
+          "text",
+          "fact_ids",
+          "status"
+        ],
         "properties": {
-          "finding_id": { "type": "string" },
-          "kind": { "type": "string", "enum": ["divergent_signals", "counter_trend", "cross_metric_extreme"] },
-          "severity": { "type": "string", "enum": ["notice", "warning"] },
-          "text": { "type": "string" },
-          "fact_ids": { "type": "array", "items": { "type": "string" } },
-          "status": { "type": "string", "enum": ["confirmed", "dismissed"] }
+          "finding_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "divergent_signals",
+              "counter_trend",
+              "cross_metric_extreme"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "notice",
+              "warning"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "dismissed"
+            ]
+          }
         }
       },
       "SentenceDropped": {
         "type": "object",
-        "required": ["sentence_id", "author", "text", "reason_code", "reason"],
+        "required": [
+          "sentence_id",
+          "author",
+          "text",
+          "reason_code",
+          "reason"
+        ],
         "properties": {
-          "sentence_id": { "type": "string" },
-          "author": { "type": "string" },
-          "text": { "type": "string" },
-          "fact_ids": { "type": "array", "items": { "type": "string" } },
+          "sentence_id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "reason_code": {
             "type": "string",
             "enum": [
@@ -2082,15 +2895,24 @@
               "unresolved_critique"
             ]
           },
-          "reason": { "type": "string" }
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "BlockDropped": {
         "type": "object",
-        "required": ["type", "reason"],
+        "required": [
+          "type",
+          "reason"
+        ],
         "properties": {
-          "type": { "type": "string" },
-          "reason": { "type": "string" }
+          "type": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       },
       "NarrativeAudit": {
@@ -2105,27 +2927,89 @@
           "composition_source"
         ],
         "properties": {
-          "sentences_checked": { "type": "integer" },
-          "sentences_accepted": { "type": "integer" },
-          "sentences_dropped": { "type": "array", "items": { "$ref": "#/components/schemas/SentenceDropped" } },
-          "numbers_checked": { "type": "integer" },
-          "numbers_matched": { "type": "integer" },
-          "blocks_dropped": { "type": "array", "items": { "$ref": "#/components/schemas/BlockDropped" } },
-          "composition_source": { "type": "string", "enum": ["model", "deterministic_fallback"] },
-          "fallback_reason": { "type": ["string", "null"] }
+          "sentences_checked": {
+            "type": "integer"
+          },
+          "sentences_accepted": {
+            "type": "integer"
+          },
+          "sentences_dropped": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SentenceDropped"
+            }
+          },
+          "numbers_checked": {
+            "type": "integer"
+          },
+          "numbers_matched": {
+            "type": "integer"
+          },
+          "blocks_dropped": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlockDropped"
+            }
+          },
+          "composition_source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "deterministic_fallback"
+            ]
+          },
+          "fallback_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "SourceNote": {
         "type": "object",
-        "required": ["note_no", "source_id", "title", "url", "locator", "fact_ids"],
+        "required": [
+          "note_no",
+          "source_id",
+          "title",
+          "url",
+          "locator",
+          "fact_ids"
+        ],
         "properties": {
-          "note_no": { "type": "integer" },
-          "source_id": { "type": "string" },
-          "title": { "type": "string" },
-          "url": { "type": ["string", "null"] },
-          "locator": { "type": ["string", "null"] },
-          "page": { "type": ["integer", "null"] },
-          "fact_ids": { "type": "array", "items": { "type": "string" } }
+          "note_no": {
+            "type": "integer"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "LineageNode": {
@@ -2138,42 +3022,143 @@
           "children"
         ],
         "properties": {
-          "observation_id": { "type": "string" },
-          "entity": { "type": "string" },
-          "entity_id": { "type": ["string", "null"] },
-          "metric": { "type": "string" },
-          "metric_id": { "type": ["string", "null"] },
-          "metric_name": { "type": ["string", "null"] },
-          "period": { "type": "string" },
-          "period_id": { "type": ["string", "null"] },
-          "value": { "type": ["number", "null"] },
-          "unit": { "type": ["string", "null"] },
-          "formula_version": { "type": ["string", "null"] },
-          "receipt_result": { "type": ["string", "null"] },
-          "receipt_tolerance": { "type": ["string", "null"] },
-          "calculation_receipt": { "type": ["object", "null"] },
-          "source_title": { "type": ["string", "null"] },
-          "source_url": { "type": ["string", "null"] },
-          "page": { "type": ["integer", "null"] },
-          "section": { "type": ["string", "null"] },
-          "row_label": { "type": ["string", "null"] },
-          "reading": { "type": ["string", "null"] },
+          "observation_id": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metric": {
+            "type": "string"
+          },
+          "metric_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metric_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period": {
+            "type": "string"
+          },
+          "period_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formula_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receipt_result": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "receipt_tolerance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "calculation_receipt": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "source_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reading": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "children": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/LineageNode" }
+            "items": {
+              "$ref": "#/components/schemas/LineageNode"
+            }
           }
         }
       },
       "ErrorInfo": {
         "type": "object",
-        "required": ["code", "message", "suggestions"],
+        "required": [
+          "code",
+          "message",
+          "suggestions"
+        ],
         "properties": {
           "code": {
             "type": "string",
             "description": "Deterministic error code identifier (e.g. out_of_scope, unsupported_entity, unsupported_metric, unsupported_period, metric_required, unsupported_macro_scope, provider_failure)."
           },
-          "message": { "type": "string" },
-          "suggestions": { "type": "array", "items": { "type": "string" } }
+          "message": {
+            "type": "string"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "TraceStep": {
@@ -2189,16 +3174,42 @@
           "detail"
         ],
         "properties": {
-          "step_id": { "type": "string" },
-          "seq": { "type": "integer" },
-          "t_ms": { "type": "integer" },
+          "step_id": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "t_ms": {
+            "type": "integer"
+          },
           "actor": {
             "type": "string",
-            "enum": ["orchestrator", "company", "sector", "macro", "critic", "verifier", "system"]
+            "enum": [
+              "orchestrator",
+              "company",
+              "sector",
+              "macro",
+              "critic",
+              "verifier",
+              "system"
+            ]
           },
           "recipient": {
-            "type": ["string", "null"],
-            "enum": ["orchestrator", "company", "sector", "macro", "critic", "verifier", "system", null]
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "orchestrator",
+              "company",
+              "sector",
+              "macro",
+              "critic",
+              "verifier",
+              "system",
+              null
+            ]
           },
           "kind": {
             "type": "string",
@@ -2217,8 +3228,12 @@
               "blocked"
             ]
           },
-          "summary": { "type": "string" },
-          "detail": { "type": "object" }
+          "summary": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object"
+          }
         }
       },
       "RunTrace": {
@@ -2233,14 +3248,39 @@
           "steps"
         ],
         "properties": {
-          "run_id": { "type": "string" },
-          "status": { "type": "string" },
-          "query": { "type": "string" },
-          "created_at": { "type": "string" },
-          "duration_ms": { "type": "integer" },
-          "arm": { "type": ["string", "null"] },
-          "question_type": { "type": ["string", "null"] },
-          "steps": { "type": "array", "items": { "$ref": "#/components/schemas/TraceStep" } }
+          "run_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "arm": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "question_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceStep"
+            }
+          }
         }
       },
       "AnalysisRunSummary": {
@@ -2261,19 +3301,72 @@
           "question_type"
         ],
         "properties": {
-          "run_id": { "type": "string" },
-          "created_at": { "type": "string" },
-          "query": { "type": "string" },
-          "target_ticker": { "type": ["string", "null"] },
-          "peer_tickers": { "type": "array", "items": { "type": "string" } },
-          "period": { "type": ["string", "null"] },
-          "status": { "type": "string" },
-          "latency_ms": { "type": ["integer", "null"] },
-          "model_used": { "type": ["string", "null"] },
-          "error_code": { "type": ["string", "null"] },
-          "duration_ms": { "type": ["integer", "null"] },
-          "arm": { "type": ["string", "null"] },
-          "question_type": { "type": ["string", "null"] }
+          "run_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "target_ticker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "peer_tickers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "model_used": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "duration_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "arm": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "question_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "AnalysisRunRecord": {
@@ -2300,25 +3393,108 @@
           "question_type"
         ],
         "properties": {
-          "run_id": { "type": "string" },
-          "created_at": { "type": "string" },
-          "query": { "type": "string" },
-          "target_ticker": { "type": ["string", "null"] },
-          "peer_tickers": { "type": "array", "items": { "type": "string" } },
-          "period": { "type": ["string", "null"] },
-          "status": { "type": "string" },
-          "latency_ms": { "type": ["integer", "null"] },
-          "model_used": { "type": ["string", "null"] },
-          "report_json": { "type": ["object", "null"] },
-          "events_json": { "type": "array", "items": { "type": "object" } },
-          "trace_json": { "type": ["object", "null"] },
-          "error_code": { "type": ["string", "null"] },
-          "duration_ms": { "type": ["integer", "null"] },
-          "model_calls": { "type": ["integer", "null"] },
-          "input_tokens": { "type": ["integer", "null"] },
-          "output_tokens": { "type": ["integer", "null"] },
-          "arm": { "type": ["string", "null"] },
-          "question_type": { "type": ["string", "null"] }
+          "run_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "target_ticker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "peer_tickers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "model_used": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "report_json": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "events_json": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "trace_json": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "duration_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "model_calls": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "input_tokens": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "output_tokens": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "arm": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "question_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "UploadRowIssue": {
@@ -2482,17 +3658,42 @@
           "stale"
         ],
         "properties": {
-          "ticker": { "type": "string" },
-          "close": { "type": "number" },
-          "reference": { "type": "number" },
-          "change": { "type": "number" },
-          "change_percent": { "type": "number" },
-          "volume": { "type": "integer" },
-          "trading_date": { "type": "string" },
-          "fetched_at": { "type": "string" },
-          "source": { "type": "string" },
-          "stale": { "type": "boolean" },
-          "stale_reason": { "type": ["string", "null"] }
+          "ticker": {
+            "type": "string"
+          },
+          "close": {
+            "type": "number"
+          },
+          "reference": {
+            "type": "number"
+          },
+          "change": {
+            "type": "number"
+          },
+          "change_percent": {
+            "type": "number"
+          },
+          "volume": {
+            "type": "integer"
+          },
+          "trading_date": {
+            "type": "string"
+          },
+          "fetched_at": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "stale_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "MarketQuotesResponse": {
@@ -2504,31 +3705,95 @@
           "quotes"
         ],
         "properties": {
-          "configured": { "type": "boolean" },
-          "source": { "type": "string" },
-          "fetched_at": { "type": ["string", "null"] },
-          "stale": { "type": "boolean" },
-          "stale_reason": { "type": ["string", "null"] },
+          "configured": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "fetched_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "stale_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "quotes": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/MarketQuoteItem" }
+            "items": {
+              "$ref": "#/components/schemas/MarketQuoteItem"
+            }
           }
         }
       },
       "MarketValuationInputs": {
         "type": "object",
         "properties": {
-          "close_vnd": { "type": ["number", "null"] },
-          "close_source": { "type": "string" },
-          "close_date": { "type": ["string", "null"] },
-          "listed_shares": { "type": ["integer", "null"] },
-          "shares_source": { "type": "string" },
-          "parent_attributable_equity_billion_vnd": { "type": ["number", "null"] },
-          "equity_period": { "type": ["string", "null"] },
-          "equity_source": { "type": ["string", "null"] },
-          "roe_percent": { "type": ["number", "null"] },
-          "roe_period": { "type": ["string", "null"] },
-          "formula": { "type": "string" }
+          "close_vnd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "close_source": {
+            "type": "string"
+          },
+          "close_date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "listed_shares": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "shares_source": {
+            "type": "string"
+          },
+          "parent_attributable_equity_billion_vnd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "equity_period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "equity_source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roe_percent": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "roe_period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formula": {
+            "type": "string"
+          }
         }
       },
       "MarketValuationItem": {
@@ -2538,15 +3803,54 @@
           "inputs"
         ],
         "properties": {
-          "ticker": { "type": "string" },
-          "close": { "type": ["number", "null"] },
-          "listed_shares": { "type": ["integer", "null"] },
-          "parent_attributable_equity": { "type": ["number", "null"] },
-          "bvps": { "type": ["number", "null"] },
-          "pb": { "type": ["number", "null"] },
-          "roe": { "type": ["number", "null"] },
-          "inputs": { "$ref": "#/components/schemas/MarketValuationInputs" },
-          "missing_reason": { "type": ["string", "null"] }
+          "ticker": {
+            "type": "string"
+          },
+          "close": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "listed_shares": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "parent_attributable_equity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "bvps": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pb": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "roe": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/MarketValuationInputs"
+          },
+          "missing_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "MarketValuationResponse": {
@@ -2558,18 +3862,113 @@
           "items"
         ],
         "properties": {
-          "configured": { "type": "boolean" },
-          "source": { "type": "string" },
-          "fetched_at": { "type": ["string", "null"] },
-          "stale": { "type": "boolean" },
-          "stale_reason": { "type": ["string", "null"] },
+          "configured": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string"
+          },
+          "fetched_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "stale_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/MarketValuationItem" }
+            "items": {
+              "$ref": "#/components/schemas/MarketValuationItem"
+            }
           }
         }
+      },
+      "AuthStatusResponse": {
+        "type": "object",
+        "required": [
+          "required"
+        ],
+        "properties": {
+          "required": {
+            "type": "boolean",
+            "description": "Whether authentication is required for protected endpoints"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Login username"
+          },
+          "password": {
+            "type": "string",
+            "description": "Login password"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_at"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "Stateless signed access token"
+          },
+          "token_type": {
+            "type": "string",
+            "example": "bearer",
+            "description": "Token type"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601 UTC expiration timestamp"
+          }
+        }
+      },
+      "AuthErrorResponse": {
+        "type": "object",
+        "required": [
+          "detail",
+          "code"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Human-readable explanation in Vietnamese"
+          },
+          "code": {
+            "type": "string",
+            "example": "auth_required",
+            "description": "Machine-readable error code"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Shared-credential HMAC-SHA256 bearer token"
       }
     }
   }
 }
-

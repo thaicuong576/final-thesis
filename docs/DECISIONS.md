@@ -1765,4 +1765,49 @@ Evaluation runs across verifier mutation sensitivity (E1), model capability comp
 3. Increase the OpenAI preflight test ping limit in `scripts/er8_run.py` from 5 to 400 completion tokens to accommodate reasoning model thinking headroom.
 
 
+## D-085: Shared-Credential Login Gate for Analysis API
+
+Status: Accepted (2026-10-14). Scope: application-layer authentication (`src/thesis_api`).
+
+### Context & Rationale
+
+1. **Token Cost Protection for Public Demo**:
+   The thesis analysis API is deployed on public staging/demo infrastructure with access to LLM inference pipelines. Unauthenticated access exposes the deployment to arbitrary invocations, risk of automated scraping, and rapid token exhaustion.
+2. **Single Shared Account Without Multi-Tenancy Overhead**:
+   The objective is strictly operational cost and access control for the thesis demonstration, not user management or RBAC. A single shared credential (`APP_LOGIN_USER`, `APP_LOGIN_PASSWORD`) suffices to protect the API without requiring database schema changes, user tables, role management, or stateful session databases.
+3. **Strict Application Boundary (`docs/ARCHITECTURAL-GUARDRAILS.md`)**:
+   Authentication concerns reside entirely in `src/thesis_api`. Application core packages (`src/thesis_data`), dataset snapshots, and `analysis_runs` tables remain untouched.
+4. **Zero Secrets in Repository & Fail-Closed Configuration**:
+   All credentials and secrets (`APP_LOGIN_PASSWORD`, `AUTH_TOKEN_SECRET`) are loaded from environment variables via `SecretStr` and never committed, logged, or exposed via diagnostics. Auth is disabled by default (`AUTH_ENABLED=false`) to preserve offline test, CI, and evaluation behaviors. When enabled, missing or weak configuration triggers an immediate startup failure (fail-closed) and marks `/api/ready` unavailable.
+
+### Architecture & Mechanics
+
+1. **Stateless HMAC-SHA256 Bearer Tokens**:
+   Tokens are generated and validated using Python standard library (`hmac`, `hashlib`, `base64`, `json`, `time`) without external JWT dependencies. Tokens carry UTC expiration timestamps and subject username, verified via constant-time HMAC comparison (`hmac.compare_digest`).
+2. **In-Memory IP Rate Limiting & Spoofing Resistance**:
+   Failed authentication attempts are rate-limited in memory by client IP (sliding window: max 5 failed attempts within 60 seconds), returning `429 Too Many Requests` (`too_many_attempts`) to mitigate brute-force attempts.
+   - **Spoofing Resistance**: Uses the LAST non-empty entry of `X-Forwarded-For` (falling back to `request.client.host`) because reverse proxies (such as Render) append the verified client IP to the end of the chain, preventing bypasses from clients rotating leftmost spoofed values.
+   - **Bounded Memory Capacity**: The in-memory tracking table is capped at 10,000 keys. When the table exceeds the cap upon recording a failure, expired timestamps and empty entries are pruned first; if still exceeding the cap, oldest entries are dropped.
+3. **Unified Interception Gate, Traversal Hardening & Docs Protection**:
+   All endpoints require `Authorization: Bearer <token>` when `AUTH_ENABLED=true`, enforced by a single FastAPI middleware layer. Only the explicit safe public set is exempt:
+   - CORS preflight (`OPTIONS` requests)
+   - Root path `/`
+   - `/api/version` and `/api/ready` (required for Render health checks and external liveness monitors)
+   - `/api/health`
+   - `/api/auth/status` and `/api/auth/login`
+   - `/api/onboarding/samples/*` (synthetic demonstration files loaded directly by browser links). Traversal hardening strictly rejects paths containing `..`, `//`, `\`, or percent-encoded variations (`%2e`, `%2f`, `%5c`), routing any suspicious sample path to the protected gate.
+   - **Docs & OpenAPI Protection**: Non-`/api/` documentation routes (`/docs`, `/redoc`, `/openapi.json`) are protected under the authentication gate by default when `AUTH_ENABLED=true`.
+   Unauthorized requests receive `401 Unauthorized` (`{"detail": ..., "code": "auth_required"}`).
+
+### Limitations
+
+1. **No Individual User Accounts or Roles**:
+   Only one shared credential exists; individual users cannot be distinguished, audited by user identity, or assigned differing permissions.
+2. **No Per-Token Revocation**:
+   Tokens are stateless and remain valid until their expiration timestamp (`AUTH_TOKEN_TTL_HOURS`, default 12 hours). Revocation requires rotating `AUTH_TOKEN_SECRET` or restarting the service.
+3. **Single-Process In-Memory Rate Limiting & 10,000 Key Table Cap**:
+   Rate limit state resides in the memory of the active process and is bounded to 10,000 active entries. In multi-worker or horizontally scaled deployments without shared cache (e.g. Redis), rate-limit counters are partitioned per process. For the thesis demonstration on Render single-instance, this provides sufficient protection without introducing external caching infrastructure.
+
+
+
 

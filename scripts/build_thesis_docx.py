@@ -972,6 +972,11 @@ def build(template_path: str, out_path: str) -> None:
                 pf.first_line_indent = Cm(-1.27)
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
+    # ---- 10. Appendices (after the references) ----
+    for app_path in sorted(thesis_v2.glob("phu-luc*.md")):
+        print(f"[build] Adding {app_path.name}...")
+        convert_markdown_to_doc(doc, app_path.read_text(encoding="utf-8"), figures_dir=figures_dir, pngs=pngs)
+
     # ---- Save ----
     settings_el = doc.settings.element
     if settings_el.find(qn("w:updateFields")) is None:

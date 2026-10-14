@@ -8,6 +8,7 @@ import { AgentStage } from './AgentStage';
 import { ProcessTrace } from './ProcessTrace';
 import { AdaptiveReport, type AdaptiveReportResponse } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 
 const FIXTURE_LOADERS: Record<string, () => Promise<unknown>> = {
   t01: () => import('../../../../../experiments/er9/runs/er9-T01-hierarchical_with_critique-r0.json'),
@@ -149,11 +150,11 @@ function AnalysisSessionWorkspaceContent({
             : '';
         const base = baseUrl || origin;
 
-        let res = await fetch(`${base}/api/reports/${effectiveReportId}`, {
+        let res = await apiFetch(`${base}/api/reports/${effectiveReportId}`, {
           headers: { Accept: 'application/json' }
         });
         if (!res.ok) {
-          res = await fetch(`${base}/api/runs/${effectiveReportId}`, {
+          res = await apiFetch(`${base}/api/runs/${effectiveReportId}`, {
             headers: { Accept: 'application/json' }
           });
         }

@@ -6,6 +6,7 @@ import { useContext } from "react";
 import { useQuery, QueryClient, QueryClientContext } from "@tanstack/react-query";
 import type { MarketQuotesResponse, MarketValuationResponse } from "./types";
 import { getApiBaseUrl } from "../../shared/lib/apiUrl";
+import { apiFetch } from "@/shared/api/apiClient";
 
 /**
  * Check if HOSE market is open (Mon-Fri 09:00 - 15:00 UTC+7).
@@ -44,7 +45,7 @@ export function useMarketQuotes() {
       queryKey: ["market-quotes"],
       queryFn: async () => {
         const base = getApiBaseUrl();
-        const res = await fetch(`${base}/api/market/quotes`);
+        const res = await apiFetch(`${base}/api/market/quotes`);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -66,7 +67,7 @@ export function useMarketValuation() {
       queryKey: ["market-valuation"],
       queryFn: async () => {
         const base = getApiBaseUrl();
-        const res = await fetch(`${base}/api/market/valuation`);
+        const res = await apiFetch(`${base}/api/market/valuation`);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TraceStep } from './model/types';
 import type { AnalysisCapabilities } from '../../entities/capability/model/types';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 
 export interface UseTraceStreamOptions {
   request?: { query: string; upload_id?: string } | null;
@@ -523,7 +524,7 @@ export function useTraceStream({
         if (targetUploadId) {
           payload.upload_id = targetUploadId;
         }
-        const response = await fetch(getEndpoint(), {
+        const response = await apiFetch(getEndpoint(), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

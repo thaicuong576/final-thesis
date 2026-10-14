@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ProcessTrace } from '@/features/analysis-session';
 import type { TraceStep } from '@/features/analysis-session/model/types';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 import { ListTree } from 'lucide-react';
 
 export const ProcessLink: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
@@ -37,7 +38,7 @@ export const ProcessLink: React.FC<{ onClick?: () => void }> = ({ onClick }) => 
           (typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
             ? window.location.origin
             : '');
-        const res = await fetch(`${base}/api/runs/${reportId}/trace`, {
+        const res = await apiFetch(`${base}/api/runs/${reportId}/trace`, {
           headers: { Accept: 'application/json' }
         });
 

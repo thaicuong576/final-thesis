@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { normalizeLimitations } from './normalizeLimitations';
@@ -115,7 +116,7 @@ export function BankUploadSection({ capabilities: propCapabilities }: BankUpload
     formData.append('file', selectedFile);
 
     try {
-      const res = await fetch(`${apiBase}/api/onboarding/uploads`, {
+      const res = await apiFetch(`${apiBase}/api/onboarding/uploads`, {
         method: 'POST',
         body: formData,
       });

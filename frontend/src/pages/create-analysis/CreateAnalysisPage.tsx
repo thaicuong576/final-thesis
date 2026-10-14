@@ -8,6 +8,7 @@ import type { TraceStep } from '../../features/analysis-session/model/types';
 import { formatCapabilitiesPeriods, mapErrorCodeToMessage } from '../../features/analysis-session/useTraceStream';
 import { DEFAULT_METRICS } from '@/features/equity-report';
 import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { apiFetch } from '@/shared/api/apiClient';
 import { formatQuarter } from '@/entities/capability/model/coverage';
 import { buildUploadSuggestions } from '@/features/onboarding/uploadSuggestions';
 
@@ -317,7 +318,7 @@ function RecentReportsList() {
             ? window.location.origin
             : '';
         const base = baseUrl || origin;
-        const res = await fetch(`${base}/api/runs?limit=5`, {
+        const res = await apiFetch(`${base}/api/runs?limit=5`, {
           headers: { Accept: 'application/json' }
         });
         if (res.ok) {

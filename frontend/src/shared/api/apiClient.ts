@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@/shared/lib/apiUrl';
+import { getApiBaseUrl, DEFAULT_RENDER_BACKEND } from '@/shared/lib/apiUrl';
 import { clearSession, getToken } from '@/features/auth/model/authStorage';
 import type { AuthStatusResponse, LoginCredentials, LoginResponse } from '@/features/auth/model/types';
 
@@ -16,6 +16,63 @@ export function dispatchAuthExpiredEvent(message = 'Phiên đã hết hạn, vui
       })
     );
   }
+}
+
+function getOrigin(urlOrPath: string): string | null {
+  try {
+    if (urlOrPath.startsWith('http://') || urlOrPath.startsWith('https://')) {
+      return new URL(urlOrPath).origin.toLowerCase();
+    }
+  } catch {
+    // ignore parsing failure
+  }
+  return null;
+}
+
+export function isAuthorizedApiTarget(urlString: string): boolean {
+  // Never attach to login endpoint
+  if (urlString.includes('/api/auth/login')) {
+    return false;
+  }
+
+  // (a) a relative path starting with /api/
+  if (urlString.startsWith('/api/')) {
+    return true;
+  }
+
+  // (b) an absolute URL whose origin equals the origin of getApiBaseUrl()
+  const targetOrigin = getOrigin(urlString);
+  if (!targetOrigin) {
+    return false;
+  }
+
+  const configuredBase = getApiBaseUrl();
+  const configuredOrigin = getOrigin(configuredBase);
+  const defaultOrigin = getOrigin(DEFAULT_RENDER_BACKEND);
+
+  if (configuredOrigin && targetOrigin === configuredOrigin) {
+    try {
+      const urlObj = new URL(urlString);
+      return urlObj.pathname.startsWith('/api/');
+    } catch {
+      return false;
+    }
+  }
+
+  if (!configuredOrigin) {
+    const isDefaultOrLocal = targetOrigin === defaultOrigin ||
+      (typeof window !== 'undefined' && window.location && targetOrigin === getOrigin(window.location.origin));
+    if (isDefaultOrLocal) {
+      try {
+        const urlObj = new URL(urlString);
+        return urlObj.pathname.startsWith('/api/');
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  return false;
 }
 
 export function resolveApiUrl(pathOrUrl: string): string {
@@ -37,12 +94,12 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     urlString = input.url;
   }
 
-  const isApiRequest = urlString.includes('/api/');
+  const shouldAttach = isAuthorizedApiTarget(urlString);
   const isLoginEndpoint = urlString.includes('/api/auth/login');
 
   let headers = init.headers || (typeof input === 'object' && input !== null && 'headers' in input ? (input as Request).headers : undefined);
 
-  if (isApiRequest) {
+  if (shouldAttach) {
     const token = getToken();
     if (token) {
       if (typeof Headers !== 'undefined' && headers instanceof Headers) {
@@ -73,7 +130,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
 
   const response = await fetch(resolvedInput, fetchInit);
 
-  if (response.status === 401 && !isLoginEndpoint) {
+  if (response.status === 401 && !isLoginEndpoint && shouldAttach) {
     clearSession();
     dispatchAuthExpiredEvent();
   }

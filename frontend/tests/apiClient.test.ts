@@ -3,10 +3,12 @@ import {
   apiFetch,
   fetchAuthStatus,
   performLogin,
+  isAuthorizedApiTarget,
   AUTH_EXPIRED_EVENT,
   type AuthExpiredDetail,
 } from '../src/shared/api/apiClient';
 import { saveSession, getSession, clearSession } from '../src/features/auth/model/authStorage';
+import { DEFAULT_RENDER_BACKEND, getApiBaseUrl } from '../src/shared/lib/apiUrl';
 
 describe('apiClient', () => {
   beforeEach(() => {
@@ -18,7 +20,7 @@ describe('apiClient', () => {
     vi.restoreAllMocks();
   });
 
-  it('attaches Authorization header to /api/* requests when token exists', async () => {
+  it('attaches Authorization header to relative /api/... requests when token exists', async () => {
     saveSession({
       access_token: 'test-token-abc',
       token_type: 'bearer',
@@ -35,6 +37,103 @@ describe('apiClient', () => {
     const calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
     const headers = new Headers(calledInit.headers);
     expect(headers.get('Authorization')).toBe('Bearer test-token-abc');
+  });
+
+  it('attaches Authorization header when targeting the configured API origin', async () => {
+    saveSession({
+      access_token: 'test-token-abc',
+      token_type: 'bearer',
+      expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+    });
+
+    const baseUrl = getApiBaseUrl() || DEFAULT_RENDER_BACKEND;
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    await apiFetch(`${baseUrl}/api/capabilities`);
+
+    expect(fetchSpy).toHaveBeenCalled();
+    const calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(calledInit.headers);
+    expect(headers.get('Authorization')).toBe('Bearer test-token-abc');
+  });
+
+  it('does NOT attach Authorization header to external third-party origin with /api/ in path', async () => {
+    saveSession({
+      access_token: 'test-token-abc',
+      token_type: 'bearer',
+      expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+    });
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    await apiFetch('https://third-party.example.com/api/external-data');
+
+    expect(fetchSpy).toHaveBeenCalled();
+    const calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(calledInit.headers);
+    expect(headers.has('Authorization')).toBe(false);
+  });
+
+  it('attaches Authorization header to custom VITE_API_BASE_URL and denies other origins', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://custom-api.bank.vn');
+    saveSession({
+      access_token: 'custom-token-xyz',
+      token_type: 'bearer',
+      expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+    });
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    // Call to configured custom API origin
+    await apiFetch('https://custom-api.bank.vn/api/runs');
+    let calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
+    let headers = new Headers(calledInit.headers);
+    expect(headers.get('Authorization')).toBe('Bearer custom-token-xyz');
+
+    // Call to different external origin with /api/
+    await apiFetch('https://other-domain.com/api/runs');
+    calledInit = fetchSpy.mock.calls[1][1] as RequestInit;
+    headers = new Headers(calledInit.headers);
+    expect(headers.has('Authorization')).toBe(false);
+  });
+
+  it('does NOT attach Authorization header to /api/auth/login even when token exists', async () => {
+    saveSession({
+      access_token: 'existing-token',
+      token_type: 'bearer',
+      expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+    });
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: 'new-token', token_type: 'bearer', expires_at: '2026-10-15T00:00:00Z' }),
+        { status: 200 }
+      )
+    );
+
+    await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: 'u', password: 'p' }),
+    });
+
+    expect(fetchSpy).toHaveBeenCalled();
+    const calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
+    const headers = new Headers(calledInit.headers);
+    expect(headers.has('Authorization')).toBe(false);
+  });
+
+  it('validates isAuthorizedApiTarget correctly', () => {
+    expect(isAuthorizedApiTarget('/api/capabilities')).toBe(true);
+    expect(isAuthorizedApiTarget('/api/runs/123')).toBe(true);
+    expect(isAuthorizedApiTarget('/api/auth/login')).toBe(false);
+    expect(isAuthorizedApiTarget('https://external-service.org/api/data')).toBe(false);
+    expect(isAuthorizedApiTarget('https://evil.com/fake/api/resource')).toBe(false);
   });
 
   it('does not attach Authorization header if no token is stored', async () => {

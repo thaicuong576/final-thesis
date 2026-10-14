@@ -28,9 +28,20 @@ export interface AgentSnapshot {
   /** Run-relative time (ms) the current activity started. */
   sinceMs: number;
   stats: string[];
+  summaryLine: string;
 }
 
 export const PHASES = ['Lập kế hoạch', 'Thu thập số liệu', 'Viết nhận định', 'Kiểm tra số liệu', 'Phản biện', 'Hoàn tất'] as const;
+
+export const QUESTION_TYPES: Record<string, string> = {
+  lookup: 'Tra cứu nhanh',
+  company_profile: 'Hồ sơ doanh nghiệp',
+  ranking: 'Xếp hạng',
+  trend: 'Xu hướng',
+  head_to_head: 'So sánh đối đầu',
+  sector_theme: 'Toàn ngành',
+  relationship: 'Tương quan'
+};
 
 const KIND_PHASE: Partial<Record<TraceStep['kind'], number>> = {
   plan: 0,
@@ -87,6 +98,9 @@ export function deriveStage(
     draftsByRole?: Record<string, string>;
     toolCallsByRole?: Record<string, unknown>;
     verdictsByRole?: Record<string, unknown>;
+    reviewIssues?: Array<unknown>;
+    revisions?: Array<unknown>;
+    planSummary?: { specialistsCalled?: string[] };
   }
 ): StageModel {
   const full = allSteps && allSteps.length > 0 ? allSteps : steps;
@@ -97,6 +111,12 @@ export function deriveStage(
 
   const seen = new Set<StageAgentId>(['orchestrator']);
   for (const id of planned) if (isStageAgent(id)) seen.add(id);
+  if (liveWorkState?.planSummary?.specialistsCalled) {
+    for (const id of liveWorkState.planSummary.specialistsCalled) {
+      const lower = id.toLowerCase();
+      if (isStageAgent(lower)) seen.add(lower);
+    }
+  }
   for (const s of steps) {
     if (isStageAgent(s.actor)) seen.add(s.actor);
     if (isStageAgent(s.recipient)) seen.add(s.recipient);
@@ -115,21 +135,45 @@ export function deriveStage(
       if (isStageAgent(id)) seen.add(id);
     }
   }
+  if (liveWorkState?.verdictsByRole) {
+    for (const id of Object.keys(liveWorkState.verdictsByRole)) {
+      if (isStageAgent(id)) seen.add(id);
+    }
+    if (Object.values(liveWorkState.verdictsByRole).some((v) => Array.isArray(v) && v.length > 0)) {
+      seen.add('verifier');
+    }
+  }
+  if (liveWorkState?.reviewIssues && liveWorkState.reviewIssues.length > 0) {
+    seen.add('critic');
+  }
+  if (liveWorkState?.revisions && liveWorkState.revisions.length > 0) {
+    seen.add('critic');
+  }
   const order: StageAgentId[] = ['orchestrator', 'sector', 'company', 'macro', 'verifier', 'critic'];
   const agents = order.filter((id) => seen.has(id));
 
   const snap = {} as Record<StageAgentId, AgentSnapshot>;
-  for (const id of order) snap[id] = { state: 'idle', activity: 'Chờ giao việc', sinceMs: 0, stats: [] };
-  snap.orchestrator = { state: 'busy', activity: 'Đọc câu hỏi và lập kế hoạch phân tích', sinceMs: 0, stats: [] };
+  for (const id of order) {
+    snap[id] = { state: 'idle', activity: 'Chờ giao việc', sinceMs: 0, stats: [], summaryLine: 'Chưa có dữ liệu' };
+  }
+  snap.orchestrator = {
+    state: 'busy',
+    activity: 'Đọc câu hỏi và lập kế hoạch phân tích',
+    sinceMs: 0,
+    stats: [],
+    summaryLine: 'Đang đọc câu hỏi & lập kế hoạch'
+  };
 
   const facts: Partial<Record<StageAgentId, number>> = {};
   const drafts: Partial<Record<StageAgentId, number>> = {};
+  const droppedByRole: Partial<Record<StageAgentId, number>> = {};
   let checked = 0;
   let matched = 0;
   let issues = 0;
   let rounds = 0;
   let phase = 0;
   let done = false;
+  let totalDropped = 0;
 
   const set = (id: StageAgentId, state: StageAgentState, activity: string, t: number) => {
     snap[id] = { ...snap[id], state, activity, sinceMs: t };
@@ -164,12 +208,31 @@ export function deriveStage(
           set('verifier', 'busy', 'Đối chiếu số liệu trong từng câu', t);
         }
         break;
-      case 'verify':
+      case 'verify': {
         checked += Number(s.detail?.numbers_checked) || 0;
         matched += Number(s.detail?.numbers_matched) || 0;
+        if (Array.isArray(s.detail?.verdicts)) {
+          for (const v of s.detail.verdicts as Array<{ verdict?: string; role?: string }>) {
+            if (v.verdict === 'dropped') {
+              totalDropped += 1;
+              if (v.role && isStageAgent(v.role)) {
+                droppedByRole[v.role] = (droppedByRole[v.role] || 0) + 1;
+              }
+            }
+          }
+        } else if (Array.isArray(s.detail?.dropped)) {
+          const dropArr = s.detail.dropped as Array<{ role?: string }>;
+          totalDropped += dropArr.length;
+          for (const d of dropArr) {
+            if (d.role && isStageAgent(d.role)) {
+              droppedByRole[d.role] = (droppedByRole[d.role] || 0) + 1;
+            }
+          }
+        }
         set('verifier', 'done', readerText(s.summary), t);
         set('orchestrator', 'busy', 'Chờ nhận định và lắp báo cáo', t);
         break;
+      }
       case 'compose':
         set('orchestrator', 'busy', 'Lắp báo cáo, gửi đi phản biện', t);
         break;
@@ -194,6 +257,19 @@ export function deriveStage(
     }
   }
 
+  // Account for live verdicts in dropped counts
+  if (liveWorkState?.verdictsByRole) {
+    for (const [r, list] of Object.entries(liveWorkState.verdictsByRole)) {
+      if (isStageAgent(r) && Array.isArray(list)) {
+        const drops = (list as Array<{ verdict?: string }>).filter((v) => v.verdict === 'dropped').length;
+        if (drops > (droppedByRole[r] || 0)) {
+          droppedByRole[r] = drops;
+        }
+      }
+    }
+  }
+
+  // Stats tags
   if (facts.sector) snap.sector.stats = [`${facts.sector} số liệu`, ...(drafts.sector ? [`${drafts.sector} nhận định`] : [])];
   if (facts.company) snap.company.stats = [`${facts.company} số liệu`, ...(drafts.company ? [`${drafts.company} nhận định`] : [])];
   if (checked) snap.verifier.stats = [`${matched}/${checked} số khớp`];
@@ -206,6 +282,64 @@ export function deriveStage(
     for (const id of planned) {
       if (isStageAgent(id) && !steps.some((s) => s.actor === id || s.recipient === id)) snap[id].state = 'unused';
     }
+  }
+
+  // Real-data generated summary line for each agent card
+  const planDetail = plan?.detail || {};
+  const qTypeStr = planDetail.question_type ? (QUESTION_TYPES[String(planDetail.question_type)] || String(planDetail.question_type)) : '';
+  const entList = Array.isArray(planDetail.entities) ? (planDetail.entities as string[]) : [];
+  const entStr = entList.length > 0 ? entList.join(', ') : '';
+
+  if (plan) {
+    snap.orchestrator.summaryLine = qTypeStr
+      ? `Kế hoạch ${qTypeStr}${entStr ? `: ${entStr}` : ''}`
+      : 'Kế hoạch phân tích';
+  } else if (snap.orchestrator.state === 'busy') {
+    snap.orchestrator.summaryLine = 'Đang lập kế hoạch phân tích';
+  } else {
+    snap.orchestrator.summaryLine = 'Chưa có kế hoạch';
+  }
+
+  // Specialist summary lines
+  const specialistRoles: StageAgentId[] = ['company', 'sector', 'macro'];
+  for (const role of specialistRoles) {
+    const dCount = drafts[role] || 0;
+    const dropCount = droppedByRole[role] || 0;
+    if (dCount > 0) {
+      snap[role].summaryLine = dropCount > 0
+        ? `Viết ${dCount} nhận định, ${dropCount} bị loại`
+        : `Viết ${dCount} nhận định, đều đạt`;
+    } else if (facts[role]) {
+      snap[role].summaryLine = `Đã tính ${facts[role]} số liệu có nguồn`;
+    } else if (snap[role].state === 'busy') {
+      snap[role].summaryLine = 'Đang thu thập số liệu...';
+    } else if (snap[role].state === 'unused') {
+      snap[role].summaryLine = 'Không dùng trong câu hỏi này';
+    } else {
+      snap[role].summaryLine = 'Chưa có dữ liệu';
+    }
+  }
+
+  // Verifier summary line
+  if (checked > 0) {
+    snap.verifier.summaryLine = totalDropped > 0
+      ? `Đã kiểm ${checked} số, ${matched} khớp (${totalDropped} câu bị loại)`
+      : `Đã kiểm ${checked} số, ${matched} khớp (100% đạt)`;
+  } else if (snap.verifier.state === 'busy') {
+    snap.verifier.summaryLine = 'Đang đối chiếu số liệu...';
+  } else {
+    snap.verifier.summaryLine = 'Chưa có dữ liệu';
+  }
+
+  // Critic summary line
+  if (issues > 0 || rounds > 0) {
+    snap.critic.summaryLine = `${rounds || 1} vòng, ${issues} yêu cầu sửa`;
+  } else if (snap.critic.state === 'done') {
+    snap.critic.summaryLine = 'Đã duyệt, lập luận đạt chuẩn';
+  } else if (snap.critic.state === 'busy') {
+    snap.critic.summaryLine = 'Đang rà soát lập luận...';
+  } else {
+    snap.critic.summaryLine = 'Chưa có dữ liệu';
   }
 
   return {
@@ -224,51 +358,92 @@ export function stepEndpoints(step: TraceStep): [StageAgentId, StageAgentId] | n
   return [from, to];
 }
 
+export interface SourcedFact {
+  factId: string;
+  label: string;
+  displayValue: string;
+  sourceNoteNo?: number | null;
+  sourceLocator?: string;
+  source?: string;
+}
+
+export interface SentenceVerdictDetail {
+  sentence: string;
+  verdict: 'kept' | 'dropped';
+  dropReason?: string | null;
+  explanationVi?: string;
+  factIds?: string[];
+  role?: string;
+}
+
+export interface ToolCallDetail {
+  tool: string;
+  label?: string;
+  arguments?: {
+    entities?: string[];
+    metrics?: string[];
+    periods?: string[];
+    [key: string]: unknown;
+  };
+  resultCount?: number;
+  durationMs?: number;
+  role?: string;
+  status: 'running' | 'completed';
+  facts?: SourcedFact[];
+}
+
+export interface ReviewIssueDetail {
+  round?: number;
+  issueType?: string;
+  severity?: string;
+  targetSentence?: string;
+  requiredAction?: string;
+  description?: string;
+}
+
+export interface SentenceRevisionDetail {
+  round?: number;
+  before?: string;
+  after?: string;
+  verified?: boolean;
+}
+
+export interface PlanSummaryDetail {
+  questionType?: string;
+  entities?: string[];
+  metrics?: string[];
+  periods?: string[];
+  specialistsCalled?: string[];
+  tools?: string[];
+  planSummary?: string;
+  rationale?: string;
+  assignments?: Array<{
+    agent: StageAgentId;
+    agentName: string;
+    task: string;
+    tools?: string[];
+  }>;
+}
+
+export interface VerifierStatsDetail {
+  sentencesChecked: number;
+  numbersChecked: number;
+  numbersMatched: number;
+  droppedCount: number;
+}
+
 export interface AgentWorkData {
   agentId: StageAgentId;
   draftText: string;
   isTyping: boolean;
-  toolCalls: Array<{
-    tool: string;
-    arguments?: {
-      entities?: string[];
-      metrics?: string[];
-      periods?: string[];
-      [key: string]: unknown;
-    };
-    resultCount?: number;
-    durationMs?: number;
-    role?: string;
-    status: 'running' | 'completed';
-  }>;
-  verdicts: Array<{
-    sentence: string;
-    verdict: 'kept' | 'dropped';
-    dropReason?: string | null;
-    explanationVi?: string;
-    factIds?: string[];
-    role?: string;
-  }>;
-  issues: Array<{
-    issueType?: string;
-    targetSentence?: string;
-    requiredAction?: string;
-    description?: string;
-  }>;
-  revisions: Array<{
-    before?: string;
-    after?: string;
-    verified?: boolean;
-  }>;
-  planSummary?: {
-    questionType?: string;
-    entities?: string[];
-    metrics?: string[];
-    periods?: string[];
-    specialistsCalled?: string[];
-    tools?: string[];
-    planSummary?: string;
-  };
+  toolCalls: ToolCallDetail[];
+  verdicts: SentenceVerdictDetail[];
+  issues: ReviewIssueDetail[];
+  revisions: SentenceRevisionDetail[];
+  planSummary?: PlanSummaryDetail;
+  facts: SourcedFact[];
+  verifierStats: VerifierStatsDetail;
+  criticAccepted?: string;
 }
 
 export function deriveAgentWork(
@@ -281,7 +456,7 @@ export function deriveAgentWork(
     verdictsByRole: Record<string, Array<{ sentence: string; verdict: 'kept' | 'dropped'; dropReason?: string | null; explanationVi?: string; factIds?: string[]; role?: string }>>;
     reviewIssues: Array<{ issueType?: string; targetSentence?: string; requiredAction?: string; description?: string }>;
     revisions: Array<{ before?: string; after?: string; verified?: boolean }>;
-    planSummary?: { questionType?: string; entities?: string[]; metrics?: string[]; periods?: string[]; specialistsCalled?: string[]; tools?: string[]; planSummary?: string };
+    planSummary?: { questionType?: string; entities?: string[]; metrics?: string[]; periods?: string[]; specialistsCalled?: string[]; tools?: string[]; planSummary?: string; rationale?: string };
   }
 ): AgentWorkData {
   // 1. Draft text
@@ -308,11 +483,40 @@ export function deriveAgentWork(
   // 2. Typing indicator
   const isTyping = liveWorkState?.activeWriterRole === agentId;
 
-  // 3. Tool calls
-  const toolCalls = [...(liveWorkState?.toolCallsByRole[agentId] || [])];
-  if (toolCalls.length === 0) {
-    for (const s of steps) {
-      if (s.actor === agentId && s.kind === 'tool_result') {
+  // 3. Tool calls and extracted facts
+  const toolCalls: ToolCallDetail[] = [];
+  const extractedFacts: SourcedFact[] = [];
+
+  const rawLiveTools = liveWorkState?.toolCallsByRole[agentId] || [];
+  for (const t of rawLiveTools) {
+    toolCalls.push({
+      tool: t.tool,
+      arguments: t.arguments as ToolCallDetail['arguments'],
+      resultCount: t.resultCount,
+      durationMs: t.durationMs,
+      role: t.role || agentId,
+      status: t.status
+    });
+  }
+
+  for (const s of steps) {
+    if (s.actor === agentId && s.kind === 'tool_result') {
+      const stepFacts: SourcedFact[] = [];
+      if (Array.isArray(s.detail?.facts)) {
+        for (const f of s.detail.facts as Array<Record<string, unknown>>) {
+          const sf: SourcedFact = {
+            factId: String(f.fact_id || ''),
+            label: String(f.label || ''),
+            displayValue: String(f.display_value || f.value || ''),
+            sourceNoteNo: typeof f.source_note_no === 'number' ? f.source_note_no : null,
+            sourceLocator: (f.source_locator || f.source) as string | undefined
+          };
+          stepFacts.push(sf);
+          extractedFacts.push(sf);
+        }
+      }
+
+      if (toolCalls.length === 0 || !rawLiveTools.length) {
         if (Array.isArray(s.detail?.tools)) {
           for (const t of s.detail.tools as Array<{ tool?: string; arguments?: Record<string, unknown>; result_count?: number; duration_ms?: number }>) {
             toolCalls.push({
@@ -321,12 +525,14 @@ export function deriveAgentWork(
               resultCount: t.result_count,
               durationMs: t.duration_ms,
               status: 'completed',
-              role: agentId
+              role: agentId,
+              facts: stepFacts
             });
           }
         } else if (s.detail?.tool) {
           toolCalls.push({
             tool: String(s.detail.tool),
+            label: s.detail.label as string | undefined,
             arguments: {
               label: s.detail.label as string | undefined
             },
@@ -335,119 +541,204 @@ export function deriveAgentWork(
               : Array.isArray(s.detail.datasets)
                 ? s.detail.datasets.length
                 : undefined,
+            durationMs: typeof s.detail.duration_ms === 'number' ? s.detail.duration_ms : undefined,
             status: 'completed',
-            role: agentId
+            role: agentId,
+            facts: stepFacts
           });
         }
       }
     }
   }
 
-  // 4. Sentence verdicts
-  let verdicts = [...(liveWorkState?.verdictsByRole[agentId] || [])];
+  // 4. Sentence verdicts & verifier stats
+  let verdicts: SentenceVerdictDetail[] = [...(liveWorkState?.verdictsByRole[agentId] || [])];
   if (verdicts.length === 0 && agentId === 'verifier') {
     verdicts = [...(liveWorkState?.verdictsByRole.verifier || [])];
   }
-  if (verdicts.length === 0) {
-    if (agentId === 'verifier') {
-      for (const s of steps) {
-        if (s.kind === 'verify') {
-          if (Array.isArray(s.detail?.verdicts)) {
-            verdicts.push(
-              ...(s.detail.verdicts as Array<{
-                sentence: string;
-                verdict: 'kept' | 'dropped';
-                dropReason?: string | null;
-                explanationVi?: string;
-                factIds?: string[];
-              }>)
-            );
-          } else if (Number(s.detail?.numbers_checked) > 0) {
-            verdicts.push({
-              sentence: readerText(s.summary),
-              verdict: 'kept',
-              explanationVi: `Đã đối chiếu ${s.detail.numbers_matched}/${s.detail.numbers_checked} số liệu khớp dữ liệu gốc`,
-              factIds: []
-            });
+
+  let numbersChecked = 0;
+  let numbersMatched = 0;
+  let sentencesChecked = 0;
+  let droppedCount = 0;
+
+  for (const s of steps) {
+    if (s.kind === 'verify') {
+      numbersChecked += Number(s.detail?.numbers_checked) || 0;
+      numbersMatched += Number(s.detail?.numbers_matched) || 0;
+      sentencesChecked += Number(s.detail?.sentences_checked) || 0;
+
+      if (Array.isArray(s.detail?.verdicts)) {
+        for (const v of s.detail.verdicts as Array<{ sentence: string; verdict: 'kept' | 'dropped'; dropReason?: string | null; explanationVi?: string; factIds?: string[]; role?: string }>) {
+          if (v.verdict === 'dropped') droppedCount += 1;
+          if (agentId === 'verifier' || v.role === agentId) {
+            if (!verdicts.some((existing) => existing.sentence === v.sentence)) {
+              verdicts.push(v);
+            }
           }
         }
       }
-    } else {
-      // Check if any verify step has verdicts for this agent's sentences
-      const agentDraft = steps.find((s) => s.actor === agentId && s.kind === 'draft');
-      if (Array.isArray(agentDraft?.detail?.sentences)) {
-        for (const sent of agentDraft.detail.sentences as Array<{ text: string; fact_ids?: string[] }>) {
-          verdicts.push({
-            sentence: sent.text,
-            verdict: sent.fact_ids && sent.fact_ids.length > 0 ? 'kept' : 'dropped',
-            explanationVi:
-              sent.fact_ids && sent.fact_ids.length > 0
-                ? 'Đã đối chiếu dữ liệu gốc'
-                : 'Chưa đủ số liệu kiểm chứng',
-            factIds: sent.fact_ids || []
-          });
+
+      if (Array.isArray(s.detail?.dropped)) {
+        for (const d of s.detail.dropped as Array<{ sentence?: string; text?: string; reason?: string; drop_reason?: string; explanation_vi?: string; role?: string }>) {
+          droppedCount += 1;
+          const sentText = d.sentence || d.text || '';
+          if (agentId === 'verifier' || d.role === agentId) {
+            if (sentText && !verdicts.some((existing) => existing.sentence === sentText)) {
+              verdicts.push({
+                sentence: sentText,
+                verdict: 'dropped',
+                dropReason: d.drop_reason || d.reason,
+                explanationVi: d.explanation_vi || 'Số liệu không khớp dữ liệu gốc',
+                role: d.role
+              });
+            }
+          }
         }
+      }
+    }
+  }
+
+  // If specialist still has no verdicts, reconstruct from draft sentences
+  if (verdicts.length === 0 && (agentId === 'company' || agentId === 'sector' || agentId === 'macro')) {
+    const draftStep = steps.find((s) => s.actor === agentId && s.kind === 'draft');
+    if (Array.isArray(draftStep?.detail?.sentences)) {
+      for (const sent of draftStep.detail.sentences as Array<{ text: string; fact_ids?: string[] }>) {
+        const hasFacts = sent.fact_ids && sent.fact_ids.length > 0;
+        verdicts.push({
+          sentence: sent.text,
+          verdict: hasFacts ? 'kept' : 'dropped',
+          explanationVi: hasFacts ? 'Đã đối chiếu dữ liệu gốc' : 'Chưa đủ số liệu kiểm chứng',
+          factIds: sent.fact_ids || [],
+          role: agentId
+        });
+      }
+    }
+  }
+
+  // If verifier has no verdicts, construct from summary
+  if (verdicts.length === 0 && agentId === 'verifier') {
+    for (const s of steps) {
+      if (s.kind === 'verify' && Number(s.detail?.numbers_checked) > 0) {
+        verdicts.push({
+          sentence: readerText(s.summary),
+          verdict: 'kept',
+          explanationVi: `Đã đối chiếu ${s.detail?.numbers_matched}/${s.detail?.numbers_checked} số liệu khớp dữ liệu gốc`,
+          factIds: []
+        });
       }
     }
   }
 
   // 5. Issues (criticism)
-  const issues = [...(liveWorkState?.reviewIssues || [])];
-  if (issues.length === 0) {
-    for (const s of steps) {
-      if (s.kind === 'critique_issue') {
-        if (Array.isArray(s.detail?.issues)) {
-          issues.push(...(s.detail.issues as Array<{ issueType?: string; targetSentence?: string; requiredAction?: string; description?: string }>));
-        } else {
+  const issues: ReviewIssueDetail[] = [];
+  const rawIssues = liveWorkState?.reviewIssues || [];
+  for (const iss of rawIssues) {
+    issues.push({
+      issueType: iss.issueType,
+      targetSentence: iss.targetSentence,
+      requiredAction: iss.requiredAction,
+      description: iss.description
+    });
+  }
+
+  for (const s of steps) {
+    if (s.kind === 'critique_issue') {
+      const round = typeof s.detail?.round === 'number' ? s.detail.round : 1;
+      if (Array.isArray(s.detail?.issues)) {
+        for (const iss of s.detail.issues as Array<{ issue_type?: string; issueType?: string; severity?: string; target_sentence?: string; targetSentence?: string; required_action?: string; requiredAction?: string; description?: string }>) {
           issues.push({
-            issueType: 'critique',
-            description: readerText(s.summary),
-            requiredAction: 'Hiệu chỉnh câu nhận định theo yêu cầu'
+            round,
+            issueType: iss.issueType || iss.issue_type,
+            severity: iss.severity,
+            targetSentence: iss.targetSentence || iss.target_sentence,
+            requiredAction: iss.requiredAction || iss.required_action,
+            description: iss.description || readerText(s.summary)
           });
         }
+      } else {
+        issues.push({
+          round,
+          issueType: (s.detail?.issue_type as string) || 'critique',
+          severity: (s.detail?.severity as string) || 'MAJOR',
+          targetSentence: (s.detail?.target_sentence as string) || undefined,
+          requiredAction: (s.detail?.required_action as string) || 'Hiệu chỉnh câu nhận định theo yêu cầu',
+          description: (s.detail?.description as string) || readerText(s.summary)
+        });
       }
     }
   }
 
   // 6. Revisions
-  const revisions = [...(liveWorkState?.revisions || [])];
-  if (revisions.length === 0) {
-    for (const s of steps) {
-      if (s.kind === 'revision') {
-        if (Array.isArray(s.detail?.revisions)) {
-          revisions.push(...(s.detail.revisions as Array<{ before?: string; after?: string; verified?: boolean }>));
-        } else if (s.detail?.before && s.detail?.after) {
+  const revisions: SentenceRevisionDetail[] = [];
+  const rawRevs = liveWorkState?.revisions || [];
+  for (const r of rawRevs) {
+    revisions.push({
+      before: r.before,
+      after: r.after,
+      verified: r.verified
+    });
+  }
+
+  for (const s of steps) {
+    if (s.kind === 'revision') {
+      const round = typeof s.detail?.round === 'number' ? s.detail.round : 1;
+      if (Array.isArray(s.detail?.revisions)) {
+        for (const rev of s.detail.revisions as Array<{ before?: string; after?: string; verified?: boolean }>) {
           revisions.push({
-            before: String(s.detail.before),
-            after: String(s.detail.after),
-            verified: true
+            round,
+            before: rev.before,
+            after: rev.after,
+            verified: rev.verified ?? true
           });
         }
+      } else if (s.detail?.before && s.detail?.after) {
+        revisions.push({
+          round,
+          before: String(s.detail.before),
+          after: String(s.detail.after),
+          verified: true
+        });
       }
     }
   }
 
-  // 7. Plan summary (especially for orchestrator)
-  let planSummary = liveWorkState?.planSummary;
-  if (!planSummary) {
-    const planStep = steps.find((s) => s.kind === 'plan');
-    if (planStep) {
-      const planDetail = planStep.detail || {};
-      const plannedAgents = (
-        (planDetail.agents as Array<{ agent: string; decision: string }>) || []
-      )
-        .filter((a) => a.decision === 'run')
-        .map((a) => a.agent);
+  // 7. Critic acceptance
+  const acceptStep = steps.find((s) => s.kind === 'accept');
+  const criticAccepted = acceptStep ? readerText(acceptStep.summary) : undefined;
 
-      planSummary = {
-        questionType: (planDetail.question_type as string) || undefined,
-        entities: (planDetail.entities as string[]) || undefined,
-        metrics: ((planDetail.metric_ids || planDetail.metrics) as string[]) || undefined,
-        periods: (planDetail.periods as string[]) || undefined,
-        specialistsCalled: plannedAgents.length > 0 ? plannedAgents : undefined,
-        planSummary: readerText(planStep.summary)
-      };
+  // 8. Plan summary and assignments (for orchestrator)
+  let planSummary: PlanSummaryDetail | undefined = liveWorkState?.planSummary;
+  const planStep = steps.find((s) => s.kind === 'plan');
+  if (planStep) {
+    const planDetail = planStep.detail || {};
+    const plannedAgents = ((planDetail.agents as Array<{ agent: string; decision: string }>) || [])
+      .filter((a) => a.decision === 'run')
+      .map((a) => a.agent);
+
+    const assignments: PlanSummaryDetail['assignments'] = [];
+    for (const s of steps) {
+      if (s.actor === 'orchestrator' && s.kind === 'assign' && isStageAgent(s.recipient)) {
+        assignments.push({
+          agent: s.recipient,
+          agentName: STAGE_AGENTS[s.recipient].name,
+          task: readerText(String(s.detail?.task || s.summary.replace(/^Giao việc:\s*/i, ''))),
+          tools: Array.isArray(s.detail?.tools) ? (s.detail.tools as string[]) : undefined
+        });
+      }
     }
+
+    planSummary = {
+      questionType: (planDetail.question_type as string) || planSummary?.questionType,
+      entities: (planDetail.entities as string[]) || planSummary?.entities,
+      metrics: ((planDetail.metric_ids || planDetail.metrics) as string[]) || planSummary?.metrics,
+      periods: (planDetail.periods as string[]) || planSummary?.periods,
+      specialistsCalled: plannedAgents.length > 0 ? plannedAgents : planSummary?.specialistsCalled,
+      tools: (planDetail.tools as string[]) || planSummary?.tools,
+      planSummary: readerText(planStep.summary) || planSummary?.planSummary,
+      rationale: (planDetail.rationale_vi || planDetail.rationale) as string | undefined || planSummary?.rationale,
+      assignments: assignments.length > 0 ? assignments : undefined
+    };
   }
 
   return {
@@ -458,6 +749,14 @@ export function deriveAgentWork(
     verdicts,
     issues,
     revisions,
-    planSummary
+    planSummary,
+    facts: extractedFacts,
+    verifierStats: {
+      sentencesChecked: sentencesChecked || verdicts.length,
+      numbersChecked,
+      numbersMatched,
+      droppedCount: droppedCount || verdicts.filter((v) => v.verdict === 'dropped').length
+    },
+    criticAccepted
   };
 }

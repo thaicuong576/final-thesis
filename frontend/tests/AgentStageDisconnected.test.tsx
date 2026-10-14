@@ -28,7 +28,7 @@ describe('AgentStage disconnected state (UPFIX-1 Bug 3)', () => {
     },
   ];
 
-  it('shows "Các tác tử đang làm việc" and increments timer while live and connected', () => {
+  it('shows "Các agent đang làm việc" and increments timer while live and connected', () => {
     render(
       <AgentStage
         steps={mockSteps}
@@ -38,7 +38,7 @@ describe('AgentStage disconnected state (UPFIX-1 Bug 3)', () => {
       />
     );
 
-    expect(screen.getByText('Các tác tử đang làm việc')).toBeInTheDocument();
+    expect(screen.getByText('Các agent đang làm việc')).toBeInTheDocument();
     expect(screen.queryByText('Mất kết nối')).not.toBeInTheDocument();
 
     // Advance 200ms so initial step is revealed by step animation
@@ -54,7 +54,7 @@ describe('AgentStage disconnected state (UPFIX-1 Bug 3)', () => {
       vi.advanceTimersByTime(3000);
     });
 
-    expect(screen.getByText('Các tác tử đang làm việc')).toBeInTheDocument();
+    expect(screen.getByText('Các agent đang làm việc')).toBeInTheDocument();
   });
 
   it('stops timer and replaces header status text with "Mất kết nối" when disconnected', () => {
@@ -88,7 +88,7 @@ describe('AgentStage disconnected state (UPFIX-1 Bug 3)', () => {
 
     // Header status text MUST be "Mất kết nối"
     expect(screen.getByText('Mất kết nối')).toBeInTheDocument();
-    expect(screen.queryByText('Các tác tử đang làm việc')).not.toBeInTheDocument();
+    expect(screen.queryByText('Các agent đang làm việc')).not.toBeInTheDocument();
 
     // Footer shows disconnect notification and retry button
     expect(screen.getByText('Mất kết nối. Thử lại')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('AgentStage disconnected state (UPFIX-1 Bug 3)', () => {
     );
 
     // Normal state resumes
-    expect(screen.getByText('Các tác tử đang làm việc')).toBeInTheDocument();
+    expect(screen.getByText('Các agent đang làm việc')).toBeInTheDocument();
     expect(screen.queryByText('Mất kết nối')).not.toBeInTheDocument();
   });
 });

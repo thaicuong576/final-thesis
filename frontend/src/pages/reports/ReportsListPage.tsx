@@ -109,7 +109,7 @@ export function ReportsListPage() {
             <h1 className="font-display m-0 text-[34px] font-bold leading-tight text-ink">Thư viện báo cáo</h1>
             <p className="mt-2 mb-0 max-w-[60ch] text-[15px] leading-relaxed text-ink-secondary">
               Mọi lượt phân tích đều được lưu lại, kể cả lượt bị từ chối. Mở lại một báo cáo để xem số liệu, nguồn và quá
-              trình các tác tử đã làm.
+              trình các agent đã làm.
             </p>
           </div>
           <Link

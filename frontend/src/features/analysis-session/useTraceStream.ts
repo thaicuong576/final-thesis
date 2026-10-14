@@ -68,6 +68,7 @@ export interface LiveWorkState {
     specialistsCalled?: string[];
     tools?: string[];
     planSummary?: string;
+    rationale?: string;
   };
 }
 
@@ -462,13 +463,14 @@ export function useTraceStream({
       liveWorkRef.current = {
         ...liveWorkRef.current,
         planSummary: {
-          questionType: payload.questionType as string | undefined,
+          questionType: (payload.questionType || payload.question_type) as string | undefined,
           entities: payload.entities as string[] | undefined,
-          metrics: payload.metrics as string[] | undefined,
+          metrics: (payload.metrics || payload.metric_ids) as string[] | undefined,
           periods: payload.periods as string[] | undefined,
-          specialistsCalled: payload.specialistsCalled as string[] | undefined,
+          specialistsCalled: (payload.specialistsCalled || payload.specialists_called) as string[] | undefined,
           tools: payload.tools as string[] | undefined,
-          planSummary: payload.planSummary as string | undefined
+          planSummary: (payload.planSummary || payload.plan_summary || payload.message) as string | undefined,
+          rationale: (payload.rationale_vi || payload.rationale) as string | undefined
         }
       };
       updated = true;

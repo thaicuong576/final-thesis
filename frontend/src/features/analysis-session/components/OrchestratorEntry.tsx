@@ -28,7 +28,7 @@ export function OrchestratorEntry({ entry }: OrchestratorEntryProps) {
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-ink">{entry.senderLabel}</span>
-          <span className="text-[11px] text-muted">Tác tử điều phối quy trình</span>
+          <span className="text-[11px] text-muted">Agent điều phối quy trình</span>
           {isBlocked && (
             <Badge
               variant="outline"

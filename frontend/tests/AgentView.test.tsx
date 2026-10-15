@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStage } from '../src/features/analysis-session/components/AgentStage';
 import type { TraceStep } from '../src/features/analysis-session/model/types';
 
-describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => {
+describe('AGENT-VIEW-1: Per-Agent Views in Unified Reasoning Timeline (FLOW-1)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -98,14 +98,12 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         draft_text: 'Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.\n\nTỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.',
         sentences: [
           {
-            sentence_id: 'sent-1',
-            text: 'Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.',
-            fact_ids: ['fact:value:BID:2026_Q2:bank.npl_g35']
+            sentence_id: 's-1',
+            text: 'Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.'
           },
           {
-            sentence_id: 'sent-2',
-            text: 'Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.',
-            fact_ids: []
+            sentence_id: 's-2',
+            text: 'Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.'
           }
         ]
       }
@@ -113,69 +111,66 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
     {
       step_id: 'step-verify',
       seq: 6,
-      t_ms: 1200,
+      t_ms: 1300,
       actor: 'verifier',
       recipient: 'orchestrator',
       kind: 'verify',
-      summary: '1/2 số khớp dữ liệu gốc; 1 câu bị loại',
+      summary: 'Đã kiểm tra 2 số: 1 số khớp nguồn, loại 1 câu',
       detail: {
-        sentences_checked: 2,
         numbers_checked: 2,
         numbers_matched: 1,
+        sentences_checked: 2,
         verdicts: [
           {
             sentence: 'Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.',
             verdict: 'kept',
-            explanationVi: 'Đã đối chiếu dữ liệu gốc',
-            factIds: ['fact:value:BID:2026_Q2:bank.npl_g35'],
-            role: 'company'
+            source_note_no: 10,
+            source_locator: 'BCTC Q2/2026 trang 15'
           },
           {
             sentence: 'Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.',
             verdict: 'dropped',
-            dropReason: 'unsupported_claim',
-            explanationVi: 'Số liệu 300% không tìm thấy trong BCTC',
-            factIds: [],
-            role: 'company'
+            drop_reason: 'unsupported_claim',
+            explanation_vi: 'Số liệu 300% không tìm thấy trong BCTC'
           }
         ]
       }
     },
     {
-      step_id: 'step-critique',
+      step_id: 'step-critique-issue',
       seq: 7,
-      t_ms: 1500,
+      t_ms: 1600,
       actor: 'critic',
       recipient: 'company',
       kind: 'critique_issue',
-      summary: 'Yêu cầu sửa: Bỏ câu nhận định số liệu không có căn cứ',
+      summary: 'Yêu cầu sửa 1 câu bị loại do sai số liệu',
       detail: {
         round: 1,
-        issue_type: 'unsupported_claim',
+        issue_type: 'REMOVE_CLAIM',
         severity: 'MAJOR',
         target_sentence: 'Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.',
-        required_action: 'REMOVE_CLAIM',
-        description: 'Bỏ nhận định tăng đột biến 300% do vi phạm kiểm định số liệu.'
+        required_action: 'Bỏ nhận định tăng đột biến 300% hoặc thay bằng số 75,9% từ fact đã trích xuất.'
       }
     },
     {
-      step_id: 'step-revision',
+      step_id: 'step-revision-company',
       seq: 8,
-      t_ms: 1800,
+      t_ms: 1900,
       actor: 'company',
       recipient: 'critic',
       kind: 'revision',
-      summary: 'Hiệu chỉnh: Loại bỏ câu không có căn cứ',
+      summary: 'Cập nhật lại câu nhận định theo yêu cầu phản biện',
       detail: {
         round: 1,
         before: 'Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.',
-        after: 'Tỷ lệ bao phủ nợ xấu thực tế đạt 75,9% trong quý 2/2026.'
+        after: 'Tỷ lệ bao phủ nợ xấu thực tế đạt 75,9% trong quý 2/2026.',
+        verified: true
       }
     },
     {
-      step_id: 'step-accept',
+      step_id: 'step-accept-critic',
       seq: 9,
-      t_ms: 2000,
+      t_ms: 2100,
       actor: 'critic',
       recipient: 'orchestrator',
       kind: 'accept',
@@ -196,8 +191,8 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
     }
   ];
 
-  describe('Requirement 1: Khối chi tiết theo agent (LiveWorkPane)', () => {
-    it('renders Orchestrator details: question type, plan, rationale, assignments, and summary', async () => {
+  describe('Requirement 1: Dòng suy luận thống nhất cho tất cả agent (FLOW-1)', () => {
+    it('renders Orchestrator details: question type, plan, rationale, and collapsible detail', async () => {
       const user = userEvent.setup();
       render(
         <AgentStage
@@ -207,30 +202,18 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Select Orchestrator card
-      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
-      await user.click(orchCard);
+      // Question type badge
+      expect(screen.getAllByText('Hồ sơ doanh nghiệp').length).toBeGreaterThanOrEqual(1);
 
-      // Verify pane region
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Điều phối viên' });
-      expect(pane).toBeInTheDocument();
+      // Plan entry exists in timeline
+      const planBtn = screen.getByRole('button', { name: /Xem kế hoạch/i });
+      expect(planBtn).toBeInTheDocument();
 
-      // Dạng câu hỏi & Kế hoạch
-      expect(within(pane).getAllByText('Hồ sơ doanh nghiệp').length).toBeGreaterThanOrEqual(1);
-      expect(within(pane).getByText('BID')).toBeInTheDocument();
-      expect(within(pane).getByText('2026_Q1, 2026_Q2')).toBeInTheDocument();
-      expect(within(pane).getByText('bank.npl_g35')).toBeInTheDocument();
-      expect(within(pane).getByText('bank.llr_coverage')).toBeInTheDocument();
-
-      // Lý do chọn kế hoạch (Rationale)
-      expect(
-        within(pane).getByText(/Kế hoạch phân tích dạng hồ sơ doanh nghiệp cho BID dựa trên dữ liệu BCTC/i)
-      ).toBeInTheDocument();
-
-      // Nhiệm vụ & công cụ đã giao
-      expect(within(pane).getByText('Nhiệm vụ & Công cụ đã giao')).toBeInTheDocument();
-      expect(within(pane).getByText('Phân tích số liệu và diễn biến của BID')).toBeInTheDocument();
-      expect(within(pane).getByText('Rà soát tính chặt chẽ của nhận định')).toBeInTheDocument();
+      // Open collapsible plan detail
+      await user.click(planBtn);
+      expect(screen.getByText('BID')).toBeInTheDocument();
+      expect(screen.getByText('2026_Q1, 2026_Q2')).toBeInTheDocument();
+      expect(screen.getByText('bank.npl_g35, bank.llr_coverage')).toBeInTheDocument();
     });
 
     it('renders Specialist details: tools run, sourced facts, draft sentences with verdicts and reasons', async () => {
@@ -243,29 +226,26 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Select Company specialist card
-      const companyCard = screen.getByRole('region', { name: 'Company' });
-      await user.click(companyCard);
+      // Data extraction prose
+      expect(screen.getByText(/Đã lấy 2 số liệu có nguồn từ phép phân tích diễn biến chuỗi thời gian/)).toBeInTheDocument();
 
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' });
-      expect(pane).toBeInTheDocument();
+      // Facts collapsible
+      const factsBtn = screen.getByRole('button', { name: /Xem số liệu \(2\)/i });
+      expect(factsBtn).toBeInTheDocument();
+      await user.click(factsBtn);
 
-      // Tool calls & facts
-      expect(within(pane).getByText('Truy vấn dữ liệu (1)')).toBeInTheDocument();
-      expect(within(pane).getByText('trend')).toBeInTheDocument();
-      expect(within(pane).getByText('45ms')).toBeInTheDocument();
-      expect(within(pane).getByText(/Tỷ lệ nợ xấu của BID trong quý 2\/2026/)).toBeInTheDocument();
-      expect(within(pane).getByText('1,83%')).toBeInTheDocument();
-      expect(within(pane).getByText('Ghi chú 10')).toBeInTheDocument();
+      expect(screen.getByText(/Tỷ lệ nợ xấu của BID trong quý 2\/2026/)).toBeInTheDocument();
+      expect(screen.getByText('1,83%')).toBeInTheDocument();
+      expect(screen.getByText('75,9%')).toBeInTheDocument();
 
       // Sentence verdicts: kept and dropped with explanation
-      expect(within(pane).getByText('Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.')).toBeInTheDocument();
-      expect(within(pane).getByText('Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.')).toBeInTheDocument();
-      expect(within(pane).getByText(/Lý do: Số liệu 300% không tìm thấy trong BCTC/)).toBeInTheDocument();
+      expect(screen.getByText('Tỷ lệ nợ xấu BID ở mức 1,83% trong quý 2/2026.')).toBeInTheDocument();
+      expect(screen.getByText(/khớp dữ kiện/)).toBeInTheDocument();
+      expect(screen.getByText('Tỷ lệ bao phủ nợ xấu tăng đột biến lên 300%.')).toBeInTheDocument();
+      expect(screen.getByText(/bị loại: Số liệu 300% không tìm thấy trong BCTC/)).toBeInTheDocument();
     });
 
-    it('renders Verifier details: checked stats, dropped sentences with reasons, and kept sentences', async () => {
-      const user = userEvent.setup();
+    it('renders Verifier details: verification step with numbers checked and matched', () => {
       render(
         <AgentStage
           steps={sampleCompleteSteps}
@@ -274,24 +254,10 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Select Verifier card
-      const verifierCard = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
-      await user.click(verifierCard);
-
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Kiểm tra số liệu' });
-      expect(pane).toBeInTheDocument();
-
-      // Verification stats
-      expect(within(pane).getByText('Tổng hợp kiểm định số liệu')).toBeInTheDocument();
-      expect(within(pane).getByText('1/2')).toBeInTheDocument(); // 1/2 số khớp
-
-      // Dropped sentences section with reason
-      expect(within(pane).getByText('Các câu bị loại (1)')).toBeInTheDocument();
-      expect(within(pane).getByText(/Lý do loại: Số liệu 300% không tìm thấy trong BCTC/)).toBeInTheDocument();
+      expect(screen.getByText(/Đối chiếu dữ liệu gốc: 1\/2 số liệu khớp/)).toBeInTheDocument();
     });
 
-    it('renders Critic details: rounds, issues with severity and required action, and revisions', async () => {
-      const user = userEvent.setup();
+    it('renders Critic details: rounds, issues, and revisions', () => {
       render(
         <AgentStage
           steps={sampleCompleteSteps}
@@ -300,30 +266,15 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Select Critic card
-      const criticCard = screen.getByRole('region', { name: 'Phản biện' });
-      await user.click(criticCard);
+      // Critique issue
+      expect(screen.getByText(/Mình yêu cầu sửa \(vòng 1\)/)).toBeInTheDocument();
 
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Phản biện' });
-      expect(pane).toBeInTheDocument();
-
-      // Review progress & acceptance
-      expect(within(pane).getByText(/Chấp nhận bản hiệu chỉnh: Lập luận chặt chẽ/)).toBeInTheDocument();
-
-      // Issues section
-      expect(within(pane).getByText('Vấn đề & Yêu cầu sửa (1)')).toBeInTheDocument();
-      expect(within(pane).getByText('REMOVE_CLAIM')).toBeInTheDocument();
-      expect(within(pane).getByText('MAJOR')).toBeInTheDocument();
-      expect(within(pane).getByText(/Bỏ nhận định tăng đột biến 300%/)).toBeInTheDocument();
-
-      // Revisions section
-      expect(within(pane).getByText('Kết quả sau sửa (1)')).toBeInTheDocument();
-      expect(within(pane).getByText('Tỷ lệ bao phủ nợ xấu thực tế đạt 75,9% trong quý 2/2026.')).toBeInTheDocument();
-      expect(within(pane).getByText('Đã kiểm định lại')).toBeInTheDocument();
+      // Revision
+      expect(screen.getByText(/Đã sửa theo phản biện \(vòng 1\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Tỷ lệ bao phủ nợ xấu thực tế đạt 75,9% trong quý 2\/2026/)).toBeInTheDocument();
     });
 
-    it('renders clean fallback states without raw model thoughts when agent has no data', async () => {
-      const user = userEvent.setup();
+    it('renders clean fallback states without raw model thoughts when agent has minimal data', () => {
       const emptySteps: TraceStep[] = [
         {
           step_id: 'step-1',
@@ -345,18 +296,14 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
-      await user.click(orchCard);
-
-      // Does not throw, renders honest fallbacks
-      expect(screen.getByText('Chưa có kế hoạch phân tích.')).toBeInTheDocument();
-      expect(screen.getByText('Chưa có thông tin lý do chọn kế hoạch.')).toBeInTheDocument();
-      expect(screen.getByText('Chưa phân công công cụ.')).toBeInTheDocument();
+      // Does not throw, renders timeline cleanly
+      expect(screen.getByRole('log')).toBeInTheDocument();
+      expect(screen.getAllByText('Điều phối viên').length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  describe('Requirement 2: Thẻ agent ở hàng trên có dòng tóm tắt ngắn do dữ liệu thật tạo ra', () => {
-    it('generates accurate summaryLine for each card based on real trace data', () => {
+  describe('Requirement 2: Compact horizontal agent chips (FLOW-1)', () => {
+    it('generates agent chips with accurate countLabel based on real trace data', () => {
       render(
         <AgentStage
           steps={sampleCompleteSteps}
@@ -365,17 +312,17 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Company card: 2 sentences drafted, 1 dropped -> "Viết 2 nhận định, 1 bị loại"
-      expect(screen.getByText('Viết 2 nhận định, 1 bị loại')).toBeInTheDocument();
+      // Company chip shows (2 nhận định) derived from sentence count
+      const companyChip = screen.getByRole('region', { name: 'Company' });
+      expect(within(companyChip).getByText('(2 nhận định)')).toBeInTheDocument();
 
-      // Orchestrator card: "Kế hoạch Hồ sơ doanh nghiệp: BID"
-      expect(screen.getByText('Kế hoạch Hồ sơ doanh nghiệp: BID')).toBeInTheDocument();
+      // Verifier chip shows (2 số liệu)
+      const verifierChip = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
+      expect(within(verifierChip).getByText('(2 số liệu)')).toBeInTheDocument();
 
-      // Verifier card: "Đã kiểm 2 số, 1 khớp (1 câu bị loại)"
-      expect(screen.getByText('Đã kiểm 2 số, 1 khớp (1 câu bị loại)')).toBeInTheDocument();
-
-      // Critic card: "1 vòng, 1 yêu cầu sửa"
-      expect(screen.getByText('1 vòng, 1 yêu cầu sửa')).toBeInTheDocument();
+      // Critic chip shows (1 góp ý)
+      const criticChip = screen.getByRole('region', { name: 'Phản biện' });
+      expect(within(criticChip).getByText('(1 góp ý)')).toBeInTheDocument();
     });
   });
 
@@ -390,8 +337,7 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
       );
 
       // Verify "agent" is used in UI strings
-      expect(screen.getByText('Luồng xử lý giữa các agent')).toBeInTheDocument();
-      expect(screen.getByText('Nhấn vào agent để xem chi tiết')).toBeInTheDocument();
+      expect(screen.getByText('Agent:')).toBeInTheDocument();
 
       // Verify "tác tử" is NOT present anywhere in the rendered text
       expect(container.textContent).not.toContain('tác tử');
@@ -454,16 +400,16 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Status says "Yêu cầu bị từ chối"
-      expect(screen.getByText('Yêu cầu bị từ chối')).toBeInTheDocument();
+      // Status says "Từ chối"
+      expect(screen.getByText('Từ chối')).toBeInTheDocument();
 
       // "Mở báo cáo" button MUST NOT be rendered
       expect(screen.queryByRole('button', { name: /Mở báo cáo/i })).not.toBeInTheDocument();
     });
   });
 
-  describe('FIX1: Single Source of Truth, Unused Agents, and Blocked Summary', () => {
-    it('completed run marks participating agents as "Xong" and non-participating as "Không tham gia", NOT "Chờ"', () => {
+  describe('FIX1: Unused Agents and Blocked Handling (FLOW-1)', () => {
+    it('completed run renders only participating agents in chip nav, excluding unused agents', () => {
       // In sampleCompleteSteps, macro was NOT in the plan and did NOT take part
       render(
         <AgentStage
@@ -473,31 +419,17 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Orchestrator card shows "Xong"
-      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
-      expect(within(orchCard).getByText('Xong')).toBeInTheDocument();
-      expect(within(orchCard).getByText('Kế hoạch Hồ sơ doanh nghiệp: BID')).toBeInTheDocument();
+      // Participating agents have chips
+      expect(screen.getByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Company' })).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Kiểm tra số liệu' })).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Phản biện' })).toBeInTheDocument();
 
-      // Company card shows "Xong"
-      const companyCard = screen.getByRole('region', { name: 'Company' });
-      expect(within(companyCard).getByText('Xong')).toBeInTheDocument();
-      expect(within(companyCard).getByText('Viết 2 nhận định, 1 bị loại')).toBeInTheDocument();
-
-      // Verifier card shows "Xong"
-      const verifierCard = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
-      expect(within(verifierCard).getByText('Xong')).toBeInTheDocument();
-      expect(within(verifierCard).getByText('Đã kiểm 2 số, 1 khớp (1 câu bị loại)')).toBeInTheDocument();
-
-      // Critic card shows "Xong"
-      const criticCard = screen.getByRole('region', { name: 'Phản biện' });
-      expect(within(criticCard).getByText('Xong')).toBeInTheDocument();
-      expect(within(criticCard).getByText('1 vòng, 1 yêu cầu sửa')).toBeInTheDocument();
-
-      // None of the cards say "Chờ" when completed
-      expect(screen.queryByText('Chờ')).not.toBeInTheDocument();
+      // Macro was not participating, so it must not be rendered
+      expect(screen.queryByRole('region', { name: 'Macro' })).not.toBeInTheDocument();
     });
 
-    it('rejected/blocked run shows refusal reason and "Từ chối" across cards, NEVER "Chờ"', () => {
+    it('rejected/blocked run shows refusal reason in prose, not large red error box', () => {
       const refusalReason = 'Yêu cầu nằm ngoài phạm vi phân tích ngành ngân hàng.';
       const blockedSteps: TraceStep[] = [
         {
@@ -523,155 +455,45 @@ describe('AGENT-VIEW-1: Per-Agent Views, Card Summaries, and Report CTA', () => 
         />
       );
 
-      // Card must show "Từ chối", NOT "Chờ"
-      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
-      expect(within(orchCard).getByText('Từ chối')).toBeInTheDocument();
-      expect(within(orchCard).getAllByText(refusalReason).length).toBeGreaterThanOrEqual(1);
+      // Header status shows "Từ chối"
+      expect(screen.getByText('Từ chối')).toBeInTheDocument();
 
-      // None of the cards say "Chờ"
-      expect(screen.queryByText('Chờ')).not.toBeInTheDocument();
-
-      // Detail pane shows refusal reason alert
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Điều phối viên' });
-      expect(within(pane).getByText(/Yêu cầu bị từ chối \/ Ngoài phạm vi phân tích/i)).toBeInTheDocument();
-      expect(within(pane).getByText(refusalReason)).toBeInTheDocument();
+      // Timeline entry shows refusal reason
+      expect(screen.getByText(refusalReason)).toBeInTheDocument();
     });
   });
 
-  describe('FIX2: Live SSE Streaming, Viewport Stability, and Auto-Follow', () => {
-    it('appends live streaming draft text, sentence verdicts, and tool facts as events arrive', () => {
-      const partialLiveState = {
-        activeWriterRole: 'company',
-        draftsByRole: {
-          company: 'ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026. Tỷ lệ bao phủ nợ xấu đạt 105,3%.'
-        },
-        verdictsByRole: {
-          company: [
-            {
-              sentence: 'ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026.',
-              verdict: 'kept' as const,
-              explanationVi: 'Số liệu khớp với BCTC Q2/2026'
-            },
-            {
-              sentence: 'Tỷ lệ bao phủ nợ xấu đạt 105,3%.',
-              verdict: 'kept' as const,
-              explanationVi: 'Số liệu khớp với BCTC Q2/2026'
-            }
-          ]
-        },
-        toolCallsByRole: {
-          company: [
-            {
-              tool: 'head_to_head',
-              status: 'completed' as const,
-              resultCount: 2,
-              durationMs: 120,
-              role: 'company',
-              facts: [
-                {
-                  factId: 'f-1',
-                  label: 'Tỷ lệ nợ xấu ACB Q2/2026',
-                  displayValue: '1,03%',
-                  sourceNoteNo: 15
-                }
-              ]
-            }
-          ]
-        }
-      };
-
-      const steps: TraceStep[] = [
-        {
-          step_id: 's-1',
-          seq: 1,
-          t_ms: 100,
-          actor: 'orchestrator',
-          recipient: 'company',
-          kind: 'assign',
-          summary: 'Giao việc cho Company',
-          detail: {}
-        }
-      ];
-
-      render(
-        <AgentStage
-          steps={steps}
-          query="So sánh ACB và TCB"
-          live={true}
-          liveWorkState={partialLiveState}
-        />
-      );
-
-      // Auto-follows company since activeWriterRole is 'company'
-      const pane = screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' });
-      expect(pane).toBeInTheDocument();
-
-      // Check tool call fact rendered immediately
-      expect(within(pane).getByText('1,03%')).toBeInTheDocument();
-      expect(within(pane).getByText('Ghi chú 15')).toBeInTheDocument();
-
-      // Check verdicts rendered immediately
-      expect(within(pane).getByText('ACB có tỷ lệ nợ xấu 1,03% trong quý 2/2026.')).toBeInTheDocument();
-      expect(within(pane).getByText('Tỷ lệ bao phủ nợ xấu đạt 105,3%.')).toBeInTheDocument();
-      expect(within(pane).getByText('2 đạt · 0 loại')).toBeInTheDocument();
-    });
-
-    it('auto-follows active writer, but if user clicks another agent it pins user choice and shows resume hint', async () => {
+  describe('FIX2: Filtering Timeline by Agent Chip', () => {
+    it('filters entries when an agent chip is clicked and resets when unclicked', async () => {
       const user = userEvent.setup();
-      const liveState = {
-        activeWriterRole: 'company',
-        draftsByRole: { company: 'Đang viết nhận định...' }
-      };
-
-      const steps: TraceStep[] = [
-        {
-          step_id: 's-1',
-          seq: 1,
-          t_ms: 100,
-          actor: 'orchestrator',
-          recipient: 'company',
-          kind: 'assign',
-          summary: 'Giao việc cho Company',
-          detail: {}
-        }
-      ];
-
       render(
         <AgentStage
-          steps={steps}
-          query="So sánh ACB và TCB"
-          live={true}
-          liveWorkState={liveState}
+          steps={sampleCompleteSteps}
+          query="Phân tích chất lượng tài sản của BID"
+          live={false}
         />
       );
 
-      // Initially auto-follows 'company'
-      expect(
-        screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' })
-      ).toBeInTheDocument();
+      // All agent entries are initially visible
+      expect(screen.getByText(/Đã lấy 2 số liệu có nguồn từ phép phân tích/)).toBeInTheDocument();
+      expect(screen.getByText(/Đối chiếu dữ liệu gốc: 1\/2 số liệu khớp/)).toBeInTheDocument();
 
-      // User explicitly clicks 'Điều phối viên' card
-      const orchCard = screen.getByRole('region', { name: 'Điều phối viên' });
-      await user.click(orchCard);
+      // Click on Verifier chip
+      const verifierChip = screen.getByRole('region', { name: 'Kiểm tra số liệu' });
+      const verifierBtn = verifierChip.querySelector('button')!;
+      await user.click(verifierBtn);
 
-      // Detail panel switched to user's choice (Orchestrator)
-      expect(
-        screen.getByRole('region', { name: 'Chi tiết hoạt động của Điều phối viên' })
-      ).toBeInTheDocument();
+      expect(verifierBtn).toHaveAttribute('aria-pressed', 'true');
 
-      // Shows hint: "Đang chạy ở Chuyên viên doanh nghiệp · Nhấn để theo dõi"
-      const resumeBtn = screen.getByRole('button', { name: /Đang chạy ở Chuyên viên doanh nghiệp/i });
-      expect(resumeBtn).toBeInTheDocument();
-      expect(within(resumeBtn).getByText('Nhấn để theo dõi')).toBeInTheDocument();
+      // Verifier entry is visible, Company entry is hidden
+      expect(screen.getByText(/Đối chiếu dữ liệu gốc: 1\/2 số liệu khớp/)).toBeInTheDocument();
+      expect(screen.queryByText(/Đã lấy 2 số liệu có nguồn từ phép phân tích/)).not.toBeInTheDocument();
 
-      // User clicks resume hint
-      await user.click(resumeBtn);
+      // Click "Xem tất cả" to reset filter
+      const resetBtn = screen.getByRole('button', { name: 'Xem tất cả' });
+      await user.click(resetBtn);
 
-      // View resumes auto-follow back to 'company'
-      expect(
-        screen.getByRole('region', { name: 'Chi tiết hoạt động của Chuyên viên doanh nghiệp' })
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Đã lấy 2 số liệu có nguồn từ phép phân tích/)).toBeInTheDocument();
     });
   });
 });
-

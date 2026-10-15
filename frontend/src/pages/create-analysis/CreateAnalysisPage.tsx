@@ -287,7 +287,7 @@ export function CreateAnalysisPage({ initialMode = 'ASK', initialSteps }: Create
                 setSearchParams(resetParams);
               }}
               onBlocked={(info) => {
-                const message = info.code
+                const message = capabilities
                   ? mapErrorCodeToMessage(info.code, capabilities)
                   : info.message;
                 setErrorInfo({ ...info, message: message || info.message });

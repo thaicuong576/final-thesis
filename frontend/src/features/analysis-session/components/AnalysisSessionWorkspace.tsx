@@ -1,22 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useLocation, useSearchParams, useInRouterContext } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import type { TraceStep } from '../model/types';
 import type { AnalysisCapabilities } from '@/entities/capability/model/types';
 import { useTraceStream } from '../useTraceStream';
-import { AgentStage } from './AgentStage';
-import { ProcessTrace } from './ProcessTrace';
+import { ReasoningTimeline } from './ReasoningTimeline';
 import { AdaptiveReport, type AdaptiveReportResponse } from '@/features/equity-report';
-import { getApiBaseUrl } from '@/shared/lib/apiUrl';
-import { apiFetch } from '@/shared/api/apiClient';
-
-const FIXTURE_LOADERS: Record<string, () => Promise<unknown>> = {
-  t01: () => import('../../../../../experiments/er9/runs/er9-T01-hierarchical_with_critique-r0.json'),
-  t03: () => import('../../../../../experiments/er9/runs/er9-T03-hierarchical_with_critique-r0.json'),
-  t05: () => import('../../../../../experiments/er9/runs/er9-T05-hierarchical_with_critique-r0.json'),
-  t07: () => import('../../../../../experiments/er9/runs/er9-T07-hierarchical_with_critique-r0.json'),
-  t09: () => import('../../../../../experiments/er9/runs/er9-T09-hierarchical_with_critique-r0.json'),
-};
 
 export interface AnalysisSessionWorkspaceProps {
   report?: AdaptiveReportResponse | null;
@@ -75,7 +64,6 @@ interface WorkspaceContentProps extends AnalysisSessionWorkspaceProps {
 }
 
 function AnalysisSessionWorkspaceContent({
-  report: propReport,
   streamRequest,
   request,
   isLiveStream = true,
@@ -85,7 +73,8 @@ function AnalysisSessionWorkspaceContent({
   onViewReport,
   onBlocked,
   apiEndpoint,
-  autoRedirect = false
+  autoRedirect = false,
+  report
 }: WorkspaceContentProps) {
   const activeRequest = streamRequest || request || null;
 
@@ -116,65 +105,8 @@ function AnalysisSessionWorkspaceContent({
     return (readyStep?.detail?.report_id as string | undefined) || null;
   }, [reportId, activeSteps]);
 
-  const inlineReport = useMemo(() => {
-    const readyStep = activeSteps.find((s) => s.kind === 'report_ready');
-    const rep = readyStep?.detail?.report;
-    return (rep as unknown as AdaptiveReportResponse) || null;
-  }, [activeSteps]);
+  const displayReport = !isStreaming && report && report.report_spec ? report : null;
 
-  const [fetchedReport, setFetchedReport] = useState<AdaptiveReportResponse | null>(null);
-
-  useEffect(() => {
-    if (propReport || inlineReport || !effectiveReportId || !isLiveStream) return;
-
-    let isMounted = true;
-    const loadReport = async () => {
-      try {
-        const cleanId = effectiveReportId.toLowerCase().replace(/^er9-/, '');
-        if (cleanId in FIXTURE_LOADERS) {
-          const mod = (await FIXTURE_LOADERS[cleanId]()) as {
-            default?: { response?: unknown };
-            response?: unknown;
-          };
-          const loaded = mod.default?.response || mod.default || mod.response || mod;
-          if (isMounted && loaded) {
-            setFetchedReport(loaded as unknown as AdaptiveReportResponse);
-          }
-          return;
-        }
-
-        const baseUrl = getApiBaseUrl();
-        const origin =
-          typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null'
-            ? window.location.origin
-            : '';
-        const base = baseUrl || origin;
-
-        let res = await apiFetch(`${base}/api/reports/${effectiveReportId}`, {
-          headers: { Accept: 'application/json' }
-        });
-        if (!res.ok) {
-          res = await apiFetch(`${base}/api/runs/${effectiveReportId}`, {
-            headers: { Accept: 'application/json' }
-          });
-        }
-        if (res.ok && isMounted) {
-          const data = await res.json();
-          const rep = (data.report || data) as Record<string, unknown>;
-          setFetchedReport(rep as unknown as AdaptiveReportResponse);
-        }
-      } catch {
-        // ignore
-      }
-    };
-
-    void loadReport();
-    return () => {
-      isMounted = false;
-    };
-  }, [propReport, inlineReport, effectiveReportId, isLiveStream]);
-
-  const displayReport = propReport || inlineReport || fetchedReport;
   const query = activeRequest?.query || '';
 
   return (
@@ -193,8 +125,8 @@ function AnalysisSessionWorkspaceContent({
         </div>
       )}
 
-      {/* Screen B: Orchestrator & child agents board */}
-      <AgentStage
+      {/* One chronological timeline ("Dòng suy luận") */}
+      <ReasoningTimeline
         steps={activeSteps}
         query={query}
         live={isStreaming || (isLiveStream && !propSteps?.length)}
@@ -206,21 +138,11 @@ function AnalysisSessionWorkspaceContent({
         autoRedirect={autoRedirect}
       />
 
-      {/* Fresh Report Result */}
       {displayReport && (
-        <section
-          aria-label="Báo cáo phân tích vừa tạo"
-          className="mt-8 border-t border-border-subtle pt-6 animate-in fade-in duration-200"
-        >
+        <section aria-label="Báo cáo phân tích vừa tạo" className="mt-8 border-t border-border-subtle pt-6">
           <AdaptiveReport report={displayReport} />
         </section>
       )}
-
-      {/* Screen C: Interactive Process Trace */}
-      <ProcessTrace
-        steps={activeSteps}
-        live={isStreaming}
-      />
     </div>
   );
 }

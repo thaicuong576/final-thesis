@@ -1,6 +1,6 @@
 ## 4.5. Sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
+Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14–15/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
 
 **Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô); nếu một quý chưa có báo cáo, ô đó được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức của từng chỉ tiêu và khu vực tải lên ngân hàng mới. Thông tin được lấy trực tiếp từ máy chủ nên luôn khớp với dữ liệu thực sự dùng để phân tích.
 
@@ -8,11 +8,11 @@ Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích 
 
 Hình 4.4: Trang Dữ liệu – độ phủ mười ngân hàng theo từng quý
 
-**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu từ danh sách. Sau khi gửi, người dùng thấy điều phối viên xác định dạng câu hỏi và giao việc cho các chuyên viên; chỉ những tác tử thực sự tham gia mới hiện ra. Mỗi thẻ cho biết chuyên viên đang làm gì và đã trả về bao nhiêu số liệu có nguồn, và dòng thời gian các bước cập nhật trực tiếp trong lúc hệ thống chạy.
+**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu từ danh sách. Sau khi gửi, người dùng thấy điều phối viên xác định dạng câu hỏi và giao việc cho các chuyên viên; chỉ những tác tử thực sự tham gia mới hiện ra. Các bước hiện ra theo thứ tự thời gian như một cuộc trao đổi, mỗi mục có mốc thời gian và tên agent: điều phối viên nêu cách hiểu câu hỏi và kế hoạch, chuyên viên cho biết đã lấy bao nhiêu số liệu có nguồn rồi bản nháp nhận định chảy ra từng đoạn, bộ kiểm tra số liệu xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có. Nội dung hiển thị là các kết quả có cấu trúc mà từng agent đã công bố, không phải suy nghĩ thô của mô hình. Khi xong, mục cuối có nút "Mở báo cáo".
 
 ![](docs/thesis-v2/screenshots/03-dieu-phoi.png)
 
-Hình 4.5: Màn hình điều phối – các tác tử nhận việc và trả kết quả theo thời gian thực
+Hình 4.5: Dòng suy luận – các agent nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
 
 **Đọc báo cáo.** Báo cáo trình bày theo phong cách báo cáo phân tích đầu tư: tiêu đề nêu kết luận, trạng thái kiểm định và phạm vi dữ liệu, rồi các nhận định kèm biểu đồ. Mỗi câu có số chú thích dẫn tới báo cáo tài chính gốc kèm số trang; câu dựa trên nhiều nguồn hiện ba số đầu và gộp phần còn lại thành "+N", danh sách đầy đủ nằm ở mục Nguồn. Khối tín hiệu tóm tắt vị thế so với nhóm theo từng khía cạnh, và các phát hiện liên tầng được đặt trong khối lưu ý riêng. Dòng "Thị trường" dưới các chỉ số chính đưa giá đóng cửa và hệ số P/B vào báo cáo như một bối cảnh tham khảo, có ghi nguồn và phiên giao dịch, tách khỏi số liệu báo cáo tài chính.
 

@@ -19,7 +19,6 @@ import {
   deriveTimeline,
   formatClock
 } from '../model/timeline';
-import { fmtPeriod } from '@/shared/lib/formatting';
 
 export interface ReasoningTimelineProps {
   steps: TraceStep[];
@@ -405,7 +404,7 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
                             {entry.planDetail.periods && entry.planDetail.periods.length > 0 && (
                               <div>
                                 <span className="font-semibold text-text-tertiary">Kỳ phân tích: </span>
-                                <span className="text-text-primary">{entry.planDetail.periods.map((p) => fmtPeriod(p)).join(', ')}</span>
+                                <span className="text-text-primary">{entry.planDetail.periods.join(', ')}</span>
                               </div>
                             )}
                             {entry.planDetail.metrics && entry.planDetail.metrics.length > 0 && (

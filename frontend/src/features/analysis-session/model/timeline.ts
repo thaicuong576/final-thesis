@@ -167,11 +167,6 @@ export function translateDropReason(reason?: string | null): string {
 export function scrubInternalIdentifiers(text: string): string {
   if (!text) return '';
   return text
-    // Replace raw periods
-    .replace(/\bkỳ\s+(\d{4})_Q([1-4])\b/gi, (_match, y, q) => `Quý ${q}/${y}`)
-    .replace(/\b(\d{4})_Q([1-4])\b/gi, (_match, y, q) => `Quý ${q}/${y}`)
-    .replace(/\bQ([1-4])_(\d{4})\b/gi, (_match, q, y) => `Quý ${q}/${y}`)
-    .replace(/\b(\d{4})Q([1-4])\b/gi, (_match, y, q) => `Quý ${q}/${y}`)
     // Replace tool identifiers
     .replace(/\bhead_to_head\b/gi, 'so sánh đối đầu')
     .replace(/\bcompany_profile\b/gi, 'hồ sơ doanh nghiệp')
@@ -243,15 +238,14 @@ function buildPlanProse(detail?: Record<string, unknown>, planSummary?: LiveWork
     .filter((e) => !e.startsWith('sector:'))
     .map((e) => scrubInternalIdentifiers(e))
     .join(' và ');
-  const periodStr = periods.map((p) => fmtPeriod(p)).filter(Boolean).join(', ');
-  const periodPart = periodStr ? (/^quý/i.test(periodStr) ? `, ${periodStr}` : `, kỳ ${periodStr}`) : '';
+  const periodStr = periods.map((p) => fmtPeriod(p).toLowerCase()).join(', ');
 
   if (rationale) {
-    return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodPart}. ${rationale}`;
+    return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. ${rationale}`;
   }
 
   const metricsCount = metrics.length > 0 ? `${metrics.length} chỉ tiêu` : 'các chỉ tiêu cần thiết';
-  return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodPart}. Mình giao việc cho chuyên viên tra cứu ${metricsCount}.`;
+  return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. Mình giao việc cho chuyên viên tra cứu ${metricsCount}.`;
 }
 
 export function deriveTimeline(
@@ -302,13 +296,11 @@ export function deriveTimeline(
 
     switch (step.kind) {
       case 'plan': {
-        const rawPeriods = (step.detail?.periods as string[]) || liveWorkState?.planSummary?.periods;
-        const rawEntities = (step.detail?.entities as string[]) || liveWorkState?.planSummary?.entities;
         const planDetail: PlanSummaryDetail = {
           questionType: (step.detail?.question_type as string) || liveWorkState?.planSummary?.questionType,
-          entities: rawEntities ? rawEntities.map((e) => scrubInternalIdentifiers(e)) : undefined,
+          entities: (step.detail?.entities as string[]) || liveWorkState?.planSummary?.entities,
           metrics: (step.detail?.metric_ids as string[]) || (step.detail?.metrics as string[]) || liveWorkState?.planSummary?.metrics,
-          periods: rawPeriods ? rawPeriods.map((p) => fmtPeriod(p)).filter(Boolean) : undefined,
+          periods: (step.detail?.periods as string[]) || liveWorkState?.planSummary?.periods,
           rationale: (step.detail?.rationale as string) || liveWorkState?.planSummary?.rationale,
           planSummary: step.summary || liveWorkState?.planSummary?.planSummary
         };
@@ -332,7 +324,7 @@ export function deriveTimeline(
             facts.push({
               factId: String(f.fact_id || ''),
               label: scrubInternalIdentifiers(String(f.label || '')),
-              displayValue: scrubInternalIdentifiers(String(f.display_value || f.value || '')),
+              displayValue: String(f.display_value || f.value || ''),
               sourceNoteNo: typeof f.source_note_no === 'number' ? f.source_note_no : null,
               sourceLocator: (f.source_locator || f.source) as string | undefined
             });
@@ -595,12 +587,7 @@ export function deriveTimeline(
             (e.toolDetail?.tool === t.tool || e.toolDetail?.label === toolLabel || e.toolDetail?.label === t.tool)
         );
         if (!alreadyInEntries) {
-          const rawFacts: SourcedFact[] = Array.isArray(t.facts) ? t.facts : [];
-          const facts: SourcedFact[] = rawFacts.map((f) => ({
-            ...f,
-            label: scrubInternalIdentifiers(f.label),
-            displayValue: scrubInternalIdentifiers(f.displayValue)
-          }));
+          const facts: SourcedFact[] = Array.isArray(t.facts) ? t.facts : [];
           rawEntries.push({
             id: `live-tool-${role}-${t.tool}`,
             tMs: nowMs,

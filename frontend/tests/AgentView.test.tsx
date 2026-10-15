@@ -212,7 +212,7 @@ describe('AGENT-VIEW-1: Per-Agent Views in Unified Reasoning Timeline (FLOW-1)',
       // Open collapsible plan detail
       await user.click(planBtn);
       expect(screen.getByText('BID')).toBeInTheDocument();
-      expect(screen.getByText('Quý 1/2026, Quý 2/2026')).toBeInTheDocument();
+      expect(screen.getByText('2026_Q1, 2026_Q2')).toBeInTheDocument();
       expect(screen.getByText('bank.npl_g35, bank.llr_coverage')).toBeInTheDocument();
     });
 

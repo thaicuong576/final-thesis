@@ -144,7 +144,10 @@ describe('deriveTimeline selector', () => {
     expect(result.entries[0].formattedTime).toBe('00:04');
     expect(result.entries[0].agentName).toBe('Điều phối viên');
     expect(result.entries[0].prose).toContain('so sánh đối đầu');
+    expect(result.entries[0].prose).toContain('Quý 2/2026');
+    expect(result.entries[0].prose).not.toMatch(/\d{4}_Q\d/i);
     expect(result.entries[0].planDetail?.entities).toEqual(['ACB', 'TCB']);
+    expect(result.entries[0].planDetail?.periods).toEqual(['Quý 2/2026']);
 
     // Step 2: data
     expect(result.entries[1].kind).toBe('data');
@@ -475,6 +478,66 @@ describe('deriveTimeline selector', () => {
       // Count label on company derives from 4 sentences
       const companyChip = result.participatingAgents.find((c) => c.id === 'company');
       expect(companyChip?.countLabel).toBe('4 nhận định');
+    });
+
+    it('humanizes period labels in orchestrator plan prose and planDetail without raw period IDs', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-plan-raw',
+          seq: 1,
+          t_ms: 2000,
+          actor: 'orchestrator',
+          recipient: 'system',
+          kind: 'plan',
+          summary: 'Kế hoạch đối đầu',
+          detail: {
+            question_type: 'head_to_head',
+            entities: ['VCB', 'TCB'],
+            periods: ['2024_Q4', '2026_Q2'],
+            metrics: ['bank.nim', 'bank.roe'],
+            rationale: 'So sánh VCB và TCB trong kỳ 2024_Q4 và kỳ 2026_Q2.'
+          }
+        },
+        {
+          step_id: 't-tool-raw',
+          seq: 2,
+          t_ms: 4000,
+          actor: 'company',
+          recipient: 'orchestrator',
+          kind: 'tool_result',
+          summary: 'Trả 2 số liệu',
+          detail: {
+            tool: 'head_to_head',
+            facts: [
+              {
+                fact_id: 'f1',
+                label: 'NIM kỳ 2024_Q4 của VCB',
+                display_value: '3,2%'
+              }
+            ]
+          }
+        }
+      ];
+
+      const result = deriveTimeline(steps, undefined, { isStreaming: false });
+      const planEntry = result.entries[0];
+
+      // Formatted with fmtPeriod, drops raw "kỳ 2024_Q4" / "2026_Q2"
+      expect(planEntry.prose).toContain('Quý 4/2024');
+      expect(planEntry.prose).toContain('Quý 2/2026');
+      expect(planEntry.prose).not.toMatch(/\d{4}_Q\d/i);
+      expect(planEntry.prose).not.toMatch(/kỳ\s+2024_Q4/i);
+      expect(planEntry.planDetail?.periods).toEqual(['Quý 4/2024', 'Quý 2/2026']);
+
+      // Facts in data row also humanize raw periods
+      const dataEntry = result.entries[1];
+      expect(dataEntry.facts?.[0].label).toContain('Quý 4/2024');
+      expect(dataEntry.facts?.[0].label).not.toMatch(/\d{4}_Q\d/i);
+
+      // Check all timeline entries have no raw \d{4}_Q\d in prose
+      for (const entry of result.entries) {
+        expect(entry.prose).not.toMatch(/\d{4}_Q\d/i);
+      }
     });
   });
 });

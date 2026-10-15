@@ -12,6 +12,7 @@ import {
   type PlanSummaryDetail,
   type LiveWorkStateInput
 } from './agentStage';
+import { fmtPeriod } from '@/shared/lib/formatting';
 
 export function formatClock(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -237,14 +238,14 @@ function buildPlanProse(detail?: Record<string, unknown>, planSummary?: LiveWork
     .filter((e) => !e.startsWith('sector:'))
     .map((e) => scrubInternalIdentifiers(e))
     .join(' và ');
-  const periodStr = periods.join(', ');
+  const periodStr = periods.map((p) => fmtPeriod(p).toLowerCase()).join(', ');
 
   if (rationale) {
-    return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, kỳ ${periodStr}` : ''}. ${rationale}`;
+    return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. ${rationale}`;
   }
 
   const metricsCount = metrics.length > 0 ? `${metrics.length} chỉ tiêu` : 'các chỉ tiêu cần thiết';
-  return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, kỳ ${periodStr}` : ''}. Mình giao việc cho chuyên viên tra cứu ${metricsCount}.`;
+  return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. Mình giao việc cho chuyên viên tra cứu ${metricsCount}.`;
 }
 
 export function deriveTimeline(

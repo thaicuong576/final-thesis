@@ -476,5 +476,31 @@ describe('deriveTimeline selector', () => {
       const companyChip = result.participatingAgents.find((c) => c.id === 'company');
       expect(companyChip?.countLabel).toBe('4 nhận định');
     });
+
+    it('humanizes period label in orchestrator plan entry without raw period id', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-plan-period',
+          seq: 1,
+          t_ms: 1000,
+          actor: 'orchestrator',
+          recipient: 'system',
+          kind: 'plan',
+          summary: 'Kế hoạch phân tích',
+          detail: {
+            question_type: 'head_to_head',
+            entities: ['VCB', 'TCB'],
+            periods: ['2024_Q4'],
+            metrics: ['bank.nim']
+          }
+        }
+      ];
+
+      const result = deriveTimeline(steps, undefined, { isStreaming: false });
+      const planEntry = result.entries[0];
+
+      expect(planEntry.prose).toMatch(/quý 4\/2024/);
+      expect(planEntry.prose).not.toMatch(/\d{4}_Q\d/);
+    });
   });
 });

@@ -407,7 +407,8 @@ export function useTraceStream({
       updated = true;
     } else if (type === 'TOOL_STARTED') {
       const tool = String(payload.tool || '');
-      const role = String(payload.role || 'specialist');
+      const rawRole = String(payload.role || payload.agent || payload.specialist || 'company');
+      const role = rawRole === 'specialist' ? 'company' : rawRole;
       const args = payload.arguments as ToolCallItem['arguments'];
       const item: ToolCallItem = { tool, arguments: args, status: 'running', role };
       const roleTools = liveWorkRef.current.toolCallsByRole[role] || [];
@@ -422,7 +423,8 @@ export function useTraceStream({
       updated = true;
     } else if (type === 'TOOL_COMPLETED') {
       const tool = String(payload.tool || '');
-      const role = String(payload.role || 'specialist');
+      const rawRole = String(payload.role || payload.agent || payload.specialist || 'company');
+      const role = rawRole === 'specialist' ? 'company' : rawRole;
       const resultCount = Number(payload.resultCount ?? payload.result_count ?? 0);
       const durationMs = Number(payload.durationMs ?? payload.duration_ms ?? 0);
       const facts = Array.isArray(payload.facts)
@@ -624,9 +626,15 @@ export function useTraceStream({
 
             const parsedStep = parseTraceSseBlock(block, capabilities);
             if (parsedStep) {
-              accumulatedSteps.push(parsedStep);
-              setSteps([...accumulatedSteps]);
-              onStep?.(parsedStep);
+              const isDuplicateReportReady =
+                parsedStep.kind === 'report_ready' &&
+                accumulatedSteps.some((s) => s.kind === 'report_ready');
+
+              if (!isDuplicateReportReady) {
+                accumulatedSteps.push(parsedStep);
+                setSteps([...accumulatedSteps]);
+                onStep?.(parsedStep);
+              }
 
               if (parsedStep.kind === 'draft' || parsedStep.kind === 'compose' || parsedStep.kind === 'revision') {
                 if (liveWorkRef.current.activeWriterRole) {
@@ -677,9 +685,15 @@ export function useTraceStream({
 
           const parsedStep = parseTraceSseBlock(buffer, capabilities);
           if (parsedStep) {
-            accumulatedSteps.push(parsedStep);
-            setSteps([...accumulatedSteps]);
-            onStep?.(parsedStep);
+            const isDuplicateReportReady =
+              parsedStep.kind === 'report_ready' &&
+              accumulatedSteps.some((s) => s.kind === 'report_ready');
+
+            if (!isDuplicateReportReady) {
+              accumulatedSteps.push(parsedStep);
+              setSteps([...accumulatedSteps]);
+              onStep?.(parsedStep);
+            }
 
             if (parsedStep.kind === 'report_ready') {
               const repId = (parsedStep.detail?.report_id as string) || '';

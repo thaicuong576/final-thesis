@@ -64,7 +64,6 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
   const [tickMs, setTickMs] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const timelineEndRef = useRef<HTMLDivElement>(null);
 
   // Check terminal state from steps
@@ -111,7 +110,22 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
     return 0;
   }, [isComplete, isBlocked, steps, liveWorkState]);
 
-  // Auto-scroll when near bottom
+  // Auto-scroll page when live and near bottom
+  useEffect(() => {
+    if (!live) return;
+
+    const onWindowScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      const atBottom = docHeight - scrollY - windowHeight < 150;
+      setIsAtBottom(atBottom);
+    };
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onWindowScroll);
+  }, [live]);
+
   useEffect(() => {
     if (isAtBottom && timelineEndRef.current && live) {
       const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
@@ -120,13 +134,6 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
       }
     }
   }, [entries.length, liveTail, isAtBottom, live]);
-
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 80;
-    setIsAtBottom(atBottom);
-  }, []);
 
   const scrollToBottom = useCallback(() => {
     setIsAtBottom(true);
@@ -154,10 +161,10 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
   return (
     <section className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-primary shadow-[0_1px_2px_rgba(29,28,26,0.04),0_20px_44px_-28px_rgba(60,45,20,0.35)]">
       {/* 1. Header (Spec item 7) */}
-      <header className="border-b border-border-subtle px-5 pt-5 pb-4 sm:px-7">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <header className="border-b border-border-subtle px-4 pt-4 pb-3 sm:px-7 sm:pt-5 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="m-0 flex flex-wrap items-center gap-2 text-[13px] text-text-secondary">
+            <div className="m-0 flex flex-wrap items-center gap-2 text-[12.5px] sm:text-[13px] text-text-secondary">
               <span
                 aria-hidden="true"
                 className={`size-2 rounded-full ${
@@ -179,15 +186,21 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
                       ? 'Đã hoàn tất'
                       : 'Các agent đang làm việc'}
               </span>
-              <span className="rounded-md border border-border-default px-1.5 py-px text-xs text-text-secondary">
+              <span className="rounded-md border border-border-default px-1.5 py-px text-[11px] sm:text-xs text-text-secondary">
                 {questionTypeLabel}
+              </span>
+              <span
+                aria-hidden="true"
+                className="font-mono text-xs sm:text-[15px] font-semibold tabular-nums text-text-primary sm:hidden ml-auto"
+              >
+                {formatClock(elapsedMs)}
               </span>
 
               {isComplete && effectiveReportId && (
                 <button
                   type="button"
                   onClick={() => onOpenReport?.(effectiveReportId)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1 text-xs font-semibold text-ink-inverse hover:bg-[#3a3a36] shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ml-2"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1 text-xs font-semibold text-ink-inverse hover:bg-[#3a3a36] shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ml-auto sm:ml-2"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Mở báo cáo</span>
@@ -195,12 +208,12 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
               )}
             </div>
 
-            <h2 className="font-display mt-2 mb-0 text-[20px] font-bold leading-snug text-balance text-text-primary sm:text-[24px]">
+            <h2 className="font-display mt-2 sm:mt-2.5 mb-0 text-[18px] font-bold leading-snug text-balance text-text-primary sm:text-[24px] break-words">
               {query || 'Phiên phân tích'}
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
             <span
               aria-label="Thời gian đã chạy"
               className="font-mono text-[15px] font-semibold tabular-nums text-text-primary"
@@ -314,11 +327,9 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
 
       {/* 3. Timeline section ("Dòng suy luận") (Spec items 1, 2, 3, 4, 5, 8, 9, 10, 11) */}
       <div
-        ref={containerRef}
-        onScroll={handleScroll}
         role="log"
         aria-live="polite"
-        className="relative max-h-[640px] overflow-y-auto px-4 py-5 sm:px-7"
+        className="relative px-4 py-5 sm:px-7"
       >
         <div className="relative">
           {/* Vertical connecting line */}
@@ -543,11 +554,11 @@ export const ReasoningTimeline: React.FC<ReasoningTimelineProps> = ({
 
       {/* Floating "Xuống mục mới nhất" button (Spec item 4) */}
       {!isAtBottom && live && (
-        <div className="absolute bottom-4 right-6 z-20">
+        <div className="fixed bottom-6 right-6 sm:right-10 z-30">
           <button
             type="button"
             onClick={scrollToBottom}
-            className="inline-flex items-center gap-1.5 rounded-full bg-surface-primary border border-border-default px-3 py-1.5 text-xs font-semibold text-text-primary shadow-md hover:bg-surface-hover transition-all animate-in slide-in-from-bottom-2 duration-150"
+            className="inline-flex items-center gap-1.5 rounded-full bg-surface-primary border border-border-default px-3.5 py-2 text-xs font-semibold text-text-primary shadow-lg hover:bg-surface-hover transition-all animate-in slide-in-from-bottom-2 duration-150"
           >
             <span>Xuống mục mới nhất</span>
             <ArrowDown className="w-3.5 h-3.5" />

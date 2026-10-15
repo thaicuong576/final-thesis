@@ -39,8 +39,8 @@ describe('AnalysisSessionWorkspace (ER-6 Trace and Board)', () => {
 
     expect(screen.getByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Company' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Sector' })).toBeInTheDocument();
-    expect(screen.getByText('Quá trình phân tích')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Sector' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Quá trình phân tích')).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Mở báo cáo/i })[0]).toBeInTheDocument();
     expect(fetchSpy).not.toHaveBeenCalled();
   });

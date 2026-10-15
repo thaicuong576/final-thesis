@@ -191,7 +191,7 @@ describe('ER-6 AskPage (Lean Ask Screen)', () => {
     renderAskPage('SESSION', steps);
 
     expect(await screen.findByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
-    expect(screen.getByText(/Quá trình phân tích/)).toBeInTheDocument();
+    expect(screen.getByRole('log')).toBeInTheDocument();
   });
 
   it('handles legacy RUN_BLOCKED by returning to ask screen with error banner and preserved query', async () => {

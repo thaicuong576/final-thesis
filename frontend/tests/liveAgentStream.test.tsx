@@ -93,6 +93,36 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         kind: 'assign',
         summary: 'Giao việc: xếp hạng toàn nhóm',
         detail: { task: 'Xếp hạng toàn nhóm' }
+      },
+      {
+        step_id: 't-3',
+        seq: 3,
+        t_ms: 300,
+        actor: 'sector',
+        recipient: null,
+        kind: 'draft',
+        summary: 'Nhận định xếp hạng ngành',
+        detail: { findings: [{ sentence: 'TCB dẫn đầu về tỷ lệ bao phủ.' }] }
+      },
+      {
+        step_id: 't-4',
+        seq: 4,
+        t_ms: 400,
+        actor: 'verifier',
+        recipient: null,
+        kind: 'verify',
+        summary: 'Kiểm tra 5 số liệu',
+        detail: { numbers_checked: 5, numbers_matched: 5 }
+      },
+      {
+        step_id: 't-5',
+        seq: 5,
+        t_ms: 500,
+        actor: 'critic',
+        recipient: null,
+        kind: 'accept',
+        summary: 'Phản biện lập luận',
+        detail: { round: 1 }
       }
     ];
 
@@ -280,8 +310,8 @@ describe('SSE-1: Live Agent Stream & AgentStage Redesign', () => {
         />
       );
 
-      // Tool call is rendered in timeline
-      expect(screen.getByText(/query_metric_observations/)).toBeInTheDocument();
+      // Tool call is rendered in timeline with translated label
+      expect(screen.getByText(/truy vấn số liệu/)).toBeInTheDocument();
       expect(screen.getByText(/16 số liệu/)).toBeInTheDocument();
     });
   });

@@ -312,9 +312,9 @@ describe('AGENT-VIEW-1: Per-Agent Views in Unified Reasoning Timeline (FLOW-1)',
         />
       );
 
-      // Company chip shows (1 nhận định)
+      // Company chip shows (2 nhận định) derived from sentence count
       const companyChip = screen.getByRole('region', { name: 'Company' });
-      expect(within(companyChip).getByText('(1 nhận định)')).toBeInTheDocument();
+      expect(within(companyChip).getByText('(2 nhận định)')).toBeInTheDocument();
 
       // Verifier chip shows (2 số liệu)
       const verifierChip = screen.getByRole('region', { name: 'Kiểm tra số liệu' });

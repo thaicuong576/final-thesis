@@ -239,4 +239,242 @@ describe('deriveTimeline selector', () => {
     expect(result.entries[0].prose).toBe('Hệ thống chỉ hỗ trợ phân tích dữ liệu ngành ngân hàng.');
     expect(result.entries[0].blockedDetail?.suggestions?.length).toBe(2);
   });
+
+  describe('FIX1 Review Verification Tests', () => {
+    it('maps all role IDs to Vietnamese names and never prints raw role IDs', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-raw-1',
+          seq: 1,
+          t_ms: 100,
+          actor: 'specialist' as unknown as 'company',
+          recipient: null,
+          kind: 'tool_result',
+          summary: 'Trả 10 số liệu',
+          detail: { tool: 'head_to_head', label: 'so sánh đối đầu', result_count: 10 }
+        },
+        {
+          step_id: 't-raw-2',
+          seq: 2,
+          t_ms: 200,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'compose',
+          summary: 'Dựng báo cáo',
+          detail: { draft_text: 'ACB có tỷ lệ nợ xấu thấp hơn TCB.' }
+        }
+      ];
+
+      const result = deriveTimeline(steps, undefined, { isStreaming: false });
+      for (const entry of result.entries) {
+        expect(entry.agentName).not.toBe('specialist');
+        expect(entry.agentName).not.toBe('company');
+        expect(entry.agentName).not.toBe('orchestrator');
+        expect(entry.agentName).toMatch(/^(Điều phối viên|Chuyên viên doanh nghiệp|Chuyên viên ngành|Chuyên viên vĩ mô|Kiểm tra số liệu|Phản biện|Hệ thống)$/);
+      }
+    });
+
+    it('deduplicates logical tool calls and steps between TRACE_STEP and liveWorkState', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 'step-data-1',
+          seq: 1,
+          t_ms: 1000,
+          actor: 'company',
+          recipient: null,
+          kind: 'tool_result',
+          summary: 'Trả 22 số liệu',
+          detail: {
+            tool: 'head_to_head',
+            label: 'so sánh đối đầu',
+            result_count: 22,
+            duration_ms: 1200
+          }
+        }
+      ];
+
+      const liveWorkState = {
+        toolCallsByRole: {
+          company: [
+            {
+              tool: 'head_to_head',
+              status: 'completed' as const,
+              resultCount: 22,
+              durationMs: 1200,
+              role: 'company'
+            }
+          ]
+        }
+      };
+
+      const result = deriveTimeline(steps, liveWorkState, { isStreaming: false });
+      const dataEntries = result.entries.filter((e) => e.kind === 'data');
+      expect(dataEntries.length).toBe(1);
+    });
+
+    it('enforces strict terminal ordering: nothing may appear after final "Báo cáo sẵn sàng"', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-plan',
+          seq: 1,
+          t_ms: 1000,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'plan',
+          summary: 'Lập kế hoạch',
+          detail: {}
+        },
+        {
+          step_id: 't-ready-1',
+          seq: 2,
+          t_ms: 5000,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'report_ready',
+          summary: 'Báo cáo sẵn sàng',
+          detail: { report_id: 'rep-final-order' }
+        },
+        {
+          step_id: 't-ready-dup',
+          seq: 3,
+          t_ms: 5100,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'report_ready',
+          summary: 'Báo cáo sẵn sàng',
+          detail: { report_id: 'rep-final-order' }
+        }
+      ];
+
+      // Live work state lingering with late tool call
+      const liveWorkState = {
+        toolCallsByRole: {
+          specialist: [
+            {
+              tool: 'head_to_head',
+              status: 'completed' as const,
+              resultCount: 22,
+              role: 'specialist'
+            }
+          ]
+        }
+      };
+
+      const result = deriveTimeline(steps, liveWorkState, { isStreaming: false });
+      const readyEntries = result.entries.filter((e) => e.kind === 'complete');
+      expect(readyEntries.length).toBe(1);
+      const lastEntry = result.entries[result.entries.length - 1];
+      expect(lastEntry.kind).toBe('complete');
+      expect(lastEntry.prose).toMatch(/Báo cáo/);
+    });
+
+    it('scrubs snake_case identifiers, fact_ids, and raw internal markers from prose and drafts', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-draft',
+          seq: 1,
+          t_ms: 1000,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'compose',
+          summary: 'Dựng bản nháp',
+          detail: {
+            draft_text: 'fact_ids: fact:value:ACB:2024_Q4:bank.roe ACB dẫn đầu về ROE. fact_ids: fact:value:TCB:2024_Q4:bank.roe TCB có nợ xấu thấp trong sector:bank.'
+          }
+        },
+        {
+          step_id: 't-critic',
+          seq: 2,
+          t_ms: 2000,
+          actor: 'critic',
+          recipient: null,
+          kind: 'critique_issue',
+          summary: 'Khối đầu tiên được khai báo là headline nhưng không có nội dung; report_level_synthesis thiếu so sánh',
+          detail: {
+            round: 1,
+            issue_type: 'report_level_synthesis',
+            severity: 'critical',
+            description: 'Khối đầu tiên được khai báo là headline nhưng không có nội dung; report_level_synthesis thiếu so sánh'
+          }
+        }
+      ];
+
+      const result = deriveTimeline(steps, undefined, { isStreaming: false });
+
+      // Join all text in timeline
+      const fullProse = result.entries
+        .map((e) => `${e.prose} ${e.draftDetail?.text || ''}`)
+        .join(' ');
+
+      // Must not leak fact_ids or internal names
+      expect(fullProse).not.toContain('fact_ids');
+      expect(fullProse).not.toContain('sector:bank');
+      expect(fullProse).not.toContain('report_level_synthesis');
+
+      // Assert no snake_case identifiers exist in prose
+      const snakeMatches = fullProse.match(/\b[a-z]+_[a-z_]+\b/g) || [];
+      expect(snakeMatches).toEqual([]);
+    });
+
+    it('shows chips ONLY for participating agents that actually have events', () => {
+      const steps: TraceStep[] = [
+        {
+          step_id: 't-plan',
+          seq: 1,
+          t_ms: 100,
+          actor: 'orchestrator',
+          recipient: null,
+          kind: 'plan',
+          summary: 'Lập kế hoạch',
+          detail: {
+            question_type: 'head_to_head',
+            // sector was planned but did not execute!
+            agents: [
+              { agent: 'company', decision: 'run' },
+              { agent: 'sector', decision: 'run' },
+              { agent: 'verifier', decision: 'run' }
+            ]
+          }
+        },
+        {
+          step_id: 't-tool',
+          seq: 2,
+          t_ms: 500,
+          actor: 'company',
+          recipient: null,
+          kind: 'tool_result',
+          summary: 'Trả 22 số liệu',
+          detail: { tool: 'head_to_head', label: 'so sánh đối đầu', result_count: 22 }
+        },
+        {
+          step_id: 't-draft',
+          seq: 3,
+          t_ms: 1000,
+          actor: 'company',
+          recipient: null,
+          kind: 'draft',
+          summary: 'Nháp nhận định',
+          detail: {
+            draft_text: 'Câu 1. Câu 2. Câu 3. Câu 4.'
+          }
+        }
+      ];
+
+      const result = deriveTimeline(steps, undefined, { isStreaming: false });
+      const chipIds = result.participatingAgents.map((c) => c.id);
+
+      // Orchestrator and Company participated
+      expect(chipIds).toContain('orchestrator');
+      expect(chipIds).toContain('company');
+
+      // Sector and Verifier did NOT have any event and must be omitted
+      expect(chipIds).not.toContain('sector');
+      expect(chipIds).not.toContain('verifier');
+      expect(chipIds).not.toContain('macro');
+
+      // Count label on company derives from 4 sentences
+      const companyChip = result.participatingAgents.find((c) => c.id === 'company');
+      expect(companyChip?.countLabel).toBe('4 nhận định');
+    });
+  });
 });

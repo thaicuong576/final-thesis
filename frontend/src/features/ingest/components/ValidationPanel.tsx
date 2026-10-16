@@ -99,7 +99,7 @@ export function ValidationPanel({
                 key={idx}
                 check={check}
                 onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
+                isHighlighted={Boolean(check.row_ids?.some((id) => highlightedRowIds.includes(id)))}
               />
             ))}
           </div>
@@ -119,7 +119,7 @@ export function ValidationPanel({
                 key={idx}
                 check={check}
                 onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
+                isHighlighted={Boolean(check.row_ids?.some((id) => highlightedRowIds.includes(id)))}
               />
             ))}
           </div>
@@ -139,7 +139,7 @@ export function ValidationPanel({
                 key={idx}
                 check={check}
                 onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
+                isHighlighted={Boolean(check.row_ids?.some((id) => highlightedRowIds.includes(id)))}
               />
             ))}
           </div>

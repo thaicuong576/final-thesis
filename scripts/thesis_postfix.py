@@ -91,13 +91,6 @@ def main():
                 n += 1
     print("terminology fixes:", n)
 
-    # 2. convention sentence after the first "tác tử (agent)" definition in chapter 1
-    for p in doc.paragraphs:
-        if "tác tử (agent)" in p.text and "Trong khóa luận này" not in p.text:
-            p.runs[-1].text = p.runs[-1].text.rstrip() + CONVENTION
-            print("convention sentence added")
-            break
-
     # 3. front matter: list headings are not TOC headings; chapter headings start a new page
     front = {"MỤC LỤC", "DANH MỤC HÌNH ẢNH", "DANH MỤC BẢNG BIỂU"}
     for p in doc.paragraphs:

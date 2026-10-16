@@ -6,7 +6,7 @@ Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng v�
 
 ### 3.1.1. Nghiên cứu khoa học thiết kế kết hợp nghiên cứu tình huống
 
-Khóa luận dùng phương pháp nghiên cứu khoa học thiết kế (Design Science Research – DSR), trong đó kết quả nghiên cứu là một sản phẩm giải quyết bài toán thực tế và được đánh giá bằng đo lường (Hevner và cộng sự, 2004), kết hợp với nghiên cứu tình huống trên nhóm ngân hàng niêm yết Việt Nam. Tình huống ngân hàng giúp bám sát nghiệp vụ thực tế, như sự khác nhau giữa báo cáo hợp nhất và báo cáo riêng của ngân hàng mẹ hay quy định phân loại nợ, đồng thời tạo môi trường thử nghiệm có kiểm soát: dữ liệu được chuẩn bị và khóa trước nên các cấu hình được so sánh công bằng và kết quả có thể lặp lại.
+Để giải quyết bài toán trên, nghiên cứu này áp dụng phương pháp nghiên cứu khoa học thiết kế (Design Science Research – DSR), trong đó kết quả nghiên cứu là một sản phẩm giải quyết bài toán thực tế và được đánh giá bằng đo lường (Hevner và cộng sự, 2004), kết hợp với nghiên cứu tình huống trên nhóm ngân hàng niêm yết Việt Nam. Tình huống ngân hàng giúp bám sát nghiệp vụ thực tế, như sự khác nhau giữa báo cáo hợp nhất và báo cáo riêng của ngân hàng mẹ hay quy định phân loại nợ, đồng thời tạo môi trường thử nghiệm có kiểm soát: dữ liệu được chuẩn bị và khóa trước nên các cấu hình được so sánh công bằng và kết quả có thể lặp lại.
 
 ### 3.1.2. Quy trình sáu bước
 
@@ -16,16 +16,16 @@ Quy trình nghiên cứu gồm sáu bước (Hình 3.1):
 2. **Chuyển thành yêu cầu thiết kế:** chương trình tính mọi con số, mô hình ngôn ngữ chỉ diễn giải; mỗi số liệu truy được về trang báo cáo gốc; mọi câu nhận định qua bộ kiểm tra theo quy tắc; phản biện có giới hạn.
 3. **Xây dựng sản phẩm:** tầng lõi (tính chỉ tiêu, kiểm tra câu, kiểm tra cấu trúc báo cáo) và tầng ứng dụng (hiểu câu hỏi, lập kế hoạch, điều phối tác tử, giao diện web).
 4. **Kiểm tra kỹ thuật:** hơn 900 bài kiểm thử tự động, kiểm tra ranh giới kiến trúc và đặc tả giao diện trước mỗi lần hợp nhất mã nguồn.
-5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước; bốn thực nghiệm bổ sung (E1, E2, E3, E5, mục 3.3.5) đo độ nhạy của bộ kiểm chứng, sự phụ thuộc vào mô hình, khả năng chống chịu trước câu hỏi đối kháng và khả năng số hóa từ báo cáo gốc.
+5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước; bốn thực nghiệm bổ sung (mục 3.3.5) đo độ nhạy của bộ kiểm chứng, sự phụ thuộc vào mô hình, khả năng chống chịu trước câu hỏi đối kháng và khả năng số hóa từ báo cáo gốc.
 6. **Đánh giá:** chấm tự động theo quy tắc về độ chính xác số liệu, khả năng truy nguồn, độ bao phủ, khả năng từ chối câu hỏi ngoài phạm vi và chi phí (thời gian, lượt gọi mô hình, token).
 
 ```mermaid
 flowchart TB
     S1["<b>1. Xác định vấn đề</b>: số liệu nhạy ngữ cảnh, rủi ro mô hình tự tạo số, chi phí phối hợp nhiều tác tử"]
-    S2["<b>2. Yêu cầu thiết kế</b>: code tính số, mô hình diễn giải; truy nguồn tới trang; kiểm tra từng câu"]
+    S2["<b>2. Yêu cầu thiết kế</b>: chương trình tính số, mô hình diễn giải; truy nguồn tới trang; kiểm tra từng câu"]
     S3["<b>3. Xây dựng sản phẩm</b>: tầng lõi, tầng ứng dụng và giao diện web"]
     S4["<b>4. Kiểm tra kỹ thuật</b>: kiểm thử tự động và kiểm tra ranh giới kiến trúc"]
-    S5["<b>5. Thực nghiệm</b>: A/B/C trên 12 câu hỏi, 10 ngân hàng; thực nghiệm bổ sung E1, E2, E3, E5"]
+    S5["<b>5. Thực nghiệm</b>: A/B/C trên 12 câu hỏi, 10 ngân hàng; thực nghiệm bổ sung về độ nhạy, mô hình, đối kháng và số hóa"]
     S6["<b>6. Đánh giá</b>: chấm theo quy tắc về khớp số, truy nguồn, độ phủ, từ chối, chi phí"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6
 ```
@@ -33,11 +33,11 @@ flowchart TB
 
 ### 3.1.3. Gắn câu hỏi nghiên cứu với phương pháp
 
-- **RQ1 (thiết kế và truy nguồn)** được trả lời bằng kiến trúc và sản phẩm ở Chương 4: luồng đi từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt chuỗi bằng chứng.
-- **RQ2 (chia việc cho nhiều tác tử)** được trả lời bằng so sánh cấu hình B với A trên cùng kế hoạch và dữ liệu, đo cả chất lượng lẫn chi phí.
-- **RQ3 (phản biện và sửa đổi)** được trả lời bằng so sánh cấu hình C với B.
+- **câu hỏi nghiên cứu thứ nhất (thiết kế và truy nguồn)** được trả lời bằng kiến trúc và sản phẩm ở Chương 4: luồng đi từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt chuỗi bằng chứng.
+- **Câu hỏi nghiên cứu thứ hai (chia việc cho nhiều tác tử)** được trả lời bằng so sánh cấu hình B với A trên cùng kế hoạch và dữ liệu, đo cả chất lượng lẫn chi phí.
+- **Câu hỏi nghiên cứu thứ ba (phản biện và sửa đổi)** được trả lời bằng so sánh cấu hình C với B.
 
-Các thực nghiệm bổ sung ở mục 3.3.5 không trả lời một câu hỏi nghiên cứu riêng mà kiểm tra độ tin cậy của kết luận: bộ kiểm chứng câu có thật sự bắt được câu sai hay không (E1), kết luận có đổi theo mô hình hay không (E2), hệ thống có giữ được ranh giới trước câu hỏi đối kháng hay không (E3), và quy trình đưa số liệu vào hệ thống khó ở bước nào (E5).
+Các thực nghiệm bổ sung ở mục 3.3.5 không trả lời một câu hỏi nghiên cứu riêng mà kiểm tra độ tin cậy của kết luận: bộ kiểm chứng câu có thật sự bắt được câu sai hay không, kết luận có đổi theo mô hình hay không, hệ thống có giữ được ranh giới trước câu hỏi đối kháng hay không, và quy trình đưa số liệu vào hệ thống khó ở bước nào.
 
 Nghiên cứu không mặc định nhiều tác tử hay phản biện luôn tốt hơn; kết luận dựa trên số liệu thực nghiệm.
 
@@ -68,7 +68,7 @@ flowchart LR
 | 3. Bộ dữ liệu vận hành | Số liệu đã đối chiếu từng ô với báo cáo gốc | Mỗi số có vị trí nguồn (trang, bảng, dòng, cột); chỉ tiêu tính ra được tính lại theo công thức được định danh phiên bản và lưu bản ghi truy vết phép tính. |
 | 4. Bộ dữ liệu đã khóa (cố định) | Bộ dữ liệu vận hành được cố định bằng mã băm | Dùng làm căn cứ chung để chấm và so sánh ba cấu hình A, B, C. |
 
-### 3.2.2. Nguyên tắc "code tính số, mô hình ngôn ngữ diễn giải"
+### 3.2.2. Nguyên tắc tách bạch giữa tính toán định lượng và diễn giải ngôn ngữ
 
 1. **Chương trình làm mọi phép tính.** Mô hình không tự tính tỷ lệ, biến động hay thứ hạng; mọi con số được tính sẵn và lưu cùng nguồn, công thức và mã định danh.
 2. **Mô hình chỉ diễn giải.** Mô hình nhận số liệu đã tính để viết câu nhận định tiếng Việt và chọn cách trình bày.
@@ -118,7 +118,7 @@ Ba cấu hình được thiết kế để tách riêng tác động của việ
 
 ### 3.3.2. Kiểm soát tính công bằng
 
-1. **Kế hoạch cố định dùng chung:** kế hoạch được lập theo quy tắc, không do mô hình đề xuất, nên với cùng câu hỏi cả ba cấu hình nhận cùng công cụ, ngân hàng và kỳ; sau khi chạy, hệ thống kiểm tra lại các kế hoạch có giống hệt nhau giữa ba cấu hình hay không.
+1. **Kế hoạch cố định dùng chung:** trong thực nghiệm, kế hoạch được lập bằng bộ quy tắc xác định, không do mô hình đề xuất, nên với cùng câu hỏi cả ba cấu hình nhận cùng công cụ, ngân hàng và kỳ; sau khi chạy, hệ thống kiểm tra lại các kế hoạch có giống hệt nhau giữa ba cấu hình hay không.
 2. **Dữ liệu đầu vào giống nhau:** cùng kế hoạch nên công cụ tạo cùng tập số liệu và biểu đồ cho cả ba cấu hình.
 3. **Cùng mô hình và thiết lập** cho mọi tác tử trong cả ba cấu hình.
 4. **Cùng bộ kiểm tra câu** cho mọi câu nhận định.
@@ -166,18 +166,18 @@ Thực nghiệm chạy một lần cho mỗi cặp câu hỏi – cấu hình (3
 
 ### 3.3.5. Các thực nghiệm bổ sung
 
-Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nhằm kiểm tra độ tin cậy của các cơ chế kiểm soát mà kết luận ở trên dựa vào. Cả bốn được chấm hoàn toàn bằng chương trình theo quy tắc cố định, không dùng mô hình ngôn ngữ tự chấm; E2 và E3 dùng bộ chỉ số ở Bảng 3.5, còn E1 và E5 dùng chỉ số riêng (tỷ lệ bắt được lỗi cài vào; tỷ lệ giá trị có mặt và được trích đúng).
+Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nhằm kiểm tra độ tin cậy của các cơ chế kiểm soát mà kết luận ở trên dựa vào. Cả bốn được chấm hoàn toàn bằng chương trình theo quy tắc cố định, không dùng mô hình ngôn ngữ tự chấm; thực nghiệm so sánh mô hình và kiểm tra đối kháng dùng bộ chỉ số ở Bảng 3.5, còn thực nghiệm độ nhạy bộ kiểm chứng và thực nghiệm đo khả năng số hóa dùng chỉ số riêng (tỷ lệ bắt được lỗi cài vào; tỷ lệ giá trị có mặt và được trích đúng).
 
 *Bảng 3.6: Các thực nghiệm bổ sung.*
 
-| Mã | Câu hỏi | Cách làm | Gọi mô hình |
+| Thực nghiệm | Câu hỏi | Cách làm | Gọi mô hình |
 |---|---|---|---|
-| E1 – đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
-| E2 – nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với ba mô hình OpenAI, mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên mã mới để kiểm tra độ ổn định | Có |
-| E3 – đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
-| E5 – số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
+| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
+| Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với ba mô hình OpenAI, mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên phiên bản hệ thống sau nâng cấp để kiểm tra độ ổn định | Có |
+| Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
+| Số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
 
-Để các lần chạy bổ sung không làm lệch kết luận chính, bốn nguyên tắc được áp dụng. Thứ nhất, mỗi thực nghiệm ghi rõ mô hình, phiên bản mã nguồn, số câu, số lần chạy và số token; E2 chỉ so sánh các mô hình trong cùng một phiên bản mã nguồn. Thứ hai, lần chạy bị lỗi cấu hình (chạy nhầm mô hình, gateway trả lỗi) được tách riêng và không đưa vào bảng kết quả nào. Thứ ba, khi chỉ chạy ít lần (ba lần), báo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy. Thứ tư, khi một thực nghiệm phát hiện lỗi của hệ thống, lỗi được sửa và chạy lại có kiểm soát, và kết quả trước và sau sửa được báo cùng nhau chứ không thay thế nhau (E3, Chương 5).
+Để các lần chạy bổ sung không làm lệch kết luận chính, bốn nguyên tắc được áp dụng. Thứ nhất, mỗi thực nghiệm ghi rõ mô hình, phiên bản mã nguồn, số câu, số lần chạy và số token; thực nghiệm so sánh mô hình chỉ so sánh các mô hình trong cùng một phiên bản mã nguồn. Thứ hai, lần chạy bị lỗi cấu hình hoặc lỗi hạ tầng của dịch vụ mô hình được tách riêng và không đưa vào bảng kết quả nào. Thứ ba, khi chỉ chạy ít lần (ba lần), báo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy. Thứ tư, khi một thực nghiệm phát hiện lỗi của hệ thống, lỗi được sửa và chạy lại có kiểm soát, và kết quả trước và sau sửa được báo cùng nhau chứ không thay thế nhau (kiểm tra đối kháng, Chương 5).
 
 ## 3.4. Giới hạn của phương pháp
 
@@ -186,5 +186,5 @@ Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, n
 3. **Dữ liệu thiếu:** bộ dữ liệu đủ 100/100 ô nên thực nghiệm không có tình huống thiếu số liệu; khả năng xử lý ô thiếu chỉ được kiểm tra bằng bài kiểm thử tự động.
 4. **Chấm tự động:** bộ chấm kiểm tra tốt tính đúng của số liệu và cấu trúc, nhưng không đo văn phong, tính thuyết phục hay chiều sâu phân tích; không có chuyên gia chấm.
 5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên một mô hình; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
-6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** E1 đo trên các lỗi do chương trình sinh ra từ câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát.
+6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** Thực nghiệm độ nhạy bộ kiểm chứng đo trên các lỗi giả lập do chương trình tạo ra từ những câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát.
 7. **Không khuyến nghị đầu tư:** hệ thống chỉ tổng hợp thông tin và phân tích cơ bản; định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.

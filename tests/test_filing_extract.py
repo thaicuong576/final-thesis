@@ -48,9 +48,38 @@ class TestFilingExtractPure(unittest.TestCase):
         self.assertEqual(detect_unit("Đơn vị: tỷ đồng"), "billion_vnd")
         self.assertIsNone(detect_unit("Không có thông tin đơn vị ở đây"))
 
+        # OCR-garbled headers (from Tesseract -l eng on scanned bank filings)
+        self.assertEqual(detect_unit("Triéu VND"), "million_vnd")
+        self.assertEqual(detect_unit("Tr. VND"), "million_vnd")
+        self.assertEqual(detect_unit("TRIỆU ĐỒNG"), "million_vnd")
+        self.assertEqual(detect_unit("Don vi: trieu dong"), "million_vnd")
+        self.assertEqual(detect_unit("minh Triu VND Triu VND"), "million_vnd")
+        self.assertEqual(detect_unit("minh TriguVND ~_Triu VND"), "million_vnd")
+        self.assertEqual(detect_unit("Bon vi: Trigu VND"), "million_vnd")
+        self.assertEqual(detect_unit("minh triéu déng triéu déng"), "million_vnd")
+        self.assertEqual(detect_unit("Chỉ tiêu 31/12/2025 Triệu VND 31/12/2024 Triệu VND"), "million_vnd")
+
+        # Bare VND/dong with no multiplier word MUST return None
+        self.assertIsNone(detect_unit("VND"))
+        self.assertIsNone(detect_unit("dong"))
+        self.assertIsNone(detect_unit("Báo cáo tài chính hợp nhất (VND)"))
+        self.assertIsNone(detect_unit("Kính gửi: Các cổ đông của Ngân hàng"))
+
+        # nghìn đồng and tỷ đồng
+        self.assertEqual(detect_unit("Đơn vị: nghìn đồng"), "thousand_vnd")
+        self.assertEqual(detect_unit("Thuyết minh nghìn VND"), "thousand_vnd")
+        self.assertEqual(detect_unit("Đơn vị: tỷ đồng"), "billion_vnd")
+        self.assertEqual(detect_unit("Số liệu tính theo tỷ VND"), "billion_vnd")
+
+        # unit_to_multiplier requires explicit valid unit
         self.assertEqual(unit_to_multiplier("million_vnd"), Decimal("0.001"))
         self.assertEqual(unit_to_multiplier("billion_vnd"), Decimal("1.0"))
+        self.assertEqual(unit_to_multiplier("thousand_vnd"), Decimal("0.000001"))
         self.assertEqual(unit_to_multiplier("vnd"), Decimal("0.000000001"))
+        with self.assertRaises(ValueError):
+            unit_to_multiplier(None)
+        with self.assertRaises(ValueError):
+            unit_to_multiplier("unknown_unit")
 
     def test_parse_number_token(self) -> None:
         self.assertEqual(parse_number_token("1.025.850.127"), Decimal("1025850127"))

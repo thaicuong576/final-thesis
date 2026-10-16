@@ -300,22 +300,70 @@ def classify_pages(pages: list[PageInput]) -> StatementPages:
 # Unit Normalization
 # =============================================================================
 
+# Regex patterns for unit detection in Vietnamese banking filings and OCR artifacts
+_MILLION_RE = re.compile(
+    r"\btri[a-z]{0,3}u\s*(?:vnd|d[a-z]{0,3}ng|d\b)"
+    r"|\btr[.,]?\s*vnd\b"
+    r"|\bmillion\b"
+    r"|\b(?:don\s*vi(?:\s*tinh)?|dvt|dvi|bon\s*vi)\s*[:=]?\s*(?:tri[a-z]{0,3}u|million)\b",
+    re.IGNORECASE,
+)
+_THOUSAND_RE = re.compile(
+    r"\b(?:nghin|ngan)\s*(?:vnd|d[a-z]{0,3}ng|d\b)\b"
+    r"|\bthousand\b"
+    r"|\b(?:don\s*vi(?:\s*tinh)?|dvt)\s*[:=]?\s*(?:nghin|ngan)\b",
+    re.IGNORECASE,
+)
+_BILLION_RE = re.compile(
+    r"\b(?:ty|ti)\s*(?:vnd|d[a-z]{0,3}ng|d\b)\b"
+    r"|\bbillion\b"
+    r"|\b(?:don\s*vi(?:\s*tinh)?|dvt)\s*[:=]?\s*(?:ty|ti)\b",
+    re.IGNORECASE,
+)
+_VND_EXPLICIT_RE = re.compile(
+    r"\b(?:don\s*vi(?:\s*tinh)?|dvt|dvi|bon\s*vi)\s*[:=]?\s*(?:vnd|dong)\b",
+    re.IGNORECASE,
+)
+
+
 def detect_unit(text: str) -> Optional[str]:
-    """Detect monetary reporting unit from page header or table header."""
-    folded = fold(text[:1500])  # Look in the top part of the page
-    if "trieu dong" in folded or "trieu vnd" in folded or "million vnd" in folded or "tr d" in folded:
+    """Detect monetary reporting unit from page header, table header, or text lines.
+
+    Checks the first 25 lines of the page text and the first 1500 chars for explicit
+    unit indicators. Never lets a bare 'vnd' or 'dong' mention imply unit = vnd
+    without an explicit unit indicator (e.g. 'Đơn vị tính: VND').
+    """
+    lines = text.splitlines()[:25]
+    for line in lines:
+        f = fold(line)
+        if _MILLION_RE.search(f):
+            return "million_vnd"
+        if _THOUSAND_RE.search(f):
+            return "thousand_vnd"
+        if _BILLION_RE.search(f):
+            return "billion_vnd"
+        if _VND_EXPLICIT_RE.search(f):
+            return "vnd"
+
+    # Also check the first 1500 characters
+    f_head = fold(text[:1500])
+    if _MILLION_RE.search(f_head):
         return "million_vnd"
-    if "nghin dong" in folded or "ngan dong" in folded or "nghin vnd" in folded or "thousand vnd" in folded:
+    if _THOUSAND_RE.search(f_head):
         return "thousand_vnd"
-    if "ty dong" in folded or "ty vnd" in folded or "billion vnd" in folded:
+    if _BILLION_RE.search(f_head):
         return "billion_vnd"
-    if "dong" in folded or "vnd" in folded:
+    if _VND_EXPLICIT_RE.search(f_head):
         return "vnd"
+
     return None
 
 
-def unit_to_multiplier(unit: str) -> Decimal:
-    """Return multiplier to convert unit to billion VND."""
+def unit_to_multiplier(unit: Optional[str]) -> Decimal:
+    """Return multiplier to convert unit to billion VND.
+
+    Requires an explicit valid unit. Does not silently default.
+    """
     if unit == "million_vnd":
         return Decimal("0.001")
     if unit == "thousand_vnd":
@@ -324,7 +372,7 @@ def unit_to_multiplier(unit: str) -> Decimal:
         return Decimal("0.000000001")
     if unit == "billion_vnd":
         return Decimal("1.0")
-    return Decimal("0.001")  # Default to million VND for Vietnamese banking filings
+    raise ValueError(f"Explicit unit required; unknown or None unit: {unit!r}")
 
 
 # =============================================================================
@@ -781,13 +829,31 @@ def extract_candidates_from_pages(
     statement_pages = classify_pages(pages)
 
     # 2. Detect global unit
-    detected_unit = "million_vnd"
+    # Prefer statement pages first (balance sheet, income statement, loan note), checking their
+    # header lines (first 25 lines) and table column headers. If not found, inspect all pages.
+    detected_unit: Optional[str] = None
+    statement_page_nums = set(
+        statement_pages.balance_sheet
+        + statement_pages.income_statement
+        + statement_pages.loan_quality_note
+    )
     for p in pages:
-        u = detect_unit(p.text)
-        if u:
-            detected_unit = u
-            break
-    unit_multiplier = unit_to_multiplier(detected_unit)
+        if p.page_number in statement_page_nums:
+            u = detect_unit(p.text)
+            if u:
+                detected_unit = u
+                break
+
+    if not detected_unit:
+        for p in pages:
+            u = detect_unit(p.text)
+            if u:
+                detected_unit = u
+                break
+
+    unit_multiplier: Optional[Decimal] = (
+        unit_to_multiplier(detected_unit) if detected_unit is not None else None
+    )
 
     # Build page lookup
     pages_by_num = {p.page_number: p for p in pages}
@@ -940,7 +1006,7 @@ def extract_candidates_from_pages(
         alternatives: list[RowAlternative] = []
         for alt_score, alt_page, alt_line, alt_amounts in matched_lines[1:4]:
             alt_val = None
-            if alt_amounts:
+            if alt_amounts and unit_multiplier is not None:
                 alt_val = str((alt_amounts[0] * unit_multiplier).quantize(Decimal("0.001")))
             alternatives.append(
                 RowAlternative(
@@ -971,16 +1037,20 @@ def extract_candidates_from_pages(
             if val_prior is not None and val_prior < 0:
                 val_prior = abs(val_prior)
 
-        target_billion = (
-            (val_target * unit_multiplier).quantize(Decimal("0.001"))
-            if val_target is not None
-            else None
-        )
-        prior_billion = (
-            (val_prior * unit_multiplier).quantize(Decimal("0.001"))
-            if val_prior is not None
-            else None
-        )
+        if unit_multiplier is not None:
+            target_billion = (
+                (val_target * unit_multiplier).quantize(Decimal("0.001"))
+                if val_target is not None
+                else None
+            )
+            prior_billion = (
+                (val_prior * unit_multiplier).quantize(Decimal("0.001"))
+                if val_prior is not None
+                else None
+            )
+        else:
+            target_billion = None
+            prior_billion = None
 
         if spec.metric_id == "bank.input.profit_after_tax":
             cached_pat["target"] = target_billion
@@ -1000,15 +1070,26 @@ def extract_candidates_from_pages(
             issues: list[RowIssue] = []
             row_status: Literal["candidate", "needs_review", "missing"] = "candidate"
 
-            if b_val is None:
-                row_status = "missing"
+            if detected_unit is None:
+                row_status = "needs_review"
                 issues.append(
                     RowIssue(
-                        code="column_missing",
-                        severity="error",
-                        message_vi=f"Không tìm thấy cột số liệu cho kỳ {pid} trên dòng này.",
+                        code="unit_unknown",
+                        severity="warning",
+                        message_vi="Không phát hiện được đơn vị tiền tệ trên trang báo cáo; cần người dùng xác nhận.",
                     )
                 )
+
+            if b_val is None:
+                if detected_unit is not None:
+                    row_status = "missing"
+                    issues.append(
+                        RowIssue(
+                            code="column_missing",
+                            severity="error",
+                            message_vi=f"Không tìm thấy cột số liệu cho kỳ {pid} trên dòng này.",
+                        )
+                    )
             else:
                 if not col_info.has_target_header and role == "target":
                     row_status = "needs_review"

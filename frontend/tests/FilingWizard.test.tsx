@@ -224,8 +224,8 @@ describe('FilingWizard (INGEST-3)', () => {
     });
 
     expect(screen.getByText(/Đã nhập thành công vào cơ sở dữ liệu: ACB/)).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ nợ xấu (NPL nhóm 3–5)')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ bao phủ nợ xấu (LLR)')).toBeInTheDocument();
+    expect(screen.getAllByText('Tỷ lệ nợ xấu (NPL nhóm 3–5)')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Tỷ lệ bao phủ nợ xấu (LLR)')[0]).toBeInTheDocument();
     expect(screen.getByTestId('ask-about-bank-button')).toBeInTheDocument();
   });
 

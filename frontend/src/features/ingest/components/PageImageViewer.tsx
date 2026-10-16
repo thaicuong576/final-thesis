@@ -3,19 +3,13 @@ import { Loader2, RefreshCw, ZoomIn, ZoomOut, FileImage, X } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/shared/api/apiClient';
 import { filingPageImageUrl } from '../api/filingService';
+import { pageImageCache } from '../model/pageImageCache';
 
 interface PageImageViewerProps {
   filingId: string;
   pageNumber: number | null;
   onClose?: () => void;
   className?: string;
-}
-
-// In-memory cache by `${filingId}:${pageNumber}` so reopening a page is instant
-const pageImageCache = new Map<string, Blob>();
-
-export function clearPageImageCache(): void {
-  pageImageCache.clear();
 }
 
 export function PageImageViewer({
@@ -31,49 +25,46 @@ export function PageImageViewer({
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!pageNumber) {
-      setObjectUrl(null);
-      setIsLoading(false);
-      setHasError(false);
-      return;
-    }
+    if (!pageNumber) return;
 
     let isCancelled = false;
     let localUrl: string | null = null;
     const cacheKey = `${filingId}:${pageNumber}`;
 
-    const cachedBlob = pageImageCache.get(cacheKey);
-    if (cachedBlob) {
-      localUrl = URL.createObjectURL(cachedBlob);
-      setObjectUrl(localUrl);
-      setIsLoading(false);
-      setHasError(false);
-    } else {
+    void Promise.resolve().then(async () => {
+      const cachedBlob = pageImageCache.get(cacheKey);
+      if (cachedBlob) {
+        if (isCancelled) return;
+        localUrl = URL.createObjectURL(cachedBlob);
+        setObjectUrl(localUrl);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
+      if (isCancelled) return;
       setIsLoading(true);
       setHasError(false);
 
-      apiFetch(filingPageImageUrl(filingId, pageNumber))
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          return res.blob();
-        })
-        .then((blob) => {
-          if (isCancelled) return;
-          pageImageCache.set(cacheKey, blob);
-          localUrl = URL.createObjectURL(blob);
-          setObjectUrl(localUrl);
-          setIsLoading(false);
-          setHasError(false);
-        })
-        .catch(() => {
-          if (isCancelled) return;
-          setObjectUrl(null);
-          setIsLoading(false);
-          setHasError(true);
-        });
-    }
+      try {
+        const res = await apiFetch(filingPageImageUrl(filingId, pageNumber));
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const blob = await res.blob();
+        if (isCancelled) return;
+        pageImageCache.set(cacheKey, blob);
+        localUrl = URL.createObjectURL(blob);
+        setObjectUrl(localUrl);
+        setIsLoading(false);
+        setHasError(false);
+      } catch {
+        if (isCancelled) return;
+        setObjectUrl(null);
+        setIsLoading(false);
+        setHasError(true);
+      }
+    });
 
     return () => {
       isCancelled = true;

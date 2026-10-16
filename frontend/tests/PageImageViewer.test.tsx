@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PageImageViewer, clearPageImageCache } from '@/features/ingest/components/PageImageViewer';
+import { PageImageViewer } from '@/features/ingest/components/PageImageViewer';
+import { clearPageImageCache } from '@/features/ingest/model/pageImageCache';
 import * as apiClient from '@/shared/api/apiClient';
 
 describe('PageImageViewer', () => {
@@ -14,7 +15,7 @@ describe('PageImageViewer', () => {
     clearPageImageCache();
 
     let id = 1;
-    createObjectURLSpy = vi.fn((_blob: Blob) => `blob:http://localhost/mock-uuid-${id++}`);
+    createObjectURLSpy = vi.fn(() => `blob:http://localhost/mock-uuid-${id++}`);
     revokeObjectURLSpy = vi.fn();
     window.URL.createObjectURL = createObjectURLSpy as unknown as typeof window.URL.createObjectURL;
     window.URL.revokeObjectURL = revokeObjectURLSpy as unknown as typeof window.URL.revokeObjectURL;
@@ -192,7 +193,9 @@ describe('PageImageViewer', () => {
     render(<PageImageViewer filingId="fl-123" pageNumber={7} />);
 
     // Instantly available without second fetch
-    expect(screen.getByRole('img', { name: 'Ảnh trang 7 báo cáo tài chính' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('img', { name: 'Ảnh trang 7 báo cáo tài chính' })).toBeInTheDocument();
+    });
     expect(apiFetchSpy).toHaveBeenCalledTimes(1);
   });
 

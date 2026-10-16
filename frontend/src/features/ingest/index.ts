@@ -1,4 +1,5 @@
 export * from './model/types';
+export * from './model/pageImageCache';
 export * from './api/filingService';
 export * from './components/FilingWizard';
 export * from './components/UploadStep';

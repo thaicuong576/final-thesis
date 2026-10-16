@@ -172,16 +172,16 @@ describe('FilingWizard (INGEST-3)', () => {
       </MemoryRouter>
     );
 
-    // Find the edit button for the first target cell
-    const editBtn = screen.getByLabelText(`Sửa giá trị ${filingWithIssues.rows[0].row_id}`);
-    await userEvent.click(editBtn);
+    // Find the edit button for the first target cell (use getAllBy because of desktop table + mobile card responsive views)
+    const editBtns = screen.getAllByLabelText(`Sửa giá trị ${filingWithIssues.rows[0].row_id}`);
+    await userEvent.click(editBtns[0]);
 
-    const input = screen.getByLabelText('Nhập số tiền tỷ đồng');
-    await userEvent.clear(input);
-    await userEvent.type(input, '800.000');
+    const inputs = screen.getAllByLabelText('Nhập số tiền tỷ đồng');
+    await userEvent.clear(inputs[0]);
+    await userEvent.type(inputs[0], '800.000');
 
-    const saveBtn = screen.getByTitle('Lưu');
-    await userEvent.click(saveBtn);
+    const saveBtns = screen.getAllByTitle('Lưu');
+    await userEvent.click(saveBtns[0]);
 
     expect(filingService.updateRow).toHaveBeenCalledWith(
       filingWithIssues.filing_id,

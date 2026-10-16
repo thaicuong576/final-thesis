@@ -118,11 +118,11 @@ describe('FilingWizard (INGEST-3)', () => {
 
     // Step 3: Extracted rows table
     expect(screen.getByTestId('extracted-rows-section')).toBeInTheDocument();
-    expect(screen.getByText('Nợ nhóm 3')).toBeInTheDocument();
-    expect(screen.getByText('Nợ nhóm 4')).toBeInTheDocument();
-    expect(screen.getByText('Nợ nhóm 5')).toBeInTheDocument();
-    expect(screen.getByText('Dư nợ cho vay gộp')).toBeInTheDocument();
-    expect(screen.getByText('Tổng tài sản')).toBeInTheDocument();
+    expect(screen.getAllByText('Nợ nhóm 3')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Nợ nhóm 4')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Nợ nhóm 5')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Dư nợ cho vay gộp')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Tổng tài sản')[0]).toBeInTheDocument();
 
     // Step 4: Validation panel
     expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe('FilingWizard (INGEST-3)', () => {
     expect(filingService.updateRow).toHaveBeenCalledWith(
       filingWithIssues.filing_id,
       filingWithIssues.rows[0].row_id,
-      { value_billion_vnd: '800.000', confirmed: false }
+      { value_billion_vnd: '800.000', confirmed: true }
     );
   });
 

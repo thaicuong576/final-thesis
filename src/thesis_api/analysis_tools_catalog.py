@@ -63,7 +63,7 @@ TOOL_CATALOG: dict[str, ToolDefinition] = {
     "head_to_head": ToolDefinition(
         name="head_to_head",
         agent="sector",
-        description="So sánh đối đầu trực diện giữa 2-3 ngân hàng trên 1-4 chỉ tiêu tại một kỳ.",
+        description="So sánh trực diện giữa 2-3 ngân hàng trên 1-4 chỉ tiêu tại một kỳ.",
         required_params=("entities", "metrics", "period"),
         optional_params=(),
     ),

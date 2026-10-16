@@ -50,7 +50,7 @@ SAMPLE_DEFINITIONS: dict[str, dict[str, Any]] = {
         "display_name": "Ngân hàng TMCP Quân đội",
         "fiscal_year": 2025,
         "page_count": 53,
-        "note_vi": "Số liệu mẫu MBB cố ý chứa sai lệch ở chỉ tiêu Lợi nhuận sau thuế so với tổng lợi nhuận cổ đông mẹ và CĐKKS, kích hoạt cảnh báo lỗi kế toán pat_equals_parent_plus_nci.",
+        "note_vi": "Số liệu mẫu MBB cố ý chứa sai lệch ở chỉ tiêu Lợi nhuận sau thuế so với tổng lợi nhuận cổ đông mẹ và CĐKKS, kích hoạt cảnh báo lỗi kế toán về lợi nhuận sau thuế.",
         "csv_filename": "MBB-2025q4.csv",
     },
 }
@@ -295,18 +295,18 @@ def generate_sample_placeholder_png(page_number: int, page_count: int = 1, entit
     # Top header banner
     header_rect = fitz.Rect(45, 45, 550, 110)
     page.draw_rect(header_rect, color=(0.75, 0.80, 0.88), fill=(0.93, 0.95, 0.98), width=1)
-    tag = f"TÀI LIỆU MẪU: {entity_id.upper()} - NĂM 2025" if entity_id else "TÀI LIỆU MẪU BÁO CÁO TÀI CHÍNH"
+    tag = f"TAI LIEU MAU - {entity_id.upper()} - NAM 2025" if entity_id else "TAI LIEU MAU - BAO CAO TAI CHINH"
     page.insert_text((65, 85), tag, fontsize=15, color=(0.12, 0.18, 0.30))
 
     # Center box with clear notice
     notice_rect = fitz.Rect(45, 300, 550, 480)
     page.draw_rect(notice_rect, color=(0.70, 0.78, 0.88), fill=(1.0, 1.0, 1.0), width=1)
 
-    msg_main = "Trang gốc không có trong bộ mẫu"
+    msg_main = "Trang goc khong co trong bo mau"
     page.insert_text((90, 370), msg_main, fontsize=20, color=(0.12, 0.18, 0.35))
-    msg_sub1 = f"Dữ liệu số liệu đã được chuẩn hoá sẵn từ báo cáo tài chính kiểm toán (Trang {page_number}/{page_count})."
+    msg_sub1 = f"Du lieu so lieu da duoc chuan hoa san tu bao cao tai chinh kiem toan (Trang {page_number}/{page_count})."
     page.insert_text((65, 415), msg_sub1, fontsize=10.5, color=(0.35, 0.40, 0.50))
-    msg_sub2 = "Người dùng có thể đối chiếu và chỉnh sửa các chỉ tiêu trực tiếp trên bảng số liệu."
+    msg_sub2 = "Nguoi dung co the doi chieu va chinh sua cac chi tieu truc tiep tren bang so lieu."
     page.insert_text((65, 440), msg_sub2, fontsize=10, color=(0.45, 0.50, 0.60))
 
     # Footer note

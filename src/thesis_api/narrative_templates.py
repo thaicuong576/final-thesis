@@ -706,7 +706,7 @@ def default_report_spec(
     elif lead_f:
         hl_sent = make_fallback_sentence(lead_f, author="orchestrator", seq=seq)
     else:
-        hl_sent = make_fallback_sentence(all_facts[0], author="orchestrator", seq=seq) if all_facts else SentenceDTO(sentence_id="sent-fb-1", text="So sánh đối đầu.", fact_ids=[], author="orchestrator", source="deterministic_fallback")
+        hl_sent = make_fallback_sentence(all_facts[0], author="orchestrator", seq=seq) if all_facts else SentenceDTO(sentence_id="sent-fb-1", text="So sánh trực diện.", fact_ids=[], author="orchestrator", source="deterministic_fallback")
     blocks.append(HeadlineBlockDTO(type="headline", sentence=hl_sent))
     seq += 1
 
@@ -746,7 +746,7 @@ def default_report_spec(
 
     return ReportSpecDTO(
         kind="note",
-        note_label="So sánh đối đầu",
+        note_label="So sánh trực diện",
         blocks=blocks,
         composition_source="deterministic_fallback",
     )

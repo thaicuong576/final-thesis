@@ -15,7 +15,7 @@ QUESTION_TYPE_LABELS_VI: dict[str, str] = {
     "company_profile": "Hồ sơ doanh nghiệp",
     "ranking": "Xếp hạng",
     "trend": "Diễn biến",
-    "head_to_head": "Đối đầu",
+    "head_to_head": "Trực diện",
     "sector_theme": "Chủ đề toàn nhóm",
     "relationship": "Quan hệ chỉ tiêu",
 }
@@ -23,7 +23,7 @@ QUESTION_TYPE_LABELS_VI: dict[str, str] = {
 TOOL_LABELS_VI: dict[str, str] = {
     "lookup": "tra cứu chỉ tiêu",
     "trend": "diễn biến chuỗi thời gian",
-    "head_to_head": "so sánh đối đầu",
+    "head_to_head": "so sánh trực diện",
     "decomposition": "phân rã chỉ tiêu",
     "peer_position": "vị thế nhóm ngành",
     "ranking": "xếp hạng toàn nhóm",

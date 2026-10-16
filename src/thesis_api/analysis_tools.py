@@ -932,7 +932,7 @@ def run_head_to_head_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             DatasetDTO(
                 dataset_id=f"ds-h2h-{slug}-{period.lower().replace('_', '')}",
                 shape="comparison_table",
-                title=f"So sánh đối đầu · {' vs '.join(entities)} ({_format_quarter_period(period)})",
+                title=f"So sánh trực diện · {' vs '.join(entities)} ({_format_quarter_period(period)})",
                 produced_by=ProducedByDTO(tool="head_to_head", agent="company"),
                 metric_ids=list(metrics),
                 periods=[period],
@@ -942,7 +942,7 @@ def run_head_to_head_tool(ctx: ToolContext, params: dict[str, Any]) -> ToolResul
             )
         )
 
-    label = f"So sánh đối đầu · {' vs '.join(entities)}"
+    label = f"So sánh trực diện · {' vs '.join(entities)}"
     return ToolResult(tool="head_to_head", agent="company", label=label, facts=facts, datasets=datasets, missing=missing)
 
 

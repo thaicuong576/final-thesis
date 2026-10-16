@@ -757,7 +757,8 @@ def create_app(
                         if unreadable_pages:
                             if tesseract_avail:
                                 for pno in unreadable_pages:
-                                    page_inp = tesseract_provider.get_page_text(pdf_path, pno, cache_dir=pages_dir)
+                                    # Stage A classification only; do not pollute final pages_dir
+                                    page_inp = tesseract_provider.get_page_text(pdf_path, pno, cache_dir=None)
                                     stage_a_pages.append(page_inp)
                             else:
                                 for pno in unreadable_pages:

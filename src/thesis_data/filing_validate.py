@@ -38,6 +38,16 @@ PROFIT_METRICS = (
     "bank.input.parent_attributable_profit",
 )
 
+ROLE_LABELS_VI: dict[str, str] = {
+    "target": "kỳ mục tiêu",
+    "prior": "kỳ so sánh",
+}
+
+
+def role_vi(role: str) -> str:
+    """Return human-readable Vietnamese label for period role."""
+    return ROLE_LABELS_VI.get(role, role)
+
 
 @dataclass(frozen=True)
 class CheckResult:
@@ -146,7 +156,7 @@ def validate_filing_rows(
                     CheckResult(
                         code="missing_required",
                         severity="error",
-                        message_vi=f"Thiếu dòng chỉ tiêu bắt buộc '{label}' cho kỳ {role}.",
+                        message_vi=f"Thiếu dòng chỉ tiêu bắt buộc '{label}' cho {role_vi(role)}.",
                         row_ids=[r_id],
                     )
                 )
@@ -163,7 +173,7 @@ def validate_filing_rows(
                     CheckResult(
                         code="missing_required",
                         severity="error",
-                        message_vi=f"Chỉ tiêu '{label}' ({role}) chưa có giá trị.",
+                        message_vi=f"Chỉ tiêu '{label}' ({role_vi(role)}) chưa có giá trị.",
                         row_ids=[r_id],
                     )
                 )
@@ -200,7 +210,7 @@ def validate_filing_rows(
                         severity="error",
                         message_vi=(
                             f"Lợi nhuận sau thuế ({pat}) không bằng lợi nhuận cổ đông mẹ ({parent}) + "
-                            f"lợi ích CĐKKS ({nci}) kỳ {role} (lệch {diff:.4f} tỷ, vượt dung sai {tol:.4f} tỷ)."
+                            f"lợi ích CĐKKS ({nci}) ở {role_vi(role)} (lệch {diff:.4f} tỷ, vượt dung sai {tol:.4f} tỷ)."
                         ),
                         row_ids=[pat_id, parent_id, nci_id],
                         expected=str(expected_pat),
@@ -225,7 +235,7 @@ def validate_filing_rows(
                     CheckResult(
                         code="npl_sum_le_loans",
                         severity="error",
-                        message_vi=f"Dư nợ cho vay khách hàng kỳ {role} phải lớn hơn 0 (thực tế: {loans}).",
+                        message_vi=f"Dư nợ cho vay khách hàng ở {role_vi(role)} phải lớn hơn 0 (thực tế: {loans}).",
                         row_ids=[loans_id],
                         expected="> 0",
                         actual=str(loans),
@@ -253,7 +263,7 @@ def validate_filing_rows(
                             code="npl_sum_le_loans",
                             severity="warning",
                             message_vi=(
-                                f"Tỷ lệ nợ xấu nhóm 3+4+5 trên dư nợ cho vay kỳ {role} ở mức cao ({float(ratio) * 100:.2f}%), "
+                                f"Tỷ lệ nợ xấu nhóm 3+4+5 trên dư nợ cho vay ở {role_vi(role)} ở mức cao ({float(ratio) * 100:.2f}%), "
                                 f"nằm trong khoảng cảnh báo [10%, 25%]."
                             ),
                             row_ids=row_ids,
@@ -273,7 +283,7 @@ def validate_filing_rows(
                     CheckResult(
                         code="provisions_range",
                         severity="error",
-                        message_vi=f"Dự phòng rủi ro cho vay ({prov}) nằm ngoài khoảng [0, dư nợ ({loans})] cho kỳ {role}.",
+                        message_vi=f"Dự phòng rủi ro cho vay ({prov}) nằm ngoài khoảng [0, dư nợ ({loans})] ở {role_vi(role)}.",
                         row_ids=[prov_id, loans_id],
                         expected=f"0 <= dự phòng <= {loans}",
                         actual=str(prov),
@@ -292,7 +302,7 @@ def validate_filing_rows(
                 CheckResult(
                     code="assets_gt_loans",
                     severity="error",
-                    message_vi=f"Tổng tài sản ({assets}) phải lớn hơn dư nợ cho vay ({loans}) cho kỳ {role}.",
+                    message_vi=f"Tổng tài sản ({assets}) phải lớn hơn dư nợ cho vay ({loans}) ở {role_vi(role)}.",
                     row_ids=[assets_id, loans_id],
                     expected=f"Tổng tài sản > {loans}",
                     actual=str(assets),
@@ -304,7 +314,7 @@ def validate_filing_rows(
                 CheckResult(
                     code="assets_gt_equity",
                     severity="error",
-                    message_vi=f"Tổng tài sản ({assets}) phải lớn hơn tổng vốn chủ sở hữu ({equity}) cho kỳ {role}.",
+                    message_vi=f"Tổng tài sản ({assets}) phải lớn hơn tổng vốn chủ sở hữu ({equity}) ở {role_vi(role)}.",
                     row_ids=[assets_id, equity_id],
                     expected=f"Tổng tài sản > {equity}",
                     actual=str(assets),
@@ -316,7 +326,7 @@ def validate_filing_rows(
                 CheckResult(
                     code="equity_ge_nci",
                     severity="error",
-                    message_vi=f"Tổng vốn chủ sở hữu ({equity}) phải lớn hơn hoặc bằng lợi ích CĐKKS ({nci}) cho kỳ {role}.",
+                    message_vi=f"Tổng vốn chủ sở hữu ({equity}) phải lớn hơn hoặc bằng lợi ích CĐKKS ({nci}) ở {role_vi(role)}.",
                     row_ids=[equity_id, nci_id],
                     expected=f"Vốn chủ sở hữu >= {nci}",
                     actual=str(equity),
@@ -356,7 +366,7 @@ def validate_filing_rows(
                     CheckResult(
                         code="magnitude_range",
                         severity="error",
-                        message_vi=f"Chỉ tiêu '{label}' ({role}) có giá trị âm ({val}), không hợp lệ cho chỉ tiêu số dư.",
+                        message_vi=f"Chỉ tiêu '{label}' ({role_vi(role)}) có giá trị âm ({val}), không hợp lệ cho chỉ tiêu số dư.",
                         row_ids=[r_id],
                         expected=">= 0",
                         actual=str(val),
@@ -470,11 +480,18 @@ def validate_filing_rows(
             iss_sev = _get_row_prop(iss, "severity", "warning")
             iss_msg = _get_row_prop(iss, "message_vi", "")
             if iss_code in ("unit_unknown", "period_mismatch", "column_not_identified", "low_confidence_match"):
+                fallback_map = {
+                    "unit_unknown": "Chưa xác định đơn vị tiền tệ trên trang báo cáo",
+                    "period_mismatch": "Kỳ báo cáo không khớp",
+                    "column_not_identified": "Chưa xác định được cột số liệu",
+                    "low_confidence_match": "Độ khớp dòng trích xuất thấp",
+                }
+                fallback_msg = fallback_map.get(iss_code, "Cảnh báo từ bước trích xuất")
                 checks.append(
                     CheckResult(
                         code=iss_code,
                         severity=iss_sev,
-                        message_vi=iss_msg or f"Cảnh báo {iss_code} từ bước trích xuất.",
+                        message_vi=iss_msg or f"{fallback_msg}.",
                         row_ids=[r_id],
                     )
                 )

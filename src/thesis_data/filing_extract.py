@@ -45,6 +45,18 @@ METRIC_LABELS_VI: dict[str, str] = {
     "bank.input.non_controlling_interests": "Lợi ích của cổ đông không kiểm soát",
 }
 
+
+def format_period_vi(pid: str) -> str:
+    """Format period string to user-friendly Vietnamese text (e.g. 2025_Q4 -> Quý 4/2025)."""
+    if not pid:
+        return ""
+    m = re.match(r"^(\d{4})_Q([1-4])$", pid)
+    if m:
+        return f"Quý {m.group(2)}/{m.group(1)}"
+    if re.match(r"^\d{4}$", pid):
+        return f"Năm {pid}"
+    return pid.replace("_", " ")
+
 # Regex matching numbers with 3-digit thousands separators (dot or comma) and optional parentheses for negative
 _NUMBER_RE = re.compile(r"\(?\s*\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?\s*\)?|\(?\s*\d+\s*\)?")
 _THOUSANDS_NUM_RE = re.compile(r"\(?\s*\d{1,3}(?:[.,]\d{3})+\s*\)?")
@@ -1026,7 +1038,7 @@ def extract_candidates_from_pages(
                             RowIssue(
                                 code="row_not_found",
                                 severity="error",
-                                message_vi=f"Không tìm thấy dòng tương ứng với chỉ tiêu {spec.metric_id}.",
+                                message_vi=f"Không tìm thấy dòng tương ứng với chỉ tiêu {METRIC_LABELS_VI.get(spec.metric_id, 'chỉ tiêu bắt buộc')}.",
                             )
                         ],
                         alternatives=[],
@@ -1123,7 +1135,7 @@ def extract_candidates_from_pages(
                         RowIssue(
                             code="column_missing",
                             severity="error",
-                            message_vi=f"Không tìm thấy cột số liệu cho kỳ {pid} trên dòng này.",
+                            message_vi=f"Không tìm thấy cột số liệu cho kỳ {format_period_vi(pid)} trên dòng này.",
                         )
                     )
             else:

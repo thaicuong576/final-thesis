@@ -268,9 +268,12 @@ class LlamaParseProvider:
                     try:
                         with open(meta_file, encoding="utf-8") as f:
                             meta = json.load(f)
-                        text = txt_file.read_text(encoding="utf-8")
-                        src = meta.get("source", "llamaparse")
-                        results[pno] = PageInput(page_number=pno, text=text, source=src)
+                        src = meta.get("source")
+                        if src == "llamaparse":
+                            text = txt_file.read_text(encoding="utf-8")
+                            results[pno] = PageInput(page_number=pno, text=text, source="llamaparse")
+                        else:
+                            missing_pages.append(pno)
                     except Exception:
                         missing_pages.append(pno)
                 else:

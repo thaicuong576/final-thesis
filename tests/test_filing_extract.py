@@ -8,9 +8,12 @@ number token parsing, and candidate row extraction on synthetic texts.
 from __future__ import annotations
 
 from decimal import Decimal
+import re
 import unittest
 
 from thesis_data.filing_extract import (
+    INPUT_METRICS,
+    METRIC_LABELS_VI,
     PageInput,
     classify_pages,
     detect_column_headers,
@@ -312,6 +315,49 @@ class TestPipeFormParsing(unittest.TestCase):
         line = "TONG CONG TAI SAN 1.025.850.127 864.005.703"
         amounts = extract_amount_columns_from_line(line)
         self.assertIn(Decimal("1025850127"), amounts)
+
+
+class TestMissingRowMessagesHumanized(unittest.TestCase):
+    """Test that missing-row issue messages use human-readable Vietnamese labels without raw IDs."""
+
+    def test_missing_row_issues_contain_no_raw_ids_or_snake_case(self) -> None:
+        # Minimal page with no NPL notes
+        pages = [
+            PageInput(
+                page_number=1,
+                source="ocr",
+                text="BÁO CÁO TÀI CHÍNH\n31.12.2025\nĐơn vị: tỷ đồng\nTổng tài sản 1000 900",
+            )
+        ]
+        res = extract_candidates_from_pages(
+            pages,
+            entity_id="TEST",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+        )
+        missing_rows = [r for r in res.rows if r.status == "missing"]
+        self.assertGreater(len(missing_rows), 0)
+
+        snake_case_re = re.compile(r"\b[a-z]+_[a-z0-9_]+\b")
+        period_code_re = re.compile(r"\b\d{4}_Q\d\b")
+
+        for r in missing_rows:
+            for iss in r.issues:
+                # Must not contain bank.input
+                self.assertNotIn("bank.input", iss.message_vi)
+                # Must not contain snake_case identifiers in user-facing message
+                self.assertIsNone(
+                    snake_case_re.search(iss.message_vi),
+                    f"Found snake_case in message_vi: '{iss.message_vi}'",
+                )
+                # Must not contain raw period code 2025_Q4
+                self.assertIsNone(
+                    period_code_re.search(iss.message_vi),
+                    f"Found raw period code in message_vi: '{iss.message_vi}'",
+                )
+                # Must contain the Vietnamese label
+                expected_label = METRIC_LABELS_VI[r.metric_id]
+                self.assertIn(expected_label, iss.message_vi)
 
 
 if __name__ == "__main__":

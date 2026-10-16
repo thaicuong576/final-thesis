@@ -4,7 +4,7 @@
  * See CONTRACT.md 2026-10-16 for schema.
  */
 
-import type { Filing, FilingSample, FilingStatus, Row, Validation } from '@/features/ingest/model/types';
+import type { Filing, FilingSample, Row, Validation } from '@/features/ingest/model/types';
 
 // ------------------------------------------------------------------
 // Minimal empty validation helper

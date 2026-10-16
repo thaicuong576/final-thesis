@@ -159,9 +159,6 @@ export function ExtractedRowsTable({
                 <tr key={metricId} className="hover:bg-surface-hover/30 transition-colors">
                   <td className="py-2.5 px-3 align-top">
                     <span className="font-semibold text-ink block">{label}</span>
-                    <span className="text-[11px] text-ink-tertiary">
-                      {metricId.replace('bank.input.', '')}
-                    </span>
                   </td>
 
                   {/* Target Cell */}
@@ -233,9 +230,6 @@ export function ExtractedRowsTable({
           >
             <div className="border-b border-line pb-1.5">
               <span className="font-bold text-xs text-ink">{label}</span>
-              <span className="block text-[11px] text-ink-tertiary">
-                {metricId.replace('bank.input.', '')}
-              </span>
             </div>
 
             <div className="space-y-2">

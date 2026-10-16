@@ -233,4 +233,12 @@ export const FILING_SAMPLES: FilingSample[] = [
     page_count: 120,
     note_vi: '1 dòng cần xem lại, 1 dòng thiếu, 1 lỗi kiểm tra.',
   },
+  {
+    sample_id: 'acb-2025-processing',
+    title_vi: 'ACB 2025 — đang đọc báo cáo (mẫu)',
+    entity_id: 'ACB',
+    fiscal_year: 2025,
+    page_count: 120,
+    note_vi: 'Trình diễn thanh tiến độ và thông tin công cụ OCR.',
+  },
 ];

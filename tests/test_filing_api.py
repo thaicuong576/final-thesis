@@ -547,6 +547,51 @@ class TestFilingApi(unittest.TestCase):
         resp = self.client.post("/api/onboarding/filing-samples/unknown-sample/open")
         self.assertEqual(resp.status_code, 404)
 
+    def test_generate_sample_placeholder_png(self) -> None:
+        """Placeholder PNG is produced with valid PNG header and dimensions."""
+        from thesis_data.filing_sample import generate_sample_placeholder_png
+
+        # Test with entity_id
+        png_with_entity = generate_sample_placeholder_png(page_number=1, page_count=51, entity_id="ACB")
+        self.assertIsInstance(png_with_entity, bytes)
+        self.assertTrue(png_with_entity.startswith(b"\x89PNG\r\n\x1a\n"))
+        self.assertGreater(len(png_with_entity), 1000)
+
+        # Test without entity_id
+        png_default = generate_sample_placeholder_png(page_number=2, page_count=41)
+        self.assertIsInstance(png_default, bytes)
+        self.assertTrue(png_default.startswith(b"\x89PNG\r\n\x1a\n"))
+        self.assertGreater(len(png_default), 1000)
+
+    def test_sample_fields_contain_no_internal_identifiers(self) -> None:
+        """Scan all sample definitions and summaries to ensure no snake_case identifiers leak."""
+        import re
+        from thesis_data.filing_sample import SAMPLE_DEFINITIONS, list_sample_summaries
+
+        pattern = re.compile(r"[a-z]+_[a-z_]+")
+
+        # Scan user-visible fields in SAMPLE_DEFINITIONS
+        for sample_id, spec in SAMPLE_DEFINITIONS.items():
+            for field in ("title_vi", "note_vi", "display_name"):
+                val = spec.get(field, "")
+                matches = pattern.findall(val)
+                self.assertEqual(
+                    matches,
+                    [],
+                    f"Sample '{sample_id}' field '{field}' contains snake_case identifier: {matches}",
+                )
+
+        # Scan summaries
+        for summary in list_sample_summaries():
+            for key, val in summary.items():
+                if isinstance(val, str) and key not in ("sample_id", "entity_id"):
+                    matches = pattern.findall(val)
+                    self.assertEqual(
+                        matches,
+                        [],
+                        f"Sample summary '{summary.get('sample_id')}' field '{key}' contains snake_case identifier: {matches}",
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()

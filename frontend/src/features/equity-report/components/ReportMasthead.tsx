@@ -9,7 +9,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   company_profile: 'Hồ sơ doanh nghiệp',
   ranking: 'Xếp hạng nhóm',
   trend: 'Diễn biến xu hướng',
-  head_to_head: 'So sánh trực tiếp',
+  head_to_head: 'So sánh trực diện',
   sector_theme: 'Phân tích toàn ngành',
   relationship: 'Tương quan chỉ tiêu'
 };

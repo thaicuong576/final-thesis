@@ -21,7 +21,7 @@ describe('deriveTimeline selector', () => {
         actor: 'orchestrator',
         recipient: 'system',
         kind: 'plan',
-        summary: 'Dạng câu hỏi: Đối đầu.',
+        summary: 'Dạng câu hỏi: Trực diện.',
         detail: {
           question_type: 'head_to_head',
           rationale: 'Dùng công cụ head_to_head để so sánh trực tiếp ACB và TCB.',
@@ -40,7 +40,7 @@ describe('deriveTimeline selector', () => {
         summary: 'Trả 22 số liệu có nguồn',
         detail: {
           tool: 'head_to_head',
-          label: 'so sánh đối đầu',
+          label: 'so sánh trực diện',
           result_count: 22,
           duration_ms: 1188,
           facts: [
@@ -251,7 +251,7 @@ describe('deriveTimeline selector', () => {
           recipient: null,
           kind: 'tool_result',
           summary: 'Trả 10 số liệu',
-          detail: { tool: 'head_to_head', label: 'so sánh đối đầu', result_count: 10 }
+          detail: { tool: 'head_to_head', label: 'so sánh trực diện', result_count: 10 }
         },
         {
           step_id: 't-raw-2',
@@ -286,7 +286,7 @@ describe('deriveTimeline selector', () => {
           summary: 'Trả 22 số liệu',
           detail: {
             tool: 'head_to_head',
-            label: 'so sánh đối đầu',
+            label: 'so sánh trực diện',
             result_count: 22,
             duration_ms: 1200
           }
@@ -444,7 +444,7 @@ describe('deriveTimeline selector', () => {
           recipient: null,
           kind: 'tool_result',
           summary: 'Trả 22 số liệu',
-          detail: { tool: 'head_to_head', label: 'so sánh đối đầu', result_count: 22 }
+          detail: { tool: 'head_to_head', label: 'so sánh trực diện', result_count: 22 }
         },
         {
           step_id: 't-draft',

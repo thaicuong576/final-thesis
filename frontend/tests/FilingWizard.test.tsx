@@ -100,7 +100,7 @@ describe('FilingWizard (INGEST-3)', () => {
     expect(screen.getByTestId('processing-failed')).toBeInTheDocument();
     expect(screen.getByText(/Máy chủ chưa cài công cụ OCR/)).toBeInTheDocument();
     expect(screen.getByText(/Hướng xử lý khuyến nghị:/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Dùng bộ mẫu dựng sẵn/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Dùng bộ mẫu dựng sẵn để trình diễn/ })).toBeInTheDocument();
   });
 
   it('renders ready filing with statement pages, extracted rows table, and validation panel', () => {
@@ -238,7 +238,7 @@ describe('FilingWizard (INGEST-3)', () => {
       </MemoryRouter>
     );
 
-    const openSampleBtn = screen.getByRole('button', { name: /Dùng bộ mẫu dựng sẵn/ });
+    const openSampleBtn = screen.getAllByRole('button', { name: /Dùng bộ mẫu dựng sẵn/ })[0];
     await userEvent.click(openSampleBtn);
 
     expect(screen.getByTestId('sample-selector-modal')).toBeInTheDocument();

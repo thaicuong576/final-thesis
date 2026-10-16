@@ -1174,6 +1174,7 @@ class FilingDetailDTO(BaseModel):
     rows: List[FilingCandidateRowDTO] = Field(default_factory=list, description="Extracted candidate observation rows")
     validation: Optional[FilingValidationDTO] = Field(default=None, description="Validation summary and checks")
     limitations_vi: Union[List[str], str, None] = Field(default=None, description="Vietnamese provenance and limitation note")
+    upload_id: Optional[str] = Field(default=None, description="Operational snapshot upload ID if confirmed")
     created_at: Optional[str] = Field(default=None, description="ISO timestamp of filing creation")
 
 
@@ -1190,5 +1191,17 @@ class FilingSummaryDTO(BaseModel):
     page_count: int = Field(..., description="Total pages in PDF")
     candidate_rows_count: int = Field(default=0, description="Number of candidate rows extracted")
     needs_review_count: int = Field(default=0, description="Number of rows needing review")
+
+
+class FilingRowUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    value_billion_vnd: Optional[str] = Field(default=None, description="Updated value in billion VND as decimal string")
+    confirmed: bool = Field(default=False, description="User confirmation status for this row")
+
+
+class FilingRowUpdateResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    row: FilingCandidateRowDTO = Field(..., description="Updated candidate row")
+    validation: FilingValidationDTO = Field(..., description="Recalculated validation results")
 
 

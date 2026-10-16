@@ -18,6 +18,16 @@ import matplotlib.pyplot as plt
 plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "DejaVu Serif"],
                      "font.size": 10, "axes.edgecolor": "black", "axes.linewidth": 0.8})
 
+from matplotlib.ticker import FuncFormatter
+
+
+def _vi(x, _pos=None):
+    """Vietnamese number format: dot for thousands, comma for decimals."""
+    if abs(x - round(x)) < 1e-9:
+        return f"{int(round(x)):,}".replace(",", ".").replace("-", "−")
+    return f"{x:.1f}".replace(".", ",").replace("-", "−")
+
+
 D = Path(sys.argv[1] if len(sys.argv) > 1 else "experiments/er9/analysis")
 arms = {r["arm"]: r for r in csv.DictReader(open(D / "arm_summary.csv", encoding="utf-8"))}
 order = ["single_agent", "hierarchical_no_critique", "hierarchical_with_critique"]
@@ -31,10 +41,11 @@ for ax, vals, title, fmt in ((axes[0], tok, "Token trung bình mỗi lượt", "
                              (axes[1], sec, "Thời gian xử lý (giây)", "{:.1f}")):
     bars = ax.bar(names, vals, color="white", edgecolor="black", hatch="///", linewidth=0.9, width=0.6)
     for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v, fmt.format(v).replace(",", "."), ha="center", va="bottom", fontsize=9)
+        ax.text(b.get_x() + b.get_width() / 2, v, fmt.format(v).replace(",", "X").replace(".", ",").replace("X", "."), ha="center", va="bottom", fontsize=9)
     ax.set_title(title, fontsize=10)
     ax.spines[["top", "right"]].set_visible(False)
     ax.set_ylim(0, max(vals) * 1.15)
+    ax.yaxis.set_major_formatter(FuncFormatter(_vi))
 fig.tight_layout()
 fig.savefig(D / "figure_er9_cost_latency.png", dpi=200, facecolor="white")
 plt.close(fig)
@@ -59,6 +70,7 @@ for ax, (m, title, k) in zip(axes, metrics):
     ax.set_yticklabels([p.replace(" - ", " − ") for p in reversed(pairs)] if ax is axes[0] else [])
     ax.set_title(title, fontsize=8.5)
     ax.tick_params(labelsize=8)
+    ax.xaxis.set_major_formatter(FuncFormatter(_vi))
     ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 fig.savefig(D / "figure_er9_pairwise_diff.png", dpi=200, facecolor="white")

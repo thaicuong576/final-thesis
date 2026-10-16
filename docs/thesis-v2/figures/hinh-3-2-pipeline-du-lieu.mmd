@@ -1,8 +1,8 @@
-flowchart LR
+flowchart TB
     Raw["<b>1. Nguồn thô</b><br/>PDF báo cáo tài chính,<br/>mã băm SHA-256"]
     Candidate["<b>2. Dữ liệu ứng viên</b><br/>trích xuất tự động,<br/>chưa đối soát"]
-    Operational["<b>3. Dữ liệu vận hành</b><br/>đối soát từng ô, có vị trí<br/>nguồn và biên nhận tính"]
-    Locked["<b>4. Dữ liệu khóa</b><br/>cố định bằng mã băm,<br/>dùng chung các cấu hình"]
+    Operational["<b>3. Dữ liệu vận hành</b><br/>đối soát từng ô, lưu vị trí<br/>nguồn và bản ghi phép tính"]
+    Locked["<b>4. Dữ liệu đã khóa</b><br/>cố định bằng mã băm,<br/>dùng chung cho các cấu hình"]
     Raw -->|"trích xuất"| Candidate
     Candidate -->|"đối soát, tính lại"| Operational
     Operational -->|"khóa mã băm"| Locked

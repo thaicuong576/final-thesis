@@ -3,11 +3,11 @@ flowchart TB
     subgraph App ["Tầng ứng dụng"]
         direction LR
         API["API phân tích<br/>và luồng sự kiện"]
-        GATE["Cổng phạm vi, hiểu<br/>câu hỏi, lập kế hoạch"]
-        AG["Chuyên viên, điều phối<br/>viên, phản biện"]
+        GATE["Kiểm tra phạm vi, phân tích<br/>câu hỏi và lập kế hoạch"]
+        AG["Các tác tử: điều phối viên,<br/>chuyên viên và phản biện"]
         API --> GATE --> AG
     end
-    subgraph Core ["Tầng lõi (không phụ thuộc CSDL và mô hình)"]
+    subgraph Core ["&nbsp;&nbsp;Tầng lõi (không phụ thuộc CSDL và mô hình)&nbsp;&nbsp;"]
         CORE["Dữ kiện, tín hiệu, phát hiện liên tầng<br/>Kiểm tra câu theo quy tắc<br/>Kiểm tra cấu trúc báo cáo"]
     end
     DB[("Bộ dữ liệu phân tích: chỉ đọc, khóa mã băm")]

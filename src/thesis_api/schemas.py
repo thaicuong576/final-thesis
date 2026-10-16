@@ -1079,3 +1079,116 @@ class UploadSummaryDTO(BaseModel):
     metrics_count: int = Field(..., description="Number of recomputed metrics")
 
 
+class FilingCreateResponseDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    filing_id: str = Field(..., description="Unique filing identifier (fl-12hex)")
+    status: Literal["processing"] = Field(..., description="Initial processing status")
+
+
+class FilingProgressDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    pages_done: int = Field(..., description="Number of pages processed")
+    page_count: int = Field(..., description="Total pages in filing")
+
+
+class FilingStatementPagesDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    balance_sheet: List[int] = Field(default_factory=list, description="Page numbers of Balance Sheet")
+    income_statement: List[int] = Field(default_factory=list, description="Page numbers of Income Statement")
+    loan_quality_note: List[int] = Field(default_factory=list, description="Page numbers of Loan Quality Note")
+
+
+class FilingRowIssueDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    code: str = Field(..., description="Issue machine-readable code")
+    severity: Literal["error", "warning", "info"] = Field(default="warning", description="Severity level")
+    message_vi: str = Field(..., description="Vietnamese explanation of the issue")
+
+
+class FilingRowAlternativeDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    value_billion_vnd: Optional[str] = Field(default=None, description="Alternative value in billion VND")
+    raw_text: str = Field(..., description="Raw text of the alternative row")
+    row_label: str = Field(..., description="Row label")
+    page: int = Field(..., description="1-indexed PDF page")
+    score: float = Field(default=0.0, description="Similarity match score")
+
+
+class FilingCandidateRowDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    row_id: str = Field(..., description="Unique candidate row ID")
+    metric_id: str = Field(..., description="Canonical metric ID")
+    label_vi: str = Field(..., description="Vietnamese metric label")
+    period_role: Literal["target", "prior"] = Field(..., description="Period role (target or prior)")
+    period_id: str = Field(..., description="Target or prior period ID (e.g. 2025_Q4)")
+    value_billion_vnd: Optional[str] = Field(default=None, description="Current or user-edited value in billion VND as decimal string")
+    extracted_value_billion_vnd: Optional[str] = Field(default=None, description="Machine-extracted value in billion VND")
+    raw_text: Optional[str] = Field(default=None, description="Raw source text line")
+    row_label: Optional[str] = Field(default=None, description="Matched row label")
+    page: Optional[int] = Field(default=None, description="1-indexed PDF page")
+    source: Optional[Literal["text_layer", "ocr", "llamaparse", "user"]] = Field(default=None, description="Extraction source kind")
+    status: Literal["candidate", "needs_review", "missing"] = Field(..., description="Candidate status")
+    edited: bool = Field(default=False, description="Whether user edited this value")
+    confirmed: bool = Field(default=False, description="Whether user explicitly confirmed this row")
+    issues: List[FilingRowIssueDTO] = Field(default_factory=list, description="Extraction issues or warnings")
+    alternatives: List[FilingRowAlternativeDTO] = Field(default_factory=list, description="Alternative line matches")
+
+
+class FilingCheckDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    code: str = Field(..., description="Validation check code")
+    severity: Literal["error", "warning", "info"] = Field(..., description="Check severity")
+    message_vi: str = Field(..., description="Vietnamese check message")
+    row_ids: List[str] = Field(default_factory=list, description="Related row IDs")
+    expected: Optional[str] = Field(default=None, description="Expected value")
+    actual: Optional[str] = Field(default=None, description="Actual value")
+
+
+class FilingValidationDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    status: Literal["pass", "warn", "fail"] = Field(..., description="Overall validation status")
+    ready_to_confirm: bool = Field(default=False, description="Whether filing is ready to confirm into an operational snapshot")
+    blocking_reasons_vi: List[str] = Field(default_factory=list, description="List of blocking reason messages in Vietnamese")
+    checks: List[FilingCheckDTO] = Field(default_factory=list, description="List of validation checks")
+
+
+class FilingDetailDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    filing_id: str = Field(..., description="Unique filing identifier")
+    entity_id: Optional[str] = Field(default=None, description="Bank ticker / entity ID")
+    display_name: Optional[str] = Field(default=None, description="Bank display name")
+    fiscal_year: Optional[int] = Field(default=None, description="Reporting fiscal year")
+    reporting_scope: Optional[str] = Field(default=None, description="Reporting scope (consolidated or separate)")
+    status: Literal["processing", "ready", "failed"] = Field(..., description="Filing processing status")
+    error_code: Optional[str] = Field(default=None, description="Error code if failed")
+    message_vi: Optional[str] = Field(default=None, description="Vietnamese explanation if failed")
+    filename: str = Field(..., description="Original PDF filename")
+    sha256: str = Field(..., description="SHA-256 of the uploaded PDF")
+    page_count: int = Field(..., description="Total pages in PDF")
+    progress: FilingProgressDTO = Field(..., description="Processing progress")
+    ocr_provider: Optional[Literal["text_layer", "tesseract", "llamaparse", "mixed", "sample"]] = Field(default="text_layer", description="OCR provider used")
+    text_layer_pages: int = Field(default=0, description="Pages read from PDF text layer")
+    ocr_pages: int = Field(default=0, description="Pages processed via OCR")
+    statement_pages: FilingStatementPagesDTO = Field(default_factory=FilingStatementPagesDTO, description="Identified statement pages")
+    unit_detected: Optional[str] = Field(default=None, description="Detected monetary unit")
+    rows: List[FilingCandidateRowDTO] = Field(default_factory=list, description="Extracted candidate observation rows")
+    validation: Optional[FilingValidationDTO] = Field(default=None, description="Validation summary and checks")
+    limitations_vi: Union[List[str], str, None] = Field(default=None, description="Vietnamese provenance and limitation note")
+    created_at: Optional[str] = Field(default=None, description="ISO timestamp of filing creation")
+
+
+class FilingSummaryDTO(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    filing_id: str = Field(..., description="Unique filing identifier")
+    entity_id: str = Field(..., description="Bank ticker / entity ID")
+    display_name: str = Field(..., description="Bank display name")
+    fiscal_year: int = Field(..., description="Reporting fiscal year")
+    reporting_scope: str = Field(..., description="Reporting scope")
+    status: Literal["processing", "ready", "failed"] = Field(..., description="Filing processing status")
+    created_at: str = Field(..., description="ISO timestamp of filing creation")
+    filename: str = Field(..., description="Original PDF filename")
+    page_count: int = Field(..., description="Total pages in PDF")
+    candidate_rows_count: int = Field(default=0, description="Number of candidate rows extracted")
+    needs_review_count: int = Field(default=0, description="Number of rows needing review")
+
+

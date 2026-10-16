@@ -1,0 +1,3122 @@
+[
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.003",
+    "gt": "764.791",
+    "page": 17,
+    "row_label": "Xép hang tin dung CCC, CC Nhom 3: No dudi tig@u chuan {=| C",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Xép hang tin dung CCC, CC Nhom 3: No dudi tig@u chuan {=| C",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "770.229",
+    "page": 17,
+    "row_label": "Xép hang tin dung C Nhom 4: No’ nghi ngo \\\"\\",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Xép hang tin dung C Nhom 4: No’ nghi ngo \\\"\\",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "5136.367",
+    "page": 17,
+    "row_label": "thanh 5 nhém no nhw sau: y",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "thanh 5 nhém no nhw sau: y",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "669436.647",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "7624.729",
+    "gt": "7507.253",
+    "page": 7,
+    "row_label": "2 Dy phong rui ro cho vay khach hang 9.7 (7.624.729) (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6739.556",
+    "gt": null,
+    "page": 7,
+    "row_label": "2 Dy phong rui ro cho vay khach hang 9.7 (7.624.729) (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "XIIl_ Loi nhuan sau thué 15.624.699 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "XIIl_ Loi nhuan sau thué 15.624.699 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1025850.127",
+    "gt": "1025850.127",
+    "page": 7,
+    "row_label": "TONG TAI SAN 1.025.850.127 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "864005.703",
+    "gt": "864005.703",
+    "page": 7,
+    "row_label": "TONG TAI SAN 1.025.850.127 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "94519.719",
+    "gt": "94519.719",
+    "page": 8,
+    "row_label": "TONG VON CHU SO’ HUU 94.519.719 83.461.678 NHI",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "83461.678",
+    "gt": "83461.678",
+    "page": 8,
+    "row_label": "TONG VON CHU SO’ HUU 94.519.719 83.461.678 NHI",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.031",
+    "gt": "4473.881",
+    "page": 23,
+    "row_label": "- theo Diéu 10, Dieu 11 cla Théng tu’ 31 va nhém ng cla khdch hang do Trung tam Th6ng tin tin dung",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.006",
+    "gt": null,
+    "page": 23,
+    "row_label": "- theo Diéu 10, Dieu 11 cla Théng tu’ 31 va nhém ng cla khdch hang do Trung tam Th6ng tin tin dung",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.006",
+    "gt": "4677.985",
+    "page": 23,
+    "row_label": "dung phuc vy phat trién néng nghiép, néng thén; Théng tu’ sé 06/2024/TT-NHNN (“Th6ng tu 06”)",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.006",
+    "gt": null,
+    "page": 23,
+    "row_label": "dung phuc vy phat trién néng nghiép, néng thén; Théng tu’ sé 06/2024/TT-NHNN (“Th6ng tu 06”)",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "25824.953",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "2372955.074",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34945.553",
+    "gt": "34945.553",
+    "page": 9,
+    "row_label": "2. Dy phong rui ro cho vay khach hang 13 (34.945.553) (37.970.481)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "37970.481",
+    "gt": null,
+    "page": 9,
+    "row_label": "2. Dy phong rui ro cho vay khach hang 13 (34.945.553) (37.970.481)",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "30430.130",
+    "gt": "30430.130",
+    "page": 12,
+    "row_label": "Xiil. Loi nhuan sau thué 30.430.130 25.677.118 3",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25677.118",
+    "gt": "25677.118",
+    "page": 12,
+    "row_label": "Xiil. Loi nhuan sau thué 30.430.130 25.677.118 3",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "29904.264",
+    "gt": "29904.264",
+    "page": 12,
+    "row_label": "Loi nhuan thuan cua Ngan hang me 29.904.264 25.212.049 Ae",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25212.049",
+    "gt": "25212.049",
+    "page": 12,
+    "row_label": "Loi nhuan thuan cua Ngan hang me 29.904.264 25.212.049 Ae",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "3330825.720",
+    "gt": "3330825.720",
+    "page": 9,
+    "row_label": "a TONG TAI SAN 3.330.825.720 2.760.906.964",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2760906.964",
+    "gt": "2760906.964",
+    "page": 9,
+    "row_label": "a TONG TAI SAN 3.330.825.720 2.760.906.964",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "173552.902",
+    "gt": "173552.902",
+    "page": 10,
+    "row_label": "| TONG VON CHU SO’ HU'U 173.552.902 144.984.194 P",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "144984.194",
+    "gt": "144984.194",
+    "page": 10,
+    "row_label": "| TONG VON CHU SO’ HU'U 173.552.902 144.984.194 P",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5563.943",
+    "gt": "5563.943",
+    "page": 10,
+    "row_label": "B 5. Lai ich cla c6é déng khéng kiém soat 25 5.563.943 5.235.108 éT",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5235.108",
+    "gt": "5235.108",
+    "page": 10,
+    "row_label": "B 5. Lai ich cla c6é déng khéng kiém soat 25 5.563.943 5.235.108 éT",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.007",
+    "gt": "1490.975",
+    "page": 24,
+    "row_label": "7} Nhom 3: No dui tiéu chuan |",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.003",
+    "gt": null,
+    "page": 24,
+    "row_label": "7} Nhom 3: No dui tiéu chuan |",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.001",
+    "gt": "578.479",
+    "page": 24,
+    "row_label": "1 Nhom 4: No nghi ng",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.004",
+    "gt": null,
+    "page": 24,
+    "row_label": "1 Nhom 4: No nghi ng",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.001",
+    "gt": "19846.742",
+    "page": 24,
+    "row_label": "1 kha nang mat von.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 24,
+    "row_label": "1 kha nang mat von.",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.002",
+    "gt": "1992272.868",
+    "page": 24,
+    "row_label": "7 2.7 Cac khoan cho vay khach hang (tiép theo)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.007",
+    "gt": null,
+    "page": 24,
+    "row_label": "7 2.7 Cac khoan cho vay khach hang (tiép theo)",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "2844.970",
+    "gt": "34810.365",
+    "page": 9,
+    "row_label": "4 Dw phong ru ro khac 2.844.970 2.763.419",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2763.419",
+    "gt": null,
+    "page": 9,
+    "row_label": "4 Dw phong ru ro khac 2.844.970 2.763.419",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34871.266",
+    "gt": "34871.266",
+    "page": 11,
+    "row_label": "XII Loi nhuan sau thué 34,871,266 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25482.567",
+    "gt": "25482.567",
+    "page": 11,
+    "row_label": "XII Loi nhuan sau thué 34,871,266 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34604.481",
+    "gt": "34604.481",
+    "page": 11,
+    "row_label": "XV _ Loi nhuan thuan cua chu so hau 34,604,481 25.348.215",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25348.215",
+    "gt": "25348.215",
+    "page": 11,
+    "row_label": "XV _ Loi nhuan thuan cua chu so hau 34,604,481 25.348.215",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "2767699.300",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "2385387.732",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179655.005",
+    "gt": "179655.005",
+    "page": 9,
+    "row_label": "] TONG VON 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "148504.708",
+    "gt": "148504.708",
+    "page": 9,
+    "row_label": "] TONG VON 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1206.433",
+    "gt": "1206.433",
+    "page": 9,
+    "row_label": "6 Loi ich cia cé déng khéng kiém soat 1.206.433 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "970.729",
+    "gt": "970.729",
+    "page": 9,
+    "row_label": "6 Loi ich cia cé déng khéng kiém soat 1.206.433 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "4017.065",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5500.307",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "3802.915",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "852818.423",
+    "gt": "546370.779",
+    "page": 8,
+    "row_label": "TONG NO PHAITRA 852.818.423 640.709.1897",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "640709.189",
+    "gt": null,
+    "page": 8,
+    "row_label": "TONG NO PHAITRA 852.818.423 640.709.1897",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "7299.445",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "17073.622",
+    "gt": "17073.622",
+    "page": 10,
+    "row_label": "XU. Loi nhudn seu thud 17.073.622 13.247.648",
+    "row_status": "needs_review",
+    "issues": [
+      "period_mismatch",
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13247.648",
+    "gt": "13247.648",
+    "page": 10,
+    "row_label": "XU. Loi nhudn seu thud 17.073.622 13.247.648",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "17073.622",
+    "gt": "16524.388",
+    "page": 10,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "13247.648",
+    "gt": "12762.953",
+    "page": 10,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "931103.945",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "697366.458",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "931103.945",
+    "gt": "78285.522",
+    "page": 8,
+    "row_label": "TONG NO PHAITRA VA VON CHU SO HiTU 931.103.945 697.366.458 Pa",
+    "row_status": "needs_review",
+    "issues": [
+      "period_mismatch",
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "697366.458",
+    "gt": "56657.261",
+    "page": 8,
+    "row_label": "TONG NO PHAITRA VA VON CHU SO HiTU 931.103.945 697.366.458 Pa",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2715.392",
+    "gt": "2715.392",
+    "page": 8,
+    "row_label": "4. Lofiich cha ed ding khéng kiéim soat 2.715.392 2.168.158 oe",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "2168.158",
+    "gt": "2166.158",
+    "page": 8,
+    "row_label": "4. Lofiich cha ed ding khéng kiéim soat 2.715.392 2.168.158 oe",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.003",
+    "gt": "3276.216",
+    "page": 24,
+    "row_label": "(d) Khoan ng quy dinh tai diém (d) cla ng Nhom 3 chwa thu héi",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 24,
+    "row_label": "(d) Khoan ng quy dinh tai diém (d) cla ng Nhom 3 chwa thu héi",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "4330.016",
+    "page": 24,
+    "row_label": "(f) Ngo dug phan loai vao nhém 4 theo quy dinh tai Khoan 2,",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.002",
+    "gt": null,
+    "page": 24,
+    "row_label": "(f) Ngo dug phan loai vao nhém 4 theo quy dinh tai Khoan 2,",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "6421.264",
+    "page": 24,
+    "row_label": "> Nhom 5 - No cé kha nang mat vén: néu qua han 90 ngay tro |én.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 24,
+    "row_label": "> Nhom 5 - No cé kha nang mat vén: néu qua han 90 ngay tro |én.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.006",
+    "gt": "1084019.370",
+    "page": 24,
+    "row_label": "h) No’ ctia khach hang Ia t6 chive tin dung dug NHNNVN cong",
+    "row_status": "needs_review",
+    "issues": [
+      "period_mismatch",
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 24,
+    "row_label": "h) No’ ctia khach hang Ia t6 chive tin dung dug NHNNVN cong",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13150.593",
+    "gt": "13150.593",
+    "page": 10,
+    "row_label": "Dy phong rui ro cho vay khach hang 10 (13.150.593) (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "11609.861",
+    "gt": null,
+    "page": 10,
+    "row_label": "Dy phong rui ro cho vay khach hang 10 (13.150.593) (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "27382.978",
+    "gt": "27382.978",
+    "page": 13,
+    "row_label": "LOI NHUAN SAU THUE 27.382.978 22.951.264 G",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22951.264",
+    "gt": "22951.264",
+    "page": 13,
+    "row_label": "LOI NHUAN SAU THUE 27.382.978 22.951.264 G",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "26778.939",
+    "gt": "26778.939",
+    "page": 13,
+    "row_label": "Loi nhuan sau thué thudéc vé Ngan hang me 26.778.939 22.633.757 te",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22633.757",
+    "gt": "22633.757",
+    "page": 13,
+    "row_label": "Loi nhuan sau thué thudéc vé Ngan hang me 26.778.939 22.633.757 te",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1615763.927",
+    "gt": "1615763.927",
+    "page": 10,
+    "row_label": "TONG TAI SAN _1.615.763.927 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1128801.062",
+    "gt": "1128801.062",
+    "page": 10,
+    "row_label": "TONG TAI SAN _1.615.763.927 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "142022.525",
+    "gt": "142022.525",
+    "page": 11,
+    "row_label": "TONG VON CHU SO’ HU’'U 142.022.525 117.059.581 :",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "117059.581",
+    "gt": "117059.581",
+    "page": 11,
+    "row_label": "TONG VON CHU SO’ HU’'U 142.022.525 117.059.581 :",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5886.495",
+    "gt": "5886.495",
+    "page": 11,
+    "row_label": "Loi ich cia cé déng khong kiém soat 26 5.886.495 4.910.880 F",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4910.880",
+    "gt": "4910.880",
+    "page": 11,
+    "row_label": "Loi ich cia cé déng khong kiém soat 26 5.886.495 4.910.880 F",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "1776.951",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "4324.234",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "8475.768",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "614861.980",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10498.298",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "11960.295",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "9321.949",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "11960.295",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "9321.949",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "892008.709",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "747478.069",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "68130.938",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "58067.344",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.003",
+    "gt": "6920.385",
+    "page": 24,
+    "row_label": "¢ Nh6ém 3 —No duéi tiéu chuan: qua han dudi 30 ngay;",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.030",
+    "gt": null,
+    "page": 24,
+    "row_label": "¢ Nh6ém 3 —No duéi tiéu chuan: qua han dudi 30 ngay;",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.006",
+    "gt": "3310.299",
+    "page": 24,
+    "row_label": "Trudng hgp ng cha khach hang duge phan loai vao nhom ng c6 mirc 46 ri ro thap hon nhém ng theo",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.046",
+    "gt": null,
+    "page": 24,
+    "row_label": "Trudng hgp ng cha khach hang duge phan loai vao nhom ng c6 mirc 46 ri ro thap hon nhém ng theo",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "29906.074",
+    "page": 24,
+    "row_label": "e Nhém 5—Nocé kha nang mat von: qua han tir 90 ngay tré ién.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 24,
+    "row_label": "e Nhém 5—Nocé kha nang mat von: qua han tir 90 ngay tré ién.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.001",
+    "gt": "626392.336",
+    "page": 25,
+    "row_label": "tong s6 du ng goc tai ngay cudi cling cla mOi thang cila cdc khoan no tir Nhom 1 dén Nhom 4 tri cac",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.004",
+    "gt": null,
+    "page": 25,
+    "row_label": "tong s6 du ng goc tai ngay cudi cling cla mOi thang cila cdc khoan no tir Nhom 1 dén Nhom 4 tri cac",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "20055.945",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "917119.803",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "748094.546",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "59866.744",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "54972.070",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 36,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 36,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.003",
+    "gt": "918.063",
+    "page": 25,
+    "row_label": "(d) Khoan ng quy dinh tai diém (d) cla no Nhom 3 chua thu",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 25,
+    "row_label": "(d) Khoan ng quy dinh tai diém (d) cla no Nhom 3 chua thu",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "1339.119",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5941.193",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "723757.397",
+    "page": 23,
+    "row_label": "4.5 Cac khoan cho vay khach hang",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.005",
+    "gt": null,
+    "page": 23,
+    "row_label": "4.5 Cac khoan cho vay khach hang",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "1.914",
+    "gt": "10485.620",
+    "page": 11,
+    "row_label": "Du phong rui ro hoat déng mua no (1.914) (2.752)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2.752",
+    "gt": null,
+    "page": 11,
+    "row_label": "Du phong rui ro hoat déng mua no (1.914) (2.752)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "25954.472",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "21760.104",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "25290.230",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "21522.928",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1192344.137",
+    "gt": "1192344.137",
+    "page": 11,
+    "row_label": "TONG TAI SAN 1.192.344.137 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "978798.549",
+    "gt": "978798.549",
+    "page": 11,
+    "row_label": "TONG TAI SAN 1.192.344.137 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179501.442",
+    "gt": "179501.442",
+    "page": 12,
+    "row_label": "TONG VON CHU SO’ HU'U 23 179.501.442 — 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "147939.621",
+    "gt": "147939.621",
+    "page": 12,
+    "row_label": "TONG VON CHU SO’ HU'U 23 179.501.442 — 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9456.938",
+    "gt": "9456.938",
+    "page": 12,
+    "row_label": "Loi ich c6 dong khéng kiém soat 9.456.938 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2520.466",
+    "gt": "2520.466",
+    "page": 12,
+    "row_label": "Loi ich c6 dong khéng kiém soat 9.456.938 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1661151.484",
+    "gt": "760.561",
+    "page": 39,
+    "row_label": "No du tiéu chuan 1.661.151.484 1.431.299.668",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1431299.668",
+    "gt": null,
+    "page": 39,
+    "row_label": "No du tiéu chuan 1.661.151.484 1.431.299.668",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "222.632",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "8686.362",
+    "gt": "8686.362",
+    "page": 39,
+    "row_label": "Ng co kha nang mat von 8.686.362 10.292.417",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "10292.417",
+    "gt": null,
+    "page": 39,
+    "row_label": "Ng co kha nang mat von 8.686.362 10.292.417",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.009",
+    "gt": "1673525.675",
+    "page": 39,
+    "row_label": "9. Cho vay khach hang",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 39,
+    "row_label": "9. Cho vay khach hang",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "24975.679",
+    "gt": "24975.679",
+    "page": 8,
+    "row_label": "4 Du phong rui ro cho vay khach hang 10 (24.975.679) (31.183.175)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "31183.175",
+    "gt": null,
+    "page": 8,
+    "row_label": "4 Du phong rui ro cho vay khach hang 10 (24.975.679) (31.183.175)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.200",
+    "gt": "35197.940",
+    "page": 30,
+    "row_label": "Theo Thong tur 200, cac khoan c6 tire duge chia bang cé phiéu tir loi nhuan sau thué chua phan phdi, ’",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.006",
+    "gt": "33853.117",
+    "page": 30,
+    "row_label": "Theo Thong tur 200, cac khoan c6 tire duge chia bang cé phiéu tir loi nhuan sau thué chua phan phdi, ’",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.200",
+    "gt": "35177.663",
+    "page": 30,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.006",
+    "gt": "33831.386",
+    "page": 30,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2442279.166",
+    "gt": "2442279.166",
+    "page": 8,
+    "row_label": "TONG TAI SAN CO 2.442.279.166 2.085.873.522",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2085873.522",
+    "gt": "2085873.522",
+    "page": 8,
+    "row_label": "TONG TAI SAN CO 2.442.279.166 2.085.873.522",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "right_row_wrong_unit",
+    "extracted": "224.559",
+    "gt": "224558.726",
+    "page": 9,
+    "row_label": "TONG VON CHU SO HUU 22(a) 224,558.726 196.209.168",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "196209.168",
+    "gt": "196209.168",
+    "page": 9,
+    "row_label": "TONG VON CHU SO HUU 22(a) 224,558.726 196.209.168",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "71.521",
+    "gt": "71.521",
+    "page": 9,
+    "row_label": "6 Loi ich cua co dong khong kiém soat 71.521 96.261",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "96.261",
+    "gt": "96.261",
+    "page": 9,
+    "row_label": "6 Loi ich cua co dong khong kiém soat 71.521 96.261",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.030",
+    "gt": "11429.858",
+    "page": 21,
+    "row_label": "trong thdi gian dui 30 ngay ké tir ngay co quyét dinh thu",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 21,
+    "row_label": "trong thdi gian dui 30 ngay ké tir ngay co quyét dinh thu",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.030",
+    "gt": "10879.958",
+    "page": 23,
+    "row_label": "» Nhém4—No nghi ngo: néu qua han tir 30 ngay dén dui 90 ngay;",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 23,
+    "row_label": "» Nhém4—No nghi ngo: néu qua han tir 30 ngay dén dui 90 ngay;",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "9154.889",
+    "page": 23,
+    "row_label": "» Nhom5—No'cé kha nang mat vén: néu qua han 90 ngay tra’ lén.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 23,
+    "row_label": "» Nhom5—No'cé kha nang mat vén: néu qua han 90 ngay tra’ lén.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "909808.411",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "17428.971",
+    "gt": "17267.357",
+    "page": 9,
+    "row_label": "Dy phong rui ro cho vay khach hang 11 (17.428.971) (16.366.955) S",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "16366.955",
+    "gt": null,
+    "page": 9,
+    "row_label": "Dy phong rui ro cho vay khach hang 11 (17.428.971) (16.366.955) S",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "24354.596",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "15986.826",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "23989.930",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "15778.795",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1260149.596",
+    "gt": "1260149.596",
+    "page": 9,
+    "row_label": "TONG TAI SAN 1.260.149.596 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "923847.637",
+    "gt": "923847.637",
+    "page": 9,
+    "row_label": "TONG TAI SAN 1.260.149.596 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "180275.629",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "147275.262",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.000",
+    "gt": "12372.286",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.000",
+    "gt": "5370.287",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  }
+]

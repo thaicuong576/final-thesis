@@ -46,24 +46,15 @@ các số liệu này theo công thức được định danh phiên bản, cho 
 
 ## Phụ lục C. Mã nguồn và kết quả thực nghiệm
 
-Mã nguồn nằm trong một kho riêng tư; bản chụp ứng với khóa luận là commit `[ĐIỀN: MÃ COMMIT]`, cung cấp theo yêu cầu.
-Các thư mục chính:
+Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu cầu. Kết quả của các thực nghiệm được lưu cùng mã nguồn dưới dạng tệp do chương trình ghi lại; Bảng C.1 liệt kê nội dung từng nhóm.
 
-*Bảng C.1: Kết quả thực nghiệm lưu cùng mã nguồn.*
+*Bảng C.1: Kết quả thực nghiệm được lưu.*
 
-| Thực nghiệm | Thư mục | Nội dung |
-|---|---|---|
-| A/B/C (ER-9) | `experiments/er9` | 36 lượt chạy, điểm chấm, biểu đồ |
-| E1 – đột biến bộ kiểm chứng | `experiments/mut1` | 1.210 câu đột biến, kết quả theo loại lỗi |
-| E2 – nhiều mô hình | `experiments/e2`, `experiments/e2r` | Ba mô hình OpenAI; ba lần chạy lại của `gpt-5.6-luna` |
-| E3 – đối kháng | `experiments/e3` | Trước và sau khi thêm cổng phạm vi |
-| E5 – số hóa | `experiments/e5`, `scripts/e5_*.py` | Mã và kết quả đo |
-| Chỉ mục kết quả | `experiments/RESULTS-INDEX.md` | Bảng số liệu, lệnh chạy lại và phiên bản mã nguồn của từng thực nghiệm |
-
-*Bảng C.2: Phiên bản mã nguồn của từng nhóm thực nghiệm (viết tắt dùng ở Chương 5).*
-
-| Ký hiệu | Thực nghiệm | Mã commit |
-|---|---|---|
-| v1 | ER-9 | `5eca302`, `7e36a1a` |
-| v1 | E1, E2, E3 | `06611d9` |
-| v2 | E2r, E3 sau sửa | `b6344a4` |
+| Thực nghiệm | Nội dung |
+|---|---|
+| Thực nghiệm chính (ba cấu hình) | 36 lượt chạy, điểm chấm, biểu đồ |
+| Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi |
+| So sánh mô hình | Ba mô hình OpenAI; ba lần chạy lặp của `gpt-5.6-luna` |
+| Kiểm tra đối kháng | Trước và sau khi thêm cổng phạm vi |
+| Số hóa từ báo cáo gốc | Mã đo và kết quả |
+| Chỉ mục kết quả | Bảng số liệu, lệnh chạy lại và phiên bản mã nguồn của từng thực nghiệm |

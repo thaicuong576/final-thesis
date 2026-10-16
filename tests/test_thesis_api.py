@@ -31,6 +31,7 @@ class ThesisApiTests(unittest.TestCase):
         self.addCleanup(self.temp_dir.cleanup)
         missing_database = Path(self.temp_dir.name) / "not-configured.sqlite"
         self.settings = Settings(
+            _env_file=None,
             app_name="final-thesis-api",
             app_env="staging",
             database_url="postgresql://testuser:secretpassword@db.example.com:5432/testdb",
@@ -104,7 +105,7 @@ class ThesisApiTests(unittest.TestCase):
             Path(self.temp_dir.name) / "missing-locator.sqlite",
             include_metric_locators=False,
         )
-        app = create_app(Settings(app_env="test", sqlite_db_path=str(database), planner_mode="rules_only"))
+        app = create_app(Settings(_env_file=None, app_env="test", sqlite_db_path=str(database), planner_mode="rules_only"))
         response = TestClient(app).get("/api/ready")
         self.assertEqual(response.status_code, 503)
         data = response.json()
@@ -114,7 +115,7 @@ class ThesisApiTests(unittest.TestCase):
         self.assertIn("not runnable", data.get("detail", "").casefold())
 
     def test_readiness_returns_503_when_database_url_unconfigured(self) -> None:
-        unconfigured_settings = Settings(database_url=None, planner_mode="rules_only")
+        unconfigured_settings = Settings(_env_file=None, database_url=None, planner_mode="rules_only")
         unconfigured_app = create_app(unconfigured_settings)
         client = TestClient(unconfigured_app)
 

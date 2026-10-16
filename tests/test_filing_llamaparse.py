@@ -314,6 +314,7 @@ class TestFilingLlamaParse(unittest.TestCase):
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
         settings = Settings(
+            _env_file=None,
             app_name="final-thesis-llamaparse-test",
             app_env="test",
             sqlite_db_path=":memory:",

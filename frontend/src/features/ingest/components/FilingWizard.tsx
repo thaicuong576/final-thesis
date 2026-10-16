@@ -299,13 +299,17 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
 
         {isUploadCollapsed && filing ? (
           <div className="rounded-md border border-line bg-surface-secondary/50 p-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 text-ready shrink-0" />
-              <span className="font-semibold text-ink">{filing.filename}</span>
-              <span className="text-ink-secondary">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <CheckCircle2 className="size-4 text-ready shrink-0" />
+                <span className="font-semibold text-ink truncate max-w-[200px] sm:max-w-none" title={filing.filename}>
+                  {filing.filename}
+                </span>
+              </div>
+              <span className="text-ink-secondary shrink-0">
                 · {filing.entity_id} ({filing.fiscal_year})
               </span>
-              <span className="text-ink-tertiary">
+              <span className="text-ink-tertiary shrink-0">
                 · {filing.reporting_scope === 'consolidated' ? 'Hợp nhất' : 'Riêng lẻ'}
               </span>
             </div>
@@ -314,7 +318,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
               variant="link"
               size="sm"
               onClick={() => setIsUploadCollapsed(false)}
-              className="h-auto p-0 text-[11px] font-semibold text-text-accent"
+              className="h-auto p-0 text-[11px] font-semibold text-text-accent shrink-0"
             >
               Đổi tệp khác
             </Button>

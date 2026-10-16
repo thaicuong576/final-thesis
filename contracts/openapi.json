@@ -1048,6 +1048,70 @@
           }
         ]
       }
+    },
+    "/api/onboarding/filing-samples": {
+      "get": {
+        "summary": "List pre-built financial filing samples for demonstration",
+        "description": "Return catalog of curated filing samples built from verified data.",
+        "operationId": "listFilingSamples",
+        "responses": {
+          "200": {
+            "description": "List of available filing samples",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FilingSample"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/onboarding/filing-samples/{sample_id}/open": {
+      "post": {
+        "summary": "Open a pre-built filing sample into a ready filing",
+        "description": "Instantiate a ready filing directly from verified sample data (no OCR).",
+        "operationId": "openFilingSample",
+        "parameters": [
+          {
+            "name": "sample_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ready filing detail initialized from sample",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sample not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -4579,6 +4643,37 @@
           },
           "needs_review_count": {
             "type": "integer"
+          }
+        }
+      },
+      "FilingSample": {
+        "type": "object",
+        "required": [
+          "sample_id",
+          "title_vi",
+          "entity_id",
+          "fiscal_year",
+          "page_count",
+          "note_vi"
+        ],
+        "properties": {
+          "sample_id": {
+            "type": "string"
+          },
+          "title_vi": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "fiscal_year": {
+            "type": "integer"
+          },
+          "page_count": {
+            "type": "integer"
+          },
+          "note_vi": {
+            "type": "string"
           }
         }
       },

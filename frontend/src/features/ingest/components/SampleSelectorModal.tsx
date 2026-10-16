@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, FileText, ArrowRight, Loader2, X } from 'lucide-react';
+import { Sparkles, FileText, ArrowRight, Loader2, X, AlertCircle } from 'lucide-react';
 import { listFilingSamples } from '../api/filingService';
-import { FILING_SAMPLES } from '@/test/fixtures/filingFixtures';
 import type { FilingSample } from '../model/types';
 
 interface SampleSelectorModalProps {
@@ -16,7 +15,9 @@ export function SampleSelectorModal({
   onClose,
   onOpenSample,
 }: SampleSelectorModalProps) {
-  const [samples, setSamples] = useState<FilingSample[]>(FILING_SAMPLES);
+  const [samples, setSamples] = useState<FilingSample[]>([]);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,18 +25,25 @@ export function SampleSelectorModal({
     let cancelled = false;
     listFilingSamples()
       .then((data) => {
-        if (!cancelled && data && data.length > 0) {
-          setSamples(data);
+        if (!cancelled) {
+          setSamples(data || []);
+          setHasLoaded(true);
         }
       })
-      .catch(() => {
-        if (!cancelled) setSamples(FILING_SAMPLES);
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'Lỗi tải danh sách mẫu';
+          setLoadError(msg);
+          setHasLoaded(true);
+        }
       });
 
     return () => {
       cancelled = true;
     };
   }, [open]);
+
+  const isLoading = open && !hasLoaded && !loadError;
 
   const handleSelect = async (sampleId: string) => {
     setOpeningId(sampleId);
@@ -82,7 +90,28 @@ export function SampleSelectorModal({
         </p>
 
         <div className="space-y-2.5">
-            {samples.map((s) => {
+          {isLoading && (
+            <div className="flex items-center justify-center p-6 text-ink-secondary gap-2 text-xs">
+              <Loader2 className="size-4 animate-spin text-text-accent" />
+              <span>Đang tải danh sách mẫu...</span>
+            </div>
+          )}
+
+          {loadError && (
+            <div className="rounded-md border border-rose-300 bg-rose-50 p-3 text-xs text-rose-900 flex items-start gap-2">
+              <AlertCircle className="size-4 shrink-0 mt-0.5 text-rose-600" />
+              <span>{loadError}</span>
+            </div>
+          )}
+
+          {!isLoading && !loadError && samples.length === 0 && (
+            <p className="text-xs text-ink-secondary text-center py-4">
+              Không có mẫu nào sẵn sàng.
+            </p>
+          )}
+
+          {!isLoading &&
+            samples.map((s) => {
               const isOpening = openingId === s.sample_id;
               return (
                 <div
@@ -125,7 +154,7 @@ export function SampleSelectorModal({
                 </div>
               );
             })}
-          </div>
+        </div>
 
         <div className="border-t border-line pt-3 flex justify-end">
           <Button

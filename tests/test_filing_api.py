@@ -467,6 +467,86 @@ class TestFilingApi(unittest.TestCase):
         blocked_resp = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
         self.assertEqual(blocked_resp.status_code, 409)
 
+    def test_filing_samples_catalog(self) -> None:
+        """GET /api/onboarding/filing-samples returns 3 verified bank samples."""
+        resp = self.client.get("/api/onboarding/filing-samples")
+        self.assertEqual(resp.status_code, 200)
+        samples = resp.json()
+        self.assertEqual(len(samples), 3)
+        sample_ids = {s["sample_id"] for s in samples}
+        self.assertEqual(sample_ids, {"acb-2025", "vcb-2025", "mbb-2025"})
+
+        for s in samples:
+            self.assertIn("title_vi", s)
+            self.assertIn("entity_id", s)
+            self.assertIn("fiscal_year", s)
+            self.assertIn("page_count", s)
+            self.assertIn("note_vi", s)
+            self.assertEqual(s["fiscal_year"], 2025)
+            self.assertGreater(s["page_count"], 0)
+
+    def test_open_filing_sample_acb_and_confirm(self) -> None:
+        """POST /api/onboarding/filing-samples/acb-2025/open creates ready filing that can be confirmed."""
+        resp = self.client.post("/api/onboarding/filing-samples/acb-2025/open")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        filing_id = data["filing_id"]
+        self.assertTrue(filing_id.startswith("fl-"))
+        self.assertEqual(data["status"], "ready")
+        self.assertEqual(data["entity_id"], "ACB")
+        self.assertEqual(data["ocr_provider"], "sample")
+        self.assertEqual(len(data["rows"]), 20)
+        self.assertFalse(data["validation"]["ready_to_confirm"])
+
+        # Page image endpoint returns placeholder PNG (or real PDF page)
+        page_resp = self.client.get(f"/api/onboarding/filings/{filing_id}/pages/1.png")
+        self.assertEqual(page_resp.status_code, 200)
+        self.assertEqual(page_resp.headers["content-type"], "image/png")
+        self.assertTrue(page_resp.content.startswith(b"\x89PNG\r\n\x1a\n"))
+
+        # Confirm all 20 rows
+        for r in data["rows"]:
+            row_id = r["row_id"]
+            val = r["value_billion_vnd"]
+            put_res = self.client.put(
+                f"/api/onboarding/filings/{filing_id}/rows/{row_id}",
+                json={"value_billion_vnd": val, "confirmed": True},
+            )
+            self.assertEqual(put_res.status_code, 200)
+
+        # Filing is now ready to confirm
+        after_put = self.client.get(f"/api/onboarding/filings/{filing_id}").json()
+        self.assertTrue(after_put["validation"]["ready_to_confirm"])
+
+        # Confirm into operational snapshot
+        confirm_resp = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(confirm_resp.status_code, 200)
+        confirm_body = confirm_resp.json()
+        self.assertEqual(confirm_body["status"], "accepted")
+        self.assertEqual(confirm_body["entity_id"], "ACB")
+        self.assertTrue(confirm_body["upload_id"].startswith("up-"))
+
+    def test_open_filing_sample_mbb_deliberate_error(self) -> None:
+        """MBB sample visibly catches pat_equals_parent_plus_nci error."""
+        resp = self.client.post("/api/onboarding/filing-samples/mbb-2025/open")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        filing_id = data["filing_id"]
+        self.assertEqual(data["entity_id"], "MBB")
+
+        error_codes = [c["code"] for c in data["validation"]["checks"] if c["severity"] == "error"]
+        self.assertIn("pat_equals_parent_plus_nci", error_codes)
+        self.assertFalse(data["validation"]["ready_to_confirm"])
+
+        # Cannot confirm with error
+        blocked = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(blocked.status_code, 409)
+
+    def test_open_unknown_sample_returns_404(self) -> None:
+        """POST /api/onboarding/filing-samples/unknown/open returns 404."""
+        resp = self.client.post("/api/onboarding/filing-samples/unknown-sample/open")
+        self.assertEqual(resp.status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()

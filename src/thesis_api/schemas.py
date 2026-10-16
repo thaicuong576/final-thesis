@@ -1205,3 +1205,15 @@ class FilingRowUpdateResponse(BaseModel):
     validation: FilingValidationDTO = Field(..., description="Recalculated validation results")
 
 
+class FilingSampleDTO(BaseModel):
+    """Catalog item for demonstrator filing samples (INGEST-5)."""
+
+    model_config = ConfigDict(extra="ignore")
+    sample_id: str = Field(..., description="Unique sample identifier (e.g. acb-2025)")
+    title_vi: str = Field(..., description="Vietnamese title of sample for display")
+    entity_id: str = Field(..., description="Bank entity ticker")
+    fiscal_year: int = Field(..., description="Reporting fiscal year")
+    page_count: int = Field(..., description="Total pages in sample")
+    note_vi: str = Field(..., description="Vietnamese descriptive note or highlighted issue")
+
+

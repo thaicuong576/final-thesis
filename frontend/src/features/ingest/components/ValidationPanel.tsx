@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Ban,
 } from 'lucide-react';
+import { scrubUserText } from '../lib/scrubText';
 import type { Validation, ValidationCheck } from '../model/types';
 
 interface ValidationPanelProps {
@@ -78,7 +79,7 @@ export function ValidationPanel({
           <ul className="list-disc list-inside space-y-1 text-ink pl-1">
             {validation.blocking_reasons_vi.map((reason, idx) => (
               <li key={idx} className="leading-relaxed">
-                {reason}
+                {scrubUserText(reason)}
               </li>
             ))}
           </ul>
@@ -185,14 +186,14 @@ function CheckItem({
               check.severity === 'error' ? 'text-blocked' : 'text-text-warning'
             }`}
           >
-            {check.message_vi}
+            {scrubUserText(check.message_vi)}
           </span>
         </div>
 
         {(check.expected || check.actual) && (
           <div className="font-mono text-[11px] text-ink-secondary flex items-center gap-3">
-            {check.expected && <span>Kỳ vọng: {check.expected}</span>}
-            {check.actual && <span>Thực tế: {check.actual}</span>}
+            {check.expected && <span>Kỳ vọng: {scrubUserText(check.expected)}</span>}
+            {check.actual && <span>Thực tế: {scrubUserText(check.actual)}</span>}
           </div>
         )}
       </div>

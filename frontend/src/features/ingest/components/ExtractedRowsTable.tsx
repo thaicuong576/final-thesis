@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDecimalVi, formatPeriodCode } from '@/shared/lib/formatting';
+import { scrubUserText } from '../lib/scrubText';
 import type { Row, RowAlternative } from '../model/types';
 import { METRIC_IDS, METRIC_LABELS } from '../model/types';
 
@@ -532,7 +533,7 @@ function RowCellContent({
                   : 'bg-warning-soft text-text-warning'
               }`}
             >
-              {iss.message_vi}
+              {scrubUserText(iss.message_vi)}
             </div>
           ))}
         </div>

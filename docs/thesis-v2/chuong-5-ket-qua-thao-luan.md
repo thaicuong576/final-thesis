@@ -1,36 +1,36 @@
 # CHƯƠNG 5. KẾT QUẢ VÀ THẢO LUẬN
 
-Chương này trình bày kết quả kiểm tra kỹ thuật, kết quả thực nghiệm so sánh ba cấu hình A, B, C trên bộ dữ liệu mười ngân hàng, và bốn thực nghiệm bổ sung đo độ tin cậy của chính các cơ chế kiểm soát: độ nhạy của bộ kiểm chứng câu (E1), so sánh giữa các mô hình ngôn ngữ (E2), kiểm tra đối kháng (E3) và đo khả năng số hóa từ báo cáo gốc (E5). Mọi số liệu được lấy từ các tệp kết quả lưu cùng mã nguồn (thư mục `experiments`, tổng hợp tại `experiments/RESULTS-INDEX.md`); không có số nào được nhập tay.
+Chương này trình bày kết quả kiểm tra kỹ thuật, kết quả thực nghiệm so sánh ba cấu hình A, B, C trên bộ dữ liệu mười ngân hàng, và bốn thực nghiệm bổ sung đo độ tin cậy của chính các cơ chế kiểm soát: độ nhạy của bộ kiểm chứng câu (E1), so sánh giữa các mô hình ngôn ngữ (E2), kiểm tra đối kháng (E3) và đo khả năng số hóa từ báo cáo gốc (E5). Mọi số liệu được lấy từ các tệp kết quả do chương trình ghi lại (danh mục các tệp này ở Phụ lục C); không có số nào được nhập tay.
 
 ## 5.1. Kết quả kiểm tra kỹ thuật
 
 Phiên bản dùng cho thực nghiệm A/B/C có hơn 900 bài kiểm thử tự động phía máy chủ và 188 bài phía giao diện, tất cả đều đạt trên hệ thống tích hợp liên tục. Tại thời điểm hoàn thiện khóa luận (13/10/2026), bộ kiểm thử đã tăng lên 1.020 bài phía máy chủ (5 bài bị bỏ qua có chủ đích) và 235 bài phía giao diện, vẫn đạt toàn bộ. Các bài kiểm thử dùng mô hình và dữ liệu giả lập nên chỉ chứng minh hệ thống chạy đúng với các kịch bản đã mô tả. Vì vậy, hệ thống còn được chạy với mô hình thật trên bản triển khai: các luồng ở mục 4.5, gồm tra cứu, hồ sơ doanh nghiệp, so sánh, xếp hạng, xu hướng và tải lên ngân hàng mới, cho kết quả đúng ở các lần chạy thử.
 
-Việc chạy thật cũng bộc lộ những điều kiểm thử giả lập không phát hiện. Thứ nhất, nhiều câu nhận định đúng bị loại vì lời nhắc chưa nêu đủ quy tắc của bộ kiểm tra, được khắc phục bằng cách ghi rõ các quy tắc này vào lời nhắc (mục 4.2.4). Thứ hai, và là điểm phải nêu rõ: ở phiên bản dùng cho thực nghiệm, câu hỏi hoàn toàn ngoài phạm vi (yêu cầu sáng tác thơ, dự báo giá vàng) **không** bị từ chối mà vẫn nhận một báo cáo ngành, vì bộ lập kế hoạch mặc định về kế hoạch xếp hạng khi câu hỏi không nêu ngân hàng nào (mục 5.9). Lỗi này đã được sửa sau đánh giá (mục 5.12); phần từ chối câu hỏi ở kỳ hoặc ngân hàng không có dữ liệu thì hoạt động đúng ngay từ đầu.
+Việc chạy thật cũng bộc lộ những điều kiểm thử giả lập không phát hiện. Thứ nhất, nhiều câu nhận định đúng bị loại vì prompt chưa nêu đủ quy tắc của bộ kiểm tra, được khắc phục bằng cách ghi rõ các quy tắc này vào prompt (mục 4.2.4). Thứ hai, và là điểm phải nêu rõ: ở phiên bản dùng cho thực nghiệm, câu hỏi hoàn toàn ngoài phạm vi (yêu cầu sáng tác thơ, dự báo giá vàng) **không** bị từ chối mà vẫn nhận một báo cáo ngành, vì bộ lập kế hoạch mặc định về kế hoạch xếp hạng khi câu hỏi không nêu ngân hàng nào (mục 5.9). Lỗi này đã được sửa sau đánh giá (mục 5.12); phần từ chối câu hỏi ở kỳ hoặc ngân hàng không có dữ liệu thì hoạt động đúng ngay từ đầu.
 
 ## 5.2. Thiết lập thực nghiệm
 
-Bảng 5.0 liệt kê toàn bộ các thực nghiệm đã chạy, câu hỏi mỗi thực nghiệm trả lời và nguồn kết quả trong kho mã.
+Bảng 5.1 liệt kê toàn bộ các thực nghiệm đã chạy và câu hỏi mà mỗi thực nghiệm trả lời. Hai phiên bản của hệ thống được dùng: bản ban đầu (v1), dùng cho ER-9, E1, E2 và E3; và bản sau nâng cấp (v2, mục 5.12), dùng cho E2r và E3 sau sửa. Mã phiên bản tương ứng ở Phụ lục C.
 
-*Bảng 5.0: Danh mục thực nghiệm.*
+*Bảng 5.1: Danh mục thực nghiệm.*
 
-| Mã | Trả lời câu hỏi nào | Mô hình | Mã nguồn | Cấu hình, số câu × số lần | Token | Nguồn |
-|---|---|---|---|---|---|---|
-| ER-9 | A, B, C khác nhau thế nào (RQ2, RQ3) | DeepSeek V4 Pro | `5eca302` / `7e36a1a` | 3 cấu hình, 12 câu × 1 | 454.706 | `experiments/er9` |
-| E1 | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi cài vào | không gọi mô hình | — (chạy trên kết quả ER-9) | 1.210 câu đột biến từ 129 câu đã được chấp nhận ở ER-9 | 0 | `experiments/mut1` |
-| E2 | Kết quả có phụ thuộc mô hình không | `gpt-5.4-nano`, `gpt-5.4-mini`, `gpt-5.6-luna` (OpenAI) | `06611d9` | chỉ cấu hình B, 12 câu × 1 | 321.133 | `experiments/e2` |
-| E2r | Kết quả của `gpt-5.6-luna` có ổn định khi chạy lại trên mã mới không | `gpt-5.6-luna` | `b6344a4` | chỉ cấu hình B, 12 câu × 3 lần | 359.298 | `experiments/e2r` |
-| E3 | Hệ thống chống chịu thế nào trước câu hỏi đối kháng | `gpt-5.6-luna` | `06611d9` | 3 cấu hình, 15 câu × 1 | 462.802 | `experiments/e3` |
-| E3 sau sửa | Sửa lỗi ngoài phạm vi có hiệu quả và không gây lùi không | `gpt-5.6-luna` | `b6344a4` | 3 cấu hình, tập con 8 câu × 1 | 210.080 | `experiments/e3` |
-| E5 | Khó khăn của số hóa nằm ở nhận dạng ký tự hay ở cấu trúc bảng | không gọi mô hình | — | 885 số liệu đầu vào đã chấp nhận | 0 | `experiments/e5` |
+| Mã | Trả lời câu hỏi nào | Mô hình | Phiên bản | Cấu hình, số câu × số lần | Token |
+|---|---|---|---|---|---|
+| ER-9 | A, B, C khác nhau thế nào (RQ2, RQ3) | DeepSeek V4 Pro | v1 | 3 cấu hình, 12 câu × 1 | 454.706 |
+| E1 | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi cài vào | không gọi mô hình | — (chạy trên kết quả ER-9) | 1.210 câu đột biến từ 129 câu đã được chấp nhận ở ER-9 | 0 |
+| E2 | Kết quả có phụ thuộc mô hình không | `gpt-5.4-nano`, `gpt-5.4-mini`, `gpt-5.6-luna` (OpenAI) | v1 | chỉ cấu hình B, 12 câu × 1 | 321.133 |
+| E2r | Kết quả của `gpt-5.6-luna` có ổn định khi chạy lại trên bản v2 không | `gpt-5.6-luna` | v2 | chỉ cấu hình B, 12 câu × 3 lần | 359.298 |
+| E3 | Hệ thống chống chịu thế nào trước câu hỏi đối kháng | `gpt-5.6-luna` | v1 | 3 cấu hình, 15 câu × 1 | 462.802 |
+| E3 sau sửa | Sửa lỗi ngoài phạm vi có hiệu quả và không gây lùi không | `gpt-5.6-luna` | v2 | 3 cấu hình, tập con 8 câu × 1 | 210.080 |
+| E5 | Khó khăn của số hóa nằm ở nhận dạng ký tự hay ở cấu trúc bảng | không gọi mô hình | — | 885 số liệu đầu vào đã chấp nhận | 0 |
 
-Thực nghiệm chính ER-9 được chạy ngày 05/10/2026 trên bộ dữ liệu mười ngân hàng đã khóa mã băm (mục 3.2.3), với mô hình DeepSeek V4 Pro (`deepseek-v4-pro-0813`). Mười hai câu hỏi ở Bảng 3.4 được chạy một lần trên mỗi cấu hình, tạo thành 36 lượt; thứ tự được xáo trộn theo một giá trị cố định để có thể lặp lại, và sáu lượt chạy đồng thời. Tổng lượng văn bản mô hình xử lý là 454.706 token, dưới giới hạn 3.000.000 token đặt trước cho lần chạy. Sau khi chạy, hệ thống xác nhận cả mười hai câu hỏi có kế hoạch giống hệt nhau giữa ba cấu hình. Việc chấm điểm do chương trình thực hiện theo các chỉ số ở mục 3.3.4.
+Thực nghiệm chính ER-9 được chạy ngày 05/10/2026 trên bộ dữ liệu mười ngân hàng đã khóa mã băm (mục 3.2.3), với mô hình DeepSeek V4 Pro (DeepSeek V4 Pro). Mười hai câu hỏi ở Bảng 3.4 được chạy một lần trên mỗi cấu hình, tạo thành 36 lượt; thứ tự được xáo trộn theo một giá trị cố định để có thể lặp lại, và sáu lượt chạy đồng thời. Tổng lượng văn bản mô hình xử lý là 454.706 token, dưới giới hạn 3.000.000 token đặt trước cho lần chạy. Sau khi chạy, hệ thống xác nhận cả mười hai câu hỏi có kế hoạch giống hệt nhau giữa ba cấu hình. Việc chấm điểm do chương trình thực hiện theo các chỉ số ở mục 3.3.4.
 
-Về chi phí tổng thể: cộng các lượt hợp lệ trong Bảng 5.0 với lượt thử trên bộ Gold v5 ngày 30/09/2026 (474.265 token) và hai mô hình DeepSeek của E2 (329.362 token, mục 5.8), lượng token ghi trong các tệp kết quả hợp lệ là khoảng 2,61 triệu. Ngoài ra, các lượt chạy bị loại vì sai cấu hình (chạy nhầm mô hình, gateway trả lỗi, hết số dư) đã tiêu thêm khoảng 1,50 triệu token (mục 5.14), nâng tổng lượng đã tiêu cho toàn bộ quá trình đánh giá lên khoảng 4,1 triệu. Mỗi lần chạy đều nằm dưới giới hạn 3.000.000 token đặt cho riêng nó, nhưng tổng toàn bộ quá trình vượt con số này; đây là chi phí thật của việc phải làm lại, và được nêu để không đánh giá thấp chi phí vận hành thực nghiệm.
+Về chi phí tổng thể: cộng các lượt hợp lệ trong Bảng 5.1 với lượt thử trên bộ Gold v5 ngày 30/09/2026 (474.265 token) và hai mô hình DeepSeek của E2 (329.362 token, mục 5.8), lượng token ghi trong các tệp kết quả hợp lệ là khoảng 2,61 triệu. Ngoài ra, các lượt chạy bị loại vì sai cấu hình (lỗi cấu hình mô hình và lỗi hạ tầng của dịch vụ) đã tiêu thêm khoảng 1,50 triệu token (mục 5.14), nâng tổng lượng đã tiêu cho toàn bộ quá trình đánh giá lên khoảng 4,1 triệu. Mỗi lần chạy đều nằm dưới giới hạn 3.000.000 token đặt cho riêng nó, nhưng tổng toàn bộ quá trình vượt con số này; đây là chi phí thật của việc phải làm lại, và được nêu để không đánh giá thấp chi phí vận hành thực nghiệm.
 
 ## 5.3. Kết quả tổng hợp (ER-9)
 
-*Bảng 5.1: Kết quả tổng hợp theo cấu hình (12 lượt mỗi cấu hình).*
+*Bảng 5.2: Kết quả tổng hợp theo cấu hình (12 lượt mỗi cấu hình).*
 
 | Chỉ số | A – một tác tử | B – phân cấp | C – phân cấp có phản biện |
 |---|:---:|:---:|:---:|
@@ -60,9 +60,9 @@ R1 (quý 3/2026) và R2 (OCB) bị từ chối đúng ở cả ba cấu hình, t
 
 ## 5.4. Trả lời RQ2: phân cấp B so với một tác tử A
 
-Bảng 5.2 so sánh từng cặp cấu hình trên cùng câu hỏi. Khoảng trong ngoặc vuông là khoảng tin cậy 95%, ước lượng bằng cách lấy mẫu lại 1.000 lần từ chính các cặp câu hỏi; với 12 cặp và một lần chạy, các khoảng này chỉ mang tính tham khảo, và khoảng chứa 0 nghĩa là chưa đủ bằng chứng về khác biệt.
+Bảng 5.3 so sánh từng cặp cấu hình trên cùng câu hỏi. Khoảng trong ngoặc vuông là khoảng tin cậy 95%, ước lượng bằng cách lấy mẫu lại 1.000 lần từ chính các cặp câu hỏi; với 12 cặp và một lần chạy, các khoảng này chỉ mang tính tham khảo, và khoảng chứa 0 nghĩa là chưa đủ bằng chứng về khác biệt.
 
-*Bảng 5.2: Chênh lệch giữa các cặp cấu hình (trung bình và khoảng tin cậy 95%).*
+*Bảng 5.3: Chênh lệch giữa các cặp cấu hình (trung bình và khoảng tin cậy 95%).*
 
 | Chỉ số | B − A | C − B | C − A |
 |---|---|---|---|
@@ -83,7 +83,7 @@ Bổ sung phản biện và tối đa hai vòng sửa đổi không làm tăng �
 
 Nguyên nhân độ phủ giảm thấy rõ khi xem các câu bị loại. C bị loại 22 trên 63 câu, trong đó 12 câu bị loại vì còn vấn đề phản biện chưa giải quyết sau hai vòng sửa. Chỉ 4 trên 12 lượt của C hoàn thành trọn vẹn. Các vấn đề còn mở khi kết thúc chủ yếu thuộc loại "tổng hợp chưa đầy đủ" (8 trên 9 vấn đề, 7 ở mức nghiêm trọng), tức bộ phản biện yêu cầu báo cáo nói thêm về các chỉ tiêu khác, ví dụ ở hồ sơ BID: báo cáo "đã bỏ sót hoàn toàn" tỷ lệ nợ xấu và bao phủ nợ xấu. Khi câu viết lại vẫn không đạt, câu bị loại, nên chính yêu cầu "nói đầy đủ hơn" lại làm báo cáo mất câu và giảm độ phủ (T01: 0,5 so với 0,75 của B; T10: 0,5 so với 1,0).
 
-**Trả lời RQ3:** trong điều kiện của thực nghiệm, phản biện và sửa đổi làm chi phí tăng khoảng ba lần so với B, không cải thiện độ chính xác hay độ phủ đo được, và làm báo cáo nêu nhiều phát hiện liên tầng hơn. Bộ phản biện hiện tại hoạt động như một người biên tập khó tính: nó phát hiện đúng những chỗ báo cáo chưa đầy đủ, nhưng cơ chế sửa câu đơn lẻ chưa đủ để đáp ứng yêu cầu ở mức cả báo cáo, và những gì sửa không được thì bị loại bỏ.
+**Trả lời RQ3:** trong điều kiện của thực nghiệm, phản biện và sửa đổi làm chi phí tăng khoảng ba lần so với B, không cải thiện độ chính xác hay độ phủ đo được, và làm báo cáo nêu nhiều phát hiện liên tầng hơn. Bộ phản biện hiện tại hoạt động với tiêu chuẩn kiểm duyệt rất khắt khe: nó phát hiện đúng những chỗ báo cáo chưa đầy đủ, nhưng cơ chế sửa câu đơn lẻ chưa đủ để đáp ứng yêu cầu ở mức cả báo cáo, và những gì sửa không được thì bị loại bỏ.
 
 ![](experiments/er9/analysis/figure_er9_pairwise_diff.png)
 
@@ -99,14 +99,14 @@ Trên toàn thực nghiệm, 39 câu bị loại. Lý do phổ biến nhất là
 
 Mục 5.3 cho thấy cả ba cấu hình đều đạt 100% khớp số, nhưng con số này chỉ có ý nghĩa nếu bộ kiểm chứng thật sự bắt được câu sai. E1 đo điều đó bằng đột biến: từ 129 câu đã được bộ kiểm chứng chấp nhận ở ER-9, chương trình cài vào mỗi câu một lỗi thuộc một trong 12 loại (đổi số, đảo hai chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, thêm số không có nguồn, thêm quan hệ nhân quả hoặc khuyến nghị…), tạo 1.210 câu đột biến, rồi cho bộ kiểm chứng chạy lại. Cả 129 câu gốc không đột biến vẫn được chấp nhận (không bác bỏ nhầm).
 
-*Bảng 5.3: Tỷ lệ bộ kiểm chứng bắt được từng loại lỗi cài vào (số liệu thô, khoảng tin cậy Wilson 95%).*
+*Bảng 5.4: Tỷ lệ bộ kiểm chứng bắt được từng loại lỗi cài vào (số liệu thô, khoảng tin cậy Wilson 95%).*
 
 | Loại lỗi | Số câu thử | Bắt được | Tỷ lệ | Khoảng tin cậy 95% |
 |---|:---:|:---:|:---:|:---:|
-| Đổi số nhỏ / lớn / đảo chữ số | 96 mỗi loại | 96 | 100% | [96,2%; 100%] |
+| Đổi số nhỏ / lớn / đảo chữ số | 96 câu mỗi loại | 96 | 100% | [96,2%; 100%] |
 | Đổi thứ hạng | 46 | 46 | 100% | [92,3%; 100%] |
 | Đổi mẫu số | 52 | 52 | 100% | [93,1%; 100%] |
-| Số không có nguồn / nhân quả / khuyến nghị | 129 mỗi loại | 129 | 100% | [97,1%; 100%] |
+| Số không có nguồn / nhân quả / khuyến nghị | 129 câu mỗi loại | 129 | 100% | [97,1%; 100%] |
 | Đổi kỳ | 118 | 98 | 83,1% | [75,3%; 88,8%] |
 | Đổi ngân hàng | 123 | 106 | 86,2% | [79,0%; 91,2%] |
 | Đảo chiều | 76 | 67 | 88,2% | [79,0%; 93,6%] |
@@ -114,13 +114,13 @@ Mục 5.3 cho thấy cả ba cấu hình đều đạt 100% khớp số, nhưng 
 
 Bộ kiểm chứng bắt tuyệt đối các lỗi về con số, thứ hạng và mẫu số, và các câu thêm khẳng định không có nguồn, nhân quả hay khuyến nghị. Nó bỏ sót đáng kể các lỗi **ngữ nghĩa** mà con số vẫn đúng: một câu giữ nguyên "50,0%" nhưng đổi "tỷ lệ bao phủ nợ xấu" thành "tỷ lệ nợ xấu" vẫn được chấp nhận ở 25 trên 120 lần thử. Đây là điểm yếu thật của thiết kế hiện tại và là cơ sở cho hạn chế ở mục 5.14.
 
-Để hiểu các câu lọt lưới, tác giả xem lại thủ công 71 câu đột biến không bị bắt. Có 37 câu (52%) là đột biến tự quy chiếu, ví dụ "TCB vượt trội TCB" hay "giảm từ quý 2/2026 đến quý 2/2026", loại lỗi mà một mô hình thật hiếm khi viết ra nhưng bộ kiểm chứng cũng chưa có quy tắc loại bỏ. Nếu bỏ nhóm này, tỷ lệ bắt được trên các đột biến có nghĩa là 94,2% (đổi kỳ, n = 104), 100% (đổi ngân hàng, n = 102) và 95,7% (đảo chiều, n = 70), còn đổi chỉ tiêu giữ nguyên 79,2%. Cách phân loại này do tác giả thực hiện sau khi đã thấy kết quả, theo một quy tắc kinh nghiệm chứ không phải gán nhãn mù, nên số liệu thô ở Bảng 5.3 là kết quả chính; số điều chỉnh chỉ để chỉ ra điểm yếu còn lại tập trung ở đổi chỉ tiêu.
+Để hiểu các câu lọt lưới, tác giả xem lại thủ công 71 câu đột biến không bị bắt. Có 37 câu (52%) là đột biến tự quy chiếu, ví dụ "TCB vượt trội TCB" hay "giảm từ quý 2/2026 đến quý 2/2026", loại lỗi mà một mô hình thật hiếm khi viết ra nhưng bộ kiểm chứng cũng chưa có quy tắc loại bỏ. Nếu bỏ nhóm này, tỷ lệ bắt được trên các đột biến có nghĩa là 94,2% (đổi kỳ, n = 104), 100% (đổi ngân hàng, n = 102) và 95,7% (đảo chiều, n = 70), còn đổi chỉ tiêu giữ nguyên 79,2%. Cách phân loại này do tác giả thực hiện sau khi đã thấy kết quả, theo một quy tắc kinh nghiệm chứ không phải gán nhãn mù, nên số liệu thô ở Bảng 5.4 là kết quả chính; số điều chỉnh chỉ để chỉ ra điểm yếu còn lại tập trung ở đổi chỉ tiêu.
 
 ## 5.8. So sánh giữa các mô hình ngôn ngữ (E2)
 
-ER-9 chỉ dùng một mô hình. E2 chạy lại cấu hình B (phân cấp, không phản biện) trên cùng 12 câu hỏi với ba mô hình của OpenAI, mỗi mô hình một lần, trên cùng phiên bản mã nguồn `06611d9`, nhằm xem kết luận có phụ thuộc mô hình hay không.
+ER-9 chỉ dùng một mô hình. E2 chạy lại cấu hình B (phân cấp, không phản biện) trên cùng 12 câu hỏi với ba mô hình của OpenAI, mỗi mô hình một lần, trên cùng phiên bản mã nguồn bản v1, nhằm xem kết luận có phụ thuộc mô hình hay không.
 
-*Bảng 5.4: Cấu hình B trên ba mô hình (một lần chạy, mã `06611d9`).*
+*Bảng 5.5: Cấu hình B trên ba mô hình (một lần chạy, bản v1).*
 
 | Mô hình | Số khớp / đã kiểm | Độ phủ trung bình (lượt hoàn thành) | Câu bị loại / được viết | Từ chối đúng | Truy vết | Token |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -130,9 +130,9 @@ ER-9 chỉ dùng một mô hình. E2 chạy lại cấu hình B (phân cấp, kh
 
 Ba điều rút ra. Thứ nhất, độ khớp số, truy vết và từ chối đúng không đổi theo mô hình, đúng như dự đoán từ thiết kế: các đảm bảo này đến từ lớp kiểm soát chứ không từ mô hình. Thứ hai, thứ thay đổi là **hiệu suất viết**: mô hình lớn hơn có độ phủ cao hơn và ít câu bị loại hơn nhiều (1,8% so với 22–27%), tức mô hình yếu hơn vẫn an toàn nhưng báo cáo ngắn và thiếu hơn. Thứ ba, chênh lệch về token giữa các mô hình nhỏ so với chênh lệch về độ phủ cho thấy chi phí không tăng tương ứng chất lượng.
 
-Hai mô hình DeepSeek (`deepseek-v4-flash-0731`, `deepseek-v4-pro-0813`) cũng được chạy trên cùng giao thức và mã nguồn: cả hai khớp số tuyệt đối (46/46 và 32/32, lần lượt 219.356 và 110.006 token) và từ chối đúng 2/2; số câu bị loại là 3/48 và 14/56. Do quyết định giới hạn bảng so sánh E2 vào các lượt chạy qua OpenAI chính thức, hai mô hình này không được đưa vào Bảng 5.4; kết quả đầy đủ vẫn nằm trong `experiments/RESULTS-INDEX.md`. Điều này cũng giữ ER-9, vốn chạy trên DeepSeek V4 Pro, là thực nghiệm A/B/C duy nhất của khóa luận.
+Hai mô hình DeepSeek (DeepSeek V4 Flash, DeepSeek V4 Pro) cũng được chạy trên cùng giao thức và mã nguồn: cả hai khớp số tuyệt đối (46/46 và 32/32, lần lượt 219.356 và 110.006 token) và từ chối đúng 2/2; số câu bị loại là 3/48 và 14/56. Do quyết định giới hạn bảng so sánh E2 vào các lượt chạy qua OpenAI chính thức, hai mô hình này không được đưa vào Bảng 5.5; kết quả đầy đủ được liệt kê ở Phụ lục C. Điều này cũng giữ ER-9, vốn chạy trên DeepSeek V4 Pro, là thực nghiệm A/B/C duy nhất của khóa luận.
 
-Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên phiên bản mã mới `b6344a4` (sau các nâng cấp ở mục 5.12). Vì mã nguồn khác lần đầu, đây là kiểm tra ổn định chứ không phải phép lặp thuần túy.
+Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên bản v2 (sau các nâng cấp ở mục 5.12). Vì mã nguồn khác lần đầu, đây là kiểm tra ổn định chứ không phải phép lặp thuần túy.
 
 Ba lần chạy mới cho độ phủ 0,900, 0,925 và 0,925 (trung bình 0,917), tỷ lệ câu bị loại 7,1%, 5,1% và 7,3% (so với 1,8% của lần chạy cũ), từ chối đúng 2/2 và truy vết 1,0 ở cả ba lần. Mọi con số được kiểm đều khớp (302/302) và truy vết luôn đạt 1,0. Kết luận về mô hình `gpt-5.6-luna` vì vậy ổn định, nhưng tỷ lệ câu bị loại 1,8% của lần chạy đầu nằm ở mức thấp nhất; giá trị tiêu biểu hơn là 5–7%. Với ba lần chạy, báo cáo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy.
 
@@ -144,8 +144,8 @@ E3 chạy mười lăm câu hỏi đối kháng thuộc bảy nhóm lên cả ba
 
 | Lần | Mã | Số câu × cấu hình | Đạt kỳ vọng mỗi cấu hình | Nhóm ngoài phạm vi | Chèn chỉ dẫn, bịa số, khuyến nghị, tiền đề sai |
 |---|---|:---:|:---:|:---:|:---:|
-| E3 | `06611d9` | 15 × 3 | 13/15 (86,7%) | 0/2 | 0 vi phạm |
-| E3 sau sửa | `b6344a4` | 8 × 3 | 8/8 | 2/2 | 0 vi phạm |
+| E3 | v1 | 15 × 3 | 13/15 (86,7%) | 0/2 | 0 vi phạm |
+| E3 sau sửa | v2 | 8 × 3 | 8/8 | 2/2 | 0 vi phạm |
 
 Trước khi sửa, cả ba cấu hình giữ vững mọi nhóm tấn công, trừ nhóm ngoài phạm vi: yêu cầu sáng tác thơ và dự báo giá vàng không bị từ chối mà vẫn nhận báo cáo ngành, vì bộ lập kế hoạch mặc định về kế hoạch xếp hạng khi không có ngân hàng nào được nêu. Sau khi thêm cổng phạm vi (mục 5.12), cả hai câu bị từ chối ở cả ba cấu hình.
 
@@ -166,7 +166,7 @@ Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, tro
 | (b) Lấy sai hàng hoặc cột | 885 | 185 (21%) |
 | (b) Thiếu cột để lấy | 885 | 1 |
 
-Nhận dạng ký tự không phải nút thắt: 93–96% giá trị đọc được nguyên văn trên trang. Nút thắt là cấu trúc: chọn đúng hàng và đúng cột sai khoảng một nửa số lần. Bộ trích xuất đạt 88–96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, nhóm 5, nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn cột lũy kế và vốn chủ sở hữu thường xuất hiện như một dòng tổng của mục. Kết quả này ủng hộ quyết định thiết kế giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại bằng công thức có phiên bản, và cho thấy quy trình số hóa của khóa luận là quy trình bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chứ chưa được thực hiện.
+Nhận dạng ký tự không phải nút thắt: 93–96% giá trị đọc được nguyên văn trên trang. Nút thắt là cấu trúc: chọn đúng hàng và đúng cột sai khoảng một nửa số lần. Bộ trích xuất đạt 88–96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, nhóm 5, nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn cột lũy kế và vốn chủ sở hữu thường xuất hiện như một dòng tổng của mục. Kết quả này ủng hộ quyết định thiết kế giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại theo công thức được định danh phiên bản, và cho thấy quy trình số hóa của khóa luận là quy trình bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chứ chưa được thực hiện.
 
 ## 5.11. Ca STB quý 4/2025: bất thường trong dữ liệu và vai trò của hồ sơ gốc
 
@@ -176,9 +176,9 @@ Khi đối soát dữ liệu quý của mười ngân hàng, một bất thườ
 
 ## 5.12. Nâng cấp sau đánh giá
 
-Sau khi ER-9 (05/10/2026), E1–E3 và E5 chạy trên mã `06611d9`, sản phẩm được nâng cấp thêm. Các nâng cấp dưới đây xảy ra sau các số liệu ở mục 5.3–5.10 và không được tính trong chúng, trừ E2r và E3 sau sửa chạy trên mã `b6344a4`.
+Sau khi ER-9 (05/10/2026), E1–E3 và E5 chạy trên bản v1, sản phẩm được nâng cấp thêm. Các nâng cấp dưới đây xảy ra sau các số liệu ở mục 5.3–5.10 và không được tính trong chúng, trừ E2r và E3 sau sửa chạy trên bản v2.
 
-Gồm: phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi (SSE-1); ngăn kéo nguồn hiển thị trang PDF, các hàng dữ liệu và đường truy vết của từng con số (LIN-1); bối cảnh thị trường như giá cổ phiếu và P/B so với ROE, gắn nhãn riêng để không trộn với số liệu báo cáo (MKT-1, MKT-2); kiểm tra tính đơn điệu của lợi nhuận lũy kế (STB-1, mục 5.11); và cổng phạm vi từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng (SCOPE-1, mục 5.9). Ngoài cổng phạm vi, các nâng cấp này không làm đổi kết quả phân tích.
+Các hạng mục nâng cấp gồm năm nhóm. Một là phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi. Hai là khung trượt tra cứu nguồn, hiển thị trang PDF, các hàng dữ liệu và đường truy vết của từng con số. Ba là bối cảnh thị trường như giá cổ phiếu và hệ số P/B so với ROE, gắn nhãn riêng để không trộn với số liệu báo cáo. Bốn là kiểm tra tính đơn điệu của lợi nhuận lũy kế (mục 5.11). Năm là cổng phạm vi, từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng (mục 5.9). Ngoài cổng phạm vi, các nâng cấp này không làm đổi kết quả phân tích.
 
 ## 5.13. Thảo luận
 
@@ -188,7 +188,7 @@ Thứ hai, chính kiến trúc kiểm soát đó có giới hạn mà E1 đo đ�
 
 Thứ ba, chuyên môn hóa (B) cải thiện độ đầy đủ với chi phí vừa phải, còn phản biện (C) tốn kém và trong thiết kế hiện tại có thể làm báo cáo ngắn đi. Với chuyên viên phân tích dùng hệ thống theo thời gian thực, B là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới thay vì chỉ sửa hoặc loại câu cũ. Việc đổi mô hình làm thay đổi độ đầy đủ nhiều hơn việc đổi cấu hình trong E2, nên kết luận về B và C không nên được hiểu là độc lập với mô hình.
 
-Thứ tư, một thực nghiệm thử trước đó trên bộ Gold v5 (năm ngân hàng, bốn quý năm 2024, ngày 30/9/2026) cho cùng xu hướng: B có độ phủ cao hơn A, C không cải thiện độ phủ và chi phí tăng theo thứ tự A < B < C. Cuối cùng, chất lượng câu phụ thuộc nhiều vào việc lời nhắc nêu đủ quy tắc của bộ kiểm tra: trong lần chạy thử với các mô hình khác, tỷ lệ câu được giữ của cùng mô hình tăng từ khoảng 49% lên 84% sau khi ghi rõ quy tắc vào lời nhắc, nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
+Thứ tư, một thực nghiệm thử trước đó trên bộ Gold v5 (năm ngân hàng, bốn quý năm 2024, ngày 30/9/2026) cho cùng xu hướng: B có độ phủ cao hơn A, C không cải thiện độ phủ và chi phí tăng theo thứ tự A < B < C. Cuối cùng, chất lượng câu phụ thuộc nhiều vào việc prompt nêu đủ quy tắc của bộ kiểm tra: trong lần chạy thử với các mô hình khác, tỷ lệ câu được giữ của cùng mô hình tăng từ khoảng 49% lên 84% sau khi ghi rõ quy tắc vào prompt, nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
 
 ## 5.14. Các yếu tố ảnh hưởng tới tính hợp lệ của kết quả
 
@@ -196,4 +196,4 @@ Về hợp lệ nội tại, mỗi cặp câu hỏi – cấu hình trong ER-9 c
 
 Về hợp lệ bên ngoài, dữ liệu gồm mười ngân hàng niêm yết lớn nhất và bốn nhóm chỉ tiêu; A/B/C chạy trên một mô hình, cấu hình B được kiểm trên ba mô hình OpenAI và hai mô hình DeepSeek với mỗi mô hình một lần, và kiểm tra đối kháng chạy trên một mô hình với mười lăm câu, không đủ để khái quát. Bộ dữ liệu đủ 100/100 ô nên thực nghiệm chính không kiểm tra tình huống thiếu số liệu.
 
-Về quy trình, người phát triển đồng thời là người thiết kế thực nghiệm; bộ câu hỏi, quy tắc chấm và kế hoạch được cố định trước khi chạy nhưng rủi ro thiên lệch trong cách đặt câu hỏi vẫn còn. Một số lượt chạy phải loại bỏ vì sai cấu hình: chạy nhầm mô hình do biến môi trường ghi đè, gateway trả lỗi 404 và hết số dư ở lần chạy E3 đầu tiên; các lượt này (khoảng 1,50 triệu token) được tách riêng và không dùng trong bất kỳ bảng kết quả nào. Một lỗi trong chính quá trình phân loại cũng được ghi nhận: hai lượt DeepSeek của E2 từng bị gán nhãn "không hợp lệ" do nhầm lẫn khi đọc tệp điểm, sau đó được đính chính (D-entry ngày 13/10/2026) và loại khỏi bảng so sánh E2 chỉ theo quyết định phạm vi, không phải vì lỗi. Cuối cùng, các lỗi của chính hệ thống được phát hiện trong khi đánh giá (câu ngoài phạm vi không bị từ chối) đã được sửa sau khi có kết quả; kết quả E3 sau sửa vì vậy chỉ chứng minh lỗi đã được khắc phục trong tập câu đã thử, không phải hệ thống miễn nhiễm với mọi câu ngoài phạm vi.
+Về quy trình, người phát triển đồng thời là người thiết kế thực nghiệm; bộ câu hỏi, quy tắc chấm và kế hoạch được cố định trước khi chạy nhưng rủi ro thiên lệch trong cách đặt câu hỏi vẫn còn. Một số lượt chạy phải loại bỏ vì lỗi cấu hình và lỗi hạ tầng của dịch vụ mô hình; các lượt này (khoảng 1,50 triệu token) được tách riêng và không dùng trong bất kỳ bảng kết quả nào. Một lỗi trong chính quá trình phân loại cũng được ghi nhận: hai lượt DeepSeek của E2 từng bị gán nhãn "không hợp lệ" do nhầm lẫn khi đọc tệp điểm, sau đó được đính chính và loại khỏi bảng so sánh E2 chỉ theo quyết định phạm vi, không phải vì lỗi. Cuối cùng, các lỗi của chính hệ thống được phát hiện trong khi đánh giá (câu ngoài phạm vi không bị từ chối) đã được sửa sau khi có kết quả; kết quả E3 sau sửa vì vậy chỉ chứng minh lỗi đã được khắc phục trong tập câu đã thử, không phải hệ thống miễn nhiễm với mọi câu ngoài phạm vi.

@@ -6,8 +6,8 @@ Chương này trình bày kiến trúc phần mềm, luồng xử lý một lư�
 
 Hệ thống tách logic tính toán và kiểm tra khỏi hạ tầng ứng dụng (Hình 4.1), để việc đổi giao diện, máy chủ hay nguồn dữ liệu không làm thay đổi các phép tính.
 
-- **Tầng lõi** là thư viện thuần: định nghĩa hợp đồng dữ liệu, tính các dữ kiện và tín hiệu tài chính, kiểm tra câu nhận định, kiểm tra cấu trúc báo cáo, và định nghĩa quy trình phản biện – sửa đổi. Tầng lõi không kết nối cơ sở dữ liệu, không gọi mô hình ngôn ngữ và không chứa mã ngân hàng cố định, nên dùng lại được cho ngân hàng khác. Các ràng buộc này được một công cụ kiểm tra tự động trên mỗi lần thay đổi mã nguồn.
-- **Tầng ứng dụng** điều phối một lượt phân tích: nhận câu hỏi qua giao diện lập trình (API), hiểu câu hỏi tiếng Việt, lập kế hoạch, gọi công cụ, giao việc cho các chuyên viên, lắp báo cáo và truyền tiến trình tới trình duyệt theo thời gian thực.
+- **Tầng lõi** là thư viện thuần: định nghĩa đặc tả ràng buộc dữ liệu, tính các dữ kiện và tín hiệu tài chính, kiểm tra câu nhận định, kiểm tra cấu trúc báo cáo, và định nghĩa quy trình phản biện – sửa đổi. Tầng lõi không kết nối cơ sở dữ liệu, không gọi mô hình ngôn ngữ và không chứa mã ngân hàng cố định, nên dùng lại được cho ngân hàng khác. Các ràng buộc này được một công cụ kiểm tra tự động trên mỗi lần thay đổi mã nguồn.
+- **Tầng ứng dụng** điều phối một lượt phân tích: nhận câu hỏi qua giao diện lập trình (API), hiểu câu hỏi tiếng Việt, lập kế hoạch, gọi công cụ, giao việc cho các chuyên viên, tổng hợp báo cáo và truyền tiến trình tới trình duyệt theo thời gian thực.
 - **Tầng lưu trữ** gồm hai tệp tách biệt: bộ dữ liệu phân tích được mở ở chế độ chỉ đọc để giữ nguyên mã băm, và kho lịch sử các lượt chạy có quyền ghi. Khi khởi động, hệ thống từ chối chạy nếu hai đường dẫn trỏ về cùng một tệp.
 
 ```mermaid
@@ -50,7 +50,7 @@ flowchart TB
         direction LR
         W["<b>4. Chuyên viên viết</b><br/>mỗi câu trích dẫn dữ kiện"]
         V["<b>5. Kiểm tra câu</b><br/>câu sai bị loại riêng"]
-        A["<b>6. Lắp báo cáo</b><br/>theo khối, kiểm tra cấu trúc"]
+        A["<b>6. Tổng hợp báo cáo</b><br/>theo khối, kiểm tra cấu trúc"]
         C["<b>7. Phản biện, sửa đổi</b><br/>tối đa 2 vòng"]
         W --> V --> A --> C
         C -.->|"câu cần sửa"| W
@@ -98,7 +98,7 @@ Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từ
 
 ### 4.2.4. Chuyên viên viết nhận định
 
-Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Lời nhắc yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Lời nhắc của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
+Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Prompt yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Prompt của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
@@ -119,17 +119,17 @@ Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm t
 | Chiều xu hướng | "Tăng", "giảm", "đi ngang" không khớp biến động và ngưỡng đi ngang của chỉ tiêu |
 | Chiều so sánh | "Cao hơn", "tốt hơn" không khớp dấu của chênh lệch và chiều tốt của chỉ tiêu |
 
-### 4.2.6. Lắp báo cáo theo khối
+### 4.2.6. Tổng hợp báo cáo theo khối
 
 Báo cáo được ghép từ các khối theo một bản đặc tả thống nhất. Câu hỏi tra cứu nhận một **thẻ trả lời** gồm con số, nhận định ngắn và nguồn. Các dạng khác nhận một **báo cáo phân tích** gồm tiêu đề ngắn nêu kết luận, tối đa 5 điểm chính, 3 mục phân tích, 4 hình, 3 khối lưu ý và bảng số liệu, không quá 12 khối. Mỗi hình chỉ dùng loại biểu đồ phù hợp với dữ liệu: biểu đồ thanh xếp hạng cần ít nhất ba ngân hàng, biểu đồ đường cần từ hai kỳ, bản đồ nhiệt thứ hạng cần từ ba ngân hàng và hai chỉ tiêu, bảng đối chiếu dùng cho hai ngân hàng. Nếu điều phối viên chọn biểu đồ không phù hợp hoặc trả về cấu trúc sai, hệ thống tự đổi sang biểu đồ an toàn hoặc dùng khối dựng sẵn đã kiểm chứng.
 
 ### 4.2.7. Phản biện và sửa đổi có mục tiêu
 
-Ở cấu hình đầy đủ, tác tử phản biện đọc báo cáo đã lắp và tìm bốn loại vấn đề: nhận định nói quá bằng chứng, báo cáo chưa trả lời trúng câu hỏi, hình không phục vụ luận điểm nào, và mâu thuẫn giữa nhận định về ngân hàng với bối cảnh nhóm. Mỗi vấn đề nêu rõ câu, chuyên viên phụ trách và việc cần sửa. Bộ điều khiển sửa đổi chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu đó, tối đa hai vòng. Câu viết lại phải qua bộ kiểm tra câu một lần nữa; nếu vẫn không đạt, câu bị loại. Lưu ý còn lại sau hai vòng được hiện cho người đọc dưới dạng ghi chú giới hạn.
+Ở cấu hình đầy đủ, tác tử phản biện đọc báo cáo đã tổng hợp và tìm bốn loại vấn đề: nhận định nói quá bằng chứng, báo cáo chưa trả lời trúng câu hỏi, hình không phục vụ luận điểm nào, và mâu thuẫn giữa nhận định về ngân hàng với bối cảnh nhóm. Mỗi vấn đề nêu rõ câu, chuyên viên phụ trách và việc cần sửa. Bộ điều khiển sửa đổi chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu đó, tối đa hai vòng. Câu viết lại phải qua bộ kiểm tra câu một lần nữa; nếu vẫn không đạt, câu bị loại. Lưu ý còn lại sau hai vòng được hiện cho người đọc dưới dạng ghi chú giới hạn.
 
 ## 4.3. Lưu vết và xử lý lỗi
 
-Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian: ai làm, giao cho ai, loại hành động (lập kế hoạch, gọi công cụ, viết, kiểm tra, lắp báo cáo, phản biện, sửa), tóm tắt tiếng Việt và dữ liệu chi tiết. Nhật ký không lưu lời nhắc thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái kết thúc, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ: "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: …" hoặc "Kỳ phân tích yêu cầu không có trong dữ liệu đã kiểm định. Các kỳ hiện có: …".
+Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian: ai làm, giao cho ai, loại hành động (lập kế hoạch, gọi công cụ, viết, kiểm tra, tổng hợp báo cáo, phản biện, sửa), tóm tắt tiếng Việt và dữ liệu chi tiết. Nhật ký không lưu prompt thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái kết thúc, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ: "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: …" hoặc "Kỳ phân tích yêu cầu không có trong dữ liệu đã kiểm định. Các kỳ hiện có: …".
 
 ## 4.4. Triển khai và kiểm thử
 
@@ -140,7 +140,7 @@ flowchart LR
     B["<b>Trình duyệt</b><br/>fin-ai.eddiephung.me"]
     FE["<b>Vercel</b><br/>giao diện React"]
     BE["<b>Render</b><br/>máy chủ phân tích FastAPI"]
-    ST[("<b>Supabase Storage</b><br/>bộ dữ liệu khóa mã băm,<br/>lịch sử lượt chạy")]
+    ST[("<b>Supabase Storage</b><br/>bộ dữ liệu đã khóa (cố định) mã băm,<br/>lịch sử lượt chạy")]
     LLM["<b>Mô hình ngôn ngữ</b><br/>API tương thích OpenAI"]
     MK["<b>Dữ liệu thị trường</b><br/>nguồn giá, gắn nhãn riêng"]
     B <--> FE
@@ -151,4 +151,4 @@ flowchart LR
 ```
 *Hình 4.3: Kiến trúc triển khai.*
 
-Chất lượng được kiểm soát bằng kiểm thử tự động: hơn 900 bài kiểm thử phía máy chủ (hợp đồng dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và 188 bài phía giao diện. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu hợp đồng API với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.
+Chất lượng được kiểm soát bằng kiểm thử tự động: hơn 900 bài kiểm thử phía máy chủ (đặc tả ràng buộc dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và 188 bài phía giao diện. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu đặc tả API (OpenAPI) với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.

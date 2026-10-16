@@ -8,11 +8,11 @@ Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích 
 
 Hình 4.4: Trang Dữ liệu – độ phủ mười ngân hàng theo từng quý
 
-**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu từ danh sách. Sau khi gửi, người dùng thấy điều phối viên xác định dạng câu hỏi và giao việc cho các chuyên viên; chỉ những tác tử thực sự tham gia mới hiện ra. Các bước hiện ra theo thứ tự thời gian như một cuộc trao đổi, mỗi mục có mốc thời gian và tên agent: điều phối viên nêu cách hiểu câu hỏi và kế hoạch, chuyên viên cho biết đã lấy bao nhiêu số liệu có nguồn rồi bản nháp nhận định chảy ra từng đoạn, bộ kiểm tra số liệu xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có. Nội dung hiển thị là các kết quả có cấu trúc mà từng agent đã công bố, không phải suy nghĩ thô của mô hình. Khi xong, mục cuối có nút "Mở báo cáo".
+**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu từ danh sách. Sau khi gửi, người dùng thấy điều phối viên xác định dạng câu hỏi và giao việc cho các chuyên viên; chỉ những tác tử thực sự tham gia mới hiện ra. Các bước hiện ra theo thứ tự thời gian như một cuộc trao đổi, mỗi mục có mốc thời gian và tên tác tử: điều phối viên nêu cách hiểu câu hỏi và kế hoạch, chuyên viên cho biết đã lấy bao nhiêu số liệu có nguồn rồi bản nháp nhận định chảy ra từng đoạn, bộ kiểm tra số liệu xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có. Nội dung hiển thị là các kết quả có cấu trúc mà từng agent đã công bố, không phải suy nghĩ thô của mô hình. Khi xong, mục cuối có nút "Mở báo cáo".
 
 ![](docs/thesis-v2/screenshots/03-dieu-phoi.png)
 
-Hình 4.5: Dòng suy luận – các agent nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
+Hình 4.5: Dòng suy luận – các tác tử nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
 
 **Đọc báo cáo.** Báo cáo trình bày theo phong cách báo cáo phân tích đầu tư: tiêu đề nêu kết luận, trạng thái kiểm định và phạm vi dữ liệu, rồi các nhận định kèm biểu đồ. Mỗi câu có số chú thích dẫn tới báo cáo tài chính gốc kèm số trang; câu dựa trên nhiều nguồn hiện ba số đầu và gộp phần còn lại thành "+N", danh sách đầy đủ nằm ở mục Nguồn. Khối tín hiệu tóm tắt vị thế so với nhóm theo từng khía cạnh, và các phát hiện liên tầng được đặt trong khối lưu ý riêng. Dòng "Thị trường" dưới các chỉ số chính đưa giá đóng cửa và hệ số P/B vào báo cáo như một bối cảnh tham khảo, có ghi nguồn và phiên giao dịch, tách khỏi số liệu báo cáo tài chính.
 

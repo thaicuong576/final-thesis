@@ -72,7 +72,7 @@ class PageInput:
     """Input representation of a single filing page."""
     page_number: int  # 1-indexed
     text: str
-    source: Literal["text_layer", "ocr"] = "text_layer"
+    source: Literal["text_layer", "ocr", "llamaparse"] = "text_layer"
 
 
 @dataclass(frozen=True)
@@ -88,6 +88,20 @@ class StatementPages:
             "income_statement": self.income_statement,
             "loan_quality_note": self.loan_quality_note,
         }
+
+    def get_selected_pages_with_overflow(self, total_pages: int, max_pages: int = 30) -> list[int]:
+        """Collect all classified statement pages plus adjacent (±1) overflow pages, capped at max_pages."""
+        core_pages = set(self.balance_sheet + self.income_statement + self.loan_quality_note)
+        expanded: set[int] = set()
+        for p in core_pages:
+            if 1 <= p <= total_pages:
+                expanded.add(p)
+            if p - 1 >= 1:
+                expanded.add(p - 1)
+            if p + 1 <= total_pages:
+                expanded.add(p + 1)
+        sorted_pages = sorted(expanded)
+        return sorted_pages[:max_pages]
 
 
 @dataclass(frozen=True)
@@ -237,28 +251,30 @@ def score_page_classification(folded_text: str) -> dict[str, float]:
     if "co dong cua ngan hang" in folded_text or "co dong cong ty me" in folded_text or "co dong ngan hang" in folded_text:
         scores["income_statement"] += 5.0
 
-    # 3. Loan Quality Note Cues
+    # 3. Loan Quality Note & Provisions Cues (Full Page Scan)
     if any(k in folded_text for k in ["chat luong no", "phan tich chat luong no", "theo chat luong no", "phan loai no"]):
         scores["loan_quality_note"] += 15.0
     if "no duoi tieu chuan" in folded_text or "no dui tieu chuan" in folded_text:
-        scores["loan_quality_note"] += 8.0
+        scores["loan_quality_note"] += 15.0
     if "no nghi ngo" in folded_text:
-        scores["loan_quality_note"] += 6.0
+        scores["loan_quality_note"] += 10.0
     if "no co kha nang mat von" in folded_text or "mat von" in folded_text:
-        scores["loan_quality_note"] += 6.0
+        scores["loan_quality_note"] += 10.0
+    if any(k in folded_text for k in ["du phong rui ro cho vay", "du phong cho vay khach hang", "du phong chung", "du phong cu the"]):
+        scores["loan_quality_note"] += 12.0
     # Group indicators
     groups_found = sum(1 for g in ["nhom 1", "nhom 2", "nhom 3", "nhom 4", "nhom 5"] if g in folded_text)
     if groups_found >= 3:
-        scores["loan_quality_note"] += 10.0
+        scores["loan_quality_note"] += 15.0
 
     return scores
 
 
 def classify_pages(pages: list[PageInput]) -> StatementPages:
     """Classify the collection of pages into statement sections."""
-    bs_pages: list[tuple[int, float]] = []
-    is_pages: list[tuple[int, float]] = []
-    lq_pages: list[tuple[int, float]] = []
+    bs_candidates: list[tuple[int, float]] = []
+    is_candidates: list[tuple[int, float]] = []
+    lq_candidates: list[tuple[int, float]] = []
 
     for p in pages:
         folded = fold(p.text)
@@ -267,32 +283,41 @@ def classify_pages(pages: list[PageInput]) -> StatementPages:
 
         scores = score_page_classification(folded)
         if scores["balance_sheet"] >= 10.0:
-            bs_pages.append((p.page_number, scores["balance_sheet"]))
+            bs_candidates.append((p.page_number, scores["balance_sheet"]))
         if scores["income_statement"] >= 10.0:
-            is_pages.append((p.page_number, scores["income_statement"]))
+            is_candidates.append((p.page_number, scores["income_statement"]))
         if scores["loan_quality_note"] >= 10.0:
-            lq_pages.append((p.page_number, scores["loan_quality_note"]))
+            lq_candidates.append((p.page_number, scores["loan_quality_note"]))
 
-    # Sort pages by page number; Balance sheet usually has 1-2 consecutive pages,
-    # Income statement usually has 1-2 pages, Loan quality has 1-2 pages.
-    # Take the highest-scoring candidate clusters:
-    def _pick_best_pages(candidates: list[tuple[int, float]], max_pages: int = 3) -> list[int]:
+    def _pick_cluster(candidates: list[tuple[int, float]], max_count: int = 3) -> list[int]:
         if not candidates:
             return []
-        # Sort by score descending
         candidates.sort(key=lambda x: x[1], reverse=True)
         top_page = candidates[0][0]
-        # Include top page and any adjacent/very close page with score >= 10
         selected = [top_page]
-        for pno, score in candidates[1:]:
-            if abs(pno - top_page) <= 2 and len(selected) < max_pages:
+        for pno, _ in candidates[1:]:
+            if abs(pno - top_page) <= 2 and len(selected) < max_count and pno not in selected:
                 selected.append(pno)
         return sorted(selected)
 
+    # For loan quality note, scan across the whole document:
+    # Pick the top candidate page and any distinct high-scoring note pages (e.g. provisions note)
+    selected_lq: list[int] = []
+    if lq_candidates:
+        lq_candidates.sort(key=lambda x: x[1], reverse=True)
+        for pno, score in lq_candidates:
+            if pno not in selected_lq:
+                # Add if it's the top page, near an existing selected note page, or very high confidence
+                if not selected_lq or any(abs(pno - existing) <= 2 for existing in selected_lq) or score >= 20.0:
+                    selected_lq.append(pno)
+                    if len(selected_lq) >= 4:
+                        break
+        selected_lq.sort()
+
     return StatementPages(
-        balance_sheet=_pick_best_pages(bs_pages, max_pages=3),
-        income_statement=_pick_best_pages(is_pages, max_pages=2),
-        loan_quality_note=_pick_best_pages(lq_pages, max_pages=3),
+        balance_sheet=_pick_cluster(bs_candidates, max_count=3),
+        income_statement=_pick_cluster(is_candidates, max_count=2),
+        loan_quality_note=selected_lq,
     )
 
 
@@ -329,11 +354,11 @@ _VND_EXPLICIT_RE = re.compile(
 def detect_unit(text: str) -> Optional[str]:
     """Detect monetary reporting unit from page header, table header, or text lines.
 
-    Checks the first 25 lines of the page text and the first 1500 chars for explicit
-    unit indicators. Never lets a bare 'vnd' or 'dong' mention imply unit = vnd
-    without an explicit unit indicator (e.g. 'Đơn vị tính: VND').
+    Checks the first 35 lines of the page text (including table header cells in pipe format),
+    and the first 2000 chars for explicit unit indicators. Never lets a bare 'vnd' or 'dong'
+    mention imply unit = vnd without an explicit unit indicator (e.g. 'Đơn vị tính: VND').
     """
-    lines = text.splitlines()[:25]
+    lines = text.splitlines()[:35]
     for line in lines:
         f = fold(line)
         if _MILLION_RE.search(f):
@@ -344,9 +369,19 @@ def detect_unit(text: str) -> Optional[str]:
             return "billion_vnd"
         if _VND_EXPLICIT_RE.search(f):
             return "vnd"
+        # Also check individual cells if line is pipe-separated
+        if "|" in line:
+            for cell in line.split("|"):
+                f_cell = fold(cell)
+                if _MILLION_RE.search(f_cell):
+                    return "million_vnd"
+                if _THOUSAND_RE.search(f_cell):
+                    return "thousand_vnd"
+                if _BILLION_RE.search(f_cell):
+                    return "billion_vnd"
 
-    # Also check the first 1500 characters
-    f_head = fold(text[:1500])
+    # Also check the first 2000 characters
+    f_head = fold(text[:2000])
     if _MILLION_RE.search(f_head):
         return "million_vnd"
     if _THOUSAND_RE.search(f_head):
@@ -824,6 +859,7 @@ def extract_candidates_from_pages(
     # Count pages by source
     text_layer_count = sum(1 for p in pages if p.source == "text_layer")
     ocr_count = sum(1 for p in pages if p.source == "ocr")
+    llamaparse_count = sum(1 for p in pages if p.source == "llamaparse")
 
     # 1. Classify pages
     statement_pages = classify_pages(pages)
@@ -1150,14 +1186,22 @@ def extract_candidates_from_pages(
                 )
             )
 
+    if llamaparse_count > 0:
+        source_kind = f"nhận diện cấu trúc bảng LlamaParse ({llamaparse_count} trang)"
+    elif ocr_count > 0:
+        source_kind = "scan OCR (Tesseract)"
+    else:
+        source_kind = "lớp chữ PDF"
+
     limitations_vi = [
-        f"Số liệu {entity_id.upper()} được trích xuất tự động từ tệp PDF dạng "
-        f"{'scan OCR (Tesseract)' if ocr_count > 0 else 'lớp chữ PDF'}.",
+        f"Số liệu {entity_id.upper()} được trích xuất tự động từ tệp PDF dạng {source_kind}.",
         "Mọi số liệu ở trạng thái ứng viên (candidate) và phải được kiểm tra, xác nhận trước khi đưa vào phân tích.",
     ]
 
-    provider: Literal["text_layer", "tesseract", "mixed"] = "text_layer"
-    if ocr_count > 0 and text_layer_count == 0:
+    provider: Literal["text_layer", "tesseract", "llamaparse", "mixed", "sample"] = "text_layer"
+    if llamaparse_count > 0:
+        provider = "llamaparse"
+    elif ocr_count > 0 and text_layer_count == 0:
         provider = "tesseract"
     elif ocr_count > 0 and text_layer_count > 0:
         provider = "mixed"

@@ -45,3 +45,5 @@ services:
         value: deepseek-v4.1-flash
       - key: OPENAI_API_KEY
         sync: false
+      - key: LLAMA_CLOUD_API_KEY
+        sync: false

@@ -410,7 +410,7 @@ def main():
             # Find and select consolidated scope
             radio = page.locator("input[value='consolidated']")
             if radio.count() > 0:
-                radio.first.check()
+                radio.first.check(force=True)
             time.sleep(0.3)
             submit_btn = page.locator("button:has-text('Bắt đầu đọc và trích xuất PDF'), button:has-text('Trích xuất PDF')").first
             submit_btn.scroll_into_view_if_needed()
@@ -500,7 +500,7 @@ def main():
             time.sleep(0.3)
             radio = page.locator("input[value='consolidated']")
             if radio.count() > 0:
-                radio.first.check()
+                radio.first.check(force=True)
             time.sleep(0.3)
             submit_btn = page.locator("button:has-text('Bắt đầu đọc và trích xuất PDF'), button:has-text('Trích xuất PDF')").first
             submit_btn.scroll_into_view_if_needed()

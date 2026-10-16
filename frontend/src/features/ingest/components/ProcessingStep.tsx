@@ -32,13 +32,13 @@ function ocrProviderLabel(provider: OcrProvider): string {
 function errorResolutionAdvice(code?: FilingErrorCode): string {
   switch (code) {
     case 'ocr_unavailable':
-      return 'Máy chủ chưa có công cụ OCR (Tesseract). Bạn có thể chọn "Dùng bộ mẫu dựng sẵn" để xem ngay quy trình hướng dẫn mà không cần chạy OCR thực.';
+      return 'Máy chủ chưa có công cụ OCR (Tesseract). Bạn có thể chọn "Dùng bộ mẫu dựng sẵn để trình diễn" để xem quy trình mà không cần quét OCR thực.';
     case 'not_a_pdf':
       return 'Tệp tải lên không phải định dạng PDF hợp lệ. Vui lòng kiểm tra lại tệp.';
     case 'encrypted':
       return 'Tệp PDF có mật khẩu bảo vệ hoặc bị khóa mã hóa. Hãy mở khóa tệp trước khi tải lên.';
     case 'no_statements_found':
-      return 'Không nhận diện được trang Bảng cân đối kế toán hoặc Báo cáo kết quả kinh doanh trong tài liệu. Hãy chọn tệp báo cáo tài chính đầy đủ.';
+      return 'Không nhận diện được trang Bảng cân đối kế toán hoặc Báo cáo kết quả kinh doanh trong tài liệu.';
     case 'provider_error':
     default:
       return 'Có lỗi kết nối hoặc xử lý từ phía dịch vụ trích xuất. Hãy thử lại sau.';
@@ -62,34 +62,34 @@ export function ProcessingStep({
   if (isFailed) {
     return (
       <div
-        className="rounded-md border border-blocked/40 bg-blocked-soft/30 p-5 space-y-4"
+        className="rounded-md border border-line bg-card p-4 space-y-3"
         role="alert"
         data-testid="processing-failed"
       >
-        <div className="flex items-start gap-3">
-          <AlertCircle className="size-5 text-blocked shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="space-y-1.5 flex-1">
-            <h3 className="text-sm font-bold text-blocked">
+        <div className="flex items-start gap-2.5">
+          <AlertCircle className="size-4 text-blocked shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="space-y-1 flex-1 text-xs">
+            <h3 className="font-bold text-blocked">
               Quá trình đọc báo cáo tài chính không thành công
             </h3>
-            <p className="text-xs text-ink leading-relaxed">
+            <p className="text-ink leading-relaxed">
               {errorMessage || 'Đã xảy ra lỗi trong quá trình đọc và trích xuất dữ liệu.'}
             </p>
-            <div className="rounded border border-blocked/20 bg-card p-3 text-xs text-ink-secondary mt-2">
-              <span className="font-semibold text-ink block mb-0.5">Hướng xử lý khuyến nghị:</span>
-              <span>{errorResolutionAdvice(errorCode)}</span>
-            </div>
+            <p className="text-ink-secondary pt-0.5">
+              <span className="font-semibold text-ink">Hướng xử lý khuyến nghị: </span>
+              {errorResolutionAdvice(errorCode)}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-line">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-line">
           {onRetry && (
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onRetry}
-              className="h-8 border-line text-xs font-semibold gap-1.5"
+              className="h-7 border-line text-xs font-medium gap-1.5"
             >
               <RefreshCw className="size-3" />
               Thử tải lại tệp khác
@@ -100,7 +100,7 @@ export function ProcessingStep({
               type="button"
               size="sm"
               onClick={onUseSample}
-              className="h-8 border border-amber-border bg-amber text-ink hover:bg-amber-hover text-xs font-semibold gap-1.5 shadow-tactile"
+              className="h-7 border border-amber-border bg-amber text-ink hover:bg-amber-hover text-xs font-semibold gap-1.5 shadow-sm"
             >
               <Sparkles className="size-3" />
               Dùng bộ mẫu dựng sẵn để trình diễn
@@ -113,27 +113,27 @@ export function ProcessingStep({
 
   return (
     <div
-      className="rounded-md border border-line bg-card p-6 space-y-4 shadow-tactile"
+      className="rounded-md border border-line bg-card p-4 space-y-3"
       data-testid="processing-step"
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <Loader2 className="size-5 animate-spin text-amber-border" aria-hidden="true" />
+        <div className="flex items-center gap-2">
+          <Loader2 className="size-4 animate-spin text-amber-border" aria-hidden="true" />
           <div>
-            <h3 className="text-sm font-bold text-ink">Đang đọc và trích xuất báo cáo tài chính</h3>
-            <p className="text-xs text-ink-secondary">
-              Hệ thống quét từng trang, phân loại các bảng tài chính và trích xuất số liệu ứng viên.
+            <h3 className="text-xs font-bold text-ink">Đang đọc và trích xuất báo cáo tài chính</h3>
+            <p className="text-[11px] text-ink-secondary">
+              Quét tài liệu, nhận diện bảng và trích xuất 10 chỉ tiêu đầu vào.
             </p>
           </div>
         </div>
-        <span className="font-mono text-sm font-bold text-text-accent tabular-nums">
+        <span className="font-mono text-xs font-bold text-ink tabular-nums">
           {percent}%
         </span>
       </div>
 
-      {/* Progress bar with accessibility */}
+      {/* Progress bar */}
       <div
-        className="w-full bg-surface-secondary rounded-full h-3 overflow-hidden border border-line"
+        className="w-full bg-surface-secondary rounded-full h-2 overflow-hidden border border-line"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
@@ -146,23 +146,19 @@ export function ProcessingStep({
         />
       </div>
 
-      {/* Progress info and polling notice */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs text-ink-secondary pt-1">
-        <div className="flex items-center gap-2">
-          <BookOpen className="size-3.5 text-text-accent" />
-          <span className="font-medium text-ink">
+      {/* Progress info */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] text-ink-secondary pt-0.5">
+        <div className="flex items-center gap-1.5">
+          <BookOpen className="size-3 text-ink-tertiary" />
+          <span>
             Đang đọc trang {progress.pages_done}/{progress.page_count || '…'}
           </span>
         </div>
         <div>
           <span>Nguồn đọc: </span>
-          <span className="font-semibold text-ink">{ocrProviderLabel(ocrProvider)}</span>
+          <span className="font-medium text-ink">{ocrProviderLabel(ocrProvider)}</span>
         </div>
       </div>
-
-      <p className="text-[11px] text-ink-tertiary italic">
-        Trạng thái được cập nhật tự động mỗi 2 giây. Vui lòng không đóng trang.
-      </p>
     </div>
   );
 }

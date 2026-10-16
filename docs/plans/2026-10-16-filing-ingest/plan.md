@@ -66,3 +66,33 @@ Bộ ảnh chụp trước khi tinh gọn (`before_*` tại 1440px và 390px):
 - Tối đa 2 độ dày chữ (regular & semibold), không chữ in đậm tràn lan.
 - Không để lộ snake_case, ID kỹ thuật, từ "tác tử", hoặc emoji.
 - Đảm bảo 0 overflow ngang ở 390px.
+
+---
+
+## 3. Đánh giá Sau Thực hiện (After Audit & Verification)
+
+Toàn bộ 14 ảnh chụp màn hình sau tinh gọn (`after_*` tại 1440px và 390px) đã được chụp và lưu tại `docs/plans/2026-10-16-filing-ingest/after-shots/`:
+1. `after_01_upload_step_1440.png` & `_390.png`: Dropzone 1 dòng tinh gọn, không còn banner v1, 3 trường thông tin bố trí phẳng, segmented control tối giản, 0 horizontal scroll trên mobile.
+2. `after_02_processing_1440.png` & `_390.png`: Bước 1 thu gọn thành 1 dòng xác nhận phẳng với nút đổi tệp; thanh tiến trình thanh mảnh hiển thị % rõ ràng.
+3. `after_03_extracted_clean_1440.png` & `_390.png`: Loại bỏ hoàn toàn 20 badge "Đã duyệt" lặp lại; bảng phẳng, số liệu căn phải font mono `tabular-nums`; dòng chỉ số trang inline thanh lịch; xác nhận qua checkbox tự nhiên.
+4. `after_04_editing_row_1440.png` & `_390.png`: Hộp nhập liệu trực tiếp tại ô với nút Lưu/Hủy siêu gọn, không còn card lồng card.
+5. `after_05_rejected_errors_1440.png` & `_390.png`: Tóm tắt 1 câu, danh sách lỗi phân cấp sạch sẽ (lỗi chặn chữ đỏ trên nền trong suốt, cảnh báo chữ vàng), loại bỏ toàn bộ các hộp đỏ cảnh báo cồng kềnh.
+6. `after_06_confirmed_result_1440.png` & `_390.png`: Bảng 4 chỉ tiêu cốt lõi phẳng, chữ "Khớp" xanh lá nhẹ nhàng thay cho badge dày; nút hành động duy nhất "Hỏi về ACB ->".
+7. `after_07_failed_ocr_1440.png` & `_390.png`: Trạng thái lỗi OCR tối giản, nút thử lại và nút dùng mẫu rõ ràng, tự tin.
+
+### Bổ sung về ngôn ngữ & vai trò:
+- Chuyển toàn bộ đại từ ngôi thứ nhất trong dòng suy luận (`timeline.ts`) sang văn phong phân tích tài chính trung tính, khách quan:
+  - `Mình đọc câu hỏi: đây là ...` -> `Hệ thống xác định câu hỏi thuộc dạng ...`
+  - `Mình giao việc cho chuyên viên ...` -> `Giao chuyên viên ... tra cứu ...`
+  - `Mình yêu cầu sửa (vòng 1): ...` -> `Yêu cầu hiệu chỉnh (vòng 1): ...`
+- Chuẩn hóa vai trò người dùng nhìn thấy trong log phân tích và chip agent:
+  - `Company` -> `Chuyên viên doanh nghiệp`
+  - `Sector` -> `Chuyên viên ngành`
+  - `Macro` -> `Chuyên viên vĩ mô`
+- Thay thế triệt để cụm từ `so sánh đối đầu` thành `so sánh trực diện` trên toàn bộ giao diện, nhãn, prose, chip và tiêu đề.
+
+### Kết quả kiểm thử:
+- Unit tests frontend: 33/33 files passed, 299/299 tests passed (100%).
+- Lint: 0 errors, 0 warnings (`npm run lint` clean).
+- Build: `npm run build` (`tsc -b && vite build`) thành công trong 3.92s.
+

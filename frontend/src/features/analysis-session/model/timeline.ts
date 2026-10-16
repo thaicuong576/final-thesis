@@ -108,7 +108,7 @@ export interface DeriveTimelineOptions {
 }
 
 export const TOOL_VI_LABELS: Record<string, string> = {
-  head_to_head: 'so sánh đối đầu',
+  head_to_head: 'so sánh trực diện',
   lookup: 'tra cứu',
   trend: 'xu hướng',
   company_profile: 'hồ sơ doanh nghiệp',
@@ -168,7 +168,7 @@ export function scrubInternalIdentifiers(text: string): string {
   if (!text) return '';
   return text
     // Replace tool identifiers
-    .replace(/\bhead_to_head\b/gi, 'so sánh đối đầu')
+    .replace(/\bhead_to_head\b/gi, 'so sánh trực diện')
     .replace(/\bcompany_profile\b/gi, 'hồ sơ doanh nghiệp')
     .replace(/\bsector_peer_position\b/gi, 'vị thế nhóm ngành')
     .replace(/\bpeer_comparison\b/gi, 'so sánh nhóm')
@@ -241,11 +241,11 @@ function buildPlanProse(detail?: Record<string, unknown>, planSummary?: LiveWork
   const periodStr = periods.map((p) => fmtPeriod(p).toLowerCase()).join(', ');
 
   if (rationale) {
-    return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. ${rationale}`;
+    return `Hệ thống xác định câu hỏi thuộc dạng ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. ${rationale}`;
   }
 
   const metricsCount = metrics.length > 0 ? `${metrics.length} chỉ tiêu` : 'các chỉ tiêu cần thiết';
-  return `Mình đọc câu hỏi: đây là ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. Mình giao việc cho chuyên viên tra cứu ${metricsCount}.`;
+  return `Hệ thống xác định câu hỏi thuộc dạng ${typeLabel}${entityStr ? ` giữa ${entityStr}` : ''}${periodStr ? `, trong ${periodStr}` : ''}. Giao chuyên viên tra cứu ${metricsCount}.`;
 }
 
 export function deriveTimeline(
@@ -469,7 +469,7 @@ export function deriveTimeline(
           agentId: 'critic',
           agentName: STAGE_AGENTS.critic.name,
           kind: 'critique',
-          prose: `Mình yêu cầu sửa (vòng ${round}): ${cleanedDesc}`,
+          prose: `Yêu cầu hiệu chỉnh (vòng ${round}): ${cleanedDesc}`,
           critiqueDetail: {
             round,
             issues: [

@@ -89,7 +89,7 @@ export const SignalsAside: React.FC<{ signals: Signal[] }> = ({ signals }) => {
         </div>
         <div className="flex justify-between items-center py-2 text-text-secondary">
           <span>Agent tham gia</span>
-          <span className="text-text-primary font-medium">Company, Sector, Phản biện</span>
+          <span className="text-text-primary font-medium">Chuyên viên doanh nghiệp, Chuyên viên ngành, Phản biện</span>
         </div>
       </div>
     </aside>

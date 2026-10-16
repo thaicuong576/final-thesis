@@ -1,4 +1,3 @@
-import { FileText, CheckCircle2 } from 'lucide-react';
 import type { StatementPages } from '../model/types';
 
 interface StatementPagesChipsProps {
@@ -39,61 +38,46 @@ export function StatementPagesChips({
   const totalPagesFound = groups.reduce((acc, g) => acc + g.pages.length, 0);
 
   return (
-    <div className="rounded-md border border-line bg-surface-secondary/40 p-3.5 space-y-2.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="size-4 text-text-accent" aria-hidden="true" />
-          <span className="text-xs font-bold text-ink">
-            Các trang báo cáo nhận diện được ({totalPagesFound} trang)
-          </span>
-        </div>
-        <span className="text-[11px] text-ink-secondary">
-          Bấm vào trang để xem ảnh gốc
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs text-ink-secondary py-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="font-semibold text-ink text-[11px]">
+          Các trang báo cáo nhận diện được ({totalPagesFound}):
         </span>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
         {groups.map((group) => {
           const hasPages = group.pages.length > 0;
           return (
-            <div
-              key={group.id}
-              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-card px-2.5 py-1 text-xs shadow-tactile"
-            >
-              <CheckCircle2
-                className={`size-3.5 ${hasPages ? 'text-ready' : 'text-ink-tertiary'}`}
-                aria-hidden="true"
-              />
-              <span className="font-semibold text-ink">{group.label}:</span>
+            <div key={group.id} className="inline-flex items-center gap-1 text-[11px]">
+              <span className="text-ink-secondary">{group.label}:</span>
               {hasPages ? (
-                <div className="inline-flex items-center gap-1">
-                  {group.pages.map((p) => {
-                    const isSelected = selectedPage === p;
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => onSelectPage(p)}
-                        className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber text-ink border border-amber-border'
-                            : 'bg-surface-secondary text-text-accent hover:bg-surface-hover border border-line'
-                        }`}
-                        title={`Xem ảnh trang ${p}`}
-                        aria-pressed={isSelected}
-                      >
-                        Tr. {p}
-                      </button>
-                    );
-                  })}
-                </div>
+                group.pages.map((p) => {
+                  const isSelected = selectedPage === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => onSelectPage(p)}
+                      className={`rounded px-1 font-mono text-[11px] font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber text-ink'
+                          : 'text-text-accent hover:underline'
+                      }`}
+                      title={`Xem ảnh trang ${p}`}
+                      aria-pressed={isSelected}
+                    >
+                      {p}
+                    </button>
+                  );
+                })
               ) : (
-                <span className="text-ink-tertiary italic">Chưa tìm thấy</span>
+                <span className="text-ink-tertiary italic">chưa thấy</span>
               )}
             </div>
           );
         })}
       </div>
+      <span className="text-[11px] text-ink-tertiary hidden sm:inline">
+        Nhấn số trang để xem đối chiếu
+      </span>
     </div>
   );
 }

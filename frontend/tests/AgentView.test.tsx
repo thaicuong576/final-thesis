@@ -267,7 +267,7 @@ describe('AGENT-VIEW-1: Per-Agent Views in Unified Reasoning Timeline (FLOW-1)',
       );
 
       // Critique issue
-      expect(screen.getByText(/Mình yêu cầu sửa \(vòng 1\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Yêu cầu hiệu chỉnh \(vòng 1\)/)).toBeInTheDocument();
 
       // Revision
       expect(screen.getByText(/Đã sửa theo phản biện \(vòng 1\)/)).toBeInTheDocument();

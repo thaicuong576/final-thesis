@@ -45,7 +45,7 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   company_profile: 'Hồ sơ doanh nghiệp',
   ranking: 'Xếp hạng',
   trend: 'Diễn biến chuỗi thời gian',
-  head_to_head: 'Đối đầu',
+  head_to_head: 'So sánh trực diện',
   sector_theme: 'Chủ đề ngành',
   relationship: 'Mối quan hệ chỉ tiêu'
 };
@@ -96,9 +96,11 @@ export const OrchestratorBoard: React.FC<OrchestratorBoardProps> = ({
 
       const label =
         a.agent.toLowerCase() === 'company'
-          ? 'Company'
+          ? 'Chuyên viên doanh nghiệp'
           : a.agent.toLowerCase() === 'sector'
-          ? 'Sector'
+          ? 'Chuyên viên ngành'
+          : a.agent.toLowerCase() === 'macro'
+          ? 'Chuyên viên vĩ mô'
           : a.agent;
 
       list.push({

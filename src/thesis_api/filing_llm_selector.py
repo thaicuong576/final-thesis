@@ -125,9 +125,10 @@ def refine_candidates_with_llm(
             logger.warning("LLM client unavailable for filing row assist: %s", exc)
             return extraction, 0
 
-    effective_model = model
+    effective_model = model or (settings.openai_model if settings else None)
     if not effective_model:
-        effective_model = settings.openai_model if settings else "deepseek-v4-pro-0813"
+        logger.warning("No OpenAI model configured for filing row assist")
+        return extraction, 0
 
     pages_by_num = {p.page_number: p for p in pages}
     unit_multiplier = unit_to_multiplier(extraction.unit_detected) if extraction.unit_detected else None

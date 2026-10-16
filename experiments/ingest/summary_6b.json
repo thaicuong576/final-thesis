@@ -1,27 +1,27 @@
 {
   "totals": {
-    "correct": 93,
-    "wrong_value": 49,
+    "correct": 94,
+    "wrong_value": 48,
     "missing": 8,
     "not_in_gt": 50,
     "total_in_gt": 150
   },
   "error_groups": {
-    "period_mismatch": 21,
-    "low_confidence_match": 2,
-    "target_column_unconfirmed": 5,
+    "period_mismatch": 19,
+    "llm_selected": 41,
+    "target_column_unconfirmed": 1,
     "column_missing": 4,
     "row_not_found": 4
   },
   "cause_counts": {
-    "correct": 93,
+    "correct": 94,
     "row_not_found": 8,
     "value_not_on_any_selected_page": 10,
-    "wrong_row_or_subtotal": 39,
+    "wrong_row_or_subtotal": 37,
     "right_row_wrong_unit": 0,
-    "right_row_wrong_column": 0
+    "right_row_wrong_column": 1
   },
-  "total_tokens": 0,
+  "total_tokens": 139385,
   "total_pages_sent": 897,
-  "total_ocr_time_s": 12.81
+  "total_ocr_time_s": 0.89
 }

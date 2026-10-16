@@ -1,5 +1,3 @@
-# TRANG BÌA
-
 **TRƯỜNG ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH**
 
 **KHOA CÔNG NGHỆ THÔNG TIN KINH DOANH**
@@ -14,12 +12,12 @@
 
 ---
 
-**Sinh viên thực hiện:** [ĐIỀN]
+**Sinh viên thực hiện:** Phùng Thái Cường
 
-**Mã số sinh viên:** [ĐIỀN]
+**Mã số sinh viên:** 31231024489
 
-**Lớp:** [ĐIỀN]
+**Lớp:** FEP001
 
-**Giáo viên hướng dẫn:** Lê Văn [ĐIỀN]
+**Giáo viên hướng dẫn:** Lê Văn
 
 **TP. Hồ Chí Minh, năm 2026**

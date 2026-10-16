@@ -748,7 +748,9 @@ def add_front_matter(doc: Document, md_text: str) -> None:
     # Use a centered approach for the title page
     for line in lines:
         stripped = line.rstrip()
-        if not stripped or stripped.startswith('---'):
+        if not stripped:
+            continue  # Markdown blank lines only separate blocks; do not double the spacing
+        if stripped.startswith('---'):
             # Add spacing paragraph
             para = doc.add_paragraph()
             _set_paragraph_style(para, "Normal", doc)

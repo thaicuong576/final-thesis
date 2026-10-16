@@ -12,6 +12,7 @@ Provides LlamaParseProvider implementing PageTextProvider protocol:
 
 from __future__ import annotations
 
+import concurrent.futures
 from html.parser import HTMLParser
 import io
 import json
@@ -250,10 +251,14 @@ class LlamaParseProvider:
         page_numbers: Sequence[int],
         cache_dir: Optional[Path] = None,
         progress_callback: Optional[Callable[[int, int], None]] = None,
+        chunk_size: int = 40,
+        max_workers: int = 2,
     ) -> list[PageInput]:
-        """Extract requested pages using LlamaParse API v2 with caching and fallback."""
+        """Extract requested pages using LlamaParse API v2 with chunking, caching, and fallback."""
         if not page_numbers:
             return []
+
+        file_hash = self._calc_sha256(pdf_path)
 
         # 1. Check disk cache for already extracted pages
         results: dict[int, PageInput] = {}
@@ -269,7 +274,13 @@ class LlamaParseProvider:
                         with open(meta_file, encoding="utf-8") as f:
                             meta = json.load(f)
                         src = meta.get("source")
-                        if src == "llamaparse":
+                        meta_tier = meta.get("tier")
+                        meta_sha = meta.get("sha256")
+                        if (
+                            src == "llamaparse"
+                            and (not meta_tier or meta_tier == self.tier)
+                            and (not meta_sha or meta_sha == file_hash)
+                        ):
                             text = txt_file.read_text(encoding="utf-8")
                             results[pno] = PageInput(page_number=pno, text=text, source="llamaparse")
                         else:
@@ -291,40 +302,102 @@ class LlamaParseProvider:
             logger.info("LLAMA_CLOUD_API_KEY is not configured; using Tesseract fallback.")
             return self._fallback_tesseract(pdf_path, page_numbers, cache_dir, progress_callback)
 
-        # 3. Call LlamaParse API v2 for missing pages
-        try:
-            file_hash = self._calc_sha256(pdf_path)
-            parsed_pages = self._call_llamaparse_v2(pdf_path, missing_pages)
-            for pno, text in parsed_pages.items():
-                results[pno] = PageInput(page_number=pno, text=text, source="llamaparse")
-                if cache_dir:
-                    txt_file = cache_dir / f"p{pno:03d}.txt"
-                    meta_file = cache_dir / f"p{pno:03d}.json"
-                    txt_file.write_text(text, encoding="utf-8")
-                    with open(meta_file, "w", encoding="utf-8") as mf:
-                        json.dump(
-                            {
-                                "page": pno,
-                                "source": "llamaparse",
-                                "tier": self.tier,
-                                "sha256": file_hash,
-                            },
-                            mf,
-                        )
-            self.total_pages_sent += len(missing_pages)
-        except LlamaParseError as exc:
-            logger.warning("LlamaParse API failed: %s. Attempting fallback.", exc)
+        # 3. Call LlamaParse API v2 in chunks of <= chunk_size (default 40)
+        chunks = [
+            missing_pages[i : i + chunk_size]
+            for i in range(0, len(missing_pages), chunk_size)
+        ]
+
+        total_pages_count = len(page_numbers)
+        if progress_callback:
+            progress_callback(len(results), total_pages_count)
+
+        def _process_chunk(chunk_pnos: list[int]) -> tuple[list[int], dict[int, str]]:
+            chunk_res = self._call_llamaparse_v2(pdf_path, chunk_pnos)
+            return chunk_pnos, chunk_res
+
+        workers = min(max_workers, len(chunks))
+        chunk_errors: list[Exception] = []
+
+        if workers <= 1:
+            for chunk_pnos in chunks:
+                try:
+                    _, chunk_res = _process_chunk(chunk_pnos)
+                    chunk_range = f"{min(chunk_pnos)}-{max(chunk_pnos)}"
+                    for pno, text in chunk_res.items():
+                        results[pno] = PageInput(page_number=pno, text=text, source="llamaparse")
+                        if cache_dir:
+                            txt_file = cache_dir / f"p{pno:03d}.txt"
+                            meta_file = cache_dir / f"p{pno:03d}.json"
+                            txt_file.write_text(text, encoding="utf-8")
+                            with open(meta_file, "w", encoding="utf-8") as mf:
+                                json.dump(
+                                    {
+                                        "page": pno,
+                                        "source": "llamaparse",
+                                        "tier": self.tier,
+                                        "sha256": file_hash,
+                                        "chunk_range": chunk_range,
+                                    },
+                                    mf,
+                                )
+                    self.total_pages_sent += len(chunk_pnos)
+                    if progress_callback:
+                        progress_callback(len(results), total_pages_count)
+                except Exception as exc:
+                    logger.warning("LlamaParse chunk failed for pages %s: %s", chunk_pnos, exc)
+                    chunk_errors.append(exc)
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                future_to_chunk = {
+                    executor.submit(_process_chunk, ch): ch for ch in chunks
+                }
+                for future in concurrent.futures.as_completed(future_to_chunk):
+                    chunk_pnos = future_to_chunk[future]
+                    try:
+                        _, chunk_res = future.result()
+                        chunk_range = f"{min(chunk_pnos)}-{max(chunk_pnos)}"
+                        for pno, text in chunk_res.items():
+                            results[pno] = PageInput(page_number=pno, text=text, source="llamaparse")
+                            if cache_dir:
+                                txt_file = cache_dir / f"p{pno:03d}.txt"
+                                meta_file = cache_dir / f"p{pno:03d}.json"
+                                txt_file.write_text(text, encoding="utf-8")
+                                with open(meta_file, "w", encoding="utf-8") as mf:
+                                    json.dump(
+                                        {
+                                            "page": pno,
+                                            "source": "llamaparse",
+                                            "tier": self.tier,
+                                            "sha256": file_hash,
+                                            "chunk_range": chunk_range,
+                                        },
+                                        mf,
+                                    )
+                        self.total_pages_sent += len(chunk_pnos)
+                        if progress_callback:
+                            progress_callback(len(results), total_pages_count)
+                    except Exception as exc:
+                        logger.warning("LlamaParse chunk failed for pages %s: %s", chunk_pnos, exc)
+                        chunk_errors.append(exc)
+
+        unresolved = [p for p in missing_pages if p not in results]
+        if unresolved:
+            logger.warning("LlamaParse could not resolve %d pages. Attempting fallback.", len(unresolved))
             if self.tesseract_fallback and self.tesseract_fallback.is_tesseract_available():
-                logger.info("Falling back to Tesseract OCR for %d pages.", len(missing_pages))
+                logger.info("Falling back to Tesseract OCR for %d pages.", len(unresolved))
                 fallback_results = self.tesseract_fallback.extract_all_pages(
                     pdf_path, cache_dir=cache_dir
                 )
                 fb_map = {p.page_number: p for p in fallback_results}
-                for pno in missing_pages:
+                for pno in unresolved:
                     if pno in fb_map:
                         results[pno] = fb_map[pno]
-            else:
-                raise
+            elif chunk_errors:
+                first_err = chunk_errors[0]
+                if isinstance(first_err, LlamaParseError):
+                    raise first_err
+                raise LlamaParseError(f"LlamaParse extraction failed: {first_err}") from first_err
 
         if progress_callback:
             progress_callback(len(page_numbers), len(page_numbers))
@@ -335,13 +408,21 @@ class LlamaParseProvider:
         self,
         pdf_path: Path,
         cache_dir: Optional[Path] = None,
-        max_workers: int = 4,
+        max_workers: int = 2,
         progress_callback: Optional[Callable[[int, int], None]] = None,
+        max_pages: Optional[int] = None,
     ) -> list[PageInput]:
-        """Extract all pages of the document."""
+        """Extract all pages of the document (up to max_pages if specified)."""
         total = self.get_page_count(pdf_path)
-        all_pnos = list(range(1, total + 1))
-        return self.extract_pages(pdf_path, all_pnos, cache_dir=cache_dir, progress_callback=progress_callback)
+        limit = min(total, max_pages) if max_pages else total
+        all_pnos = list(range(1, limit + 1))
+        return self.extract_pages(
+            pdf_path,
+            all_pnos,
+            cache_dir=cache_dir,
+            progress_callback=progress_callback,
+            max_workers=max_workers,
+        )
 
     def _fallback_tesseract(
         self,

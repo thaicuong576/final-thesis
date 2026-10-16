@@ -1,0 +1,3203 @@
+[
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "923.291",
+    "gt": "764.791",
+    "page": 50,
+    "row_label": "Nhóm 3 - Nợ dưới tiêu chuẩn | 764.791 | 923.291",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "923.291",
+    "gt": null,
+    "page": 50,
+    "row_label": "Nhóm 3 - Nợ dưới tiêu chuẩn | 764.791 | 923.291",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "978.211",
+    "gt": "770.229",
+    "page": 50,
+    "row_label": "Nhóm 4 - Nợ nghi ngờ | 770.229 | 978.211",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "978.211",
+    "gt": null,
+    "page": 50,
+    "row_label": "Nhóm 4 - Nợ nghi ngờ | 770.229 | 978.211",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "6748.132",
+    "gt": "5136.367",
+    "page": 50,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 5.136.367 | 6.748.132",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6748.132",
+    "gt": null,
+    "page": 50,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 5.136.367 | 6.748.132",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "568990.695",
+    "gt": "669436.647",
+    "page": 50,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 666.394.943 | 568.990.695",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "568990.695",
+    "gt": null,
+    "page": 50,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 666.394.943 | 568.990.695",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "7624.729",
+    "gt": "7507.253",
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6739.556",
+    "gt": null,
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1025850.127",
+    "gt": "1025850.127",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "864005.703",
+    "gt": "864005.703",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "right_row_wrong_column",
+    "extracted": "83461.678",
+    "gt": "94519.719",
+    "page": 8,
+    "row_label": "VIII Vốn chủ sở hữu 21 | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "83461.678",
+    "gt": "83461.678",
+    "page": 8,
+    "row_label": "VIII Vốn chủ sở hữu 21 | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4473.881",
+    "gt": "4473.881",
+    "page": 42,
+    "row_label": "Nợ dưới tiêu chuẩn | 4.473.881 | 0,19 | 3.666.965 | 0,18",
+    "row_status": "candidate",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "3666.965",
+    "gt": null,
+    "page": 42,
+    "row_label": "Nợ dưới tiêu chuẩn | 4.473.881 | 0,19 | 3.666.965 | 0,18",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4677.985",
+    "gt": "4677.985",
+    "page": 42,
+    "row_label": "Nợ nghi ngờ | 4.677.985 | 0,20 | 5.577.478 | 0,27",
+    "row_status": "candidate",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "5577.478",
+    "gt": null,
+    "page": 42,
+    "row_label": "Nợ nghi ngờ | 4.677.985 | 0,20 | 5.577.478 | 0,27",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "19820.172",
+    "gt": "25824.953",
+    "page": 42,
+    "row_label": "Nợ có khả năng mất vốn | 25.824.953 | 1,09 | 19.820.172 | 0,96",
+    "row_status": "candidate",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "19820.172",
+    "gt": null,
+    "page": 42,
+    "row_label": "Nợ có khả năng mất vốn | 25.824.953 | 1,09 | 19.820.172 | 0,96",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2372955.074",
+    "gt": "2372955.074",
+    "page": 42,
+    "row_label": "| 2.372.955.074 | 100,00 | 2.056.082.420 | 100,00",
+    "row_status": "candidate",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2056082.420",
+    "gt": null,
+    "page": 42,
+    "row_label": "| 2.372.955.074 | 100,00 | 2.056.082.420 | 100,00",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "38038.771",
+    "gt": "34945.553",
+    "page": 71,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | (38.038.771) | 68.290 | (37.970.481)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "68.290",
+    "gt": null,
+    "page": 71,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | (38.038.771) | 68.290 | (37.970.481)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "30430.130",
+    "gt": "30430.130",
+    "page": 12,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 30.430.130 | 25.677.118",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25677.118",
+    "gt": "25677.118",
+    "page": 12,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 30.430.130 | 25.677.118",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "29904.264",
+    "gt": "29904.264",
+    "page": 12,
+    "row_label": "| Lợi nhuận thuần của Ngân hàng mẹ | | 29.904.264 | 25.212.049",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25212.049",
+    "gt": "25212.049",
+    "page": 12,
+    "row_label": "| Lợi nhuận thuần của Ngân hàng mẹ | | 29.904.264 | 25.212.049",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "38309.096",
+    "gt": "3330825.720",
+    "page": 69,
+    "row_label": "Tổng tài sản | 38.309.096 | 19.229.058 | 739.951.344 | 491.148.991 | 1.033.241.815 | 468.738.589 | 575.608.549 | 3.366.227.442",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "19229.058",
+    "gt": "2760906.964",
+    "page": 69,
+    "row_label": "Tổng tài sản | 38.309.096 | 19.229.058 | 739.951.344 | 491.148.991 | 1.033.241.815 | 468.738.589 | 575.608.549 | 3.366.227.442",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "144911.113",
+    "gt": "173552.902",
+    "page": 71,
+    "row_label": "Vốn và các quỹ | 144.911.113 | 73.081 | 144.984.194",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "73.081",
+    "gt": "144984.194",
+    "page": 71,
+    "row_label": "Vốn và các quỹ | 144.911.113 | 73.081 | 144.984.194",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "5234.039",
+    "gt": "5563.943",
+    "page": 71,
+    "row_label": "Lợi ích cổ đông không kiểm soát | 5.234.039 | 1.069 | 5.235.108",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1.069",
+    "gt": "5235.108",
+    "page": 71,
+    "row_label": "Lợi ích cổ đông không kiểm soát | 5.234.039 | 1.069 | 5.235.108",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.031",
+    "gt": "1490.975",
+    "page": 23,
+    "row_label": "Theo Thông tư 31, nợ được phân loại vào nhóm nợ có rủi ro cao hơn khi:",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "Theo Thông tư 31, nợ được phân loại vào nhóm nợ có rủi ro cao hơn khi:",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.004",
+    "gt": "578.479",
+    "page": 23,
+    "row_label": "**Nhóm 4: Nợ nghi ngờ**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "**Nhóm 4: Nợ nghi ngờ**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "13710.778",
+    "gt": "19846.742",
+    "page": 43,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 19.846.742 | 13.710.778",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "13710.778",
+    "gt": null,
+    "page": 43,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 19.846.742 | 13.710.778",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1703097.921",
+    "gt": "1992272.868",
+    "page": 43,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 1.954.510.778 | 1.703.097.921",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1703097.921",
+    "gt": null,
+    "page": 43,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 1.954.510.778 | 1.703.097.921",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34810.365",
+    "gt": "34810.365",
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | | (34.810.365) | (36.664.125)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "36664.125",
+    "gt": null,
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | | (34.810.365) | (36.664.125)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34871.266",
+    "gt": "34871.266",
+    "page": 11,
+    "row_label": "XIII | Lợi nhuận sau thuế | 34.871.266 | 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25482.567",
+    "gt": "25482.567",
+    "page": 11,
+    "row_label": "XIII | Lợi nhuận sau thuế | 34.871.266 | 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "10095.362",
+    "gt": "34604.481",
+    "page": 11,
+    "row_label": "VI | Lãi thuần từ hoạt động khác | 10.095.362 | 8.418.786",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "8418.786",
+    "gt": "25348.215",
+    "page": 11,
+    "row_label": "VI | Lãi thuần từ hoạt động khác | 10.095.362 | 8.418.786",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2767699.300",
+    "gt": "2767699.300",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.767.699.300 | 2.385.387.732",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2385387.732",
+    "gt": "2385387.732",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.767.699.300 | 2.385.387.732",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179655.005",
+    "gt": "179655.005",
+    "page": 9,
+    "row_label": "| TỔNG VỐN | | 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "148504.708",
+    "gt": "148504.708",
+    "page": 9,
+    "row_label": "| TỔNG VỐN | | 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1206.433",
+    "gt": "1206.433",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | 1.206.433 | 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "970.729",
+    "gt": "970.729",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | 1.206.433 | 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4017.065",
+    "gt": "4017.065",
+    "page": 36,
+    "row_label": "Nợ dưới tiêu chuẩn | 4.017.065 | 4.199.973",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "4199.973",
+    "gt": null,
+    "page": 36,
+    "row_label": "Nợ dưới tiêu chuẩn | 4.017.065 | 4.199.973",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1967.085",
+    "gt": "5500.307",
+    "page": 36,
+    "row_label": "Nợ nghi ngờ | 5.500.307 | 1.967.085",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1967.085",
+    "gt": null,
+    "page": 36,
+    "row_label": "Nợ nghi ngờ | 5.500.307 | 1.967.085",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "3802.915",
+    "gt": "3802.915",
+    "page": 36,
+    "row_label": "Nợ có khả năng mất vốn | 3.802.915 | 2.389.173",
+    "row_status": "candidate",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2389.173",
+    "gt": null,
+    "page": 36,
+    "row_label": "Nợ có khả năng mất vốn | 3.802.915 | 2.389.173",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "546370.779",
+    "gt": "546370.779",
+    "page": 36,
+    "row_label": "Cho vay khách hàng | 546.370.779 | 431.306.069",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "431306.069",
+    "gt": null,
+    "page": 36,
+    "row_label": "Cho vay khách hàng | 546.370.779 | 431.306.069",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "5878.604",
+    "gt": "7299.445",
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 11 | (7.299.445) | (5.878.604)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "5878.604",
+    "gt": null,
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 11 | (7.299.445) | (5.878.604)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "17073.622",
+    "gt": "17073.622",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 17.073.622 | 13.247.648",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13247.648",
+    "gt": "13247.648",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 17.073.622 | 13.247.648",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "319.472",
+    "gt": "16524.388",
+    "page": 10,
+    "row_label": "VII. | Thu nhập từ góp vốn, mua cổ phần | 33 | 319.472 | 71.664",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "71.664",
+    "gt": "12762.953",
+    "page": 10,
+    "row_label": "VII. | Thu nhập từ góp vốn, mua cổ phần | 33 | 319.472 | 71.664",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "931103.945",
+    "gt": "931103.945",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 931.103.945 | 697.366.458",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "697366.458",
+    "gt": "697366.458",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 931.103.945 | 697.366.458",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "78285.522",
+    "gt": "78285.522",
+    "page": 8,
+    "row_label": "VIII. | Vốn chủ sở hữu | 25 | 78.285.522 | 56.657.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "56657.261",
+    "gt": "56657.261",
+    "page": 8,
+    "row_label": "VIII. | Vốn chủ sở hữu | 25 | 78.285.522 | 56.657.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2715.392",
+    "gt": "2715.392",
+    "page": 8,
+    "row_label": "4. | Lợi ích của cổ đông không kiểm soát | | 2.715.392 | 2.166.158",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2166.158",
+    "gt": "2166.158",
+    "page": 8,
+    "row_label": "4. | Lợi ích của cổ đông không kiểm soát | | 2.715.392 | 2.166.158",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "3379.646",
+    "gt": "3276.216",
+    "page": 51,
+    "row_label": "Nợ dưới tiêu chuẩn | 3.276.216 | 3.379.646",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "3379.646",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ dưới tiêu chuẩn | 3.276.216 | 3.379.646",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "4599.274",
+    "gt": "4330.016",
+    "page": 51,
+    "row_label": "Nợ nghi ngờ | 4.330.016 | 4.599.274",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "4599.274",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ nghi ngờ | 4.330.016 | 4.599.274",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "4606.512",
+    "gt": "6421.264",
+    "page": 51,
+    "row_label": "Nợ có khả năng mất vốn | 6.421.264 | 4.606.512",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "4606.512",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ có khả năng mất vốn | 6.421.264 | 4.606.512",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1084019.370",
+    "gt": "1084019.370",
+    "page": 51,
+    "row_label": "**1.084.019.370** | **776.657.846**",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "776657.846",
+    "gt": null,
+    "page": 51,
+    "row_label": "**1.084.019.370** | **776.657.846**",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13150.593",
+    "gt": "13150.593",
+    "page": 10,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (13.150.593) | (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "11609.861",
+    "gt": null,
+    "page": 10,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (13.150.593) | (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "27382.978",
+    "gt": "27382.978",
+    "page": 13,
+    "row_label": "LỢI NHUẬN SAU THUẾ | 27.382.978 | 22.951.264",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22951.264",
+    "gt": "22951.264",
+    "page": 13,
+    "row_label": "LỢI NHUẬN SAU THUẾ | 27.382.978 | 22.951.264",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "26778.939",
+    "gt": "26778.939",
+    "page": 13,
+    "row_label": "Lợi nhuận sau thuế thuộc về Ngân hàng mẹ | 26.778.939 | 22.633.757",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22633.757",
+    "gt": "22633.757",
+    "page": 13,
+    "row_label": "Lợi nhuận sau thuế thuộc về Ngân hàng mẹ | 26.778.939 | 22.633.757",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1615763.927",
+    "gt": "1615763.927",
+    "page": 10,
+    "row_label": "TỔNG TÀI SẢN | | 1.615.763.927 | 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1128801.062",
+    "gt": "1128801.062",
+    "page": 10,
+    "row_label": "TỔNG TÀI SẢN | | 1.615.763.927 | 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "142022.525",
+    "gt": "142022.525",
+    "page": 11,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 142.022.525 | 117.059.581",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "117059.581",
+    "gt": "117059.581",
+    "page": 11,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 142.022.525 | 117.059.581",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5886.495",
+    "gt": "5886.495",
+    "page": 11,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 26 | 5.886.495 | 4.910.880",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4910.880",
+    "gt": "4910.880",
+    "page": 11,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 26 | 5.886.495 | 4.910.880",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1969.398",
+    "gt": "1776.951",
+    "page": 34,
+    "row_label": "Nợ dưới tiêu chuẩn | 1.776.951 | 1.969.398",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1969.398",
+    "gt": null,
+    "page": 34,
+    "row_label": "Nợ dưới tiêu chuẩn | 1.776.951 | 1.969.398",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4324.234",
+    "gt": "4324.234",
+    "page": 34,
+    "row_label": "Nợ nghi ngờ | 4.324.234 | 2.052.495",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2052.495",
+    "gt": null,
+    "page": 34,
+    "row_label": "Nợ nghi ngờ | 4.324.234 | 2.052.495",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "8475.768",
+    "gt": "8475.768",
+    "page": 34,
+    "row_label": "Nợ có khả năng mất vốn | 8.475.768 | 11.042.821",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "11042.821",
+    "gt": null,
+    "page": 34,
+    "row_label": "Nợ có khả năng mất vốn | 8.475.768 | 11.042.821",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "522534.564",
+    "gt": "614861.980",
+    "page": 34,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 614.780.974 | 522.534.564",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "522534.564",
+    "gt": null,
+    "page": 34,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 614.780.974 | 522.534.564",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "8816.396",
+    "gt": "10498.298",
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 12 | (10.496.298) | (8.816.396)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "8816.396",
+    "gt": null,
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 12 | (10.496.298) | (8.816.396)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "11960.295",
+    "gt": "11960.295",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế TNDN | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9321.949",
+    "gt": "9321.949",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế TNDN | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "-25.690",
+    "gt": "11960.295",
+    "page": 10,
+    "row_label": "VII. | Thu nhập từ góp vốn, mua cổ phần | 32 | (25.690) | 29.502",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "29.502",
+    "gt": "9321.949",
+    "page": 10,
+    "row_label": "VII. | Thu nhập từ góp vốn, mua cổ phần | 32 | (25.690) | 29.502",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "892008.709",
+    "gt": "892008.709",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 892.008.709 | 747.478.069",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "747478.069",
+    "gt": "747478.069",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 892.008.709 | 747.478.069",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "68130.938",
+    "gt": "68130.938",
+    "page": 8,
+    "row_label": "VIII. | Vốn và các quỹ | 25 | 68.130.938 | 58.067.344",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "58067.344",
+    "gt": "58067.344",
+    "page": 8,
+    "row_label": "VIII. | Vốn và các quỹ | 25 | 68.130.938 | 58.067.344",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "**Người kiểm soát**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "**Người kiểm soát**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "6920.385",
+    "gt": "6920.385",
+    "page": 44,
+    "row_label": "Nhóm 3 - Nợ dưới tiêu chuẩn | 6.920.385 | 1.459.877",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1459.877",
+    "gt": null,
+    "page": 44,
+    "row_label": "Nhóm 3 - Nợ dưới tiêu chuẩn | 6.920.385 | 1.459.877",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "3310.299",
+    "gt": "3310.299",
+    "page": 44,
+    "row_label": "Nhóm 4 - Nợ nghi ngờ | 3.310.299 | 2.627.546",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2627.546",
+    "gt": null,
+    "page": 44,
+    "row_label": "Nhóm 4 - Nợ nghi ngờ | 3.310.299 | 2.627.546",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "29906.074",
+    "gt": "29906.074",
+    "page": 44,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 29.906.074 | 8.869.767",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "8869.767",
+    "gt": null,
+    "page": 44,
+    "row_label": "Nhóm 5 - Nợ có khả năng mất vốn | 29.906.074 | 8.869.767",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "539314.658",
+    "gt": "626392.336",
+    "page": 44,
+    "row_label": "| 626.392.336 | 539.314.658",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "539314.658",
+    "gt": null,
+    "page": 44,
+    "row_label": "| 626.392.336 | 539.314.658",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "8866.655",
+    "gt": "20055.945",
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9 | (20.055.945) | (8.866.655)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "8866.655",
+    "gt": null,
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9 | (20.055.945) | (8.866.655)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "917119.803",
+    "gt": "917119.803",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 917.119.803 | 748.094.546",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "748094.546",
+    "gt": "748094.546",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 917.119.803 | 748.094.546",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "59866.744",
+    "gt": "59866.744",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 59.866.744 | 54.972.070",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "54972.070",
+    "gt": "54972.070",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 59.866.744 | 54.972.070",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "Người kiểm soát",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "Người kiểm soát",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "918.063",
+    "gt": "918.063",
+    "page": 51,
+    "row_label": "Nợ dưới tiêu chuẩn | 918.063 | 0,13 | 1.365.655 | 0,22",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1365.655",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ dưới tiêu chuẩn | 918.063 | 0,13 | 1.365.655 | 0,22",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "2465.618",
+    "gt": "1339.119",
+    "page": 51,
+    "row_label": "Nợ nghi ngờ | 1.339.119 | 0,18 | 2.465.618 | 0,41",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2465.618",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ nghi ngờ | 1.339.119 | 0,18 | 2.465.618 | 0,41",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "3269.527",
+    "gt": "5941.193",
+    "page": 51,
+    "row_label": "Nợ có khả năng mất vốn | 5.941.193 | 0,82 | 3.269.527 | 0,54",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "3269.527",
+    "gt": null,
+    "page": 51,
+    "row_label": "Nợ có khả năng mất vốn | 5.941.193 | 0,82 | 3.269.527 | 0,54",
+    "row_status": "candidate",
+    "issues": [
+      "prior_column_unconfirmed",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "605813.718",
+    "gt": "723757.397",
+    "page": 51,
+    "row_label": "| 723.757.397 | 100,00 | 605.813.718 | 100,00",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "605813.718",
+    "gt": null,
+    "page": 51,
+    "row_label": "| 723.757.397 | 100,00 | 605.813.718 | 100,00",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "8090.693",
+    "gt": "10485.620",
+    "page": 11,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (10.498.378) | (8.090.693)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "8090.693",
+    "gt": null,
+    "page": 11,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (10.498.378) | (8.090.693)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25954.472",
+    "gt": "25954.472",
+    "page": 14,
+    "row_label": "Lợi nhuận sau thuế | | 25.954.472 | 21.760.104",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "21760.104",
+    "gt": "21760.104",
+    "page": 14,
+    "row_label": "Lợi nhuận sau thuế | | 25.954.472 | 21.760.104",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25290.230",
+    "gt": "25290.230",
+    "page": 14,
+    "row_label": "Lợi nhuận thuần của cổ đông của Ngân hàng | | 25.290.230 | 21.522.928",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "21522.928",
+    "gt": "21522.928",
+    "page": 14,
+    "row_label": "Lợi nhuận thuần của cổ đông của Ngân hàng | | 25.290.230 | 21.522.928",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1192344.137",
+    "gt": "1192344.137",
+    "page": 11,
+    "row_label": "TỔNG TÀI SẢN | | 1.192.344.137 | 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "978798.549",
+    "gt": "978798.549",
+    "page": 11,
+    "row_label": "TỔNG TÀI SẢN | | 1.192.344.137 | 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179501.442",
+    "gt": "179501.442",
+    "page": 12,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 23 | 179.501.442 | 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "147939.621",
+    "gt": "147939.621",
+    "page": 12,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 23 | 179.501.442 | 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9456.938",
+    "gt": "9456.938",
+    "page": 12,
+    "row_label": "Lợi ích cổ đông không kiểm soát | | 9.456.938 | 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2520.466",
+    "gt": "2520.466",
+    "page": 12,
+    "row_label": "Lợi ích cổ đông không kiểm soát | | 9.456.938 | 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "760.561",
+    "gt": "760.561",
+    "page": 39,
+    "row_label": "Nợ dưới tiêu chuẩn | 760.561 | 2.153.039",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2153.039",
+    "gt": null,
+    "page": 39,
+    "row_label": "Nợ dưới tiêu chuẩn | 760.561 | 2.153.039",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1518.558",
+    "gt": "222.632",
+    "page": 39,
+    "row_label": "Nợ nghi ngờ | 222.632 | 1.518.558",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1518.558",
+    "gt": null,
+    "page": 39,
+    "row_label": "Nợ nghi ngờ | 222.632 | 1.518.558",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "8686.362",
+    "gt": "8686.362",
+    "page": 39,
+    "row_label": "Nợ có khả năng mất vốn | 8.686.362 | 10.292.417",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "10292.417",
+    "gt": null,
+    "page": 39,
+    "row_label": "Nợ có khả năng mất vốn | 8.686.362 | 10.292.417",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "1661183.258",
+    "gt": "1673525.675",
+    "page": 39,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 1.661.183.258 | 1.436.710.181",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "1436710.181",
+    "gt": null,
+    "page": 39,
+    "row_label": "Cho vay các tổ chức kinh tế, cá nhân trong nước | 1.661.183.258 | 1.436.710.181",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "24975.679",
+    "gt": "24975.679",
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 10 | (24.975.679) | (31.183.175)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "31183.175",
+    "gt": null,
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 10 | (24.975.679) | (31.183.175)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "281.862",
+    "gt": "35197.940",
+    "page": 11,
+    "row_label": "VII | Thu nhập từ góp vốn, mua cổ phần | 30 | 281.862 | 307.179",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "307.179",
+    "gt": "33853.117",
+    "page": 11,
+    "row_label": "VII | Thu nhập từ góp vốn, mua cổ phần | 30 | 281.862 | 307.179",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "281.862",
+    "gt": "35177.663",
+    "page": 11,
+    "row_label": "VII | Thu nhập từ góp vốn, mua cổ phần | 30 | 281.862 | 307.179",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "307.179",
+    "gt": "33831.386",
+    "page": 11,
+    "row_label": "VII | Thu nhập từ góp vốn, mua cổ phần | 30 | 281.862 | 307.179",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2442279.166",
+    "gt": "2442279.166",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.442.279.166 | 2.085.873.522",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2085873.522",
+    "gt": "2085873.522",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.442.279.166 | 2.085.873.522",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "224558.726",
+    "gt": "224558.726",
+    "page": 9,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 22(a) 224.558.726 | 196.209.168",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "196209.168",
+    "gt": "196209.168",
+    "page": 9,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 22(a) 224.558.726 | 196.209.168",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "71.521",
+    "gt": "71.521",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | | 71.521 | 96.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "96.261",
+    "gt": "96.261",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | | 71.521 | 96.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "10852.509",
+    "gt": "11429.858",
+    "page": 45,
+    "row_label": "Nợ dưới tiêu chuẩn | 11.429.858 | 10.852.509",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "10852.509",
+    "gt": null,
+    "page": 45,
+    "row_label": "Nợ dưới tiêu chuẩn | 11.429.858 | 10.852.509",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "12098.440",
+    "gt": "10879.958",
+    "page": 45,
+    "row_label": "Nợ nghi ngờ | 10.879.958 | 12.098.440",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "12098.440",
+    "gt": null,
+    "page": 45,
+    "row_label": "Nợ nghi ngờ | 10.879.958 | 12.098.440",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9154.889",
+    "gt": "9154.889",
+    "page": 45,
+    "row_label": "Nợ có khả năng mất vốn | 9.154.889 | 6.119.216",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6119.216",
+    "gt": null,
+    "page": 45,
+    "row_label": "Nợ có khả năng mất vốn | 9.154.889 | 6.119.216",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch",
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "943901.630",
+    "gt": "909808.411",
+    "page": 45,
+    "row_label": "Tổng cộng | 943.901.630 | 100 | 697.771.123 | 100",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "697771.123",
+    "gt": null,
+    "page": 45,
+    "row_label": "Tổng cộng | 943.901.630 | 100 | 697.771.123 | 100",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "17428.971",
+    "gt": "17267.357",
+    "page": 9,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 11 (17.428.971) | (16.366.955)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "16366.955",
+    "gt": null,
+    "page": 9,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 11 (17.428.971) | (16.366.955)",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "24354.596",
+    "gt": "24354.596",
+    "page": 12,
+    "row_label": "LỢI NHUẬN SAU THUẾ | | 24.354.596 | 15.986.826",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15986.826",
+    "gt": "15986.826",
+    "page": 12,
+    "row_label": "LỢI NHUẬN SAU THUẾ | | 24.354.596 | 15.986.826",
+    "row_status": "candidate",
+    "issues": [
+      "llm_selected"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "23989.930",
+    "gt": "23989.930",
+    "page": 12,
+    "row_label": "Lợi nhuận thuần của cổ đông ngân hàng | | 23.989.930 | 15.778.795",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15778.795",
+    "gt": "15778.795",
+    "page": 12,
+    "row_label": "Lợi nhuận thuần của cổ đông ngân hàng | | 23.989.930 | 15.778.795",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1260149.596",
+    "gt": "1260149.596",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | =1.260.149.596 | 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "923847.637",
+    "gt": "923847.637",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | =1.260.149.596 | 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "180275.629",
+    "gt": "180275.629",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 25 | 180.275.629 | 147.275.262",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "147275.262",
+    "gt": "147275.262",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 25 | 180.275.629 | 147.275.262",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "12372.286",
+    "gt": "12372.286",
+    "page": 10,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 12.372.286 | 5.370.287",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5370.287",
+    "gt": "5370.287",
+    "page": 10,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 12.372.286 | 5.370.287",
+    "row_status": "candidate",
+    "issues": []
+  }
+]

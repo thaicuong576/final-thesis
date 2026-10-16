@@ -1,0 +1,306 @@
+[
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.010",
+    "gt": "764.791",
+    "page": 17,
+    "row_label": "Tập đoàn đồng thời thực hiện phân loại nợ theo phương pháp định lượng quy định tại Điều 10 của Thông tư 31. Trường hợp kết quả phân loại đối với một khoản nợ theo phương pháp định tính và phương pháp định lượng khác nhau thì khoản nợ được phân loại vào nhóm có mức độ rủi ro cao hơn.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 17,
+    "row_label": "Tập đoàn đồng thời thực hiện phân loại nợ theo phương pháp định lượng quy định tại Điều 10 của Thông tư 31. Trường hợp kết quả phân loại đối với một khoản nợ theo phương pháp định tính và phương pháp định lượng khác nhau thì khoản nợ được phân loại vào nhóm có mức độ rủi ro cao hơn.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "770.229",
+    "page": 17,
+    "row_label": "Xếp hạng tín dụng C | Nhóm 4: Nợ nghi ngờ",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Xếp hạng tín dụng C | Nhóm 4: Nợ nghi ngờ",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "5136.367",
+    "page": 17,
+    "row_label": "Các khoản cho vay khách hàng căn cứ trên hệ thống xếp hạng tín dụng tương ứng được phân thành 5 nhóm nợ như sau:",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Các khoản cho vay khách hàng căn cứ trên hệ thống xếp hạng tín dụng tương ứng được phân thành 5 nhóm nợ như sau:",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.011",
+    "gt": "669436.647",
+    "page": 17,
+    "row_label": "Phân loại các khoản cho vay khách hàng theo Điều 11 của Thông tư 31",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 17,
+    "row_label": "Phân loại các khoản cho vay khách hàng theo Điều 11 của Thông tư 31",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "7624.729",
+    "gt": "7507.253",
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6739.556",
+    "gt": null,
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "22873.524",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "IX | Lợi nhuận thuần từ hoạt động kinh doanh trước chi phí dự phòng rủi ro tín dụng | | 22.873.524 | 22.612.156",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "22612.156",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "IX | Lợi nhuận thuần từ hoạt động kinh doanh trước chi phí dự phòng rủi ro tín dụng | | 22.873.524 | 22.612.156",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1025850.127",
+    "gt": "1025850.127",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "864005.703",
+    "gt": "864005.703",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "94519.719",
+    "gt": "94519.719",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "83461.678",
+    "gt": "83461.678",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  }
+]

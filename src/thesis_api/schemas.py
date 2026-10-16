@@ -1126,7 +1126,7 @@ class FilingCandidateRowDTO(BaseModel):
     raw_text: Optional[str] = Field(default=None, description="Raw source text line")
     row_label: Optional[str] = Field(default=None, description="Matched row label")
     page: Optional[int] = Field(default=None, description="1-indexed PDF page")
-    source: Optional[Literal["text_layer", "ocr", "llamaparse", "user"]] = Field(default=None, description="Extraction source kind")
+    source: Optional[Literal["text_layer", "ocr", "llamaparse", "user", "llm_assisted_selection"]] = Field(default=None, description="Extraction source kind")
     status: Literal["candidate", "needs_review", "missing"] = Field(..., description="Candidate status")
     edited: bool = Field(default=False, description="Whether user edited this value")
     confirmed: bool = Field(default=False, description="Whether user explicitly confirmed this row")

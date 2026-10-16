@@ -69,10 +69,12 @@ from .schemas import (
 )
 from .filing_ocr import PyMuPDFTesseractPageTextProvider, TesseractNotFoundError
 from .filing_llamaparse import LlamaParseError, LlamaParseProvider
+from .filing_llm_selector import refine_candidates_with_llm
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
 from thesis_data.filing_extract import (
+    ExtractionResult,
     PageInput,
     classify_pages,
     extract_candidates_from_pages,
@@ -707,6 +709,8 @@ def create_app(
                 custom_provider = getattr(app.state, "filing_page_provider", None)
                 pages_sent_to_ocr = 0
 
+                cutoff_note: Optional[str] = None
+
                 if custom_provider is not None:
                     pages = custom_provider.extract_all_pages(
                         pdf_path,
@@ -726,54 +730,56 @@ def create_app(
                     elif current_settings.ocr_provider == "auto" and has_llama_key:
                         use_llamaparse = True
 
+                    ocr_scope = getattr(current_settings, "filing_ocr_scope", "full").lower()
+                    max_pages = getattr(current_settings, "llama_max_pages_per_filing", 300)
+
+                    import fitz
+
+                    doc = fitz.open(pdf_path)
+                    total_pages = len(doc)
+                    doc.close()
+
+                    cutoff_note: Optional[str] = None
+                    if total_pages > max_pages:
+                        cutoff_note = (
+                            f"Tài liệu có {total_pages} trang, vượt quá giới hạn cấu hình {max_pages} trang; "
+                            f"hệ thống chỉ xử lý {max_pages} trang đầu."
+                        )
+                        effective_pages_limit = max_pages
+                    else:
+                        effective_pages_limit = total_pages
+
                     if not use_llamaparse:
                         provider = PyMuPDFTesseractPageTextProvider()
-                        pages = provider.extract_all_pages(
-                            pdf_path,
-                            cache_dir=pages_dir,
-                            max_workers=4,
-                            progress_callback=_progress_cb,
-                        )
-                        pages_sent_to_ocr = sum(1 for p in pages if p.source == "ocr")
+                        if ocr_scope == "selected":
+                            stage_a_pages = []
+                            for pno in range(1, effective_pages_limit + 1):
+                                p_inp = provider.get_page_text(pdf_path, pno, cache_dir=None)
+                                stage_a_pages.append(p_inp)
+                            stmt_pages = classify_pages(stage_a_pages)
+                            selected_pages = stmt_pages.get_selected_pages_with_overflow(
+                                total_pages=effective_pages_limit,
+                                max_pages=max_pages,
+                            )
+                            pages_sent_to_ocr = len(selected_pages)
+                            for pno in selected_pages:
+                                provider.get_page_text(pdf_path, pno, cache_dir=pages_dir)
+                            pages = [
+                                provider.get_page_text(pdf_path, pno, cache_dir=pages_dir)
+                                for pno in range(1, effective_pages_limit + 1)
+                            ]
+                        else:
+                            pages = provider.extract_all_pages(
+                                pdf_path,
+                                cache_dir=pages_dir,
+                                max_workers=4,
+                                progress_callback=_progress_cb,
+                                max_pages=effective_pages_limit,
+                            )
+                            pages_sent_to_ocr = sum(1 for p in pages if p.source == "ocr")
                     else:
-                        import fitz
-
-                        doc = fitz.open(pdf_path)
-                        total_pages = len(doc)
-                        stage_a_pages: list[PageInput] = []
                         tesseract_provider = PyMuPDFTesseractPageTextProvider(dpi=100)
                         tesseract_avail = tesseract_provider.is_tesseract_available()
-
-                        unreadable_pages: list[int] = []
-                        for pno in range(1, total_pages + 1):
-                            page = doc[pno - 1]
-                            txt = page.get_text()
-                            if len(txt.strip()) >= 200 and txt.count("\ufffd") <= 20:
-                                stage_a_pages.append(PageInput(page_number=pno, text=txt, source="text_layer"))
-                            else:
-                                unreadable_pages.append(pno)
-                        doc.close()
-
-                        if unreadable_pages:
-                            if tesseract_avail:
-                                for pno in unreadable_pages:
-                                    # Stage A classification only; do not pollute final pages_dir
-                                    page_inp = tesseract_provider.get_page_text(pdf_path, pno, cache_dir=None)
-                                    stage_a_pages.append(page_inp)
-                            else:
-                                for pno in unreadable_pages:
-                                    stage_a_pages.append(PageInput(page_number=pno, text="", source="text_layer"))
-
-                        stage_a_pages.sort(key=lambda p: p.page_number)
-
-                        stmt_pages = classify_pages(stage_a_pages)
-                        selected_pages = stmt_pages.get_selected_pages_with_overflow(
-                            total_pages=total_pages,
-                            max_pages=current_settings.llama_max_pages_per_filing,
-                        )
-                        if not selected_pages and unreadable_pages and not tesseract_avail:
-                            selected_pages = list(range(1, min(total_pages, current_settings.llama_max_pages_per_filing) + 1))
-
                         api_key = (
                             current_settings.llama_cloud_api_key.get_secret_value()
                             if current_settings.llama_cloud_api_key
@@ -785,16 +791,59 @@ def create_app(
                             max_retries=2,
                             tesseract_fallback=tesseract_provider if tesseract_avail else None,
                         )
-                        lp_pages = lp_provider.extract_pages(
-                            pdf_path,
-                            selected_pages,
-                            cache_dir=pages_dir,
-                            progress_callback=_progress_cb,
-                        )
-                        pages_sent_to_ocr = len(selected_pages)
 
-                        lp_map = {p.page_number: p for p in lp_pages}
-                        pages = [lp_map.get(p.page_number, p) for p in stage_a_pages]
+                        if ocr_scope == "full":
+                            pages = lp_provider.extract_pages(
+                                pdf_path,
+                                list(range(1, effective_pages_limit + 1)),
+                                cache_dir=pages_dir,
+                                progress_callback=_progress_cb,
+                                chunk_size=40,
+                                max_workers=2,
+                            )
+                            pages_sent_to_ocr = len(pages)
+                        else:
+                            doc = fitz.open(pdf_path)
+                            stage_a_pages: list[PageInput] = []
+                            unreadable_pages: list[int] = []
+                            for pno in range(1, effective_pages_limit + 1):
+                                page = doc[pno - 1]
+                                txt = page.get_text()
+                                if len(txt.strip()) >= 200 and txt.count("\ufffd") <= 20:
+                                    stage_a_pages.append(PageInput(page_number=pno, text=txt, source="text_layer"))
+                                else:
+                                    unreadable_pages.append(pno)
+                            doc.close()
+
+                            if unreadable_pages:
+                                if tesseract_avail:
+                                    for pno in unreadable_pages:
+                                        page_inp = tesseract_provider.get_page_text(pdf_path, pno, cache_dir=None)
+                                        stage_a_pages.append(page_inp)
+                                else:
+                                    for pno in unreadable_pages:
+                                        stage_a_pages.append(PageInput(page_number=pno, text="", source="text_layer"))
+
+                            stage_a_pages.sort(key=lambda p: p.page_number)
+                            stmt_pages = classify_pages(stage_a_pages)
+                            selected_pages = stmt_pages.get_selected_pages_with_overflow(
+                                total_pages=effective_pages_limit,
+                                max_pages=max_pages,
+                            )
+                            if not selected_pages and unreadable_pages and not tesseract_avail:
+                                selected_pages = list(range(1, min(effective_pages_limit, max_pages) + 1))
+
+                            lp_pages = lp_provider.extract_pages(
+                                pdf_path,
+                                selected_pages,
+                                cache_dir=pages_dir,
+                                progress_callback=_progress_cb,
+                                chunk_size=40,
+                                max_workers=2,
+                            )
+                            pages_sent_to_ocr = len(selected_pages)
+                            lp_map = {p.page_number: p for p in lp_pages}
+                            pages = [lp_map.get(p.page_number, p) for p in stage_a_pages]
 
                 ext = extract_candidates_from_pages(
                     pages,
@@ -805,15 +854,40 @@ def create_app(
                     filing_id=filing_id,
                 )
 
+                if getattr(current_settings, "filing_llm_assist", False):
+                    ext, _ = refine_candidates_with_llm(
+                        ext,
+                        pages,
+                        settings=current_settings,
+                    )
+
+                extra_notes: list[str] = []
+                if cutoff_note:
+                    extra_notes.append(cutoff_note)
+                extra_notes.append(f"Đã đọc {len(pages)} trang")
                 if pages_sent_to_ocr > 0:
-                    note = f"Đã gửi {pages_sent_to_ocr} trang tới dịch vụ OCR"
-                    if isinstance(ext.limitations_vi, list):
-                        if note not in ext.limitations_vi:
-                            ext.limitations_vi.insert(0, note)
-                    elif isinstance(ext.limitations_vi, str):
-                        ext.limitations_vi = [note, ext.limitations_vi]
-                    else:
-                        ext.limitations_vi = [note]
+                    extra_notes.append(f"Đã gửi {pages_sent_to_ocr} trang tới dịch vụ OCR")
+
+                current_limitations = list(ext.limitations_vi) if isinstance(ext.limitations_vi, list) else [ext.limitations_vi]
+                for note in reversed(extra_notes):
+                    if note not in current_limitations:
+                        current_limitations.insert(0, note)
+                ext = ExtractionResult(
+                    filing_id=ext.filing_id,
+                    entity_id=ext.entity_id,
+                    display_name=ext.display_name,
+                    fiscal_year=ext.fiscal_year,
+                    reporting_scope=ext.reporting_scope,
+                    page_count=ext.page_count,
+                    ocr_provider=ext.ocr_provider,
+                    text_layer_pages=ext.text_layer_pages,
+                    ocr_pages=ext.ocr_pages,
+                    statement_pages=ext.statement_pages,
+                    unit_detected=ext.unit_detected,
+                    rows=ext.rows,
+                    validation=ext.validation,
+                    limitations_vi=current_limitations,
+                )
 
                 meta["status"] = "ready"
                 meta["ocr_provider"] = ext.ocr_provider

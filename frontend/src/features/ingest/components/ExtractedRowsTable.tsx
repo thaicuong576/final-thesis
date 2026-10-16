@@ -6,16 +6,15 @@ import {
   Edit2,
   Check,
   X,
-  FileImage,
   Layers,
   ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDecimalVi, formatPeriodCode } from '@/shared/lib/formatting';
-import { scrubUserText } from '../lib/scrubText';
 import type { Row, RowAlternative } from '../model/types';
 import { METRIC_IDS, METRIC_LABELS } from '../model/types';
+import { scrubUserText } from '../lib/scrubText';
 
 interface ExtractedRowsTableProps {
   rows: Row[];
@@ -23,21 +22,6 @@ interface ExtractedRowsTableProps {
   onSelectPage: (page: number) => void;
   selectedPage: number | null;
   highlightedRowIds?: string[];
-}
-
-function sourceLabel(src: Row['source']): string {
-  switch (src) {
-    case 'text_layer':
-      return 'Chữ sẵn';
-    case 'ocr':
-      return 'OCR';
-    case 'llamaparse':
-      return 'LlamaParse';
-    case 'user':
-      return 'Tự nhập';
-    default:
-      return 'Chưa rõ';
-  }
 }
 
 export function ExtractedRowsTable({
@@ -52,13 +36,22 @@ export function ExtractedRowsTable({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [openAltMenuRowId, setOpenAltMenuRowId] = useState<string | null>(null);
 
-  // Group rows by metric_id
-  const rowsByMetric = METRIC_IDS.map((metricId) => {
+  // Collect all unique metric IDs present in the rows while preserving METRIC_IDS order
+  const presentMetricIds = Array.from(
+    new Set([...METRIC_IDS, ...rows.map((r) => r.metric_id)])
+  ).filter((m) => rows.some((r) => r.metric_id === m));
+
+  const rowsByMetric = presentMetricIds.map((metricId) => {
     const targetRow = rows.find((r) => r.metric_id === metricId && r.period_role === 'target');
     const priorRow = rows.find((r) => r.metric_id === metricId && r.period_role === 'prior');
+    const metricLabel =
+      METRIC_LABELS[metricId as keyof typeof METRIC_LABELS] ||
+      targetRow?.label_vi ||
+      priorRow?.label_vi ||
+      metricId;
     return {
       metricId,
-      label: METRIC_LABELS[metricId] || metricId,
+      label: metricLabel,
       targetRow,
       priorRow,
     };
@@ -96,7 +89,6 @@ export function ExtractedRowsTable({
   };
 
   const handleConfirmAllClean = async () => {
-    // Confirm all rows that have value and no error issues
     const candidates = rows.filter(
       (r) =>
         !r.confirmed &&
@@ -116,13 +108,17 @@ export function ExtractedRowsTable({
       !r.issues.some((iss) => iss.severity === 'error')
   ).length;
 
+  const targetPeriodLabel = formatPeriodCode(rows.find((r) => r.period_role === 'target')?.period_id) || 'Kỳ này';
+  const priorPeriodLabel = formatPeriodCode(rows.find((r) => r.period_role === 'prior')?.period_id) || 'Kỳ trước';
+
   return (
-    <div className="space-y-3" data-testid="extracted-rows-section">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-line pb-2.5">
+    <div className="space-y-2.5" data-testid="extracted-rows-section">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 border-b border-line pb-2">
         <div>
           <h3 className="text-sm font-bold text-ink">Bảng số liệu trích xuất (10 chỉ tiêu đầu vào)</h3>
-          <p className="text-xs text-ink-secondary">
-            Đơn vị: tỷ đồng (billion VND). Đã xác nhận: {totalConfirmed}/{rows.length} ô.
+          <p className="text-[11px] text-ink-secondary">
+            Nhận diện bằng OCR · Đơn vị: tỷ VND · Đã xác nhận: {totalConfirmed}/{rows.length} ô
           </p>
         </div>
 
@@ -132,38 +128,38 @@ export function ExtractedRowsTable({
             variant="outline"
             size="sm"
             onClick={handleConfirmAllClean}
-            className="h-8 border-ready/50 bg-ready-soft/40 hover:bg-ready-soft text-text-success text-xs font-semibold self-start sm:self-auto shrink-0"
+            className="h-7 border-line text-ink text-xs font-semibold self-start sm:self-auto shrink-0"
           >
-            <CheckCircle2 className="size-3.5 mr-1" />
+            <CheckCircle2 className="size-3 mr-1 text-ready" />
             Xác nhận {cleanUnconfirmedCount} ô đã khớp kiểm tra
           </Button>
         )}
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto rounded border border-line bg-card shadow-tactile">
+      <div className="hidden md:block overflow-x-auto rounded border border-line bg-card">
         <table className="w-full border-collapse text-left text-xs" data-testid="extracted-rows-table">
           <thead>
-            <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
-              <th className="py-2.5 px-3 font-semibold w-1/3">Chỉ tiêu đầu vào</th>
-              <th className="py-2.5 px-3 font-semibold text-center w-1/3">
-                Kỳ mục tiêu ({formatPeriodCode(rows[0]?.period_id) || 'Kỳ này'})
+            <tr className="border-b border-line bg-surface-secondary/60 text-ink-secondary">
+              <th className="py-2 px-3 font-semibold w-2/5">Chỉ tiêu đầu vào</th>
+              <th className="py-2 px-3 font-semibold text-right w-[30%]">
+                Kỳ mục tiêu ({targetPeriodLabel})
               </th>
-              <th className="py-2.5 px-3 font-semibold text-center w-1/3">
-                Kỳ so sánh ({formatPeriodCode(rows.find((r) => r.period_role === 'prior')?.period_id) || 'Kỳ trước'})
+              <th className="py-2 px-3 font-semibold text-right w-[30%]">
+                Kỳ so sánh ({priorPeriodLabel})
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rowsByMetric.map(({ metricId, label, targetRow, priorRow }) => {
               return (
-                <tr key={metricId} className="hover:bg-surface-hover/30 transition-colors">
-                  <td className="py-2.5 px-3 align-top">
-                    <span className="font-semibold text-ink block">{label}</span>
+                <tr key={metricId} className="hover:bg-surface-secondary/30 transition-colors">
+                  <td className="py-2 px-3 align-top">
+                    <span className="font-semibold text-ink">{label}</span>
                   </td>
 
-                  {/* Target Cell */}
-                  <td className="py-2 px-3 align-top">
+                  {/* Target period cell */}
+                  <td className="py-2 px-3 align-top text-right">
                     {targetRow ? (
                       <RowCellContent
                         row={targetRow}
@@ -185,12 +181,12 @@ export function ExtractedRowsTable({
                         onSelectAlternative={(alt) => handleSelectAlternative(targetRow, alt)}
                       />
                     ) : (
-                      <span className="text-ink-tertiary">—</span>
+                      <span className="text-ink-tertiary font-mono text-[11px]">—</span>
                     )}
                   </td>
 
-                  {/* Prior Cell */}
-                  <td className="py-2 px-3 align-top">
+                  {/* Prior period cell */}
+                  <td className="py-2 px-3 align-top text-right">
                     {priorRow ? (
                       <RowCellContent
                         row={priorRow}
@@ -212,7 +208,7 @@ export function ExtractedRowsTable({
                         onSelectAlternative={(alt) => handleSelectAlternative(priorRow, alt)}
                       />
                     ) : (
-                      <span className="text-ink-tertiary">—</span>
+                      <span className="text-ink-tertiary font-mono text-[11px]">—</span>
                     )}
                   </td>
                 </tr>
@@ -222,23 +218,18 @@ export function ExtractedRowsTable({
         </table>
       </div>
 
-      {/* Mobile Card View (390px friendly) */}
-      <div className="md:hidden space-y-3" data-testid="extracted-rows-mobile">
+      {/* Mobile Flat List (<= 768px, perfect 390px) */}
+      <div className="md:hidden divide-y divide-line rounded border border-line bg-card">
         {rowsByMetric.map(({ metricId, label, targetRow, priorRow }) => (
-          <div
-            key={metricId}
-            className="rounded-md border border-line bg-card p-3 shadow-tactile space-y-2.5"
-          >
-            <div className="border-b border-line pb-1.5">
-              <span className="font-bold text-xs text-ink">{label}</span>
-            </div>
+          <div key={metricId} className="p-3 space-y-2">
+            <div className="font-semibold text-xs text-ink">{label}</div>
 
-            <div className="space-y-2">
-              {targetRow && (
-                <div className="rounded bg-surface-secondary/50 p-2">
-                  <div className="text-[11px] font-semibold text-ink-secondary mb-1">
-                    Kỳ này ({formatPeriodCode(targetRow.period_id)}):
-                  </div>
+            {targetRow && (
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="text-ink-secondary text-[11px] shrink-0">
+                  {targetPeriodLabel}:
+                </span>
+                <div className="flex-1 min-w-0">
                   <RowCellContent
                     row={targetRow}
                     isEditing={editingRowId === targetRow.row_id}
@@ -259,13 +250,15 @@ export function ExtractedRowsTable({
                     onSelectAlternative={(alt) => handleSelectAlternative(targetRow, alt)}
                   />
                 </div>
-              )}
+              </div>
+            )}
 
-              {priorRow && (
-                <div className="rounded bg-surface-secondary/50 p-2">
-                  <div className="text-[11px] font-semibold text-ink-secondary mb-1">
-                    Kỳ trước ({formatPeriodCode(priorRow.period_id)}):
-                  </div>
+            {priorRow && (
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="text-ink-secondary text-[11px] shrink-0">
+                  {priorPeriodLabel}:
+                </span>
+                <div className="flex-1 min-w-0">
                   <RowCellContent
                     row={priorRow}
                     isEditing={editingRowId === priorRow.row_id}
@@ -286,8 +279,8 @@ export function ExtractedRowsTable({
                     onSelectAlternative={(alt) => handleSelectAlternative(priorRow, alt)}
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -296,7 +289,7 @@ export function ExtractedRowsTable({
 }
 
 // -------------------------------------------------------------------------
-// Subcomponent: Cell / Card Content for a single Row (target or prior)
+// Subcomponent: Clean Cell Content for a single Row (target or prior)
 // -------------------------------------------------------------------------
 interface RowCellContentProps {
   row: Row;
@@ -338,64 +331,26 @@ function RowCellContent({
 
   return (
     <div
-      className={`rounded p-1.5 transition-all space-y-1.5 ${
+      className={`rounded px-1.5 py-1 transition-colors ${
         isHighlighted
-          ? 'ring-2 ring-amber bg-amber-soft/40'
-          : row.confirmed
-          ? 'bg-ready-soft/20'
-          : isNeedsReview
-          ? 'bg-warning-soft/30'
+          ? 'bg-amber-soft/40 ring-1 ring-amber'
           : isMissing
-          ? 'bg-blocked-soft/30'
+          ? 'bg-blocked-soft/20'
+          : isNeedsReview
+          ? 'bg-warning-soft/20'
           : ''
       }`}
       data-testid={`row-cell-${row.row_id}`}
     >
-      {/* Top Line: Checkbox + Value display / Edit box */}
-      <div className="flex items-center justify-between gap-1.5">
-        <label className="flex items-center gap-1.5 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={row.confirmed}
-            disabled={isMissing}
-            onChange={onToggleConfirm}
-            className="size-3.5 rounded border-line text-ready focus:ring-ready/40 cursor-pointer disabled:opacity-40"
-            aria-label={`Xác nhận ${row.label_vi} ${formatPeriodCode(row.period_id)}`}
-          />
-          <span
-            className={`font-mono text-xs font-semibold ${
-              isMissing ? 'text-blocked italic' : 'text-ink'
-            }`}
-          >
-            {isMissing ? 'Thiếu giá trị' : formatDecimalVi(row.value_billion_vnd, 3)}
-          </span>
-        </label>
-
-        {/* Edit button */}
-        {!isEditing && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onStartEdit}
-            className="h-6 w-6 p-0 text-ink-secondary hover:text-ink shrink-0"
-            title="Sửa giá trị ô này"
-            aria-label={`Sửa giá trị ${row.row_id}`}
-          >
-            <Edit2 className="size-3" />
-          </Button>
-        )}
-      </div>
-
       {/* Editing Form */}
-      {isEditing && (
-        <div className="flex items-center gap-1 pt-1">
+      {isEditing ? (
+        <div className="flex items-center justify-end gap-1">
           <Input
             type="text"
             value={editValue}
             onChange={(e) => onEditValueChange(e.target.value)}
             placeholder="Ví dụ: 764.791"
-            className="h-7 text-xs font-mono py-0 px-1.5 w-full bg-white"
+            className="h-7 text-xs font-mono py-0 px-1.5 w-28 bg-card text-right"
             autoFocus
             aria-label="Nhập số tiền tỷ đồng"
           />
@@ -404,7 +359,7 @@ function RowCellContent({
             size="sm"
             disabled={isSaving}
             onClick={onSaveEdit}
-            className="h-7 px-2 text-xs bg-amber border border-amber-border hover:bg-amber-hover text-ink shrink-0"
+            className="h-7 px-1.5 text-xs bg-amber border border-amber-border hover:bg-amber-hover text-ink shrink-0"
             title="Lưu"
           >
             <Check className="size-3" />
@@ -414,106 +369,115 @@ function RowCellContent({
             variant="ghost"
             size="sm"
             onClick={onCancelEdit}
-            className="h-7 px-1.5 text-xs text-ink-secondary shrink-0"
+            className="h-7 px-1 text-xs text-ink-secondary shrink-0"
             title="Hủy"
           >
             <X className="size-3" />
           </Button>
         </div>
-      )}
+      ) : (
+        /* Normal Display: Checkbox + Value + Page link + Status mark (ONLY when not OK) + Edit button */
+        <div className="flex items-center justify-end gap-1.5">
+          {/* Checkbox */}
+          <input
+            type="checkbox"
+            checked={row.confirmed}
+            disabled={isMissing}
+            onChange={onToggleConfirm}
+            className="size-3.5 rounded border-line text-ready focus:ring-ready/40 cursor-pointer disabled:opacity-30 shrink-0"
+            aria-label={`Xác nhận ${row.label_vi} ${formatPeriodCode(row.period_id)}`}
+          />
 
-      {/* Secondary info: Edited tag & Original value comparison */}
-      {row.edited && row.extracted_value_billion_vnd && (
-        <div className="flex items-center gap-1 text-[11px] text-ink-secondary bg-surface-secondary/80 rounded px-1.5 py-0.5">
-          <span className="font-semibold text-text-accent">Đã sửa</span>
-          <span className="text-ink-tertiary">
-            (gốc: {formatDecimalVi(row.extracted_value_billion_vnd, 3)})
+          {/* Formatted Number */}
+          <span
+            className={`font-mono text-xs tabular-nums ${
+              isMissing ? 'text-blocked italic' : 'text-ink font-semibold'
+            }`}
+          >
+            {isMissing ? 'Thiếu giá trị' : formatDecimalVi(row.value_billion_vnd, 3)}
           </span>
-        </div>
-      )}
 
-      {/* Bottom bar: Page source + Source kind + Issues badge */}
-      <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-ink-secondary pt-0.5">
-        <div className="flex items-center gap-1.5">
+          {/* Edited indicator */}
+          {row.edited && (
+            <span
+              className="text-[10px] text-text-accent font-semibold"
+              title={row.extracted_value_billion_vnd ? `Gốc: ${formatDecimalVi(row.extracted_value_billion_vnd, 3)}` : undefined}
+            >
+              Đã sửa
+            </span>
+          )}
+
+          {/* Page Link (small) */}
           {row.page ? (
             <button
               type="button"
               onClick={() => onSelectPage(row.page!)}
-              className={`inline-flex items-center gap-0.5 rounded px-1 py-0.2 font-mono text-[10px] font-semibold border transition-colors cursor-pointer ${
-                isSelectedPage
-                  ? 'bg-amber text-ink border-amber-border'
-                  : 'bg-surface-secondary text-text-accent hover:bg-surface-hover border-line'
+              className={`font-mono text-[10px] underline cursor-pointer transition-colors ${
+                isSelectedPage ? 'text-ink font-bold' : 'text-text-accent hover:text-ink'
               }`}
-              title={`Xem trang ${row.page}`}
+              title={`Xem tài liệu trang ${row.page}`}
             >
-              <FileImage className="size-2.5" />
-              <span>Tr. {row.page}</span>
+              tr.{row.page}
             </button>
-          ) : (
-            <span className="text-ink-tertiary text-[10px]">Chưa có trang</span>
-          )}
+          ) : null}
 
-          <span className="inline-flex items-center rounded bg-surface-secondary px-1 py-0.2 text-[10px] font-medium text-ink-secondary border border-line">
-            {sourceLabel(row.source)}
-          </span>
-        </div>
-
-        {/* Status indicator */}
-        <div className="flex items-center gap-1">
-          {row.confirmed ? (
-            <span className="inline-flex items-center gap-0.5 text-ready text-[10px] font-semibold">
-              <CheckCircle2 className="size-3" />
-              Đã duyệt
+          {/* Status Mark ONLY when NOT OK */}
+          {isMissing ? (
+            <span title="Thiếu giá trị" className="inline-flex text-blocked">
+              <HelpCircle className="size-3 text-blocked shrink-0" />
             </span>
           ) : isNeedsReview ? (
-            <span className="inline-flex items-center gap-0.5 text-warning text-[10px] font-semibold">
-              <AlertTriangle className="size-3" />
-              Cần xem lại
-            </span>
-          ) : isMissing ? (
-            <span className="inline-flex items-center gap-0.5 text-blocked text-[10px] font-semibold">
-              <HelpCircle className="size-3" />
-              Thiếu
+            <span title="Cần xem lại" className="inline-flex text-warning">
+              <AlertTriangle className="size-3 text-warning shrink-0" />
             </span>
           ) : null}
+
+          {/* Edit Button (subtle, compact) */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onStartEdit}
+            className="h-5 w-5 p-0 text-ink-tertiary hover:text-ink shrink-0"
+            title="Sửa giá trị ô này"
+            aria-label={`Sửa giá trị ${row.row_id}`}
+          >
+            <Edit2 className="size-2.5" />
+          </Button>
         </div>
-      </div>
+      )}
 
       {/* Alternatives Menu if available */}
       {row.alternatives && row.alternatives.length > 0 && (
-        <div className="pt-1">
-          <Button
+        <div className="pt-0.5 text-right">
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={onToggleAltMenu}
-            className="h-6 w-full text-[10px] justify-between border-dashed border-border-strong px-1.5 py-0 text-text-accent hover:bg-surface-hover"
+            className="inline-flex items-center gap-0.5 text-[10px] text-text-accent hover:underline cursor-pointer"
           >
-            <span className="flex items-center gap-1">
-              <Layers className="size-2.5" />
-              Chọn số khác ({row.alternatives.length} gợi ý)
-            </span>
+            <Layers className="size-2.5" />
+            <span>Chọn số khác ({row.alternatives.length})</span>
             <ChevronDown className={`size-2.5 transition-transform ${isAltOpen ? 'rotate-180' : ''}`} />
-          </Button>
+          </button>
 
           {isAltOpen && (
-            <div className="mt-1 rounded border border-line bg-card p-1 shadow-tactile space-y-1">
+            <div className="mt-1 rounded border border-line bg-card p-1 shadow-tactile space-y-1 text-left">
               {row.alternatives.map((alt, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onSelectAlternative(alt)}
-                  className="w-full text-left rounded p-1 text-[11px] hover:bg-surface-hover flex items-center justify-between transition-colors cursor-pointer"
+                  className="w-full text-left rounded p-1 text-[11px] hover:bg-surface-secondary flex items-center justify-between transition-colors cursor-pointer"
                 >
                   <div>
                     <span className="font-mono font-bold text-ink">
                       {formatDecimalVi(alt.value_billion_vnd, 3)}
                     </span>
-                    <span className="block text-[10px] text-ink-secondary truncate max-w-[180px]">
+                    <span className="block text-[10px] text-ink-secondary truncate max-w-[160px]">
                       {alt.row_label} (Tr. {alt.page})
                     </span>
                   </div>
-                  <span className="text-[10px] text-text-accent font-semibold">Chọn</span>
+                  <span className="text-[10px] text-text-accent font-semibold ml-2">Chọn</span>
                 </button>
               ))}
             </div>
@@ -523,14 +487,12 @@ function RowCellContent({
 
       {/* Row Issues */}
       {row.issues && row.issues.length > 0 && (
-        <div className="space-y-0.5 pt-0.5">
+        <div className="space-y-0.5 pt-1 text-right">
           {row.issues.map((iss, i) => (
             <div
               key={i}
-              className={`rounded px-1.5 py-0.5 text-[10px] leading-tight ${
-                iss.severity === 'error'
-                  ? 'bg-blocked-soft text-blocked font-medium'
-                  : 'bg-warning-soft text-text-warning'
+              className={`text-[10px] leading-tight ${
+                iss.severity === 'error' ? 'text-blocked font-medium' : 'text-warning'
               }`}
             >
               {scrubUserText(iss.message_vi)}

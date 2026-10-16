@@ -38,7 +38,7 @@ export const QUESTION_TYPES: Record<string, string> = {
   company_profile: 'Hồ sơ doanh nghiệp',
   ranking: 'Xếp hạng',
   trend: 'Xu hướng',
-  head_to_head: 'So sánh đối đầu',
+  head_to_head: 'So sánh trực diện',
   sector_theme: 'Toàn ngành',
   relationship: 'Tương quan'
 };

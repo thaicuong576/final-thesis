@@ -10,9 +10,9 @@ export interface ProcessTraceProps {
 
 const ACTOR_META: Record<TraceActor, { label: string; color: string }> = {
   orchestrator: { label: 'Điều phối', color: 'var(--text-secondary, #62625d)' },
-  company: { label: 'Company', color: 'var(--c-company, #1d8a7a)' },
-  sector: { label: 'Sector', color: 'var(--c-sector, #6a5fc8)' },
-  macro: { label: 'Macro', color: 'var(--text-muted, #85857e)' },
+  company: { label: 'Chuyên viên doanh nghiệp', color: 'var(--c-company, #1d8a7a)' },
+  sector: { label: 'Chuyên viên ngành', color: 'var(--c-sector, #6a5fc8)' },
+  macro: { label: 'Chuyên viên vĩ mô', color: 'var(--text-muted, #85857e)' },
   critic: { label: 'Phản biện', color: 'var(--c-critic, #c85a2a)' },
   verifier: { label: 'Kiểm tra số liệu', color: 'var(--c-verifier, #2d7fbf)' },
   system: { label: 'Hệ thống', color: 'var(--text-muted, #85857e)' }
@@ -23,7 +23,7 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   company_profile: 'Hồ sơ doanh nghiệp',
   ranking: 'Xếp hạng',
   trend: 'Diễn biến chuỗi thời gian',
-  head_to_head: 'Đối đầu',
+  head_to_head: 'So sánh trực diện',
   sector_theme: 'Chủ đề ngành',
   relationship: 'Mối quan hệ chỉ tiêu'
 };

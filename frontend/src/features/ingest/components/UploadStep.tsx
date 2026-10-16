@@ -3,7 +3,6 @@ import {
   Upload,
   AlertCircle,
   Loader2,
-  Sparkles,
   CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,6 @@ export function UploadStep({
   const [entityId, setEntityId] = useState<string>('');
   const [fiscalYear, setFiscalYear] = useState<number>(2025);
   const [reportingScope, setReportingScope] = useState<'consolidated' | 'separate' | ''>('');
-  const [displayName, setDisplayName] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,80 +113,80 @@ export function UploadStep({
       entity_id: cleanEntityId,
       fiscal_year: Number(fiscalYear),
       reporting_scope: reportingScope,
-      display_name: displayName.trim() || undefined,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-testid="upload-step-form">
-      {/* File Dropzone */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed p-6 transition-colors cursor-pointer text-center ${
-          isDragging
-            ? 'border-amber-border bg-amber-soft/30'
-            : selectedFile
-            ? 'border-ready/60 bg-ready-soft/20'
-            : 'border-line hover:border-border-strong bg-surface-secondary/40 hover:bg-surface-hover/40'
-        }`}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            fileInputRef.current?.click();
-          }
-        }}
-        aria-label="Vùng chọn tệp PDF báo cáo tài chính"
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,application/pdf"
-          onChange={handleFileChange}
-          className="hidden"
-          aria-label="Tải lên tệp PDF"
-        />
-        {selectedFile ? (
-          <div className="space-y-1.5">
-            <CheckCircle2 className="mx-auto size-8 text-ready" />
-            <div className="text-sm font-semibold text-ink">{selectedFile.name}</div>
-            <div className="text-xs text-ink-secondary">
-              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB · Nhấn để chọn tệp khác
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-1.5">
-            <Upload className="mx-auto size-8 text-ink-secondary" />
-            <div className="text-sm font-semibold text-ink">
-              Chọn hoặc kéo thả báo cáo tài chính (PDF) vào đây
-            </div>
-            <div className="text-xs text-ink-secondary">
-              Định dạng PDF, dung lượng tối đa 40 MB. Hỗ trợ cả bản scan không có lớp chữ.
-            </div>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-3.5" data-testid="upload-step-form">
+      {/* Quiet Dropzone */}
+      <div className="space-y-1.5 text-center">
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`flex items-center justify-center gap-2.5 rounded-md border border-dashed py-4 px-4 transition-colors cursor-pointer text-xs ${
+            isDragging
+              ? 'border-amber bg-amber-soft/20'
+              : selectedFile
+              ? 'border-ready/60 bg-ready-soft/10 text-ink'
+              : 'border-line hover:border-ink-tertiary bg-surface-secondary/30 hover:bg-surface-secondary/60 text-ink-secondary'
+          }`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
+          aria-label="Vùng chọn tệp PDF báo cáo tài chính"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-label="Tải lên tệp PDF"
+          />
+          {selectedFile ? (
+            <>
+              <CheckCircle2 className="size-4 text-ready shrink-0" />
+              <span className="font-semibold text-ink truncate max-w-sm">{selectedFile.name}</span>
+              <span className="text-ink-tertiary text-[11px]">
+                ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+              </span>
+              <span className="text-text-accent text-[11px] underline ml-1">Đổi tệp</span>
+            </>
+          ) : (
+            <>
+              <Upload className="size-4 text-ink-secondary shrink-0" />
+              <span className="text-ink">
+                Chọn hoặc kéo thả báo cáo tài chính năm (PDF)
+              </span>
+            </>
+          )}
+        </div>
+
+        <div>
+          <button
+            type="button"
+            aria-label="Dùng bộ mẫu dựng sẵn"
+            onClick={onOpenSampleModal}
+            className="text-xs text-text-accent hover:underline cursor-pointer transition-colors"
+          >
+            hoặc dùng bộ mẫu
+          </button>
+        </div>
       </div>
 
-      {/* Scope banner / Notice */}
-      <div className="rounded border border-line bg-surface-secondary/60 px-3.5 py-2 text-xs text-ink-secondary flex items-center justify-between">
-        <span className="font-medium text-ink">
-          Phạm vi v1: Báo cáo tài chính năm đã kiểm toán
-        </span>
-        <span className="text-[11px] text-ink-tertiary">
-          (Báo cáo giữa niên độ và quý nằm ngoài phạm vi v1)
-        </span>
-      </div>
-
-      {/* Metadata Inputs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* 3 Plain Fields in 1 Row on Desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px_auto] items-end gap-3 pt-1">
         {/* Bank code */}
         <div>
           <label htmlFor="input-entity-id" className="block text-xs font-semibold text-ink mb-1">
-            Mã ngân hàng (3 chữ) <span className="text-blocked">*</span>
+            Mã ngân hàng
           </label>
           <Input
             id="input-entity-id"
@@ -197,7 +195,7 @@ export function UploadStep({
             value={entityId}
             onChange={(e) => setEntityId(e.target.value.toUpperCase())}
             placeholder="Ví dụ: ACB"
-            className="h-8 font-mono text-xs uppercase bg-white"
+            className="h-8 font-mono text-xs uppercase bg-card"
             required
           />
         </div>
@@ -205,7 +203,7 @@ export function UploadStep({
         {/* Fiscal Year */}
         <div>
           <label htmlFor="input-fiscal-year" className="block text-xs font-semibold text-ink mb-1">
-            Năm tài chính <span className="text-blocked">*</span>
+            Năm tài chính
           </label>
           <Input
             id="input-fiscal-year"
@@ -214,113 +212,81 @@ export function UploadStep({
             max={2030}
             value={fiscalYear}
             onChange={(e) => setFiscalYear(Number(e.target.value))}
-            className="h-8 font-mono text-xs bg-white"
+            className="h-8 font-mono text-xs bg-card"
             required
           />
         </div>
 
-        {/* Display name */}
+        {/* Scope Segmented Control */}
         <div>
-          <label htmlFor="input-display-name" className="block text-xs font-semibold text-ink mb-1">
-            Tên hiển thị (tùy chọn)
-          </label>
-          <Input
-            id="input-display-name"
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Ví dụ: Ngân hàng Á Châu"
-            className="h-8 text-xs bg-white"
-          />
-        </div>
-      </div>
-
-      {/* Reporting Scope (Mandatory, No default!) */}
-      <div>
-        <label className="block text-xs font-semibold text-ink mb-1.5">
-          Phạm vi lập báo cáo <span className="text-blocked">* (bắt buộc chọn)</span>
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <label
-            className={`flex items-start gap-2.5 rounded-md border p-2.5 cursor-pointer transition-colors ${
-              reportingScope === 'consolidated'
-                ? 'border-amber bg-amber-soft/30'
-                : 'border-line hover:border-border-strong bg-card'
-            }`}
+          <span className="block text-xs font-semibold text-ink mb-1">
+            Phạm vi lập báo cáo
+          </span>
+          <div
+            className="inline-flex h-8 rounded border border-line bg-surface-secondary p-0.5"
+            role="radiogroup"
+            aria-label="Phạm vi lập báo cáo"
           >
-            <input
-              type="radio"
-              name="reporting-scope"
-              value="consolidated"
-              checked={reportingScope === 'consolidated'}
-              onChange={() => setReportingScope('consolidated')}
-              className="mt-0.5 size-3.5 text-amber focus:ring-amber-border cursor-pointer"
-            />
-            <div>
-              <span className="block text-xs font-bold text-ink">Báo cáo hợp nhất</span>
-              <span className="block text-[11px] text-ink-secondary mt-0.5">
-                Bao gồm ngân hàng mẹ và các công ty con liên kết
-              </span>
-            </div>
-          </label>
+            <label
+              className={`inline-flex items-center px-2.5 rounded text-xs font-semibold cursor-pointer transition-colors select-none ${
+                reportingScope === 'consolidated'
+                  ? 'bg-amber text-ink shadow-sm'
+                  : 'text-ink-secondary hover:text-ink'
+              }`}
+            >
+              <input
+                type="radio"
+                name="reporting-scope"
+                value="consolidated"
+                checked={reportingScope === 'consolidated'}
+                onChange={() => setReportingScope('consolidated')}
+                className="sr-only"
+                aria-label="Báo cáo hợp nhất"
+              />
+              <span>Báo cáo hợp nhất</span>
+            </label>
 
-          <label
-            className={`flex items-start gap-2.5 rounded-md border p-2.5 cursor-pointer transition-colors ${
-              reportingScope === 'separate'
-                ? 'border-amber bg-amber-soft/30'
-                : 'border-line hover:border-border-strong bg-card'
-            }`}
-          >
-            <input
-              type="radio"
-              name="reporting-scope"
-              value="separate"
-              checked={reportingScope === 'separate'}
-              onChange={() => setReportingScope('separate')}
-              className="mt-0.5 size-3.5 text-amber focus:ring-amber-border cursor-pointer"
-            />
-            <div>
-              <span className="block text-xs font-bold text-ink">Báo cáo riêng lẻ</span>
-              <span className="block text-[11px] text-ink-secondary mt-0.5">
-                Chỉ riêng hoạt động của pháp nhân ngân hàng mẹ
-              </span>
-            </div>
-          </label>
+            <label
+              className={`inline-flex items-center px-2.5 rounded text-xs font-semibold cursor-pointer transition-colors select-none ${
+                reportingScope === 'separate'
+                  ? 'bg-amber text-ink shadow-sm'
+                  : 'text-ink-secondary hover:text-ink'
+              }`}
+            >
+              <input
+                type="radio"
+                name="reporting-scope"
+                value="separate"
+                checked={reportingScope === 'separate'}
+                onChange={() => setReportingScope('separate')}
+                className="sr-only"
+                aria-label="Báo cáo riêng lẻ"
+              />
+              <span>Báo cáo riêng lẻ</span>
+            </label>
+          </div>
         </div>
       </div>
 
       {/* Error alert */}
       {(formError || uploadError) && (
-        <div className="rounded-md border border-blocked/40 bg-blocked-soft/40 p-3 text-xs text-ink flex items-start gap-2.5">
-          <AlertCircle className="size-4 text-blocked shrink-0 mt-0.5" />
-          <div className="leading-relaxed font-medium text-blocked">
-            {formError || uploadError}
-          </div>
+        <div className="text-xs text-blocked flex items-center gap-1.5 pt-0.5">
+          <AlertCircle className="size-3.5 shrink-0" />
+          <span>{formError || uploadError}</span>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-line">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onOpenSampleModal}
-          className="h-9 border-line text-xs font-semibold text-ink gap-1.5 self-start sm:self-auto"
-        >
-          <Sparkles className="size-3.5 text-text-accent" />
-          Dùng bộ mẫu dựng sẵn (Trình diễn)
-        </Button>
-
+      {/* Action Button */}
+      <div className="flex justify-end pt-1">
         <Button
           type="submit"
           disabled={!selectedFile || !reportingScope || isUploading}
-          className="h-9 border border-amber-border bg-amber px-4 text-xs font-semibold text-ink shadow-tactile hover:bg-amber-hover transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="h-8 border border-amber-border bg-amber px-4 text-xs font-semibold text-ink shadow-tactile hover:bg-amber-hover transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isUploading ? (
             <>
               <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-              Đang tải lên và khởi động đọc…
+              Đang tải lên và trích xuất…
             </>
           ) : (
             'Bắt đầu đọc và trích xuất PDF'

@@ -3,8 +3,6 @@ import {
   FileText,
   CheckCircle2,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UploadStep } from './UploadStep';
@@ -40,7 +38,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
   const [confirmResult, setConfirmResult] = useState<ConfirmResult | null>(null);
   const [isSampleModalOpen, setIsSampleModalOpen] = useState<boolean>(false);
 
-  // Active page to view (selected by user or defaulted to first statement page)
+  // Active page to view
   const activePage =
     selectedPage ??
     filing?.statement_pages?.balance_sheet?.[0] ??
@@ -67,7 +65,6 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
         const updated = await getFiling(filing.filing_id);
         setFiling(updated);
         if (updated.status === 'ready' && !selectedPage) {
-          // Auto-select first statement page if available
           const firstPage =
             updated.statement_pages.balance_sheet[0] ||
             updated.statement_pages.income_statement[0] ||
@@ -104,7 +101,6 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
     setUploadError(null);
     try {
       const resp = await createFiling(file, meta);
-      // Initialize filing with processing status
       setFiling({
         filing_id: resp.filing_id,
         status: 'processing',
@@ -162,7 +158,6 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
         confirmed,
       });
 
-      // Update local state with the returned row and new validation state
       setFiling((prev) => {
         if (!prev) return null;
         const newRows = prev.rows.map((r) => (r.row_id === rowId ? resp.row : r));
@@ -188,7 +183,6 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
           };
         });
 
-        // Recompute readiness
         const hasUnconfirmed = newRows.some((r) => !r.confirmed);
         const hasMissing = newRows.some((r) => r.value_billion_vnd === null);
         const ready = !hasUnconfirmed && !hasMissing;
@@ -235,93 +229,60 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
 
   return (
     <section
-      className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6 space-y-6 shadow-tactile scroll-mt-16"
+      className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-5 space-y-5 scroll-mt-16"
       aria-labelledby="filing-wizard-heading"
       data-testid="filing-wizard-section"
     >
-      {/* Top Header */}
-      <div className="border-b border-line pb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div className="space-y-1">
+      {/* Header */}
+      <div className="border-b border-line pb-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
+        <div>
           <div className="flex items-center gap-2">
             <FileText className="size-4 text-text-accent shrink-0" aria-hidden="true" />
-            <h2 id="filing-wizard-heading" className="text-base font-bold text-ink">
+            <h2 id="filing-wizard-heading" className="text-sm font-bold text-ink">
               Thêm ngân hàng từ báo cáo tài chính PDF
             </h2>
           </div>
-          <p className="text-xs text-ink-secondary leading-relaxed max-w-2xl">
-            Tải lên báo cáo tài chính dạng PDF (hỗ trợ cả tài liệu scan). Hệ thống tự động OCR, phân loại trang, trích xuất 10 chỉ tiêu đầu vào, kiểm tra đẳng thức kế toán và cho phép đối chiếu trang gốc trước khi nạp vào phân tích.
+          <p className="text-xs text-ink-secondary mt-1">
+            Trích xuất và kiểm tra 10 chỉ tiêu tài chính từ tài liệu PDF trước khi nạp vào phân tích.
           </p>
         </div>
 
         {filing && (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleReset}
-            className="h-8 border-line text-xs font-semibold gap-1.5 self-start sm:self-auto shrink-0"
+            className="h-7 text-xs font-medium text-ink-secondary hover:text-ink gap-1 self-start sm:self-auto shrink-0"
           >
-            <RotateCcw className="size-3 text-ink-secondary" />
+            <RotateCcw className="size-3" />
             Làm lại từ đầu
           </Button>
         )}
       </div>
 
-      {/* STEP 1: Upload Step */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span
-              className={`grid size-5 place-items-center rounded-full text-[11px] font-bold ${
-                filing
-                  ? 'bg-ready text-white'
-                  : 'bg-amber text-ink'
-              }`}
-            >
-              1
-            </span>
-            <span className="text-xs font-bold text-ink">Bước 1: Tải lên tài liệu PDF</span>
-          </div>
-
-          {filing && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsUploadCollapsed((c) => !c)}
-              className="h-6 text-[11px] text-ink-secondary hover:text-ink gap-1 p-1"
-            >
-              <span>{isUploadCollapsed ? 'Xem chi tiết' : 'Thu gọn'}</span>
-              {isUploadCollapsed ? <ChevronDown className="size-3" /> : <ChevronUp className="size-3" />}
-            </Button>
-          )}
-        </div>
+      {/* STEP 1: Upload (collapses into one quiet line when complete) */}
+      <div className="space-y-1.5">
+        {!isUploadCollapsed && (
+          <div className="text-xs font-semibold text-ink">Bước 1: Tải lên tài liệu PDF</div>
+        )}
 
         {isUploadCollapsed && filing ? (
-          <div className="rounded-md border border-line bg-surface-secondary/50 p-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <CheckCircle2 className="size-4 text-ready shrink-0" />
-                <span className="font-semibold text-ink truncate max-w-[200px] sm:max-w-none" title={filing.filename}>
-                  {filing.filename}
-                </span>
-              </div>
-              <span className="text-ink-secondary shrink-0">
-                · {filing.entity_id} ({filing.fiscal_year})
-              </span>
-              <span className="text-ink-tertiary shrink-0">
-                · {filing.reporting_scope === 'consolidated' ? 'Hợp nhất' : 'Riêng lẻ'}
+          <div className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded border border-line bg-surface-secondary/40 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 className="size-4 text-ready shrink-0" />
+              <span className="font-semibold text-ink truncate max-w-xs">{filing.filename}</span>
+              <span className="text-ink-secondary">
+                · {filing.entity_id} ({filing.fiscal_year}) · {filing.reporting_scope === 'consolidated' ? 'Hợp nhất' : 'Riêng lẻ'}
               </span>
             </div>
-            <Button
+            <button
               type="button"
-              variant="link"
-              size="sm"
               onClick={() => setIsUploadCollapsed(false)}
-              className="h-auto p-0 text-[11px] font-semibold text-text-accent shrink-0"
+              className="text-[11px] font-semibold text-text-accent hover:underline shrink-0 cursor-pointer"
             >
               Đổi tệp khác
-            </Button>
+            </button>
           </div>
         ) : (
           <UploadStep
@@ -333,22 +294,10 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
         )}
       </div>
 
-      {/* STEP 2: Processing Step (when status === 'processing' or failed) */}
+      {/* STEP 2: Processing (only rendered while processing or failed) */}
       {filing && (filing.status === 'processing' || filing.status === 'failed') && (
         <div className="space-y-2 pt-2 border-t border-line">
-          <div className="flex items-center gap-2">
-            <span
-              className={`grid size-5 place-items-center rounded-full text-[11px] font-bold ${
-                filing.status === 'failed'
-                  ? 'bg-blocked text-white'
-                  : 'bg-amber text-ink'
-              }`}
-            >
-              2
-            </span>
-            <span className="text-xs font-bold text-ink">Bước 2: Đang đọc và quét OCR</span>
-          </div>
-
+          <div className="text-xs font-semibold text-ink">Bước 2: Đang đọc và quét OCR</div>
           <ProcessingStep
             progress={filing.progress}
             ocrProvider={filing.ocr_provider}
@@ -361,105 +310,56 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
         </div>
       )}
 
-      {/* STEPS 3, 4, 5, 6: When status === 'ready' */}
+      {/* STEP 3: Review & Confirmation (only rendered when ready) */}
       {filing && filing.status === 'ready' && (
-        <div className="space-y-6 pt-2 border-t border-line">
-          {/* STEP 3: Statement Pages Chips */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="grid size-5 place-items-center rounded-full bg-ready text-white text-[11px] font-bold">
-                2
-              </span>
-              <span className="text-xs font-bold text-ink">
-                Bước 2: Các trang báo cáo tài chính chính nhận diện được
-              </span>
-            </div>
-            <StatementPagesChips
-              pages={filing.statement_pages}
-              selectedPage={activePage}
-              onSelectPage={setSelectedPage}
-            />
-          </div>
+        <div className="space-y-5 pt-1 border-t border-line">
+          {/* Statement Pages Links */}
+          <StatementPagesChips
+            pages={filing.statement_pages}
+            selectedPage={activePage}
+            onSelectPage={setSelectedPage}
+          />
 
-          {/* STEP 4: Extracted Rows Table + Page Image Viewer */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="grid size-5 place-items-center rounded-full bg-ready text-white text-[11px] font-bold">
-                3
-              </span>
-              <span className="text-xs font-bold text-ink">
-                Bước 3: Bảng đối chiếu số liệu và ảnh trang gốc
-              </span>
+          {/* Main workspace: Extracted Rows Table + Page Image Viewer */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              <ExtractedRowsTable
+                rows={filing.rows}
+                onUpdateRow={handleUpdateRow}
+                onSelectPage={setSelectedPage}
+                selectedPage={activePage}
+                highlightedRowIds={highlightedRowIds}
+              />
             </div>
 
-            {/* Layout: side-by-side on wide screens (lg+), stacked on mobile */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column: Table */}
-              <div className="lg:col-span-7 space-y-4">
-                <ExtractedRowsTable
-                  rows={filing.rows}
-                  onUpdateRow={handleUpdateRow}
-                  onSelectPage={setSelectedPage}
-                  selectedPage={activePage}
-                  highlightedRowIds={highlightedRowIds}
-                />
-              </div>
-
-              {/* Right Column: Sticky Page Image Viewer */}
-              <div className="lg:col-span-5 lg:sticky lg:top-4">
-                <PageImageViewer
-                  filingId={filing.filing_id}
-                  pageNumber={activePage}
-                  onClose={() => setSelectedPage(null)}
-                />
-              </div>
+            <div className="lg:col-span-5 lg:sticky lg:top-4">
+              <PageImageViewer
+                filingId={filing.filing_id}
+                pageNumber={activePage}
+                onClose={() => setSelectedPage(null)}
+              />
             </div>
           </div>
 
-          {/* STEP 5: Validation Panel */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="grid size-5 place-items-center rounded-full bg-ready text-white text-[11px] font-bold">
-                4
-              </span>
-              <span className="text-xs font-bold text-ink">
-                Bước 4: Kiểm tra đẳng thức kế toán &amp; tính nhất quán
-              </span>
-            </div>
-            <ValidationPanel
-              validation={filing.validation}
-              onHighlightRows={(rowIds) => {
-                setHighlightedRowIds(rowIds);
-                // Also select the page of the first row if available
-                const matchedRow = filing.rows.find((r) => rowIds.includes(r.row_id) && r.page);
-                if (matchedRow?.page) setSelectedPage(matchedRow.page);
-              }}
-              highlightedRowIds={highlightedRowIds}
-            />
-          </div>
+          {/* Validation Block */}
+          <ValidationPanel
+            validation={filing.validation}
+            onHighlightRows={(rowIds) => {
+              setHighlightedRowIds(rowIds);
+              const matchedRow = filing.rows.find((r) => rowIds.includes(r.row_id) && r.page);
+              if (matchedRow?.page) setSelectedPage(matchedRow.page);
+            }}
+            highlightedRowIds={highlightedRowIds}
+          />
 
-          {/* STEP 6: Confirmation Step */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span
-                className={`grid size-5 place-items-center rounded-full text-[11px] font-bold ${
-                  confirmResult ? 'bg-ready text-white' : 'bg-amber text-ink'
-                }`}
-              >
-                5
-              </span>
-              <span className="text-xs font-bold text-ink">
-                Bước 5: Nhập vào hệ thống phân tích &amp; Hỏi đáp
-              </span>
-            </div>
-            <ConfirmationStep
-              readyToConfirm={filing.validation.ready_to_confirm}
-              isConfirming={isConfirming}
-              onConfirm={handleConfirm}
-              confirmResult={confirmResult}
-              entityId={filing.entity_id}
-            />
-          </div>
+          {/* Confirmation Step */}
+          <ConfirmationStep
+            readyToConfirm={filing.validation.ready_to_confirm}
+            isConfirming={isConfirming}
+            onConfirm={handleConfirm}
+            confirmResult={confirmResult}
+            entityId={filing.entity_id}
+          />
         </div>
       )}
 

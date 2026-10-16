@@ -1,14 +1,11 @@
 import {
-  ShieldAlert,
   AlertTriangle,
   CheckCircle2,
-  Info,
   ChevronRight,
-  ShieldCheck,
-  Ban,
+  ShieldAlert,
 } from 'lucide-react';
 import { scrubUserText } from '../lib/scrubText';
-import type { Validation, ValidationCheck } from '../model/types';
+import type { Validation } from '../model/types';
 
 interface ValidationPanelProps {
   validation: Validation;
@@ -23,186 +20,110 @@ export function ValidationPanel({
 }: ValidationPanelProps) {
   const errors = validation.checks.filter((c) => c.severity === 'error');
   const warnings = validation.checks.filter((c) => c.severity === 'warning');
-  const infos = validation.checks.filter((c) => c.severity === 'info');
 
   const isPass = validation.status === 'pass' && validation.ready_to_confirm;
 
   return (
     <div
-      className={`rounded-md border p-4 space-y-4 shadow-tactile ${
-        isPass
-          ? 'border-ready/40 bg-ready-soft/20'
-          : validation.status === 'warn'
-          ? 'border-warning/40 bg-warning-soft/20'
-          : 'border-blocked/40 bg-blocked-soft/20'
-      }`}
+      className="rounded-md border border-line bg-card p-4 space-y-3"
       data-testid="validation-panel"
     >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-line pb-2.5">
+      {/* 1-Sentence Summary */}
+      <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
         <div className="flex items-center gap-2">
           {isPass ? (
-            <ShieldCheck className="size-5 text-ready shrink-0" aria-hidden="true" />
+            <CheckCircle2 className="size-4 text-ready shrink-0" aria-hidden="true" />
           ) : (
-            <ShieldAlert className="size-5 text-blocked shrink-0" aria-hidden="true" />
+            <ShieldAlert className="size-4 text-blocked shrink-0" aria-hidden="true" />
           )}
-          <div>
-            <h3 className="text-sm font-bold text-ink">Kết quả kiểm tra tự động</h3>
-            <p className="text-xs text-ink-secondary">
-              Đẳng thức kế toán, thang đo số liệu và tính nhất quán giữa hai kỳ.
-            </p>
-          </div>
-        </div>
-
-        <div>
-          {isPass ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-ready-soft px-2.5 py-0.5 text-xs font-semibold text-text-success border border-ready/40">
-              <CheckCircle2 className="size-3.5" />
-              Đạt chuẩn xác nhận
+          <span className="text-xs text-ink">
+            <span className="font-bold">
+              {isPass ? 'Đạt chuẩn xác nhận' : 'Chưa đủ điều kiện xác nhận'}
             </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-blocked-soft px-2.5 py-0.5 text-xs font-semibold text-blocked border border-blocked/40">
-              <Ban className="size-3.5" />
-              Chưa đủ điều kiện xác nhận
+            <span className="text-ink-secondary">
+              {isPass
+                ? ': các phép thử kiểm tra tự động đều hợp lệ.'
+                : ': cần giải quyết các điểm bên dưới.'}
             </span>
-          )}
+          </span>
         </div>
       </div>
 
-      {/* Blocking Reasons if not ready */}
-      {validation.blocking_reasons_vi && validation.blocking_reasons_vi.length > 0 && (
-        <div className="rounded-md border border-blocked/30 bg-card p-3 space-y-1.5 text-xs">
+      {/* Blocking Reasons & Errors First (Red text, no red boxes) */}
+      {((validation.blocking_reasons_vi && validation.blocking_reasons_vi.length > 0) || errors.length > 0) && (
+        <div className="space-y-1.5 text-xs">
           <div className="font-semibold text-blocked flex items-center gap-1.5">
-            <AlertTriangle className="size-3.5" />
-            Lý do chưa thể nhập vào hệ thống:
+            <AlertTriangle className="size-3.5 shrink-0" />
+            <span>Lý do chưa thể nhập vào hệ thống:</span>
           </div>
-          <ul className="list-disc list-inside space-y-1 text-ink pl-1">
-            {validation.blocking_reasons_vi.map((reason, idx) => (
-              <li key={idx} className="leading-relaxed">
+
+          <ul className="space-y-1 pl-5 list-disc text-blocked text-xs">
+            {validation.blocking_reasons_vi?.map((reason, idx) => (
+              <li key={`reason-${idx}`} className="leading-relaxed">
                 {scrubUserText(reason)}
               </li>
             ))}
+            {errors.map((check, idx) => {
+              const isActive = check.row_ids?.some((id) => highlightedRowIds.includes(id));
+              return (
+                <li key={`err-${idx}`} className="leading-relaxed">
+                  <span>{scrubUserText(check.message_vi)}</span>
+                  {check.row_ids && check.row_ids.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onHighlightRows(check.row_ids!)}
+                      className={`ml-1.5 inline-flex items-center text-[10px] cursor-pointer ${
+                        isActive ? 'text-ink font-bold' : 'text-text-accent hover:underline'
+                      }`}
+                    >
+                      <span>xem dòng ({check.row_ids.length})</span>
+                      <ChevronRight className="size-2.5" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
 
-      {/* Checks Group: Errors */}
-      {errors.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs font-bold uppercase tracking-wider text-blocked flex items-center gap-1.5">
-            <ShieldAlert className="size-3.5" />
-            Lỗi chặn ({errors.length}):
-          </div>
-          <div className="space-y-1.5">
-            {errors.map((check, idx) => (
-              <CheckItem
-                key={idx}
-                check={check}
-                onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Checks Group: Warnings */}
+      {/* Warnings Second */}
       {warnings.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs font-bold uppercase tracking-wider text-text-warning flex items-center gap-1.5">
-            <AlertTriangle className="size-3.5" />
-            Cảnh báo ({warnings.length}):
+        <div className="space-y-1.5 text-xs pt-1">
+          <div className="font-semibold text-warning flex items-center gap-1.5">
+            <AlertTriangle className="size-3.5 shrink-0" />
+            <span>Cảnh báo ({warnings.length}):</span>
           </div>
-          <div className="space-y-1.5">
-            {warnings.map((check, idx) => (
-              <CheckItem
-                key={idx}
-                check={check}
-                onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
-              />
-            ))}
-          </div>
+          <ul className="space-y-1 pl-5 list-disc text-ink-secondary text-xs">
+            {warnings.map((check, idx) => {
+              const isActive = check.row_ids?.some((id) => highlightedRowIds.includes(id));
+              return (
+                <li key={`warn-${idx}`} className="leading-relaxed">
+                  <span>{scrubUserText(check.message_vi)}</span>
+                  {check.row_ids && check.row_ids.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onHighlightRows(check.row_ids!)}
+                      className={`ml-1.5 inline-flex items-center text-[10px] cursor-pointer ${
+                        isActive ? 'text-ink font-bold' : 'text-text-accent hover:underline'
+                      }`}
+                    >
+                      <span>xem dòng ({check.row_ids.length})</span>
+                      <ChevronRight className="size-2.5" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
-      {/* Checks Group: Infos */}
-      {infos.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs font-bold uppercase tracking-wider text-ink-secondary flex items-center gap-1.5">
-            <Info className="size-3.5" />
-            Thông tin kiểm tra ({infos.length}):
-          </div>
-          <div className="space-y-1.5">
-            {infos.map((check, idx) => (
-              <CheckItem
-                key={idx}
-                check={check}
-                onHighlight={onHighlightRows}
-                isHighlighted={check.row_ids.some((id) => highlightedRowIds.includes(id))}
-              />
-            ))}
-          </div>
+      {/* Clean Success State */}
+      {isPass && (
+        <div className="text-xs text-text-success flex items-center gap-2 pt-0.5">
+          <span>Số liệu cân đối kế toán và nhất quán giữa hai kỳ. Sẵn sàng nhập vào cơ sở dữ liệu.</span>
         </div>
-      )}
-
-      {/* When no checks found */}
-      {validation.checks.length === 0 && isPass && (
-        <div className="rounded border border-ready/30 bg-card p-3 text-xs text-text-success flex items-center gap-2">
-          <CheckCircle2 className="size-4 shrink-0" />
-          <span>Tất cả các phép thử kiểm tra tự động đều hợp lệ. Dữ liệu đã sẵn sàng để nhập.</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CheckItem({
-  check,
-  onHighlight,
-  isHighlighted,
-}: {
-  check: ValidationCheck;
-  onHighlight: (rowIds: string[]) => void;
-  isHighlighted: boolean;
-}) {
-  const hasRows = check.row_ids && check.row_ids.length > 0;
-
-  return (
-    <div
-      onClick={() => hasRows && onHighlight(check.row_ids)}
-      className={`rounded border p-2.5 text-xs transition-colors cursor-pointer flex items-start justify-between gap-2 bg-card ${
-        isHighlighted
-          ? 'border-amber ring-1 ring-amber bg-amber-soft/20'
-          : check.severity === 'error'
-          ? 'border-blocked/30 hover:border-blocked/60'
-          : 'border-warning/30 hover:border-warning/60'
-      }`}
-    >
-      <div className="space-y-1 flex-1">
-        <div className="flex items-center gap-2">
-          <span
-            className={`font-semibold ${
-              check.severity === 'error' ? 'text-blocked' : 'text-text-warning'
-            }`}
-          >
-            {scrubUserText(check.message_vi)}
-          </span>
-        </div>
-
-        {(check.expected || check.actual) && (
-          <div className="font-mono text-[11px] text-ink-secondary flex items-center gap-3">
-            {check.expected && <span>Kỳ vọng: {scrubUserText(check.expected)}</span>}
-            {check.actual && <span>Thực tế: {scrubUserText(check.actual)}</span>}
-          </div>
-        )}
-      </div>
-
-      {hasRows && (
-        <span className="text-[11px] text-text-accent font-medium shrink-0 flex items-center gap-0.5 hover:underline">
-          <span>Xem dòng ({check.row_ids.length})</span>
-          <ChevronRight className="size-3" />
-        </span>
       )}
     </div>
   );

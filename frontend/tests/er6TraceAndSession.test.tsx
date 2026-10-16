@@ -14,19 +14,19 @@ import traceFixture from '../src/test/fixtures/er-trace-acb-2024q4.json';
 describe('ER-6 OrchestratorBoard', () => {
   const steps = traceFixture.steps as unknown as TraceStep[];
 
-  it('renders only active agents (Company, Sector, Phản biện) and skips Macro', () => {
+  it('renders only active agents (Chuyên viên doanh nghiệp, Chuyên viên ngành, Phản biện) and skips Chuyên viên vĩ mô', () => {
     render(<OrchestratorBoard steps={steps} query={traceFixture.query} />);
 
     // Top orchestrator card
     expect(screen.getByRole('region', { name: 'Điều phối viên' })).toBeInTheDocument();
 
     // Active child agent cards
-    expect(screen.getByRole('region', { name: 'Company' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Sector' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Chuyên viên doanh nghiệp' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Chuyên viên ngành' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Phản biện' })).toBeInTheDocument();
 
     // Macro was marked as skip in plan, so it MUST NOT be rendered
-    expect(screen.queryByRole('region', { name: 'Macro' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Chuyên viên vĩ mô' })).not.toBeInTheDocument();
   });
 
   it('marks engaged agents as "Xong" and unengaged agents as "Không dùng đến" at the end of the run', () => {
@@ -50,9 +50,9 @@ describe('ER-6 ProcessTrace', () => {
     // Initially shows summary including all steps
     expect(screen.getByText(/3 agent · 1 vòng phản biện/)).toBeInTheDocument();
 
-    // Click "Company" chip in the filter group
+    // Click "Chuyên viên doanh nghiệp" chip in the filter group
     const filterGroup = screen.getByRole('group', { name: 'Lọc theo agent' });
-    const companyChip = within(filterGroup).getByRole('button', { name: 'Company' });
+    const companyChip = within(filterGroup).getByRole('button', { name: 'Chuyên viên doanh nghiệp' });
     await user.click(companyChip);
 
     // Only steps with Company as actor or recipient should be visible

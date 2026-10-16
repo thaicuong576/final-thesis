@@ -143,7 +143,7 @@ describe('deriveTimeline selector', () => {
     expect(result.entries[0].kind).toBe('plan');
     expect(result.entries[0].formattedTime).toBe('00:04');
     expect(result.entries[0].agentName).toBe('Điều phối viên');
-    expect(result.entries[0].prose).toContain('so sánh đối đầu');
+    expect(result.entries[0].prose).toContain('so sánh trực diện');
     expect(result.entries[0].planDetail?.entities).toEqual(['ACB', 'TCB']);
 
     // Step 2: data
@@ -164,7 +164,7 @@ describe('deriveTimeline selector', () => {
     // Step 5: critique
     expect(result.entries[4].kind).toBe('critique');
     expect(result.entries[4].agentName).toBe('Phản biện');
-    expect(result.entries[4].prose).toContain('Mình yêu cầu sửa (vòng 1)');
+    expect(result.entries[4].prose).toContain('Yêu cầu hiệu chỉnh (vòng 1)');
 
     // Step 6: revision
     expect(result.entries[5].kind).toBe('revision');

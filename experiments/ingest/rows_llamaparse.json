@@ -1,0 +1,3086 @@
+[
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.010",
+    "gt": "764.791",
+    "page": 17,
+    "row_label": "Tập đoàn đồng thời thực hiện phân loại nợ theo phương pháp định lượng quy định tại Điều 10 của Thông tư 31. Trường hợp kết quả phân loại đối với một khoản nợ theo phương pháp định tính và phương pháp định lượng khác nhau thì khoản nợ được phân loại vào nhóm có mức độ rủi ro cao hơn.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 17,
+    "row_label": "Tập đoàn đồng thời thực hiện phân loại nợ theo phương pháp định lượng quy định tại Điều 10 của Thông tư 31. Trường hợp kết quả phân loại đối với một khoản nợ theo phương pháp định tính và phương pháp định lượng khác nhau thì khoản nợ được phân loại vào nhóm có mức độ rủi ro cao hơn.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "770.229",
+    "page": 17,
+    "row_label": "Xếp hạng tín dụng C | Nhóm 4: Nợ nghi ngờ",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Xếp hạng tín dụng C | Nhóm 4: Nợ nghi ngờ",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "5136.367",
+    "page": 17,
+    "row_label": "Các khoản cho vay khách hàng căn cứ trên hệ thống xếp hạng tín dụng tương ứng được phân thành 5 nhóm nợ như sau:",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 17,
+    "row_label": "Các khoản cho vay khách hàng căn cứ trên hệ thống xếp hạng tín dụng tương ứng được phân thành 5 nhóm nợ như sau:",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.011",
+    "gt": "669436.647",
+    "page": 17,
+    "row_label": "Phân loại các khoản cho vay khách hàng theo Điều 11 của Thông tư 31",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 17,
+    "row_label": "Phân loại các khoản cho vay khách hàng theo Điều 11 của Thông tư 31",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "7624.729",
+    "gt": "7507.253",
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "6739.556",
+    "gt": null,
+    "page": 7,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 9.7 | (7.624.729) | (6.739.556)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15624.699",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16789.768",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "XIII | Lợi nhuận sau thuế | | 15.624.699 | 16.789.768",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "22873.524",
+    "gt": "15624.699",
+    "page": 10,
+    "row_label": "IX | Lợi nhuận thuần từ hoạt động kinh doanh trước chi phí dự phòng rủi ro tín dụng | | 22.873.524 | 22.612.156",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "22612.156",
+    "gt": "16789.768",
+    "page": 10,
+    "row_label": "IX | Lợi nhuận thuần từ hoạt động kinh doanh trước chi phí dự phòng rủi ro tín dụng | | 22.873.524 | 22.612.156",
+    "row_status": "needs_review",
+    "issues": [
+      "low_confidence_match"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1025850.127",
+    "gt": "1025850.127",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "864005.703",
+    "gt": "864005.703",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN | | 1.025.850.127 | 864.005.703",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "94519.719",
+    "gt": "94519.719",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "83461.678",
+    "gt": "83461.678",
+    "page": 8,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 94.519.719 | 83.461.678",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "ACB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 7,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.011",
+    "gt": "4473.881",
+    "page": 23,
+    "row_label": "Theo đó, nhóm nợ của khách hàng là nhóm nợ có rủi ro cao hơn khi thực hiện phân loại nợ đồng thời theo Điều 10, Điều 11 của Thông tư 31 và nhóm nợ của khách hàng do Trung tâm Thông tin tín dụng (\"CIC\") của Ngân hàng Nhà nước cung cấp tại thời điểm phân loại nợ.",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 23,
+    "row_label": "Theo đó, nhóm nợ của khách hàng là nhóm nợ có rủi ro cao hơn khi thực hiện phân loại nợ đồng thời theo Điều 10, Điều 11 của Thông tư 31 và nhóm nợ của khách hàng do Trung tâm Thông tin tín dụng (\"CIC\") của Ngân hàng Nhà nước cung cấp tại thời điểm phân loại nợ.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.003",
+    "gt": "4677.985",
+    "page": 23,
+    "row_label": "- - Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 06 năm 2024, sửa đổi bổ sung một số điều của Thông tư số 02/2023/TT-NHNN ngày 23 tháng 4 năm 2023 (\"Thông tư 02\") quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn; Thông tư 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ đối với khách hàng gặp khó khăn do ảnh hưởng, thiệt hại của bão số 3, ngập lụt, lũ, sạt lở đất sau bão số 3 và các văn bản của Ngân hàng Nhà nước Việt Nam về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.003",
+    "gt": null,
+    "page": 23,
+    "row_label": "- - Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 06 năm 2024, sửa đổi bổ sung một số điều của Thông tư số 02/2023/TT-NHNN ngày 23 tháng 4 năm 2023 (\"Thông tư 02\") quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn; Thông tư 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ đối với khách hàng gặp khó khăn do ảnh hưởng, thiệt hại của bão số 3, ngập lụt, lũ, sạt lở đất sau bão số 3 và các văn bản của Ngân hàng Nhà nước Việt Nam về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.003",
+    "gt": "25824.953",
+    "page": 23,
+    "row_label": "- - Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 06 năm 2024, sửa đổi bổ sung một số điều của Thông tư số 02/2023/TT-NHNN ngày 23 tháng 4 năm 2023 (\"Thông tư 02\") quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn; Thông tư 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ đối với khách hàng gặp khó khăn do ảnh hưởng, thiệt hại của bão số 3, ngập lụt, lũ, sạt lở đất sau bão số 3 và các văn bản của Ngân hàng Nhà nước Việt Nam về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.003",
+    "gt": null,
+    "page": 23,
+    "row_label": "- - Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 06 năm 2024, sửa đổi bổ sung một số điều của Thông tư số 02/2023/TT-NHNN ngày 23 tháng 4 năm 2023 (\"Thông tư 02\") quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn; Thông tư 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ đối với khách hàng gặp khó khăn do ảnh hưởng, thiệt hại của bão số 3, ngập lụt, lũ, sạt lở đất sau bão số 3 và các văn bản của Ngân hàng Nhà nước Việt Nam về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "7023.001",
+    "gt": "2372955.074",
+    "page": 23,
+    "row_label": "- - Thông tư số B7.023.001.S.R.Ch ngày 23 tháng 11 năm 2023 của Ngân hàng Quốc gia Campuchia (\"NBC\") về việc cơ cấu lại khoản nợ vay đối với lĩnh vực du lịch tại tỉnh Siem Reap; Thông tư số B7.024.001.Sor.Ror.Chor ngày 29 tháng 8 năm 2024 của NBC về việc Cơ cấu nợ và phân loại nợ để hỗ trợ khách hàng khó khăn và thúc đẩy tăng trưởng kinh tế; Văn bản số B7.024.2720 Chhor.Tor ngày 25 tháng 12 năm 2024 của Tổng Vụ trưởng Vụ Giám sát Ngân hàng Quốc gia Campuchia về việc phân loại nợ đối với một số khách hàng;",
+    "row_status": "needs_review",
+    "issues": [
+      "target_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "7024.001",
+    "gt": null,
+    "page": 23,
+    "row_label": "- - Thông tư số B7.023.001.S.R.Ch ngày 23 tháng 11 năm 2023 của Ngân hàng Quốc gia Campuchia (\"NBC\") về việc cơ cấu lại khoản nợ vay đối với lĩnh vực du lịch tại tỉnh Siem Reap; Thông tư số B7.024.001.Sor.Ror.Chor ngày 29 tháng 8 năm 2024 của NBC về việc Cơ cấu nợ và phân loại nợ để hỗ trợ khách hàng khó khăn và thúc đẩy tăng trưởng kinh tế; Văn bản số B7.024.2720 Chhor.Tor ngày 25 tháng 12 năm 2024 của Tổng Vụ trưởng Vụ Giám sát Ngân hàng Quốc gia Campuchia về việc phân loại nợ đối với một số khách hàng;",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34945.553",
+    "gt": "34945.553",
+    "page": 9,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 13 | (34.945.553) | (37.970.481)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "37970.481",
+    "gt": null,
+    "page": 9,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 13 | (34.945.553) | (37.970.481)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "30430.130",
+    "gt": "30430.130",
+    "page": 12,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 30.430.130 | 25.677.118",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25677.118",
+    "gt": "25677.118",
+    "page": 12,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 30.430.130 | 25.677.118",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "29904.264",
+    "gt": "29904.264",
+    "page": 12,
+    "row_label": "| Lợi nhuận thuần của Ngân hàng mẹ | | 29.904.264 | 25.212.049",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25212.049",
+    "gt": "25212.049",
+    "page": 12,
+    "row_label": "| Lợi nhuận thuần của Ngân hàng mẹ | | 29.904.264 | 25.212.049",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "3330825.720",
+    "gt": "3330825.720",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | 3.330.825.720 | 2.760.906.964",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2760906.964",
+    "gt": "2760906.964",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | 3.330.825.720 | 2.760.906.964",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "173552.902",
+    "gt": "173552.902",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 173.552.902 | 144.984.194",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "144984.194",
+    "gt": "144984.194",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 173.552.902 | 144.984.194",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5563.943",
+    "gt": "5563.943",
+    "page": 10,
+    "row_label": "5. | Lợi ích của cổ đông không kiểm soát | 25 | 5.563.943 | 5.235.108",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "BID",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5235.108",
+    "gt": "5235.108",
+    "page": 10,
+    "row_label": "5. | Lợi ích của cổ đông không kiểm soát | 25 | 5.563.943 | 5.235.108",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.031",
+    "gt": "1490.975",
+    "page": 23,
+    "row_label": "Theo Thông tư 31, nợ được phân loại vào nhóm nợ có rủi ro cao hơn khi:",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "Theo Thông tư 31, nợ được phân loại vào nhóm nợ có rủi ro cao hơn khi:",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "578.479",
+    "page": 23,
+    "row_label": "**Nhóm 4: Nợ nghi ngờ**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "**Nhóm 4: Nợ nghi ngờ**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "19846.742",
+    "page": 23,
+    "row_label": "**Nhóm 5: Nợ có khả năng mất vốn**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "**Nhóm 5: Nợ có khả năng mất vốn**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.002",
+    "gt": "1992272.868",
+    "page": 23,
+    "row_label": "### 2.7 Các khoản cho vay khách hàng (tiếp theo)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.007",
+    "gt": null,
+    "page": 23,
+    "row_label": "### 2.7 Các khoản cho vay khách hàng (tiếp theo)",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34810.365",
+    "gt": "34810.365",
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | | (34.810.365) | (36.664.125)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "36664.125",
+    "gt": null,
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | | (34.810.365) | (36.664.125)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34871.266",
+    "gt": "34871.266",
+    "page": 11,
+    "row_label": "XIII | Lợi nhuận sau thuế | 34.871.266 | 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25482.567",
+    "gt": "25482.567",
+    "page": 11,
+    "row_label": "XIII | Lợi nhuận sau thuế | 34.871.266 | 25.482.567",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "34604.481",
+    "gt": "34604.481",
+    "page": 11,
+    "row_label": "XV | Lợi nhuận thuần của chủ sở hữu | 34.604.481 | 25.348.215",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "25348.215",
+    "gt": "25348.215",
+    "page": 11,
+    "row_label": "XV | Lợi nhuận thuần của chủ sở hữu | 34.604.481 | 25.348.215",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2767699.300",
+    "gt": "2767699.300",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.767.699.300 | 2.385.387.732",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2385387.732",
+    "gt": "2385387.732",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.767.699.300 | 2.385.387.732",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179655.005",
+    "gt": "179655.005",
+    "page": 9,
+    "row_label": "VIII | VỐN CHỦ SỞ HỮU | 20 | 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "148504.708",
+    "gt": "148504.708",
+    "page": 9,
+    "row_label": "VIII | VỐN CHỦ SỞ HỮU | 20 | 179.655.005 148.504.708",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1206.433",
+    "gt": "1206.433",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | 1.206.433 | 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "CTG",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "970.729",
+    "gt": "970.729",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | 1.206.433 | 970.729",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "4017.065",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5500.307",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "3802.915",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "539071.334",
+    "gt": "546370.779",
+    "page": 7,
+    "row_label": "V. | Cho vay khách hàng | | 539.071.334 | 436.606.237",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "436606.237",
+    "gt": null,
+    "page": 7,
+    "row_label": "V. | Cho vay khách hàng | | 539.071.334 | 436.606.237",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "7299.445",
+    "gt": "7299.445",
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 11 | (7.299.445) | (5.878.604)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "5878.604",
+    "gt": null,
+    "page": 7,
+    "row_label": "2. | Dự phòng rủi ro cho vay khách hàng | 11 | (7.299.445) | (5.878.604)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "17073.622",
+    "gt": "17073.622",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 17.073.622 | 13.247.648",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13247.648",
+    "gt": "13247.648",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế | | 17.073.622 | 13.247.648",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "16524.388",
+    "gt": "16524.388",
+    "page": 10,
+    "row_label": "XV. | Lợi nhuận thuần của chủ sở hữu | | 16.524.388 | 12.762.953",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "12762.953",
+    "gt": "12762.953",
+    "page": 10,
+    "row_label": "XV. | Lợi nhuận thuần của chủ sở hữu | | 16.524.388 | 12.762.953",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "931103.945",
+    "gt": "931103.945",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 931.103.945 | 697.366.458",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "697366.458",
+    "gt": "697366.458",
+    "page": 7,
+    "row_label": "TỔNG TÀI SẢN CÓ | 931.103.945 | 697.366.458",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "78285.522",
+    "gt": "78285.522",
+    "page": 8,
+    "row_label": "VIII. | Vốn chủ sở hữu | 25 | 78.285.522 | 56.657.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "56657.261",
+    "gt": "56657.261",
+    "page": 8,
+    "row_label": "VIII. | Vốn chủ sở hữu | 25 | 78.285.522 | 56.657.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2715.392",
+    "gt": "2715.392",
+    "page": 8,
+    "row_label": "4. | Lợi ích của cổ đông không kiểm soát | | 2.715.392 | 2.166.158",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "HDB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2166.158",
+    "gt": "2166.158",
+    "page": 8,
+    "row_label": "4. | Lợi ích của cổ đông không kiểm soát | | 2.715.392 | 2.166.158",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.003",
+    "gt": "3276.216",
+    "page": 24,
+    "row_label": "- Nhóm 3 - Nợ dưới tiêu chuẩn: nếu quá hạn dưới 30 ngày;",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.030",
+    "gt": null,
+    "page": 24,
+    "row_label": "- Nhóm 3 - Nợ dưới tiêu chuẩn: nếu quá hạn dưới 30 ngày;",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.030",
+    "gt": "4330.016",
+    "page": 24,
+    "row_label": "- Nhóm 4 - Nợ nghi ngờ: nếu quá hạn từ 30 ngày đến dưới 90 ngày;",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 24,
+    "row_label": "- Nhóm 4 - Nợ nghi ngờ: nếu quá hạn từ 30 ngày đến dưới 90 ngày;",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "6421.264",
+    "page": 24,
+    "row_label": "- Nhóm 5 - Nợ có khả năng mất vốn: nếu quá hạn 90 ngày trở lên.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 24,
+    "row_label": "- Nhóm 5 - Nợ có khả năng mất vốn: nếu quá hạn 90 ngày trở lên.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.012",
+    "gt": "1084019.370",
+    "page": 27,
+    "row_label": "Theo Nghị định 86, dự phòng chung được trích lập với mức bằng 0,75% tổng số dự nợ gốc tại ngày cuối cùng của mỗi tháng của các khoản nợ từ Nhóm 1 đến Nhóm 4 trừ các khoản tiền gửi, cho vay, phải thu, hoạt động cấp tín dụng khác giữa các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài. Dự phòng chung tại ngày 31 tháng 12 năm 2025 được tính dựa trên kết quả phân loại nợ và số dự nợ gốc tại ngày 31 tháng 12 năm 2025.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2.025",
+    "gt": null,
+    "page": 27,
+    "row_label": "Theo Nghị định 86, dự phòng chung được trích lập với mức bằng 0,75% tổng số dự nợ gốc tại ngày cuối cùng của mỗi tháng của các khoản nợ từ Nhóm 1 đến Nhóm 4 trừ các khoản tiền gửi, cho vay, phải thu, hoạt động cấp tín dụng khác giữa các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài. Dự phòng chung tại ngày 31 tháng 12 năm 2025 được tính dựa trên kết quả phân loại nợ và số dự nợ gốc tại ngày 31 tháng 12 năm 2025.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "13150.593",
+    "gt": "13150.593",
+    "page": 10,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (13.150.593) | (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "11609.861",
+    "gt": null,
+    "page": 10,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (13.150.593) | (11.609.861)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "27382.978",
+    "gt": "27382.978",
+    "page": 13,
+    "row_label": "LỢI NHUẬN SAU THUẾ | 27.382.978 | 22.951.264",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22951.264",
+    "gt": "22951.264",
+    "page": 13,
+    "row_label": "LỢI NHUẬN SAU THUẾ | 27.382.978 | 22.951.264",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "26778.939",
+    "gt": "26778.939",
+    "page": 13,
+    "row_label": "Lợi nhuận sau thuế thuộc về Ngân hàng mẹ | 26.778.939 | 22.633.757",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "22633.757",
+    "gt": "22633.757",
+    "page": 13,
+    "row_label": "Lợi nhuận sau thuế thuộc về Ngân hàng mẹ | 26.778.939 | 22.633.757",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1615763.927",
+    "gt": "1615763.927",
+    "page": 10,
+    "row_label": "TỔNG TÀI SẢN | | 1.615.763.927 | 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1128801.062",
+    "gt": "1128801.062",
+    "page": 10,
+    "row_label": "TỔNG TÀI SẢN | | 1.615.763.927 | 1.128.801.062",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "142022.525",
+    "gt": "142022.525",
+    "page": 11,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 142.022.525 | 117.059.581",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "117059.581",
+    "gt": "117059.581",
+    "page": 11,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | | 142.022.525 | 117.059.581",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5886.495",
+    "gt": "5886.495",
+    "page": 11,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 26 | 5.886.495 | 4.910.880",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "MBB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "4910.880",
+    "gt": "4910.880",
+    "page": 11,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 26 | 5.886.495 | 4.910.880",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.010",
+    "gt": "1776.951",
+    "page": 21,
+    "row_label": "Theo đó, nhóm nợ của khách hàng là nhóm nợ có rủi ro cao hơn khi thực hiện phân loại nợ đồng thời theo Điều 10 của Thông tư 31 và nhóm nợ của khách hàng do Trung tâm Thông tin tín dụng (\"CIC\") của NHNN cung cấp tại thời điểm phân loại nợ.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.031",
+    "gt": null,
+    "page": 21,
+    "row_label": "Theo đó, nhóm nợ của khách hàng là nhóm nợ có rủi ro cao hơn khi thực hiện phân loại nợ đồng thời theo Điều 10 của Thông tư 31 và nhóm nợ của khách hàng do Trung tâm Thông tin tín dụng (\"CIC\") của NHNN cung cấp tại thời điểm phân loại nợ.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.007",
+    "gt": "4324.234",
+    "page": 21,
+    "row_label": "- Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 6 năm 2024; Thông tư số 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 và Thông tư số 16/2025/TT-NHNN ngày 11 tháng 7 năm 2025 của NHNN quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn và các văn bản của NHNN về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2.025",
+    "gt": null,
+    "page": 21,
+    "row_label": "- Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 6 năm 2024; Thông tư số 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 và Thông tư số 16/2025/TT-NHNN ngày 11 tháng 7 năm 2025 của NHNN quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn và các văn bản của NHNN về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.007",
+    "gt": "8475.768",
+    "page": 21,
+    "row_label": "- Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 6 năm 2024; Thông tư số 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 và Thông tư số 16/2025/TT-NHNN ngày 11 tháng 7 năm 2025 của NHNN quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn và các văn bản của NHNN về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2.025",
+    "gt": null,
+    "page": 21,
+    "row_label": "- Thông tư số 10/2015/TT-NHNN ngày 22 tháng 7 năm 2015 hướng dẫn thực hiện một số nội dung của Nghị định số 55/2015/NĐ-CP ngày 9 tháng 6 năm 2015 của Chính phủ về chính sách tín dụng phục vụ phát triển nông nghiệp, nông thôn; Thông tư số 06/2024/TT-NHNN (\"Thông tư 06\") ngày 18 tháng 6 năm 2024; Thông tư số 53/2024/TT-NHNN (\"Thông tư 53\") ngày 04 tháng 12 năm 2024 và Thông tư số 16/2025/TT-NHNN ngày 11 tháng 7 năm 2025 của NHNN quy định về việc tổ chức tín dụng, chi nhánh ngân hàng nước ngoài cơ cấu lại thời hạn trả nợ và giữ nguyên nhóm nợ nhằm hỗ trợ khách hàng khó khăn và các văn bản của NHNN về việc phân loại nợ và trích lập dự phòng rủi ro.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.001",
+    "gt": "614861.980",
+    "page": 22,
+    "row_label": "Theo Nghị định 86, dự phòng chung được trích lập để dự phòng cho những tổn thất chưa được xác định trong quá trình phân loại nợ và trích lập dự phòng cụ và trong các trường hợp các tổ chức tín dụng gặp khó khăn về tài chính khi chất lượng các khoản nợ suy giảm. Theo đó, Ngân hàng phải thực hiện trích lập và duy trì dự phòng chung bằng 0,75% tổng giá trị các khoản nợ được phân loại từ nhóm 1 đến nhóm 4, ngoại trừ các khoản tiền gửi tại tổ chức tín dụng trong nước, chi nhánh ngân hàng nước ngoài tại Việt Nam theo quy định của pháp luật và tiền gửi tại tổ chức tín dụng nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá đối với tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác tại Việt Nam; các khoản mua kỳ phiếu, tín phiếu, chứng chỉ tiền gửi, trái phiếu do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; và các khoản mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán và các khoản nợ khác phát sinh giữa các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài tại Việt Nam theo quy định của pháp luật.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.004",
+    "gt": null,
+    "page": 22,
+    "row_label": "Theo Nghị định 86, dự phòng chung được trích lập để dự phòng cho những tổn thất chưa được xác định trong quá trình phân loại nợ và trích lập dự phòng cụ và trong các trường hợp các tổ chức tín dụng gặp khó khăn về tài chính khi chất lượng các khoản nợ suy giảm. Theo đó, Ngân hàng phải thực hiện trích lập và duy trì dự phòng chung bằng 0,75% tổng giá trị các khoản nợ được phân loại từ nhóm 1 đến nhóm 4, ngoại trừ các khoản tiền gửi tại tổ chức tín dụng trong nước, chi nhánh ngân hàng nước ngoài tại Việt Nam theo quy định của pháp luật và tiền gửi tại tổ chức tín dụng nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá đối với tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác tại Việt Nam; các khoản mua kỳ phiếu, tín phiếu, chứng chỉ tiền gửi, trái phiếu do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; và các khoản mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán và các khoản nợ khác phát sinh giữa các tổ chức tín dụng, chi nhánh ngân hàng nước ngoài tại Việt Nam theo quy định của pháp luật.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10498.298",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "11960.295",
+    "gt": "11960.295",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế TNDN | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9321.949",
+    "gt": "9321.949",
+    "page": 10,
+    "row_label": "XIII. | Lợi nhuận sau thuế TNDN | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "11960.295",
+    "gt": "11960.295",
+    "page": 10,
+    "row_label": "XIV. | Lợi nhuận thuần của chủ sở hữu | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9321.949",
+    "gt": "9321.949",
+    "page": 10,
+    "row_label": "XIV. | Lợi nhuận thuần của chủ sở hữu | | 11.960.295 | 9.321.949",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "892008.709",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "747478.069",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "68130.938",
+    "gt": "68130.938",
+    "page": 8,
+    "row_label": "VIII. | Vốn và các quỹ | 25 | 68.130.938 | 58.067.344",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "58067.344",
+    "gt": "58067.344",
+    "page": 8,
+    "row_label": "VIII. | Vốn và các quỹ | 25 | 68.130.938 | 58.067.344",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "**Người kiểm soát**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "SHB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "0.000",
+    "page": 9,
+    "row_label": "**Người kiểm soát**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.181",
+    "gt": "6920.385",
+    "page": 23,
+    "row_label": "| (a) Khoản nợ quá hạn từ 181 ngày đến 360 ngày, trừ khoản nợ phân loại vào nhóm nợ có rủi ro cao hơn theo quy định; hoặc",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.360",
+    "gt": null,
+    "page": 23,
+    "row_label": "| (a) Khoản nợ quá hạn từ 181 ngày đến 360 ngày, trừ khoản nợ phân loại vào nhóm nợ có rủi ro cao hơn theo quy định; hoặc",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "3310.299",
+    "page": 23,
+    "row_label": "4 | Nợ nghỉ nợ",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "4 | Nợ nghỉ nợ",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "29906.074",
+    "page": 23,
+    "row_label": "5 | Nợ có khả năng mất vốn",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 23,
+    "row_label": "5 | Nợ có khả năng mất vốn",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.012",
+    "gt": "626392.336",
+    "page": 25,
+    "row_label": "Theo Nghị định 86, một khoản dự phòng rủi ro tín dụng chung được trích lập với **mức bằng 0,75%** tổng số dư nợ gốc tại ngày cuối cùng của mỗi tháng của các khoản nợ từ Nhóm 1 đến Nhóm 4 trừ các khoản tiền gửi có kỳ hạn và cho vay các tổ chức tín dụng khác, khoản mua giấy tờ có giá do các tổ chức tín dụng khác phát hành, khoản mua bán lại trái phiếu Chính phủ. Dự phòng chung tại ngày 31 tháng 12 năm 2025 được tính dựa trên kết quả phân loại nợ và số dư nợ gốc tại ngày 31 tháng 12 năm 2025.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "2.025",
+    "gt": null,
+    "page": 25,
+    "row_label": "Theo Nghị định 86, một khoản dự phòng rủi ro tín dụng chung được trích lập với **mức bằng 0,75%** tổng số dư nợ gốc tại ngày cuối cùng của mỗi tháng của các khoản nợ từ Nhóm 1 đến Nhóm 4 trừ các khoản tiền gửi có kỳ hạn và cho vay các tổ chức tín dụng khác, khoản mua giấy tờ có giá do các tổ chức tín dụng khác phát hành, khoản mua bán lại trái phiếu Chính phủ. Dự phòng chung tại ngày 31 tháng 12 năm 2025 được tính dựa trên kết quả phân loại nợ và số dư nợ gốc tại ngày 31 tháng 12 năm 2025.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed",
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "20055.945",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "5939.111",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "10087.495",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "917119.803",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "748094.546",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "59866.744",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "54972.070",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 36,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "STB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "0.000",
+    "gt": "0.000",
+    "page": 36,
+    "row_label": "Lợi ích cổ đông không kiểm soát (không phát sinh)",
+    "row_status": "candidate",
+    "issues": [
+      "nci_not_presented"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.000",
+    "gt": "918.063",
+    "page": 23,
+    "row_label": "Theo Thông tư 31, Ngân hàng thực hiện trích lập dự phòng chung với mức bằng 0,75% tổng số dư tại ngày kết thúc năm tài chính của các khoản nợ ngoài trừ các khoản nợ **được** phân loại vào nhóm nợ có khả năng mất vốn, các khoản tiền gửi tại các TCTD, chi nhánh ngân hàng nước ngoài và tiền gửi tại các TCTD ở nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá giữa các TCTD, chi nhánh ngân hàng nước ngoài tại Việt Nam; các khoản mua chứng chỉ tiền gửi, trái phiếu do TCTD, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; các khoản mua bán lại trái phiếu Chính phủ.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.075",
+    "gt": null,
+    "page": 23,
+    "row_label": "Theo Thông tư 31, Ngân hàng thực hiện trích lập dự phòng chung với mức bằng 0,75% tổng số dư tại ngày kết thúc năm tài chính của các khoản nợ ngoài trừ các khoản nợ **được** phân loại vào nhóm nợ có khả năng mất vốn, các khoản tiền gửi tại các TCTD, chi nhánh ngân hàng nước ngoài và tiền gửi tại các TCTD ở nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá giữa các TCTD, chi nhánh ngân hàng nước ngoài tại Việt Nam; các khoản mua chứng chỉ tiền gửi, trái phiếu do TCTD, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; các khoản mua bán lại trái phiếu Chính phủ.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "1339.119",
+    "page": 23,
+    "row_label": "Việc phân loại nợ và lập dự phòng rủi ro **được** thực hiện theo Thông tư 31 và Nghị định 86 như trình bày trong *Thuyết minh 4.6*.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.006",
+    "gt": null,
+    "page": 23,
+    "row_label": "Việc phân loại nợ và lập dự phòng rủi ro **được** thực hiện theo Thông tư 31 và Nghị định 86 như trình bày trong *Thuyết minh 4.6*.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.000",
+    "gt": "5941.193",
+    "page": 23,
+    "row_label": "Theo Thông tư 31, Ngân hàng thực hiện trích lập dự phòng chung với mức bằng 0,75% tổng số dư tại ngày kết thúc năm tài chính của các khoản nợ ngoài trừ các khoản nợ **được** phân loại vào nhóm nợ có khả năng mất vốn, các khoản tiền gửi tại các TCTD, chi nhánh ngân hàng nước ngoài và tiền gửi tại các TCTD ở nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá giữa các TCTD, chi nhánh ngân hàng nước ngoài tại Việt Nam; các khoản mua chứng chỉ tiền gửi, trái phiếu do TCTD, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; các khoản mua bán lại trái phiếu Chính phủ.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.075",
+    "gt": null,
+    "page": 23,
+    "row_label": "Theo Thông tư 31, Ngân hàng thực hiện trích lập dự phòng chung với mức bằng 0,75% tổng số dư tại ngày kết thúc năm tài chính của các khoản nợ ngoài trừ các khoản nợ **được** phân loại vào nhóm nợ có khả năng mất vốn, các khoản tiền gửi tại các TCTD, chi nhánh ngân hàng nước ngoài và tiền gửi tại các TCTD ở nước ngoài; các khoản cho vay, mua có kỳ hạn giấy tờ có giá giữa các TCTD, chi nhánh ngân hàng nước ngoài tại Việt Nam; các khoản mua chứng chỉ tiền gửi, trái phiếu do TCTD, chi nhánh ngân hàng nước ngoài khác phát hành trong nước; các khoản mua bán lại trái phiếu Chính phủ.",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "723757.397",
+    "page": 23,
+    "row_label": "### 4.5 **Các khoản cho vay khách hàng**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.005",
+    "gt": null,
+    "page": 23,
+    "row_label": "### 4.5 **Các khoản cho vay khách hàng**",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "10498.378",
+    "gt": "10485.620",
+    "page": 11,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (10.498.378) | (8.090.693)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "8090.693",
+    "gt": null,
+    "page": 11,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 10 | (10.498.378) | (8.090.693)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "25954.472",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "21760.104",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "25290.230",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "21522.928",
+    "page": null,
+    "row_label": null,
+    "row_status": "missing",
+    "issues": [
+      "row_not_found"
+    ]
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1192344.137",
+    "gt": "1192344.137",
+    "page": 11,
+    "row_label": "TỔNG TÀI SẢN | | 1.192.344.137 | 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "978798.549",
+    "gt": "978798.549",
+    "page": 11,
+    "row_label": "TỔNG TÀI SẢN | | 1.192.344.137 | 978.798.549",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "179501.442",
+    "gt": "179501.442",
+    "page": 12,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 23 | 179.501.442 | 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "147939.621",
+    "gt": "147939.621",
+    "page": 12,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 23 | 179.501.442 | 147.939.621",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "9456.938",
+    "gt": "9456.938",
+    "page": 12,
+    "row_label": "Lợi ích cổ đông không kiểm soát | | 9.456.938 | 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "TCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2520.466",
+    "gt": "2520.466",
+    "page": 12,
+    "row_label": "Lợi ích cổ đông không kiểm soát | | 9.456.938 | 2.520.466",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.003",
+    "gt": "760.561",
+    "page": 23,
+    "row_label": "Nhóm 3 – Nợ dưới tiêu chuẩn | 20%",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.020",
+    "gt": null,
+    "page": 23,
+    "row_label": "Nhóm 3 – Nợ dưới tiêu chuẩn | 20%",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "6613.750",
+    "gt": "222.632",
+    "page": 43,
+    "row_label": "Nợ nghi ngờ | 6.613.750 | -",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 43,
+    "row_label": "Nợ nghi ngờ | 6.613.750 | -",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "8686.362",
+    "gt": "8686.362",
+    "page": 39,
+    "row_label": "Nợ có khả năng mất vốn | 8.686.362 | 10.292.417",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "10292.417",
+    "gt": null,
+    "page": 39,
+    "row_label": "Nợ có khả năng mất vốn | 8.686.362 | 10.292.417",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "wrong_row_or_subtotal",
+    "extracted": "0.009",
+    "gt": "1673525.675",
+    "page": 39,
+    "row_label": "## 9. **Cho vay khách hàng**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": null,
+    "gt": null,
+    "page": 39,
+    "row_label": "## 9. **Cho vay khách hàng**",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "24975.679",
+    "gt": "24975.679",
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 10 | (24.975.679) | (31.183.175)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "31183.175",
+    "gt": null,
+    "page": 8,
+    "row_label": "2 | Dự phòng rủi ro cho vay khách hàng | 10 | (24.975.679) | (31.183.175)",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.200",
+    "gt": "35197.940",
+    "page": 30,
+    "row_label": "Theo Thông tư 200, các khoản cổ tức được chia bằng cổ phiếu từ lợi nhuận sau thuế chưa phân phối, thặng dư vốn cổ phần, các quỹ thuộc vốn chủ sở hữu của các công ty cổ phần không được ghi nhận là một khoản thu nhập trong báo cáo kết quả hoạt động hợp nhất mà chỉ được ghi tăng số lượng cổ phiếu của công ty đó do Vietcombank nắm giữ.",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "33853.117",
+    "page": 30,
+    "row_label": "Theo Thông tư 200, các khoản cổ tức được chia bằng cổ phiếu từ lợi nhuận sau thuế chưa phân phối, thặng dư vốn cổ phần, các quỹ thuộc vốn chủ sở hữu của các công ty cổ phần không được ghi nhận là một khoản thu nhập trong báo cáo kết quả hoạt động hợp nhất mà chỉ được ghi tăng số lượng cổ phiếu của công ty đó do Vietcombank nắm giữ.",
+    "row_status": "missing",
+    "issues": [
+      "column_missing"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.200",
+    "gt": "35177.663",
+    "page": 30,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "candidate",
+    "issues": [
+      "parent_profit_inferred_from_pat"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "missing",
+    "cause": "row_not_found",
+    "extracted": null,
+    "gt": "33831.386",
+    "page": 30,
+    "row_label": "Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+    "row_status": "missing",
+    "issues": []
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2442279.166",
+    "gt": "2442279.166",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.442.279.166 | 2.085.873.522",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "2085873.522",
+    "gt": "2085873.522",
+    "page": 8,
+    "row_label": "TỔNG TÀI SẢN CÓ | | 2.442.279.166 | 2.085.873.522",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "224558.726",
+    "gt": "224558.726",
+    "page": 9,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 22(a) 224.558.726 | 196.209.168",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "196209.168",
+    "gt": "196209.168",
+    "page": 9,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 22(a) 224.558.726 | 196.209.168",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "71.521",
+    "gt": "71.521",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | | 71.521 | 96.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VCB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "96.261",
+    "gt": "96.261",
+    "page": 9,
+    "row_label": "6 | Lợi ích của cổ đông không kiểm soát | | 71.521 | 96.261",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.016",
+    "gt": "11429.858",
+    "page": 20,
+    "row_label": "Ngân hàng áp dụng phân loại nợ theo phương pháp định lượng quy định tại Điều 10 Thông tư 31 và áp dụng nguyên tắc tính dự phòng theo quy định tại Điều 4, Điều 5, Điều 6, Điều 7, Điều 8 Nghị định 86 và Điều 16 Thông tư 21 đối với các tài sản có sau: cho vay khách hàng; cho thuê tài chính; chiết khấu, tài chiết khấu các công cụ chuyển nhượng và giấy tờ có giá khác; bao thanh toán; cấp tín dụng dưới hình thức phát hành thẻ tín dụng; trả thay cam kết ngoại bảng; mua và ủy thác mua trái phiếu doanh nghiệp (bao gồm cả trái phiếu do các tổ chức tín dụng khác phát hành) chưa niêm yết; ủy thác cấp tín dụng; các khoản gửi tiền (trừ tiền gửi không kỳ hạn) và cấp tín dụng cho các tổ chức tài chính, các tổ chức tín dụng khác; mua, bán nợ theo quy định; mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán; mua chứng chỉ tiền gửi do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành; nghiệp vụ phát hành thư tín dụng trả chậm có điều khoản thỏa thuận bên thụ hưởng được thanh toán trả ngay hoặc trả trước ngày đến hạn thanh toán thư tín dụng và nghiệp vụ hoàn trả thư tín dụng theo hình thức thỏa thuận với khách hàng thanh toán bằng nguồn tiền của ngân hàng hoàn trả kể từ ngày ngân hàng hoàn trả thanh toán cho bên thụ hưởng; nghiệp vụ thương lượng thanh toán thư tín dụng; mua hấn miễn truy đòi bộ chứng từ xuất trình theo thư tín dụng, trừ trường hợp mua hấn miễn truy đòi bộ chứng từ theo thư tín dụng do chính Ngân hàng phát hành (gọi chung là \"các khoản nợ\").",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_3_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.021",
+    "gt": null,
+    "page": 20,
+    "row_label": "Ngân hàng áp dụng phân loại nợ theo phương pháp định lượng quy định tại Điều 10 Thông tư 31 và áp dụng nguyên tắc tính dự phòng theo quy định tại Điều 4, Điều 5, Điều 6, Điều 7, Điều 8 Nghị định 86 và Điều 16 Thông tư 21 đối với các tài sản có sau: cho vay khách hàng; cho thuê tài chính; chiết khấu, tài chiết khấu các công cụ chuyển nhượng và giấy tờ có giá khác; bao thanh toán; cấp tín dụng dưới hình thức phát hành thẻ tín dụng; trả thay cam kết ngoại bảng; mua và ủy thác mua trái phiếu doanh nghiệp (bao gồm cả trái phiếu do các tổ chức tín dụng khác phát hành) chưa niêm yết; ủy thác cấp tín dụng; các khoản gửi tiền (trừ tiền gửi không kỳ hạn) và cấp tín dụng cho các tổ chức tài chính, các tổ chức tín dụng khác; mua, bán nợ theo quy định; mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán; mua chứng chỉ tiền gửi do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành; nghiệp vụ phát hành thư tín dụng trả chậm có điều khoản thỏa thuận bên thụ hưởng được thanh toán trả ngay hoặc trả trước ngày đến hạn thanh toán thư tín dụng và nghiệp vụ hoàn trả thư tín dụng theo hình thức thỏa thuận với khách hàng thanh toán bằng nguồn tiền của ngân hàng hoàn trả kể từ ngày ngân hàng hoàn trả thanh toán cho bên thụ hưởng; nghiệp vụ thương lượng thanh toán thư tín dụng; mua hấn miễn truy đòi bộ chứng từ xuất trình theo thư tín dụng, trừ trường hợp mua hấn miễn truy đòi bộ chứng từ theo thư tín dụng do chính Ngân hàng phát hành (gọi chung là \"các khoản nợ\").",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.016",
+    "gt": "10879.958",
+    "page": 20,
+    "row_label": "Ngân hàng áp dụng phân loại nợ theo phương pháp định lượng quy định tại Điều 10 Thông tư 31 và áp dụng nguyên tắc tính dự phòng theo quy định tại Điều 4, Điều 5, Điều 6, Điều 7, Điều 8 Nghị định 86 và Điều 16 Thông tư 21 đối với các tài sản có sau: cho vay khách hàng; cho thuê tài chính; chiết khấu, tài chiết khấu các công cụ chuyển nhượng và giấy tờ có giá khác; bao thanh toán; cấp tín dụng dưới hình thức phát hành thẻ tín dụng; trả thay cam kết ngoại bảng; mua và ủy thác mua trái phiếu doanh nghiệp (bao gồm cả trái phiếu do các tổ chức tín dụng khác phát hành) chưa niêm yết; ủy thác cấp tín dụng; các khoản gửi tiền (trừ tiền gửi không kỳ hạn) và cấp tín dụng cho các tổ chức tài chính, các tổ chức tín dụng khác; mua, bán nợ theo quy định; mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán; mua chứng chỉ tiền gửi do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành; nghiệp vụ phát hành thư tín dụng trả chậm có điều khoản thỏa thuận bên thụ hưởng được thanh toán trả ngay hoặc trả trước ngày đến hạn thanh toán thư tín dụng và nghiệp vụ hoàn trả thư tín dụng theo hình thức thỏa thuận với khách hàng thanh toán bằng nguồn tiền của ngân hàng hoàn trả kể từ ngày ngân hàng hoàn trả thanh toán cho bên thụ hưởng; nghiệp vụ thương lượng thanh toán thư tín dụng; mua hấn miễn truy đòi bộ chứng từ xuất trình theo thư tín dụng, trừ trường hợp mua hấn miễn truy đòi bộ chứng từ theo thư tín dụng do chính Ngân hàng phát hành (gọi chung là \"các khoản nợ\").",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_4_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.021",
+    "gt": null,
+    "page": 20,
+    "row_label": "Ngân hàng áp dụng phân loại nợ theo phương pháp định lượng quy định tại Điều 10 Thông tư 31 và áp dụng nguyên tắc tính dự phòng theo quy định tại Điều 4, Điều 5, Điều 6, Điều 7, Điều 8 Nghị định 86 và Điều 16 Thông tư 21 đối với các tài sản có sau: cho vay khách hàng; cho thuê tài chính; chiết khấu, tài chiết khấu các công cụ chuyển nhượng và giấy tờ có giá khác; bao thanh toán; cấp tín dụng dưới hình thức phát hành thẻ tín dụng; trả thay cam kết ngoại bảng; mua và ủy thác mua trái phiếu doanh nghiệp (bao gồm cả trái phiếu do các tổ chức tín dụng khác phát hành) chưa niêm yết; ủy thác cấp tín dụng; các khoản gửi tiền (trừ tiền gửi không kỳ hạn) và cấp tín dụng cho các tổ chức tài chính, các tổ chức tín dụng khác; mua, bán nợ theo quy định; mua bán lại trái phiếu Chính phủ trên thị trường chứng khoán; mua chứng chỉ tiền gửi do tổ chức tín dụng, chi nhánh ngân hàng nước ngoài khác phát hành; nghiệp vụ phát hành thư tín dụng trả chậm có điều khoản thỏa thuận bên thụ hưởng được thanh toán trả ngay hoặc trả trước ngày đến hạn thanh toán thư tín dụng và nghiệp vụ hoàn trả thư tín dụng theo hình thức thỏa thuận với khách hàng thanh toán bằng nguồn tiền của ngân hàng hoàn trả kể từ ngày ngân hàng hoàn trả thanh toán cho bên thụ hưởng; nghiệp vụ thương lượng thanh toán thư tín dụng; mua hấn miễn truy đòi bộ chứng từ xuất trình theo thư tín dụng, trừ trường hợp mua hấn miễn truy đòi bộ chứng từ theo thư tín dụng do chính Ngân hàng phát hành (gọi chung là \"các khoản nợ\").",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.005",
+    "gt": "9154.889",
+    "page": 23,
+    "row_label": "- ▶ Nhóm 5 – Nợ có khả năng mất vốn: nếu quá hạn 90 ngày trở lên.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.npl_group_5_balance",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.090",
+    "gt": null,
+    "page": 23,
+    "row_label": "- ▶ Nhóm 5 – Nợ có khả năng mất vốn: nếu quá hạn 90 ngày trở lên.",
+    "row_status": "candidate",
+    "issues": [
+      "period_mismatch"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "0.004",
+    "gt": "909808.411",
+    "page": 20,
+    "row_label": "### 4.4 **Cho vay khách hàng**",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.gross_customer_loans",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "0.004",
+    "gt": null,
+    "page": 20,
+    "row_label": "### 4.4 **Cho vay khách hàng**",
+    "row_status": "needs_review",
+    "issues": [
+      "prior_column_unconfirmed"
+    ]
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "wrong_value",
+    "cause": "value_not_on_any_selected_page",
+    "extracted": "17428.971",
+    "gt": "17267.357",
+    "page": 9,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 11 (17.428.971) | (16.366.955)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.loan_loss_provisions",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "not_in_gt",
+    "cause": "not_in_gt",
+    "extracted": "16366.955",
+    "gt": null,
+    "page": 9,
+    "row_label": "Dự phòng rủi ro cho vay khách hàng | 11 (17.428.971) | (16.366.955)",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "24354.596",
+    "gt": "24354.596",
+    "page": 12,
+    "row_label": "LỢI NHUẬN SAU THUẾ | | 24.354.596 | 15.986.826",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.profit_after_tax",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15986.826",
+    "gt": "15986.826",
+    "page": 12,
+    "row_label": "LỢI NHUẬN SAU THUẾ | | 24.354.596 | 15.986.826",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "23989.930",
+    "gt": "23989.930",
+    "page": 12,
+    "row_label": "Lợi nhuận thuần của cổ đông ngân hàng | | 23.989.930 | 15.778.795",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.parent_attributable_profit",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "15778.795",
+    "gt": "15778.795",
+    "page": 12,
+    "row_label": "Lợi nhuận thuần của cổ đông ngân hàng | | 23.989.930 | 15.778.795",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "1260149.596",
+    "gt": "1260149.596",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | =1.260.149.596 | 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_assets",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "923847.637",
+    "gt": "923847.637",
+    "page": 9,
+    "row_label": "TỔNG TÀI SẢN | =1.260.149.596 | 923.847.637",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "180275.629",
+    "gt": "180275.629",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 25 | 180.275.629 | 147.275.262",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.total_equity",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "147275.262",
+    "gt": "147275.262",
+    "page": 10,
+    "row_label": "TỔNG VỐN CHỦ SỞ HỮU | 25 | 180.275.629 | 147.275.262",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2025_Q4",
+    "period_role": "target",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "12372.286",
+    "gt": "12372.286",
+    "page": 10,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 12.372.286 | 5.370.287",
+    "row_status": "candidate",
+    "issues": []
+  },
+  {
+    "ticker": "VPB",
+    "metric_id": "bank.input.non_controlling_interests",
+    "period_id": "2024_Q4",
+    "period_role": "prior",
+    "status": "correct",
+    "cause": "correct",
+    "extracted": "5370.287",
+    "gt": "5370.287",
+    "page": 10,
+    "row_label": "Lợi ích của cổ đông không kiểm soát | 12.372.286 | 5.370.287",
+    "row_status": "candidate",
+    "issues": []
+  }
+]

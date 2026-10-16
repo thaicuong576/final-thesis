@@ -82,7 +82,7 @@ const ACB_ROWS_CLEAN: Row[] = [
 export const filingClean: Filing = {
   filing_id: 'fl-acb2025clean001',
   status: 'ready',
-  filename: 'ACB_BCTC_2025_Hopnhat.pdf',
+  filename: 'ACB-BCTC-2025-Hopnhat.pdf',
   sha256: 'abc123',
   page_count: 120,
   entity_id: 'ACB',

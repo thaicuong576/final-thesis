@@ -254,30 +254,89 @@ describe('FilingWizard (INGEST-3)', () => {
     expect(screen.getByTestId('extracted-rows-section')).toBeInTheDocument();
   });
 
-  it('scans rendered DOM text to ensure no snake_case technical identifiers leak to readers', () => {
-    const { container } = render(
+  it('scans rendered DOM text of every wizard step to ensure no snake_case or machine periods leak to readers', async () => {
+    const SNAKE_CASE_REGEX = /[a-z]+_[a-z0-9_]+/;
+    const MACHINE_PERIOD_REGEX = /\b\d{4}_Q\d\b/;
+
+    const confirmResult = {
+      upload_id: 'up-acb2025q4-01',
+      entity_id: 'ACB',
+      display_name: 'Ngân hàng Á Châu',
+      status: 'accepted' as const,
+      period_id: '2025_Q4',
+      metrics: [
+        { metric_id: 'bank.npl_g35', computed_value: 0.99, reported_value: 0.99, status: 'matched' },
+        { metric_id: 'bank.llr_coverage', computed_value: 112.5, reported_value: 112.5, status: 'matched' },
+        { metric_id: 'bank.roa', computed_value: 1.65, reported_value: 1.65, status: 'matched' },
+        { metric_id: 'bank.roe', computed_value: 17.58, reported_value: 17.58, status: 'matched' },
+      ],
+      row_issues: [],
+      limitations_vi: 'Ngân hàng tải lên không được tính vào trung vị nhóm.',
+    };
+
+    // Step 1: Upload (initial)
+    const { container: c1, unmount: u1 } = render(
+      <MemoryRouter>
+        <FilingWizard />
+      </MemoryRouter>
+    );
+    expect(c1.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c1.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
+    u1();
+
+    // Step 2: Processing
+    const { container: c2, unmount: u2 } = render(
+      <MemoryRouter>
+        <FilingWizard initialFiling={filingProcessing} />
+      </MemoryRouter>
+    );
+    expect(c2.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c2.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
+    u2();
+
+    // Step 3: Failed
+    const { container: c3, unmount: u3 } = render(
+      <MemoryRouter>
+        <FilingWizard initialFiling={filingFailed} />
+      </MemoryRouter>
+    );
+    expect(c3.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c3.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
+    u3();
+
+    // Step 4: Extracted rows with issues & validation errors
+    const { container: c4, unmount: u4 } = render(
+      <MemoryRouter>
+        <FilingWizard initialFiling={filingWithIssues} />
+      </MemoryRouter>
+    );
+    expect(c4.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c4.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
+    u4();
+
+    // Step 5: Clean ready to confirm
+    const { container: c5, unmount: u5 } = render(
       <MemoryRouter>
         <FilingWizard initialFiling={filingClean} />
       </MemoryRouter>
     );
+    expect(c5.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c5.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
+    u5();
 
-    // Text content scanner like FLOW-1:
-    // User-facing text must not contain raw snake_case technical tokens like bank.input.* or snake_case code
-    const fullText = container.textContent || '';
-
-    // Forbidden tokens
-    expect(fullText).not.toMatch(/bank\.input\.[a-z_]+/);
-    expect(fullText).not.toMatch(/\bnpl_group_3_balance\b/);
-    expect(fullText).not.toMatch(/\bgross_customer_loans\b/);
-    expect(fullText).not.toMatch(/\bloan_loss_provisions\b/);
-    expect(fullText).not.toMatch(/\bprofit_after_tax\b/);
-    expect(fullText).not.toMatch(/\btotal_assets\b/);
-    expect(fullText).not.toMatch(/\bparent_attributable_profit\b/);
-    expect(fullText).not.toMatch(/\btotal_equity\b/);
-    expect(fullText).not.toMatch(/\bnon_controlling_interests\b/);
-
-    // No raw error code keys shown directly without translation
-    expect(fullText).not.toMatch(/\bmissing_required\b/);
-    expect(fullText).not.toMatch(/\bpat_equals_parent_plus_nci\b/);
+    // Step 6: Confirmed result
+    vi.mocked(filingService.confirmFiling).mockResolvedValue(confirmResult);
+    const { container: c6 } = render(
+      <MemoryRouter>
+        <FilingWizard initialFiling={filingClean} />
+      </MemoryRouter>
+    );
+    const confirmBtn = screen.getByTestId('confirm-filing-button');
+    await userEvent.click(confirmBtn);
+    await waitFor(() => {
+      expect(screen.getByTestId('confirmation-result-card')).toBeInTheDocument();
+    });
+    expect(c6.textContent).not.toMatch(SNAKE_CASE_REGEX);
+    expect(c6.textContent).not.toMatch(MACHINE_PERIOD_REGEX);
   });
 });

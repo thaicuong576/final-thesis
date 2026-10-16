@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { normalizeLimitations } from '@/features/onboarding/normalizeLimitations';
+import { formatPeriodCode } from '@/shared/lib/formatting';
 import type { ConfirmResult } from '../model/types';
 
 interface ConfirmationStepProps {
@@ -21,9 +22,13 @@ interface ConfirmationStepProps {
 
 const METRIC_LABELS: Record<string, { label: string; unit: string }> = {
   'bank.npl_g35': { label: 'Tỷ lệ nợ xấu (NPL nhóm 3–5)', unit: '%' },
+  'npl_g35': { label: 'Tỷ lệ nợ xấu (NPL nhóm 3–5)', unit: '%' },
   'bank.llr_coverage': { label: 'Tỷ lệ bao phủ nợ xấu (LLR)', unit: '%' },
+  'llr_coverage': { label: 'Tỷ lệ bao phủ nợ xấu (LLR)', unit: '%' },
   'bank.roa': { label: 'Tỷ suất sinh lời trên tài sản (ROA)', unit: '%' },
+  'roa': { label: 'Tỷ suất sinh lời trên tài sản (ROA)', unit: '%' },
   'bank.roe': { label: 'Tỷ suất sinh lời trên vốn CSH (ROE)', unit: '%' },
+  'roe': { label: 'Tỷ suất sinh lời trên vốn CSH (ROE)', unit: '%' },
 };
 
 function formatMetricValue(val: number | null | undefined, unit: string): string {
@@ -63,17 +68,15 @@ export function ConfirmationStep({
           isAccepted ? 'border-ready/40 bg-ready-soft/20' : 'border-blocked/40 bg-blocked-soft/20'
         }`}
         data-testid="confirmation-result-card"
+        data-upload-id={confirmResult.upload_id}
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-line pb-3">
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="size-6 text-ready shrink-0" aria-hidden="true" />
             <div>
               <h3 className="text-sm font-bold text-ink">
-                Đã nhập thành công vào cơ sở dữ liệu: {confirmResult.entity_id} ({confirmResult.period_id})
+                Đã nhập thành công vào cơ sở dữ liệu: {confirmResult.entity_id} ({formatPeriodCode(confirmResult.period_id)})
               </h3>
-              <p className="text-xs text-ink-secondary font-mono mt-0.5">
-                Mã phiên nạp vận hành: {confirmResult.upload_id}
-              </p>
             </div>
           </div>
 
@@ -94,8 +97,10 @@ export function ConfirmationStep({
             <div className="text-xs font-bold uppercase tracking-wide text-ink-secondary">
               Kết quả 4 chỉ tiêu tài chính tính lại từ đầu vào đã duyệt:
             </div>
-            <div className="overflow-x-auto rounded border border-line bg-card shadow-sm">
-              <table className="w-full min-w-[480px] border-collapse text-left text-xs">
+
+            {/* Desktop Table View (>= 640px) */}
+            <div className="hidden sm:block overflow-x-auto rounded border border-line bg-card shadow-sm">
+              <table className="w-full border-collapse text-left text-xs">
                 <thead>
                   <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
                     <th className="py-2 px-3 font-semibold">Chỉ tiêu cốt lõi</th>
@@ -106,15 +111,18 @@ export function ConfirmationStep({
                 </thead>
                 <tbody className="divide-y divide-line">
                   {confirmResult.metrics.map((m) => {
-                    const info = METRIC_LABELS[m.metric_id] || { label: m.metric_id, unit: '%' };
-                    const isMatch = m.status === 'valid' || m.status === 'matched' || m.status === 'computed';
+                    const info =
+                      METRIC_LABELS[m.metric_id] ||
+                      METRIC_LABELS[m.metric_id.replace('bank.', '')] || {
+                        label: 'Chỉ tiêu tài chính',
+                        unit: '%',
+                      };
+                    const isMatch =
+                      m.status === 'valid' || m.status === 'matched' || m.status === 'computed';
                     return (
                       <tr key={m.metric_id} className="hover:bg-surface-hover/30 transition-colors">
                         <td className="py-2 px-3">
                           <span className="font-semibold text-ink">{info.label}</span>
-                          <span className="block font-mono text-[11px] text-ink-secondary">
-                            {m.metric_id.replace('bank.', '')}
-                          </span>
                         </td>
                         <td className="py-2 px-3 text-right font-mono font-bold text-ink">
                           {formatMetricValue(m.computed_value, info.unit)}
@@ -138,6 +146,51 @@ export function ConfirmationStep({
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Stacked Items (<= 640px) */}
+            <div className="sm:hidden space-y-2" data-testid="confirmed-metrics-mobile">
+              {confirmResult.metrics.map((m) => {
+                const info =
+                  METRIC_LABELS[m.metric_id] ||
+                  METRIC_LABELS[m.metric_id.replace('bank.', '')] || {
+                    label: 'Chỉ tiêu tài chính',
+                    unit: '%',
+                  };
+                const isMatch =
+                  m.status === 'valid' || m.status === 'matched' || m.status === 'computed';
+                return (
+                  <div
+                    key={m.metric_id}
+                    className="rounded border border-line bg-card p-2.5 text-xs shadow-sm space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2 border-b border-line pb-1">
+                      <span className="font-bold text-ink">{info.label}</span>
+                      {isMatch ? (
+                        <span className="inline-flex items-center rounded-full bg-ready-soft px-2 py-0.5 text-[10px] font-medium text-text-success border border-ready/30">
+                          Hợp lệ
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-blocked-soft px-2 py-0.5 text-[10px] font-medium text-blocked border border-blocked/30">
+                          Lệch dung sai
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-ink-secondary">Giá trị tính lại:</span>
+                      <span className="font-mono font-bold text-ink">
+                        {formatMetricValue(m.computed_value, info.unit)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-ink-secondary">Giá trị công bố:</span>
+                      <span className="font-mono text-ink-secondary">
+                        {formatMetricValue(m.reported_value, info.unit)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

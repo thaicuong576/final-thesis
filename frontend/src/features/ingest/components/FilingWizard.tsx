@@ -260,7 +260,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
 
   return (
     <section
-      className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6 space-y-6 shadow-tactile"
+      className="w-full min-w-0 rounded-md border border-line bg-card p-4 sm:p-6 space-y-6 shadow-tactile scroll-mt-16"
       aria-labelledby="filing-wizard-heading"
       data-testid="filing-wizard-section"
     >

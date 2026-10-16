@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatDecimalVi } from '@/shared/lib/formatting';
+import { formatDecimalVi, formatPeriodCode } from '@/shared/lib/formatting';
 import type { Row, RowAlternative } from '../model/types';
 import { METRIC_IDS, METRIC_LABELS } from '../model/types';
 
@@ -146,10 +146,10 @@ export function ExtractedRowsTable({
             <tr className="border-b border-line bg-surface-secondary text-ink-secondary">
               <th className="py-2.5 px-3 font-semibold w-1/3">Chỉ tiêu đầu vào</th>
               <th className="py-2.5 px-3 font-semibold text-center w-1/3">
-                Kỳ mục tiêu ({rows[0]?.period_id || 'Kỳ này'})
+                Kỳ mục tiêu ({formatPeriodCode(rows[0]?.period_id) || 'Kỳ này'})
               </th>
               <th className="py-2.5 px-3 font-semibold text-center w-1/3">
-                Kỳ so sánh ({rows.find((r) => r.period_role === 'prior')?.period_id || 'Kỳ trước'})
+                Kỳ so sánh ({formatPeriodCode(rows.find((r) => r.period_role === 'prior')?.period_id) || 'Kỳ trước'})
               </th>
             </tr>
           </thead>
@@ -236,7 +236,7 @@ export function ExtractedRowsTable({
               {targetRow && (
                 <div className="rounded bg-surface-secondary/50 p-2">
                   <div className="text-[11px] font-semibold text-ink-secondary mb-1">
-                    Kỳ này ({targetRow.period_id}):
+                    Kỳ này ({formatPeriodCode(targetRow.period_id)}):
                   </div>
                   <RowCellContent
                     row={targetRow}
@@ -263,7 +263,7 @@ export function ExtractedRowsTable({
               {priorRow && (
                 <div className="rounded bg-surface-secondary/50 p-2">
                   <div className="text-[11px] font-semibold text-ink-secondary mb-1">
-                    Kỳ trước ({priorRow.period_id}):
+                    Kỳ trước ({formatPeriodCode(priorRow.period_id)}):
                   </div>
                   <RowCellContent
                     row={priorRow}
@@ -359,7 +359,7 @@ function RowCellContent({
             disabled={isMissing}
             onChange={onToggleConfirm}
             className="size-3.5 rounded border-line text-ready focus:ring-ready/40 cursor-pointer disabled:opacity-40"
-            aria-label={`Xác nhận ${row.label_vi} ${row.period_id}`}
+            aria-label={`Xác nhận ${row.label_vi} ${formatPeriodCode(row.period_id)}`}
           />
           <span
             className={`font-mono text-xs font-semibold ${

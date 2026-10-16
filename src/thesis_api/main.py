@@ -61,10 +61,15 @@ from .schemas import (
     FilingSummaryDTO,
 )
 from .filing_ocr import PyMuPDFTesseractPageTextProvider, TesseractNotFoundError
+from .filing_llamaparse import LlamaParseError, LlamaParseProvider
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
-from thesis_data.filing_extract import extract_candidates_from_pages
+from thesis_data.filing_extract import (
+    PageInput,
+    classify_pages,
+    extract_candidates_from_pages,
+)
 from thesis_data.user_upload import (
     generate_ctg_error_sample_csv,
     generate_vib_error_sample_csv,
@@ -678,8 +683,6 @@ def create_app(
 
         def _process_filing() -> None:
             try:
-                provider = getattr(app.state, "filing_page_provider", None) or PyMuPDFTesseractPageTextProvider()
-
                 def _progress_cb(done: int, total: int) -> None:
                     try:
                         meta["progress"] = {"pages_done": done, "page_count": total}
@@ -688,12 +691,97 @@ def create_app(
                     except Exception:
                         pass
 
-                pages = provider.extract_all_pages(
-                    pdf_path,
-                    cache_dir=pages_dir,
-                    max_workers=4,
-                    progress_callback=_progress_cb,
-                )
+                custom_provider = getattr(app.state, "filing_page_provider", None)
+                pages_sent_to_ocr = 0
+
+                if custom_provider is not None:
+                    pages = custom_provider.extract_all_pages(
+                        pdf_path,
+                        cache_dir=pages_dir,
+                        max_workers=4,
+                        progress_callback=_progress_cb,
+                    )
+                    pages_sent_to_ocr = getattr(custom_provider, "total_pages_sent", 0)
+                else:
+                    has_llama_key = bool(
+                        current_settings.llama_cloud_api_key
+                        and current_settings.llama_cloud_api_key.get_secret_value().strip()
+                    )
+                    use_llamaparse = False
+                    if current_settings.ocr_provider == "llamaparse":
+                        use_llamaparse = True
+                    elif current_settings.ocr_provider == "auto" and has_llama_key:
+                        use_llamaparse = True
+
+                    if not use_llamaparse:
+                        provider = PyMuPDFTesseractPageTextProvider()
+                        pages = provider.extract_all_pages(
+                            pdf_path,
+                            cache_dir=pages_dir,
+                            max_workers=4,
+                            progress_callback=_progress_cb,
+                        )
+                        pages_sent_to_ocr = sum(1 for p in pages if p.source == "ocr")
+                    else:
+                        import fitz
+
+                        doc = fitz.open(pdf_path)
+                        total_pages = len(doc)
+                        stage_a_pages: list[PageInput] = []
+                        tesseract_provider = PyMuPDFTesseractPageTextProvider(dpi=100)
+                        tesseract_avail = tesseract_provider.is_tesseract_available()
+
+                        unreadable_pages: list[int] = []
+                        for pno in range(1, total_pages + 1):
+                            page = doc[pno - 1]
+                            txt = page.get_text()
+                            if len(txt.strip()) >= 200 and txt.count("\ufffd") <= 20:
+                                stage_a_pages.append(PageInput(page_number=pno, text=txt, source="text_layer"))
+                            else:
+                                unreadable_pages.append(pno)
+                        doc.close()
+
+                        if unreadable_pages:
+                            if tesseract_avail:
+                                for pno in unreadable_pages:
+                                    page_inp = tesseract_provider.get_page_text(pdf_path, pno, cache_dir=pages_dir)
+                                    stage_a_pages.append(page_inp)
+                            else:
+                                for pno in unreadable_pages:
+                                    stage_a_pages.append(PageInput(page_number=pno, text="", source="text_layer"))
+
+                        stage_a_pages.sort(key=lambda p: p.page_number)
+
+                        stmt_pages = classify_pages(stage_a_pages)
+                        selected_pages = stmt_pages.get_selected_pages_with_overflow(
+                            total_pages=total_pages,
+                            max_pages=current_settings.llama_max_pages_per_filing,
+                        )
+                        if not selected_pages and unreadable_pages and not tesseract_avail:
+                            selected_pages = list(range(1, min(total_pages, current_settings.llama_max_pages_per_filing) + 1))
+
+                        api_key = (
+                            current_settings.llama_cloud_api_key.get_secret_value()
+                            if current_settings.llama_cloud_api_key
+                            else None
+                        )
+                        lp_provider = LlamaParseProvider(
+                            api_key=api_key,
+                            timeout_s=90.0,
+                            max_retries=2,
+                            tesseract_fallback=tesseract_provider if tesseract_avail else None,
+                        )
+                        lp_pages = lp_provider.extract_pages(
+                            pdf_path,
+                            selected_pages,
+                            cache_dir=pages_dir,
+                            progress_callback=_progress_cb,
+                        )
+                        pages_sent_to_ocr = len(selected_pages)
+
+                        lp_map = {p.page_number: p for p in lp_pages}
+                        pages = [lp_map.get(p.page_number, p) for p in stage_a_pages]
+
                 ext = extract_candidates_from_pages(
                     pages,
                     entity_id=clean_entity,
@@ -702,10 +790,22 @@ def create_app(
                     display_name=effective_display,
                     filing_id=filing_id,
                 )
+
+                if pages_sent_to_ocr > 0:
+                    note = f"Đã gửi {pages_sent_to_ocr} trang tới dịch vụ OCR"
+                    if isinstance(ext.limitations_vi, list):
+                        if note not in ext.limitations_vi:
+                            ext.limitations_vi.insert(0, note)
+                    elif isinstance(ext.limitations_vi, str):
+                        ext.limitations_vi = [note, ext.limitations_vi]
+                    else:
+                        ext.limitations_vi = [note]
+
                 meta["status"] = "ready"
                 meta["ocr_provider"] = ext.ocr_provider
                 meta["text_layer_pages"] = ext.text_layer_pages
                 meta["ocr_pages"] = ext.ocr_pages
+                meta["pages_sent_to_ocr"] = pages_sent_to_ocr
                 meta["statement_pages"] = ext.statement_pages.to_dict()
                 meta["unit_detected"] = ext.unit_detected
                 meta["rows"] = [r.to_dict() for r in ext.rows]
@@ -717,6 +817,12 @@ def create_app(
             except TesseractNotFoundError as exc:
                 meta["status"] = "failed"
                 meta["error_code"] = "ocr_unavailable"
+                meta["message_vi"] = str(exc)
+                with open(meta_file, "w", encoding="utf-8") as mf:
+                    json.dump(meta, mf, ensure_ascii=False, indent=2)
+            except LlamaParseError as exc:
+                meta["status"] = "failed"
+                meta["error_code"] = "provider_error"
                 meta["message_vi"] = str(exc)
                 with open(meta_file, "w", encoding="utf-8") as mf:
                     json.dump(meta, mf, ensure_ascii=False, indent=2)

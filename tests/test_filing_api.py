@@ -92,6 +92,7 @@ class TestFilingApi(unittest.TestCase):
             user_uploads_dir=str(self.uploads_dir),
             openai_api_key="test-key",
             planner_mode="rules_only",
+            ocr_provider="tesseract",
         )
 
         self.app = create_app(self.settings)

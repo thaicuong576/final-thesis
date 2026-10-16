@@ -30,9 +30,14 @@ SRC = REPO_ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-RAW_DIR = REPO_ROOT / "data" / "raw" / "official" / "bank-2025-top10-v1"
+# The PDFs are in the root workspace (data/raw/ is gitignored from worktrees).
+# Per the spec: "đường dẫn tuyệt đối vì thư mục này bị git bỏ qua:
+#   D:/eddie-projects/personal-projects/final-thesis/data/raw/official/bank-2025-top10-v1/"
+_RAW_DIR_SPEC = Path("D:/eddie-projects/personal-projects/final-thesis/data/raw/official/bank-2025-top10-v1")
+RAW_DIR = _RAW_DIR_SPEC if _RAW_DIR_SPEC.exists() else REPO_ROOT / "data" / "raw" / "official" / "bank-2025-top10-v1"
+
 GT_DIR = REPO_ROOT / "data" / "onboarding" / "top10-2025"
-CACHE_DIR = REPO_ROOT / "data" / "processed" / "ingest_cache"
+CACHE_DIR = Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/ingest_cache")
 OUT_DIR = REPO_ROOT / "experiments" / "ingest"
 
 BANKS = ["ACB", "BID", "CTG", "HDB", "MBB", "SHB", "STB", "TCB", "VCB", "VPB"]

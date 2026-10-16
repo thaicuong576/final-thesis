@@ -1397,11 +1397,21 @@ class AnalysisEngine:
             if upload_meta is not None and report.status != "error":
                 uploaded_entity = upload_meta.get("entity_id", "").strip().upper()
                 if uploaded_entity:
-                    limitation_label = f"Số liệu {uploaded_entity} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
+                    limitation_label = upload_meta.get("limitations_vi") or f"Số liệu {uploaded_entity} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
+                    generic_label = f"Số liệu {uploaded_entity} do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
                     if limitation_label not in report.limitations:
-                        report.limitations.insert(0, limitation_label)
-                    if report.analysis_plan and limitation_label not in report.analysis_plan.known_limitations:
-                        report.analysis_plan.known_limitations.insert(0, limitation_label)
+                        if generic_label in report.limitations:
+                            idx = report.limitations.index(generic_label)
+                            report.limitations[idx] = limitation_label
+                        else:
+                            report.limitations.insert(0, limitation_label)
+                    if report.analysis_plan:
+                        if limitation_label not in report.analysis_plan.known_limitations:
+                            if generic_label in report.analysis_plan.known_limitations:
+                                idx = report.analysis_plan.known_limitations.index(generic_label)
+                                report.analysis_plan.known_limitations[idx] = limitation_label
+                            else:
+                                report.analysis_plan.known_limitations.insert(0, limitation_label)
             return report
         except AnalysisBlocked as exc:
             return self._attach_fallback_trace(_error_report(exc.code, exc.detail, request, catalog=catalog), request)

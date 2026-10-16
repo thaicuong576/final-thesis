@@ -938,6 +938,116 @@
           }
         }
       }
+    },
+    "/api/onboarding/filings/{filing_id}/rows/{row_id}": {
+      "put": {
+        "summary": "Edit candidate value and/or confirmation status of a filing row",
+        "description": "Update value_billion_vnd or confirmed flag for a specific row and rerun validation.",
+        "operationId": "updateFilingRow",
+        "parameters": [
+          {
+            "name": "filing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "row_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilingRowUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated row and re-evaluated validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingRowUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or parameter"
+          },
+          "404": {
+            "description": "Filing or row not found"
+          },
+          "409": {
+            "description": "Filing is not ready for editing"
+          },
+          "422": {
+            "description": "Invalid decimal or format in row payload"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/onboarding/filings/{filing_id}/confirm": {
+      "post": {
+        "summary": "Confirm filing candidate rows and materialize operational snapshot",
+        "description": "Materialize validated filing rows into an operational snapshot. Idempotent.",
+        "operationId": "confirmFiling",
+        "parameters": [
+          {
+            "name": "filing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation result and recomputed ratios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filing ID"
+          },
+          "404": {
+            "description": "Filing not found"
+          },
+          "409": {
+            "description": "Filing is not ready to confirm"
+          },
+          "422": {
+            "description": "Operational snapshot candidate rejected"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -4227,12 +4337,11 @@
         "required": [
           "row_id",
           "metric_id",
+          "label_vi",
           "period_role",
           "period_id",
-          "raw_text",
-          "row_label",
-          "page",
-          "source",
+          "edited",
+          "confirmed",
           "status",
           "issues",
           "alternatives"
@@ -4259,19 +4368,25 @@
             "nullable": true
           },
           "raw_text": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "row_label": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "page": {
-            "type": "integer"
+            "type": "integer",
+            "nullable": true
           },
           "source": {
             "type": "string",
+            "nullable": true,
             "enum": [
               "text_layer",
-              "ocr"
+              "ocr",
+              "llamaparse",
+              "user"
             ]
           },
           "status": {
@@ -4293,6 +4408,19 @@
             "items": {
               "$ref": "#/components/schemas/FilingRowAlternative"
             }
+          },
+          "label_vi": {
+            "type": "string"
+          },
+          "extracted_value_billion_vnd": {
+            "type": "string",
+            "nullable": true
+          },
+          "edited": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "type": "boolean"
           }
         }
       },
@@ -4384,6 +4512,17 @@
           "created_at": {
             "type": "string",
             "nullable": true
+          },
+          "validation": {
+            "$ref": "#/components/schemas/FilingValidation"
+          },
+          "upload_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "ocr_provider": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4440,6 +4579,107 @@
           },
           "needs_review_count": {
             "type": "integer"
+          }
+        }
+      },
+      "FilingValidationCheck": {
+        "type": "object",
+        "required": [
+          "code",
+          "severity",
+          "message_vi",
+          "row_ids"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          "message_vi": {
+            "type": "string"
+          },
+          "row_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected": {
+            "type": "string",
+            "nullable": true
+          },
+          "actual": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "FilingValidation": {
+        "type": "object",
+        "required": [
+          "status",
+          "ready_to_confirm",
+          "blocking_reasons_vi",
+          "checks"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "warn",
+              "fail"
+            ]
+          },
+          "ready_to_confirm": {
+            "type": "boolean"
+          },
+          "blocking_reasons_vi": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilingValidationCheck"
+            }
+          }
+        }
+      },
+      "FilingRowUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "value_billion_vnd": {
+            "type": "string",
+            "nullable": true
+          },
+          "confirmed": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "FilingRowUpdateResponse": {
+        "type": "object",
+        "required": [
+          "row",
+          "validation"
+        ],
+        "properties": {
+          "row": {
+            "$ref": "#/components/schemas/FilingCandidateRow"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/FilingValidation"
           }
         }
       }

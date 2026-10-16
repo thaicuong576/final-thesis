@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
+import csv
 import dataclasses
+import io
 import json
 import logging
 from pathlib import Path
@@ -57,8 +60,11 @@ from .schemas import (
     FilingProgressDTO,
     FilingRowAlternativeDTO,
     FilingRowIssueDTO,
+    FilingRowUpdateRequest,
+    FilingRowUpdateResponse,
     FilingStatementPagesDTO,
     FilingSummaryDTO,
+    FilingValidationDTO,
 )
 from .filing_ocr import PyMuPDFTesseractPageTextProvider, TesseractNotFoundError
 from .filing_llamaparse import LlamaParseError, LlamaParseProvider
@@ -70,6 +76,7 @@ from thesis_data.filing_extract import (
     classify_pages,
     extract_candidates_from_pages,
 )
+from thesis_data.filing_validate import validate_filing_rows
 from thesis_data.user_upload import (
     generate_ctg_error_sample_csv,
     generate_vib_error_sample_csv,
@@ -809,7 +816,8 @@ def create_app(
                 meta["statement_pages"] = ext.statement_pages.to_dict()
                 meta["unit_detected"] = ext.unit_detected
                 meta["rows"] = [r.to_dict() for r in ext.rows]
-                meta["validation"] = ext.validation
+                val = validate_filing_rows(ext.rows, page_texts={p.page_number: p.text for p in pages})
+                meta["validation"] = val.to_dict()
                 meta["limitations_vi"] = ext.limitations_vi
                 meta["progress"] = {"pages_done": page_count, "page_count": page_count}
                 with open(meta_file, "w", encoding="utf-8") as mf:
@@ -974,6 +982,313 @@ def create_app(
             ) from exc
 
         return Response(content=png_bytes, media_type="image/png")
+
+    @app.put(
+        "/api/onboarding/filings/{filing_id}/rows/{row_id}",
+        response_model=FilingRowUpdateResponse,
+        summary="Update and/or confirm a candidate row in a filing",
+    )
+    def update_filing_row(
+        filing_id: str,
+        row_id: str,
+        payload: FilingRowUpdateRequest,
+    ) -> FilingRowUpdateResponse:
+        """Update value and/or confirmation status for a specific filing row, re-running validation."""
+        clean_id = filing_id.strip()
+        if not re.fullmatch(r"^fl-[a-f0-9]{12}$", clean_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mã filing '{filing_id}' không hợp lệ.",
+            )
+
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filing_dir = uploads_dir / "filings" / clean_id
+        meta_file = filing_dir / "meta.json"
+        if not meta_file.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Filing '{clean_id}' không tồn tại.",
+            )
+
+        try:
+            with open(meta_file, encoding="utf-8") as f:
+                meta = json.load(f)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi đọc dữ liệu tệp filing: {str(exc)}",
+            ) from exc
+
+        if meta.get("status") != "ready":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Filing không ở trạng thái sẵn sàng (ready) để chỉnh sửa.",
+            )
+
+        # Find target row
+        target_row: Optional[dict[str, Any]] = None
+        for r in meta.get("rows", []):
+            if r.get("row_id") == row_id:
+                target_row = r
+                break
+
+        if target_row is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Dòng '{row_id}' không tồn tại trong filing.",
+            )
+
+        # Validate decimal format of value_billion_vnd if provided
+        val_str = payload.value_billion_vnd
+        val_dec: Optional[Decimal] = None
+        if val_str is not None:
+            v_cleaned = val_str.strip()
+            if v_cleaned == "":
+                val_str = None
+            else:
+                try:
+                    val_dec = Decimal(v_cleaned)
+                except (InvalidOperation, ValueError):
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Giá trị '{val_str}' không phải là số thập phân hợp lệ.",
+                    )
+                if val_dec.is_nan() or val_dec.is_infinite():
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Giá trị không được là NaN hoặc vô cực.",
+                    )
+                parts = v_cleaned.split(".")
+                if len(parts) == 2 and len(parts[1]) > 6:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Giá trị vượt quá độ chính xác tối đa (tối đa 6 chữ số thập phân).",
+                    )
+                metric_id = target_row.get("metric_id", "")
+                if metric_id not in ("bank.input.profit_after_tax", "bank.input.parent_attributable_profit") and val_dec < Decimal("0"):
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Chỉ tiêu {target_row.get('label_vi', metric_id)} không được mang giá trị âm.",
+                    )
+                val_str = v_cleaned
+
+        extracted_val = target_row.get("extracted_value_billion_vnd")
+        if val_str != extracted_val:
+            target_row["edited"] = True
+            target_row["source"] = "user"
+
+        target_row["value_billion_vnd"] = val_str
+        target_row["confirmed"] = payload.confirmed
+
+        # Load page text cache if available
+        page_texts: dict[int, str] = {}
+        pages_cache_dir = filing_dir / "pages"
+        if pages_cache_dir.exists():
+            for p_file in pages_cache_dir.glob("p*.txt"):
+                m = re.search(r"p(\d+)\.txt", p_file.name)
+                if m:
+                    try:
+                        page_texts[int(m.group(1))] = p_file.read_text(encoding="utf-8")
+                    except Exception:
+                        pass
+
+        # Re-run full validation
+        val_res = validate_filing_rows(meta.get("rows", []), page_texts=page_texts)
+        meta["validation"] = val_res.to_dict()
+
+        # Update row status based on value and issues
+        if target_row["value_billion_vnd"] is None:
+            target_row["status"] = "missing"
+        elif any(row_id in c.row_ids and c.severity in ("error", "warning") for c in val_res.checks):
+            target_row["status"] = "needs_review"
+        else:
+            target_row["status"] = "candidate"
+
+        try:
+            with open(meta_file, "w", encoding="utf-8") as f:
+                json.dump(meta, f, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi lưu trữ filing: {str(exc)}",
+            ) from exc
+
+        return FilingRowUpdateResponse(
+            row=FilingCandidateRowDTO.model_validate(target_row),
+            validation=FilingValidationDTO.model_validate(val_res.to_dict()),
+        )
+
+    @app.post(
+        "/api/onboarding/filings/{filing_id}/confirm",
+        response_model=UploadResponseDTO,
+        summary="Confirm candidate rows and materialize operational snapshot",
+    )
+    def confirm_filing(filing_id: str) -> UploadResponseDTO:
+        """Confirm filing into an operational SQLite snapshot once ready_to_confirm is true."""
+        clean_id = filing_id.strip()
+        if not re.fullmatch(r"^fl-[a-f0-9]{12}$", clean_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mã filing '{filing_id}' không hợp lệ.",
+            )
+
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filing_dir = uploads_dir / "filings" / clean_id
+        meta_file = filing_dir / "meta.json"
+        if not meta_file.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Filing '{clean_id}' không tồn tại.",
+            )
+
+        try:
+            with open(meta_file, encoding="utf-8") as f:
+                meta = json.load(f)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi đọc dữ liệu tệp filing: {str(exc)}",
+            ) from exc
+
+        # Idempotency check: if already confirmed, return existing upload
+        existing_upload_id = meta.get("upload_id")
+        if existing_upload_id:
+            existing_upload_file = uploads_dir / f"{existing_upload_id}.json"
+            if existing_upload_file.exists():
+                try:
+                    with open(existing_upload_file, encoding="utf-8") as f:
+                        data = json.load(f)
+                    return UploadResponseDTO.model_validate(data)
+                except Exception:
+                    pass
+
+        # Check readiness
+        val_res = validate_filing_rows(meta.get("rows", []))
+        if not val_res.ready_to_confirm:
+            reasons = "; ".join(val_res.blocking_reasons_vi) if val_res.blocking_reasons_vi else "Filing chưa hoàn thành kiểm tra hoặc chưa được xác nhận đủ 20 dòng."
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Filing chưa sẵn sàng để xác nhận: {reasons}",
+            )
+
+        clean_entity = meta.get("entity_id", "").strip().upper()
+        clean_name = meta.get("display_name") or clean_entity
+
+        # Build CSV according to UPLOAD-1 format
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+        writer.writerow([
+            "observation_id",
+            "entity_id",
+            "metric_id",
+            "value",
+            "unit",
+            "period_id",
+            "period_basis",
+            "reporting_scope",
+            "source_locator",
+            "source_url",
+            "source_sha256",
+        ])
+
+        source_url = meta.get("source_url") or f"urn:filing:{clean_id}:{meta.get('filename', 'source.pdf')}"
+        source_sha256 = meta.get("sha256", "")
+        scope = meta.get("reporting_scope", "consolidated")
+
+        for r in meta.get("rows", []):
+            m_id = r["metric_id"]
+            p_id = r["period_id"]
+            val = r.get("value_billion_vnd", "")
+            p_basis = "annual" if m_id in ("bank.input.profit_after_tax", "bank.input.parent_attributable_profit") else "point_in_time"
+            page = r.get("page") or 1
+            label = r.get("row_label") or r.get("raw_text") or r.get("label_vi") or m_id
+            locator = f"pdf_page={page}; row={label}"
+            obs_id = f"{clean_entity.lower()}-{m_id.replace('.', '-')}-{p_id.lower()}"
+            writer.writerow([
+                obs_id,
+                clean_entity,
+                m_id,
+                val,
+                "billion_vnd",
+                p_id,
+                p_basis,
+                scope,
+                locator,
+                source_url,
+                source_sha256,
+            ])
+
+        csv_content = csv_buffer.getvalue()
+        csv_bytes = csv_content.encode("utf-8")
+
+        upload_id = f"up-{uuid.uuid4().hex[:12]}"
+        upload_result = validate_and_parse_upload_csv(
+            csv_bytes,
+            upload_id=upload_id,
+            form_entity_id=clean_entity,
+            form_display_name=clean_name,
+        )
+
+        if upload_result.status == "rejected":
+            translated_issues = []
+            rows_list = meta.get("rows", [])
+            for iss in upload_result.row_issues:
+                iss_dict = iss.to_dict()
+                if 1 <= iss.row <= len(rows_list):
+                    iss_dict["row_id"] = rows_list[iss.row - 1].get("row_id")
+                translated_issues.append(iss_dict)
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={
+                    "detail": "Snapshot bị từ chối trong quá trình kiểm tra cấu trúc và tính toán lại chỉ tiêu.",
+                    "row_issues": translated_issues,
+                },
+            )
+
+        # Materialize SQLite snapshot
+        sqlite_path = uploads_dir / f"{upload_id}.sqlite"
+        try:
+            materialize_user_upload_snapshot(upload_result, sqlite_path)
+        except Exception as exc:
+            logger.error("Failed to materialize filing operational snapshot %s: %s", upload_id, exc)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi khởi tạo cơ sở dữ liệu snapshot vận hành: {str(exc)}",
+            ) from exc
+
+        # Limitation: UPLOAD-1 label + PDF extraction provenance statement
+        pdf_provenance_sentence = "Số liệu được trích từ tệp PDF do người dùng tải lên và xác nhận."
+        full_limitations = f"{upload_result.limitations_vi} {pdf_provenance_sentence}".strip()
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        upload_meta = {
+            "upload_id": upload_id,
+            "entity_id": clean_entity,
+            "display_name": clean_name,
+            "status": upload_result.status,
+            "period_id": upload_result.period_id,
+            "created_at": now_iso,
+            "metrics": [m.to_dict() for m in upload_result.metrics],
+            "limitations_vi": full_limitations,
+            "source_type": "filing",
+            "filing_id": clean_id,
+        }
+
+        # Save upload metadata and CSV
+        upload_meta_file = uploads_dir / f"{upload_id}.json"
+        upload_csv_file = uploads_dir / f"{upload_id}.csv"
+        with open(upload_meta_file, "w", encoding="utf-8") as f:
+            json.dump(upload_meta, f, ensure_ascii=False, indent=2)
+        with open(upload_csv_file, "wb") as f:
+            f.write(csv_bytes)
+
+        # Update filing meta with upload_id
+        meta["upload_id"] = upload_id
+        meta["limitations_vi"] = [full_limitations]
+        with open(meta_file, "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+
+        return UploadResponseDTO.model_validate(upload_meta)
 
     @app.get(
         "/api/onboarding/template.csv",

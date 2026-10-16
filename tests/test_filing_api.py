@@ -15,7 +15,23 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
+try:
+    from tests.test_api_analyze import (
+        _ExplicitOfflineAcceptingCritic,
+        _ExplicitOfflineAnalysisWriter,
+        _gold_fixture,
+    )
+    from tests.test_new_bank_upload import _scope_fixture_provider_binding
+except ImportError:
+    from test_api_analyze import (  # type: ignore
+        _ExplicitOfflineAcceptingCritic,
+        _ExplicitOfflineAnalysisWriter,
+        _gold_fixture,
+    )
+    from test_new_bank_upload import _scope_fixture_provider_binding  # type: ignore
+
 from thesis_api.main import create_app
+from thesis_api.schemas import AnalysisRequest, AnalysisResponse
 from thesis_api.service import AnalysisEngine
 from thesis_api.settings import Settings
 
@@ -84,10 +100,13 @@ class TestFilingApi(unittest.TestCase):
         self.uploads_dir = self.base_dir / "user_uploads"
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
 
+        self.gold_db_path = _gold_fixture(self.base_dir / "accepted-gold.sqlite")
+
         self.settings = Settings(
+            _env_file=None,
             app_name="final-thesis-filing-api-test",
             app_env="test",
-            sqlite_db_path=":memory:",
+            sqlite_db_path=str(self.gold_db_path),
             analysis_runs_db_path=str(self.base_dir / "runs.sqlite"),
             user_uploads_dir=str(self.uploads_dir),
             openai_api_key="test-key",
@@ -95,7 +114,16 @@ class TestFilingApi(unittest.TestCase):
             ocr_provider="tesseract",
         )
 
-        self.app = create_app(self.settings)
+        self.test_critic = _ExplicitOfflineAcceptingCritic()
+        self.critic_factory_patch = patch(
+            "thesis_api.adaptive_runtime.build_openai_semantic_critic",
+            return_value=self.test_critic,
+        )
+        self.critic_factory_patch.start()
+        self.addCleanup(self.critic_factory_patch.stop)
+
+        self.writer = _ExplicitOfflineAnalysisWriter()
+        self.app = create_app(self.settings, analysis_writer=self.writer)
         # Enable synchronous execution for fast deterministic test processing
         self.app.state.filing_sync_execution = True
 
@@ -263,6 +291,181 @@ class TestFilingApi(unittest.TestCase):
             self.assertIn("Tesseract OCR", detail["message_vi"])
         finally:
             self.app.state.filing_page_provider = None
+
+    def test_filing_edit_row_and_confirm_flow(self) -> None:
+        pdf_bytes = _create_synthetic_filing_pdf()
+
+        # 1. POST /api/onboarding/filings -> 202
+        resp = self.client.post(
+            "/api/onboarding/filings",
+            files={"file": ("vib_2025.pdf", io.BytesIO(pdf_bytes), "application/pdf")},
+            data={
+                "entity_id": "VIB",
+                "display_name": "Ngân hàng TMCP Quốc tế Việt Nam",
+                "fiscal_year": 2025,
+                "reporting_scope": "consolidated",
+            },
+        )
+        self.assertEqual(resp.status_code, 202)
+        filing_id = resp.json()["filing_id"]
+
+        # Detail initially ready with candidate rows
+        detail = self.client.get(f"/api/onboarding/filings/{filing_id}").json()
+        self.assertEqual(detail["status"], "ready")
+        self.assertFalse(detail["validation"]["ready_to_confirm"])
+
+        # 2. Confirm before all rows confirmed -> 409 Conflict
+        bad_confirm = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(bad_confirm.status_code, 409)
+        self.assertIn("chưa sẵn sàng", bad_confirm.json()["detail"])
+
+        # 3. PUT row validation edge cases:
+        # Invalid row_id format / not found
+        bad_row = self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/unknown_metric:target",
+            json={"value_billion_vnd": "100.0", "confirmed": True},
+        )
+        self.assertEqual(bad_row.status_code, 404)
+
+        # Invalid decimal string
+        bad_decimal = self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/bank.input.total_assets:target",
+            json={"value_billion_vnd": "1,000,000", "confirmed": True},
+        )
+        self.assertEqual(bad_decimal.status_code, 422)
+
+        # Negative value for non-PAT metric
+        neg_val = self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/bank.input.total_assets:target",
+            json={"value_billion_vnd": "-500.0", "confirmed": True},
+        )
+        self.assertEqual(neg_val.status_code, 422)
+
+        # 4. Edit a row: change value, check edited=True, source="user"
+        edit_resp = self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/bank.input.gross_customer_loans:target",
+            json={"value_billion_vnd": "600000.000", "confirmed": True},
+        )
+        self.assertEqual(edit_resp.status_code, 200)
+        res_data = edit_resp.json()
+        row = res_data["row"]
+        self.assertEqual(row["value_billion_vnd"], "600000.000")
+        self.assertTrue(row["confirmed"])
+
+        # Edit value
+        edit_change = self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/bank.input.gross_customer_loans:target",
+            json={"value_billion_vnd": "600050.000", "confirmed": True},
+        )
+        self.assertEqual(edit_change.status_code, 200)
+        row2 = edit_change.json()["row"]
+        self.assertTrue(row2["edited"])
+        self.assertEqual(row2["source"], "user")
+
+        # Revert back to 600000.000 for accounting consistency
+        self.client.put(
+            f"/api/onboarding/filings/{filing_id}/rows/bank.input.gross_customer_loans:target",
+            json={"value_billion_vnd": "600000.000", "confirmed": True},
+        )
+
+        # 5. Confirm all 20 rows
+        for r in detail["rows"]:
+            row_id = r["row_id"]
+            val = r["value_billion_vnd"]
+            put_res = self.client.put(
+                f"/api/onboarding/filings/{filing_id}/rows/{row_id}",
+                json={"value_billion_vnd": val, "confirmed": True},
+            )
+            self.assertEqual(put_res.status_code, 200)
+
+        # Now validation should be ready_to_confirm = True
+        detail_after = self.client.get(f"/api/onboarding/filings/{filing_id}").json()
+        self.assertTrue(detail_after["validation"]["ready_to_confirm"])
+        self.assertEqual(detail_after["validation"]["status"], "pass")
+
+        # 6. POST /api/onboarding/filings/{filing_id}/confirm -> 200 UploadResponse
+        confirm_resp = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(confirm_resp.status_code, 200)
+        confirm_body = confirm_resp.json()
+        self.assertEqual(confirm_body["status"], "accepted")
+        self.assertEqual(confirm_body["entity_id"], "VIB")
+        self.assertEqual(confirm_body["period_id"], "2025_Q4")
+        upload_id = confirm_body["upload_id"]
+        self.assertTrue(upload_id.startswith("up-"))
+        self.assertGreaterEqual(len(confirm_body["metrics"]), 4)
+
+        # 7. Idempotent second call -> returns exact same upload_id
+        confirm_again = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(confirm_again.status_code, 200)
+        self.assertEqual(confirm_again.json()["upload_id"], upload_id)
+
+        # 8. Detail reflects upload_id
+        detail_final = self.client.get(f"/api/onboarding/filings/{filing_id}").json()
+        self.assertEqual(detail_final["upload_id"], upload_id)
+
+        # 9. GET /api/onboarding/uploads/{upload_id}
+        upl_detail = self.client.get(f"/api/onboarding/uploads/{upload_id}")
+        self.assertEqual(upl_detail.status_code, 200)
+        self.assertEqual(upl_detail.json()["upload_id"], upload_id)
+
+        # 10. POST /api/analyze with upload_id
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=_scope_fixture_provider_binding,
+        ):
+            analyze_resp = self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Tỷ lệ nợ xấu của VIB năm 2025 là bao nhiêu?",
+                    "target_ticker": "VIB",
+                    "period": "2025_Q4",
+                    "upload_id": upload_id,
+                },
+            )
+        self.assertEqual(analyze_resp.status_code, 200)
+        report_data = analyze_resp.json()
+        report = AnalysisResponse.model_validate(report_data)
+        self.assertEqual(report.status, "completed")
+        self.assertEqual(report.analysis_plan.target_ticker, "VIB")
+
+        # Provenance sentence must be in limitations
+        pdf_sentence = "Số liệu được trích từ tệp PDF do người dùng tải lên và xác nhận."
+        self.assertTrue(
+            any(pdf_sentence in lim for lim in report.limitations),
+            f"Expected '{pdf_sentence}' in limitations: {report.limitations}",
+        )
+        upload_sentence = "Số liệu VIB do người dùng cung cấp; hệ thống đã kiểm tra cấu trúc, nguồn và tính lại chỉ tiêu, chưa được duyệt độc lập như bộ Gold."
+        self.assertTrue(
+            any(upload_sentence in lim for lim in report.limitations),
+            f"Expected '{upload_sentence}' in limitations: {report.limitations}",
+        )
+
+    def test_filing_confirm_rejection_when_accounting_fails(self) -> None:
+        pdf_bytes = _create_synthetic_filing_pdf()
+        resp = self.client.post(
+            "/api/onboarding/filings",
+            files={"file": ("vib_err.pdf", io.BytesIO(pdf_bytes), "application/pdf")},
+            data={"entity_id": "VIB", "fiscal_year": 2025, "reporting_scope": "consolidated"},
+        )
+        self.assertEqual(resp.status_code, 202)
+        filing_id = resp.json()["filing_id"]
+
+        detail = self.client.get(f"/api/onboarding/filings/{filing_id}").json()
+
+        # Mutate total assets to 5.0 (magnitude_range fail: < 100)
+        for r in detail["rows"]:
+            row_id = r["row_id"]
+            val = r["value_billion_vnd"]
+            if row_id == "bank.input.total_assets:target":
+                val = "5.000"
+            self.client.put(
+                f"/api/onboarding/filings/{filing_id}/rows/{row_id}",
+                json={"value_billion_vnd": val, "confirmed": True},
+            )
+
+        # Confirm should be blocked with 409 Conflict
+        blocked_resp = self.client.post(f"/api/onboarding/filings/{filing_id}/confirm")
+        self.assertEqual(blocked_resp.status_code, 409)
 
 
 if __name__ == "__main__":

@@ -117,6 +117,18 @@ export function fmtPeriod(period: string | null | undefined): string {
   return p;
 }
 
+export function formatPeriodCode(period: string | null | undefined): string {
+  if (!period) return '';
+  const p = String(period).trim();
+  const m = /^(\d{4})_Q([1-4])$/i.exec(p);
+  if (m) return `Q${m[2]}/${m[1]}`;
+  const m2 = /^Q([1-4])_(\d{4})$/i.exec(p);
+  if (m2) return `Q${m2[1]}/${m2[2]}`;
+  const m3 = /^(\d{4})Q([1-4])$/i.exec(p);
+  if (m3) return `Q${m3[2]}/${m3[1]}`;
+  return p;
+}
+
 export function fmtPeriodRange(periods: string[] | string | null | undefined): string {
   if (!periods) return '';
   if (typeof periods === 'string') {

@@ -1128,3 +1128,21 @@ Rule: classify a run as invalid only from a status count over all rows plus the 
 - **Root Cause**: PowerShell string interpolation expands `$ref` as an undefined PowerShell variable (evaluating to empty string `""`), erasing the JSON key.
 - **Solution**: Use dedicated script files (`scripts/*.py`) or single-quoted PowerShell strings without interpolation when dealing with JSON Schema `$ref` keys.
 
+## [LESSON-057] Scanned PDF Ingestion, Tesseract OCR Heuristics, and Worktree Evidence Paths
+
+- Date: 2026-10-16
+- Scope: `src/thesis_data/filing_extract.py`, `src/thesis_api/filing_ocr.py`, `scripts/ingest_eval.py`
+- Status: ACTIVE
+
+### 1. Scanned Image PDFs vs Native Text Layers in Vietnamese Bank Filings
+- **Symptom**: 8 out of 10 audited FY2025 bank filings had 0 native text-layer pages; the remaining 2 had only 1–2 text pages (signatures/covers). Pure text extraction without OCR yields empty candidate pools.
+- **Solution**: Multi-tier `PageTextProvider` architecture. If text layer contains >= 200 characters, use native text (`source="text_layer"`). Otherwise, render page at 200 DPI via PyMuPDF and invoke Tesseract CLI (`-l eng --psm 6`, `source="ocr"`). Persist per-page OCR cache to avoid re-rendering.
+
+### 2. Grouped Financial Amounts vs Note Numbers and Percentages
+- **Symptom**: Financial statements contain row identifiers ("Nhóm 3 - Nợ dưới tiêu chuẩn"), note references ("Thuyết minh 10"), and ratio percentages ("0,19%") on the same row as multi-billion VND balances ("4.473.881"). Naive regex tokenization extracts small integers as balances.
+- **Solution**: Distinguish 3-digit thousands-grouped patterns (`_AMOUNT_GROUPED_RE = r"\(?\s*\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?\s*\)?"`) from arbitrary numbers. Prioritize grouped values in line amount extraction.
+
+### 3. Worktree Raw Evidence Paths
+- **Symptom**: `data/raw/` is gitignored and not cloned into Git worktrees. Scripts relying on relative `Path("data/raw/...")` fail with `pdf_not_found`.
+- **Solution**: In accordance with Operating Principle 2 and PR-1 specifications, evaluation scripts must accept an explicit evidence root or resolve the canonical root workspace evidence path (`D:/eddie-projects/personal-projects/final-thesis/data/raw/official/...`).
+

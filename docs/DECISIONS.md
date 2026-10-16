@@ -1811,3 +1811,19 @@ Status: Accepted (2026-10-14). Scope: application-layer authentication (`src/the
 
 
 
+
+## D-086: Filing ingestion pipeline (PDF → OCR → candidates → validation → user confirmation → operational snapshot)
+
+Status: Accepted (2026-10-16, user request). Scope: product runtime; refines D-082 point 3. Gold v5 and evaluation methodology are unchanged.
+
+### Context
+
+The product must be a usable application, not only a CSV loader: a user supplies a bank's financial statements (PDF), and the system digitises, screens, validates and loads them so the multi-agent analysis can answer questions about that bank. Measured facts: all 10 audited FY2025 filings and both sample new-bank filings are scanned images (0-2 pages with a text layer); E5 showed OCR reads digits well (652/700 values present in OCR text) while naive row matching is only 52% correct.
+
+### Decision
+
+1. D-082 point 3 (no automated unverified OCR ingestion) is refined, not repealed: an ingestion pipeline is allowed because extracted values never reach analysis as accepted data until every gate below passes. OCR/extraction output is a **candidate** with page locator and source kind (`text_layer` or `ocr`).
+2. Gates in order: (a) deterministic extraction on page text with unit normalisation to billion VND; (b) deterministic accounting checks (identities, ranges, two-period consistency) per row; (c) explicit user confirmation or edit of every row used; (d) promotion through the existing UPLOAD-1 path (D-077): versioned formula recomputation with calculation receipts into an isolated operational SQLite snapshot.
+3. A language model may not produce or alter numbers in this pipeline. Reports on ingested data keep the user-supplied limitation label; the uploaded bank stays outside the Gold median and rankings.
+4. v1 scope: annual audited statements (target `<year>_Q4`, prior `<year-1>_Q4`), ten inputs of UPLOAD-1. Interim quarterly filings are out of v1. Accuracy of extraction is measured on the ten audited FY2025 filings and reported as-is (`experiments/ingest/RESULTS.md`).
+5. OCR runtime: Tesseract invoked by an API adapter. Deploying it on Render requires a Docker runtime change, which is a separate user-approved production step.

@@ -17,13 +17,11 @@ export function SampleSelectorModal({
   onOpenSample,
 }: SampleSelectorModalProps) {
   const [samples, setSamples] = useState<FilingSample[]>(FILING_SAMPLES);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [openingId, setOpeningId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    setIsLoading(true);
     listFilingSamples()
       .then((data) => {
         if (!cancelled && data && data.length > 0) {
@@ -32,9 +30,6 @@ export function SampleSelectorModal({
       })
       .catch(() => {
         if (!cancelled) setSamples(FILING_SAMPLES);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
       });
 
     return () => {
@@ -86,13 +81,7 @@ export function SampleSelectorModal({
           Bộ mẫu cho phép trình diễn trực tiếp các bước kiểm tra, xem trang đối chiếu và sửa số mà không cần tải lên tệp PDF hoặc chờ quét OCR.
         </p>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center p-6 text-xs text-ink-secondary gap-2">
-            <Loader2 className="size-4 animate-spin text-amber-border" />
-            <span>Đang tải danh sách mẫu…</span>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
+        <div className="space-y-2.5">
             {samples.map((s) => {
               const isOpening = openingId === s.sample_id;
               return (
@@ -137,7 +126,6 @@ export function SampleSelectorModal({
               );
             })}
           </div>
-        )}
 
         <div className="border-t border-line pt-3 flex justify-end">
           <Button

@@ -41,6 +41,13 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
   const [confirmResult, setConfirmResult] = useState<ConfirmResult | null>(null);
   const [isSampleModalOpen, setIsSampleModalOpen] = useState<boolean>(false);
 
+  // Active page to view (selected by user or defaulted to first statement page)
+  const activePage =
+    selectedPage ??
+    filing?.statement_pages?.balance_sheet?.[0] ??
+    filing?.rows?.find((r) => r.page !== null)?.page ??
+    1;
+
   // Collapsed step toggles
   const [isUploadCollapsed, setIsUploadCollapsed] = useState<boolean>(false);
 
@@ -69,7 +76,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
             1;
           setSelectedPage(firstPage);
         }
-      } catch (err) {
+      } catch {
         // If API fails (e.g. offline testing), keep current state
       }
     };
@@ -83,18 +90,6 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
       }
     };
   }, [filing?.filing_id, filing?.status, selectedPage]);
-
-  // Set default selected page when entering ready
-  useEffect(() => {
-    if (filing?.status === 'ready' && !selectedPage) {
-      const p =
-        filing.statement_pages.balance_sheet[0] ||
-        filing.statement_pages.income_statement[0] ||
-        filing.rows.find((r) => r.page !== null)?.page ||
-        1;
-      setSelectedPage(p);
-    }
-  }, [filing, selectedPage]);
 
   // Handler: Start upload
   const handleStartUpload = async (
@@ -229,7 +224,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
       const result = await confirmFiling(filing.filing_id);
       setConfirmResult(result);
       if (onFilingConfirmed) onFilingConfirmed(result);
-    } catch (err) {
+    } catch {
       // Offline fallback for testing
       const mockResult: ConfirmResult = {
         upload_id: `up-${filing.filing_id.slice(-8)}`,
@@ -402,7 +397,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
             </div>
             <StatementPagesChips
               pages={filing.statement_pages}
-              selectedPage={selectedPage}
+              selectedPage={activePage}
               onSelectPage={setSelectedPage}
             />
           </div>
@@ -426,7 +421,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
                   rows={filing.rows}
                   onUpdateRow={handleUpdateRow}
                   onSelectPage={setSelectedPage}
-                  selectedPage={selectedPage}
+                  selectedPage={activePage}
                   highlightedRowIds={highlightedRowIds}
                 />
               </div>
@@ -435,7 +430,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
               <div className="lg:col-span-5 lg:sticky lg:top-4">
                 <PageImageViewer
                   filingId={filing.filing_id}
-                  pageNumber={selectedPage}
+                  pageNumber={activePage}
                   onClose={() => setSelectedPage(null)}
                 />
               </div>

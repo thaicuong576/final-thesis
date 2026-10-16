@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, RefreshCw, ZoomIn, ZoomOut, FileImage, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { apiFetch } from '@/shared/api/apiClient';
 import { filingPageImageUrl } from '../api/filingService';
 
 interface PageImageViewerProps {
@@ -8,6 +9,13 @@ interface PageImageViewerProps {
   pageNumber: number | null;
   onClose?: () => void;
   className?: string;
+}
+
+// In-memory cache by `${filingId}:${pageNumber}` so reopening a page is instant
+const pageImageCache = new Map<string, Blob>();
+
+export function clearPageImageCache(): void {
+  pageImageCache.clear();
 }
 
 export function PageImageViewer({
@@ -20,6 +28,60 @@ export function PageImageViewer({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
   const [reloadKey, setReloadKey] = useState<number>(0);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pageNumber) {
+      setObjectUrl(null);
+      setIsLoading(false);
+      setHasError(false);
+      return;
+    }
+
+    let isCancelled = false;
+    let localUrl: string | null = null;
+    const cacheKey = `${filingId}:${pageNumber}`;
+
+    const cachedBlob = pageImageCache.get(cacheKey);
+    if (cachedBlob) {
+      localUrl = URL.createObjectURL(cachedBlob);
+      setObjectUrl(localUrl);
+      setIsLoading(false);
+      setHasError(false);
+    } else {
+      setIsLoading(true);
+      setHasError(false);
+
+      apiFetch(filingPageImageUrl(filingId, pageNumber))
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          return res.blob();
+        })
+        .then((blob) => {
+          if (isCancelled) return;
+          pageImageCache.set(cacheKey, blob);
+          localUrl = URL.createObjectURL(blob);
+          setObjectUrl(localUrl);
+          setIsLoading(false);
+          setHasError(false);
+        })
+        .catch(() => {
+          if (isCancelled) return;
+          setObjectUrl(null);
+          setIsLoading(false);
+          setHasError(true);
+        });
+    }
+
+    return () => {
+      isCancelled = true;
+      if (localUrl) {
+        URL.revokeObjectURL(localUrl);
+      }
+    };
+  }, [filingId, pageNumber, reloadKey]);
 
   if (!pageNumber) {
     return (
@@ -35,9 +97,10 @@ export function PageImageViewer({
     );
   }
 
-  const imageUrl = `${filingPageImageUrl(filingId, pageNumber)}?k=${reloadKey}`;
-
   const handleRetry = () => {
+    if (pageNumber) {
+      pageImageCache.delete(`${filingId}:${pageNumber}`);
+    }
     setHasError(false);
     setIsLoading(true);
     setReloadKey((k) => k + 1);
@@ -126,21 +189,15 @@ export function PageImageViewer({
             </Button>
           </div>
         ) : (
-          <img
-            key={imageUrl}
-            src={imageUrl}
-            alt={`Ảnh trang ${pageNumber} báo cáo tài chính`}
-            onLoad={() => {
-              setIsLoading(false);
-              setHasError(false);
-            }}
-            onError={() => {
-              setIsLoading(false);
-              setHasError(true);
-            }}
-            style={{ width: `${zoom}%`, maxWidth: 'none' }}
-            className="rounded border border-line bg-white shadow-sm transition-all duration-150 select-none object-contain"
-          />
+          objectUrl && (
+            <img
+              key={objectUrl}
+              src={objectUrl}
+              alt={`Ảnh trang ${pageNumber} báo cáo tài chính`}
+              style={{ width: `${zoom}%`, maxWidth: 'none' }}
+              className="rounded border border-line bg-white shadow-sm transition-all duration-150 select-none object-contain"
+            />
+          )
         )}
       </div>
 

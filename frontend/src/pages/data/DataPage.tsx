@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Database, Loader2 } from 'lucide-react';
 import { WorkspaceShell } from '@/components/layout/WorkspaceShell';
@@ -6,6 +6,7 @@ import { PageCrumbs } from '@/components/layout/PageCrumbs';
 import { Button } from '@/components/ui/button';
 import { useAnalysisCapabilities } from '@/features/create-analysis/hooks/useAnalysisCapabilities';
 import { BankUploadSection } from '@/features/onboarding/BankUploadSection';
+import { FilingWizard } from '@/features/ingest';
 import type { CoverageItem, Entity, Metric } from '@/entities/capability/model/types';
 import { analyticalPeriodIds, formatQuarter } from '@/entities/capability/model/coverage';
 
@@ -165,6 +166,7 @@ function CoverageMatrix({ coverage, entities, periodIds }: MatrixProps) {
 
 export function DataPage() {
   const capabilitiesQuery = useAnalysisCapabilities();
+  const [uploadMethod, setUploadMethod] = useState<'pdf' | 'csv'>('pdf');
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -312,7 +314,52 @@ export function DataPage() {
                 </dl>
               </section>
 
-              <BankUploadSection capabilities={capabilities} />
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2 border-b border-line pb-2" role="tablist" aria-label="Phương thức nạp số liệu ngân hàng mới">
+                  <button
+                    type="button"
+                    role="tab"
+                    id="tab-ingest-pdf"
+                    aria-selected={uploadMethod === 'pdf'}
+                    aria-controls="panel-ingest-pdf"
+                    onClick={() => setUploadMethod('pdf')}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                      uploadMethod === 'pdf'
+                        ? 'bg-amber text-ink border border-amber-border shadow-tactile'
+                        : 'bg-surface-secondary text-ink-secondary hover:bg-surface-hover border border-line'
+                    }`}
+                  >
+                    Báo cáo tài chính PDF (Đường ống OCR)
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    id="tab-ingest-csv"
+                    aria-selected={uploadMethod === 'csv'}
+                    aria-controls="panel-ingest-csv"
+                    onClick={() => setUploadMethod('csv')}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                      uploadMethod === 'csv'
+                        ? 'bg-amber text-ink border border-amber-border shadow-tactile'
+                        : 'bg-surface-secondary text-ink-secondary hover:bg-surface-hover border border-line'
+                    }`}
+                  >
+                    Tệp bảng tính CSV (Đã đối chiếu sẵn)
+                  </button>
+                </div>
+
+                <div
+                  id={uploadMethod === 'pdf' ? 'panel-ingest-pdf' : 'panel-ingest-csv'}
+                  role="tabpanel"
+                  aria-labelledby={uploadMethod === 'pdf' ? 'tab-ingest-pdf' : 'tab-ingest-csv'}
+                >
+                  {uploadMethod === 'pdf' ? (
+                    <FilingWizard />
+                  ) : (
+                    <BankUploadSection capabilities={capabilities} />
+                  )}
+                </div>
+              </div>
 
               <details className="group rounded-md border border-line bg-surface-secondary px-4 py-3 text-xs text-ink-secondary sm:px-5">
                 <summary className="cursor-pointer select-none font-semibold text-ink">Chi tiết kỹ thuật</summary>

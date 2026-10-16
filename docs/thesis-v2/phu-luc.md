@@ -24,11 +24,11 @@ Lần mở đầu tiên có thể mất khoảng một phút vì máy chủ mi�
 Bộ dữ liệu vận hành mười ngân hàng niêm yết lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ
 quý 1/2024 đến quý 2/2026. Số liệu đầu vào được đọc từ báo cáo tài chính hợp nhất của từng ngân hàng; mỗi dòng ghi trang nguồn,
 đường dẫn tới tệp báo cáo và mã băm SHA-256 của tệp đó. Bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ
-các số liệu này bằng công thức có phiên bản, cho 400 giá trị.
+các số liệu này theo công thức được định danh phiên bản, cho 400 giá trị.
 
 **Tệp số liệu đầu vào:** `inputs.csv`, 1.123 dòng, tải tại `[ĐIỀN: LIÊN KẾT TẢI]`.
 
-**Mã băm SHA-256 của tệp:** `365b433be1a160d6867aa321e2bc0bd4bc69a418dfaa82e4898cedefb82d92fe`.
+**Mã băm SHA-256 của tệp** (16 ký tự đầu; bản đầy đủ đi kèm tệp): `365b433be1a160d6…`.
 
 *Bảng B.1: Các cột của tệp số liệu đầu vào.*
 
@@ -42,9 +42,7 @@ các số liệu này bằng công thức có phiên bản, cho 400 giá trị.
 | `source_locator` | Trang, mục và dòng của số liệu trong báo cáo gốc |
 | `source_url`, `source_sha256` | Đường dẫn và mã băm của tệp báo cáo gốc |
 
-Hai lưu ý để đối chiếu với Chương 5. Thứ nhất, bản triển khai đang chạy dùng phiên bản dựng `r4` (mã băm tệp
-`2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a`); tệp số liệu đầu vào ở trên tương ứng bản dựng `r5`, chỉ khác ở nhãn đọc
-của các dòng lợi nhuận STB và không đổi giá trị nào. Thứ hai, thực nghiệm so sánh A/B/C ở Chương 5 chạy trên bản dựng `r4`.
+Để đối chiếu với Chương 5: các thực nghiệm so sánh A/B/C chạy trên một bản dựng trước của bộ dữ liệu; bản dựng cuối cùng (tệp ở trên) chỉ khác ở nhãn đọc của các dòng lợi nhuận STB và không đổi giá trị nào.
 
 ## Phụ lục C. Mã nguồn và kết quả thực nghiệm
 
@@ -61,3 +59,11 @@ Các thư mục chính:
 | E3 – đối kháng | `experiments/e3` | Trước và sau khi thêm cổng phạm vi |
 | E5 – số hóa | `experiments/e5`, `scripts/e5_*.py` | Mã và kết quả đo |
 | Chỉ mục kết quả | `experiments/RESULTS-INDEX.md` | Bảng số liệu, lệnh chạy lại và phiên bản mã nguồn của từng thực nghiệm |
+
+*Bảng C.2: Phiên bản mã nguồn của từng nhóm thực nghiệm (viết tắt dùng ở Chương 5).*
+
+| Ký hiệu | Thực nghiệm | Mã commit |
+|---|---|---|
+| v1 | ER-9 | `5eca302`, `7e36a1a` |
+| v1 | E1, E2, E3 | `06611d9` |
+| v2 | E2r, E3 sau sửa | `b6344a4` |

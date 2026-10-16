@@ -8,6 +8,10 @@ import dataclasses
 import json
 import logging
 from pathlib import Path
+import hashlib
+import re
+import secrets
+import threading
 from typing import Any, Optional
 import uuid
 
@@ -47,10 +51,20 @@ from .schemas import (
     UploadResponseDTO,
     UploadRowIssueDTO,
     UploadSummaryDTO,
+    FilingCandidateRowDTO,
+    FilingCreateResponseDTO,
+    FilingDetailDTO,
+    FilingProgressDTO,
+    FilingRowAlternativeDTO,
+    FilingRowIssueDTO,
+    FilingStatementPagesDTO,
+    FilingSummaryDTO,
 )
+from .filing_ocr import PyMuPDFTesseractPageTextProvider, TesseractNotFoundError
 from .service import AnalysisEngine, stream_analysis_query
 from .settings import Settings, get_settings
 from .snapshot_bootstrap import SnapshotBootstrapError, ensure_snapshot_from_settings
+from thesis_data.filing_extract import extract_candidates_from_pages
 from thesis_data.user_upload import (
     generate_ctg_error_sample_csv,
     generate_vib_error_sample_csv,
@@ -535,6 +549,325 @@ def create_app(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Lỗi đọc dữ liệu tệp tải lên: {str(exc)}",
             ) from exc
+
+    @app.post(
+        "/api/onboarding/filings",
+        response_model=FilingCreateResponseDTO,
+        status_code=status.HTTP_202_ACCEPTED,
+        summary="Upload and extract bank financial statement PDF",
+    )
+    async def upload_filing_pdf(
+        file: UploadFile = File(..., description="Annual financial statement PDF"),
+        entity_id: str = Form(..., description="Bank ticker (3-10 chars)"),
+        display_name: Optional[str] = Form(None, description="Optional bank display name"),
+        fiscal_year: int = Form(..., description="Reporting fiscal year (e.g. 2025)"),
+        reporting_scope: str = Form(..., description="Reporting scope ('consolidated' or 'separate')"),
+    ) -> Response:
+        """Parse, OCR, classify, and extract candidate rows from an annual financial statement PDF."""
+        clean_entity = entity_id.strip().upper()
+        if not re.fullmatch(r"^[A-Za-z0-9_]{3,10}$", clean_entity):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mã ngân hàng '{entity_id}' không hợp lệ (yêu cầu từ 3 đến 10 ký tự).",
+            )
+
+        try:
+            served = {
+                str(e.get("id") or e.get("ticker") or "").upper()
+                for e in engine.get_capabilities().get("entities", [])
+            }
+        except Exception:
+            served = set()
+        if clean_entity in served:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"{clean_entity} đã có trong bộ dữ liệu hệ thống; hãy hỏi trực tiếp về "
+                    f"{clean_entity} thay vì tải lên. Chức năng nạp báo cáo tài chính dành cho ngân hàng chưa có trong dữ liệu."
+                ),
+            )
+
+        if fiscal_year < 2000 or fiscal_year > 2100:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Năm tài chính không hợp lệ (yêu cầu từ năm 2000 đến 2100).",
+            )
+
+        clean_scope = reporting_scope.strip().lower()
+        if clean_scope not in ("consolidated", "separate"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phạm vi báo cáo không hợp lệ (yêu cầu 'consolidated' hoặc 'separate').",
+            )
+
+        content = await file.read()
+        if len(content) > 40 * 1024 * 1024:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Kích thước tệp vượt quá giới hạn cho phép (tối đa 40 MB, thực tế: {len(content)} bytes).",
+            )
+
+        if not content.startswith(b"%PDF-"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tệp tải lên không phải là định dạng PDF hợp lệ.",
+            )
+
+        try:
+            import fitz
+            doc = fitz.open(stream=content, filetype="pdf")
+            if doc.is_encrypted:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Tệp PDF bị đặt mật khẩu bảo vệ hoặc mã hóa.",
+                )
+            page_count = len(doc)
+            doc.close()
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Tệp PDF bị hỏng hoặc không thể đọc: {str(exc)}",
+            ) from exc
+
+        filing_id = f"fl-{secrets.token_hex(6)}"
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filing_dir = uploads_dir / "filings" / filing_id
+        pages_dir = filing_dir / "pages"
+        pages_dir.mkdir(parents=True, exist_ok=True)
+
+        pdf_path = filing_dir / "source.pdf"
+        try:
+            pdf_path.write_bytes(content)
+        except OSError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi lưu trữ tệp PDF: {str(exc)}",
+            ) from exc
+
+        pdf_sha256 = hashlib.sha256(content).hexdigest().upper()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        effective_display = display_name or clean_entity
+
+        meta: dict[str, Any] = {
+            "filing_id": filing_id,
+            "entity_id": clean_entity,
+            "display_name": effective_display,
+            "fiscal_year": fiscal_year,
+            "reporting_scope": clean_scope,
+            "status": "processing",
+            "error_code": None,
+            "message_vi": None,
+            "filename": file.filename or "source.pdf",
+            "sha256": pdf_sha256,
+            "page_count": page_count,
+            "progress": {"pages_done": 0, "page_count": page_count},
+            "text_layer_pages": 0,
+            "ocr_pages": 0,
+            "statement_pages": {"balance_sheet": [], "income_statement": [], "loan_quality_note": []},
+            "unit_detected": None,
+            "rows": [],
+            "limitations_vi": None,
+            "created_at": now_iso,
+        }
+
+        meta_file = filing_dir / "meta.json"
+        with open(meta_file, "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+
+        def _process_filing() -> None:
+            try:
+                provider = getattr(app.state, "filing_page_provider", None) or PyMuPDFTesseractPageTextProvider()
+
+                def _progress_cb(done: int, total: int) -> None:
+                    try:
+                        meta["progress"] = {"pages_done": done, "page_count": total}
+                        with open(meta_file, "w", encoding="utf-8") as mf:
+                            json.dump(meta, mf, ensure_ascii=False, indent=2)
+                    except Exception:
+                        pass
+
+                pages = provider.extract_all_pages(
+                    pdf_path,
+                    cache_dir=pages_dir,
+                    max_workers=4,
+                    progress_callback=_progress_cb,
+                )
+                ext = extract_candidates_from_pages(
+                    pages,
+                    entity_id=clean_entity,
+                    fiscal_year=fiscal_year,
+                    reporting_scope=clean_scope,
+                    display_name=effective_display,
+                    filing_id=filing_id,
+                )
+                meta["status"] = "ready"
+                meta["ocr_provider"] = ext.ocr_provider
+                meta["text_layer_pages"] = ext.text_layer_pages
+                meta["ocr_pages"] = ext.ocr_pages
+                meta["statement_pages"] = ext.statement_pages.to_dict()
+                meta["unit_detected"] = ext.unit_detected
+                meta["rows"] = [r.to_dict() for r in ext.rows]
+                meta["validation"] = ext.validation
+                meta["limitations_vi"] = ext.limitations_vi
+                meta["progress"] = {"pages_done": page_count, "page_count": page_count}
+                with open(meta_file, "w", encoding="utf-8") as mf:
+                    json.dump(meta, mf, ensure_ascii=False, indent=2)
+            except TesseractNotFoundError as exc:
+                meta["status"] = "failed"
+                meta["error_code"] = "ocr_unavailable"
+                meta["message_vi"] = str(exc)
+                with open(meta_file, "w", encoding="utf-8") as mf:
+                    json.dump(meta, mf, ensure_ascii=False, indent=2)
+            except Exception as exc:
+                logger.error("Failed to process filing %s: %s", filing_id, exc)
+                meta["status"] = "failed"
+                meta["error_code"] = "extraction_failed"
+                meta["message_vi"] = f"Lỗi trong quá trình đọc và trích xuất tài liệu: {str(exc)}"
+                with open(meta_file, "w", encoding="utf-8") as mf:
+                    json.dump(meta, mf, ensure_ascii=False, indent=2)
+
+        if getattr(app.state, "filing_sync_execution", False):
+            _process_filing()
+        else:
+            threading.Thread(target=_process_filing, daemon=True).start()
+
+        return JSONResponse(
+            status_code=status.HTTP_202_ACCEPTED,
+            content={"filing_id": filing_id, "status": "processing"},
+        )
+
+    @app.get(
+        "/api/onboarding/filings",
+        response_model=list[FilingSummaryDTO],
+        summary="List user-supplied bank filings",
+    )
+    def list_filings() -> list[FilingSummaryDTO]:
+        """List recently uploaded bank filings and their status."""
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filings_dir = uploads_dir / "filings"
+        if not filings_dir.exists():
+            return []
+        summaries: list[FilingSummaryDTO] = []
+        for meta_path in filings_dir.glob("fl-*/meta.json"):
+            try:
+                with open(meta_path, encoding="utf-8") as f:
+                    d = json.load(f)
+                candidate_count = sum(1 for r in d.get("rows", []) if r.get("status") == "candidate")
+                review_count = sum(1 for r in d.get("rows", []) if r.get("status") == "needs_review")
+                summaries.append(
+                    FilingSummaryDTO(
+                        filing_id=d["filing_id"],
+                        entity_id=d.get("entity_id", ""),
+                        display_name=d.get("display_name", d.get("entity_id", "")),
+                        fiscal_year=d.get("fiscal_year", 0),
+                        reporting_scope=d.get("reporting_scope", "consolidated"),
+                        status=d["status"],
+                        created_at=d.get("created_at", ""),
+                        filename=d.get("filename", ""),
+                        page_count=d.get("page_count", 0),
+                        candidate_rows_count=candidate_count,
+                        needs_review_count=review_count,
+                    )
+                )
+            except Exception:
+                continue
+        summaries.sort(key=lambda item: item.created_at, reverse=True)
+        return summaries
+
+    @app.get(
+        "/api/onboarding/filings/{filing_id}",
+        response_model=FilingDetailDTO,
+        summary="Get details of a specific bank filing",
+    )
+    def get_filing_detail(filing_id: str) -> FilingDetailDTO:
+        """Retrieve full candidate extraction results and statement pages for a filing."""
+        clean_id = filing_id.strip()
+        if not re.fullmatch(r"^fl-[a-f0-9]{12}$", clean_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mã filing '{filing_id}' không hợp lệ (yêu cầu định dạng fl- + 12 ký tự hex).",
+            )
+        uploads_dir = current_settings.get_user_uploads_dir()
+        meta_file = uploads_dir / "filings" / clean_id / "meta.json"
+        if not meta_file.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Filing '{clean_id}' không tồn tại.",
+            )
+        try:
+            with open(meta_file, encoding="utf-8") as f:
+                data = json.load(f)
+            return FilingDetailDTO.model_validate(data)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi đọc dữ liệu tệp filing: {str(exc)}",
+            ) from exc
+
+    @app.get(
+        "/api/onboarding/filings/{filing_id}/pages/{n}.png",
+        summary="Get rendered page image (120 dpi PNG)",
+    )
+    def get_filing_page_image(filing_id: str, n: int) -> Response:
+        """Render and return page n of the filing as a 120 DPI PNG image."""
+        clean_id = filing_id.strip()
+        if not re.fullmatch(r"^fl-[a-f0-9]{12}$", clean_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mã filing '{filing_id}' không hợp lệ.",
+            )
+        if n < 1:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Số trang phải lớn hơn hoặc bằng 1.",
+            )
+
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filing_dir = uploads_dir / "filings" / clean_id
+        meta_path = filing_dir / "meta.json"
+        pdf_path = filing_dir / "source.pdf"
+
+        if not meta_path.exists() or not pdf_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Filing '{clean_id}' không tồn tại.",
+            )
+
+        try:
+            with open(meta_path, encoding="utf-8") as f:
+                meta = json.load(f)
+            page_count = meta.get("page_count", 0)
+            if n > page_count:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Trang {n} vượt quá tổng số {page_count} trang.",
+                )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(exc),
+            ) from exc
+
+        cache_png = filing_dir / "pages" / f"p{n:03d}.png"
+        provider = getattr(app.state, "filing_page_provider", None) or PyMuPDFTesseractPageTextProvider()
+        try:
+            png_bytes = provider.render_page_png(pdf_path, n, dpi=120, cache_path=cache_png)
+        except IndexError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Trang {n} không tồn tại.",
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi dựng ảnh trang: {str(exc)}",
+            ) from exc
+
+        return Response(content=png_bytes, media_type="image/png")
 
     @app.get(
         "/api/onboarding/template.csv",

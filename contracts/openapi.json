@@ -780,6 +780,164 @@
           }
         ]
       }
+    },
+    "/api/onboarding/filings": {
+      "post": {
+        "summary": "Upload and extract bank financial statement PDF",
+        "description": "Parse, OCR, classify, and extract candidate rows from an annual financial statement PDF.",
+        "operationId": "uploadFilingPdf",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "entity_id",
+                  "fiscal_year",
+                  "reporting_scope"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Annual financial statement PDF"
+                  },
+                  "entity_id": {
+                    "type": "string",
+                    "description": "Bank ticker (3-10 chars)"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "Optional bank display name"
+                  },
+                  "fiscal_year": {
+                    "type": "integer",
+                    "description": "Reporting fiscal year (e.g. 2025)"
+                  },
+                  "reporting_scope": {
+                    "type": "string",
+                    "enum": [
+                      "consolidated",
+                      "separate"
+                    ],
+                    "description": "Reporting scope"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Filing accepted for processing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      },
+      "get": {
+        "summary": "List user-supplied bank filings",
+        "description": "List recently uploaded bank filings and their status.",
+        "operationId": "listFilings",
+        "responses": {
+          "200": {
+            "description": "List of bank filings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FilingSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/filings/{filing_id}": {
+      "get": {
+        "summary": "Get details of a specific bank filing",
+        "description": "Retrieve full candidate extraction results and statement pages for a filing.",
+        "operationId": "getFilingDetail",
+        "parameters": [
+          {
+            "name": "filing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filing details and candidate extraction rows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilingDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Filing not found"
+          }
+        }
+      }
+    },
+    "/api/onboarding/filings/{filing_id}/pages/{n}.png": {
+      "get": {
+        "summary": "Get rendered page image (120 dpi PNG)",
+        "description": "Render and return page n of the filing as a 120 DPI PNG image.",
+        "operationId": "getFilingPageImage",
+        "parameters": [
+          {
+            "name": "filing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "n",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rendered page image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3958,6 +4116,330 @@
             "type": "string",
             "example": "auth_required",
             "description": "Machine-readable error code"
+          }
+        }
+      },
+      "FilingCreateResponse": {
+        "type": "object",
+        "required": [
+          "filing_id",
+          "status"
+        ],
+        "properties": {
+          "filing_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "processing"
+            ]
+          }
+        }
+      },
+      "FilingProgress": {
+        "type": "object",
+        "required": [
+          "pages_done",
+          "page_count"
+        ],
+        "properties": {
+          "pages_done": {
+            "type": "integer"
+          },
+          "page_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "FilingStatementPages": {
+        "type": "object",
+        "required": [
+          "balance_sheet",
+          "income_statement",
+          "loan_quality_note"
+        ],
+        "properties": {
+          "balance_sheet": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "income_statement": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "loan_quality_note": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "FilingRowIssue": {
+        "type": "object",
+        "required": [
+          "code",
+          "message_vi"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message_vi": {
+            "type": "string"
+          }
+        }
+      },
+      "FilingRowAlternative": {
+        "type": "object",
+        "required": [
+          "raw_text",
+          "row_label",
+          "page",
+          "score"
+        ],
+        "properties": {
+          "value_billion_vnd": {
+            "type": "string",
+            "nullable": true
+          },
+          "raw_text": {
+            "type": "string"
+          },
+          "row_label": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "FilingCandidateRow": {
+        "type": "object",
+        "required": [
+          "row_id",
+          "metric_id",
+          "period_role",
+          "period_id",
+          "raw_text",
+          "row_label",
+          "page",
+          "source",
+          "status",
+          "issues",
+          "alternatives"
+        ],
+        "properties": {
+          "row_id": {
+            "type": "string"
+          },
+          "metric_id": {
+            "type": "string"
+          },
+          "period_role": {
+            "type": "string",
+            "enum": [
+              "target",
+              "prior"
+            ]
+          },
+          "period_id": {
+            "type": "string"
+          },
+          "value_billion_vnd": {
+            "type": "string",
+            "nullable": true
+          },
+          "raw_text": {
+            "type": "string"
+          },
+          "row_label": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "text_layer",
+              "ocr"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "needs_review",
+              "missing"
+            ]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilingRowIssue"
+            }
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilingRowAlternative"
+            }
+          }
+        }
+      },
+      "FilingDetail": {
+        "type": "object",
+        "required": [
+          "filing_id",
+          "status",
+          "filename",
+          "sha256",
+          "page_count",
+          "progress",
+          "text_layer_pages",
+          "ocr_pages",
+          "statement_pages",
+          "rows"
+        ],
+        "properties": {
+          "filing_id": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "fiscal_year": {
+            "type": "integer",
+            "nullable": true
+          },
+          "reporting_scope": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "processing",
+              "ready",
+              "failed"
+            ]
+          },
+          "error_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "message_vi": {
+            "type": "string",
+            "nullable": true
+          },
+          "filename": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": "integer"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/FilingProgress"
+          },
+          "text_layer_pages": {
+            "type": "integer"
+          },
+          "ocr_pages": {
+            "type": "integer"
+          },
+          "statement_pages": {
+            "$ref": "#/components/schemas/FilingStatementPages"
+          },
+          "unit_detected": {
+            "type": "string",
+            "nullable": true
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilingCandidateRow"
+            }
+          },
+          "limitations_vi": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "FilingSummary": {
+        "type": "object",
+        "required": [
+          "filing_id",
+          "entity_id",
+          "display_name",
+          "fiscal_year",
+          "reporting_scope",
+          "status",
+          "created_at",
+          "filename",
+          "page_count",
+          "candidate_rows_count",
+          "needs_review_count"
+        ],
+        "properties": {
+          "filing_id": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "fiscal_year": {
+            "type": "integer"
+          },
+          "reporting_scope": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "processing",
+              "ready",
+              "failed"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": "integer"
+          },
+          "candidate_rows_count": {
+            "type": "integer"
+          },
+          "needs_review_count": {
+            "type": "integer"
           }
         }
       }

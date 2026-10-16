@@ -23,7 +23,6 @@ import {
   openFilingSample,
 } from '../api/filingService';
 import type { ConfirmResult, Filing } from '../model/types';
-import { FILING_SCENARIOS } from '@/test/fixtures/filingFixtures';
 
 export interface FilingWizardProps {
   initialFiling?: Filing | null;
@@ -89,7 +88,7 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
         pollingTimerRef.current = null;
       }
     };
-  }, [filing?.filing_id, filing?.status, selectedPage]);
+  }, [filing, selectedPage]);
 
   // Handler: Start upload
   const handleStartUpload = async (
@@ -147,18 +146,9 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
       if (sampleFiling.statement_pages.balance_sheet[0]) {
         setSelectedPage(sampleFiling.statement_pages.balance_sheet[0]);
       }
-    } catch {
-      // Fallback for offline tests
-      const fallback =
-        sampleId.includes('clean') || sampleId === 'acb-2025-clean'
-          ? FILING_SCENARIOS.clean
-          : FILING_SCENARIOS.issues;
-      setFiling(fallback);
-      setIsUploadCollapsed(true);
-      setConfirmResult(null);
-      if (fallback.statement_pages.balance_sheet[0]) {
-        setSelectedPage(fallback.statement_pages.balance_sheet[0]);
-      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi mở mẫu filing';
+      setUploadError(msg);
     }
   };
 
@@ -220,29 +210,14 @@ export function FilingWizard({ initialFiling = null, onFilingConfirmed }: Filing
   const handleConfirm = async () => {
     if (!filing) return;
     setIsConfirming(true);
+    setUploadError(null);
     try {
       const result = await confirmFiling(filing.filing_id);
       setConfirmResult(result);
       if (onFilingConfirmed) onFilingConfirmed(result);
-    } catch {
-      // Offline fallback for testing
-      const mockResult: ConfirmResult = {
-        upload_id: `up-${filing.filing_id.slice(-8)}`,
-        entity_id: filing.entity_id,
-        display_name: filing.display_name,
-        status: 'accepted',
-        period_id: `${filing.fiscal_year}_Q4`,
-        metrics: [
-          { metric_id: 'bank.npl_g35', computed_value: 0.99, reported_value: 0.99, status: 'matched' },
-          { metric_id: 'bank.llr_coverage', computed_value: 112.5, reported_value: 112.5, status: 'matched' },
-          { metric_id: 'bank.roa', computed_value: 1.65, reported_value: 1.65, status: 'matched' },
-          { metric_id: 'bank.roe', computed_value: 17.58, reported_value: 17.58, status: 'matched' },
-        ],
-        row_issues: [],
-        limitations_vi: filing.limitations_vi.join('; '),
-      };
-      setConfirmResult(mockResult);
-      if (onFilingConfirmed) onFilingConfirmed(mockResult);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi xác nhận filing';
+      setUploadError(msg);
     } finally {
       setIsConfirming(false);
     }

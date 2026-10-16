@@ -62,6 +62,7 @@ from .schemas import (
     FilingRowIssueDTO,
     FilingRowUpdateRequest,
     FilingRowUpdateResponse,
+    FilingSampleDTO,
     FilingStatementPagesDTO,
     FilingSummaryDTO,
     FilingValidationDTO,
@@ -75,6 +76,11 @@ from thesis_data.filing_extract import (
     PageInput,
     classify_pages,
     extract_candidates_from_pages,
+)
+from thesis_data.filing_sample import (
+    build_sample_filing_dict,
+    generate_sample_placeholder_png,
+    list_sample_summaries,
 )
 from thesis_data.filing_validate import validate_filing_rows
 from thesis_data.user_upload import (
@@ -921,6 +927,49 @@ def create_app(
             ) from exc
 
     @app.get(
+        "/api/onboarding/filing-samples",
+        response_model=list[FilingSampleDTO],
+        summary="List pre-built financial filing samples for demonstration",
+    )
+    def list_filing_samples() -> list[FilingSampleDTO]:
+        """Return catalog of curated filing samples built from verified data."""
+        return [FilingSampleDTO.model_validate(s) for s in list_sample_summaries()]
+
+    @app.post(
+        "/api/onboarding/filing-samples/{sample_id}/open",
+        response_model=FilingDetailDTO,
+        summary="Open a pre-built filing sample into a ready filing",
+    )
+    def open_filing_sample(sample_id: str) -> FilingDetailDTO:
+        """Instantiate a ready filing directly from verified sample data (no OCR)."""
+        clean_id = sample_id.strip().lower()
+        uploads_dir = current_settings.get_user_uploads_dir()
+        filing_id = f"fl-{uuid.uuid4().hex[:12]}"
+        try:
+            filing_data = build_sample_filing_dict(clean_id, filing_id=filing_id)
+        except KeyError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Mẫu filing '{sample_id}' không tồn tại.",
+            )
+        except Exception as exc:
+            logger.error("Failed to build filing sample %s: %s", sample_id, exc)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi khởi tạo mẫu filing: {str(exc)}",
+            ) from exc
+
+        # Persist filing meta.json
+        filing_dir = uploads_dir / "filings" / filing_id
+        pages_dir = filing_dir / "pages"
+        pages_dir.mkdir(parents=True, exist_ok=True)
+        meta_file = filing_dir / "meta.json"
+        with open(meta_file, "w", encoding="utf-8") as f:
+            json.dump(filing_data, f, ensure_ascii=False, indent=2)
+
+        return FilingDetailDTO.model_validate(filing_data)
+
+    @app.get(
         "/api/onboarding/filings/{filing_id}/pages/{n}.png",
         summary="Get rendered page image (120 dpi PNG)",
     )
@@ -943,7 +992,7 @@ def create_app(
         meta_path = filing_dir / "meta.json"
         pdf_path = filing_dir / "source.pdf"
 
-        if not meta_path.exists() or not pdf_path.exists():
+        if not meta_path.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Filing '{clean_id}' không tồn tại.",
@@ -967,21 +1016,55 @@ def create_app(
             ) from exc
 
         cache_png = filing_dir / "pages" / f"p{n:03d}.png"
-        provider = getattr(app.state, "filing_page_provider", None) or PyMuPDFTesseractPageTextProvider()
-        try:
-            png_bytes = provider.render_page_png(pdf_path, n, dpi=120, cache_path=cache_png)
-        except IndexError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Trang {n} không tồn tại.",
-            )
-        except Exception as exc:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Lỗi dựng ảnh trang: {str(exc)}",
-            ) from exc
+        if cache_png.exists():
+            return Response(content=cache_png.read_bytes(), media_type="image/png")
 
-        return Response(content=png_bytes, media_type="image/png")
+        # Resolve PDF source or sample placeholder
+        effective_pdf: Optional[Path] = None
+        if pdf_path.exists():
+            effective_pdf = pdf_path
+        else:
+            # Check local official raw PDFs
+            entity_id = meta.get("entity_id", "")
+            local_pdf = Path("data/raw/official/bank-2025-top10-v1") / f"{entity_id}_2025_audited_consolidated.pdf"
+            if not local_pdf.exists():
+                root = Path(__file__).resolve().parents[2]
+                local_pdf = root / "data" / "raw" / "official" / "bank-2025-top10-v1" / f"{entity_id}_2025_audited_consolidated.pdf"
+            if local_pdf.exists():
+                effective_pdf = local_pdf
+
+        if effective_pdf is not None:
+            provider = getattr(app.state, "filing_page_provider", None) or PyMuPDFTesseractPageTextProvider()
+            try:
+                png_bytes = provider.render_page_png(effective_pdf, n, dpi=120, cache_path=cache_png)
+                return Response(content=png_bytes, media_type="image/png")
+            except IndexError:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Trang {n} không tồn tại.",
+                )
+            except Exception as exc:
+                logger.error("Failed to render page %d: %s", n, exc)
+                if meta.get("ocr_provider") != "sample":
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Lỗi dựng ảnh trang: {str(exc)}",
+                    ) from exc
+
+        if meta.get("ocr_provider") == "sample":
+            png_bytes = generate_sample_placeholder_png(
+                n,
+                page_count=page_count,
+                entity_id=meta.get("entity_id", ""),
+            )
+            cache_png.parent.mkdir(parents=True, exist_ok=True)
+            cache_png.write_bytes(png_bytes)
+            return Response(content=png_bytes, media_type="image/png")
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tệp PDF nguồn của filing '{clean_id}' không tồn tại.",
+        )
 
     @app.put(
         "/api/onboarding/filings/{filing_id}/rows/{row_id}",

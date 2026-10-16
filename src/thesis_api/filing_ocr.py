@@ -48,6 +48,7 @@ class PageTextProvider(Protocol):
         cache_dir: Optional[Path] = None,
         max_workers: int = 4,
         progress_callback: Optional[Callable[[int, int], None]] = None,
+        max_pages: Optional[int] = None,
     ) -> list[PageInput]:
         ...
 
@@ -195,32 +196,34 @@ class PyMuPDFTesseractPageTextProvider:
         cache_dir: Optional[Path] = None,
         max_workers: int = 4,
         progress_callback: Optional[Callable[[int, int], None]] = None,
+        max_pages: Optional[int] = None,
     ) -> list[PageInput]:
         total_pages = self.get_page_count(pdf_path)
-        results: list[Optional[PageInput]] = [None] * total_pages
+        limit = min(total_pages, max_pages) if max_pages else total_pages
+        results: list[Optional[PageInput]] = [None] * limit
         done_count = 0
 
         def _process_page(idx: int) -> tuple[int, PageInput]:
             p_res = self.get_page_text(pdf_path, idx + 1, cache_dir=cache_dir)
             return idx, p_res
 
-        workers = min(max_workers, total_pages, 4)
+        workers = min(max_workers, limit, 4)
         if workers <= 1:
-            for idx in range(total_pages):
+            for idx in range(limit):
                 _, p_res = _process_page(idx)
                 results[idx] = p_res
                 done_count += 1
                 if progress_callback:
-                    progress_callback(done_count, total_pages)
+                    progress_callback(done_count, limit)
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-                futures = [executor.submit(_process_page, idx) for idx in range(total_pages)]
+                futures = [executor.submit(_process_page, idx) for idx in range(limit)]
                 for future in concurrent.futures.as_completed(futures):
                     idx, p_res = future.result()
                     results[idx] = p_res
                     done_count += 1
                     if progress_callback:
-                        progress_callback(done_count, total_pages)
+                        progress_callback(done_count, limit)
 
         return [r for r in results if r is not None]
 
@@ -287,10 +290,14 @@ class MockPageTextProvider:
         cache_dir: Optional[Path] = None,
         max_workers: int = 4,
         progress_callback: Optional[Callable[[int, int], None]] = None,
+        max_pages: Optional[int] = None,
     ) -> list[PageInput]:
+        pnos = sorted(self.pages.keys())
+        if max_pages:
+            pnos = pnos[:max_pages]
         res = [
             self.get_page_text(pdf_path, pno, cache_dir=cache_dir)
-            for pno in sorted(self.pages.keys())
+            for pno in pnos
         ]
         if progress_callback:
             progress_callback(len(res), len(res))

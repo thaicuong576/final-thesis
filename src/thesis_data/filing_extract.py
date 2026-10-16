@@ -159,7 +159,7 @@ class CandidateRow:
     raw_text: Optional[str]
     row_label: Optional[str]
     page: Optional[int]
-    source: Optional[Literal["text_layer", "ocr", "llamaparse", "user"]]
+    source: Optional[Literal["text_layer", "ocr", "llamaparse", "user", "llm_assisted_selection"]]
     status: Literal["candidate", "needs_review", "missing"]
     edited: bool = False
     confirmed: bool = False

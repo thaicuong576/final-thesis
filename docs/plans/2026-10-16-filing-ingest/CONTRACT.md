@@ -55,7 +55,7 @@ Row {
   raw_text: string | null           // chuỗi số gốc trên trang, ví dụ "686.777.352"
   row_label: string | null          // nhãn dòng gốc trên trang
   page: int | null
-  source: "text_layer" | "ocr" | "llamaparse" | "user" | null
+  source: "text_layer" | "ocr" | "llamaparse" | "user" | "llm_assisted_selection" | null
   status: "candidate" | "needs_review" | "missing"
   edited: boolean
   confirmed: boolean

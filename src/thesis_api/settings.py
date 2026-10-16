@@ -103,8 +103,10 @@ class Settings(BaseSettings):
     auth_token_secret: SecretStr | None = Field(default=None, alias="AUTH_TOKEN_SECRET")
     auth_token_ttl_hours: int = Field(default=12, alias="AUTH_TOKEN_TTL_HOURS")
     llama_cloud_api_key: SecretStr | None = Field(default=None, alias="LLAMA_CLOUD_API_KEY")
-    llama_max_pages_per_filing: int = Field(default=30, alias="LLAMA_MAX_PAGES_PER_FILING")
+    llama_max_pages_per_filing: int = Field(default=300, alias="LLAMA_MAX_PAGES_PER_FILING")
     ocr_provider: str = Field(default="auto", alias="OCR_PROVIDER")
+    filing_ocr_scope: str = Field(default="full", alias="FILING_OCR_SCOPE")
+    filing_llm_assist: bool = Field(default=False, alias="FILING_LLM_ASSIST")
 
     def validate_auth_configuration(self) -> None:
         """Validate auth configuration if enabled; fail-closed on missing or weak settings."""

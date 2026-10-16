@@ -4450,7 +4450,8 @@
               "text_layer",
               "ocr",
               "llamaparse",
-              "user"
+              "user",
+              "llm_assisted_selection"
             ]
           },
           "status": {

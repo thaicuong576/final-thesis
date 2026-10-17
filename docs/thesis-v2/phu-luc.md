@@ -40,7 +40,7 @@ Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu c
 |---|---|
 | Thực nghiệm chính (ba cấu hình) | 36 lượt chạy, điểm chấm, biểu đồ |
 | Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi |
-| So sánh mô hình | Ba mô hình OpenAI; ba lần chạy lặp của `gpt-5.6-luna` |
+| So sánh mô hình | Năm mô hình (ba của OpenAI, hai của DeepSeek); ba lần chạy lặp của `gpt-5.6-luna` |
 | Kiểm tra đối kháng | Trước và sau khi thêm cổng phạm vi |
 | Số hóa từ báo cáo gốc | Mã đo và kết quả |
 | Chỉ mục kết quả | Bảng số liệu, lệnh chạy lại và phiên bản mã nguồn của từng thực nghiệm |

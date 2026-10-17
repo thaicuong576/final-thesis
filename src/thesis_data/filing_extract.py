@@ -352,13 +352,14 @@ _THOUSAND_RE = re.compile(
     re.IGNORECASE,
 )
 _BILLION_RE = re.compile(
-    r"\b(?:ty|ti)\s*(?:vnd|d[a-z]{0,3}ng|d\b)\b"
+    r"(?<!\bcong\s)\b(?:ty|ti)\s*(?:vnd|d[o0]ng|dong|d\b)\b"
     r"|\bbillion\b"
     r"|\b(?:don\s*vi(?:\s*tinh)?|dvt)\s*[:=]?\s*(?:ty|ti)\b",
     re.IGNORECASE,
 )
 _VND_EXPLICIT_RE = re.compile(
-    r"\b(?:don\s*vi(?:\s*tinh)?|dvt|dvi|bon\s*vi)\s*[:=]?\s*(?:vnd|dong)\b",
+    r"\b(?:don\s*vi(?:\s*tinh)?|dvt|dvi|bon\s*vi)\s*[:=]?\s*(?:vnd|dong)\b"
+    r"|(?:\b\d{1,2}[/.]\d{1,2}[/.]\d{4}|\b20\d{2})\s*(?:vnd|dong)\b",
     re.IGNORECASE,
 )
 
@@ -384,13 +385,15 @@ def detect_unit(text: str) -> Optional[str]:
         # Also check individual cells if line is pipe-separated
         if "|" in line:
             for cell in line.split("|"):
-                f_cell = fold(cell)
+                f_cell = fold(cell).strip()
                 if _MILLION_RE.search(f_cell):
                     return "million_vnd"
                 if _THOUSAND_RE.search(f_cell):
                     return "thousand_vnd"
                 if _BILLION_RE.search(f_cell):
                     return "billion_vnd"
+                if _VND_EXPLICIT_RE.search(f_cell) or f_cell in ("vnd", "dong"):
+                    return "vnd"
 
     # Also check the first 2000 characters
     f_head = fold(text[:2000])
@@ -552,6 +555,26 @@ def extract_numbers_from_line(line: str) -> list[Decimal]:
 
 _AMOUNT_GROUPED_RE = re.compile(r"\(?\s*\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?\s*\)?")
 
+_LEGAL_CITATION_RE = re.compile(
+    r"\b(?:thong\s*tu|nghi\s*dinh|luat)\b"
+    r"|\bdieu\s*\d+\b"
+    r"|\b(?:tt\s*[-/]?\s*nhnn|nd\s*[-/]?\s*cp)\b",
+    re.IGNORECASE,
+)
+
+
+def is_legal_citation_line(line: str) -> bool:
+    """Return True if line contains references to legal documents, circulars, decrees, or articles."""
+    f = fold(line)
+    return bool(_LEGAL_CITATION_RE.search(f))
+
+
+def has_grouped_amounts(line: str) -> bool:
+    """Return True if line contains monetary numbers formatted with thousands separators."""
+    if is_pipe_form(line):
+        return bool(extract_amounts_from_pipe_line(line))
+    return bool(_AMOUNT_GROUPED_RE.findall(line))
+
 
 def extract_amount_columns_from_line(line: str) -> list[Decimal]:
     """Extract specifically the monetary amount columns from a financial table row.
@@ -563,6 +586,10 @@ def extract_amount_columns_from_line(line: str) -> list[Decimal]:
     represent currency amounts in Vietnamese financial filings, naturally ignoring
     row numbering ('Nhóm 3'), note references ('22', '33.2'), and percentages ('0,19').
     """
+    # 0. Skip legal citation lines unless it is a real table row with thousands-separated amounts
+    if is_legal_citation_line(line) and not has_grouped_amounts(line):
+        return []
+
     # 1. Pipe-form (LlamaParse table-flattened markdown)
     if is_pipe_form(line):
         return extract_amounts_from_pipe_line(line)
@@ -578,8 +605,13 @@ def extract_amount_columns_from_line(line: str) -> list[Decimal]:
         if amounts:
             return amounts
 
-    # 2. Fallback: check trailing tokens at the end of the line (e.g. for 0, -, nil)
-    tokens = _NUMBER_RE.findall(line)
+    # 3. Fallback: check trailing tokens at the end of the line (e.g. for 0, -, nil)
+    # Ignore group numbers ('Nhóm 5'), article numbers ('Điều 10'), day counts ('90 ngày'), and dates
+    clean_line = re.sub(r"(?i)\b(?:nh[oó]m|đi[eề]u)\s+\d+\b", "", line)
+    clean_line = re.sub(r"(?i)\b\d+\s+ng[aà]y\b", "", clean_line)
+    clean_line = re.sub(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", "", clean_line)
+
+    tokens = _NUMBER_RE.findall(clean_line)
     if not tokens:
         return []
 
@@ -877,21 +909,40 @@ def extract_candidates_from_pages(
     statement_pages = classify_pages(pages)
 
     # 2. Detect global unit
-    # Prefer statement pages first (balance sheet, income statement, loan note), checking their
-    # header lines (first 25 lines) and table column headers. If not found, inspect all pages.
+    # Priority order:
+    # 1. Balance sheet pages (statement_pages.balance_sheet)
+    # 2. Income statement pages (statement_pages.income_statement)
+    # 3. Only if neither has a unit, check loan quality note pages and remaining pages
+    pages_by_num = {p.page_number: p for p in pages}
     detected_unit: Optional[str] = None
-    statement_page_nums = set(
-        statement_pages.balance_sheet
-        + statement_pages.income_statement
-        + statement_pages.loan_quality_note
-    )
-    for p in pages:
-        if p.page_number in statement_page_nums:
-            u = detect_unit(p.text)
+
+    # Step 1: Balance sheet
+    for pno in statement_pages.balance_sheet:
+        if pno in pages_by_num:
+            u = detect_unit(pages_by_num[pno].text)
             if u:
                 detected_unit = u
                 break
 
+    # Step 2: Income statement
+    if not detected_unit:
+        for pno in statement_pages.income_statement:
+            if pno in pages_by_num:
+                u = detect_unit(pages_by_num[pno].text)
+                if u:
+                    detected_unit = u
+                    break
+
+    # Step 3: Loan quality note
+    if not detected_unit:
+        for pno in statement_pages.loan_quality_note:
+            if pno in pages_by_num:
+                u = detect_unit(pages_by_num[pno].text)
+                if u:
+                    detected_unit = u
+                    break
+
+    # Step 4: Any remaining pages
     if not detected_unit:
         for p in pages:
             u = detect_unit(p.text)
@@ -902,9 +953,6 @@ def extract_candidates_from_pages(
     unit_multiplier: Optional[Decimal] = (
         unit_to_multiplier(detected_unit) if detected_unit is not None else None
     )
-
-    # Build page lookup
-    pages_by_num = {p.page_number: p for p in pages}
 
     # Helper to get candidate pages for a section
     def _pages_for_section(section_name: str) -> list[PageInput]:
@@ -935,6 +983,9 @@ def extract_candidates_from_pages(
             for line in p.text.splitlines():
                 line_str = _clean_spaces(line)
                 if not line_str:
+                    continue
+                # Skip legal citation lines that are not real table rows with grouped amounts
+                if is_legal_citation_line(line_str) and not has_grouped_amounts(line_str):
                     continue
                 score = match_score_for_spec(line_str, spec)
                 if score >= 0.5:

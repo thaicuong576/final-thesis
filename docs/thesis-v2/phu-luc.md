@@ -2,11 +2,13 @@
 
 ## Phụ lục A. Sản phẩm trực tuyến
 
-**Địa chỉ:** https://fin-ai.eddiephung.me
+Địa chỉ: https://fin-ai.eddiephung.me
 
-**Đăng nhập:** tên đăng nhập `[ĐIỀN]`, mật khẩu `[ĐIỀN]`. Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
+Tên đăng nhập: [ĐIỀN]
 
-Lần mở đầu tiên có thể mất khoảng một phút vì máy chủ miễn phí cần khởi động lại sau thời gian nghỉ; các lần sau phản hồi bình thường.
+Mật khẩu: [ĐIỀN]
+
+Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
 
 *Bảng A.1: Các thao tác thử nhanh.*
 
@@ -22,27 +24,11 @@ Lần mở đầu tiên có thể mất khoảng một phút vì máy chủ mi�
 ## Phụ lục B. Bộ dữ liệu
 
 Bộ dữ liệu vận hành mười ngân hàng niêm yết lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ
-quý 1/2024 đến quý 2/2026. Số liệu đầu vào được đọc từ báo cáo tài chính hợp nhất của từng ngân hàng; mỗi dòng ghi trang nguồn,
-đường dẫn tới tệp báo cáo và mã băm SHA-256 của tệp đó. Bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ
+quý 1/2024 đến quý 2/2026. Số liệu đầu vào được đọc từ báo cáo tài chính hợp nhất của từng ngân hàng; mỗi dòng ghi trang nguồn và
+đường dẫn tới tệp báo cáo gốc. Bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ
 các số liệu này theo công thức được định danh phiên bản, cho 400 giá trị.
 
-**Tệp số liệu đầu vào:** `inputs.csv`, 1.123 dòng, tải tại `[ĐIỀN: LIÊN KẾT TẢI]`.
-
-**Mã băm SHA-256 của tệp** (16 ký tự đầu; bản đầy đủ đi kèm tệp): `365b433be1a160d6…`.
-
-*Bảng B.1: Các cột của tệp số liệu đầu vào.*
-
-| Cột | Ý nghĩa |
-|---|---|
-| `entity_id` | Mã ngân hàng |
-| `metric_id` | Mã số liệu đầu vào (10 loại: dư nợ cho vay, nợ nhóm 3, 4, 5, dự phòng, tổng tài sản, vốn chủ sở hữu, lợi ích cổ đông không kiểm soát, lợi nhuận sau thuế, lợi nhuận thuộc cổ đông ngân hàng mẹ) |
-| `period_id` | Kỳ báo cáo (ví dụ `2025_Q4`) |
-| `value`, `unit` | Giá trị và đơn vị (tỷ đồng) |
-| `period_basis` | Cách tính kỳ (số dư cuối kỳ hoặc lũy kế từ đầu năm) |
-| `source_locator` | Trang, mục và dòng của số liệu trong báo cáo gốc |
-| `source_url`, `source_sha256` | Đường dẫn và mã băm của tệp báo cáo gốc |
-
-Để đối chiếu với Chương 5: các thực nghiệm so sánh A/B/C chạy trên một bản dựng trước của bộ dữ liệu; bản dựng cuối cùng (tệp ở trên) chỉ khác ở nhãn đọc của các dòng lợi nhuận STB và không đổi giá trị nào.
+Để đối chiếu với Chương 5: các thực nghiệm so sánh A/B/C chạy trên một bản dựng trước của bộ dữ liệu; bản dựng cuối cùng chỉ khác ở nhãn đọc của các dòng lợi nhuận STB và không đổi giá trị nào.
 
 ## Phụ lục C. Mã nguồn và kết quả thực nghiệm
 

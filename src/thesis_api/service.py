@@ -1227,6 +1227,31 @@ def resolve_composite_upload_binding(
     )
     comp_ref = composite_provider.current_dataset_ref()
     comp_catalog = composite_provider.get_capabilities(comp_ref)
+
+    try:
+        up_caps = upload_provider.get_capabilities(upload_provider.current_dataset_ref())
+        up_period_ids = [p.period_id for p in up_caps.periods]
+    except Exception:
+        up_period_ids = []
+    if not up_period_ids and upload_meta.get("period_id"):
+        up_period_ids = [str(upload_meta["period_id"]).strip()]
+    from .query_understanding import _parse_period_key
+    up_period_ids.sort(key=_parse_period_key)
+    latest_up_period = up_period_ids[-1] if up_period_ids else None
+
+    if latest_up_period:
+        new_entities = []
+        for ent in comp_catalog.entities:
+            if ent.entity_id == entity_id:
+                new_attrs = dict(ent.attributes or {})
+                new_attrs["user_supplied"] = True
+                new_attrs["upload_periods"] = tuple(up_period_ids)
+                new_attrs["latest_upload_period"] = latest_up_period
+                new_entities.append(ent.model_copy(update={"attributes": new_attrs}))
+            else:
+                new_entities.append(ent)
+        comp_catalog = comp_catalog.model_copy(update={"entities": tuple(new_entities)})
+
     return ProviderBinding(
         provider=composite_provider,
         dataset_ref=comp_ref,

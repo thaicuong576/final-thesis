@@ -536,6 +536,47 @@ class TestBankNameAliases(unittest.TestCase):
         res_pair = resolve_query("So sánh VCB và TCB quý 4/2025", self.catalog)
         self.assertEqual(res_pair.entities, ("VCB", "TCB"))
 
+    def test_uploaded_bank_omitted_period_defaults_to_upload_latest_period(self) -> None:
+        """When an uploaded bank is present and query omits period, default to uploaded bank's period."""
+        vib_entity = DatasetEntity(
+            entity_id="VIB",
+            entity_type=DatasetEntityType.COMPANY,
+            display_name="VIB",
+            attributes={
+                "ticker": "VIB",
+                "user_supplied": True,
+                "upload_periods": ("2025_Q4",),
+                "latest_upload_period": "2025_Q4",
+            },
+        )
+        catalog_with_vib = DatasetCapabilityCatalog(
+            dataset_ref=self.catalog.dataset_ref,
+            entities=self.catalog.entities + (vib_entity,),
+            periods=self.catalog.periods,
+            metrics=self.catalog.metrics,
+            peer_universes=self.catalog.peer_universes,
+            supported_operations=self.catalog.supported_operations,
+        )
+
+        # 1. Query without period defaults to upload's period
+        res_no_period = resolve_query("Tỷ lệ nợ xấu của VIB là bao nhiêu?", catalog_with_vib)
+        self.assertEqual(res_no_period.anchor_period, "2025_Q4")
+        self.assertEqual(res_no_period.context_periods, ("2025_Q4",))
+        self.assertIn("period_defaulted_to_upload", res_no_period.defaults_applied)
+        self.assertNotIn("period_defaulted_to_latest", res_no_period.defaults_applied)
+
+        # 2. Query with explicit period preserves requested period
+        res_explicit = resolve_query("Tỷ lệ nợ xấu của VIB quý 3/2025 là bao nhiêu?", catalog_with_vib)
+        self.assertEqual(res_explicit.anchor_period, "2025_Q3")
+        self.assertNotIn("period_defaulted_to_upload", res_explicit.defaults_applied)
+        self.assertNotIn("period_defaulted_to_latest", res_explicit.defaults_applied)
+
+        # 3. Gold catalog query without period continues to default to latest catalog period
+        res_gold = resolve_query("Tỷ lệ nợ xấu của ACB là bao nhiêu?", self.catalog)
+        self.assertEqual(res_gold.anchor_period, self.catalog.periods[-1].period_id)
+        self.assertIn("period_defaulted_to_latest", res_gold.defaults_applied)
+        self.assertNotIn("period_defaulted_to_upload", res_gold.defaults_applied)
+
 
 if __name__ == "__main__":
     unittest.main()

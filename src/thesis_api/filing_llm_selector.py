@@ -234,7 +234,6 @@ def refine_candidates_with_llm(
                     },
                     {"role": "user", "content": prompt},
                 ],
-                "temperature": 0.0,
             }
             resp = effective_client.chat.completions.create(**create_kwargs)
             if hasattr(resp, "usage") and resp.usage:

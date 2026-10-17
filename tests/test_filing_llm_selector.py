@@ -165,6 +165,11 @@ class TestFilingLLMSelector(unittest.TestCase):
         target_r = next(r for r in refined_ext.rows if r.period_role == "target")
         prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
 
+        # Verify that chat completions create did not receive a temperature argument
+        self.assertGreater(len(client.chat.completions.prompts), 0)
+        for prompt_kwargs in client.chat.completions.prompts:
+            self.assertNotIn("temperature", prompt_kwargs)
+
         # Code took numbers from line (1.234.567 million VND -> 1234.567 billion VND)
         self.assertEqual(target_r.value_billion_vnd, "1234.567")
         self.assertEqual(prior_r.value_billion_vnd, "987.654")
@@ -262,6 +267,50 @@ class TestFilingLLMSelector(unittest.TestCase):
         target_r = refined_ext.rows[0]
         self.assertIsNone(target_r.value_billion_vnd)
         self.assertEqual(target_r.status, "missing")
+
+    def test_create_does_not_receive_temperature(self) -> None:
+        """Verify chat completions create is called without 'temperature' keyword."""
+        initial_row = CandidateRow(
+            row_id="bank.input.npl_group_3_balance:target",
+            metric_id="bank.input.npl_group_3_balance",
+            label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+            period_role="target",
+            period_id="2025_Q4",
+            value_billion_vnd=None,
+            extracted_value_billion_vnd=None,
+            raw_text=None,
+            row_label=None,
+            page=None,
+            source=None,
+            status="missing",
+            issues=[RowIssue(code="row_not_found", severity="error", message_vi="Missing")],
+            alternatives=[],
+        )
+        ext = ExtractionResult(
+            filing_id="fl-test",
+            entity_id="VCB",
+            display_name="Vietcombank",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=1,
+            statement_pages=self.stmt_pages,
+            unit_detected="million_vnd",
+            rows=[initial_row],
+            text_layer_pages=0,
+            ocr_pages=1,
+            limitations_vi=[],
+        )
+        fake_response = json.dumps({
+            "line_id": "L3",
+            "column_target": 0,
+            "column_prior": 1,
+            "reason": "Dòng 3",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refine_candidates_with_llm(ext, self.pages, client=client, model="test-model")
+        self.assertEqual(client.chat.completions.call_count, 1)
+        for call_kwargs in client.chat.completions.prompts:
+            self.assertNotIn("temperature", call_kwargs)
 
 
 if __name__ == "__main__":

@@ -360,5 +360,160 @@ class TestMissingRowMessagesHumanized(unittest.TestCase):
                 self.assertIn(expected_label, iss.message_vi)
 
 
+class TestFilingExtractLegalAndUnit(unittest.TestCase):
+    """Targeted regression tests for PDFFIX-1:
+    - Billion VND false positives from company narrative text
+    - Proper VND unit detection from statement headers
+    - Skipping legal citation lines (Circular 31, Decree 86, Article 10, days past due)
+    - Full synthetic reproduction of multi-page filing with notes and legal citations
+    """
+
+    def test_detect_unit_false_positives_billion_vnd(self) -> None:
+        """Phrases containing 'công ty đang', 'công ty đồng' must NOT trigger billion_vnd."""
+        self.assertIsNone(detect_unit("Công ty đang hoạt động bình thường"))
+        self.assertIsNone(detect_unit("Công ty đồng kiểm soát"))
+        self.assertIsNone(detect_unit("Công ty đứng tên tài sản"))
+        self.assertIsNone(detect_unit("Công ty dùng vốn vay đúng mục đích"))
+        self.assertIsNone(detect_unit("Công ty đúng hạn trả nợ"))
+
+    def test_detect_unit_table_header_vnd(self) -> None:
+        """Table headers containing dates and VND must detect unit as 'vnd'."""
+        self.assertEqual(detect_unit("Thuyết minh | 31/12/2025 VND | 31/12/2024 VND"), "vnd")
+        self.assertEqual(detect_unit("| Thuyết minh | 31/12/2025 | 31/12/2024 |\n| | VND | VND |"), "vnd")
+        self.assertEqual(detect_unit("Thuyết minh 31/12/2025 VND 31/12/2024 VND"), "vnd")
+
+    def test_skip_legal_citation_lines_and_day_counts(self) -> None:
+        """Legal citation lines and narrative day counts must return empty amount list."""
+        legal1 = (
+            "Việc phân loại nợ cho các khoản tiền gửi tại các tổ chức tín dụng khác "
+            "được thực hiện theo quy định tại Điều 10 của Thông tư số 31/2024/TT-NHNN "
+            "ngày 30 tháng 6 năm 2024 do NHNNVN ban hành"
+        )
+        self.assertEqual(extract_amount_columns_from_line(legal1), [])
+
+        legal2 = (
+            "Theo quy định của Nghị định số 86/2024/NĐ-CP ngày 11 tháng 7 năm 2024 "
+            "do Chính phủ ban hành quy định về mức trích, phương pháp trích lập dự phòng"
+        )
+        self.assertEqual(extract_amount_columns_from_line(legal2), [])
+
+        legal3 = "Theo Luật các Tổ chức tín dụng số 47/2010/QH12 do Quốc hội ban hành"
+        self.assertEqual(extract_amount_columns_from_line(legal3), [])
+
+        day_count = "- Nhóm 5 – Nợ có khả năng mất vốn: quá hạn từ 90 ngày trở lên."
+        self.assertEqual(extract_amount_columns_from_line(day_count), [])
+
+        # Real table row with thousands-separated amounts must NOT be skipped
+        real_table1 = "Dự phòng theo Thông tư 11 | 1.000.000 | 800.000"
+        self.assertEqual(
+            extract_amount_columns_from_line(real_table1),
+            [Decimal("1000000"), Decimal("800000")],
+        )
+
+        real_table2 = "Dự phòng theo Thông tư 11 1.000.000 800.000"
+        self.assertEqual(
+            extract_amount_columns_from_line(real_table2),
+            [Decimal("1000000"), Decimal("800000")],
+        )
+
+    def test_candidate_extraction_ocb_style_synthetic(self) -> None:
+        """Multi-page synthetic extraction simulating OCB filing:
+        - Balance sheet in VND with date headers
+        - Notes containing narrative circular/decree citations and 'tỷ đồng' text
+        - Loan quality note table with real multi-billion VND balances
+        Must detect unit as 'vnd' and extract amounts divided by 10^9 without capturing legal citations.
+        """
+        pages = [
+            PageInput(
+                page_number=1,
+                text=(
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH HỢP NHẤT\n"
+                    "Tại ngày 31 tháng 12 năm 2025\n"
+                    "Thuyết minh | 31/12/2025 VND | 31/12/2024 VND\n"
+                    "TỔNG TÀI SẢN | 322.949.479.567.113 | 276.486.854.526.261\n"
+                    "TỔNG VỐN CHỦ SỞ HỮU | 33.924.677.884.591 | 31.671.045.433.324\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=2,
+                text=(
+                    "BÁO CÁO KẾT QUẢ HOẠT ĐỘNG KINH DOANH HỢP NHẤT\n"
+                    "Năm 2025 Năm 2024\n"
+                    "Thuyết minh | 2025 VND | 2024 VND\n"
+                    "LỢI NHUẬN SAU THUẾ | 4.010.081.000.000 | 3.173.423.000.000\n"
+                    "Cổ đông công ty mẹ | 4.010.081.000.000 | 3.173.423.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=3,
+                text=(
+                    "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+                    "Chính sách phân loại nợ\n"
+                    "Việc phân loại nợ được thực hiện theo quy định tại Điều 10 của "
+                    "Thông tư số 31/2024/TT-NHNN ngày 30 tháng 6 năm 2024 do NHNNVN ban hành.\n"
+                    "Công ty đang hoạt động với vốn điều lệ 20.000 tỷ đồng và công ty đồng kiểm soát.\n"
+                    "- Nhóm 3 – Nợ dưới tiêu chuẩn: quá hạn dưới 30 ngày;\n"
+                    "- Nhóm 4 – Nợ nghi ngờ: quá hạn từ 30 ngày đến dưới 90 ngày;\n"
+                    "- Nhóm 5 – Nợ có khả năng mất vốn: quá hạn từ 90 ngày trở lên.\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=4,
+                text=(
+                    "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+                    "Phân tích chất lượng nợ cho vay khách hàng\n"
+                    "Thuyết minh | 31/12/2025 VND | 31/12/2024 VND\n"
+                    "Nhóm 3 - Nợ dưới tiêu chuẩn | 797.210.239.597 | 1.075.776.805.310\n"
+                    "Nhóm 4 - Nợ nghi ngờ | 1.715.658.267.794 | 1.710.943.603.143\n"
+                    "Nhóm 5 - Nợ có khả năng mất vốn | 3.832.608.212.238 | 2.621.403.037.774\n"
+                    "Cho vay khách hàng | 198.764.945.826.810 | 170.844.469.638.663\n"
+                    "Dự phòng rủi ro cho vay khách hàng | (3.574.058.101.292) | (2.549.323.810.977)\n"
+                ),
+                source="llamaparse",
+            ),
+        ]
+
+        result = extract_candidates_from_pages(
+            pages,
+            entity_id="OCB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            display_name="Ngân hàng OCB",
+        )
+
+        # 1. Unit must be detected as 'vnd' from Balance Sheet, not 'billion_vnd'
+        self.assertEqual(result.unit_detected, "vnd")
+
+        rows_by_key = {(r.metric_id, r.period_role): r for r in result.rows}
+
+        # 2. Total assets: 322.949.479.567.113 VND -> 322949.480 billion VND (divided by 10^9)
+        ta_target = rows_by_key[("bank.input.total_assets", "target")]
+        self.assertEqual(ta_target.value_billion_vnd, "322949.480")
+        self.assertEqual(ta_target.page, 1)
+
+        # 3. NPL Group 3: 797.210.239.597 VND -> 797.210 billion VND (NOT 2024 or 31)
+        g3_target = rows_by_key[("bank.input.npl_group_3_balance", "target")]
+        self.assertEqual(g3_target.value_billion_vnd, "797.210")
+        self.assertEqual(g3_target.page, 4)
+
+        # 4. NPL Group 4: 1.715.658.267.794 VND -> 1715.658 billion VND (NOT 2024 or 31)
+        g4_target = rows_by_key[("bank.input.npl_group_4_balance", "target")]
+        self.assertEqual(g4_target.value_billion_vnd, "1715.658")
+        self.assertEqual(g4_target.page, 4)
+
+        # 5. NPL Group 5: 3.832.608.212.238 VND -> 3832.608 billion VND (NOT 5 or 90)
+        g5_target = rows_by_key[("bank.input.npl_group_5_balance", "target")]
+        self.assertEqual(g5_target.value_billion_vnd, "3832.608")
+        self.assertEqual(g5_target.page, 4)
+
+        # 6. Gross customer loans: 198.764.945.826.810 VND -> 198764.946 billion VND (NOT 2024 or 0.010)
+        gcl_target = rows_by_key[("bank.input.gross_customer_loans", "target")]
+        self.assertEqual(gcl_target.value_billion_vnd, "198764.946")
+        self.assertEqual(gcl_target.page, 4)
+
+
 if __name__ == "__main__":
     unittest.main()

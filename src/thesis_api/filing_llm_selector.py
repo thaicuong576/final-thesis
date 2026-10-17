@@ -14,7 +14,6 @@ Provides refine_candidates_with_llm:
 
 from __future__ import annotations
 
-from difflib import SequenceMatcher
 from decimal import Decimal
 import json
 import logging
@@ -306,23 +305,23 @@ def refine_candidates_with_llm(
                     return m[0].strip()
 
                 target_lbl = fold(_extract_label(selected_line))
+                cluster_pages = {selected_page_num} | set(pnums)
                 if target_lbl and len(target_lbl) >= 3:
                     for cand in candidate_items:
+                        c_page = int(cand.get("page", selected_page_num))
+                        if c_page not in cluster_pages:
+                            continue
                         c_text = cand.get("text", "")
                         if c_text == selected_line:
                             continue
                         c_lbl = fold(_extract_label(c_text))
-                        is_match = (c_lbl == target_lbl) or (
-                            (c_lbl in target_lbl or target_lbl in c_lbl)
-                            and SequenceMatcher(None, target_lbl, c_lbl).ratio() >= 0.8
-                        )
-                        if is_match:
+                        if c_lbl == target_lbl:
                             c_amounts = extract_amount_columns_from_line(c_text)
                             c_col_idx = col_t if (isinstance(col_t, int) and 0 <= col_t < len(c_amounts)) else 0
                             if c_amounts and c_amounts[c_col_idx] != val_target:
                                 val_prior = c_amounts[c_col_idx]
                                 prior_line = c_text
-                                prior_page_num = int(cand.get("page", selected_page_num))
+                                prior_page_num = c_page
                                 break
 
             if spec.metric_id == "bank.input.loan_loss_provisions":
@@ -364,8 +363,8 @@ def refine_candidates_with_llm(
                 old_r = new_rows[r_idx]
 
                 if b_val is None:
-                    # Nếu kỳ so sánh không có giá trị, và trước đó lặp số của target thì đặt lại missing rõ ràng
-                    if role == "prior" and target_b is not None and old_r.value_billion_vnd == str(target_b):
+                    # Nếu kỳ so sánh không có giá trị, đặt lại missing rõ ràng
+                    if role == "prior":
                         upd_issues = [
                             iss
                             for iss in old_r.issues
@@ -439,46 +438,6 @@ def refine_candidates_with_llm(
         except Exception as call_err:
             logger.warning("LLM row selector call failed for %s: %s", spec.metric_id, call_err)
             continue
-
-    # Fallback: If profit_after_tax is present but parent_attributable_profit is missing, infer it
-    pat_map = {r.period_role: r for r in new_rows if r.metric_id == "bank.input.profit_after_tax"}
-    for role in ("target", "prior"):
-        pap_idx = next(
-            (
-                i
-                for i, r in enumerate(new_rows)
-                if r.metric_id == "bank.input.parent_attributable_profit" and r.period_role == role
-            ),
-            None,
-        )
-        if pap_idx is not None and new_rows[pap_idx].status == "missing":
-            pat_r = pat_map.get(role)
-            if pat_r and pat_r.value_billion_vnd is not None:
-                old_pap = new_rows[pap_idx]
-                new_rows[pap_idx] = CandidateRow(
-                    row_id=old_pap.row_id,
-                    metric_id=old_pap.metric_id,
-                    label_vi=old_pap.label_vi,
-                    period_role=role,
-                    period_id=old_pap.period_id,
-                    value_billion_vnd=pat_r.value_billion_vnd,
-                    extracted_value_billion_vnd=pat_r.extracted_value_billion_vnd,
-                    raw_text=pat_r.raw_text,
-                    row_label="Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
-                    page=pat_r.page,
-                    source=pat_r.source,
-                    status="candidate",
-                    edited=False,
-                    confirmed=False,
-                    issues=[
-                        RowIssue(
-                            code="parent_profit_inferred_from_pat",
-                            severity="info",
-                            message_vi="Báo cáo không trình bày riêng lợi nhuận cổ đông mẹ; lấy tương đương lợi nhuận sau thuế.",
-                        )
-                    ],
-                    alternatives=old_pap.alternatives,
-                )
 
     val_res = validate_filing_rows(new_rows, page_texts={p.page_number: p.text for p in pages})
 

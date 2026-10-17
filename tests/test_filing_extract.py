@@ -572,7 +572,6 @@ class TestFilingExtractLegalAndUnit(unittest.TestCase):
                     "X. Tổng lợi nhuận trước thuế | 5.000.000.000.000 | 4.000.000.000.000\n"
                     "XI. Chi phí thuế TNDN | (989.918.885.975) | (826.576.773.232)\n"
                     "XIII. Lợi nhuận sau thuế | 4.010.081.114.025 | 3.173.423.226.768\n"
-                    "1. Cổ đông của Ngân hàng | 4.010.081.114.025 | 3.173.423.226.768\n"
                 ),
                 source="llamaparse",
             ),
@@ -628,16 +627,57 @@ class TestFilingExtractLegalAndUnit(unittest.TestCase):
         self.assertEqual(pat_prior.value_billion_vnd, "3173.423")
         self.assertEqual(pat_prior.page, 13)
 
-        # Verify parent_attributable_profit
+        # Verify parent_attributable_profit: when page does not have a separate line for parent profit,
+        # it must be missing (no inference from profit_after_tax)
         pap_target = rows_by_key.get(("bank.input.parent_attributable_profit", "target"))
-        self.assertIsNotNone(pap_target, "parent_attributable_profit:target should be extracted")
-        self.assertEqual(pap_target.value_billion_vnd, "4010.081")
-        self.assertEqual(pap_target.page, 13)
+        self.assertIsNotNone(pap_target)
+        self.assertEqual(pap_target.status, "missing")
+        self.assertIsNone(pap_target.value_billion_vnd)
 
         pap_prior = rows_by_key.get(("bank.input.parent_attributable_profit", "prior"))
-        self.assertIsNotNone(pap_prior, "parent_attributable_profit:prior should be extracted")
-        self.assertEqual(pap_prior.value_billion_vnd, "3173.423")
-        self.assertEqual(pap_prior.page, 13)
+        self.assertIsNotNone(pap_prior)
+        self.assertEqual(pap_prior.status, "missing")
+        self.assertIsNone(pap_prior.value_billion_vnd)
+
+    def test_comparison_line_on_unrelated_page_not_used_for_prior(self) -> None:
+        """When an unrelated page contains a line with the exact same label as target,
+        it must NOT be picked as prior if it is outside the classified section cluster.
+        """
+        pages = [
+            PageInput(
+                page_number=1,
+                text=(
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH\n"
+                    "Mẫu B02/TCTD\n"
+                    "Đơn vị: Triệu VND\n"
+                    "Tổng tài sản | 500.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=50,
+                text=(
+                    "THUYẾT MINH KHÁC\n"
+                    "Mẫu B05/TCTD\n"
+                    "Tổng tài sản | 300.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+        ]
+        res = extract_candidates_from_pages(
+            pages,
+            entity_id="TEST",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+        )
+        rows_by_key = {(r.metric_id, r.period_role): r for r in res.rows}
+        ta_target = rows_by_key[("bank.input.total_assets", "target")]
+        ta_prior = rows_by_key[("bank.input.total_assets", "prior")]
+
+        self.assertEqual(ta_target.value_billion_vnd, "500000.000")
+        # Must be missing, NOT 300000.000 from page 50
+        self.assertEqual(ta_prior.status, "missing")
+        self.assertIsNone(ta_prior.value_billion_vnd)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@ from thesis_data.filing_extract import (
     CandidateRow,
     ExtractionResult,
     PageInput,
+    RowAlternative,
     RowIssue,
     StatementPages,
 )
@@ -549,6 +550,99 @@ class TestFilingLLMSelector(unittest.TestCase):
         # Must resolve to 324009.713, NOT 4.366
         self.assertEqual(prior_r.value_billion_vnd, "324009.713")
         self.assertNotEqual(prior_r.value_billion_vnd, "4.366")
+
+    def test_comparison_line_on_unrelated_page_not_used_for_prior_llm(self) -> None:
+        """When an unrelated page contains a line with identical label,
+        LLM selector must NOT pick it for prior if outside the section cluster.
+        """
+        page_text_66 = (
+            "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Nợ dưới tiêu chuẩn | 2.149.202\n"
+        )
+        page_text_99 = (
+            "THUYẾT MINH BẤT THƯỜNG\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Nợ dưới tiêu chuẩn | 50.000.000\n"
+        )
+        pages = [
+            PageInput(page_number=66, text=page_text_66, source="llamaparse"),
+            PageInput(page_number=99, text=page_text_99, source="llamaparse"),
+        ]
+        stmt_pages = StatementPages(loan_quality_note=[66])
+
+        initial_rows = [
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:target",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="target",
+                period_id="2025_Q4",
+                value_billion_vnd="2149.202",
+                extracted_value_billion_vnd="2149.202",
+                raw_text="Nợ dưới tiêu chuẩn | 2.149.202",
+                row_label="Nợ dưới tiêu chuẩn | 2.149.202",
+                page=66,
+                source="llamaparse",
+                status="candidate",
+                issues=[],
+                alternatives=[
+                    RowAlternative(
+                        value_billion_vnd="50000.000",
+                        page=99,
+                        raw_text="Nợ dưới tiêu chuẩn | 50.000.000",
+                        row_label="Nợ dưới tiêu chuẩn | 50.000.000",
+                    )
+                ],
+            ),
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:prior",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="prior",
+                period_id="2024_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="needs_review",
+                issues=[],
+                alternatives=[],
+            ),
+        ]
+        ext = ExtractionResult(
+            filing_id="fl-test-unrelated",
+            entity_id="VIB",
+            display_name="Ngân hàng VIB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=2,
+            statement_pages=stmt_pages,
+            unit_detected="million_vnd",
+            rows=initial_rows,
+            text_layer_pages=0,
+            ocr_pages=2,
+            limitations_vi=[],
+        )
+
+        fake_response = json.dumps({
+            "line_id": "L1",
+            "column_target": 0,
+            "column_prior": None,
+            "reason": "Dòng 1 cột",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refined_ext, _ = refine_candidates_with_llm(ext, pages, client=client, model="test-model")
+
+        target_r = next(r for r in refined_ext.rows if r.period_role == "target")
+        prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
+
+        self.assertEqual(target_r.value_billion_vnd, "2149.202")
+        # Must be missing, NOT 50000.000 from page 99
+        self.assertIsNone(prior_r.value_billion_vnd)
+        self.assertEqual(prior_r.status, "missing")
 
 
 if __name__ == "__main__":

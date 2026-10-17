@@ -628,16 +628,47 @@ class TestFilingExtractLegalAndUnit(unittest.TestCase):
         self.assertEqual(pat_prior.page, 13)
 
         # Verify parent_attributable_profit: when page does not have a separate line for parent profit,
-        # it must be missing (no inference from profit_after_tax)
+        # it is inferred from profit_after_tax with issue parent_profit_inferred_from_pat
         pap_target = rows_by_key.get(("bank.input.parent_attributable_profit", "target"))
         self.assertIsNotNone(pap_target)
-        self.assertEqual(pap_target.status, "missing")
-        self.assertIsNone(pap_target.value_billion_vnd)
+        self.assertEqual(pap_target.value_billion_vnd, "4010.081")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_target.issues))
 
         pap_prior = rows_by_key.get(("bank.input.parent_attributable_profit", "prior"))
         self.assertIsNotNone(pap_prior)
-        self.assertEqual(pap_prior.status, "missing")
-        self.assertIsNone(pap_prior.value_billion_vnd)
+        self.assertEqual(pap_prior.value_billion_vnd, "3173.423")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_prior.issues))
+
+    def test_parent_profit_inferred_from_pat_when_missing(self) -> None:
+        """When filing income statement has profit_after_tax but no separate line for
+        parent attributable profit, it is inferred with issue parent_profit_inferred_from_pat.
+        """
+        pages = [
+            PageInput(
+                page_number=1,
+                text=(
+                    "BÁO CÁO KẾT QUẢ KINH DOANH\n"
+                    "Mẫu B03/TCTD\n"
+                    "Đơn vị: Triệu VND\n"
+                    "Lợi nhuận sau thuế | 100.000 | 80.000\n"
+                ),
+                source="text_layer",
+            ),
+        ]
+        res = extract_candidates_from_pages(
+            pages,
+            entity_id="TEST",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+        )
+        rows_by_key = {(r.metric_id, r.period_role): r for r in res.rows}
+        pap_target = rows_by_key[("bank.input.parent_attributable_profit", "target")]
+        pap_prior = rows_by_key[("bank.input.parent_attributable_profit", "prior")]
+
+        self.assertEqual(pap_target.value_billion_vnd, "100.000")
+        self.assertEqual(pap_prior.value_billion_vnd, "80.000")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_target.issues))
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_prior.issues))
 
     def test_comparison_line_on_unrelated_page_not_used_for_prior(self) -> None:
         """When an unrelated page contains a line with the exact same label as target,

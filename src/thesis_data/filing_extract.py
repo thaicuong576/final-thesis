@@ -1005,6 +1005,12 @@ def extract_candidates_from_pages(
 
     candidate_rows: list[CandidateRow] = []
 
+    # Cache profit after tax values in case parent attributable profit needs fallback
+    cached_pat: dict[str, Optional[Decimal]] = {"target": None, "prior": None}
+    cached_pat_raw: dict[str, str] = {"target": "", "prior": ""}
+    cached_pat_page: dict[str, int] = {"target": 1, "prior": 1}
+    cached_pat_source: dict[str, str] = {"target": "ocr", "prior": "ocr"}
+
     # Process each metric
     for spec in METRIC_SPECS:
         # Determine candidate pages to search
@@ -1033,6 +1039,40 @@ def extract_candidates_from_pages(
 
         # Sort matches by score descending
         matched_lines.sort(key=lambda x: x[0], reverse=True)
+
+        # Fallback handling for parent_attributable_profit: if no line found, equals profit_after_tax
+        if not matched_lines and spec.metric_id == "bank.input.parent_attributable_profit" and cached_pat["target"] is not None:
+            # Use profit after tax as fallback
+            for role, pid, pval in [("target", target_period, cached_pat["target"]), ("prior", prior_period, cached_pat["prior"])]:
+                r_id = f"{spec.metric_id}:{role}"
+                c_val = str(pval) if pval is not None else None
+                candidate_rows.append(
+                    CandidateRow(
+                        row_id=r_id,
+                        metric_id=spec.metric_id,
+                        label_vi=METRIC_LABELS_VI[spec.metric_id],
+                        period_role=role,  # type: ignore[arg-type]
+                        period_id=pid,
+                        value_billion_vnd=c_val,
+                        extracted_value_billion_vnd=c_val,
+                        raw_text=cached_pat_raw.get(role),
+                        row_label="Lợi nhuận sau thuế (tương đương cổ đông mẹ do không tách riêng CĐTSKT)",
+                        page=cached_pat_page.get(role),
+                        source=cached_pat_source.get(role, "ocr"),  # type: ignore[arg-type]
+                        status="candidate" if c_val is not None else "missing",
+                        edited=False,
+                        confirmed=False,
+                        issues=[
+                            RowIssue(
+                                code="parent_profit_inferred_from_pat",
+                                severity="info",
+                                message_vi="Báo cáo không trình bày riêng lợi nhuận cổ đông mẹ; lấy tương đương lợi nhuận sau thuế.",
+                            )
+                        ] if c_val is not None else [],
+                        alternatives=[],
+                    )
+                )
+            continue
 
         # Handling for non_controlling_interests: if not presented, default 0
         if not matched_lines and spec.allow_zero_default:
@@ -1186,6 +1226,16 @@ def extract_candidates_from_pages(
         else:
             target_billion = None
             prior_billion = None
+
+        if spec.metric_id == "bank.input.profit_after_tax":
+            cached_pat["target"] = target_billion
+            cached_pat["prior"] = prior_billion
+            cached_pat_raw["target"] = best_line
+            cached_pat_raw["prior"] = best_line
+            cached_pat_page["target"] = best_page.page_number
+            cached_pat_page["prior"] = best_page.page_number
+            cached_pat_source["target"] = best_page.source
+            cached_pat_source["prior"] = best_page.source
 
         # Build CandidateRows for target and prior periods
         for role, pid, b_val in [

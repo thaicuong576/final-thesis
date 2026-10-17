@@ -278,7 +278,12 @@ def _ordinal_quarter(ordinal: int) -> str:
     return f"{year}_Q{quarter_index + 1}"
 
 
-def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
+def resolve_query(
+    query: str,
+    catalog: Any,
+    upload_period: str | None = None,
+    upload_periods: Sequence[str] | None = None,
+) -> ResolvedQuery:
     """Deterministically resolve entity, period, metric, and analytical intent from a query."""
     norm = normalize_text(query)
     norm_no_accents = strip_accents(norm)
@@ -289,6 +294,33 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
         raise AnalysisBlocked("accepted_snapshot_unavailable", "Catalog contains no accepted periods.")
 
     catalog_period_set = {p.casefold(): p for p in catalog_periods}
+
+    # Discover upload period / periods from uploaded entities if not explicitly provided
+    if (upload_period is None or upload_periods is None) and hasattr(catalog, "entities"):
+        for ent in catalog.entities:
+            attrs = ent.attributes or {}
+            if attrs.get("user_supplied"):
+                if upload_period is None:
+                    upload_period = (
+                        attrs.get("latest_upload_period")
+                        or attrs.get("latest_period")
+                        or attrs.get("period_id")
+                    )
+                if upload_periods is None:
+                    upload_periods = attrs.get("upload_periods") or attrs.get("periods")
+                if upload_period is not None:
+                    break
+
+    if upload_periods and upload_period is None:
+        sorted_ups = sorted(upload_periods, key=_parse_period_key)
+        upload_period = sorted_ups[-1]
+    elif upload_period and not upload_periods:
+        upload_periods = (upload_period,)
+
+    if upload_period and upload_period.casefold() not in catalog_period_set:
+        catalog_periods.append(upload_period)
+        catalog_periods.sort(key=_parse_period_key)
+        catalog_period_set[upload_period.casefold()] = upload_period
 
     # 1. Resolve Periods
     explicit_periods: tuple[str, ...] = ()
@@ -406,19 +438,31 @@ def resolve_query(query: str, catalog: Any) -> ResolvedQuery:
                         f"Year {y_val} has no periods in the accepted snapshot.",
                     )
                 year_only = y_val
-                anchor_period = year_quarters[-1]
+                upload_year_quarters = [p for p in (upload_periods or ()) if p.startswith(f"{y_val}_Q")]
+                if upload_year_quarters:
+                    anchor_period = upload_year_quarters[-1]
+                else:
+                    anchor_period = year_quarters[-1]
             else:
                 # 1d. No period specified
-                anchor_period = catalog_periods[-1]
-                defaults_applied.append("period_defaulted_to_latest")
+                if upload_period:
+                    exact_up = catalog_period_set.get(upload_period.casefold(), upload_period)
+                    anchor_period = exact_up
+                    defaults_applied.append("period_defaulted_to_upload")
+                else:
+                    anchor_period = catalog_periods[-1]
+                    defaults_applied.append("period_defaulted_to_latest")
 
     # 1e. Context periods: same year, <= anchor_period, sorted ascending, max 4
     anchor_y, anchor_q = _parse_period_key(anchor_period)
+    candidate_context = [p for p in upload_periods if p.casefold() in catalog_period_set] if upload_periods else catalog_periods
     context_periods = tuple(
         p
-        for p in catalog_periods
+        for p in candidate_context
         if _parse_period_key(p)[0] == anchor_y and _parse_period_key(p)[1] <= anchor_q
     )[-4:]
+    if not context_periods:
+        context_periods = (anchor_period,)
 
     # 2. Resolve Entities
     company_entities = [e for e in catalog.entities if e.entity_type.value == "company"]

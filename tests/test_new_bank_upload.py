@@ -149,6 +149,7 @@ class NewBankUploadTests(unittest.TestCase):
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
 
         self.settings = Settings(
+            _env_file=None,
             app_name="final-thesis-api-upload-test",
             app_env="test",
             sqlite_db_path=str(self.gold_db_path),
@@ -376,6 +377,47 @@ class NewBankUploadTests(unittest.TestCase):
             gold_current_hash,
             "Gold database was modified during upload/analysis execution!",
         )
+
+    def test_analysis_with_upload_id_defaults_to_uploaded_bank_period(self) -> None:
+        # 1. Upload valid CTG sample (kỳ 2024_Q4)
+        valid_csv = generate_ctg_sample_csv()
+        upload_resp = self.client.post(
+            "/api/onboarding/uploads",
+            files={"file": ("ctg-2024q4.csv", io.BytesIO(valid_csv.encode("utf-8")), "text/csv")},
+            data={"entity_id": "CTG", "display_name": "VietinBank"},
+        )
+        self.assertEqual(upload_resp.status_code, 200)
+        upload_id = upload_resp.json()["upload_id"]
+
+        # 2. Analyze CTG with upload_id but NO period in query or request body
+        with patch(
+            "thesis_api.service._load_provider",
+            side_effect=_scope_fixture_provider_binding,
+        ):
+            analyze_resp = self.client.post(
+                "/api/analyze",
+                json={
+                    "query": "Tỷ lệ nợ xấu của CTG là bao nhiêu?",
+                    "target_ticker": "CTG",
+                    "upload_id": upload_id,
+                },
+            )
+
+        self.assertEqual(analyze_resp.status_code, 200)
+        report_data = analyze_resp.json()
+        report = AnalysisResponse.model_validate(report_data)
+
+        self.assertEqual(report.status, "completed")
+        self.assertEqual(report.analysis_plan.target_ticker, "CTG")
+        self.assertEqual(report.analysis_plan.period, "2024_Q4")
+        self.assertEqual(report.analysis_plan.periods, ["2024_Q4"])
+
+        # Atomic claims verify CTG NPL in 2024_Q4
+        npl_claims = [c for c in report.atomic_claims if c.metric == "bank.npl_g35"]
+        self.assertTrue(len(npl_claims) >= 1)
+        self.assertEqual(npl_claims[0].ticker, "CTG")
+        self.assertEqual(npl_claims[0].period, "2024_Q4")
+        self.assertEqual(npl_claims[0].stage1_status, "accepted")
 
     def test_analysis_without_upload_id_fails_closed_for_ctg(self) -> None:
         with patch(
@@ -611,6 +653,7 @@ class NewBankUploadTests(unittest.TestCase):
         shutil.copyfile(cand_gold, test_gold)
 
         real_settings = Settings(
+            _env_file=None,
             app_env="test",
             sqlite_db_path=str(test_gold),
             gold_scope_authority_path=str(cand_auth),

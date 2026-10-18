@@ -45,7 +45,7 @@ Có hai cách rút gọn. Nếu không muốn chờ đọc tệp, ở Bước 1 
 
 Những điều cần biết khi thử:
 
-- **Phải xem lại số.** Việc đọc là bán tự động: hệ thống nhận dạng chữ, chọn dòng ứng viên, và để người dùng xác nhận. Trên 10 báo cáo năm 2025, bộ đọc cho ra đúng 62,7% trong 150 ô được đối chiếu (đo trước các cải tiến chọn dòng và nhận đơn vị về sau; xem Phụ lục C), nên hệ thống không cho nhập khi còn ô chưa xác nhận hoặc khi phép kiểm số học không đạt.
+- **Cần xem lại số.** Việc đọc là bán tự động: hệ thống nhận dạng chữ, chọn dòng ứng viên, và để người dùng xác nhận. Vì báo cáo mỗi ngân hàng trình bày khác nhau, hệ thống không cho nhập khi còn ô chưa xác nhận hoặc khi phép kiểm số học không đạt.
 - **Số do máy chọn chỉ là đề xuất.** Mô hình ngôn ngữ chỉ chọn dòng trên trang báo cáo; con số được lấy từ chính dòng đó bằng chương trình, không do mô hình viết.
 - **Ngân hàng tải lên không vào trung vị nhóm và xếp hạng.** Dữ liệu này chỉ có một kỳ, nên câu hỏi xu hướng nhiều kỳ và xếp hạng sẽ bị từ chối hoặc không gồm ngân hàng vừa nạp. Câu hỏi tra cứu, tình hình tài chính và so sánh với một ngân hàng trong nhóm vẫn chạy được.
 - **Câu hỏi không nêu quý** sẽ lấy kỳ của báo cáo vừa nạp.

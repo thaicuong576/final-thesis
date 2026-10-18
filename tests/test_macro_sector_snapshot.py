@@ -223,6 +223,16 @@ class MacroSectorSnapshotTest(unittest.TestCase):
         again = builder.build(self.inputs, self.tmp / "id_plain2.sqlite", ratio_periods={"2024_Q2", "2024_Q4"})
         self.assertEqual(plain["dataset_snapshot_id"], again["dataset_snapshot_id"])
 
+    def test_every_shipped_macro_metric_has_a_vietnamese_label(self) -> None:
+        """Metric ids in the shipped macro inputs must not fall back to English-looking auto labels."""
+        shipped = Path(__file__).resolve().parents[1] / "data" / "onboarding" / "macro-sector" / "inputs.csv"
+        if not shipped.exists():
+            self.skipTest("macro-sector inputs are not part of this checkout")
+        with open(shipped, encoding="utf-8-sig", newline="") as f:
+            metric_ids = {row["metric_id"] for row in csv.DictReader(f)}
+        missing = sorted(m for m in metric_ids if m not in builder.LABELS)
+        self.assertEqual(missing, [])
+
     def test_fetch_macro_context(self) -> None:
         """fetch_macro_context retrieves accepted VN macro indicators from snapshot."""
         out = self.tmp / "ops_macro_fetch.sqlite"

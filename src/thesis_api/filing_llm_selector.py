@@ -31,6 +31,7 @@ from thesis_data.filing_extract import (
     RowIssue,
     _clean_spaces,
     extract_amount_columns_from_line,
+    fold,
     match_score_for_spec,
     unit_to_multiplier,
 )
@@ -182,6 +183,7 @@ def refine_candidates_with_llm(
                         "line_id": f"L{len(candidate_items) + 1}",
                         "page": p.page_number,
                         "text": line_clean,
+                        "numbers": [str(a) for a in amounts],
                     })
                     if len(candidate_items) >= 40:
                         break
@@ -197,6 +199,7 @@ def refine_candidates_with_llm(
                         "line_id": f"L{len(candidate_items) + 1}",
                         "page": alt.page,
                         "text": alt.raw_text,
+                        "numbers": [str(a) for a in extract_amount_columns_from_line(alt.raw_text)],
                     })
                     if len(candidate_items) >= 40:
                         break
@@ -214,10 +217,14 @@ def refine_candidates_with_llm(
             f"Kỳ mục tiêu: {target_period} (Năm {extraction.fiscal_year})\n"
             f"Kỳ so sánh: {prior_period} (Năm {extraction.fiscal_year - 1})\n\n"
             f"Danh sách các dòng in sẵn từ trang báo cáo:\n{lines_repr}\n\n"
-            f"Nhiệm vụ: Chọn đúng dòng in thể hiện chỉ tiêu trên. "
-            f"Bạn TUYỆT ĐỐI KHÔNG viết số, chỉ chọn line_id từ danh sách trên.\n"
+            f"Nhiệm vụ: Chọn đúng dòng in (line_id) thể hiện chỉ tiêu trên.\n"
+            f"Quy tắc chọn cột (chỉ số 0-based trên mảng 'numbers' của chính dòng được chọn):\n"
+            f"- column_target: chỉ số 0-based của số thuộc kỳ mục tiêu ({target_period}), thường là 0 (hoặc null nếu không có).\n"
+            f"- column_prior: chỉ số 0-based của số thuộc kỳ so sánh ({prior_period}) trên chính dòng đó, thường là 1 nếu dòng có cả 2 kỳ, hoặc null nếu dòng chỉ có số kỳ mục tiêu hoặc không chứa kỳ so sánh.\n"
+            f"Lưu ý: Nếu dòng chỉ chứa số của một kỳ hoặc các cột số thể hiện các phân loại khác nhau của cùng kỳ mục tiêu (không phải kỳ so sánh), bạn PHẢI đặt column_prior là null.\n"
+            f"Bạn TUYỆT ĐỐI KHÔNG viết số, chỉ chọn line_id và chỉ số cột từ danh sách trên.\n"
             f"Trả về duy nhất định dạng JSON:\n"
-            f'{{"line_id": "<line_id hoặc null>", "column_target": <0 hoặc 1 hoặc null>, "column_prior": <1 hoặc 2 hoặc null>, "reason": "<giải thích ngắn>"}}'
+            f'{{"line_id": "<line_id hoặc null>", "column_target": <chỉ số 0-based hoặc null>, "column_prior": <chỉ số 0-based hoặc null>, "reason": "<giải thích ngắn>"}}'
         )
 
         try:
@@ -271,13 +278,51 @@ def refine_candidates_with_llm(
 
             if isinstance(col_t, int) and 0 <= col_t < len(amounts):
                 val_target = amounts[col_t]
-            elif len(amounts) >= 1:
+            elif len(amounts) >= 1 and (col_t is None or not isinstance(col_t, int)):
                 val_target = amounts[0]
 
             if isinstance(col_p, int) and 0 <= col_p < len(amounts):
                 val_prior = amounts[col_p]
-            elif len(amounts) >= 2:
-                val_prior = amounts[1]
+            else:
+                val_prior = None
+
+            # Code check 1 (TASK-1):
+            # Nếu val_prior == val_target hoặc dòng chọn chỉ có một cột số thì KHÔNG gán kỳ trước từ dòng này
+            if len(amounts) <= 1 or (val_prior is not None and val_target is not None and val_prior == val_target):
+                val_prior = None
+
+            # Requirement 2:
+            # Nếu dòng tổng ở trang thuyết minh chỉ có một cột số cho kỳ hiện tại thì kỳ trước
+            # phải lấy dòng cùng nhãn ở phần so sánh (nếu có trong danh sách ứng viên), nếu không có thì để thiếu rõ ràng. Không bịa.
+            prior_line: Optional[str] = None
+            prior_page_num: Optional[int] = None
+
+            if val_prior is None and val_target is not None:
+                def _extract_label(raw: str) -> str:
+                    if "|" in raw:
+                        return raw.split("|")[0].strip()
+                    m = re.split(r"\d", raw, maxsplit=1)
+                    return m[0].strip()
+
+                target_lbl = fold(_extract_label(selected_line))
+                cluster_pages = {selected_page_num} | set(pnums)
+                if target_lbl and len(target_lbl) >= 3:
+                    for cand in candidate_items:
+                        c_page = int(cand.get("page", selected_page_num))
+                        if c_page not in cluster_pages:
+                            continue
+                        c_text = cand.get("text", "")
+                        if c_text == selected_line:
+                            continue
+                        c_lbl = fold(_extract_label(c_text))
+                        if c_lbl == target_lbl:
+                            c_amounts = extract_amount_columns_from_line(c_text)
+                            c_col_idx = col_t if (isinstance(col_t, int) and 0 <= col_t < len(c_amounts)) else 0
+                            if c_amounts and c_amounts[c_col_idx] != val_target:
+                                val_prior = c_amounts[c_col_idx]
+                                prior_line = c_text
+                                prior_page_num = c_page
+                                break
 
             if spec.metric_id == "bank.input.loan_loss_provisions":
                 if val_target is not None and val_target < 0:
@@ -300,12 +345,10 @@ def refine_candidates_with_llm(
                 target_b = None
                 prior_b = None
 
-            # Verify that page text contains the value (value_in_page_text)
-            p_obj = pages_by_num.get(selected_page_num)
-            if not p_obj:
-                continue
-
-            for role, b_val in [("target", target_b), ("prior", prior_b)]:
+            for role, b_val, role_line, role_page in [
+                ("target", target_b, selected_line, selected_page_num),
+                ("prior", prior_b, prior_line or selected_line, prior_page_num or selected_page_num),
+            ]:
                 r_idx = next(
                     (
                         i
@@ -314,10 +357,50 @@ def refine_candidates_with_llm(
                     ),
                     None,
                 )
-                if r_idx is None or b_val is None:
+                if r_idx is None:
                     continue
 
                 old_r = new_rows[r_idx]
+
+                if b_val is None:
+                    # Nếu kỳ so sánh không có giá trị, đặt lại missing rõ ràng
+                    if role == "prior":
+                        upd_issues = [
+                            iss
+                            for iss in old_r.issues
+                            if iss.code not in ("row_not_found", "low_confidence_match", "column_missing")
+                        ]
+                        upd_issues.append(
+                            RowIssue(
+                                code="prior_not_found",
+                                severity="warning",
+                                message_vi="Không tìm thấy số kỳ so sánh hợp lệ (tránh lặp số kỳ mục tiêu)",
+                            )
+                        )
+                        new_rows[r_idx] = CandidateRow(
+                            row_id=old_r.row_id,
+                            metric_id=old_r.metric_id,
+                            label_vi=old_r.label_vi,
+                            period_role=old_r.period_role,
+                            period_id=old_r.period_id,
+                            value_billion_vnd=None,
+                            extracted_value_billion_vnd=None,
+                            raw_text=None,
+                            row_label=None,
+                            page=None,
+                            source=old_r.source,
+                            status="missing",
+                            edited=old_r.edited,
+                            confirmed=old_r.confirmed,
+                            issues=upd_issues,
+                            alternatives=old_r.alternatives,
+                        )
+                    continue
+
+                p_obj = pages_by_num.get(role_page)
+                if not p_obj:
+                    continue
+
                 b_str = str(b_val)
 
                 # Keep existing issues that are not row_not_found/low_confidence
@@ -342,9 +425,9 @@ def refine_candidates_with_llm(
                     period_id=old_r.period_id,
                     value_billion_vnd=b_str,
                     extracted_value_billion_vnd=b_str,
-                    raw_text=selected_line,
-                    row_label=selected_line,
-                    page=selected_page_num,
+                    raw_text=role_line,
+                    row_label=role_line,
+                    page=role_page,
                     source="llm_assisted_selection",
                     status="candidate",
                     edited=old_r.edited,

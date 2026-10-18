@@ -243,25 +243,44 @@ def score_page_classification(folded_text: str) -> dict[str, float]:
     """Score a page's likelihood of being Balance Sheet, Income Statement, or Loan Quality Note."""
     scores = {"balance_sheet": 0.0, "income_statement": 0.0, "loan_quality_note": 0.0}
 
+    # Detect whether page is Notes to financial statements (B05)
+    is_note_page = any(
+        k in folded_text
+        for k in [
+            "mau b05",
+            "b05 tctd",
+            "b 05 tctd",
+            "b05 hn",
+            "thuyet minh bao cao tai chinh",
+            "thuyet minh bctc",
+        ]
+    )
+
     # 1. Balance Sheet Cues
-    if any(k in folded_text for k in ["bao cao tinh hinh tai chinh", "can doi ke toan", "bang can doi"]):
-        scores["balance_sheet"] += 15.0
-    if "tong tai san" in folded_text or "tong cong tai san" in folded_text or "tong tai san co" in folded_text:
-        scores["balance_sheet"] += 8.0
-    if "von chu so huu" in folded_text:
-        scores["balance_sheet"] += 5.0
-    if "no phai tra" in folded_text:
-        scores["balance_sheet"] += 4.0
+    if not is_note_page:
+        if any(k in folded_text for k in ["mau b02", "b02 tctd", "b 02 tctd", "b02 hn", "mau b01", "b01 tctd"]):
+            scores["balance_sheet"] += 20.0
+        if any(k in folded_text for k in ["bao cao tinh hinh tai chinh", "can doi ke toan", "bang can doi"]):
+            scores["balance_sheet"] += 15.0
+        if "tong tai san" in folded_text or "tong cong tai san" in folded_text or "tong tai san co" in folded_text:
+            scores["balance_sheet"] += 8.0
+        if "von chu so huu" in folded_text:
+            scores["balance_sheet"] += 5.0
+        if "no phai tra" in folded_text:
+            scores["balance_sheet"] += 4.0
 
     # 2. Income Statement Cues
-    if any(k in folded_text for k in ["ket qua hoat dong kinh doanh", "bao cao ket qua hoat dong", "ket qua kinh doanh"]):
-        scores["income_statement"] += 15.0
-    if "loi nhuan sau thue" in folded_text:
-        scores["income_statement"] += 8.0
-    if "thu nhap lai thuan" in folded_text or "thu nhap lai" in folded_text:
-        scores["income_statement"] += 5.0
-    if "co dong cua ngan hang" in folded_text or "co dong cong ty me" in folded_text or "co dong ngan hang" in folded_text:
-        scores["income_statement"] += 5.0
+    if not is_note_page:
+        if any(k in folded_text for k in ["mau b03", "b03 tctd", "b 03 tctd", "b03 hn"]):
+            scores["income_statement"] += 20.0
+        if any(k in folded_text for k in ["ket qua hoat dong kinh doanh", "bao cao ket qua hoat dong", "ket qua kinh doanh"]):
+            scores["income_statement"] += 15.0
+        if "loi nhuan sau thue" in folded_text:
+            scores["income_statement"] += 8.0
+        if "thu nhap lai thuan" in folded_text or "thu nhap lai" in folded_text:
+            scores["income_statement"] += 5.0
+        if "co dong cua ngan hang" in folded_text or "co dong cong ty me" in folded_text or "co dong ngan hang" in folded_text:
+            scores["income_statement"] += 5.0
 
     # 3. Loan Quality Note & Provisions Cues (Full Page Scan)
     if any(k in folded_text for k in ["chat luong no", "phan tich chat luong no", "theo chat luong no", "phan loai no"]):
@@ -312,6 +331,20 @@ def classify_pages(pages: list[PageInput]) -> StatementPages:
                 selected.append(pno)
         return sorted(selected)
 
+    bs_pages = _pick_cluster(bs_candidates, max_count=3)
+
+    # For income statement: prefer candidate cluster that is sequential to balance sheet if bs_pages exist
+    if bs_pages and is_candidates:
+        max_bs = max(bs_pages)
+        # Check if there are is_candidates within 4 pages after balance sheet
+        adjacent_is = [c for c in is_candidates if max_bs <= c[0] <= max_bs + 4]
+        if adjacent_is:
+            is_pages = _pick_cluster(adjacent_is, max_count=2)
+        else:
+            is_pages = _pick_cluster(is_candidates, max_count=2)
+    else:
+        is_pages = _pick_cluster(is_candidates, max_count=2)
+
     # For loan quality note, scan across the whole document:
     # Pick the top candidate page and any distinct high-scoring note pages (e.g. provisions note)
     selected_lq: list[int] = []
@@ -327,8 +360,8 @@ def classify_pages(pages: list[PageInput]) -> StatementPages:
         selected_lq.sort()
 
     return StatementPages(
-        balance_sheet=_pick_cluster(bs_candidates, max_count=3),
-        income_statement=_pick_cluster(is_candidates, max_count=2),
+        balance_sheet=bs_pages,
+        income_statement=is_pages,
         loan_quality_note=selected_lq,
     )
 
@@ -770,8 +803,14 @@ METRIC_SPECS: tuple[MetricMatchSpec, ...] = (
             "loi nhuan sau thue thu nhap doanh nghiep",
             "loi nhuan sau thue tndn",
             "tong loi nhuan sau thue",
+            "tong loi nhuan thuan sau thue",
+            "loi nhuan thuan sau thue",
             "xiii loi nhuan sau thue",
             "xii loi nhuan sau thue",
+            "xiv loi nhuan sau thue",
+            "xi loi nhuan sau thue",
+            "13 loi nhuan sau thue",
+            "14 loi nhuan sau thue",
         ),
         exclude_terms=("truoc thue",),
     ),
@@ -789,6 +828,9 @@ METRIC_SPECS: tuple[MetricMatchSpec, ...] = (
             "co dong cong ty me",
             "co dong ngan hang",
             "loi nhuan sau thue cua co dong cong ty me",
+            "loi nhuan sau thue thuoc ve co dong cong ty me",
+            "loi nhuan sau thue cua co dong ngan hang me",
+            "co dong cua ngan hang me",
         ),
         exclude_terms=("thieu so", "khong kiem soat"),
     ),
@@ -859,6 +901,8 @@ def match_score_for_spec(line_text: str, spec: MetricMatchSpec) -> float:
     elif spec.metric_id == "bank.input.npl_group_5_balance":
         if "5" in folded_line and any(k in folded_line for k in ["nhom", "nhem", "nhdem", "mat von", "mat v"]):
             return 0.95
+    elif spec.metric_id == "bank.input.profit_after_tax" and ("loi nhuan sau thue" in folded_line or "loi nhuan thuan sau thue" in folded_line):
+        return 0.95
 
     # Check for exact substring match
     best_score = 0.0
@@ -1123,9 +1167,41 @@ def extract_candidates_from_pages(
 
         if len(best_amounts) >= 2:
             val_target = best_amounts[0]
-            val_prior = best_amounts[1]
+            if best_amounts[1] != best_amounts[0]:
+                val_prior = best_amounts[1]
+            else:
+                val_prior = None
         elif len(best_amounts) == 1:
             val_target = best_amounts[0]
+
+        # Prior from comparison section if not available on current line
+        prior_best_line = best_line
+        prior_best_page = best_page.page_number
+        prior_best_source = best_page.source
+        if val_prior is None and len(matched_lines) > 1 and val_target is not None:
+            def _extract_lbl(raw: str) -> str:
+                if "|" in raw:
+                    return raw.split("|")[0].strip()
+                m = re.split(r"\d", raw, maxsplit=1)
+                return m[0].strip()
+
+            target_lbl = fold(_extract_lbl(best_line))
+            allowed_pages = {best_page.page_number} | {p.page_number for p in candidate_p}
+            if target_lbl and len(target_lbl) >= 3:
+                for alt_score, alt_page, alt_line, alt_amounts in matched_lines[1:]:
+                    if alt_page.page_number not in allowed_pages:
+                        continue
+                    alt_lbl = fold(_extract_lbl(alt_line))
+                    if (
+                        alt_lbl == target_lbl
+                        and alt_amounts
+                        and alt_amounts[0] != val_target
+                    ):
+                        val_prior = alt_amounts[0]
+                        prior_best_line = alt_line
+                        prior_best_page = alt_page.page_number
+                        prior_best_source = alt_page.source
+                        break
 
         # Convert to billion VND
         # Note: loan_loss_provisions in balance sheet is displayed negative (in parens),
@@ -1237,10 +1313,10 @@ def extract_candidates_from_pages(
                     period_id=pid,
                     value_billion_vnd=val_str,
                     extracted_value_billion_vnd=val_str,
-                    raw_text=best_line,
-                    row_label=best_line,
-                    page=best_page.page_number,
-                    source=best_page.source,
+                    raw_text=best_line if role == "target" else prior_best_line,
+                    row_label=best_line if role == "target" else prior_best_line,
+                    page=best_page.page_number if role == "target" else prior_best_page,
+                    source=best_page.source if role == "target" else prior_best_source,
                     status=row_status,
                     edited=False,
                     confirmed=False,

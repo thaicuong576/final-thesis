@@ -13,9 +13,8 @@ Tests:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
 import json
-from typing import Any, Optional
+from typing import Any
 import unittest
 
 from thesis_api.filing_llm_selector import refine_candidates_with_llm
@@ -23,6 +22,7 @@ from thesis_data.filing_extract import (
     CandidateRow,
     ExtractionResult,
     PageInput,
+    RowAlternative,
     RowIssue,
     StatementPages,
 )
@@ -311,6 +311,338 @@ class TestFilingLLMSelector(unittest.TestCase):
         self.assertEqual(client.chat.completions.call_count, 1)
         for call_kwargs in client.chat.completions.prompts:
             self.assertNotIn("temperature", call_kwargs)
+
+    def test_prior_not_duplicated_when_equal_to_target(self) -> None:
+        """When LLM returns a line with identical amounts or col_p produces val_prior == val_target,
+        code does not assign duplicate prior and resolves from comparison section if available.
+        """
+        page_text = (
+            "THUYẾT MINH BÁO CÁO TÀI CHÍNH (tiếp theo)\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Tại ngày 31 tháng 12 năm 2025:\n"
+            "Nợ dưới tiêu chuẩn | 2.149.202 | - | - | - | 2.149.202\n"
+            "Tại ngày 31 tháng 12 năm 2024:\n"
+            "Nợ dưới tiêu chuẩn | 2.305.497 | - | - | - | 2.305.497\n"
+        )
+        pages = [PageInput(page_number=66, text=page_text, source="llamaparse")]
+        stmt_pages = StatementPages(loan_quality_note=[66])
+
+        initial_rows = [
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:target",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="target",
+                period_id="2025_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="missing",
+                issues=[],
+                alternatives=[],
+            ),
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:prior",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="prior",
+                period_id="2024_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="missing",
+                issues=[],
+                alternatives=[],
+            ),
+        ]
+        ext = ExtractionResult(
+            filing_id="fl-test-vib",
+            entity_id="VIB",
+            display_name="Ngân hàng VIB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=1,
+            statement_pages=stmt_pages,
+            unit_detected="million_vnd",
+            rows=initial_rows,
+            text_layer_pages=0,
+            ocr_pages=1,
+            limitations_vi=[],
+        )
+
+        # LLM selects line 1 with column_target=0, column_prior=1 (which would be 2149.202 == 2149.202)
+        fake_response = json.dumps({
+            "line_id": "L1",
+            "column_target": 0,
+            "column_prior": 1,
+            "reason": "Dòng Nợ dưới tiêu chuẩn 2025",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refined_ext, _ = refine_candidates_with_llm(ext, pages, client=client, model="test-model")
+
+        target_r = next(r for r in refined_ext.rows if r.period_role == "target")
+        prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
+
+        # Target gets 2149.202 billion VND
+        self.assertEqual(target_r.value_billion_vnd, "2149.202")
+        # Prior is NOT 2149.202 (not duplicated); it resolved from comparison line 2305.497!
+        self.assertEqual(prior_r.value_billion_vnd, "2305.497")
+        self.assertNotEqual(prior_r.value_billion_vnd, target_r.value_billion_vnd)
+
+    def test_single_column_row_leaves_prior_missing_when_no_comparison(self) -> None:
+        """When selected line has only 1 column and no comparison line exists, prior is left missing."""
+        page_text = (
+            "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Dư nợ cho vay | 100.000.000\n"
+        )
+        pages = [PageInput(page_number=1, text=page_text, source="llamaparse")]
+        stmt_pages = StatementPages(balance_sheet=[1])
+
+        initial_rows = [
+            CandidateRow(
+                row_id="bank.input.gross_customer_loans:target",
+                metric_id="bank.input.gross_customer_loans",
+                label_vi="Cho vay khách hàng (dư nợ gộp)",
+                period_role="target",
+                period_id="2025_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="missing",
+                issues=[],
+                alternatives=[],
+            ),
+            CandidateRow(
+                row_id="bank.input.gross_customer_loans:prior",
+                metric_id="bank.input.gross_customer_loans",
+                label_vi="Cho vay khách hàng (dư nợ gộp)",
+                period_role="prior",
+                period_id="2024_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="missing",
+                issues=[],
+                alternatives=[],
+            ),
+        ]
+        ext = ExtractionResult(
+            filing_id="fl-test-1col",
+            entity_id="VCB",
+            display_name="Vietcombank",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=1,
+            statement_pages=stmt_pages,
+            unit_detected="million_vnd",
+            rows=initial_rows,
+            text_layer_pages=0,
+            ocr_pages=1,
+            limitations_vi=[],
+        )
+
+        fake_response = json.dumps({
+            "line_id": "L1",
+            "column_target": 0,
+            "column_prior": None,
+            "reason": "Dòng 1 cột",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refined_ext, _ = refine_candidates_with_llm(ext, pages, client=client, model="test-model")
+
+        target_r = next(r for r in refined_ext.rows if r.period_role == "target")
+        prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
+
+        self.assertEqual(target_r.value_billion_vnd, "100000.000")
+        self.assertIsNone(prior_r.value_billion_vnd)
+        self.assertEqual(prior_r.status, "missing")
+
+    def test_total_loan_prior_resolved_from_comparison_section(self) -> None:
+        """Simulate VIB page 66 total loans: line 1 has multiple categories (381.972.016 and 4.366),
+        prior column is resolved from comparison section line (324.009.713), avoiding 4.366.
+        """
+        page_text = (
+            "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Tại ngày 31 tháng 12 năm 2025:\n"
+            "Tổng cộng | 381.972.016 | 4.366 | 40.356.524 | 103.061.873 | 525.394.779\n"
+            "Tại ngày 31 tháng 12 năm 2024:\n"
+            "Tổng cộng | 324.009.713 | 8.846 | 40.104.713 | 104.640.972 | 468.764.244\n"
+        )
+        pages = [PageInput(page_number=66, text=page_text, source="llamaparse")]
+        stmt_pages = StatementPages(loan_quality_note=[66])
+
+        initial_rows = [
+            CandidateRow(
+                row_id="bank.input.gross_customer_loans:target",
+                metric_id="bank.input.gross_customer_loans",
+                label_vi="Cho vay khách hàng (dư nợ gộp)",
+                period_role="target",
+                period_id="2025_Q4",
+                value_billion_vnd="381972.016",
+                extracted_value_billion_vnd="381972.016",
+                raw_text="Tổng cộng | 381.972.016 | 4.366",
+                row_label="Tổng cộng | 381.972.016 | 4.366",
+                page=66,
+                source="llamaparse",
+                status="candidate",
+                issues=[],
+                alternatives=[],
+            ),
+            CandidateRow(
+                row_id="bank.input.gross_customer_loans:prior",
+                metric_id="bank.input.gross_customer_loans",
+                label_vi="Cho vay khách hàng (dư nợ gộp)",
+                period_role="prior",
+                period_id="2024_Q4",
+                value_billion_vnd="4.366",
+                extracted_value_billion_vnd="4.366",
+                raw_text="Tổng cộng | 381.972.016 | 4.366",
+                row_label="Tổng cộng | 381.972.016 | 4.366",
+                page=66,
+                source="llamaparse",
+                status="needs_review",
+                issues=[],
+                alternatives=[],
+            ),
+        ]
+        ext = ExtractionResult(
+            filing_id="fl-vib-test",
+            entity_id="VIB",
+            display_name="Ngân hàng VIB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=1,
+            statement_pages=stmt_pages,
+            unit_detected="million_vnd",
+            rows=initial_rows,
+            text_layer_pages=0,
+            ocr_pages=1,
+            limitations_vi=[],
+        )
+
+        fake_response = json.dumps({
+            "line_id": "L1",
+            "column_target": 0,
+            "column_prior": None,
+            "reason": "Dòng tổng cộng cho vay khách hàng 2025",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refined_ext, _ = refine_candidates_with_llm(ext, pages, client=client, model="test-model")
+
+        target_r = next(r for r in refined_ext.rows if r.period_role == "target")
+        prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
+
+        self.assertEqual(target_r.value_billion_vnd, "381972.016")
+        # Must resolve to 324009.713, NOT 4.366
+        self.assertEqual(prior_r.value_billion_vnd, "324009.713")
+        self.assertNotEqual(prior_r.value_billion_vnd, "4.366")
+
+    def test_comparison_line_on_unrelated_page_not_used_for_prior_llm(self) -> None:
+        """When an unrelated page contains a line with identical label,
+        LLM selector must NOT pick it for prior if outside the section cluster.
+        """
+        page_text_66 = (
+            "THUYẾT MINH BÁO CÁO TÀI CHÍNH\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Nợ dưới tiêu chuẩn | 2.149.202\n"
+        )
+        page_text_99 = (
+            "THUYẾT MINH BẤT THƯỜNG\n"
+            "Đơn vị tính: Triệu VND\n"
+            "Nợ dưới tiêu chuẩn | 50.000.000\n"
+        )
+        pages = [
+            PageInput(page_number=66, text=page_text_66, source="llamaparse"),
+            PageInput(page_number=99, text=page_text_99, source="llamaparse"),
+        ]
+        stmt_pages = StatementPages(loan_quality_note=[66])
+
+        initial_rows = [
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:target",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="target",
+                period_id="2025_Q4",
+                value_billion_vnd="2149.202",
+                extracted_value_billion_vnd="2149.202",
+                raw_text="Nợ dưới tiêu chuẩn | 2.149.202",
+                row_label="Nợ dưới tiêu chuẩn | 2.149.202",
+                page=66,
+                source="llamaparse",
+                status="candidate",
+                issues=[],
+                alternatives=[
+                    RowAlternative(
+                        value_billion_vnd="50000.000",
+                        page=99,
+                        raw_text="Nợ dưới tiêu chuẩn | 50.000.000",
+                        row_label="Nợ dưới tiêu chuẩn | 50.000.000",
+                    )
+                ],
+            ),
+            CandidateRow(
+                row_id="bank.input.npl_group_3_balance:prior",
+                metric_id="bank.input.npl_group_3_balance",
+                label_vi="Nợ dưới tiêu chuẩn (Nhóm 3)",
+                period_role="prior",
+                period_id="2024_Q4",
+                value_billion_vnd=None,
+                extracted_value_billion_vnd=None,
+                raw_text=None,
+                row_label=None,
+                page=None,
+                source=None,
+                status="needs_review",
+                issues=[],
+                alternatives=[],
+            ),
+        ]
+        ext = ExtractionResult(
+            filing_id="fl-test-unrelated",
+            entity_id="VIB",
+            display_name="Ngân hàng VIB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            page_count=2,
+            statement_pages=stmt_pages,
+            unit_detected="million_vnd",
+            rows=initial_rows,
+            text_layer_pages=0,
+            ocr_pages=2,
+            limitations_vi=[],
+        )
+
+        fake_response = json.dumps({
+            "line_id": "L1",
+            "column_target": 0,
+            "column_prior": None,
+            "reason": "Dòng 1 cột",
+        })
+        client = FakeOpenAIClient([fake_response])
+        refined_ext, _ = refine_candidates_with_llm(ext, pages, client=client, model="test-model")
+
+        target_r = next(r for r in refined_ext.rows if r.period_role == "target")
+        prior_r = next(r for r in refined_ext.rows if r.period_role == "prior")
+
+        self.assertEqual(target_r.value_billion_vnd, "2149.202")
+        # Must be missing, NOT 50000.000 from page 99
+        self.assertIsNone(prior_r.value_billion_vnd)
+        self.assertEqual(prior_r.status, "missing")
 
 
 if __name__ == "__main__":

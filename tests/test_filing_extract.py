@@ -514,6 +514,202 @@ class TestFilingExtractLegalAndUnit(unittest.TestCase):
         self.assertEqual(gcl_target.value_billion_vnd, "198764.946")
         self.assertEqual(gcl_target.page, 4)
 
+    def test_ocb_multi_page_classification_and_profit_extraction(self) -> None:
+        """Synthetic test for OCB: B03 income statement vs B05 notes, and profit extraction."""
+        pages = [
+            PageInput(
+                page_number=9,
+                text=(
+                    "NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN PHƯƠNG ĐÔNG\n"
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH HỢP NHẤT\n"
+                    "Tại ngày 31 tháng 12 năm 2025\n"
+                    "Mẫu B02/TCTD-HN\n"
+                    "Đơn vị tính: VND\n"
+                    "TỔNG TÀI SẢN | 322.949.479.567.113 | 280.000.000.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=10,
+                text=(
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH HỢP NHẤT (tiếp theo)\n"
+                    "Tiền gửi của khách hàng | 180.000.000.000.000 | 160.000.000.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=11,
+                text=(
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH HỢP NHẤT (tiếp theo)\n"
+                    "VỐN CHỦ SỞ HỮU | 35.000.000.000.000 | 30.000.000.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=12,
+                text=(
+                    "NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN PHƯƠNG ĐÔNG\n"
+                    "BÁO CÁO KẾT QUẢ HOẠT ĐỘNG HỢP NHẤT\n"
+                    "Cho năm tài chính kết thúc ngày 31 tháng 12 năm 2025\n"
+                    "Mẫu B03/TCTD-HN\n"
+                    "Đơn vị tính: VND\n"
+                    "I. Thu nhập lãi và các khoản thu nhập tương tự | 15.000.000.000.000 | 13.000.000.000.000\n"
+                    "II. Chi phí lãi và các chi phí tương tự | (8.000.000.000.000) | (7.000.000.000.000)\n"
+                    "Thu nhập lãi thuần | 7.000.000.000.000 | 6.000.000.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=13,
+                text=(
+                    "NGÂN HÀNG THƯƠNG MẠI CỔ PHẦN PHƯƠNG ĐÔNG\n"
+                    "BÁO CÁO KẾT QUẢ HOẠT ĐỘNG HỢP NHẤT (tiếp theo)\n"
+                    "Cho năm tài chính kết thúc ngày 31 tháng 12 năm 2025\n"
+                    "Mẫu B03/TCTD-HN\n"
+                    "Đơn vị tính: VND\n"
+                    "VIII. Lợi nhuận thuần từ HĐKD trước trích lập | 6.000.000.000.000 | 5.000.000.000.000\n"
+                    "IX. Chi phí dự phòng rủi ro tín dụng | (1.000.000.000.000) | (1.000.000.000.000)\n"
+                    "X. Tổng lợi nhuận trước thuế | 5.000.000.000.000 | 4.000.000.000.000\n"
+                    "XI. Chi phí thuế TNDN | (989.918.885.975) | (826.576.773.232)\n"
+                    "XIII. Lợi nhuận sau thuế | 4.010.081.114.025 | 3.173.423.226.768\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=33,
+                text=(
+                    "THUYẾT MINH BÁO CÁO TÀI CHÍNH HỢP NHẤT\n"
+                    "Mẫu B05/TCTD-HN\n"
+                    "Chính sách kế toán chủ yếu\n"
+                    "Báo cáo kết quả hoạt động hợp nhất phản ánh các khoản thu nhập và chi phí phát sinh.\n"
+                    "Lợi nhuận phân bổ cho các cổ đông của ngân hàng được xác định theo quy định.\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=35,
+                text=(
+                    "THUYẾT MINH BÁO CÁO TÀI CHÍNH HỢP NHẤT\n"
+                    "Mẫu B05/TCTD-HN\n"
+                    "Hoạt động dịch vụ và thu nhập khác\n"
+                    "Thu nhập lãi và thu nhập thuần khác của ngân hàng trong năm.\n"
+                ),
+                source="llamaparse",
+            ),
+        ]
+
+        # 1. Page classification verification
+        stmt_pages = classify_pages(pages)
+        self.assertEqual(stmt_pages.balance_sheet, [9, 10, 11])
+        self.assertEqual(stmt_pages.income_statement, [12, 13])
+        self.assertNotIn(33, stmt_pages.income_statement)
+        self.assertNotIn(35, stmt_pages.income_statement)
+
+        # 2. Extract candidates and verify profit rows
+        result = extract_candidates_from_pages(
+            pages,
+            entity_id="OCB",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+            display_name="Ngân hàng TMCP Phương Đông",
+        )
+
+        rows_by_key = {(r.metric_id, r.period_role): r for r in result.rows}
+
+        # Verify profit_after_tax
+        pat_target = rows_by_key.get(("bank.input.profit_after_tax", "target"))
+        self.assertIsNotNone(pat_target, "profit_after_tax:target should be extracted")
+        self.assertEqual(pat_target.value_billion_vnd, "4010.081")
+        self.assertEqual(pat_target.page, 13)
+
+        pat_prior = rows_by_key.get(("bank.input.profit_after_tax", "prior"))
+        self.assertIsNotNone(pat_prior, "profit_after_tax:prior should be extracted")
+        self.assertEqual(pat_prior.value_billion_vnd, "3173.423")
+        self.assertEqual(pat_prior.page, 13)
+
+        # Verify parent_attributable_profit: when page does not have a separate line for parent profit,
+        # it is inferred from profit_after_tax with issue parent_profit_inferred_from_pat
+        pap_target = rows_by_key.get(("bank.input.parent_attributable_profit", "target"))
+        self.assertIsNotNone(pap_target)
+        self.assertEqual(pap_target.value_billion_vnd, "4010.081")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_target.issues))
+
+        pap_prior = rows_by_key.get(("bank.input.parent_attributable_profit", "prior"))
+        self.assertIsNotNone(pap_prior)
+        self.assertEqual(pap_prior.value_billion_vnd, "3173.423")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_prior.issues))
+
+    def test_parent_profit_inferred_from_pat_when_missing(self) -> None:
+        """When filing income statement has profit_after_tax but no separate line for
+        parent attributable profit, it is inferred with issue parent_profit_inferred_from_pat.
+        """
+        pages = [
+            PageInput(
+                page_number=1,
+                text=(
+                    "BÁO CÁO KẾT QUẢ KINH DOANH\n"
+                    "Mẫu B03/TCTD\n"
+                    "Đơn vị: Triệu VND\n"
+                    "Lợi nhuận sau thuế | 100.000 | 80.000\n"
+                ),
+                source="text_layer",
+            ),
+        ]
+        res = extract_candidates_from_pages(
+            pages,
+            entity_id="TEST",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+        )
+        rows_by_key = {(r.metric_id, r.period_role): r for r in res.rows}
+        pap_target = rows_by_key[("bank.input.parent_attributable_profit", "target")]
+        pap_prior = rows_by_key[("bank.input.parent_attributable_profit", "prior")]
+
+        self.assertEqual(pap_target.value_billion_vnd, "100.000")
+        self.assertEqual(pap_prior.value_billion_vnd, "80.000")
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_target.issues))
+        self.assertTrue(any(iss.code == "parent_profit_inferred_from_pat" for iss in pap_prior.issues))
+
+    def test_comparison_line_on_unrelated_page_not_used_for_prior(self) -> None:
+        """When an unrelated page contains a line with the exact same label as target,
+        it must NOT be picked as prior if it is outside the classified section cluster.
+        """
+        pages = [
+            PageInput(
+                page_number=1,
+                text=(
+                    "BÁO CÁO TÌNH HÌNH TÀI CHÍNH\n"
+                    "Mẫu B02/TCTD\n"
+                    "Đơn vị: Triệu VND\n"
+                    "Tổng tài sản | 500.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+            PageInput(
+                page_number=50,
+                text=(
+                    "THUYẾT MINH KHÁC\n"
+                    "Mẫu B05/TCTD\n"
+                    "Tổng tài sản | 300.000.000\n"
+                ),
+                source="llamaparse",
+            ),
+        ]
+        res = extract_candidates_from_pages(
+            pages,
+            entity_id="TEST",
+            fiscal_year=2025,
+            reporting_scope="consolidated",
+        )
+        rows_by_key = {(r.metric_id, r.period_role): r for r in res.rows}
+        ta_target = rows_by_key[("bank.input.total_assets", "target")]
+        ta_prior = rows_by_key[("bank.input.total_assets", "prior")]
+
+        self.assertEqual(ta_target.value_billion_vnd, "500000.000")
+        # Must be missing, NOT 300000.000 from page 50
+        self.assertEqual(ta_prior.status, "missing")
+        self.assertIsNone(ta_prior.value_billion_vnd)
+
 
 if __name__ == "__main__":
     unittest.main()

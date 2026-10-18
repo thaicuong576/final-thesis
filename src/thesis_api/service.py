@@ -98,9 +98,22 @@ _MACRO_TERMS = (
     "nhnn", "ngân hàng nhà nước", "ngan hang nha nuoc", "sbv",
     "lãi suất điều hành", "lai suat dieu hanh",
     "lãi suất tái cấp vốn", "lai suat tai cap von",
+    "lãi suất tái chiết khấu", "lai suat tai chiet khau",
+    "tái cấp vốn", "tai cap von",
+    "tái chiết khấu", "tai chiet khau",
+    "trần lãi suất", "tran lai suat",
     "tăng trưởng tín dụng", "tang truong tin dung",
     "tăng trưởng tín dụng toàn ngành", "tang truong tin dung toan nganh",
+    "tín dụng", "tin dung",
+    "toàn hệ thống", "toan he thong",
+    "toàn ngành", "toan nganh",
+    "hệ thống ngân hàng", "he thong ngan hang",
+    "nợ xấu toàn hệ thống", "no xau toan he thong",
+    "nợ xấu toàn ngành", "no xau toan nganh",
     "lạm phát", "lam phat", "cpi", "truyền dẫn", "truyen dan",
+    "gdp", "kinh tế", "kinh te",
+    "an toàn vốn", "an toan von",
+    "huy động", "huy dong",
 )
 _METRIC_CODES = ("ROE", "ROA", "NIM", "NPL", "CIR", "CASA", "CAR", "LDR", "LLR")
 _METRIC_PHRASES = {
@@ -705,7 +718,10 @@ def _provider_macro_available(catalog: DatasetCapabilityCatalog) -> bool:
     operations = set(catalog.supported_operations)
     return (
         SupportedOperation.GET_MACRO_OBSERVATION in operations
-        and any(metric.analytical_level is AnalyticalLevel.MACRO for metric in catalog.metrics)
+        and any(
+            metric.analytical_level is AnalyticalLevel.MACRO or metric.metric_id.startswith("sector.system_")
+            for metric in catalog.metrics
+        )
     )
 
 
@@ -1175,7 +1191,7 @@ def fetch_macro_context(conn: sqlite3.Connection, period: str) -> MacroContextDT
     try:
         cursor = conn.execute(
             """
-            SELECT metric_id, value, source_locator
+            SELECT metric_id, value, source_locator, period_basis
             FROM observations
             WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
             """,
@@ -1185,7 +1201,7 @@ def fetch_macro_context(conn: sqlite3.Connection, period: str) -> MacroContextDT
         if not rows and len(period) == 4 and period.isdigit():
             cursor = conn.execute(
                 """
-                SELECT metric_id, value, source_locator
+                SELECT metric_id, value, source_locator, period_basis
                 FROM observations
                 WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
                 """,
@@ -1193,23 +1209,67 @@ def fetch_macro_context(conn: sqlite3.Connection, period: str) -> MacroContextDT
             )
             rows = cursor.fetchall()
     except sqlite3.OperationalError:
-        return MacroContextDTO()
+        try:
+            cursor = conn.execute(
+                """
+                SELECT metric_id, value, source_locator, NULL as period_basis
+                FROM observations
+                WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
+                """,
+                (period,),
+            )
+            rows = cursor.fetchall()
+            if not rows and len(period) == 4 and period.isdigit():
+                cursor = conn.execute(
+                    """
+                    SELECT metric_id, value, source_locator, NULL as period_basis
+                    FROM observations
+                    WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
+                    """,
+                    (f"{period}_Q4",),
+                )
+                rows = cursor.fetchall()
+        except sqlite3.OperationalError:
+            return MacroContextDTO()
 
     if not rows:
         return MacroContextDTO()
 
     policy_rate: float | None = None
-    credit_growth: float | None = None
     sources: list[str] = []
 
-    for metric_id, value, locator in rows:
+    credit_candidates: dict[str, tuple[float | None, str | None, str | None]] = {}
+    for metric_id, value, locator, period_basis in rows:
         val = float(value) if value is not None else None
         if metric_id == "macro.policy_rate":
             policy_rate = val
-        elif metric_id == "macro.credit_growth":
-            credit_growth = val
-        if locator and locator not in sources:
-            sources.append(locator)
+            if locator and locator not in sources:
+                sources.append(locator)
+        elif metric_id in ("macro.credit_growth_yoy", "macro.credit_growth_ytd", "macro.credit_growth"):
+            credit_candidates[metric_id] = (val, locator, period_basis)
+
+    credit_growth: float | None = None
+    chosen_credit_metric = None
+    for pref in ("macro.credit_growth_yoy", "macro.credit_growth_ytd", "macro.credit_growth"):
+        if pref in credit_candidates:
+            chosen_credit_metric = pref
+            break
+
+    if chosen_credit_metric is not None:
+        c_val, c_loc, c_basis = credit_candidates[chosen_credit_metric]
+        credit_growth = c_val
+        if chosen_credit_metric == "macro.credit_growth_yoy":
+            basis_label = "YoY"
+        elif chosen_credit_metric == "macro.credit_growth_ytd":
+            basis_label = "YTD"
+        elif c_basis and str(c_basis).lower() == "ytd":
+            basis_label = "YTD"
+        else:
+            basis_label = "YoY"
+
+        credit_source = f"{c_loc} ({basis_label})" if c_loc else f"({basis_label})"
+        if credit_source not in sources:
+            sources.append(credit_source)
 
     source_text = "; ".join(sources) if sources else None
     return MacroContextDTO(

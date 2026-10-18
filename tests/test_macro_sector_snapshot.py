@@ -332,6 +332,204 @@ class MacroSectorSnapshotTest(unittest.TestCase):
             _plan_request(req, dataset_ref, catalog)
         self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
 
+    def _build_rich_macro_snapshot(self, out_name: str = "ops_rich_macro.sqlite") -> tuple[CanonicalSqliteDatasetProvider, DatasetRef, Any]:
+        rich_macro_csv = self.tmp / f"rich_macro_{out_name}.csv"
+        rows = [
+            ["entity_id", "metric_id", "period_id", "value", "unit", "period_basis",
+             "source_locator", "source_url", "source_sha256", "source_tier", "scope"],
+            ["VN", "macro.policy_rate", "2024_Q2", "4.5", "%", "point_in_time",
+             "Quyết định 1123/QĐ-NHNN, tr. 1", "https://sbv.gov.vn/rate-2024q2.pdf", "", "primary", "system"],
+            ["VN", "macro.credit_growth_yoy", "2024_Q2", "15.0", "%", "point_in_time",
+             "Báo cáo NHNN 6T2024, tr. 5", "https://sbv.gov.vn/credit-2024q2.pdf", "", "primary", "system"],
+            ["VN", "macro.credit_growth_ytd", "2024_Q2", "6.0", "%", "ytd",
+             "Báo cáo NHNN 6T2024, tr. 6", "https://sbv.gov.vn/credit-ytd-2024q2.pdf", "", "primary", "system"],
+            ["VN", "macro.gdp_growth_yoy", "2024_Q2", "6.42", "%", "point_in_time",
+             "TCTK Báo cáo KT-XH Q2/2024, tr. 1", "https://gso.gov.vn/gdp-2024q2.pdf", "", "primary", "system"],
+            ["VN", "sector.system_npl_ratio", "2024_Q2", "1.85", "%", "point_in_time",
+             "Báo cáo NHNN 6T2024, tr. 8", "https://sbv.gov.vn/sector-npl-2024q2.pdf", "", "primary", "system"],
+            ["VN", "sector.system_npl_ratio_excl_special_control", "2024_Q2", "1.50", "%", "point_in_time",
+             "Báo cáo NHNN 6T2024, tr. 9", "https://sbv.gov.vn/sector-npl-excl-2024q2.pdf", "", "primary", "system"],
+        ]
+        with rich_macro_csv.open("w", encoding="utf-8", newline="") as f:
+            csv.writer(f).writerows(rows)
+        out = self.tmp / out_name
+        manifest = builder.build(
+            self.inputs,
+            out,
+            macro_inputs_csv=rich_macro_csv,
+            ratio_periods={"2024_Q2", "2024_Q4"},
+        )
+        dataset_ref = DatasetRef(
+            dataset_id=manifest["dataset_id"],
+            dataset_snapshot_id=manifest["dataset_snapshot_id"],
+        )
+        provider = CanonicalSqliteDatasetProvider(out)
+        catalog = provider.get_capabilities(dataset_ref)
+        return provider, dataset_ref, catalog
+
+    def test_a_system_npl_ratio_claim_created(self) -> None:
+        """(a) snapshot có sector.system_npl_ratio + macro: hỏi 'tỷ lệ nợ xấu toàn hệ thống quý 2/2024' -> báo cáo có khẳng định lấy từ sector.system_npl_ratio."""
+        provider, dataset_ref, catalog = self._build_rich_macro_snapshot("snap_a.sqlite")
+        req = AnalysisRequest(query="Tỷ lệ nợ xấu toàn hệ thống quý 2/2024 là bao nhiêu?")
+        plan_res = _plan_request(req, dataset_ref, catalog)
+        plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = plan_res
+        self.assertIsNone(target)
+        self.assertIn("sector.system_npl_ratio", macro_metric_ids)
+
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        self.assertIn(report.status, {"completed", "accepted_with_limitations"})
+        npl_claims = [
+            c for c in report.atomic_claims
+            if "1.85" in c.statement
+        ]
+        self.assertEqual(len(npl_claims), 1)
+        self.assertEqual(npl_claims[0].capability, "macro")
+        self.assertEqual(npl_claims[0].stage1_status, "accepted")
+        self.assertIn("1.85", npl_claims[0].statement)
+
+    def test_b_credit_growth_query_selects_credit_not_gdp(self) -> None:
+        """(b) hỏi về tín dụng chọn đúng các mã credit_growth*, không kéo GDP."""
+        provider, dataset_ref, catalog = self._build_rich_macro_snapshot("snap_b.sqlite")
+        req = AnalysisRequest(query="Tăng trưởng tín dụng quý 2/2024 là bao nhiêu?")
+        plan_res = _plan_request(req, dataset_ref, catalog)
+        plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = plan_res
+        self.assertIsNone(target)
+        self.assertTrue(any(m.startswith("macro.credit_growth") for m in macro_metric_ids))
+        self.assertNotIn("macro.gdp_growth_yoy", macro_metric_ids)
+        self.assertFalse(any("gdp" in m for m in macro_metric_ids))
+
+    def test_c_general_macro_context_query_takes_all_macro_metrics(self) -> None:
+        """(c) câu hỏi chung 'bối cảnh vĩ mô' vẫn lấy mọi chỉ tiêu macro."""
+        provider, dataset_ref, catalog = self._build_rich_macro_snapshot("snap_c.sqlite")
+        req = AnalysisRequest(query="Bối cảnh vĩ mô quý 2/2024 như thế nào?")
+        plan_res = _plan_request(req, dataset_ref, catalog)
+        plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = plan_res
+        self.assertIsNone(target)
+        expected_macro_ids = tuple(
+            m.metric_id for m in catalog.metrics if m.analytical_level is AnalyticalLevel.MACRO
+        )
+        self.assertEqual(macro_metric_ids, expected_macro_ids)
+        self.assertIn("macro.policy_rate", macro_metric_ids)
+        self.assertIn("macro.gdp_growth_yoy", macro_metric_ids)
+
+    def test_d_snapshot_without_macro_blocks_unsupported_macro_scope(self) -> None:
+        """(d) snapshot không có macro vẫn chặn unsupported_macro_scope."""
+        out = self.tmp / "ops_no_macro_plan2.sqlite"
+        manifest = builder.build(self.inputs, out, ratio_periods={"2024_Q2", "2024_Q4"})
+        dataset_ref = DatasetRef(
+            dataset_id=manifest["dataset_id"],
+            dataset_snapshot_id=manifest["dataset_snapshot_id"],
+        )
+        provider = CanonicalSqliteDatasetProvider(out)
+        catalog = provider.get_capabilities(dataset_ref)
+
+        for query in (
+            "Tỷ lệ nợ xấu toàn hệ thống quý 2/2024 là bao nhiêu?",
+            "Tăng trưởng tín dụng quý 2/2024?",
+            "Bối cảnh vĩ mô quý 2/2024?",
+        ):
+            req = AnalysisRequest(query=query)
+            with self.assertRaises(AnalysisBlocked) as ctx:
+                _plan_request(req, dataset_ref, catalog)
+            self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
+
+    def test_e_system_npl_ratio_and_excl_special_control_distinct_claims(self) -> None:
+        """(e) chỉ tiêu sector.system_npl_ratio_excl_special_control KHÔNG bị gộp chung với sector.system_npl_ratio (hai khẳng định riêng, mỗi cái ghi đúng mã)."""
+        provider, dataset_ref, catalog = self._build_rich_macro_snapshot("snap_e.sqlite")
+        req = AnalysisRequest(query="Tỷ lệ nợ xấu toàn hệ thống quý 2/2024 là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        self.assertIn(report.status, {"completed", "accepted_with_limitations"})
+        claim_npl = next(
+            (c for c in report.atomic_claims if "1.85" in c.statement),
+            None,
+        )
+        claim_excl = next(
+            (c for c in report.atomic_claims if "1.5" in c.statement),
+            None,
+        )
+        self.assertIsNotNone(claim_npl)
+        self.assertIsNotNone(claim_excl)
+        self.assertNotEqual(claim_npl.claim_id, claim_excl.claim_id)
+        self.assertNotEqual(claim_npl.statement, claim_excl.statement)
+
+        # Check evidence trail rows
+        npl_trail = next(
+            (t for t in report.evidence_trail if t.value == 1.85),
+            None,
+        )
+        excl_trail = next(
+            (t for t in report.evidence_trail if t.value == 1.50),
+            None,
+        )
+        self.assertIsNotNone(npl_trail)
+        self.assertIsNotNone(excl_trail)
+        self.assertNotEqual(npl_trail.claim_id, excl_trail.claim_id)
+
+    def test_fetch_macro_context_credit_growth_priority_and_basis(self) -> None:
+        """fetch_macro_context prioritizes credit_growth_yoy > credit_growth_ytd > credit_growth and records basis."""
+        test_db = self.tmp / "test_credit_priority.sqlite"
+        conn = sqlite3.connect(test_db)
+        try:
+            conn.execute("""
+                CREATE TABLE observations (
+                    observation_id TEXT PRIMARY KEY,
+                    entity_id TEXT,
+                    period_id TEXT,
+                    metric_id TEXT,
+                    value REAL,
+                    source_locator TEXT,
+                    period_basis TEXT,
+                    validation_status TEXT
+                )
+            """)
+            conn.execute("""
+                INSERT INTO observations VALUES
+                ('obs-1', 'VN', '2024_Q2', 'macro.policy_rate', 4.5, 'NHNN tr. 1', 'point_in_time', 'valid'),
+                ('obs-2', 'VN', '2024_Q2', 'macro.credit_growth_yoy', 15.08, 'NHNN tr. 2', 'point_in_time', 'valid'),
+                ('obs-3', 'VN', '2024_Q2', 'macro.credit_growth_ytd', 6.0, 'NHNN tr. 3', 'ytd', 'valid'),
+                ('obs-4', 'VN', '2024_Q2', 'macro.credit_growth', 5.5, 'NHNN tr. 4', 'point_in_time', 'valid')
+            """)
+            conn.commit()
+            dto = fetch_macro_context(conn, "2024_Q2")
+            self.assertEqual(dto.system_credit_growth, 15.08)
+            self.assertIn("(YoY)", dto.source)
+
+            conn.execute("DELETE FROM observations WHERE metric_id = 'macro.credit_growth_yoy'")
+            conn.commit()
+            dto_ytd = fetch_macro_context(conn, "2024_Q2")
+            self.assertEqual(dto_ytd.system_credit_growth, 6.0)
+            self.assertIn("(YTD)", dto_ytd.source)
+
+            conn.execute("DELETE FROM observations WHERE metric_id = 'macro.credit_growth_ytd'")
+            conn.commit()
+            dto_old = fetch_macro_context(conn, "2024_Q2")
+            self.assertEqual(dto_old.system_credit_growth, 5.5)
+            self.assertIn("NHNN tr. 4", dto_old.source)
+        finally:
+            conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

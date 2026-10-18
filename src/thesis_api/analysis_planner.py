@@ -267,7 +267,10 @@ def rules_plan(
     num_entities = len(resolved.entities)
 
     if num_entities == 0 and "macro" in flags and not resolved.explicit_metrics and not resolved.topic_metrics:
-        if not any(m.analytical_level.value == "macro" for m in catalog.metrics):
+        if not any(
+            m.analytical_level.value == "macro" or m.metric_id.startswith("sector.system_")
+            for m in catalog.metrics
+        ):
             raise AnalysisBlocked(
                 "unsupported_macro_scope",
                 "Chưa có dữ liệu vĩ mô đã kiểm định trong hệ thống.",
@@ -449,7 +452,10 @@ def rules_plan(
     limitations: list[str] = []
     # 6. Macro flag
     if "macro" in flags and entities:
-        if not any(m.analytical_level.value == "macro" for m in catalog.metrics):
+        if not any(
+            m.analytical_level.value == "macro" or m.metric_id.startswith("sector.system_")
+            for m in catalog.metrics
+        ):
             limitations.append("Chưa có dữ liệu vĩ mô đã kiểm định; bỏ qua phân tích vĩ mô.")
 
     # 7. Why flag

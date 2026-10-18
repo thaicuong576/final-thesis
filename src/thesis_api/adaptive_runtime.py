@@ -611,6 +611,17 @@ def _plan_request(
         _resolve_target,
         _provider_macro_available,
     )
+    if _has_macro_request(request):
+        has_target = bool(getattr(request, "target_ticker", None)) or (
+            bool(_catalog_entity_matches(request.query, catalog)) if hasattr(catalog, "entities") else False
+        )
+        if not has_target and not _provider_macro_available(catalog):
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "unsupported_macro_scope",
+                "The accepted snapshot does not declare the requested macro observation capability.",
+            )
 
     if not getattr(request, "_periods_explicit", False) and not (
         _has_macro_request(request) and _provider_macro_available(catalog)
@@ -741,20 +752,103 @@ def _plan_request(
     if macro_requested:
         from .service import _normalized
         q_norm = _normalized(request.query)
+
+        is_ceiling_query = any(
+            t in q_norm
+            for t in ("trần lãi suất", "tran lai suat", "deposit_ceiling")
+        )
+        is_rate_query = (
+            any(
+                t in q_norm
+                for t in (
+                    "lãi suất điều hành", "lai suat dieu hanh",
+                    "tái cấp vốn", "tai cap von",
+                    "tái chiết khấu", "tai chiet khau",
+                    "chiết khấu", "chiet khau",
+                    "qua đêm", "qua dem",
+                    "policy_rate", "policy rate",
+                    "rediscount", "overnight",
+                )
+            )
+            or (any(t in q_norm for t in ("lãi suất", "lai suat")) and not is_ceiling_query)
+        )
+        is_credit_query = any(
+            t in q_norm
+            for t in ("tín dụng", "tin dung", "credit_growth", "credit growth", "credit")
+        )
+        is_deposit_query = (
+            any(
+                t in q_norm
+                for t in ("huy động", "huy dong", "tiền gửi", "tien gui", "deposit_growth", "deposit growth")
+            )
+            and not is_ceiling_query
+        )
+        is_gdp_query = any(
+            t in q_norm
+            for t in ("gdp", "kinh tế", "kinh te")
+        )
+        is_cpi_query = any(
+            t in q_norm
+            for t in ("cpi", "lạm phát", "lam phat", "inflation")
+        )
+        is_npl_query = (
+            any(
+                t in q_norm
+                for t in (
+                    "nợ xấu toàn hệ thống", "no xau toan he thong",
+                    "nợ xấu toàn ngành", "no xau toan nganh",
+                    "nợ xấu hệ thống", "no xau he thong",
+                    "system_npl", "system npl",
+                )
+            )
+            or (
+                any(t in q_norm for t in ("nợ xấu", "no xau", "npl"))
+                and any(t in q_norm for t in ("toàn hệ thống", "toan he thong", "toàn ngành", "toan nganh", "hệ thống", "he thong"))
+            )
+        )
+        is_car_query = any(
+            t in q_norm
+            for t in ("car", "an toàn vốn", "an toan von", "capital adequacy")
+        )
+        is_fx_query = any(
+            t in q_norm
+            for t in ("tỷ giá", "ty gia", "usd")
+        )
+
         specific_macro_metrics = []
         for m in catalog.metrics:
-            if m.analytical_level is AnalyticalLevel.MACRO:
-                mid = m.metric_id
-                if mid == "macro.policy_rate" and any(t in q_norm for t in ("lãi suất", "lai suat", "policy_rate", "policy rate", "tái cấp vốn", "tai cap von")):
-                    specific_macro_metrics.append(m)
-                elif mid == "macro.credit_growth" and any(t in q_norm for t in ("tín dụng", "tin dung", "credit_growth", "credit growth")):
-                    specific_macro_metrics.append(m)
-                elif mid == "macro.gdp_growth" and any(t in q_norm for t in ("gdp", "kinh tế", "kinh te")):
-                    specific_macro_metrics.append(m)
-                elif mid == "macro.cpi_yoy" and any(t in q_norm for t in ("cpi", "lạm phát", "lam phat", "inflation")):
-                    specific_macro_metrics.append(m)
-                elif mid == "macro.usd_vnd" and any(t in q_norm for t in ("tỷ giá", "ty gia", "usd")):
-                    specific_macro_metrics.append(m)
+            mid = m.metric_id
+            level = m.analytical_level
+            is_macro_candidate = (
+                level is AnalyticalLevel.MACRO
+                or (level is AnalyticalLevel.SECTOR and mid.startswith("sector.system_"))
+            )
+            if not is_macro_candidate:
+                continue
+
+            matched = False
+            if is_ceiling_query and mid == "macro.deposit_ceiling_under_6m":
+                matched = True
+            elif is_rate_query and mid in ("macro.policy_rate", "macro.rediscount_rate", "macro.overnight_lending_rate"):
+                matched = True
+            elif is_credit_query and (mid.startswith("macro.credit_growth") or mid == "sector.system_credit_outstanding"):
+                matched = True
+            elif is_deposit_query and mid.startswith("macro.deposit_growth"):
+                matched = True
+            elif is_gdp_query and mid.startswith("macro.gdp_growth"):
+                matched = True
+            elif is_cpi_query and (mid.startswith("macro.cpi_") or mid in ("macro.cpi_yoy", "macro.core_inflation_yoy")):
+                matched = True
+            elif is_npl_query and mid.startswith("sector.system_npl_ratio"):
+                matched = True
+            elif is_car_query and (mid == "sector.system_car" or mid.startswith("sector.system_car")):
+                matched = True
+            elif is_fx_query and (mid == "macro.usd_vnd" or mid.startswith("macro.usd_vnd")):
+                matched = True
+
+            if matched and m not in specific_macro_metrics:
+                specific_macro_metrics.append(m)
+
         if specific_macro_metrics:
             macro_metric_rows = tuple(specific_macro_metrics)
         else:
@@ -998,7 +1092,13 @@ def _create_macro_claim(
     period: str,
     include_evidence: bool,
 ) -> ClaimArtifact:
-    observation = provider.get_macro_observation(dataset_ref, "VN", period, metric.metric_id)
+    if metric.analytical_level is AnalyticalLevel.SECTOR or metric.metric_id.startswith("sector.system_"):
+        observation = provider.get_metric(dataset_ref, "VN", period, metric.metric_id)
+    else:
+        try:
+            observation = provider.get_macro_observation(dataset_ref, "VN", period, metric.metric_id)
+        except Exception:
+            observation = provider.get_metric(dataset_ref, "VN", period, metric.metric_id)
     if observation is None:
         raise ValueError(f"macro_observation_unavailable:{metric.metric_id}")
     if observation.validation_status is QualityStatus.MISSING:

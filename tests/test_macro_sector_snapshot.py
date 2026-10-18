@@ -9,6 +9,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from thesis_api.adaptive_runtime import _AdaptiveRun, _plan_request
 from thesis_api.agents import MacroSpecialistAgent
@@ -615,6 +616,206 @@ class MacroSectorSnapshotTest(unittest.TestCase):
                 f"Query '{query}' expected has_macro_claims={expect_macro}",
             )
 
+    def _build_asof_macro_snapshot(self) -> tuple[CanonicalSqliteDatasetProvider, DatasetRef, Any]:
+        bank_csv = self.tmp / "inputs_asof_test.csv"
+        loc = "pdf_page=3; printed_page=1; section=statement"
+        with bank_csv.open("w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["entity_id", "metric_id", "period_id", "value", "unit", "period_basis", "source_locator", "source_url", "source_sha256"])
+            for bank, scale in (("ACB", 1), ("MBB", 2), ("VCB", 3)):
+                for period in ("2023_Q4", "2024_Q2", "2024_Q4", "2026_Q1", "2026_Q2"):
+                    w.writerow([bank, "bank.input.profit_after_tax", period, str(50 * scale), "billion_vnd", "ytd", loc, "http", ""])
+                    w.writerow([bank, "bank.input.total_assets", period, str(1000 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.total_equity", period, str(100 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.gross_customer_loans", period, str(600 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_3_balance", period, "3", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_4_balance", period, "4", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_5_balance", period, "5", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.loan_loss_provisions", period, "15", "billion_vnd", "point_in_time", loc, "http", ""])
+
+        macro_csv = self.tmp / "macro_asof_test.csv"
+        rows = [
+            ["entity_id", "metric_id", "period_id", "value", "unit", "period_basis",
+             "source_locator", "source_url", "source_sha256", "source_tier", "scope"],
+            ["VN", "sector.system_npl_ratio", "2023_Q4", "1.93", "%", "point_in_time",
+             "Báo cáo NHNN cuối năm 2023, tr. 8", "https://sbv.gov.vn/sector-npl-2023q4.pdf", "", "primary", "system"],
+            ["VN", "sector.system_npl_ratio", "2024_Q3", "2.10", "%", "point_in_time",
+             "Báo cáo CTCK Bản Việt, tr. 14", "https://vcsc.com.vn/sector-npl-2024q3.pdf", "", "secondary", "system"],
+            ["VN", "macro.policy_rate", "2026_Q2", "4.5", "%", "point_in_time",
+             "Quyết định 1123/QĐ-NHNN, tr. 1", "https://sbv.gov.vn/rate-2026q2.pdf", "", "primary", "system"],
+        ]
+        with macro_csv.open("w", encoding="utf-8", newline="") as f:
+            csv.writer(f).writerows(rows)
+
+        out = self.tmp / "test_asof_macro.sqlite"
+        manifest = builder.build(
+            bank_csv,
+            out,
+            macro_inputs_csv=macro_csv,
+            ratio_periods={"2024_Q2", "2024_Q4", "2026_Q1", "2026_Q2"},
+        )
+        provider = CanonicalSqliteDatasetProvider(out)
+        dataset_ref = DatasetRef(dataset_id=manifest["dataset_id"], dataset_snapshot_id=manifest["dataset_snapshot_id"])
+        catalog = provider.get_capabilities(dataset_ref)
+        return provider, dataset_ref, catalog
+
+    def test_asof_a_no_period_uses_latest_valid_observation_and_discloses_limitation(self) -> None:
+        """(a) 'Nợ xấu toàn hệ thống' (không nêu kỳ) -> khẳng định kỳ 2023_Q4, có dòng giới hạn 'mới nhất có sẵn', không dùng số pending."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Nợ xấu toàn hệ thống là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        self.assertIn(report.status, {"completed", "accepted_with_limitations"})
+        npl_claims = [c for c in report.atomic_claims if c.metric == "Tỷ lệ nợ xấu toàn hệ thống"]
+        self.assertEqual(len(npl_claims), 1)
+        self.assertEqual(npl_claims[0].period, "2023_Q4")
+        self.assertIn("1.93", npl_claims[0].statement)
+        # Does not use pending 2024_Q3 number
+        self.assertFalse(any("2.1" in c.statement for c in report.atomic_claims))
+        # Limitation discloses latest available period
+        self.assertTrue(
+            any("số mới nhất có sẵn là kỳ 2023_Q4; chưa có số cho kỳ 2026_Q2 mới hơn" in lim for lim in report.limitations),
+            f"Expected as-of limitation in report.limitations: {report.limitations}",
+        )
+
+    def test_asof_b_no_period_policy_rate_uses_2026_q2(self) -> None:
+        """(b) 'Lãi suất tái cấp vốn' (không nêu kỳ) -> kỳ 2026_Q2."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Lãi suất tái cấp vốn là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        rate_claims = [c for c in report.atomic_claims if "4.5" in c.statement]
+        self.assertEqual(len(rate_claims), 1)
+        self.assertEqual(rate_claims[0].period, "2026_Q2")
+
+    def test_asof_c_specific_period_missingness_disclosed_with_nearest_period(self) -> None:
+        """(c) 'Nợ xấu toàn hệ thống quý 3/2024' -> thiếu rõ ràng, không hiển thị số 2023_Q4 như số 2024_Q3."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Nợ xấu toàn hệ thống quý 3/2024 là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        with self.assertRaises(AnalysisBlocked) as ctx:
+            runner.execute()
+        self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
+        self.assertIn("2023_Q4", ctx.exception.detail)
+        self.assertIn("kỳ gần nhất có số là 2023_Q4", ctx.exception.detail)
+
+    def test_asof_d_cuoi_2023_mapped_to_2023_q4(self) -> None:
+        """(d) 'Nợ xấu toàn hệ thống cuối 2023' -> đúng 2023_Q4."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Nợ xấu toàn hệ thống cuối 2023 là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        npl_claims = [c for c in report.atomic_claims if c.metric == "Tỷ lệ nợ xấu toàn hệ thống"]
+        self.assertEqual(len(npl_claims), 1)
+        self.assertEqual(npl_claims[0].period, "2023_Q4")
+        self.assertIn("1.93", npl_claims[0].statement)
+
+    def test_asof_e_regression_bank_queries_and_no_macro_snapshot(self) -> None:
+        """(e) hồi quy: câu hỏi ngân hàng không đổi; snapshot không có macro vẫn chặn unsupported_macro_scope."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req_bank = AnalysisRequest(query="Chất lượng tín dụng của ACB quý 2/2026")
+        runner_bank = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req_bank,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report_bank = runner_bank.execute()
+        has_macro_claims = any(
+            c.capability == "macro"
+            or (c.metric and (c.metric.startswith("sector.system_") or c.metric.startswith("macro.")))
+            for c in report_bank.atomic_claims
+        )
+        self.assertFalse(has_macro_claims)
+
+        out_no_macro = self.tmp / "test_no_macro_asof.sqlite"
+        manifest_no = builder.build(
+            self.inputs,
+            out_no_macro,
+            macro_inputs_csv=None,
+            ratio_periods={"2024_Q2", "2024_Q4"},
+        )
+        no_macro_provider = CanonicalSqliteDatasetProvider(out_no_macro)
+        no_macro_ref = DatasetRef(
+            dataset_id=manifest_no["dataset_id"],
+            dataset_snapshot_id=manifest_no["dataset_snapshot_id"],
+        )
+        no_macro_catalog = no_macro_provider.get_capabilities(no_macro_ref)
+        req_macro = AnalysisRequest(query="Nợ xấu toàn hệ thống")
+        with self.assertRaises(AnalysisBlocked) as ctx:
+            _plan_request(req_macro, no_macro_ref, no_macro_catalog)
+        self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
+
+    def test_asof_f_macro_claim_passes_stage1_consistency(self) -> None:
+        """(f) khẳng định vĩ mô qua Stage-1 (kế hoạch và khẳng định cùng kỳ)."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Nợ xấu toàn hệ thống")
+        plan_res = _plan_request(req, dataset_ref, catalog, provider=provider)
+        plan = plan_res[0]
+        self.assertEqual(plan.requirements[0].periods, ("2023_Q4",))
+        self.assertEqual(plan.requirements[0].requirement_id, "macro:2023_Q4:sector.system_npl_ratio")
+
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        claim = next(c for c in report.atomic_claims if c.period == "2023_Q4")
+        self.assertEqual(claim.stage1_status, "accepted")
+
 
 if __name__ == "__main__":
     unittest.main()
+

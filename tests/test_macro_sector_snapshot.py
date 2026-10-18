@@ -530,6 +530,91 @@ class MacroSectorSnapshotTest(unittest.TestCase):
         finally:
             conn.close()
 
+    def test_bank_specific_credit_deposit_car_queries_do_not_trigger_macro(self) -> None:
+        """Bank-specific queries (credit quality, deposit, CAR) do NOT trigger macro flag or claims; system queries DO."""
+        from thesis_api.adaptive_runtime import _has_macro_request
+
+        bank_inputs_csv = self.tmp / "inputs_bank_specific_test.csv"
+        loc = "pdf_page=3; printed_page=1; section=statement"
+        with bank_inputs_csv.open("w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["entity_id", "metric_id", "period_id", "value", "unit", "period_basis", "source_locator", "source_url", "source_sha256"])
+            for bank, scale in (("ACB", 1), ("MBB", 2), ("VCB", 3)):
+                for period in ("2024_Q2", "2024_Q4", "2026_Q1", "2026_Q2"):
+                    w.writerow([bank, "bank.input.profit_after_tax", period, str(50 * scale), "billion_vnd", "ytd", loc, "http", ""])
+                    w.writerow([bank, "bank.input.total_assets", period, str(1000 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.total_equity", period, str(100 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.gross_customer_loans", period, str(600 * scale), "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_3_balance", period, "3", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_4_balance", period, "4", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.npl_group_5_balance", period, "5", "billion_vnd", "point_in_time", loc, "http", ""])
+                    w.writerow([bank, "bank.input.loan_loss_provisions", period, "15", "billion_vnd", "point_in_time", loc, "http", ""])
+
+        macro_csv = self.tmp / "macro_bank_specific_test.csv"
+        with macro_csv.open("w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["entity_id", "metric_id", "period_id", "value", "unit", "period_basis", "source_locator", "source_url", "source_sha256", "source_tier", "scope"])
+            w.writerow(["VN", "macro.credit_growth_yoy", "2026_Q2", "14.5", "%", "point_in_time", "NHNN, tr. 1", "http", "", "primary", "system"])
+            w.writerow(["VN", "sector.system_car", "2024_Q2", "11.8", "%", "point_in_time", "NHNN, tr. 2", "http", "", "primary", "system"])
+
+        out = self.tmp / "test_bank_specific.sqlite"
+        manifest = builder.build(
+            bank_inputs_csv,
+            out,
+            macro_inputs_csv=macro_csv,
+            ratio_periods={"2024_Q2", "2024_Q4", "2026_Q1", "2026_Q2"},
+        )
+        provider = CanonicalSqliteDatasetProvider(out)
+        dataset_ref = DatasetRef(dataset_id=manifest["dataset_id"], dataset_snapshot_id=manifest["dataset_snapshot_id"])
+        catalog = provider.get_capabilities(dataset_ref)
+
+        cases = [
+            ("Chất lượng tín dụng của ACB quý 2/2026", None, False),
+            ("Huy động vốn của MBB quý 1/2026", None, False),
+            ("An toàn vốn của VCB", "2024_Q2", False),
+            ("Tăng trưởng tín dụng toàn hệ thống quý 2/2026", None, True),
+            ("CAR toàn hệ thống quý 2/2024", None, True),
+        ]
+
+        for query, period, expect_macro in cases:
+            req = AnalysisRequest(query=query, period=period)
+            self.assertEqual(
+                _has_macro_request(req),
+                expect_macro,
+                f"Query '{query}' expected macro={expect_macro}",
+            )
+            plan_res = _plan_request(req, dataset_ref, catalog)
+            plan, target, periods, company_metric_ids, peer_ids, macro_metric_ids = plan_res
+            if expect_macro:
+                self.assertGreater(len(macro_metric_ids), 0)
+                self.assertIn(AnalysisAgent.MACRO, plan.requirements[0].required_agents)
+            else:
+                self.assertEqual(len(macro_metric_ids), 0)
+                self.assertNotIn(AnalysisAgent.MACRO, plan.requirements[0].required_agents)
+
+            runner = _AdaptiveRun(
+                provider=provider,
+                dataset_ref=dataset_ref,
+                catalog=catalog,
+                request=req,
+                settings=None,
+                critic=None,
+                writer=None,
+                emit=lambda *a, **k: None,
+                client=None,
+            )
+            report = runner.execute()
+            has_macro_claims = any(
+                c.capability == "macro"
+                or (c.metric and (c.metric.startswith("sector.system_") or c.metric.startswith("macro.")))
+                for c in report.atomic_claims
+            )
+            self.assertEqual(
+                has_macro_claims,
+                expect_macro,
+                f"Query '{query}' expected has_macro_claims={expect_macro}",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

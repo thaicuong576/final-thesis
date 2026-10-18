@@ -97,6 +97,8 @@ _MACRO_TERMS = (
     "vĩ mô", "vi mo", "macro", "chính sách tiền tệ", "chinh sach tien te",
     "nhnn", "ngân hàng nhà nước", "ngan hang nha nuoc", "sbv",
     "lãi suất điều hành", "lai suat dieu hanh",
+    "lãi suất tái cấp vốn", "lai suat tai cap von",
+    "tăng trưởng tín dụng", "tang truong tin dung",
     "tăng trưởng tín dụng toàn ngành", "tang truong tin dung toan nganh",
     "lạm phát", "lam phat", "cpi", "truyền dẫn", "truyen dan",
 )
@@ -1169,10 +1171,52 @@ def calculate_sector_benchmark(
 
 
 def fetch_macro_context(conn: sqlite3.Connection, period: str) -> MacroContextDTO:
-    """Legacy helper returns no macro values unless a future provider path supplies them."""
+    """Fetch accepted macro indicators for VN in the given period from SQLite."""
+    try:
+        cursor = conn.execute(
+            """
+            SELECT metric_id, value, source_locator
+            FROM observations
+            WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
+            """,
+            (period,),
+        )
+        rows = cursor.fetchall()
+        if not rows and len(period) == 4 and period.isdigit():
+            cursor = conn.execute(
+                """
+                SELECT metric_id, value, source_locator
+                FROM observations
+                WHERE entity_id = 'VN' AND period_id = ? AND validation_status = 'valid'
+                """,
+                (f"{period}_Q4",),
+            )
+            rows = cursor.fetchall()
+    except sqlite3.OperationalError:
+        return MacroContextDTO()
 
-    del conn, period
-    return MacroContextDTO()
+    if not rows:
+        return MacroContextDTO()
+
+    policy_rate: float | None = None
+    credit_growth: float | None = None
+    sources: list[str] = []
+
+    for metric_id, value, locator in rows:
+        val = float(value) if value is not None else None
+        if metric_id == "macro.policy_rate":
+            policy_rate = val
+        elif metric_id == "macro.credit_growth":
+            credit_growth = val
+        if locator and locator not in sources:
+            sources.append(locator)
+
+    source_text = "; ".join(sources) if sources else None
+    return MacroContextDTO(
+        sbv_policy_rate=policy_rate,
+        system_credit_growth=credit_growth,
+        source=source_text,
+    )
 
 
 def generate_company_assessment(

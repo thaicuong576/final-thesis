@@ -688,17 +688,28 @@ class MacroSpecialistAgent:
         baseline_tool_res = execute_agent_tool("get_macro_context", {"period": period}, conn)
 
         if not client:
-            findings = [
-                f"NHNN duy trì chính sách tiền tệ nới lỏng với lãi suất tái cấp vốn {baseline_tool_res.get('sbv_policy_rate')}%.",
-                f"Tăng trưởng tín dụng toàn hệ thống đạt {baseline_tool_res.get('system_credit_growth')}%, hỗ trợ phục hồi sản xuất kinh doanh.",
-            ]
+            rate = baseline_tool_res.get("sbv_policy_rate")
+            growth = baseline_tool_res.get("system_credit_growth")
+            findings: list[str] = []
+            if rate is not None:
+                findings.append(
+                    f"NHNN duy trì chính sách tiền tệ với lãi suất tái cấp vốn {rate}%."
+                )
+            if growth is not None:
+                findings.append(
+                    f"Tăng trưởng tín dụng toàn hệ thống đạt {growth}%, hỗ trợ phục hồi sản xuất kinh doanh."
+                )
+            if not findings:
+                findings = [
+                    f"Chưa có dữ liệu vĩ mô đã kiểm định cho kỳ {period}.",
+                ]
             return {
                 "specialist_id": "macro",
                 "period": period,
                 "macro_context": baseline_tool_res,
                 "findings": findings,
-                "evidence_count": 2,
-                "confidence": 0.93,
+                "evidence_count": len(findings),
+                "confidence": 0.93 if (rate is not None or growth is not None) else 0.5,
                 "tool_calls": [{"name": "get_macro_context", "args": {"period": period}, "result": baseline_tool_res}],
             }
 
@@ -767,14 +778,31 @@ class MacroSpecialistAgent:
             }
         except Exception as exc:
             logger.warning("MacroSpecialistAgent LLM execution failed, using grounded fallback: %s", exc)
+            rate = baseline_tool_res.get("sbv_policy_rate")
+            growth = baseline_tool_res.get("system_credit_growth")
+            findings_fb: list[str] = []
+            if rate is not None or growth is not None:
+                parts = []
+                if rate is not None:
+                    parts.append(f"lãi suất tái cấp vốn {rate}%")
+                if growth is not None:
+                    parts.append(f"tăng trưởng tín dụng {growth}%")
+                findings_fb.append(
+                    f"Chính sách tiền tệ nới lỏng ({', '.join(parts)}) hỗ trợ thanh khoản hệ thống."
+                )
+                findings_fb.append(
+                    "Thanh khoản hệ thống dồi dào tạo điều kiện cho các ngân hàng tối ưu chi phí vốn."
+                )
+            else:
+                findings_fb = [
+                    f"Chưa có dữ liệu vĩ mô đã kiểm định cho kỳ {period}.",
+                    "Thanh khoản hệ thống tạo điều kiện cho các ngân hàng tối ưu chi phí vốn.",
+                ]
             return {
                 "specialist_id": "macro",
                 "period": period,
                 "macro_context": baseline_tool_res,
-                "findings": [
-                    f"Chính sách tiền tệ nới lỏng (lãi suất tái cấp vốn {baseline_tool_res.get('sbv_policy_rate')}%) hỗ trợ tăng trưởng tín dụng ({baseline_tool_res.get('system_credit_growth')}%).",
-                    "Thanh khoản hệ thống dồi dào tạo điều kiện cho các ngân hàng tối ưu chi phí vốn.",
-                ],
+                "findings": findings_fb,
                 "evidence_count": 2,
                 "confidence": 0.92,
                 "tool_calls": [{"name": "get_macro_context", "args": {"period": period}, "result": baseline_tool_res}],

@@ -449,7 +449,8 @@ def rules_plan(
     limitations: list[str] = []
     # 6. Macro flag
     if "macro" in flags and entities:
-        limitations.append("Chưa có dữ liệu vĩ mô đã kiểm định; bỏ qua phân tích vĩ mô.")
+        if not any(m.analytical_level.value == "macro" for m in catalog.metrics):
+            limitations.append("Chưa có dữ liệu vĩ mô đã kiểm định; bỏ qua phân tích vĩ mô.")
 
     # 7. Why flag
     if "why" in flags:

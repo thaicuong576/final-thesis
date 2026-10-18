@@ -348,10 +348,26 @@ def _resolve_period(request: AnalysisRequest, catalog: DatasetCapabilityCatalog)
             canonical = f"{quarter_year.group(1)}_Q{quarter_year.group(2)}"
             period = next((item for item in period_ids if item.casefold() == canonical.casefold()), None)
         if period is None:
+            vn_quarter = re.search(r"\b(?:quý|quy|q)\s*([1-4])\s*(?:/|năm|nam|-|\s+)\s*(20\d{2})\b", query, re.I)
+            if vn_quarter:
+                canonical = f"{vn_quarter.group(2)}_Q{vn_quarter.group(1)}"
+                period = next((item for item in period_ids if item.casefold() == canonical.casefold()), None)
+        if period is None:
+            cuoi_nam = re.search(r"\bcu[oố]i(?:\s+n[aăâ]m)?\s*(20\d{2})\b", query, re.I)
+            if cuoi_nam:
+                canonical = f"{cuoi_nam.group(1)}_Q4"
+                period = next((item for item in period_ids if item.casefold() == canonical.casefold()), None)
+        if period is None:
             year = re.search(r"\b20\d{2}\b", query)
             if year:
                 exact_year = next((item for item in period_ids if item.casefold() == year.group(0).casefold()), None)
                 period = exact_year
+        if period is None:
+            if any(term in query.casefold() for term in _MACRO_TERMS) and _provider_macro_available(catalog):
+                from .query_understanding import _parse_period_key
+                sorted_p = sorted([p.period_id for p in catalog.periods], key=_parse_period_key)
+                if sorted_p:
+                    period = sorted_p[-1]
         if period is None:
             raise AnalysisBlocked(
                 "exact_period_required",

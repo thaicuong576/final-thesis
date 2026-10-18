@@ -213,6 +213,10 @@ _VN_QUARTER_RE = re.compile(
     r"\b(?:quý|quy|q)\s*([1-4])\s*(?:/|năm|nam|-|\s+)\s*(20\d{2})\b",
     re.IGNORECASE,
 )
+_CUOI_NAM_RE = re.compile(
+    r"\bcu[oố]i(?:\s+n[aăâ]m)?\s*(20\d{2})\b",
+    re.IGNORECASE,
+)
 _FY_PERIOD_RE = re.compile(r"\bFY\s*(20\d{2})\b", re.IGNORECASE)
 _FY_RANGE_RE = re.compile(r"\bFY\s*(20\d{2})\s*(?:to|through|[-–—])\s*(?:FY)?\s*(20\d{2})\b", re.IGNORECASE)
 _COMPACT_QUARTER_RANGE_RE = re.compile(
@@ -427,6 +431,7 @@ def _has_macro_request(request: AnalysisRequest) -> bool:
 def _check_single_period(request: AnalysisRequest) -> None:
     quarters = {f"{year}_Q{quarter}" for year, quarter in _QUARTER_RE.findall(request.query)}
     quarters.update(f"{year}_Q{quarter}" for quarter, year in _VN_QUARTER_RE.findall(request.query))
+    quarters.update(f"{year}_Q4" for year in _CUOI_NAM_RE.findall(request.query))
     if (
         len(quarters) > 1
         or _COMPACT_QUARTER_RANGE_RE.search(request.query)
@@ -482,6 +487,11 @@ def _query_declared_periods(query: str) -> tuple[tuple[str, ...], bool]:
         for quarter, year in (match.groups(),)
     )
     declared_matches.extend(
+        (match.start(), f"{year}_Q4")
+        for match in _CUOI_NAM_RE.finditer(query)
+        for year in (match.group(1),)
+    )
+    declared_matches.extend(
         (match.start(), f"FY{year}")
         for match in _FY_PERIOD_RE.finditer(query)
         for year in (match.group(1),)
@@ -490,6 +500,98 @@ def _query_declared_periods(query: str) -> tuple[tuple[str, ...], bool]:
     if _PERIOD_RANGE_RE.search(query) or _YEAR_QUARTER_RANGE_RE.search(query):
         raise ValueError("query_period_range_unsupported: provide an explicit canonical period list for this range")
     return normalized, False
+
+
+def _parse_period_key(period_id: str) -> tuple[int, int]:
+    match = re.fullmatch(r"(\d{4})_Q([1-4])", period_id, re.I)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    fy_match = re.fullmatch(r"FY(\d{4})", period_id, re.I)
+    if fy_match:
+        return int(fy_match.group(1)), 4
+    return (0, 0)
+
+
+def _is_period_explicit(request: AnalysisRequest) -> bool:
+    if getattr(request, "_periods_explicit", False):
+        return True
+    if request.periods:
+        return True
+    if request.period:
+        return True
+    try:
+        query_periods, query_has_range = _query_declared_periods(request.query)
+        if query_periods or query_has_range:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _is_valid_macro_observation(obs: Any) -> bool:
+    return (
+        obs is not None
+        and getattr(obs, "validation_status", None) is QualityStatus.VALID
+        and getattr(obs, "value", None) is not None
+        and bool(getattr(obs, "unit", None))
+    )
+
+
+def _get_macro_observation_raw(
+    provider: Any,
+    dataset_ref: DatasetRef,
+    metric: DatasetMetric,
+    period: str,
+) -> Any:
+    if getattr(metric, "analytical_level", None) is AnalyticalLevel.SECTOR or metric.metric_id.startswith("sector.system_"):
+        return provider.get_metric(dataset_ref, "VN", period, metric.metric_id)
+    try:
+        return provider.get_macro_observation(dataset_ref, "VN", period, metric.metric_id)
+    except Exception:
+        return provider.get_metric(dataset_ref, "VN", period, metric.metric_id)
+
+
+def _find_latest_valid_macro_period(
+    provider: Any,
+    dataset_ref: DatasetRef,
+    metric: DatasetMetric,
+    catalog: DatasetCapabilityCatalog,
+    ceiling_period: str | None = None,
+) -> str | None:
+    sorted_periods = sorted([p.period_id for p in catalog.periods], key=_parse_period_key, reverse=True)
+    if ceiling_period is not None:
+        ceiling_key = _parse_period_key(ceiling_period)
+        sorted_periods = [p for p in sorted_periods if _parse_period_key(p) <= ceiling_key]
+    for p in sorted_periods:
+        obs = _get_macro_observation_raw(provider, dataset_ref, metric, p)
+        if _is_valid_macro_observation(obs):
+            return p
+    return None
+
+
+def _find_nearest_valid_macro_period(
+    provider: Any,
+    dataset_ref: DatasetRef,
+    metric: DatasetMetric,
+    catalog: DatasetCapabilityCatalog,
+    target_period: str,
+) -> str | None:
+    target_ord = _parse_period_key(target_period)
+    valid_periods: list[str] = []
+    for p in catalog.periods:
+        obs = _get_macro_observation_raw(provider, dataset_ref, metric, p.period_id)
+        if _is_valid_macro_observation(obs):
+            valid_periods.append(p.period_id)
+    if not valid_periods:
+        return None
+
+    def distance(p: str) -> tuple[int, int]:
+        pk = _parse_period_key(p)
+        diff = (pk[0] - target_ord[0]) * 4 + (pk[1] - target_ord[1])
+        return abs(diff), 0 if diff < 0 else 1
+
+    valid_periods.sort(key=distance)
+    return valid_periods[0]
 
 
 def _resolve_periods(request: AnalysisRequest, catalog: DatasetCapabilityCatalog) -> tuple[str, ...]:
@@ -525,12 +627,18 @@ def _resolve_periods(request: AnalysisRequest, catalog: DatasetCapabilityCatalog
         elif request.period:
             supplied = (request.period,)
         else:
-            from .service import AnalysisBlocked
+            from .service import _provider_macro_available
+            if _has_macro_request(request) and _provider_macro_available(catalog):
+                sorted_periods = sorted([item.period_id for item in catalog.periods], key=_parse_period_key)
+                if sorted_periods:
+                    supplied = (sorted_periods[-1],)
+            if not supplied:
+                from .service import AnalysisBlocked
 
-            raise AnalysisBlocked(
-                "exact_period_required",
-                "Provide one exact snapshot period or an explicit ordered periods list.",
-            )
+                raise AnalysisBlocked(
+                    "exact_period_required",
+                    "Provide one exact snapshot period or an explicit ordered periods list.",
+                )
 
     resolved: list[str] = []
     for requested in supplied:
@@ -583,6 +691,10 @@ class _PlanResult(tuple):
         resolved=None,
         planner_source=None,
         fallback_reasons=None,
+        metric_periods=None,
+        period_defaulted=False,
+        default_period=None,
+        company_periods=None,
     ):
         instance = super().__new__(
             cls, (plan, target, periods, metrics, peers, macro_metrics)
@@ -591,6 +703,10 @@ class _PlanResult(tuple):
         instance.resolved = resolved
         instance.planner_source = planner_source
         instance.fallback_reasons = list(fallback_reasons or [])
+        instance.metric_periods = dict(metric_periods or {})
+        instance.period_defaulted = bool(period_defaulted)
+        instance.default_period = default_period
+        instance.company_periods = company_periods
         return instance
 
 
@@ -600,6 +716,7 @@ def _plan_request(
     catalog: DatasetCapabilityCatalog,
     settings: Any = None,
     client: Any = None,
+    provider: Any = None,
 ) -> tuple[AnalysisPlan, str | None, tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     """Capability-validate and freeze the complete ordered plan."""
 
@@ -970,13 +1087,34 @@ def _plan_request(
                     missing_data_policy=MissingDataPolicy.REJECT_MISSING,
                 )
             )
+    period_defaulted = not _is_period_explicit(request)
+    default_period = periods[-1]
+    metric_periods: dict[str, str] = {}
+    if macro_metric_ids:
+        for m_id in macro_metric_ids:
+            if period_defaulted:
+                if provider is not None:
+                    metric_def = next((m for m in catalog.metrics if m.metric_id == m_id), None)
+                    if metric_def is not None:
+                        found_p = _find_latest_valid_macro_period(
+                            provider, dataset_ref, metric_def, catalog, ceiling_period=default_period
+                        )
+                        metric_periods[m_id] = found_p or default_period
+                    else:
+                        metric_periods[m_id] = default_period
+                else:
+                    metric_periods[m_id] = default_period
+            else:
+                metric_periods[m_id] = default_period
+
     for metric_id in macro_metric_ids:
+        m_period = metric_periods.get(metric_id, period)
         requirements.append(
             AnalysisRequirement(
-                requirement_id=f"macro:{period}:{metric_id}",
+                requirement_id=f"macro:{m_period}:{metric_id}",
                 requirement_type=RequirementType.FACTUAL_OBSERVATION,
-                description=f"Report accepted macro indicator {metric_id} at {period}.",
-                required_agents=(AnalysisAgent.MACRO,), entities=("VN",), periods=periods,
+                description=f"Report accepted macro indicator {metric_id} at {m_period}.",
+                required_agents=(AnalysisAgent.MACRO,), entities=("VN",), periods=(m_period,),
                 metric_ids=(metric_id,), inference_ceiling=InferenceCeiling.OBSERVATION_ONLY,
                 fulfillment_policy=FulfillmentPolicy.VALUE_OR_ACCEPTED_MISSINGNESS,
                 missing_data_policy=MissingDataPolicy.ACCEPTED_MISSINGNESS,
@@ -1019,16 +1157,27 @@ def _plan_request(
 
     if not plan_metrics:
         raise AnalysisBlocked("analysis_scope_empty", "The validated request contains no accepted metrics.")
+
+    if target is None:
+        used_m_periods = [metric_periods[m] for m in macro_metric_ids if m in metric_periods]
+        if used_m_periods:
+            scope_periods = tuple(dict.fromkeys(sorted(used_m_periods, key=_parse_period_key)))
+        else:
+            scope_periods = periods
+    else:
+        all_p = list(periods) + [metric_periods[m] for m in macro_metric_ids if m in metric_periods]
+        scope_periods = tuple(dict.fromkeys(sorted(all_p, key=_parse_period_key)))
+
     plan = AnalysisPlan(
         plan_version=ANALYSIS_PLAN_VERSION,
         dataset_id=dataset_ref.dataset_id,
         dataset_snapshot_id=dataset_ref.dataset_snapshot_id,
         query_id="query-" + hashlib.sha256(
-            f"{dataset_ref.dataset_snapshot_id}\0{_normalized(request.query)}\0{'|'.join(periods)}".encode("utf-8")
+            f"{dataset_ref.dataset_snapshot_id}\0{_normalized(request.query)}\0{'|'.join(scope_periods)}".encode("utf-8")
         ).hexdigest()[:16],
         normalized_question=_normalized(request.query),
         scope=AnalysisScope(
-            entities=tuple(entities), periods=periods,
+            entities=tuple(entities), periods=scope_periods,
             company_metric_ids=tuple(company_metric_ids),
             macro_indicator_ids=tuple(macro_metric_ids),
             comparison_universe=(peer_universe_id,) if peer_universe_id else (),
@@ -1037,7 +1186,18 @@ def _plan_request(
         requested_outputs=("structured_facts", "comparison" if peer_universe_id else "limitations", "evidence_trace"),
         causal_claim_policy=CausalClaimPolicy.ASSOCIATION_ONLY if links else CausalClaimPolicy.NO_CAUSAL_INFERENCE,
     )
-    return _PlanResult(plan, target, periods, tuple(company_metric_ids), tuple(peer_ids), tuple(macro_metric_ids))
+    return _PlanResult(
+        plan,
+        target,
+        scope_periods if target is None else periods,
+        tuple(company_metric_ids),
+        tuple(peer_ids),
+        tuple(macro_metric_ids),
+        metric_periods=metric_periods,
+        period_defaulted=period_defaulted,
+        default_period=default_period,
+        company_periods=periods if target is not None else None,
+    )
 
 
 def _explicit_missing_claim(
@@ -1306,12 +1466,21 @@ class _AdaptiveRun:
             self.catalog,
             settings=self.settings,
             client=self.client,
+            provider=self.provider,
         )
         plan, target, periods, company_metrics, peers, macro_metrics = plan_result
         self.spec = getattr(plan_result, "spec", None)
         self.resolved = getattr(plan_result, "resolved", None)
         self.planner_source = getattr(plan_result, "planner_source", None)
         self.fallback_reasons = getattr(plan_result, "fallback_reasons", [])
+        self.metric_periods = getattr(plan_result, "metric_periods", {})
+        self.period_defaulted = getattr(plan_result, "period_defaulted", False)
+        self.default_period = getattr(plan_result, "default_period", None) or (
+            sorted([p.period_id for p in self.catalog.periods], key=_parse_period_key)[-1]
+            if self.catalog.periods
+            else periods[-1]
+        )
+        self.company_periods = getattr(plan_result, "company_periods", None) or periods
         period = periods[-1]
         operations = set(self.catalog.supported_operations)
         required_ops = {SupportedOperation.GET_METRIC, SupportedOperation.RESOLVE_OBSERVATION, SupportedOperation.GET_SOURCE}
@@ -1419,30 +1588,47 @@ class _AdaptiveRun:
         macro_role_claims: list[AtomicClaim] = []
 
         if target and company_metrics:
-            self._role_started("company", target, period, periods)
-            for company_period in periods:
+            self._role_started("company", target, period, self.company_periods)
+            for company_period in self.company_periods:
                 company_role_claims.extend(self._fetch_direct("company", (target,), company_metrics, company_period))
         clean_peers = tuple(p for p in peers if p != target) if target else tuple(peers)
         if clean_peers:
             self._role_started("sector", self._peer_universe_id(plan), period, periods)
             peer_role_claims.extend(self._fetch_direct("sector", clean_peers, company_metrics, period))
             peer_role_claims.extend(self._fetch_benchmarks(target, clean_peers, company_metrics, period, plan))
+        macro_asof_limitations: list[str] = []
         if macro_metrics:
             self._role_started("macro", "VN", period, periods)
             for metric_id in macro_metrics:
+                m_period = self.metric_periods.get(metric_id, period)
+                metric_def = self.metric_by_id[metric_id]
                 try:
                     artifact = _create_macro_claim(
-                        self.provider, self.dataset_ref, metric=self.metric_by_id[metric_id],
-                        period=period, include_evidence=SupportedOperation.GET_EVIDENCE in operations,
+                        self.provider, self.dataset_ref, metric=metric_def,
+                        period=m_period, include_evidence=SupportedOperation.GET_EVIDENCE in operations,
                     )
                     self.artifacts[artifact.claim.claim_id] = artifact
                     macro_role_claims.append(artifact.claim)
+                    if self.period_defaulted and _parse_period_key(m_period) < _parse_period_key(self.default_period):
+                        macro_asof_limitations.append(
+                            f"Số liệu {metric_def.display_name}: số mới nhất có sẵn là kỳ {m_period}; chưa có số cho kỳ {self.default_period} mới hơn."
+                        )
                 except ValueError as exc:
-                    logger.warning("Macro metric %s unavailable for %s: %s", metric_id, period, exc)
+                    logger.warning("Macro metric %s unavailable for %s: %s", metric_id, m_period, exc)
+                    nearest_p = _find_nearest_valid_macro_period(
+                        self.provider, self.dataset_ref, metric_def, self.catalog, m_period
+                    )
+                    if nearest_p:
+                        macro_asof_limitations.append(
+                            f"Chỉ tiêu {metric_def.display_name} chưa có số liệu cho kỳ {m_period}; kỳ gần nhất có số là {nearest_p}."
+                        )
             if not macro_role_claims and not target:
+                err_detail = f"No accepted macro observations found for period {period}."
+                if macro_asof_limitations:
+                    err_detail += " " + " ".join(macro_asof_limitations)
                 raise AnalysisBlocked(
                     "unsupported_macro_scope",
-                    f"No accepted macro observations found for period {period}.",
+                    err_detail,
                 )
 
         raw_role_claims = {
@@ -1510,7 +1696,7 @@ class _AdaptiveRun:
 
         # Stage-1 deterministic gates
         workload = ClaimScope(
-            entities=plan.scope.entities, periods=periods,
+            entities=plan.scope.entities, periods=plan.scope.periods,
             metric_ids=plan.scope.metric_ids,
             comparison_universe=self._peer_universe_id(plan) if peers else None,
         )
@@ -1535,7 +1721,7 @@ class _AdaptiveRun:
         tool_facts: list[Any] = []
         tool_datasets: list[Any] = []
         tool_missing: list[Any] = []
-        tool_limitations: list[str] = []
+        tool_limitations: list[str] = list(macro_asof_limitations)
         tool_facts_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
         tool_datasets_by_agent: dict[str, list[Any]] = {"company": [], "sector": [], "macro": []}
 

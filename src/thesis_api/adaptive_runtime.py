@@ -1597,6 +1597,7 @@ class _AdaptiveRun:
             peer_role_claims.extend(self._fetch_direct("sector", clean_peers, company_metrics, period))
             peer_role_claims.extend(self._fetch_benchmarks(target, clean_peers, company_metrics, period, plan))
         macro_asof_limitations: list[str] = []
+        missing_macro_metrics: list[dict[str, Any]] = []
         if macro_metrics:
             self._role_started("macro", "VN", period, periods)
             for metric_id in macro_metrics:
@@ -1622,10 +1623,38 @@ class _AdaptiveRun:
                         macro_asof_limitations.append(
                             f"Chỉ tiêu {metric_def.display_name} chưa có số liệu cho kỳ {m_period}; kỳ gần nhất có số là {nearest_p}."
                         )
+                    missing_macro_metrics.append({
+                        "metric_id": metric_id,
+                        "display_name": metric_def.display_name,
+                        "period": m_period,
+                        "nearest": nearest_p,
+                    })
             if not macro_role_claims and not target:
                 err_detail = f"No accepted macro observations found for period {period}."
                 if macro_asof_limitations:
                     err_detail += " " + " ".join(macro_asof_limitations)
+                if macro_asof_limitations or any(m["nearest"] is not None for m in missing_macro_metrics):
+                    if len(missing_macro_metrics) == 1:
+                        m_info = missing_macro_metrics[0]
+                        metrics_str = m_info["display_name"]
+                        period_str = m_info["period"]
+                        nearest_str = m_info["nearest"] or "không có"
+                    else:
+                        metrics_str = ", ".join(m["display_name"] for m in missing_macro_metrics)
+                        period_str = period
+                        nearest_str = ", ".join(
+                            f"{m['display_name']} ({m['nearest'] or 'không có'})"
+                            for m in missing_macro_metrics
+                        )
+                    raise AnalysisBlocked(
+                        "macro_period_unavailable",
+                        err_detail,
+                        params={
+                            "metrics": metrics_str,
+                            "period": period_str,
+                            "nearest": nearest_str,
+                        },
+                    )
                 raise AnalysisBlocked(
                     "unsupported_macro_scope",
                     err_detail,
@@ -4582,7 +4611,8 @@ def run_adaptive_analysis(
     try:
         return runner.execute()
     except AnalysisBlocked as exc:
-        msg = get_error_message(exc.code, catalog=catalog, default=exc.detail)
+        exc_params = getattr(exc, "params", None)
+        msg = get_error_message(exc.code, catalog=catalog, default=exc.detail, params=exc_params)
         if not any(s.kind == "blocked" for s in runner.trace_steps):
             runner._trace(
                 kind="blocked",
@@ -4591,7 +4621,7 @@ def run_adaptive_analysis(
                 detail={"code": exc.code, "message": msg},
                 recipient="system",
             )
-        report = _error_report(exc.code, exc.detail, request, catalog=catalog)
+        report = _error_report(exc.code, exc.detail, request, catalog=catalog, params=exc_params)
         report._trace_steps = runner.trace_steps
         report._duration_ms = max(0, int((time.monotonic() - runner._started_at) * 1000))
         report._tracker = usage_tracker

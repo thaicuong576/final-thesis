@@ -13,6 +13,7 @@ MESSAGES: dict[str, str] = {
     "unsupported_entity": "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: {entities}.",
     "metric_required": "Yêu cầu cần nêu rõ ít nhất một chỉ tiêu tài chính (ví dụ: nợ xấu, bao phủ, ROA, ROE).",
     "unsupported_macro_scope": "Chưa có dữ liệu vĩ mô đã kiểm định trong hệ thống.",
+    "macro_period_unavailable": "Chưa có số liệu {metrics} cho kỳ {period}. Kỳ gần nhất có số: {nearest}.",
     "provider_failure": "Nhà cung cấp dữ liệu không thể xử lý yêu cầu này.",
     "adaptive_runtime_failure": "Hệ thống phân tích thích ứng không thể hoàn thành yêu cầu.",
     "analysis_writer_unconfigured": "Mô hình chuyên gia phân tích chưa được cấu hình.",
@@ -46,11 +47,45 @@ def _format_periods_summary(periods: list[str]) -> str:
     return ", ".join(periods) if periods else "không có"
 
 
-def get_error_message(code: str, catalog: Any = None, default: str | None = None) -> str:
+def get_error_message(
+    code: str,
+    catalog: Any = None,
+    default: str | None = None,
+    params: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> str:
     """Look up localized Vietnamese error message and format catalog placeholders."""
     template = MESSAGES.get(code)
     if template is None:
         return default or f"Lỗi hệ thống: {code}."
+
+    p_dict = dict(params or {})
+    p_dict.update(kwargs)
+
+    if code == "macro_period_unavailable":
+        if default and (not p_dict.get("metrics") or not p_dict.get("period") or not p_dict.get("nearest")):
+            matches = re.findall(
+                r"Chỉ tiêu (.+?) chưa có số liệu cho kỳ (.+?); kỳ gần nhất có số là (.+?)\.",
+                default,
+            )
+            if matches:
+                if len(matches) == 1:
+                    p_dict.setdefault("metrics", matches[0][0])
+                    p_dict.setdefault("period", matches[0][1])
+                    p_dict.setdefault("nearest", matches[0][2])
+                else:
+                    p_dict.setdefault("metrics", ", ".join(m[0] for m in matches))
+                    p_dict.setdefault("period", matches[0][1])
+                    p_dict.setdefault("nearest", ", ".join(f"{m[0]} ({m[2]})" for m in matches))
+
+        metrics_str = p_dict.get("metrics", "không xác định")
+        period_str = p_dict.get("period", "không xác định")
+        nearest_str = p_dict.get("nearest", "không có")
+        return (
+            template.replace("{metrics}", metrics_str)
+            .replace("{period}", period_str)
+            .replace("{nearest}", nearest_str)
+        )
 
     if catalog is None:
         return template.replace("{periods}", "không xác định").replace("{metrics}", "không xác định").replace("{entities}", "không xác định")

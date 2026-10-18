@@ -27,7 +27,7 @@ import json
 import sqlite3
 import sys
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -82,6 +82,14 @@ LABELS = {
     "bank.llr_coverage": "Tỷ lệ bao phủ nợ xấu",
     "bank.roa": "ROA",
     "bank.roe": "ROE",
+    "macro.policy_rate": "Lãi suất điều hành",
+    "macro.credit_growth": "Tăng trưởng tín dụng toàn hệ thống",
+    "macro.gdp_growth": "Tăng trưởng GDP",
+    "macro.cpi_yoy": "Lạm phát CPI YoY",
+    "macro.usd_vnd": "Tỷ giá USD/VND",
+    "sector.system_npl_ratio": "Tỷ lệ nợ xấu toàn hệ thống",
+    "sector.system_nim": "NIM toàn hệ thống",
+    "sector.system_credit_outstanding": "Dư nợ tín dụng toàn hệ thống",
 }
 VERIFIED_QUARTERLY_LOSSES = {
     # STB incurred an audited net loss of (2,752.462) billion VND in Q4 2025 due to
@@ -100,7 +108,8 @@ def _prev(period: str, years: int = 1, quarter: int | None = None) -> str:
     return f"{int(y) - years}_Q{quarter or q}"
 
 
-def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, dataset_id: str = DATASET_ID,
+def build(inputs_csv: Path, out: Path, *, macro_inputs_csv: Path | None = None,
+          names: dict[str, str] | None = None, dataset_id: str = DATASET_ID,
           ratio_periods: set[str] | None = None) -> dict:
     out = out.resolve()
     if any(p in out.name.lower() for p in PROTECTED_NAMES):
@@ -109,6 +118,15 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
     rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
     if not rows:
         raise BuildError("no input rows")
+
+    macro_rows: list[dict[str, str]] = []
+    raw_macro_hash: str | None = None
+    if macro_inputs_csv is not None:
+        raw_macro = macro_inputs_csv.read_bytes()
+        raw_macro_hash = hashlib.sha256(raw_macro).hexdigest()
+        macro_rows = list(csv.DictReader(io.StringIO(raw_macro.decode("utf-8-sig"))))
+        if not macro_rows:
+            raise BuildError("no macro input rows")
 
     now = datetime.now(timezone.utc)
     now_iso = now.isoformat()
@@ -123,7 +141,7 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
     )
     snap = metadata.dataset_snapshot_id
 
-    sources: dict[tuple[str, str], DatasetSource] = {}
+    sources: dict[tuple[str, ...], DatasetSource] = {}
     documents: dict[str, DatasetDocument] = {}
     cells: dict[tuple[str, str, str], dict] = {}
     for i, r in enumerate(rows, start=2):
@@ -154,8 +172,98 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
         cells[key] = {"value": Decimal(r["value"]), "basis": basis, "loc": r["source_locator"].strip(),
                       "source": sources[skey]}
 
+    macro_cells: dict[tuple[str, str, str], dict] = {}
+    macro_units: dict[str, str] = {}
+    macro_declared_metrics: set[str] = set()
+    macro_declared_periods: set[str] = set()
+
+    if macro_rows:
+        for i, r in enumerate(macro_rows, start=2):
+            entity = r.get("entity_id", "").strip().upper()
+            if entity != "VN":
+                raise BuildError(f"macro row {i}: entity_id must be VN, got {entity}")
+            metric = r.get("metric_id", "").strip()
+            if not (metric.startswith("macro.") or metric.startswith("sector.")):
+                raise BuildError(f"macro row {i}: metric_id must start with macro. or sector., got {metric}")
+            period = r.get("period_id", "").strip()
+            if not period:
+                raise BuildError(f"macro row {i}: period_id is required")
+
+            unit = r.get("unit", "").strip()
+            if unit in ("%", "percent"):
+                unit = "percent"
+            if not unit:
+                unit = "percent"
+            macro_units[metric] = unit
+            macro_declared_metrics.add(metric)
+            macro_declared_periods.add(period)
+
+            val_str = r.get("value", "").strip()
+            if not val_str:
+                # Missing value: do not record observation (no interpolation, no zero-fill)
+                continue
+
+            try:
+                val_dec = Decimal(val_str)
+            except InvalidOperation:
+                raise BuildError(f"macro row {i}: invalid numeric value '{val_str}'")
+
+            loc = r.get("source_locator", "").strip()
+            if not loc:
+                raise BuildError(f"macro row {i}: source_locator is required")
+
+            source_url = r.get("source_url", "").strip()
+            source_sha = r.get("source_sha256", "").strip().lower()
+            source_tier = r.get("source_tier", "primary").strip().lower()
+            if source_tier not in ("primary", "secondary"):
+                raise BuildError(f"macro row {i}: unsupported source_tier '{source_tier}' (expected primary or secondary)")
+
+            basis = r.get("period_basis", "point_in_time").strip() or "point_in_time"
+            scope = r.get("scope", "system").strip() or "system"
+
+            key = (entity, metric, period)
+            if key in macro_cells:
+                raise BuildError(f"macro row {i}: duplicate cell {key}")
+
+            skey = (source_url, source_sha, source_tier)
+            if skey not in sources:
+                ref = f"source:{entity.lower()}:{hashlib.sha256('|'.join(skey).encode()).hexdigest()[:12]}"
+                is_primary = (source_tier == "primary")
+                sources[skey] = DatasetSource(
+                    source_ref=ref,
+                    source_type="policy" if metric.startswith("macro.") else "research_report",
+                    source_tier=source_tier,
+                    source_url=source_url,
+                    publisher="NHNN / Tổng cục Thống kê" if is_primary else "Nguồn thứ cấp",
+                    retrieved_at=now_iso,
+                    content_hash=source_sha or raw_macro_hash or raw_hash,
+                    validation_status=QualityStatus.VALID if is_primary else QualityStatus.PENDING_VALIDATION,
+                    notes="Dữ liệu vĩ mô và ngành (nguồn chính thức)" if is_primary else "Dữ liệu vĩ mô và ngành (nguồn thứ cấp)",
+                )
+                documents[ref] = DatasetDocument(
+                    document_id=f"document:{ref}",
+                    dataset_id=dataset_id,
+                    dataset_snapshot_id=snap,
+                    source_ref=ref,
+                    document_type="macro_policy_report",
+                    title=f"Dữ liệu vĩ mô {entity} ({source_tier})",
+                    publisher="NHNN / Tổng cục Thống kê" if is_primary else "Nguồn thứ cấp",
+                    content_hash=source_sha or raw_macro_hash or raw_hash,
+                    metadata={},
+                )
+
+            macro_cells[key] = {
+                "value": val_dec,
+                "unit": unit,
+                "basis": basis,
+                "scope": scope,
+                "loc": loc,
+                "source": sources[skey],
+                "source_tier": source_tier,
+            }
+
     entities = sorted({k[0] for k in cells})
-    periods = sorted({k[2] for k in cells})
+    periods = sorted({k[2] for k in cells} | macro_declared_periods)
 
     # Validate intra-year YTD profit monotonicity:
     # Cumulative year-to-date profit within a single calendar year must be non-decreasing,
@@ -207,6 +315,39 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
                 resolution_note="Transcribed from the filing; accepted after arithmetic cross-checks.",
             ),
             metadata={"provenance": "filing_transcription"},
+        ))
+        add_evidence(entity, metric, period, c["source"].source_ref, c["loc"], c["value"])
+
+    for (entity, metric, period), c in macro_cells.items():
+        is_primary = (c["source_tier"] == "primary")
+        val_status = QualityStatus.VALID if is_primary else QualityStatus.PENDING_VALIDATION
+        review = (
+            ObservationReview(
+                reviewer_id="claude-orchestrator-filing-transcription",
+                reviewed_at=now_iso,
+                decision="matched_reported_value",
+                primary_evidence=(ObservationEvidenceRef(source_ref=c["source"].source_ref, locator=c["loc"]),),
+                resolution_note="Accepted primary macro observation.",
+            )
+            if is_primary
+            else None
+        )
+        observations.append(CanonicalObservation(
+            observation_id=oid(entity, metric, period),
+            dataset_id=dataset_id,
+            dataset_snapshot_id=snap,
+            entity_id=entity,
+            period_id=period,
+            metric_id=metric,
+            value=float(c["value"]),
+            unit=c["unit"],
+            source_ref=c["source"].source_ref,
+            source_locator=c["loc"],
+            period_basis=c["basis"],
+            reporting_scope=c["scope"],
+            validation_status=val_status,
+            review=review,
+            metadata={"provenance": "macro_sector_inputs", "source_tier": c["source_tier"]},
         ))
         add_evidence(entity, metric, period, c["source"].source_ref, c["loc"], c["value"])
 
@@ -285,23 +426,59 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
                 derive(e, metric, p, r.value, version, keys, "percent", "ttm")
                 computed.setdefault(e, {}).setdefault(p, {})[metric] = float(r.value)
 
-    metric_ids = sorted({o.metric_id for o in observations})
+    dataset_entities = [
+        DatasetEntity(entity_id=e, entity_type=DatasetEntityType.COMPANY, display_name=(names or {}).get(e, e),
+                      attributes={"sector": "bank", "provenance": "filing_transcription"})
+        for e in entities
+    ]
+    if macro_rows:
+        dataset_entities.append(
+            DatasetEntity(
+                entity_id="VN",
+                entity_type=DatasetEntityType.MACRO,
+                display_name="Việt Nam – vĩ mô và ngành",
+                attributes={"provenance": "macro_sector_inputs"},
+            )
+        )
+
+    metric_ids = sorted({o.metric_id for o in observations} | macro_declared_metrics)
+    dataset_metrics = []
+    for m in metric_ids:
+        if m.startswith("macro."):
+            dataset_metrics.append(
+                DatasetMetric(
+                    metric_id=m,
+                    display_name=LABELS.get(m, m.removeprefix("macro.").replace("_", " ")),
+                    analytical_level=AnalyticalLevel.MACRO,
+                    default_unit=macro_units.get(m, "percent"),
+                )
+            )
+        elif m.startswith("sector."):
+            dataset_metrics.append(
+                DatasetMetric(
+                    metric_id=m,
+                    display_name=LABELS.get(m, m.removeprefix("sector.").replace("_", " ")),
+                    analytical_level=AnalyticalLevel.SECTOR,
+                    default_unit=macro_units.get(m, "percent"),
+                )
+            )
+        else:
+            dataset_metrics.append(
+                DatasetMetric(
+                    metric_id=m,
+                    display_name=LABELS.get(m, m.removeprefix("bank.input.").replace("_", " ")),
+                    analytical_level=AnalyticalLevel.COMPANY,
+                    default_unit="percent" if m in RATIOS else "billion_vnd",
+                )
+            )
+
     candidate = CanonicalDatasetCandidate(
         metadata=metadata,
         source=next(iter(sources.values())),
         additional_sources=tuple(list(sources.values())[1:]),
-        entities=tuple(
-            DatasetEntity(entity_id=e, entity_type=DatasetEntityType.COMPANY, display_name=(names or {}).get(e, e),
-                          attributes={"sector": "bank", "provenance": "filing_transcription"})
-            for e in entities
-        ),
+        entities=tuple(dataset_entities),
         periods=tuple(DatasetPeriod(period_id=p, label=p) for p in periods),
-        metrics=tuple(
-            DatasetMetric(metric_id=m, display_name=LABELS.get(m, m.removeprefix("bank.input.").replace("_", " ")),
-                          analytical_level=AnalyticalLevel.COMPANY,
-                          default_unit="percent" if m in RATIOS else "billion_vnd")
-            for m in metric_ids
-        ),
+        metrics=tuple(dataset_metrics),
         observations=tuple(observations),
         documents=tuple(documents.values()),
         evidence=tuple(evidence),
@@ -310,7 +487,7 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
     )
     report = OnboardingValidationReport(
         dataset_id=dataset_id, candidate_snapshot_id=snap, status=OnboardingValidationStatus.VALID,
-        row_count=len(rows), candidate_observation_count=len(observations), missing_observation_count=0,
+        row_count=len(rows) + len(macro_rows), candidate_observation_count=len(observations), missing_observation_count=0,
         rejected_row_count=0,
     )
     tmp = out.with_suffix(".building.sqlite")
@@ -335,6 +512,8 @@ def build(inputs_csv: Path, out: Path, *, names: dict[str, str] | None = None, d
         "file_sha256": hashlib.sha256(out.read_bytes()).hexdigest(), "inputs_sha256": raw_hash,
         "banks": entities, "periods": periods, "ratios": computed,
     }
+    if raw_macro_hash:
+        manifest["macro_inputs_sha256"] = raw_macro_hash
     out.with_suffix(".manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
     return manifest
 
@@ -343,6 +522,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Build the multi-period operational bank snapshot.")
     ap.add_argument("--inputs", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--macro-inputs", type=Path)
     ap.add_argument("--names", type=Path)
     ap.add_argument("--first-ratio-period", default="2024_Q1")
     args = ap.parse_args()
@@ -350,7 +530,7 @@ def main() -> int:
     rows = list(csv.DictReader(io.StringIO(args.inputs.read_text(encoding="utf-8-sig"))))
     ratio_periods = {r["period_id"] for r in rows if r["period_id"] >= args.first_ratio_period}
     try:
-        m = build(args.inputs, args.out, names=names, ratio_periods=ratio_periods)
+        m = build(args.inputs, args.out, macro_inputs_csv=args.macro_inputs, names=names, ratio_periods=ratio_periods)
     except BuildError as exc:
         print(f"BUILD FAILED: {exc}", file=sys.stderr)
         return 1

@@ -28,6 +28,7 @@ the final loop.
 - `docs/SDLC.md` — canonical branch, lifecycle, change-type gates, CI limits, and historical-branch policy.
 - `docs/SPEC.md` — approved scope and acceptance criteria.
 - `docs/ARCHITECTURE.md` — system layers and runtime flow.
+- `docs/architecture/macro-sector-ingest.md` — architecture and ERD for macro & sector snapshot ingestion and agent usage.
 - `docs/DATA-CONTRACT.md` — typed data and agent payload contracts.
 - `docs/DECISIONS.md` — durable decisions and rejected alternatives.
 - `docs/RESEARCH.md` — verified sources, findings, and open questions.

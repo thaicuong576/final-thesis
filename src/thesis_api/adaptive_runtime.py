@@ -209,6 +209,10 @@ _MACRO_LINK_TERMS = (
     "ảnh hưởng", "anh huong", "tác động", "tac dong", "truyền dẫn", "truyen dan",
 )
 _QUARTER_RE = re.compile(r"\b(20\d{2})\s*_?\s*[Qq]([1-4])\b")
+_VN_QUARTER_RE = re.compile(
+    r"\b(?:quý|quy|q)\s*([1-4])\s*(?:/|năm|nam|-|\s+)\s*(20\d{2})\b",
+    re.IGNORECASE,
+)
 _FY_PERIOD_RE = re.compile(r"\bFY\s*(20\d{2})\b", re.IGNORECASE)
 _FY_RANGE_RE = re.compile(r"\bFY\s*(20\d{2})\s*(?:to|through|[-–—])\s*(?:FY)?\s*(20\d{2})\b", re.IGNORECASE)
 _COMPACT_QUARTER_RANGE_RE = re.compile(
@@ -422,6 +426,7 @@ def _has_macro_request(request: AnalysisRequest) -> bool:
 
 def _check_single_period(request: AnalysisRequest) -> None:
     quarters = {f"{year}_Q{quarter}" for year, quarter in _QUARTER_RE.findall(request.query)}
+    quarters.update(f"{year}_Q{quarter}" for quarter, year in _VN_QUARTER_RE.findall(request.query))
     if (
         len(quarters) > 1
         or _COMPACT_QUARTER_RANGE_RE.search(request.query)
@@ -471,6 +476,11 @@ def _query_declared_periods(query: str) -> tuple[tuple[str, ...], bool]:
         for match in _QUARTER_RE.finditer(query)
         for year, quarter in (match.groups(),)
     ]
+    declared_matches.extend(
+        (match.start(), f"{year}_Q{quarter}")
+        for match in _VN_QUARTER_RE.finditer(query)
+        for quarter, year in (match.groups(),)
+    )
     declared_matches.extend(
         (match.start(), f"FY{year}")
         for match in _FY_PERIOD_RE.finditer(query)
@@ -728,9 +738,31 @@ def _plan_request(
             raise AnalysisBlocked("unsupported_multi_period_entity_scope", "A Company trend request must resolve to exactly one target entity.")
 
     company_metric_ids = _requested_metrics(request, catalog) if target else ()
-    macro_metric_rows = tuple(
-        metric for metric in catalog.metrics if metric.analytical_level is AnalyticalLevel.MACRO
-    ) if macro_requested else ()
+    if macro_requested:
+        from .service import _normalized
+        q_norm = _normalized(request.query)
+        specific_macro_metrics = []
+        for m in catalog.metrics:
+            if m.analytical_level is AnalyticalLevel.MACRO:
+                mid = m.metric_id
+                if mid == "macro.policy_rate" and any(t in q_norm for t in ("lãi suất", "lai suat", "policy_rate", "policy rate", "tái cấp vốn", "tai cap von")):
+                    specific_macro_metrics.append(m)
+                elif mid == "macro.credit_growth" and any(t in q_norm for t in ("tín dụng", "tin dung", "credit_growth", "credit growth")):
+                    specific_macro_metrics.append(m)
+                elif mid == "macro.gdp_growth" and any(t in q_norm for t in ("gdp", "kinh tế", "kinh te")):
+                    specific_macro_metrics.append(m)
+                elif mid == "macro.cpi_yoy" and any(t in q_norm for t in ("cpi", "lạm phát", "lam phat", "inflation")):
+                    specific_macro_metrics.append(m)
+                elif mid == "macro.usd_vnd" and any(t in q_norm for t in ("tỷ giá", "ty gia", "usd")):
+                    specific_macro_metrics.append(m)
+        if specific_macro_metrics:
+            macro_metric_rows = tuple(specific_macro_metrics)
+        else:
+            macro_metric_rows = tuple(
+                metric for metric in catalog.metrics if metric.analytical_level is AnalyticalLevel.MACRO
+            )
+    else:
+        macro_metric_rows = ()
     if macro_requested and not macro_metric_rows:
         raise AnalysisBlocked("macro_metrics_unavailable", "No accepted macro indicators are declared by the snapshot.")
     macro_metric_ids = tuple(item.metric_id for item in macro_metric_rows)
@@ -1298,12 +1330,20 @@ class _AdaptiveRun:
         if macro_metrics:
             self._role_started("macro", "VN", period, periods)
             for metric_id in macro_metrics:
-                artifact = _create_macro_claim(
-                    self.provider, self.dataset_ref, metric=self.metric_by_id[metric_id],
-                    period=period, include_evidence=SupportedOperation.GET_EVIDENCE in operations,
+                try:
+                    artifact = _create_macro_claim(
+                        self.provider, self.dataset_ref, metric=self.metric_by_id[metric_id],
+                        period=period, include_evidence=SupportedOperation.GET_EVIDENCE in operations,
+                    )
+                    self.artifacts[artifact.claim.claim_id] = artifact
+                    macro_role_claims.append(artifact.claim)
+                except ValueError as exc:
+                    logger.warning("Macro metric %s unavailable for %s: %s", metric_id, period, exc)
+            if not macro_role_claims and not target:
+                raise AnalysisBlocked(
+                    "unsupported_macro_scope",
+                    f"No accepted macro observations found for period {period}.",
                 )
-                self.artifacts[artifact.claim.claim_id] = artifact
-                macro_role_claims.append(artifact.claim)
 
         raw_role_claims = {
             "company": company_role_claims,

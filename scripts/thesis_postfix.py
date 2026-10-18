@@ -116,8 +116,10 @@ def main():
         if "ĐIỀN" not in t:
             continue
         new = t
-        if "Đăng nhập" in t and a.login_user and a.login_password:
-            new = new.replace("[ĐIỀN]", a.login_user, 1).replace("[ĐIỀN]", a.login_password, 1)
+        if t.startswith("Tên đăng nhập") and a.login_user:
+            new = new.replace("[ĐIỀN]", a.login_user)
+        if t.startswith("Mật khẩu") and a.login_password:
+            new = new.replace("[ĐIỀN]", a.login_password)
         if "MÃ COMMIT" in t and a.commit:
             new = new.replace("[ĐIỀN: MÃ COMMIT]", a.commit)
         if "LIÊN KẾT TẢI" in t:

@@ -1,6 +1,6 @@
 ## 4.5. Sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo thứ tự một chuyên viên phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14–15/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
+Mục này đi qua sản phẩm theo thứ tự một người phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14–15/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
 
 **Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô); nếu một quý chưa có báo cáo, ô đó được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức của từng chỉ tiêu và khu vực tải lên ngân hàng mới. Thông tin được lấy trực tiếp từ máy chủ nên luôn khớp với dữ liệu thực sự dùng để phân tích.
 

@@ -1,6 +1,6 @@
 # CHƯƠNG 4. THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
-Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng.
+Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12.
 
 ## 4.1. Kiến trúc phân tầng
 
@@ -71,7 +71,7 @@ Câu hỏi được chuẩn hóa (bảng mã Unicode, chữ thường, khoảng 
 - **Chỉ tiêu:** tên tiếng Việt và viết tắt (nợ xấu, NPL, bao phủ nợ xấu, ROA, ROE) hoặc nhóm chủ đề (chất lượng tài sản, khả năng sinh lời).
 - **Ý định:** các từ khóa tra cứu ("bao nhiêu"), xếp hạng ("nhất", "xếp hạng"), so sánh ("so với", "cùng nhóm"), xu hướng ("diễn biến", "qua các quý").
 
-Trước khi lập kế hoạch, một cổng phạm vi theo dấu hiệu từ khóa kiểm tra câu hỏi có thực thể ngân hàng, chỉ tiêu hoặc ý định phân tích hợp lệ hay không. Câu hỏi sáng tác, dịch thuật hay dự báo giá tài sản ngoài danh mục bị từ chối ngay, không gọi mô hình; đây là bộ lọc theo từ khóa chứ không phải bộ phân loại ý định, nên câu diễn đạt lạ có thể bị chặn nhầm hoặc lọt qua.
+Trước khi lập kế hoạch (thành phần thêm sau đánh giá), một cổng phạm vi theo dấu hiệu từ khóa kiểm tra câu hỏi có thực thể ngân hàng, chỉ tiêu hoặc ý định phân tích hợp lệ hay không. Câu hỏi sáng tác, dịch thuật hay dự báo giá tài sản ngoài danh mục bị từ chối ngay, không gọi mô hình; đây là bộ lọc theo từ khóa chứ không phải bộ phân loại ý định, nên câu diễn đạt lạ có thể bị chặn nhầm hoặc lọt qua.
 
 Từ đó, câu hỏi được xếp vào một trong năm dạng: **tra cứu** một con số, **hồ sơ doanh nghiệp** so với nhóm, **xếp hạng** các ngân hàng, **xu hướng** qua hai đến bốn quý, và **so sánh trực diện** hai ngân hàng. Kế hoạch gồm dạng câu hỏi và tối đa năm lệnh gọi công cụ. Hệ thống hỗ trợ hai chế độ lập kế hoạch: bằng bộ quy tắc xác định, hoặc bằng mô hình ngôn ngữ kèm quy tắc dự phòng (chế độ mặc định khi vận hành). Trong cả hai chế độ, chương trình chỉ chấp nhận ngân hàng, kỳ và chỉ tiêu có thật trong dữ liệu; nếu đề xuất sai hoặc mô hình lỗi, hệ thống dùng kế hoạch theo quy tắc. Trong thực nghiệm đánh giá (Chương 5), kế hoạch luôn được lập bằng bộ quy tắc xác định để ba cấu hình dùng cùng một kế hoạch. Kế hoạch được khóa trước khi truy xuất dữ liệu, và các bước sau chỉ làm việc trong phạm vi đã duyệt.
 
@@ -133,7 +133,7 @@ Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gi
 
 ## 4.4. Triển khai và kiểm thử
 
-Hệ thống được triển khai trên nền tảng đám mây và có thể dùng trực tiếp tại https://fin-ai.eddiephung.me (Hình 4.3). Giao diện web (React) chạy trên Vercel; máy chủ phân tích (Python, FastAPI) chạy trên Render và gọi mô hình ngôn ngữ qua giao diện tương thích OpenAI. Máy chủ cũng lấy giá cổ phiếu và hệ số P/B từ một nguồn dữ liệu thị trường bên ngoài để đưa vào báo cáo như một phần bối cảnh, có nhãn nguồn riêng và không trộn với số liệu báo cáo tài chính. Máy chủ miễn phí mất dữ liệu cục bộ mỗi lần khởi động lại, nên bộ dữ liệu được lưu trong kho riêng tư Supabase Storage và được tải về khi khởi động. Trước khi nhận yêu cầu, máy chủ kiểm tra mã băm SHA-256 của tệp, tính toàn vẹn cơ sở dữ liệu và mã phiên bản bộ dữ liệu; nếu một trong ba không khớp, máy chủ từ chối phục vụ. Lịch sử lượt chạy cũng được lưu sang kho này để không mất khi máy chủ khởi động lại. Khóa truy cập kho chỉ nằm trên máy chủ, không đến trình duyệt.
+Hệ thống được triển khai trực tuyến tại https://fin-ai.eddiephung.me (Hình 4.3): giao diện web chạy riêng, máy chủ phân tích gọi mô hình ngôn ngữ qua giao diện tương thích OpenAI. Vì máy chủ miễn phí mất dữ liệu cục bộ mỗi lần khởi động, bộ dữ liệu và lịch sử lượt chạy được lưu trong kho riêng tư và tải về khi khởi động; trước khi nhận yêu cầu, máy chủ kiểm tra mã băm của tệp, tính toàn vẹn cơ sở dữ liệu và mã phiên bản bộ dữ liệu, và từ chối phục vụ nếu một trong ba không khớp. Máy chủ cũng lấy giá cổ phiếu và hệ số P/B từ một nguồn bên ngoài làm bối cảnh có nhãn riêng, không trộn với số liệu báo cáo tài chính (thành phần thêm sau đánh giá).
 
 ```mermaid
 flowchart LR
@@ -151,4 +151,4 @@ flowchart LR
 ```
 *Hình 4.3: Kiến trúc triển khai.*
 
-Chất lượng được kiểm soát bằng kiểm thử tự động: hơn 900 bài kiểm thử phía máy chủ (đặc tả ràng buộc dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và 188 bài phía giao diện. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu đặc tả API (OpenAPI) với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.
+Chất lượng được kiểm soát bằng kiểm thử tự động: kiểm thử phía máy chủ (đặc tả ràng buộc dữ liệu, công cụ tính toán, hiểu câu hỏi, lập kế hoạch, từng quy tắc kiểm tra câu, đặc tả báo cáo, phản biện – sửa đổi và luồng toàn trình) và phía giao diện; số bài kiểm thử nêu ở mục 5.1. Mỗi thay đổi mã nguồn chỉ được hợp nhất vào nhánh chính khi chuỗi kiểm tra tự động đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu đặc tả API (OpenAPI) với giao diện. Mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.

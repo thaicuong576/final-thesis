@@ -4,20 +4,13 @@ Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng v�
 
 ## 3.1. Cách tiếp cận nghiên cứu
 
-### 3.1.1. Nghiên cứu khoa học thiết kế kết hợp nghiên cứu tình huống
+### 3.1.1. Nghiên cứu khoa học thiết kế
 
-Để giải quyết bài toán trên, nghiên cứu này áp dụng phương pháp nghiên cứu khoa học thiết kế (Design Science Research – DSR), trong đó kết quả nghiên cứu là một sản phẩm giải quyết bài toán thực tế và được đánh giá bằng đo lường (Hevner và cộng sự, 2004), kết hợp với nghiên cứu tình huống trên nhóm ngân hàng niêm yết Việt Nam. Tình huống ngân hàng giúp bám sát nghiệp vụ thực tế, như sự khác nhau giữa báo cáo hợp nhất và báo cáo riêng của ngân hàng mẹ hay quy định phân loại nợ, đồng thời tạo môi trường thử nghiệm có kiểm soát: dữ liệu được chuẩn bị và khóa trước nên các cấu hình được so sánh công bằng và kết quả có thể lặp lại.
+Để giải quyết bài toán trên, nghiên cứu này áp dụng phương pháp nghiên cứu khoa học thiết kế (Design Science Research – DSR), trong đó kết quả nghiên cứu là một sản phẩm giải quyết bài toán thực tế và được đánh giá bằng đo lường (Hevner và cộng sự, 2004), với miền ứng dụng là nhóm ngân hàng niêm yết Việt Nam. Miền ứng dụng này giúp bám sát nghiệp vụ thực tế, như sự khác nhau giữa báo cáo hợp nhất và báo cáo riêng của ngân hàng mẹ hay quy định phân loại nợ, đồng thời tạo môi trường thử nghiệm có kiểm soát: dữ liệu được chuẩn bị và khóa trước nên các cấu hình được so sánh công bằng và kết quả có thể lặp lại.
 
 ### 3.1.2. Quy trình sáu bước
 
-Quy trình nghiên cứu gồm sáu bước (Hình 3.1):
-
-1. **Xác định vấn đề:** số liệu ngân hàng cần chính xác, rõ nguồn và đúng phạm vi báo cáo; mô hình ngôn ngữ có thể tự tạo thông tin, và nhiều tác tử làm tăng chi phí phối hợp.
-2. **Chuyển thành yêu cầu thiết kế:** chương trình tính mọi con số, mô hình ngôn ngữ chỉ diễn giải; mỗi số liệu truy được về trang báo cáo gốc; mọi câu nhận định qua bộ kiểm tra theo quy tắc; phản biện có giới hạn.
-3. **Xây dựng sản phẩm:** tầng lõi (tính chỉ tiêu, kiểm tra câu, kiểm tra cấu trúc báo cáo) và tầng ứng dụng (hiểu câu hỏi, lập kế hoạch, điều phối tác tử, giao diện web).
-4. **Kiểm tra kỹ thuật:** hơn 900 bài kiểm thử tự động, kiểm tra ranh giới kiến trúc và đặc tả giao diện trước mỗi lần hợp nhất mã nguồn.
-5. **Thực nghiệm:** ba cấu hình A, B, C chạy 12 câu hỏi trên bộ dữ liệu mười ngân hàng, với kế hoạch phân tích được cố định trước; bốn thực nghiệm bổ sung (mục 3.3.5) đo độ nhạy của bộ kiểm chứng, sự phụ thuộc vào mô hình, khả năng chống chịu trước câu hỏi đối kháng và khả năng số hóa từ báo cáo gốc.
-6. **Đánh giá:** chấm tự động theo quy tắc về độ chính xác số liệu, khả năng truy nguồn, độ bao phủ, khả năng từ chối câu hỏi ngoài phạm vi và chi phí (thời gian, lượt gọi mô hình, token).
+Quy trình nghiên cứu gồm sáu bước (Hình 3.1), tham khảo các hoạt động của phương pháp luận do Peffers và cộng sự (2007) đề xuất: xác định vấn đề, chuyển thành yêu cầu thiết kế, xây dựng sản phẩm, kiểm tra kỹ thuật, thực nghiệm và đánh giá. Vấn đề và nguyên tắc thiết kế được trình bày ở Chương 1 và 2, sản phẩm và kiểm thử ở Chương 4, thực nghiệm và cách đánh giá ở mục 3.3 và Chương 5.
 
 ```mermaid
 flowchart TB
@@ -33,7 +26,7 @@ flowchart TB
 
 ### 3.1.3. Gắn câu hỏi nghiên cứu với phương pháp
 
-- **câu hỏi nghiên cứu thứ nhất (thiết kế và truy nguồn)** được trả lời bằng kiến trúc và sản phẩm ở Chương 4: luồng đi từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt chuỗi bằng chứng.
+- **Câu hỏi nghiên cứu thứ nhất (thiết kế và truy nguồn)** được trả lời bằng kiến trúc và sản phẩm ở Chương 4: luồng đi từ câu hỏi tiếng Việt, qua công cụ tính toán, đến câu nhận định có trích dẫn nguồn cụ thể mà không đứt chuỗi bằng chứng.
 - **Câu hỏi nghiên cứu thứ hai (chia việc cho nhiều tác tử)** được trả lời bằng so sánh cấu hình B với A trên cùng kế hoạch và dữ liệu, đo cả chất lượng lẫn chi phí.
 - **Câu hỏi nghiên cứu thứ ba (phản biện và sửa đổi)** được trả lời bằng so sánh cấu hình C với B.
 
@@ -80,21 +73,23 @@ flowchart LR
 
 ### 3.2.3. Bộ dữ liệu mười ngân hàng
 
-Cả sản phẩm và thực nghiệm dùng chung một bộ dữ liệu:
+Cả sản phẩm và thực nghiệm dùng chung một bộ dữ liệu (chỉ khác nhau ở nhãn một số dòng, xem cuối mục):
 
 - **Phạm vi:** mười ngân hàng niêm yết có tổng tài sản lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ quý 1/2024 đến quý 2/2026, bốn chỉ tiêu: tỷ lệ nợ xấu (nhóm 3–5), tỷ lệ bao phủ nợ xấu, ROA và ROE. Theo báo cáo tài chính hợp nhất đã kiểm toán năm 2024 nằm trong chính bộ dữ liệu, tổng tài sản của mười ngân hàng tại 31/12/2024 từ khoảng 697 nghìn tỷ đồng (HDB) đến khoảng 2,76 triệu tỷ đồng (BID).
 - **Nguồn:** báo cáo tài chính hợp nhất giữa niên độ từng quý; quý 4/2025 dùng báo cáo năm 2025 đã kiểm toán. Mỗi số đầu vào ghi trang, bảng, dòng, cột và mã băm của tệp PDF gốc.
-- **Cách đọc số:** số được trích tự động và chỉ được nhận tự động khi thỏa một phép kiểm số học (các nhóm nợ cộng đúng tổng in trên báo cáo, hoặc hai lần nhận dạng cho cùng kết quả). Các ô còn lại được đọc trực tiếp trên ảnh trang và đối chiếu bằng các đẳng thức kế toán (tổng tài sản bằng nợ phải trả cộng vốn chủ sở hữu; dư nợ trừ dự phòng bằng dư nợ thuần).
-- **Công thức:** ROA và ROE quý 1–3 tính theo bốn quý gần nhất (lợi nhuận lũy kế năm nay, trừ phần cùng kỳ năm trước, cộng lợi nhuận cả năm trước) chia cho bình quân số dư cuối kỳ và đầu năm; quý 4 dùng lợi nhuận cả năm. Mỗi công thức có mã phiên bản và mỗi giá trị có bản ghi truy vết phép tính.
+- **Cách đọc số:** số được trích tự động và chỉ được nhận tự động khi thỏa một phép kiểm số học (các nhóm nợ cộng đúng tổng in trên báo cáo, hoặc hai lần nhận dạng cho cùng kết quả). Các ô còn lại do tác giả đọc trực tiếp trên ảnh trang báo cáo, với sự hỗ trợ của tác tử AI để trích xuất và đối chiếu, rồi kiểm bằng các đẳng thức kế toán (tổng tài sản bằng nợ phải trả cộng vốn chủ sở hữu; dư nợ trừ dự phòng bằng dư nợ thuần).
+- **Định nghĩa chỉ tiêu:** tỷ lệ nợ xấu bằng tổng dư nợ nhóm 3, 4, 5 (theo phân loại của Thông tư 11/2021/TT-NHNN) chia cho dư nợ cho vay khách hàng; tỷ lệ bao phủ nợ xấu bằng dự phòng rủi ro tín dụng chia cho dư nợ nhóm 3–5; ROA bằng lợi nhuận sau thuế chia cho tổng tài sản bình quân; ROE bằng lợi nhuận thuộc cổ đông ngân hàng mẹ chia cho vốn chủ sở hữu bình quân của cổ đông ngân hàng mẹ (vốn chủ sở hữu trừ lợi ích cổ đông không kiểm soát).
+- **Định nghĩa chỉ tiêu:** tỷ lệ nợ xấu bằng tổng dư nợ nhóm 3, 4, 5 (theo phân loại của Thông tư 11/2021/TT-NHNN) chia cho dư nợ cho vay khách hàng; tỷ lệ bao phủ nợ xấu bằng dự phòng rủi ro tín dụng chia cho dư nợ nhóm 3–5; ROA bằng lợi nhuận sau thuế chia cho tổng tài sản bình quân; ROE bằng lợi nhuận thuộc cổ đông ngân hàng mẹ chia cho vốn chủ sở hữu bình quân của cổ đông ngân hàng mẹ (vốn chủ sở hữu trừ lợi ích cổ đông không kiểm soát).
+- **Công thức:** ROA và ROE quý 1–3 tính theo bốn quý gần nhất (lợi nhuận lũy kế năm nay, trừ phần cùng kỳ năm trước, cộng lợi nhuận cả năm trước) chia cho bình quân số dư cuối kỳ và đầu năm; quý 4 dùng lợi nhuận cả năm. Số dư đầu năm (31/12 năm trước) được dùng làm mốc đầu vì bảng cân đối giữa niên độ của ngân hàng so sánh với mốc này; vì vậy ở quý 1–3, tử số là bốn quý còn mẫu số bình quân hai mốc cách nhau chưa đủ bốn quý. Đây là phép xấp xỉ có chủ đích, ảnh hưởng nhỏ khi so sánh các ngân hàng trong cùng một kỳ nhưng cần lưu ý khi so với ROA, ROE do ngân hàng tự công bố. Số dư đầu năm (31/12 năm trước) được dùng làm mốc đầu vì bảng cân đối giữa niên độ của ngân hàng so sánh với mốc này; vì vậy ở quý 1–3, tử số là bốn quý còn mẫu số bình quân hai mốc cách nhau chưa đủ bốn quý. Đây là phép xấp xỉ có chủ đích, ảnh hưởng nhỏ khi so sánh các ngân hàng trong cùng một kỳ nhưng cần lưu ý khi so với ROA, ROE do ngân hàng tự công bố. Mỗi công thức có mã phiên bản và mỗi giá trị có bản ghi truy vết phép tính.
 
 *Bảng 3.2: Độ phủ bộ dữ liệu mười ngân hàng.*
 
 | Kết quả | Số ô ngân hàng – quý | Ghi chú |
 |---|:---:|---|
 | Đủ bốn chỉ tiêu | 100/100 | 400 giá trị chỉ tiêu, mỗi giá trị có bản ghi truy vết phép tính |
-| Để trống | 0 | Tám báo cáo không có ở nguồn tổng hợp được lấy từ trang quan hệ nhà đầu tư của ngân hàng hoặc nguồn công bố khác |
+| Để trống | 0 | Không có ô nào thiếu số liệu |
 
-Bộ dữ liệu được kiểm tra chéo hai chiều. Toàn bộ 40 giá trị quý 4/2025 khớp với bộ số liệu lập riêng từ báo cáo kiểm toán năm 2025. Bộ dữ liệu cũng được so với Gold v5, một bộ dữ liệu năm ngân hàng × bốn quý năm 2024 được đối soát độc lập ở giai đoạn đầu của dự án: 66 trên 76 giá trị trùng kỳ khớp, 10 giá trị lệch nhỏ đều giải thích được (VPB loại cho vay ký quỹ khỏi dư nợ để thống nhất với báo cáo kiểm toán; TCB trong Gold v5 dùng tỷ số do ngân hàng tự công bố; vốn chủ sở hữu năm 2024 của VCB được trình bày lại trong báo cáo kiểm toán). Bộ dữ liệu được khóa bằng mã băm SHA-256 trước khi chạy thực nghiệm.
+Bộ dữ liệu được kiểm tra chéo hai chiều. Toàn bộ 40 giá trị quý 4/2025 khớp với bộ số liệu lập riêng từ báo cáo kiểm toán năm 2025. Bộ dữ liệu cũng được so với Gold v5, một bộ dữ liệu năm ngân hàng × bốn quý năm 2024 được đối soát độc lập ở giai đoạn đầu của dự án: 66 trên 76 giá trị trùng kỳ khớp, 10 giá trị lệch nhỏ đều giải thích được (VPB loại cho vay ký quỹ khỏi dư nợ để thống nhất với báo cáo kiểm toán; TCB trong Gold v5 dùng tỷ số do ngân hàng tự công bố; vốn chủ sở hữu năm 2024 của VCB được trình bày lại trong báo cáo kiểm toán). Bộ dữ liệu được khóa bằng mã băm SHA-256 trước khi chạy thực nghiệm chính. Sau đó chỉ có một chỉnh sửa nhỏ ở bản dựng cuối cùng: nhãn đọc của các dòng lợi nhuận STB, không đổi giá trị nào. Thực nghiệm chính vì vậy chạy trên bản dựng đã khóa trước đó, còn sản phẩm dùng bản dựng cuối cùng.
 
 ### 3.2.4. Tiếp nhận ngân hàng mới
 
@@ -126,7 +121,7 @@ Ba cấu hình được thiết kế để tách riêng tác động của việ
 
 ### 3.3.3. Bộ 12 câu hỏi
 
-Bộ câu hỏi gồm mười câu phân tích thuộc năm dạng và hai câu kiểm soát từ chối (Bảng 3.4). Các câu trải đều các ngân hàng và các kỳ từ năm 2025 đến quý 2/2026 để thực nghiệm phản ánh đúng phạm vi bộ dữ liệu.
+Bộ câu hỏi gồm mười câu phân tích thuộc sáu dạng (trong đó dạng hồ sơ nhiều kỳ, T08, là dạng hệ thống chỉ hỗ trợ một phần) và hai câu kiểm soát từ chối (Bảng 3.4). Các câu trải đều các ngân hàng và các kỳ từ năm 2025 đến quý 2/2026 để thực nghiệm phản ánh đúng phạm vi bộ dữ liệu.
 
 *Bảng 3.4: Mười hai câu hỏi thực nghiệm.*
 
@@ -172,8 +167,8 @@ Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, n
 
 | Thực nghiệm | Câu hỏi | Cách làm | Gọi mô hình |
 |---|---|---|---|
-| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
-| Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với ba mô hình OpenAI, mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên phiên bản hệ thống sau nâng cấp để kiểm tra độ ổn định | Có |
+| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số theo hướng nhỏ, đổi số theo hướng lớn, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
+| Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với năm mô hình (ba của OpenAI, hai của DeepSeek), mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên phiên bản hệ thống sau nâng cấp để kiểm tra độ ổn định | Có |
 | Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
 | Số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
 
@@ -181,10 +176,13 @@ Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, n
 
 ## 3.4. Giới hạn của phương pháp
 
-1. **Mẫu ngân hàng:** mười ngân hàng niêm yết lớn nhất là mẫu chọn có chủ đích, không đại diện cho toàn bộ ngân hàng thương mại Việt Nam. Số liệu do tác giả đối soát với sự hỗ trợ của công cụ, chưa qua kiểm tra của người thứ hai.
+1. **Mẫu ngân hàng:** mười ngân hàng niêm yết lớn nhất là mẫu chọn có chủ đích, không đại diện cho toàn bộ ngân hàng thương mại Việt Nam. Số liệu do tác giả đối soát với sự hỗ trợ của tác tử AI, chưa qua kiểm tra của người thứ hai.
 2. **Chỉ tiêu:** chỉ có bốn chỉ tiêu về chất lượng tài sản và sinh lời; CAR, LDR, CASA, NIM chưa có trong dữ liệu.
 3. **Dữ liệu thiếu:** bộ dữ liệu đủ 100/100 ô nên thực nghiệm không có tình huống thiếu số liệu; khả năng xử lý ô thiếu chỉ được kiểm tra bằng bài kiểm thử tự động.
 4. **Chấm tự động:** bộ chấm kiểm tra tốt tính đúng của số liệu và cấu trúc, nhưng không đo văn phong, tính thuyết phục hay chiều sâu phân tích; không có chuyên gia chấm.
-5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên một mô hình; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
+5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên một mô hình; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI và hai mô hình DeepSeek (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
 6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** Thực nghiệm độ nhạy bộ kiểm chứng đo trên các lỗi giả lập do chương trình tạo ra từ những câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát.
-7. **Không khuyến nghị đầu tư:** hệ thống chỉ tổng hợp thông tin và phân tích cơ bản; định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.
+7. **Phân tích ở mức thuật lại:** prompt cấm từ chỉ nguyên nhân và giới hạn mỗi câu ở 30 từ, nên đầu ra là số liệu, xu hướng và thứ hạng so với nhóm, không phải lập luận nguyên nhân hay triển vọng. Định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.
+8. **Chưa kiểm tính thích ứng:** kế hoạch được cố định giống nhau cho cả ba cấu hình, nên việc chỉ huy động tác tử cần thiết (Nguyên tắc 1 và 3) không được thực nghiệm kiểm riêng; bước hiểu câu hỏi cũng không được đo độ chính xác riêng.
+9. **A và B khác nhau ở hai yếu tố cùng lúc:** cấu hình A chỉ gọi mô hình một lần và tự lắp báo cáo, còn B chia việc cho nhiều tác tử và gọi mô hình nhiều lần, nên chênh lệch giữa A và B không tách được tác động của chuyên môn hóa khỏi tác động của số lượt gọi.
+10. **Hiệu chỉnh trước khi chạy:** prompt và quy tắc kiểm tra câu được hiệu chỉnh qua các lần chạy thử trước ngày 05/10/2026 rồi cố định; vì vậy kết quả đo cho phiên bản đã hiệu chỉnh, không phải cho một hệ thống chưa từng thấy bài toán.

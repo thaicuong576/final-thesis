@@ -8,7 +8,7 @@
 
 **Đề tài:**
 
-# THIẾT KẾ VÀ ĐÁNH GIÁ HỆ THỐNG MULTI-AGENT HỖ TRỢ TỔNG HỢP THÔNG TIN VÀ PHÂN TÍCH CƠ BẢN CÁC NGÂN HÀNG NIÊM YẾT TẠI VIỆT NAM
+# THIẾT KẾ VÀ ĐÁNH GIÁ HỆ THỐNG ĐA TÁC TỬ HỖ TRỢ TỔNG HỢP THÔNG TIN VÀ PHÂN TÍCH CƠ BẢN CÁC NGÂN HÀNG NIÊM YẾT TẠI VIỆT NAM
 
 ---
 

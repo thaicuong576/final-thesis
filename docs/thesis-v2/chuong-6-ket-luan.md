@@ -16,7 +16,7 @@ Về thực tiễn, khóa luận cung cấp một hệ thống đã triển khai
 
 ## 6.3. Hạn chế
 
-**Về dữ liệu.** Dữ liệu gồm mười ngân hàng niêm yết lớn nhất và bốn chỉ tiêu, nên kết quả không suy rộng cho toàn ngành; số liệu do tác giả đối soát với sự hỗ trợ của công cụ, chưa qua kiểm tra độc lập. Dữ liệu vĩ mô chưa có nên nhánh phân tích vĩ mô chưa được đánh giá. Bước số hóa từ báo cáo gốc được thực hiện bán tự động, với sự kiểm tra của tác giả thông qua các ràng buộc đẳng thức kế toán, nhưng chưa có chuyên gia độc lập thứ hai thẩm định chéo: một bộ trích xuất đơn giản chỉ lấy đúng 52% giá trị dù 93–96% giá trị đọc được trên trang. Bộ dữ liệu không có ô thiếu nên khả năng xử lý thiếu số liệu chỉ được kiểm tra bằng kiểm thử tự động. Hệ thống chưa hỗ trợ so sánh nhóm qua nhiều kỳ.
+**Về dữ liệu.** Dữ liệu gồm mười ngân hàng niêm yết lớn nhất và bốn chỉ tiêu, nên kết quả không suy rộng cho toàn ngành; số liệu do tác giả đối soát với sự hỗ trợ của công cụ, chưa qua kiểm tra độc lập. Dữ liệu vĩ mô và ngành đã được đưa vào sản phẩm từ các nguồn công bố chính thức, nhưng độ phủ không đều giữa các chuỗi và chưa có người thứ hai kiểm tra toàn bộ; nhánh phân tích vĩ mô chưa được đánh giá bằng thực nghiệm A/B/C vì ba cấu hình chạy trên dữ liệu ngân hàng. Bước số hóa từ báo cáo gốc được thực hiện bán tự động, với sự kiểm tra của tác giả thông qua các ràng buộc đẳng thức kế toán, nhưng chưa có chuyên gia độc lập thứ hai thẩm định chéo: một bộ trích xuất đơn giản chỉ lấy đúng 52% giá trị dù 93–96% giá trị đọc được trên trang. Bộ dữ liệu không có ô thiếu nên khả năng xử lý thiếu số liệu chỉ được kiểm tra bằng kiểm thử tự động. Hệ thống chưa hỗ trợ so sánh nhóm qua nhiều kỳ.
 
 **Về thiết kế kiểm chứng.** Bộ kiểm chứng câu chưa bắt được khoảng một phần năm các lỗi đổi tên chỉ tiêu; kiểm tra đối kháng chỉ gồm mười lăm câu và lỗi câu hỏi ngoài phạm vi được sửa bằng cổng theo dấu hiệu từ khóa, không phải bộ phân loại ý định. Việc chấm điểm hoàn toàn tự động; chất lượng diễn giải và tính hữu ích chưa được chuyên gia đánh giá.
 
@@ -24,7 +24,7 @@ Về thực tiễn, khóa luận cung cấp một hệ thống đã triển khai
 
 ## 6.4. Hướng phát triển
 
-Thứ nhất, mở rộng dữ liệu: thêm các ngân hàng niêm yết khác qua quy trình tiếp nhận hiện có, đưa người thứ hai đối soát độc lập, thêm các kỳ trước năm 2024, các chỉ tiêu như NIM, CASA, CIR và dữ liệu vĩ mô có đối chiếu kỳ.
+Thứ nhất, mở rộng dữ liệu: thêm các ngân hàng niêm yết khác qua quy trình tiếp nhận hiện có, đưa người thứ hai đối soát độc lập, thêm các kỳ trước năm 2024, các chỉ tiêu như NIM, CASA, CIR, và mở rộng chuỗi vĩ mô, ngành (lạm phát cơ bản, tỷ giá, nợ xấu toàn hệ thống) khi có nguồn công bố theo quý, kèm một thực nghiệm riêng đánh giá nhánh vĩ mô.
 
 Thứ hai, lặp lại thực nghiệm A/B/C nhiều lần và với nhiều mô hình, mở rộng bộ câu hỏi đối kháng, bổ sung quy tắc kiểm tra nhãn chỉ tiêu theo cặp (chỉ tiêu, giá trị) và quy tắc loại câu tự so sánh, và có chuyên gia chấm mù chất lượng diễn giải.
 

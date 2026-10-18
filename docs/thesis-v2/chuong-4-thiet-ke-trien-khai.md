@@ -100,6 +100,8 @@ Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từ
 
 Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Prompt yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Prompt của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
 
+Khi câu hỏi nhắc tới bối cảnh vĩ mô (lãi suất điều hành, tăng trưởng tín dụng, GDP, lạm phát) và bộ dữ liệu có khai báo thực thể vĩ mô với quan sát hợp lệ, bộ điều phối huy động thêm chuyên viên vĩ mô. Chuyên viên này đọc số từ chính bộ dữ liệu qua một công cụ, không có số cố định trong mã, và số vĩ mô đi qua cùng đường kiểm tra như số ngân hàng: mỗi khẳng định gắn với một quan sát và vị trí nguồn của nó. Nếu bộ dữ liệu không khai báo dữ liệu vĩ mô thì câu hỏi vĩ mô vẫn bị từ chối như trước. Hành vi này được kiểm bằng kiểm thử tự động với bộ dữ liệu có và không có dữ liệu vĩ mô; đánh giá chất lượng nhận định vĩ mô bằng thực nghiệm nằm ngoài phạm vi khóa luận.
+
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
 Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.2 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ.

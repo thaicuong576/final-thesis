@@ -611,14 +611,17 @@ def _plan_request(
         _resolve_target,
         _provider_macro_available,
     )
-    has_target = bool(request.target_ticker) or bool(_catalog_entity_matches(request.query, catalog))
-    if not has_target and _has_macro_request(request) and not _provider_macro_available(catalog):
-        from .service import AnalysisBlocked
-
-        raise AnalysisBlocked(
-            "unsupported_macro_scope",
-            "The accepted snapshot does not declare the requested macro observation capability.",
+    if _has_macro_request(request):
+        has_target = bool(getattr(request, "target_ticker", None)) or (
+            bool(_catalog_entity_matches(request.query, catalog)) if hasattr(catalog, "entities") else False
         )
+        if not has_target and not _provider_macro_available(catalog):
+            from .service import AnalysisBlocked
+
+            raise AnalysisBlocked(
+                "unsupported_macro_scope",
+                "The accepted snapshot does not declare the requested macro observation capability.",
+            )
 
     if not getattr(request, "_periods_explicit", False) and not (
         _has_macro_request(request) and _provider_macro_available(catalog)

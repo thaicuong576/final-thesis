@@ -131,12 +131,18 @@ def build(inputs_csv: Path, out: Path, *, macro_inputs_csv: Path | None = None,
     now = datetime.now(timezone.utc)
     now_iso = now.isoformat()
     raw_hash = hashlib.sha256(raw).hexdigest()
+    # The snapshot id must change when the macro/sector inputs change, otherwise two different
+    # files would share one id. Without macro inputs the id is unchanged.
+    identity_hash = raw_hash if raw_macro_hash is None else hashlib.sha256(
+        f"{raw_hash}:{raw_macro_hash}".encode("ascii")
+    ).hexdigest()
     descriptor = RawDatasetDescriptor(
         raw_dataset_id=f"{dataset_id}-inputs", source_type="filing", original_name=inputs_csv.name,
-        content_hash=raw_hash, ingested_at=now,
+        content_hash=identity_hash, ingested_at=now,
     )
     metadata = build_snapshot_metadata(
-        dataset_id, descriptor, mapping_version="quarterly-bank-inputs-v1",
+        dataset_id, descriptor,
+        mapping_version="quarterly-bank-inputs-v1" if raw_macro_hash is None else "quarterly-bank-inputs-v1+macro-sector-v1",
         validation_version="quarterly-bank-arithmetic-v1", status=DatasetSnapshotStatus.CANDIDATE, created_at=now,
     )
     snap = metadata.dataset_snapshot_id

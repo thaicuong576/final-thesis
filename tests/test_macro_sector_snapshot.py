@@ -198,6 +198,31 @@ class MacroSectorSnapshotTest(unittest.TestCase):
             conn1.close()
             conn2.close()
 
+    def test_snapshot_id_changes_with_macro_inputs(self) -> None:
+        """Different macro inputs must give different snapshot ids; no macro keeps the old id."""
+        plain = builder.build(self.inputs, self.tmp / "id_plain.sqlite", ratio_periods={"2024_Q2", "2024_Q4"})
+        with_macro = builder.build(
+            self.inputs, self.tmp / "id_macro.sqlite",
+            macro_inputs_csv=self.macro_inputs, ratio_periods={"2024_Q2", "2024_Q4"},
+        )
+        with open(self.macro_inputs, encoding="utf-8-sig", newline="") as f:
+            macro_rows = list(csv.reader(f))
+        extra = list(macro_rows[1])
+        extra[macro_rows[0].index("metric_id")] = "macro.gdp_growth_yoy"
+        extra[macro_rows[0].index("period_id")] = "2024_Q2"
+        extra[macro_rows[0].index("value")] = "6.9"
+        other_csv = self.tmp / "macro_other.csv"
+        with open(other_csv, "w", encoding="utf-8", newline="") as f:
+            csv.writer(f).writerows(macro_rows + [extra])
+        other = builder.build(
+            self.inputs, self.tmp / "id_other.sqlite",
+            macro_inputs_csv=other_csv, ratio_periods={"2024_Q2", "2024_Q4"},
+        )
+        ids = {plain["dataset_snapshot_id"], with_macro["dataset_snapshot_id"], other["dataset_snapshot_id"]}
+        self.assertEqual(len(ids), 3)
+        again = builder.build(self.inputs, self.tmp / "id_plain2.sqlite", ratio_periods={"2024_Q2", "2024_Q4"})
+        self.assertEqual(plain["dataset_snapshot_id"], again["dataset_snapshot_id"])
+
     def test_fetch_macro_context(self) -> None:
         """fetch_macro_context retrieves accepted VN macro indicators from snapshot."""
         out = self.tmp / "ops_macro_fetch.sqlite"

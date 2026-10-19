@@ -18,6 +18,9 @@ Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
 | Xếp hạng | Nhập "Ngân hàng nào có tỷ lệ bao phủ nợ xấu cao nhất quý 2/2026?" | Báo cáo xếp hạng mười ngân hàng |
 | Xu hướng | Nhập "ROE của BID thay đổi thế nào trong năm 2026?" | Biểu đồ theo quý so với trung vị nhóm |
 | So sánh | Nhập "So sánh ACB và CTG quý 2/2026" | Bảng đối chiếu từng chỉ tiêu |
+| Tra cứu vĩ mô | Nhập "Lãi suất tái cấp vốn hiện nay là bao nhiêu?" | Thẻ trả lời lãi suất tái cấp vốn 4,5% (kỳ quý 2/2026, QĐ 1123/QĐ-NHNN) |
+| Tra cứu toàn ngành (không nêu kỳ) | Nhập "Tỷ lệ nợ xấu toàn hệ thống là bao nhiêu?" | Thẻ trả lời tỷ lệ nợ xấu 4,55% (kỳ quý 3/2024, ghi chú số mới nhất có sẵn do chưa có quý 2/2026) |
+| Từ chối kỳ vĩ mô chưa có số | Nhập "Tỷ lệ nợ xấu toàn hệ thống quý 2/2026 là bao nhiêu?" | Thông báo từ chối nêu rõ chưa có số liệu cho quý 2/2026 và chỉ ra kỳ gần nhất có số là quý 3/2024 |
 | Từ chối | Nhập câu hỏi về ngân hàng hoặc kỳ chưa có, hoặc yêu cầu không phải phân tích | Thông báo kèm dữ liệu hiện có |
 | Thêm ngân hàng | Trang Dữ liệu, chọn "Mẫu VIB 2025 hợp lệ", bấm "Kiểm tra và tải lên", rồi "Hỏi về VIB" | Báo cáo có ghi chú số liệu do người dùng cung cấp |
 | Thêm ngân hàng từ PDF | Làm theo Bảng A.2 | Bảng số liệu trích xuất, kiểm tra tự động, rồi hỏi về ngân hàng vừa nạp |
@@ -53,9 +56,9 @@ Những điều cần biết khi thử:
 ## Phụ lục B. Bộ dữ liệu
 
 Bộ dữ liệu vận hành mười ngân hàng niêm yết lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ
-quý 1/2024 đến quý 2/2026. Số liệu đầu vào được đọc từ báo cáo tài chính hợp nhất của từng ngân hàng; mỗi dòng ghi trang nguồn và
-đường dẫn tới tệp báo cáo gốc. Bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ
-các số liệu này theo công thức được định danh phiên bản, cho 400 giá trị.
+quý 1/2024 đến quý 2/2026. Số liệu đầu vào gồm 1.735 quan sát được đọc từ 101 tài liệu báo cáo tài chính hợp nhất của từng ngân hàng với 452 trang trích dẫn nguồn riêng biệt; mỗi dòng ghi trang nguồn và đường dẫn tới tệp báo cáo gốc. Bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ các số liệu này theo công thức được định danh phiên bản, cho 400 giá trị.
+
+Bên cạnh mười ngân hàng, bộ dữ liệu mở rộng thực thể "Việt Nam" (`VN`) gồm 187 quan sát (163 quan sát sơ cấp hợp lệ và 24 quan sát thứ cấp chờ kiểm định) của 20 chỉ tiêu kinh tế vĩ mô và toàn ngành qua 15 quý (từ quý 4/2022 đến quý 2/2026), có đối soát nguồn gốc từ Ngân hàng Nhà nước và Tổng cục Thống kê (Cục Thống kê). Khác với chuỗi ngân hàng đầy đủ theo quý, các chỉ tiêu ngành áp dụng cơ chế xác định kỳ linh hoạt (`as-of-latest`) khi phân tích.
 
 Để đối chiếu với Chương 5: các thực nghiệm so sánh A/B/C chạy trên một bản dựng trước của bộ dữ liệu; bản dựng cuối cùng chỉ khác ở nhãn đọc của các dòng lợi nhuận STB và không đổi giá trị nào.
 

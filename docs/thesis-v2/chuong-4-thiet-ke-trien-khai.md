@@ -102,6 +102,10 @@ Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên 
 
 Khi câu hỏi nhắc tới bối cảnh vĩ mô (lãi suất điều hành, tăng trưởng tín dụng, GDP, lạm phát) và bộ dữ liệu có khai báo thực thể vĩ mô với quan sát hợp lệ, bộ điều phối huy động thêm chuyên viên vĩ mô. Chuyên viên này đọc số từ chính bộ dữ liệu qua một công cụ, không có số cố định trong mã, và số vĩ mô đi qua cùng đường kiểm tra như số ngân hàng: mỗi khẳng định gắn với một quan sát và vị trí nguồn của nó. Nếu bộ dữ liệu không khai báo dữ liệu vĩ mô thì câu hỏi vĩ mô vẫn bị từ chối như trước. Hành vi này được kiểm bằng kiểm thử tự động với bộ dữ liệu có và không có dữ liệu vĩ mô; đánh giá chất lượng nhận định vĩ mô bằng thực nghiệm nằm ngoài phạm vi khóa luận.
 
+Do các chỉ tiêu vĩ mô và toàn ngành có độ phủ dữ liệu không đồng đều qua các quý (nhiều chỉ tiêu như nợ xấu toàn hệ thống chỉ có một vài mốc công bố chính thức), hệ thống áp dụng cơ chế xác định kỳ linh hoạt (`as-of-latest`) khi phân tích:
+- **Khi câu hỏi không nêu kỳ:** kỳ phân tích mặc định là kỳ mới nhất của cơ sở dữ liệu (hiện là quý 2/2026), nhưng với mỗi chỉ tiêu vĩ mô hoặc ngành, chuyên viên sử dụng quan sát hợp lệ mới nhất có sẵn tại hoặc trước kỳ mặc định. Khẳng định tạo ra mang đúng kỳ thực tế của quan sát (không gán nhãn quý 2/2026 cho số liệu quý 3/2024), và báo cáo phân tích tự động bổ sung dòng ghi chú giới hạn minh bạch (ví dụ: "Số liệu Tỷ lệ nợ xấu toàn hệ thống: số mới nhất có sẵn là kỳ 2024_Q3; chưa có số cho kỳ 2026_Q2 mới hơn").
+- **Khi câu hỏi nêu kỳ cụ thể:** hệ thống truy xuất chính xác theo kỳ yêu cầu; nếu kỳ được hỏi chưa có số liệu đã kiểm định, yêu cầu bị chặn với mã lỗi `macro_period_unavailable`, nêu rõ các chỉ tiêu thiếu số và kỳ gần nhất có dữ liệu (thay vì gán nhãn sai hoặc báo chung chung rằng hệ thống chưa có dữ liệu).
+
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
 Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.2 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ.
@@ -131,7 +135,7 @@ Báo cáo được ghép từ các khối theo một bản đặc tả thống n
 
 ## 4.3. Lưu vết và xử lý lỗi
 
-Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian: ai làm, giao cho ai, loại hành động (lập kế hoạch, gọi công cụ, viết, kiểm tra, tổng hợp báo cáo, phản biện, sửa), tóm tắt tiếng Việt và dữ liệu chi tiết. Nhật ký không lưu prompt thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái kết thúc, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ: "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: …" hoặc "Kỳ phân tích yêu cầu không có trong dữ liệu đã kiểm định. Các kỳ hiện có: …".
+Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian: ai làm, giao cho ai, loại hành động (lập kế hoạch, gọi công cụ, viết, kiểm tra, tổng hợp báo cáo, phản biện, sửa), tóm tắt tiếng Việt và dữ liệu chi tiết. Nhật ký không lưu prompt thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái kết thúc, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ: "Ngân hàng yêu cầu không có trong danh sách hỗ trợ. Các ngân hàng hiện có: …", "Kỳ phân tích yêu cầu không có trong dữ liệu đã kiểm định. Các kỳ hiện có: …", hoặc khi hỏi kỳ vĩ mô chưa công bố: "Chưa có số liệu [chỉ tiêu] cho kỳ [kỳ hỏi]. Kỳ gần nhất có số: [kỳ gần nhất]".
 
 ## 4.4. Triển khai và kiểm thử
 

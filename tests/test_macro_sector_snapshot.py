@@ -11,8 +11,9 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from thesis_api.adaptive_runtime import _AdaptiveRun, _plan_request
+from thesis_api.adaptive_runtime import _AdaptiveRun, _plan_request, run_adaptive_analysis
 from thesis_api.agents import MacroSpecialistAgent
+from thesis_api.messages_vi import get_error_message
 from thesis_api.schemas import AnalysisRequest
 from thesis_api.service import AnalysisBlocked, fetch_macro_context
 from thesis_data.analysis_plan import AnalysisAgent
@@ -760,9 +761,19 @@ class MacroSectorSnapshotTest(unittest.TestCase):
         )
         with self.assertRaises(AnalysisBlocked) as ctx:
             runner.execute()
-        self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
+        self.assertEqual(ctx.exception.code, "macro_period_unavailable")
         self.assertIn("2023_Q4", ctx.exception.detail)
         self.assertIn("kỳ gần nhất có số là 2023_Q4", ctx.exception.detail)
+        msg = get_error_message(
+            ctx.exception.code,
+            catalog=catalog,
+            default=ctx.exception.detail,
+            params=getattr(ctx.exception, "params", None),
+        )
+        self.assertEqual(
+            msg,
+            "Chưa có số liệu Tỷ lệ nợ xấu toàn hệ thống cho kỳ 2024_Q3. Kỳ gần nhất có số: 2023_Q4.",
+        )
 
     def test_asof_d_cuoi_2023_mapped_to_2023_q4(self) -> None:
         """(d) 'Nợ xấu toàn hệ thống cuối 2023' -> đúng 2023_Q4."""
@@ -849,6 +860,137 @@ class MacroSectorSnapshotTest(unittest.TestCase):
         report = runner.execute()
         claim = next(c for c in report.atomic_claims if c.period == "2023_Q4")
         self.assertEqual(claim.stage1_status, "accepted")
+
+    def test_macro_period_unavailable_when_npl_has_only_old_period_and_asked_new_period(self) -> None:
+        """Nợ xấu toàn hệ thống chỉ có kỳ cũ (2023_Q4), hỏi kỳ mới (2026_Q2) -> mã macro_period_unavailable với thông báo đúng tên chỉ tiêu, kỳ hỏi, kỳ gần nhất."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Tỷ lệ nợ xấu toàn hệ thống quý 2/2026 là bao nhiêu?")
+
+        # 1. Via _AdaptiveRun
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        with self.assertRaises(AnalysisBlocked) as ctx:
+            runner.execute()
+        self.assertEqual(ctx.exception.code, "macro_period_unavailable")
+        self.assertIn("2023_Q4", ctx.exception.detail)
+        msg = get_error_message(
+            ctx.exception.code,
+            catalog=catalog,
+            default=ctx.exception.detail,
+            params=getattr(ctx.exception, "params", None),
+        )
+        self.assertEqual(
+            msg,
+            "Chưa có số liệu Tỷ lệ nợ xấu toàn hệ thống cho kỳ 2026_Q2. Kỳ gần nhất có số: 2023_Q4.",
+        )
+        self.assertIn("Tỷ lệ nợ xấu toàn hệ thống", msg)
+        self.assertIn("2026_Q2", msg)
+        self.assertIn("2023_Q4", msg)
+
+        # 2. Via run_adaptive_analysis
+        report = run_adaptive_analysis(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            semantic_critic=None,
+            analysis_writer=None,
+        )
+        self.assertEqual(report.status, "error")
+        self.assertIsNotNone(report.error)
+        self.assertEqual(report.error.code, "macro_period_unavailable")
+        self.assertEqual(
+            report.error.message,
+            "Chưa có số liệu Tỷ lệ nợ xấu toàn hệ thống cho kỳ 2026_Q2. Kỳ gần nhất có số: 2023_Q4.",
+        )
+        self.assertIn("Tỷ lệ nợ xấu toàn hệ thống", report.error.message)
+        self.assertIn("2026_Q2", report.error.message)
+        self.assertIn("2023_Q4", report.error.message)
+
+    def test_macro_period_unavailable_multiple_metrics_lists_each_metric_with_nearest_period(self) -> None:
+        """Nhiều chỉ tiêu cùng thiếu số: thông báo liệt kê tên hiển thị từng chỉ tiêu kèm kỳ gần nhất có số, không lộ giá trị."""
+        provider, dataset_ref, catalog = self._build_rich_macro_snapshot("snap_multi_test.sqlite")
+        req = AnalysisRequest(query="Bối cảnh vĩ mô quý 4/2024 như thế nào?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        with self.assertRaises(AnalysisBlocked) as ctx:
+            runner.execute()
+        self.assertEqual(ctx.exception.code, "macro_period_unavailable")
+        msg = get_error_message(
+            ctx.exception.code,
+            catalog=catalog,
+            default=ctx.exception.detail,
+            params=getattr(ctx.exception, "params", None),
+        )
+        self.assertIn("Chưa có số liệu", msg)
+        self.assertIn("2024_Q4", msg)
+        self.assertIn("Kỳ gần nhất có số:", msg)
+        # Verify each missing metric name and nearest period is listed
+        self.assertIn("Lãi suất tái cấp vốn", msg)
+        self.assertIn("Tăng trưởng tín dụng so với cùng kỳ", msg)
+        self.assertIn("2024_Q2", msg)
+        # Ensure no numeric observation values are leaked
+        self.assertNotIn("4.5%", msg)
+        self.assertNotIn("1.85%", msg)
+        self.assertNotIn("15.0%", msg)
+
+    def test_macro_snapshot_without_macro_keeps_unsupported_macro_scope(self) -> None:
+        """Snapshot không có macro -> vẫn chặn unsupported_macro_scope với thông báo cũ."""
+        out_no_macro = self.tmp / "test_no_macro_check.sqlite"
+        manifest_no = builder.build(self.inputs, out_no_macro, ratio_periods={"2024_Q2", "2024_Q4"})
+        no_macro_provider = CanonicalSqliteDatasetProvider(out_no_macro)
+        no_macro_ref = DatasetRef(
+            dataset_id=manifest_no["dataset_id"],
+            dataset_snapshot_id=manifest_no["dataset_snapshot_id"],
+        )
+        no_macro_catalog = no_macro_provider.get_capabilities(no_macro_ref)
+        req = AnalysisRequest(query="Tỷ lệ nợ xấu toàn hệ thống quý 2/2026 là bao nhiêu?")
+        with self.assertRaises(AnalysisBlocked) as ctx:
+            _plan_request(req, no_macro_ref, no_macro_catalog)
+        self.assertEqual(ctx.exception.code, "unsupported_macro_scope")
+        msg = get_error_message(ctx.exception.code, catalog=no_macro_catalog)
+        self.assertEqual(msg, "Chưa có dữ liệu vĩ mô đã kiểm định trong hệ thống.")
+
+    def test_macro_query_with_available_data_unaffected(self) -> None:
+        """Câu hỏi vĩ mô có số cho kỳ được hỏi -> thực thi bình thường, không đổi."""
+        provider, dataset_ref, catalog = self._build_asof_macro_snapshot()
+        req = AnalysisRequest(query="Nợ xấu toàn hệ thống cuối 2023 là bao nhiêu?")
+        runner = _AdaptiveRun(
+            provider=provider,
+            dataset_ref=dataset_ref,
+            catalog=catalog,
+            request=req,
+            settings=None,
+            critic=None,
+            writer=None,
+            emit=lambda *a, **k: None,
+            client=None,
+        )
+        report = runner.execute()
+        self.assertIn(report.status, {"completed", "accepted_with_limitations"})
+        npl_claims = [c for c in report.atomic_claims if c.metric == "Tỷ lệ nợ xấu toàn hệ thống"]
+        self.assertEqual(len(npl_claims), 1)
+        self.assertEqual(npl_claims[0].period, "2023_Q4")
+        self.assertIn("1.93", npl_claims[0].statement)
 
 
 if __name__ == "__main__":

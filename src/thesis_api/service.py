@@ -206,10 +206,11 @@ def _append_local_cost_log(*, run_id: str, created_at: str, query: str, model: s
 class AnalysisBlocked(ValueError):
     """A request cannot be executed from the currently accepted data scope."""
 
-    def __init__(self, code: str, detail: str) -> None:
+    def __init__(self, code: str, detail: str, params: dict[str, Any] | None = None) -> None:
         super().__init__(detail)
         self.code = code
         self.detail = detail
+        self.params = params or {}
 
 
 class ProviderBinding:
@@ -713,7 +714,13 @@ def _observation_source_locator(observation: Any) -> str | None:
     return locator.strip() if isinstance(locator, str) and locator.strip() else None
 
 
-def _error_report(code: str, detail: str, request: AnalysisRequest, catalog: Any = None) -> AnalysisResponse:
+def _error_report(
+    code: str,
+    detail: str,
+    request: AnalysisRequest,
+    catalog: Any = None,
+    params: dict[str, Any] | None = None,
+) -> AnalysisResponse:
     from .messages_vi import get_error_message, suggestions_for
     from .schemas import ErrorInfoDTO
 
@@ -727,7 +734,7 @@ def _error_report(code: str, detail: str, request: AnalysisRequest, catalog: Any
             catalog = None
 
     report_id = f"report-{uuid.uuid4().hex}"
-    message = get_error_message(code, catalog=catalog, default=detail)
+    message = get_error_message(code, catalog=catalog, default=detail, params=params)
     suggestions = suggestions_for(catalog)[:3] if catalog is not None else []
     return AnalysisResponse(
         report_id=report_id,
@@ -1566,7 +1573,10 @@ class AnalysisEngine:
                                 report.analysis_plan.known_limitations.insert(0, limitation_label)
             return report
         except AnalysisBlocked as exc:
-            return self._attach_fallback_trace(_error_report(exc.code, exc.detail, request, catalog=catalog), request)
+            return self._attach_fallback_trace(
+                _error_report(exc.code, exc.detail, request, catalog=catalog, params=getattr(exc, "params", None)),
+                request,
+            )
         except (DatasetProviderError, sqlite3.Error, OSError, ValueError) as exc:
             logger.warning("Analysis provider failed: %s", type(exc).__name__)
             return self._attach_fallback_trace(_error_report("provider_failure", "The accepted dataset provider could not satisfy this request.", request, catalog=catalog), request)

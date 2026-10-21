@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
+import sys
 import unittest
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+if str(REPO_ROOT / "tests") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "tests"))
 
 from thesis_data.narrative_verification import (
     NarrativeSentence,
@@ -293,6 +302,93 @@ class NarrativeLabelRulesTestCase(unittest.TestCase):
         v_active = verify_sentence(s_self, self.ctx)
         self.assertFalse(v_active.ok)
         self.assertEqual(v_active.reason_code, "self_comparison")
+
+
+from thesis_api.adaptive_runtime import run_adaptive_analysis
+from thesis_api.schemas import AnalysisRequest
+from thesis_api.settings import Settings
+from test_api_trend_runtime import _TrendProvider, _TrendWriter
+from test_api_analyze import _ExplicitOfflineAcceptingCritic
+
+
+class _MismatchedLabelAndSelfComparisonWriter(_TrendWriter):
+    def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        candidates: Sequence[Mapping[str, Any]] | None = None,
+        max_sentences: int = 4,
+    ) -> list[dict[str, Any]]:
+        findings = super().write_findings(
+            role=role,
+            question=question,
+            question_type=question_type,
+            facts=facts,
+            datasets_summary=datasets_summary,
+            candidates=candidates,
+            max_sentences=max_sentences,
+        )
+        llr_fact = next(
+            (f for f in facts if "llr_coverage" in f.get("fact_id", "")),
+            facts[0] if facts else None,
+        )
+        if llr_fact:
+            val_str = llr_fact.get("hien_thi") or "10,0%"
+            # 1. Metric label mismatch: mentions "tỷ lệ nợ xấu" (bank.npl_g35) but cites LLR coverage fact
+            findings.append({
+                "text": f"Tỷ lệ nợ xấu của MBB đạt {val_str}.",
+                "fact_ids": [llr_fact["fact_id"]],
+            })
+            # 2. Self comparison: MBB cao hơn MBB
+            findings.append({
+                "text": f"MBB cao hơn MBB trong năm 2024 đạt {val_str}.",
+                "fact_ids": [llr_fact["fact_id"]],
+            })
+        return findings
+
+
+class RuntimeLabelRulesRegressionTests(unittest.TestCase):
+    def test_runtime_drops_sentences_with_new_reason_codes_without_validation_error(self) -> None:
+        """Offline writer returns metric_label_mismatch and self_comparison sentences.
+
+        Runtime must drop both sentences into narrative_audit.sentences_dropped
+        with their respective reason_code without throwing ValidationError.
+        """
+        periods = [f"2024_Q{quarter}" for quarter in range(1, 5)]
+        metrics = (("bank.npl_g35", "Tỷ lệ nợ xấu"), ("bank.llr_coverage", "Tỷ lệ bao phủ nợ xấu"))
+        provider = _TrendProvider("MBB", metrics)
+        writer = _MismatchedLabelAndSelfComparisonWriter()
+        critic = _ExplicitOfflineAcceptingCritic()
+
+        report = run_adaptive_analysis(
+            provider=provider,
+            dataset_ref=provider.dataset_ref,
+            catalog=provider.catalog,
+            request=AnalysisRequest(
+                query="Analyze MBB NPL and LLR from 2024_Q1 through 2024_Q4",
+                target_ticker="MBB",
+                periods=periods,
+            ),
+            settings=Settings(planner_mode="rules_only"),
+            semantic_critic=critic,
+            analysis_writer=writer,
+        )
+
+        self.assertIn(report.status, ("completed", "accepted_with_limitations"))
+        dropped = report.narrative_audit.sentences_dropped
+        dropped_codes = [d.reason_code for d in dropped]
+        self.assertIn("metric_label_mismatch", dropped_codes)
+        self.assertIn("self_comparison", dropped_codes)
+
+        spec = report.report_spec
+        if spec:
+            for blk in spec.blocks:
+                if getattr(blk, "sentence", None):
+                    self.assertNotIn("MBB cao hơn MBB", blk.sentence.text or "")
 
 
 if __name__ == "__main__":

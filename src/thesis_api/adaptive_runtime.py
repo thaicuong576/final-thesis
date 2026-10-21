@@ -190,6 +190,8 @@ VERDICT_REASON_EXPLANATIONS_VI: dict[str, str] = {
     "trend_without_delta": "Nhận định xu hướng nhưng thiếu số liệu biến động",
     "trend_direction_mismatch": "Chiều xu hướng (tăng/giảm/đi ngang) không khớp dữ liệu",
     "comparison_direction_mismatch": "Chiều so sánh (cao hơn/thấp hơn) không khớp dữ liệu",
+    "metric_label_mismatch": "Tên chỉ tiêu không khớp dữ kiện",
+    "self_comparison": "Tự so sánh cùng ngân hàng hoặc cùng kỳ",
 }
 
 

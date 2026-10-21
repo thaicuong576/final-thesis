@@ -17,7 +17,7 @@ INFO=dict(
  kind="KHÓA LUẬN TỐT NGHIỆP",
  advisor="Giảng viên hướng dẫn: Lê Văn",
  student="Phùng Thái Cường - 31231024489 - Lớp FEP001",
- contact="Email: cuongphungthai1@gmail.com",  # the guide also asks for a phone number on the cover: add "Điện thoại: ..." here
+ contact="Điện thoại: 0867509506"+chr(11)+"Email: cuongphungthai1@gmail.com",
  date="Hồ Chí Minh, ngày 21 tháng 10 năm 2026")
 if src!=out: shutil.copy(src,out)
 a=w.Dispatch("Word.Application"); a.Visible=False; a.DisplayAlerts=0

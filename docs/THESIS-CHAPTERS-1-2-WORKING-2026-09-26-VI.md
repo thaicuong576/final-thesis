@@ -81,7 +81,7 @@ Về người dùng, số liệu của Tổng công ty Lưu ký và Bù trừ ch
 | Q1/2026 | 1,59 | 89,56 | 1,51 | 17,13 |
 | Q2/2026 | 1,64 | 88,07 | 1,57 | 17,42 |
 
-![](figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
+![](thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
 
 Hình 1.1: Trung vị và khoảng nhỏ nhất – lớn nhất của bốn chỉ tiêu qua mười quý
 

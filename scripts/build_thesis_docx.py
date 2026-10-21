@@ -324,13 +324,19 @@ def _set_column_widths(table, rows: list[list[str]], total_cm: float = 16.5) -> 
     """Fixed layout: column width follows the text length (long text columns get more room, capped)."""
     n = len(rows[0])
     weights = []
+    mins = []
     for c in range(n):
         lens = [len(_clean_html(r[c]).replace("**", "").replace("`", "")) for r in rows]
         longest = max((len(w) for r in rows for w in _clean_html(r[c]).replace("`", "").split()), default=4)
         avg = sum(lens[1:]) / max(1, len(lens) - 1)
-        weights.append(max(min(avg, 70), min(longest, 24) + 3))
-    total = sum(weights)
-    widths = [Cm(total_cm * w / total) for w in weights]
+        weights.append(max(min(avg, 70), 4))
+        mins.append(min(longest, 24) * 0.21 + 0.5)
+    spare = total_cm - sum(mins)
+    if spare <= 0:
+        widths = [Cm(total_cm * m / sum(mins)) for m in mins]
+    else:
+        wsum = sum(weights)
+        widths = [Cm(m + spare * w / wsum) for m, w in zip(mins, weights)]
     table.autofit = False
     tblPr = table._tbl.tblPr
     for el in tblPr.findall(qn("w:tblLayout")):
@@ -399,7 +405,8 @@ def _format_table(table, rows: list[list[str]]) -> None:
                 para.alignment = WD_ALIGN_PARAGRAPH.RIGHT  # guide: numbers right-aligned
             else:
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            pf.keep_with_next = True  # a table stays on one page with its caption and source
+            # Short tables stay whole with caption and source; long tables only keep the caption with the first rows.
+            pf.keep_with_next = len(rows) <= 9 or row_i < 2
             pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.
@@ -516,7 +523,15 @@ _UNIT_NONE = "không áp dụng (bảng mô tả)"
 _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
 CAPTION_META: dict[str, tuple[str, str]] = {
+    "Bảng 1.1": (_UNIT_NONE, "Tác giả tổng hợp từ Tin nhanh chứng khoán (2026), Báo Nhân Dân (2026) và bộ dữ liệu của khóa luận"),
+    "Bảng 1.2": ("%", "Tác giả tính từ bộ dữ liệu mười ngân hàng của khóa luận"),
+    "Bảng 1.3": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu tham khảo"),
+    "Bảng 1.4": (_UNIT_NONE, "Tác giả tổng hợp từ trang chính thức của nhà cung cấp, truy cập ngày 21/10/2026"),
+    "Bảng 1.5": ("số con số; %", "Thực nghiệm mô hình phổ thông không công cụ ngày 21/10/2026, tác giả chấm (Phụ lục C)"),
     "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 2.2": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 2.3": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 2.4": (_UNIT_NONE, "Tác giả tổng hợp từ nhật ký thực nghiệm chính"),
     "Bảng 3.1": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 3.2": ("số ô ngân hàng – quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
     "Bảng 3.3": (_UNIT_NONE, _SRC_DESIGN),
@@ -527,14 +542,19 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 4.2": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
     "Bảng 5.1": ("token (cột cuối)", _SRC_SYNTH + " từ các tệp kết quả thực nghiệm (Phụ lục C)"),
     "Bảng 5.2": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 5.3": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 5.4": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
-    "Bảng 5.5": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
-    "Bảng 5.6": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
-    "Bảng 5.7": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.3": ("độ phủ từ 0 đến 1", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 5.4": ("token; giây", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 5.5": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
+    "Bảng 5.6": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
+    "Bảng 5.7": (_UNIT_ROW, "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
+    "Bảng 5.8": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
+    "Bảng 5.9": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
+    "Bảng 5.11": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng C.1": (_UNIT_NONE, _SRC_SYNTH + " từ các tệp kết quả thực nghiệm"),
+    "Hình 1.1": ("", "Tác giả tính từ bộ dữ liệu mười ngân hàng của khóa luận"),
     "Hình 3.1": ("", _SRC_DESIGN + ", theo khung Design Science Research"),
     "Hình 3.2": ("", _SRC_DESIGN),
     "Hình 4.1": ("", _SRC_DESIGN),
@@ -542,6 +562,9 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Hình 4.3": ("", _SRC_DESIGN),
     "Hình 5.1": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 6.1": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 6.2": (_UNIT_NONE, "Tác giả đề xuất"),
+    "Bảng B.1": ("không áp dụng", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
 }
 
 

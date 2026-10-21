@@ -98,7 +98,7 @@ Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từ
 
 ### 4.2.4. Chuyên viên viết nhận định
 
-Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Prompt yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Prompt của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn.
+Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; với câu hỏi chỉ về một ngân hàng, chuyên viên ngành không được huy động. Prompt yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Prompt của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Sau thực nghiệm lần đầu, prompt được thêm một dòng nhắc hai quy tắc kiểm tra mới ở mục 4.2.5 (không tự so sánh cùng ngân hàng hay cùng kỳ, và tên chỉ tiêu phải trùng chỉ tiêu của dữ kiện). Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn; cùng cơ chế này, khi chạy riêng, tạo ra cấu hình D của thực nghiệm (mục 3.3.1).
 
 Khi câu hỏi nhắc tới bối cảnh vĩ mô (lãi suất điều hành, tăng trưởng tín dụng, GDP, lạm phát) và bộ dữ liệu có khai báo thực thể vĩ mô với quan sát hợp lệ, bộ điều phối huy động thêm chuyên viên vĩ mô. Chuyên viên này đọc số từ chính bộ dữ liệu qua một công cụ, không có số cố định trong mã, và số vĩ mô đi qua cùng đường kiểm tra như số ngân hàng: mỗi khẳng định gắn với một quan sát và vị trí nguồn của nó. Nếu bộ dữ liệu không khai báo dữ liệu vĩ mô thì câu hỏi vĩ mô vẫn bị từ chối như trước. Hành vi này được kiểm bằng kiểm thử tự động với bộ dữ liệu có và không có dữ liệu vĩ mô; đánh giá chất lượng nhận định vĩ mô bằng thực nghiệm nằm ngoài phạm vi khóa luận.
 
@@ -108,7 +108,7 @@ Do các chỉ tiêu vĩ mô và toàn ngành có độ phủ dữ liệu không 
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
-Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.2 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ.
+Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.2 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.2 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
 
 *Bảng 4.2: Các quy tắc kiểm tra câu.*
 
@@ -124,6 +124,8 @@ Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm t
 | Con số và đơn vị | Số không khớp dữ kiện trong phạm vi làm tròn hiển thị (viết "1,5%" thì giá trị gốc phải từ 1,45% đến 1,55%), hoặc sai đơn vị |
 | Chiều xu hướng | "Tăng", "giảm", "đi ngang" không khớp biến động và ngưỡng đi ngang của chỉ tiêu |
 | Chiều so sánh | "Cao hơn", "tốt hơn" không khớp dấu của chênh lệch và chiều tốt của chỉ tiêu |
+| Nhãn chỉ tiêu | Tên chỉ tiêu nêu trong câu (khớp cụm dài nhất trước, ví dụ "tỷ lệ bao phủ nợ xấu" không bị nhận thành "nợ xấu") không trùng chỉ tiêu của dữ kiện được trích |
+| Tự so sánh | Cùng một ngân hàng ở cả hai vế so sánh, cùng một kỳ ở hai đầu mệnh đề biến động, hoặc cực trị cùng chiều ("thấp nhất – thấp nhất") |
 
 ### 4.2.6. Tổng hợp báo cáo theo khối
 

@@ -1,6 +1,6 @@
 # CHƯƠNG 3. PHƯƠNG PHÁP NGHIÊN CỨU
 
-Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng và kiểm soát dữ liệu, thiết kế thực nghiệm so sánh ba cách tổ chức tác tử, và bốn thực nghiệm bổ sung đo độ tin cậy của chính các cơ chế kiểm soát.
+Chương này trình bày cách tiếp cận nghiên cứu, cách xây dựng và kiểm soát dữ liệu, thiết kế thực nghiệm so sánh các cách tổ chức tác tử (một đối chứng không dùng mô hình, một tác tử, đa tác tử phân cấp, đa tác tử có phản biện), và các thực nghiệm bổ sung đo độ tin cậy của chính các cơ chế kiểm soát và độ phụ thuộc vào mô hình.
 
 ## 3.1. Cách tiếp cận nghiên cứu
 
@@ -59,7 +59,7 @@ flowchart LR
 | 1. Nguồn thô | Báo cáo tài chính PDF công bố chính thức | Giữ nguyên bản, lưu mã băm SHA-256; có tệp chưa có nghĩa là số liệu đã được chấp nhận. |
 | 2. Dữ liệu ứng viên | Số liệu trích tự động từ lớp chữ hoặc nhận dạng chữ quang học (OCR) | Chưa dùng để phân tích, vì trích xuất có thể đọc nhầm số hoặc lệch dòng. |
 | 3. Bộ dữ liệu vận hành | Số liệu đã đối chiếu từng ô với báo cáo gốc | Mỗi số có vị trí nguồn (trang, bảng, dòng, cột); chỉ tiêu tính ra được tính lại theo công thức được định danh phiên bản và lưu bản ghi truy vết phép tính. |
-| 4. Bộ dữ liệu đã khóa (cố định) | Bộ dữ liệu vận hành được cố định bằng mã băm | Dùng làm căn cứ chung để chấm và so sánh ba cấu hình A, B, C. |
+| 4. Bộ dữ liệu đã khóa (cố định) | Bộ dữ liệu vận hành được cố định bằng mã băm | Dùng làm căn cứ chung để chấm và so sánh các cấu hình A, B, C và D. |
 
 ### 3.2.2. Nguyên tắc tách bạch giữa tính toán định lượng và diễn giải ngôn ngữ
 
@@ -107,27 +107,27 @@ Quy trình đưa dữ liệu vào tuân theo cùng nguyên tắc với dữ li�
 
 Chỉ nguồn sơ cấp được kiểm định mới được đánh dấu hợp lệ (`VALID`) và được dùng trong báo cáo; nguồn thứ cấp nếu có chỉ được nạp ở trạng thái chờ kiểm định (`PENDING_VALIDATION`) và bị chặn khi phân tích. Dữ liệu vĩ mô và ngành thuộc sản phẩm vận hành, không thuộc bộ thực nghiệm: ba cấu hình A, B, C ở mục 3.3 chạy trên dữ liệu ngân hàng, nên các kết quả ở Chương 5 không đo chất lượng nhánh phân tích vĩ mô.
 
-## 3.3. Thiết kế thực nghiệm so sánh A/B/C
+## 3.3. Thiết kế thực nghiệm so sánh các cấu hình
 
-### 3.3.1. Ba cấu hình
+### 3.3.1. Các cấu hình
 
-Ba cấu hình được thiết kế để tách riêng tác động của việc chia việc cho nhiều tác tử và tác động của phản biện (Bảng 3.3).
+Ba cấu hình A, B, C được thiết kế để tách riêng tác động của việc chia việc cho nhiều tác tử và tác động của phản biện. Cấu hình D là đối chứng không gọi mô hình: cùng kế hoạch, dữ kiện và bộ kiểm chứng, nhưng mọi câu lấy từ mẫu câu dựng sẵn từ dữ kiện (mục 4.2.4). D cho biết phần độ phủ có thể đạt được mà không cần mô hình, để phần còn lại được quy cho mô hình (Bảng 3.3).
 
-*Bảng 3.3: Ba cấu hình trong thực nghiệm.*
+*Bảng 3.3: Các cấu hình trong thực nghiệm.*
 
-| Tiêu chí | A – một tác tử | B – đa tác tử phân cấp | C – đa tác tử có phản biện |
-|---|---|---|---|
-| Tổ chức tác tử | Một tác tử làm toàn bộ | Chuyên viên doanh nghiệp, chuyên viên ngành và điều phối viên | Như B, thêm tác tử phản biện và bộ điều khiển sửa đổi |
-| Kế hoạch, công cụ tính toán | Dùng chung | Dùng chung | Dùng chung |
-| Viết nhận định | Một tác tử viết từ toàn bộ số liệu | Mỗi chuyên viên viết theo vai trò | Như B ở vòng đầu |
-| Kiểm tra câu theo quy tắc | Có | Có | Có, ở vòng đầu và sau mỗi vòng sửa |
-| Phản biện và sửa đổi | Không | Không | Phản biện nội dung, sửa tối đa 2 vòng |
+| Tiêu chí | A – một tác tử | B – đa tác tử phân cấp | C – đa tác tử có phản biện | D – chỉ dùng câu mẫu |
+|---|---|---|---|---|
+| Tổ chức tác tử | Một tác tử làm toàn bộ | Chuyên viên doanh nghiệp, chuyên viên ngành và điều phối viên | Như B, thêm tác tử phản biện và bộ điều khiển sửa đổi | Không có tác tử, không gọi mô hình |
+| Kế hoạch, công cụ tính toán | Dùng chung | Dùng chung | Dùng chung | Dùng chung |
+| Viết nhận định | Một tác tử viết từ toàn bộ số liệu | Mỗi chuyên viên viết theo vai trò | Như B ở vòng đầu | Câu mẫu dựng từ dữ kiện |
+| Kiểm tra câu theo quy tắc | Có | Có | Có, ở vòng đầu và sau mỗi vòng sửa | Có |
+| Phản biện và sửa đổi | Không | Không | Phản biện nội dung, sửa tối đa 2 vòng | Không |
 
 ### 3.3.2. Kiểm soát tính công bằng
 
-1. **Kế hoạch cố định dùng chung:** trong thực nghiệm, kế hoạch được lập bằng bộ quy tắc xác định, không do mô hình đề xuất, nên với cùng câu hỏi cả ba cấu hình nhận cùng công cụ, ngân hàng và kỳ; sau khi chạy, hệ thống kiểm tra lại các kế hoạch có giống hệt nhau giữa ba cấu hình hay không.
-2. **Dữ liệu đầu vào giống nhau:** cùng kế hoạch nên công cụ tạo cùng tập số liệu và biểu đồ cho cả ba cấu hình.
-3. **Cùng mô hình và thiết lập** cho mọi tác tử trong cả ba cấu hình.
+1. **Kế hoạch cố định dùng chung:** trong thực nghiệm, kế hoạch được lập bằng bộ quy tắc xác định, không do mô hình đề xuất, nên với cùng câu hỏi mọi cấu hình nhận cùng công cụ, ngân hàng và kỳ; sau khi chạy, hệ thống kiểm tra lại các kế hoạch có giống hệt nhau giữa các cấu hình hay không.
+2. **Dữ liệu đầu vào giống nhau:** cùng kế hoạch nên công cụ tạo cùng tập số liệu và biểu đồ cho mọi cấu hình.
+3. **Cùng mô hình và thiết lập** cho mọi tác tử trong A, B, C (D không dùng mô hình).
 4. **Cùng bộ kiểm tra câu** cho mọi câu nhận định.
 5. **Ghi nhận đầy đủ:** mỗi lượt chạy lưu thời gian, số lượt gọi mô hình và token; lượt bị lỗi hoặc bị từ chối vẫn được tính vào kết quả.
 
@@ -169,19 +169,22 @@ Kết quả được chấm tự động theo quy tắc cố định, không dù
 | | Phát hiện liên tầng | Số phát hiện mâu thuẫn giữa các cấp được đưa vào báo cáo |
 | Chi phí | Thời gian, lượt gọi, token | Trung bình mỗi lượt chạy, cùng số vòng sửa đổi |
 
-Thực nghiệm chạy một lần cho mỗi cặp câu hỏi – cấu hình (36 lượt). Để rút ngắn thời gian, các lượt được chạy đồng thời; thời gian xử lý của mỗi lượt vì vậy được đo trong điều kiện máy chủ mô hình phục vụ nhiều yêu cầu cùng lúc và chỉ dùng để so sánh tương đối giữa các cấu hình.
+Với 10 câu phân tích và một lần chạy mỗi cặp, các chỉ số độ phủ chỉ nhận vài giá trị rời rạc nên khóa luận không ước lượng khoảng tin cậy; thay vào đó báo từng câu hỏi và đếm số câu mà một cấu hình thắng, hòa hoặc thua cấu hình kia (hòa khi độ phủ bằng nhau đến ba chữ số thập phân). Thực nghiệm chính chạy một lần cho mỗi cặp câu hỏi – cấu hình (36 lượt cho A, B, C và 12 lượt cho D). Để rút ngắn thời gian, các lượt được chạy đồng thời; thời gian xử lý của mỗi lượt vì vậy được đo trong điều kiện máy chủ mô hình phục vụ nhiều yêu cầu cùng lúc và chỉ dùng để so sánh tương đối giữa các cấu hình.
 
 ### 3.3.5. Các thực nghiệm bổ sung
 
-Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nhằm kiểm tra độ tin cậy của các cơ chế kiểm soát mà kết luận ở trên dựa vào. Cả bốn được chấm hoàn toàn bằng chương trình theo quy tắc cố định, không dùng mô hình ngôn ngữ tự chấm; thực nghiệm so sánh mô hình và kiểm tra đối kháng dùng bộ chỉ số ở Bảng 3.5, còn thực nghiệm độ nhạy bộ kiểm chứng và thực nghiệm đo khả năng số hóa dùng chỉ số riêng (tỷ lệ bắt được lỗi cài vào; tỷ lệ giá trị có mặt và được trích đúng).
+Các thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nhằm kiểm tra độ tin cậy của các cơ chế kiểm soát mà kết luận ở trên dựa vào và kiểm tra kết luận có giữ khi đổi mô hình hay không. Tất cả được chấm hoàn toàn bằng chương trình theo quy tắc cố định, không dùng mô hình ngôn ngữ tự chấm, trừ phép đối chiếu câu trả lời của mô hình phổ thông ở mục 1.6 do tác giả chấm bằng tay theo quy tắc đặt trước; thực nghiệm so sánh mô hình, chạy lại trên mô hình khác và kiểm tra đối kháng dùng bộ chỉ số ở Bảng 3.5, còn thực nghiệm độ nhạy bộ kiểm chứng và thực nghiệm đo khả năng số hóa dùng chỉ số riêng (tỷ lệ bắt được lỗi cài vào; tỷ lệ giá trị có mặt và được trích đúng).
 
 *Bảng 3.6: Các thực nghiệm bổ sung.*
 
 | Thực nghiệm | Câu hỏi | Cách làm | Gọi mô hình |
 |---|---|---|---|
-| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số theo hướng nhỏ, đổi số theo hướng lớn, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng | Không |
+| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số theo hướng nhỏ, đổi số theo hướng lớn, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng. Đo hai lần, trước và sau khi bổ sung quy tắc nhãn chỉ tiêu và quy tắc loại câu tự so sánh, trên bộ cũ (hạt 42) và hai bộ mới sinh bằng hạt khác (7, 2026); đo thêm tỷ lệ bác bỏ nhầm trên 300 câu hợp lệ | Không |
 | Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với năm mô hình (ba của OpenAI, hai của DeepSeek), mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên phiên bản hệ thống sau nâng cấp để kiểm tra độ ổn định | Có |
-| Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
+| Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình A, B, C; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
+| Cấu hình D | Phần độ phủ đạt được mà không cần mô hình là bao nhiêu? | Chạy 12 câu của Bảng 3.4 với mọi câu lấy từ mẫu dựng sẵn từ dữ kiện, cùng kế hoạch, dữ liệu khóa và bộ chấm; báo từng câu và số câu thắng, hòa, thua so với A, B, C | Không |
+| Chạy lại trên mô hình khác | Kết luận về A, B, C có giữ khi dùng mô hình mạnh hơn? | Chạy lại cả ba cấu hình trên 12 câu với `gpt-5.6-luna` (36 lượt), cùng giao thức, trên mã nguồn có thêm hai quy tắc kiểm tra mới; báo song song với DeepSeek V4 Pro | Có |
+| Mô hình phổ thông không công cụ | Người dùng gặp gì khi hỏi thẳng một mô hình phổ thông? | Hỏi `gpt-5.6-luna` mười câu phân tích, không công cụ, dữ liệu hay tìm kiếm web; mỗi con số mô hình nêu được đối chiếu với bộ dữ liệu khóa theo quy tắc đặt trước (mục 1.6) | Có |
 | Số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
 
 Để các lần chạy bổ sung không làm lệch kết luận chính, bốn nguyên tắc được áp dụng. Thứ nhất, mỗi thực nghiệm ghi rõ mô hình, phiên bản mã nguồn, số câu, số lần chạy và số token; thực nghiệm so sánh mô hình chỉ so sánh các mô hình trong cùng một phiên bản mã nguồn. Thứ hai, lần chạy bị lỗi cấu hình hoặc lỗi hạ tầng của dịch vụ mô hình được tách riêng và không đưa vào bảng kết quả nào. Thứ ba, khi chỉ chạy ít lần (ba lần), báo trung bình và khoảng nhỏ nhất – lớn nhất, không đưa khoảng tin cậy. Thứ tư, khi một thực nghiệm phát hiện lỗi của hệ thống, lỗi được sửa và chạy lại có kiểm soát, và kết quả trước và sau sửa được báo cùng nhau chứ không thay thế nhau (kiểm tra đối kháng, Chương 5).
@@ -191,10 +194,10 @@ Bốn thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, n
 1. **Mẫu ngân hàng:** mười ngân hàng niêm yết lớn nhất là mẫu chọn có chủ đích, không đại diện cho toàn bộ ngân hàng thương mại Việt Nam. Số liệu do tác giả đối soát với sự hỗ trợ của tác tử AI, chưa qua kiểm tra của người thứ hai.
 2. **Chỉ tiêu:** dữ liệu ngân hàng chỉ có bốn chỉ tiêu về chất lượng tài sản và sinh lời; CAR, LDR, CASA, NIM chưa có. Dữ liệu vĩ mô và ngành (mục 3.2.5) có độ phủ không đều giữa các chuỗi, chưa được đưa vào thực nghiệm A/B/C và chưa có người thứ hai kiểm tra toàn bộ.
 3. **Dữ liệu thiếu:** bộ dữ liệu đủ 100/100 ô nên thực nghiệm không có tình huống thiếu số liệu; khả năng xử lý ô thiếu chỉ được kiểm tra bằng bài kiểm thử tự động.
-4. **Chấm tự động:** bộ chấm kiểm tra tốt tính đúng của số liệu và cấu trúc, nhưng không đo văn phong, tính thuyết phục hay chiều sâu phân tích; không có chuyên gia chấm.
-5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên một mô hình; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI và hai mô hình DeepSeek (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
-6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** Thực nghiệm độ nhạy bộ kiểm chứng đo trên các lỗi giả lập do chương trình tạo ra từ những câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát.
+4. **Chấm tự động:** bộ chấm kiểm tra tốt tính đúng của số liệu và cấu trúc, nhưng không đo văn phong, tính thuyết phục hay chiều sâu phân tích; chỉ có một lần chấm mù ở quy mô thăm dò (mục 5.6), không có chuyên gia chấm đầy đủ.
+5. **Ít lần chạy, ít mô hình:** thực nghiệm A/B/C chạy một lần trên DeepSeek V4 Pro và một lần trên `gpt-5.6-luna`; chỉ cấu hình B được kiểm thêm trên ba mô hình OpenAI và hai mô hình DeepSeek (một lần mỗi mô hình) và `gpt-5.6-luna` được chạy lặp ba lần. Đầu ra của mô hình thay đổi giữa các lần chạy nên kết quả là quan sát ban đầu, không có ý nghĩa thống kê.
+6. **Bộ kiểm chứng chỉ được đo bằng lỗi cài sẵn:** Thực nghiệm độ nhạy bộ kiểm chứng đo trên các lỗi giả lập do chương trình tạo ra từ những câu đã được chấp nhận, nên không bao quát mọi lỗi mà một mô hình có thể mắc và không thay thế được việc chuyên gia rà soát. Hai quy tắc kiểm tra mới được thiết kế sau khi thấy kết quả của chính các toán tử đột biến này, nên cải thiện sau khi thêm quy tắc chưa chứng minh khả năng bắt các loại lỗi chưa từng được thử.
 7. **Phân tích ở mức thuật lại:** prompt cấm từ chỉ nguyên nhân và giới hạn mỗi câu ở 30 từ, nên đầu ra là số liệu, xu hướng và thứ hạng so với nhóm, không phải lập luận nguyên nhân hay triển vọng. Định giá, giá mục tiêu và khuyến nghị mua bán bị loại trừ.
-8. **Chưa kiểm tính thích ứng:** kế hoạch được cố định giống nhau cho cả ba cấu hình, nên việc chỉ huy động tác tử cần thiết (Nguyên tắc 1 và 3) không được thực nghiệm kiểm riêng; bước hiểu câu hỏi cũng không được đo độ chính xác riêng.
+8. **Chưa kiểm tính thích ứng:** kế hoạch được cố định giống nhau cho mọi cấu hình, nên việc chỉ huy động tác tử cần thiết (Nguyên tắc 1 và 3) không được thực nghiệm kiểm riêng; bước hiểu câu hỏi cũng không được đo độ chính xác riêng.
 9. **A và B khác nhau ở hai yếu tố cùng lúc:** cấu hình A chỉ gọi mô hình một lần và tự lắp báo cáo, còn B chia việc cho nhiều tác tử và gọi mô hình nhiều lần, nên chênh lệch giữa A và B không tách được tác động của chuyên môn hóa khỏi tác động của số lượt gọi.
 10. **Hiệu chỉnh trước khi chạy:** prompt và quy tắc kiểm tra câu được hiệu chỉnh qua các lần chạy thử trước ngày 05/10/2026 rồi cố định; vì vậy kết quả đo cho phiên bản đã hiệu chỉnh, không phải cho một hệ thống chưa từng thấy bài toán.

@@ -176,8 +176,11 @@ Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu c
 
 | Thực nghiệm | Nội dung |
 |---|---|
-| Thực nghiệm chính (ba cấu hình) | 36 lượt chạy, điểm chấm, biểu đồ |
-| Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi |
+| Thực nghiệm chính (ba cấu hình) | 36 lượt chạy, điểm chấm, biểu đồ (`experiments/er9`) |
+| Cấu hình D (không gọi mô hình) | 12 lượt chạy, điểm chấm, bảng từng câu hỏi, bản đồ nhiệt (`experiments/er9d`) |
+| Chạy lại A/B/C trên `gpt-5.6-luna` | 36 lượt chạy, điểm chấm, bảng từng câu hỏi (`experiments/er9-luna`) |
+| Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi, trước (`experiments/mut1`) và sau khi thêm quy tắc, ba bộ hạt (`experiments/mut2`) |
+| Mô hình phổ thông không công cụ | Câu trả lời gốc, quy tắc chấm và kết quả (`experiments/e6-pure-llm`) |
 | So sánh mô hình | Năm mô hình (ba của OpenAI, hai của DeepSeek); ba lần chạy lặp của `gpt-5.6-luna` |
 | Kiểm tra đối kháng | Trước và sau khi thêm cổng phạm vi |
 | Số hóa từ báo cáo gốc | Mã đo và kết quả |

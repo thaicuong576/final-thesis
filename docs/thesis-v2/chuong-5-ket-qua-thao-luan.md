@@ -36,8 +36,8 @@ Thực nghiệm chính được chạy ngày 05/10/2026 trên bộ dữ liệu m
 | Trả lời được (10 câu phân tích) | 10/10 | 10/10 | 10/10 |
 | Từ chối đúng (R1, R2) | 2/2 | 2/2 | 2/2 |
 | Hoàn thành trọn vẹn, không ghi chú giới hạn (trên 12 lượt; hai lượt từ chối không tính) | 7 (58,3%) | 9 (75,0%) | 4 (33,3%) |
-| Con số trong câu được giữ khớp với dữ kiện được trích | 100% | 100% | 100% |
-| Truy được về số liệu gốc | 100% | 100% | 100% |
+| Con số trong câu được giữ khớp với dữ kiện được trích | 100,0% | 100,0% | 100,0% |
+| Truy được về số liệu gốc | 100,0% | 100,0% | 100,0% |
 | Độ phủ chỉ tiêu bắt buộc | 0,797 | 0,844 | 0,781 |
 | Câu bị loại / câu được viết | 8/52 (15,4%) | 9/53 (17,0%) | 22/63 (34,9%) |
 | Báo cáo dùng bố cục dựng sẵn (trên 10) | 3 | 1 | 2 |
@@ -45,7 +45,7 @@ Thực nghiệm chính được chạy ngày 05/10/2026 trên bộ dữ liệu m
 | Thời gian xử lý trung bình | 17,5 giây | 27,5 giây | 62,9 giây |
 | Số lượt gọi mô hình trung bình | 0,8 | 2,1 | 4,4 |
 | Token trung bình mỗi lượt | 3.784 | 8.252 | 25.856 |
-| Số vòng sửa đổi trung bình | 0 | 0 | 1,25 |
+| Số vòng sửa đổi trung bình | 0,00 | 0,00 | 1,25 |
 
 ![](experiments/er9/analysis/figure_er9_cost_latency.png)
 
@@ -68,7 +68,7 @@ Bảng 5.3 so sánh từng cặp cấu hình trên cùng câu hỏi. Khoảng tr
 | Chỉ số | B − A | C − B | C − A |
 |---|---|---|---|
 | Độ phủ chỉ tiêu | +0,047 [−0,037; +0,146] | −0,063 [−0,208; +0,083] | −0,016 [−0,141; +0,089] |
-| Phát hiện liên tầng mỗi lượt | 0 [0; 0] | +0,33 [0; +1,00] | +0,33 [0; +1,00] |
+| Phát hiện liên tầng mỗi lượt | 0,00 [0,00; 0,00] | +0,33 [0,00; +1,00] | +0,33 [0,00; +1,00] |
 | Token mỗi lượt | +4.467 [+2.540; +6.317] | +17.604 [+9.164; +29.644] | +22.072 [+12.711; +34.890] |
 | Thời gian xử lý (giây) | +10,0 [+5,6; +14,7] | +35,4 [+21,5; +48,3] | +45,3 [+27,7; +62,0] |
 
@@ -104,10 +104,10 @@ Mục 5.3 cho thấy cả ba cấu hình đều đạt 100% khớp số, nhưng 
 
 | Loại lỗi | Số câu thử | Bắt được | Tỷ lệ | Khoảng tin cậy 95% |
 |---|:---:|:---:|:---:|:---:|
-| Đổi số nhỏ / lớn / đảo chữ số | 96 câu mỗi loại | 96 | 100% | [96,2%; 100%] |
-| Đổi thứ hạng | 46 | 46 | 100% | [92,3%; 100%] |
-| Đổi mẫu số | 52 | 52 | 100% | [93,1%; 100%] |
-| Số không có nguồn / nhân quả / khuyến nghị | 129 câu mỗi loại | 129 | 100% | [97,1%; 100%] |
+| Đổi số nhỏ / lớn / đảo chữ số | 96 câu mỗi loại | 96 | 100,0% | [96,2%; 100,0%] |
+| Đổi thứ hạng | 46 | 46 | 100,0% | [92,3%; 100,0%] |
+| Đổi mẫu số | 52 | 52 | 100,0% | [93,1%; 100,0%] |
+| Số không có nguồn / nhân quả / khuyến nghị | 129 câu mỗi loại | 129 | 100,0% | [97,1%; 100,0%] |
 | Đổi kỳ | 118 | 98 | 83,1% | [75,3%; 88,8%] |
 | Đổi ngân hàng | 123 | 106 | 86,2% | [79,0%; 91,2%] |
 | Đảo chiều | 76 | 67 | 88,2% | [79,0%; 93,6%] |
@@ -160,12 +160,12 @@ Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, tro
 
 | Phép đo | Số liệu | Kết quả |
 |---|:---:|:---:|
-| (a) Trang có lớp văn bản: giá trị xuất hiện nguyên văn | 185 | 178 (96%) |
-| (a) Trang quét, nhận dạng Tesseract: giá trị xuất hiện nguyên văn | 700 | 652 (93%) |
-| (b) Bộ trích xuất đơn giản: lấy đúng | 885 | 463 (52%) |
-| (b) Không tìm thấy dòng | 885 | 236 (27%) |
-| (b) Lấy sai hàng hoặc cột | 885 | 185 (21%) |
-| (b) Thiếu cột để lấy | 885 | 1 |
+| (a) Trang có lớp văn bản: giá trị xuất hiện nguyên văn | 185 | 178 (96,2%) |
+| (a) Trang quét, nhận dạng Tesseract: giá trị xuất hiện nguyên văn | 700 | 652 (93,1%) |
+| (b) Bộ trích xuất đơn giản: lấy đúng | 885 | 463 (52,3%) |
+| (b) Không tìm thấy dòng | 885 | 236 (26,7%) |
+| (b) Lấy sai hàng hoặc cột | 885 | 185 (20,9%) |
+| (b) Thiếu cột để lấy | 885 | 1 (0,1%) |
 
 Nhận dạng ký tự khó là nguyên nhân chính của sai sót: 93–96% giá trị xuất hiện nguyên văn trên đúng trang. Phép đo này chỉ cho biết chuỗi số có mặt trên trang, chưa chứng minh ô đó được đọc đúng vị trí, nên đây là chỉ dấu chứ không phải kết luận. Khó khăn rõ hơn nằm ở cấu trúc: bộ trích xuất đơn giản chọn đúng hàng và đúng cột chỉ khoảng một nửa số lần, và vì là một đối chứng yếu, kết quả 52% không đại diện cho các bộ trích xuất tốt hơn. Bộ trích xuất đạt 88–96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, nhóm 5, nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn cột lũy kế và vốn chủ sở hữu thường xuất hiện như một dòng tổng của mục. Kết quả này ủng hộ quyết định thiết kế giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại theo công thức được định danh phiên bản, và cho thấy quy trình số hóa của khóa luận là quy trình bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chứ chưa được thực hiện.
 

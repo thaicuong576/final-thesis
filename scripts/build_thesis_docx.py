@@ -41,7 +41,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -50,6 +50,7 @@ from docx.shared import Cm, Pt, RGBColor
 # ---------------------------------------------------------------------------
 # Paths relative to repo root
 # ---------------------------------------------------------------------------
+BODY_PT = 12  # body text size (guide: 12-13)
 REPO_ROOT = Path(__file__).parent.parent
 FIGURES_DIR = REPO_ROOT / "docs" / "thesis-v2" / "figures"
 
@@ -85,16 +86,16 @@ def _set_paragraph_style(para, style_name: str, doc: Document) -> None:
 
 
 def _safe_add_paragraph(doc: Document, style_name: str) -> object:
-    """Add a paragraph with the given style, falling back to Normal if not found."""
+    """Add a paragraph with the given style, falling back to Normal if not found.
+
+    The style is looked up first: python-docx appends the paragraph before it applies the style, so a
+    failed lookup used to leave an empty paragraph behind (a blank line before every list item).
+    """
     try:
-        return doc.add_paragraph(style=style_name)
+        style = doc.styles[style_name]
     except KeyError:
-        para = doc.add_paragraph()
-        try:
-            para.style = doc.styles["Normal"]
-        except KeyError:
-            pass
-        return para
+        style = doc.styles["Normal"]
+    return doc.add_paragraph(style=style)
 
 
 def _add_page_break_before(para) -> None:
@@ -128,10 +129,10 @@ def _set_run_font(run, size_pt: Optional[float] = None, bold: Optional[bool] = N
 
 def _add_toc_field(doc: Document, heading_text: str, field_instr: str) -> None:
     """Add a heading paragraph followed by a TOC/TOF/TOT field instruction."""
-    heading = doc.add_paragraph(heading_text, style="Heading 1")
+    heading = doc.add_paragraph(heading_text, style="Front Title")
     _add_page_break_before(heading)
     for run in heading.runs:
-        _set_run_font(run, size_pt=13, bold=True)
+        _set_run_font(run, size_pt=16, bold=True)
 
     # Add the field paragraph
     p = doc.add_paragraph()
@@ -156,7 +157,7 @@ def _add_toc_field(doc: Document, heading_text: str, field_instr: str) -> None:
 # ---------------------------------------------------------------------------
 # HTML tag stripping
 # ---------------------------------------------------------------------------
-_HTML_TAG_RE = re.compile(r'<[^>]+>', re.DOTALL)
+_HTML_TAG_RE = re.compile(r'</?[A-Za-z][A-Za-z0-9]*(?:\s[^>]*)?/?>', re.DOTALL)
 _HTML_BR_RE = re.compile(r'<br\s*/?>', re.IGNORECASE)
 _HTML_BOLD_OPEN = re.compile(r'<b\s*>', re.IGNORECASE)
 _HTML_BOLD_CLOSE = re.compile(r'</b>', re.IGNORECASE)
@@ -185,9 +186,10 @@ _INLINE_RE = re.compile(
 )
 
 
-def _add_inline_runs(para, text: str, base_size: float = 13,
+def _add_inline_runs(para, text: str, base_size: float = BODY_PT,
                      base_font: str = "Times New Roman") -> None:
     """Parse inline markdown and add runs to para."""
+    size_pt_code = base_size
     last = 0
     for m in _INLINE_RE.finditer(text):
         # Plain text before match
@@ -202,7 +204,7 @@ def _add_inline_runs(para, text: str, base_size: float = 13,
             _set_run_font(run, size_pt=base_size, italic=True, font_name=base_font)
         elif m.group(5):  # `code`
             run = para.add_run(m.group(6))
-            _set_run_font(run, size_pt=11, font_name="Consolas")
+            _set_run_font(run, size_pt=size_pt_code, font_name=base_font)  # guide: Times New Roman only
         last = m.end()
     # Remaining
     if last < len(text):
@@ -307,6 +309,46 @@ def _set_all_fonts(run, name: str = "Times New Roman", size_pt: float = 12) -> N
         rfonts.set(qn(attr), name)
 
 
+_NUMERIC_CELL_RE = re.compile(
+    r'^[+\-−–]?\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?\s*(?:%|giây|token|câu|lượt|ô|vòng)?'
+    r'(?:\s*[×x]\s*\d+)?(?:\s*\([^)]*\))?(?:\s*\[[^\]]*\])?$')
+
+
+def _is_numeric_cell(text: str) -> bool:
+    """True for number-like cells ('1.234,5', '12/12', '58,3%', '+0,05 [-0,1; +0,2]', '7 (58,3%)')."""
+    t = _clean_html(text).replace("**", "").strip()
+    return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−–]+\]', t))
+
+
+def _set_column_widths(table, rows: list[list[str]], total_cm: float = 16.5) -> None:
+    """Fixed layout: column width follows the text length (long text columns get more room, capped)."""
+    n = len(rows[0])
+    weights = []
+    for c in range(n):
+        lens = [len(_clean_html(r[c]).replace("**", "").replace("`", "")) for r in rows]
+        longest = max((len(w) for r in rows for w in _clean_html(r[c]).replace("`", "").split()), default=4)
+        avg = sum(lens[1:]) / max(1, len(lens) - 1)
+        weights.append(max(min(avg, 70), min(longest, 24) + 3))
+    total = sum(weights)
+    widths = [Cm(total_cm * w / total) for w in weights]
+    table.autofit = False
+    tblPr = table._tbl.tblPr
+    for el in tblPr.findall(qn("w:tblLayout")):
+        tblPr.remove(el)
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tblPr.append(layout)
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is not None:
+        tblW.set(qn("w:type"), "dxa")
+        tblW.set(qn("w:w"), str(int(total_cm / 2.54 * 1440)))
+    for col, w in zip(table.columns, widths):
+        col.width = w
+    for row in table.rows:
+        for cell, w in zip(row.cells, widths):
+            cell.width = w
+
+
 def _format_table(table, rows: list[list[str]]) -> None:
     """Academic table layout: TNR 12, single spacing, bold shaded header repeated on each page."""
     from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -330,9 +372,12 @@ def _format_table(table, rows: list[list[str]]) -> None:
         tblPr.remove(existing)
     tblPr.append(cell_mar)
 
+    _set_column_widths(table, rows)
+
     for row_i, row_cells in enumerate(rows):
         tr = table.rows[row_i]
         is_header = row_i == 0
+        tr._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
         if is_header:
             trPr = tr._tr.get_or_add_trPr()
             hdr = OxmlElement("w:tblHeader")
@@ -348,7 +393,14 @@ def _format_table(table, rows: list[list[str]]) -> None:
             pf.space_before = _Pt(2)
             pf.space_after = _Pt(2)
             pf.line_spacing = 1.0
-            para.alignment = WD_ALIGN_PARAGRAPH.CENTER if is_header else WD_ALIGN_PARAGRAPH.LEFT
+            if is_header:
+                para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            elif _is_numeric_cell(cell_text):
+                para.alignment = WD_ALIGN_PARAGRAPH.RIGHT  # guide: numbers right-aligned
+            else:
+                para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            pf.keep_with_next = True  # a table stays on one page with its caption and source
+            pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.
                 _set_all_fonts(run, "Times New Roman", 12)
@@ -367,9 +419,11 @@ def _format_table(table, rows: list[list[str]]) -> None:
 # Image insertion
 # ---------------------------------------------------------------------------
 def _add_image(doc: Document, img_path: Path) -> None:
-    """Add an image centered at max 15 cm width."""
+    """Add an image centered, at most 15 cm wide and 17 cm tall."""
     para = doc.add_paragraph()
     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.keep_with_next = True  # figure stays with its source line
+    para.paragraph_format.line_spacing = 1.0  # a 1.5-line picture paragraph would add blank space
     _clear_indent(para)
     try:
         run = para.add_run()
@@ -379,7 +433,7 @@ def _add_image(doc: Document, img_path: Path) -> None:
 
             with _Image.open(img_path) as _im:
                 w_px, h_px = _im.size
-            width_cm = min(15.0, 20.0 * w_px / h_px)
+            width_cm = min(15.0, 17.0 * w_px / h_px)
         except Exception:  # noqa: BLE001 - PIL is optional; fall back to full width
             pass
         run.add_picture(str(img_path), width=Cm(width_cm))
@@ -396,37 +450,136 @@ CAPTION_TABLE_STYLE = "Caption Table"
 
 
 def _ensure_caption_style(doc: Document, name: str):
-    """Create a caption paragraph style (based on Normal) so TOC \t can list it."""
+    """Caption styles (guide, part 7): TNR 13 bold, justified, above the object, kept with it."""
     from docx.enum.style import WD_STYLE_TYPE
     try:
-        return doc.styles[name]
+        st = doc.styles[name]
     except KeyError:
         st = doc.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
         st.base_style = doc.styles["Normal"]
-        st.font.italic = True
-        st.font.size = Pt(12)
-        st.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        st.paragraph_format.first_line_indent = Pt(0)
         st.quick_style = True
-        return st
+    _force_tnr(st)
+    st.font.size = Pt(13)
+    st.font.bold = True
+    st.font.italic = False
+    pf = st.paragraph_format
+    pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    pf.first_line_indent = Pt(0)
+    pf.left_indent = Pt(0)
+    pf.keep_with_next = True
+    pf.keep_together = True
+    pf.space_before = Pt(6)
+    pf.space_after = Pt(6)
+    pf.line_spacing = 1.5
+    return st
+
+
+def _ensure_note_style(doc: Document, name: str, italic: bool, align):
+    """Small lines under a caption (ĐVT) or under the object (Nguồn): TNR 11."""
+    from docx.enum.style import WD_STYLE_TYPE
+    try:
+        st = doc.styles[name]
+    except KeyError:
+        st = doc.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+        st.base_style = doc.styles["Normal"]
+    _force_tnr(st)
+    st.font.size = Pt(11)
+    st.font.italic = italic
+    st.font.bold = False
+    pf = st.paragraph_format
+    pf.alignment = align
+    pf.first_line_indent = Pt(0)
+    pf.left_indent = Pt(0)
+    pf.space_before = Pt(6)
+    pf.space_after = Pt(6)
+    pf.line_spacing = 1.5
+    return st
 
 
 def _add_caption(doc: Document, text: str) -> None:
-    """Add a caption paragraph with a figure/table caption style (centered, italic, no indent)."""
+    """Caption paragraph above its table or figure (bold, justified, no indent)."""
     name = CAPTION_TABLE_STYLE if text.startswith("Bảng") else CAPTION_FIGURE_STYLE
     para = doc.add_paragraph(style=_ensure_caption_style(doc, name))
-    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     _clear_indent(para)
     run = para.add_run(text)
-    _set_run_font(run, size_pt=12, italic=True, font_name="Times New Roman")
+    _set_run_font(run, size_pt=13, bold=True, italic=False, font_name="Times New Roman")
+    para.paragraph_format.keep_with_next = True
+
+
+_CAPTION_ID_RE = re.compile(r'^((?:Hình|Bảng)\s+[A-Z0-9][\w.]*)\s*:', re.UNICODE)
+
+# (ĐVT, Nguồn) for every table and figure (guide, part 7: unit and source are mandatory).
+_SRC_DESIGN = "Tác giả thiết kế"
+_SRC_SYNTH = "Tác giả tổng hợp"
+_SRC_SHOT = "Ảnh chụp màn hình sản phẩm của khóa luận, tác giả thực hiện ngày 14–15/10/2026"
+_UNIT_NONE = "không áp dụng (bảng mô tả)"
+_UNIT_ROW = "ghi theo từng dòng"
+_RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
+CAPTION_META: dict[str, tuple[str, str]] = {
+    "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 3.1": (_UNIT_NONE, _SRC_DESIGN),
+    "Bảng 3.2": ("số ô ngân hàng – quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
+    "Bảng 3.3": (_UNIT_NONE, _SRC_DESIGN),
+    "Bảng 3.4": (_UNIT_NONE, "Tác giả xây dựng"),
+    "Bảng 3.5": (_UNIT_NONE, "Tác giả xây dựng"),
+    "Bảng 3.6": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 4.1": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
+    "Bảng 4.2": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
+    "Bảng 5.1": ("token (cột cuối)", _SRC_SYNTH + " từ các tệp kết quả thực nghiệm (Phụ lục C)"),
+    "Bảng 5.2": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 5.3": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 5.4": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
+    "Bảng 5.5": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
+    "Bảng 5.6": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
+    "Bảng 5.7": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng C.1": (_UNIT_NONE, _SRC_SYNTH + " từ các tệp kết quả thực nghiệm"),
+    "Hình 3.1": ("", _SRC_DESIGN + ", theo khung Design Science Research"),
+    "Hình 3.2": ("", _SRC_DESIGN),
+    "Hình 4.1": ("", _SRC_DESIGN),
+    "Hình 4.2": ("", _SRC_DESIGN),
+    "Hình 4.3": ("", _SRC_DESIGN),
+    "Hình 5.1": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+}
+
+
+def _caption_meta(caption: str) -> tuple[str, str]:
+    m = _CAPTION_ID_RE.match(caption)
+    key = re.sub(r"\s+", " ", m.group(1)) if m else ""
+    if key in CAPTION_META:
+        return CAPTION_META[key]
+    if key.startswith("Hình"):
+        return ("", _SRC_SHOT)
+    return (_UNIT_NONE, _SRC_SYNTH)
+
+
+def _add_unit_line(doc: Document, caption: str) -> None:
+    """'ĐVT: ...' between a table caption and the table."""
+    unit, _ = _caption_meta(caption)
+    para = doc.add_paragraph(style=_ensure_note_style(doc, "Caption Unit", False, WD_ALIGN_PARAGRAPH.LEFT))
+    _clear_indent(para)
+    run = para.add_run(f"ĐVT: {unit}")
+    _set_run_font(run, size_pt=11, bold=False, italic=False)
+    para.paragraph_format.keep_with_next = True
+
+
+def _add_source_line(doc: Document, caption: str) -> None:
+    """'Nguồn: ...' below the table/figure, italic, right-aligned."""
+    _, source = _caption_meta(caption)
+    para = doc.add_paragraph(style=_ensure_note_style(doc, "Caption Source", True, WD_ALIGN_PARAGRAPH.RIGHT))
+    _clear_indent(para)
+    run = para.add_run(f"Nguồn: {source}")
+    _set_run_font(run, size_pt=11, bold=False, italic=True)
 
 
 # ---------------------------------------------------------------------------
 # Markdown → Document conversion
 # ---------------------------------------------------------------------------
 _FIGURE_REF_RE = re.compile(r'!\[([^\]]*)\]\(([^)]+)\)', re.UNICODE)
-_CAPTION_HINH_RE = re.compile(r'^Hình\s+\d[\d.]*\s*:', re.UNICODE)
-_CAPTION_BANG_RE = re.compile(r'^Bảng\s+\d[\d.]*\s*:', re.UNICODE)
+_CAPTION_HINH_RE = re.compile(r'^Hình\s+[A-Z0-9][\w.]*\s*:', re.UNICODE)
+_CAPTION_BANG_RE = re.compile(r'^Bảng\s+[A-Z0-9][\w.]*\s*:', re.UNICODE)
 
 
 _EMPHASIS_WRAP_RE = re.compile(r'^(\*\*|\*|__|_)(.+?)\1$')
@@ -504,6 +657,18 @@ def _find_image_for_ref(ref_text: str, figures_dir: Path, pngs: dict[str, Path])
     return None
 
 
+_H_CHAPTER_RE = re.compile(r'^(CHƯƠNG|PHẦN)\s+(\d+)\s*[.:]\s*', re.IGNORECASE)
+_H_NUMBER_RE = re.compile(r'^((?:\d+|[A-Z])(?:\.\d+)+)\.?\s+')
+
+
+def _norm_heading(title: str) -> str:
+    """Guide format: 'CHƯƠNG 1: TITLE' and '1.1 Title' (no trailing dot after the number)."""
+    m = _H_CHAPTER_RE.match(title)
+    if m:
+        return f"{m.group(1).upper()} {m.group(2)}: {title[m.end():]}"
+    return _H_NUMBER_RE.sub(lambda m: m.group(1) + " ", title)
+
+
 def convert_markdown_to_doc(
     doc: Document,
     md_text: str,
@@ -522,6 +687,7 @@ def convert_markdown_to_doc(
     i = 0
     first_h1 = True  # Track if this is the first heading 1 to decide page break
     last_was_image = False
+    pending_table_caption: Optional[str] = None
 
     while i < len(lines):
         line = lines[i]
@@ -547,15 +713,15 @@ def convert_markdown_to_doc(
                 _set_paragraph_style(para, "Normal", doc)
                 _clear_indent(para)
                 run = para.add_run(code_line.strip() or " ")
-                _set_run_font(run, size_pt=10, font_name="Consolas")
+                _set_run_font(run, size_pt=BODY_PT)
             continue
 
         # --- Heading 1 ---
         if stripped.startswith('# ') and not stripped.startswith('## '):
-            title = stripped[2:].strip()
+            title = _norm_heading(stripped[2:].strip())
             para = _safe_add_paragraph(doc, "Heading 1")
             run = para.add_run(title.upper())
-            _set_run_font(run, size_pt=13, bold=True)
+            _set_run_font(run, size_pt=16, bold=True)
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             if not (is_first_chapter and first_h1):
                 _add_page_break_before(para)
@@ -565,28 +731,31 @@ def convert_markdown_to_doc(
 
         # --- Heading 2 ---
         if stripped.startswith('## ') and not stripped.startswith('### '):
-            title = stripped[3:].strip()
+            title = _norm_heading(stripped[3:].strip())
             para = _safe_add_paragraph(doc, "Heading 2")
             run = para.add_run(title)
-            _set_run_font(run, size_pt=13, bold=True)
+            _set_run_font(run, size_pt=14, bold=True)
+            para.alignment = WD_ALIGN_PARAGRAPH.LEFT
             i += 1
             continue
 
         # --- Heading 3 ---
         if stripped.startswith('### ') and not stripped.startswith('#### '):
-            title = stripped[4:].strip()
+            title = _norm_heading(stripped[4:].strip())
             para = _safe_add_paragraph(doc, "Heading 3")
             run = para.add_run(title)
-            _set_run_font(run, size_pt=13, bold=True)
+            _set_run_font(run, size_pt=13, bold=False, italic=True)
+            para.alignment = WD_ALIGN_PARAGRAPH.LEFT
             i += 1
             continue
 
         # --- Heading 4 ---
         if stripped.startswith('#### '):
-            title = stripped[5:].strip()
+            title = _norm_heading(stripped[5:].strip())
             para = _safe_add_paragraph(doc, "Heading 4")
             run = para.add_run(title)
-            _set_run_font(run, size_pt=13, bold=True)
+            _set_run_font(run, size_pt=13, bold=False, italic=True)
+            para.alignment = WD_ALIGN_PARAGRAPH.LEFT
             i += 1
             continue
 
@@ -597,6 +766,18 @@ def convert_markdown_to_doc(
             ref_text = img_match.group(2)
             img_path = _find_image_for_ref(ref_text, figures_dir, pngs)
             if img_path and img_path.exists():
+                # Guide: the caption goes above the figure. The markdown puts it right after the image.
+                j = i + 1
+                while j < len(lines) and not lines[j].strip():
+                    j += 1
+                if j < len(lines) and _is_caption_line(lines[j].strip()):
+                    caption = _strip_emphasis_wrap(lines[j].strip())
+                    _add_caption(doc, caption)
+                    _add_image(doc, img_path)
+                    _add_source_line(doc, caption)
+                    last_was_image = False
+                    i = j + 1
+                    continue
                 _add_image(doc, img_path)
                 last_was_image = True
             else:
@@ -610,13 +791,17 @@ def convert_markdown_to_doc(
         # --- Caption line (Hình X.Y: ... or Bảng X.Y: ..., optionally wrapped in *...*) ---
         if _is_caption_line(stripped):
             caption = _strip_emphasis_wrap(stripped)
-            if caption.startswith("Hình") and not last_was_image:
+            _add_caption(doc, caption)
+            if caption.startswith("Hình"):
                 png = _figure_png_for_caption(caption, pngs)
                 if png is not None:
                     _add_image(doc, png)
                 else:
                     print(f"  [image] WARNING: no diagram PNG for caption: {caption[:40]}")
-            _add_caption(doc, caption)
+                _add_source_line(doc, caption)
+            else:
+                _add_unit_line(doc, caption)
+                pending_table_caption = caption
             last_was_image = False
             i += 1
             continue
@@ -626,7 +811,7 @@ def convert_markdown_to_doc(
         # --- Blockquote ---
         if stripped.startswith('> '):
             para = _safe_add_paragraph(doc, "Normal")
-            _add_inline_runs(para, stripped[2:].strip(), base_size=13)
+            _add_inline_runs(para, stripped[2:].strip(), base_size=BODY_PT)
             # Set left indent
             pPr = para._p.get_or_add_pPr()
             ind = OxmlElement("w:ind")
@@ -643,13 +828,16 @@ def convert_markdown_to_doc(
                 table_lines.append(lines[i])
                 i += 1
             _add_md_table(doc, table_lines)
+            if pending_table_caption:
+                _add_source_line(doc, pending_table_caption)
+                pending_table_caption = None
             continue
 
         # --- Unordered list item ---
         if re.match(r'^[\-\*\+] ', stripped):
             text = stripped[2:].strip()
             para = _safe_add_paragraph(doc, "List Bullet")
-            _add_inline_runs(para, text, base_size=13)
+            _add_inline_runs(para, text, base_size=BODY_PT)
             _clear_indent(para)
             # Add bullet manually if List Bullet style not present
             if para.style and para.style.name not in ("List Bullet", "List Paragraph"):
@@ -668,7 +856,7 @@ def convert_markdown_to_doc(
             num_prefix = num_m.group(0) if num_m else ""
             text = re.sub(r'^\d+\. ', '', stripped).strip()
             para = _safe_add_paragraph(doc, "List Number")
-            _add_inline_runs(para, text, base_size=13)
+            _add_inline_runs(para, text, base_size=BODY_PT)
             _clear_indent(para)
             # Prepend number manually if style not applied
             if para.style and para.style.name not in ("List Number", "List Paragraph"):
@@ -709,7 +897,7 @@ def convert_markdown_to_doc(
             i += 1
         full_text = ' '.join(para_lines)
         para = doc.add_paragraph(style="Normal")
-        _add_inline_runs(para, full_text, base_size=13)
+        _add_inline_runs(para, full_text, base_size=BODY_PT)
         _set_normal_indent(para)
         para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
@@ -736,7 +924,75 @@ def prepare_template(template_path: str) -> Document:
     if sectPr is not None and sectPr not in list(body):
         body.append(sectPr)
 
+    configure_document(doc)
     return doc
+
+
+def _force_tnr(style) -> None:
+    """Times New Roman in every script slot, black, theme fonts removed."""
+    style.font.name = "Times New Roman"
+    rpr = style.element.get_or_add_rPr()
+    rf = rpr.find(qn("w:rFonts"))
+    for att in list(rf.attrib):
+        if "Theme" in att:
+            del rf.attrib[att]
+    rf.set(qn("w:eastAsia"), "Times New Roman")
+    rf.set(qn("w:cs"), "Times New Roman")
+    style.font.color.rgb = RGBColor(0, 0, 0)
+
+
+def _get_or_add_style(doc: Document, name: str, base: str = "Normal"):
+    from docx.enum.style import WD_STYLE_TYPE
+    try:
+        return doc.styles[name]
+    except KeyError:
+        st = doc.styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+        st.base_style = doc.styles[base]
+        return st
+
+
+def configure_document(doc: Document) -> None:
+    """Apply the UEH thesis guide (UII, parts 5-7): A4, margins, TNR, 1.5 lines, 6 pt spacing, heading sizes."""
+    for sec in doc.sections:
+        sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
+        sec.top_margin, sec.bottom_margin = Cm(1.5), Cm(2.0)
+        sec.left_margin, sec.right_margin = Cm(2.5), Cm(2.0)
+        sec.header_distance, sec.footer_distance = Cm(1.0), Cm(1.0)
+
+    def fmt(name, size, bold, italic, align, before=6, after=6, line=1.5, keep=False, base="Normal"):
+        st = _get_or_add_style(doc, name, base)
+        _force_tnr(st)
+        st.font.size, st.font.bold, st.font.italic = Pt(size), bold, italic
+        pf = st.paragraph_format
+        pf.alignment = align
+        pf.space_before, pf.space_after, pf.line_spacing = Pt(before), Pt(after), line
+        pf.keep_with_next = keep
+        if name != "Normal":
+            pf.first_line_indent = Pt(0)  # only body text keeps the document-default first-line indent
+        return st
+
+    J, L, C = WD_ALIGN_PARAGRAPH.JUSTIFY, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER
+    fmt("Normal", BODY_PT, False, False, J)
+    fmt("Heading 1", 16, True, False, C, keep=True)
+    fmt("Heading 2", 14, True, False, L, keep=True)
+    fmt("Heading 3", 13, False, True, L, keep=True)
+    fmt("Heading 4", 13, False, True, L, keep=True)
+    # Front-matter titles look like Heading 1 but stay out of the table of contents.
+    ft = fmt("Front Title", 16, True, False, C, keep=True)
+    for name in ("List Bullet", "List Number", "List Paragraph"):
+        try:
+            doc.styles[name]  # only restyle list styles the template really has (else bullets are typed)
+        except KeyError:
+            continue
+        st = fmt(name, BODY_PT, False, False, J)
+        ppr = st.element.get_or_add_pPr()
+        if ppr.find(qn("w:contextualSpacing")) is None:
+            ppr.append(OxmlElement("w:contextualSpacing"))
+    # Table of contents / lists: compact so that the contents stay within about two pages.
+    for lvl, indent in ((1, 0.0), (2, 0.6), (3, 1.2)):
+        st = fmt(f"toc {lvl}", BODY_PT, False, False, L, before=2, after=2, line=1.0)
+        st.paragraph_format.left_indent = Cm(indent)
+        st.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
 
 # ---------------------------------------------------------------------------
@@ -783,9 +1039,74 @@ def add_front_matter(doc: Document, md_text: str) -> None:
         else:
             para = doc.add_paragraph()
             _set_paragraph_style(para, "Normal", doc)
-            _add_inline_runs(para, stripped, base_size=13)
+            _add_inline_runs(para, stripped, base_size=BODY_PT)
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             _clear_indent(para)
+
+
+# ---------------------------------------------------------------------------
+# Front pages required by the guide (thanks, advisor's review, abbreviations)
+# ---------------------------------------------------------------------------
+def _split_md_sections(md_text: str) -> dict[str, list[str]]:
+    """'# TITLE' sections of a small markdown file -> {TITLE: [non-empty lines]}."""
+    out: dict[str, list[str]] = {}
+    cur: Optional[str] = None
+    for line in md_text.splitlines():
+        if line.startswith("# "):
+            cur = line[2:].strip()
+            out[cur] = []
+        elif cur is not None and line.strip():
+            out[cur].append(line.rstrip())
+    return out
+
+
+def _add_front_title(doc: Document, text: str) -> None:
+    para = doc.add_paragraph(style="Front Title")
+    _add_page_break_before(para)
+    _set_run_font(para.add_run(text.upper()), size_pt=16, bold=True)
+
+
+def add_thanks_page(doc: Document, title: str, lines: list[str]) -> None:
+    _add_front_title(doc, title)
+    for text in lines:
+        para = doc.add_paragraph(style="Normal")
+        _add_inline_runs(para, text, base_size=BODY_PT)
+        _set_normal_indent(para)
+        para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+
+def add_review_page(doc: Document, title: str) -> None:
+    """Blank advisor's-review page: ruled lines to write on and a signature block."""
+    from docx.enum.text import WD_TAB_ALIGNMENT, WD_TAB_LEADER
+    _add_front_title(doc, title)
+    for _ in range(17):
+        para = doc.add_paragraph(style="Normal")
+        _clear_indent(para)
+        para.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        para.add_run("	")
+    for text, bold, italic in (("TP. Hồ Chí Minh, ngày ….. tháng ….. năm 2026", False, True),
+                               ("Giảng viên hướng dẫn", True, False),
+                               ("(Ký và ghi rõ họ tên)", False, True)):
+        para = doc.add_paragraph(style="Normal")
+        _clear_indent(para)
+        para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        para.paragraph_format.keep_with_next = True
+        _set_run_font(para.add_run(text), size_pt=BODY_PT, bold=bold, italic=italic)
+
+
+def add_abbreviations(doc: Document, title: str, lines: list[str]) -> None:
+    """'ABC | meaning' lines as a two-column list (no table, so it needs no caption)."""
+    _add_front_title(doc, title)
+    for line in lines:
+        abbr, _, meaning = line.partition("|")
+        para = doc.add_paragraph(style="Normal")
+        pf = para.paragraph_format
+        pf.left_indent, pf.first_line_indent = Cm(3.0), Cm(-3.0)
+        pf.tab_stops.add_tab_stop(Cm(3.0))
+        pf.space_before, pf.space_after, pf.line_spacing = Pt(3), Pt(3), 1.15
+        para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        _set_run_font(para.add_run(abbr.strip()), size_pt=BODY_PT, bold=True)
+        _set_run_font(para.add_run("	" + meaning.strip()), size_pt=BODY_PT)
 
 
 # ---------------------------------------------------------------------------
@@ -894,17 +1215,33 @@ def build(template_path: str, out_path: str) -> None:
     else:
         print("[build] WARNING: front-matter.md not found, skipping")
 
-    # ---- 2. TOC ----
+    # ---- 2. Thanks, advisor's review, TOC, abbreviations, tables, figures (guide, part 5) ----
+    front_pages = {}
+    fp_path = thesis_v2 / "dau-trang.md"
+    if fp_path.exists():
+        front_pages = _split_md_sections(fp_path.read_text(encoding="utf-8"))
+    for title, lines in front_pages.items():
+        if title == "LỜI CẢM ƠN":
+            add_thanks_page(doc, title, lines)
+        elif title.startswith("NHẬN XÉT"):
+            add_review_page(doc, title)
     print("[build] Adding MỤC LỤC...")
     _add_toc_field(doc, "MỤC LỤC", ' TOC \\o "1-3" \\h \\z \\u ')
+    for title, lines in front_pages.items():
+        if title.startswith("DANH MỤC TỪ VIẾT TẮT"):
+            add_abbreviations(doc, title, lines)
 
-    # ---- 3. List of Figures ----
-    print("[build] Adding DANH MỤC HÌNH ẢNH...")
-    _add_toc_field(doc, "DANH MỤC HÌNH ẢNH", f' TOC \\h \\z \\t "{CAPTION_FIGURE_STYLE},1" ')
-
-    # ---- 4. List of Tables ----
+    # ---- 3. List of Tables, then List of Figures ----
     print("[build] Adding DANH MỤC BẢNG BIỂU...")
-    _add_toc_field(doc, "DANH MỤC BẢNG BIỂU", f' TOC \\h \\z \\t "{CAPTION_TABLE_STYLE},1" ')
+    _add_toc_field(doc, "DANH MỤC BẢNG", f' TOC \\h \\z \\t "{CAPTION_TABLE_STYLE},1" ')
+    print("[build] Adding DANH MỤC HÌNH...")
+    _add_toc_field(doc, "DANH MỤC HÌNH", f' TOC \\h \\z \\t "{CAPTION_FIGURE_STYLE},1" ')
+
+    # ---- 4. Abstract and keywords: first page of the body ----
+    abstract_path = thesis_v2 / "tom-tat.md"
+    if abstract_path.exists():
+        convert_markdown_to_doc(doc, abstract_path.read_text(encoding="utf-8"), is_first_chapter=True,
+                                figures_dir=figures_dir, pngs=pngs)
 
     # ---- 5. Chapters 1-2 ----
     ch12_path = repo_root / "docs" / "THESIS-CHAPTERS-1-2-WORKING-2026-09-26-VI.md"
@@ -918,8 +1255,7 @@ def build(template_path: str, out_path: str) -> None:
         # This file carries the thesis title as '#', chapters as '##' and sections as '###';
         # chapters 3-6 use '#' for chapters. Drop the title and promote one level.
         ch12_text = _shift_heading_levels(ch12_text, shift=1, drop_title=True)
-        convert_markdown_to_doc(doc, ch12_text, is_first_chapter=True,
-                                figures_dir=figures_dir, pngs=pngs)
+        convert_markdown_to_doc(doc, ch12_text, figures_dir=figures_dir, pngs=pngs)
     else:
         print(f"[build] WARNING: {ch12_path.name} not found")
 

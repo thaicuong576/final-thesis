@@ -1099,7 +1099,7 @@ class NarrativeVerificationTestCase(unittest.TestCase):
         )
         v_wrong_metric = verify_sentence(s_wrong_metric, self.ctx)
         self.assertFalse(v_wrong_metric.ok)
-        self.assertEqual(v_wrong_metric.reason_code, "rank_mismatch")
+        self.assertEqual(v_wrong_metric.reason_code, "metric_label_mismatch")
 
 
 if __name__ == "__main__":

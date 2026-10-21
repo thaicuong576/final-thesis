@@ -1,0 +1,1597 @@
+{
+  "seed": 42,
+  "controls": {
+    "total": 129,
+    "passed": 129
+  },
+  "operator_catch_rates": {
+    "number_small": 1.0,
+    "number_large": 1.0,
+    "digit_swap": 1.0,
+    "rank": 1.0,
+    "denominator": 1.0,
+    "period": 0.8305,
+    "entity_swap": 0.8618,
+    "direction_flip": 0.8816,
+    "metric_swap": 0.7917,
+    "unsupported_number": 1.0,
+    "causal_claim": 1.0,
+    "recommendation": 1.0
+  },
+  "operator_counts": {
+    "number_small": {
+      "n": 96,
+      "caught": 96,
+      "rate": 1.0
+    },
+    "number_large": {
+      "n": 96,
+      "caught": 96,
+      "rate": 1.0
+    },
+    "digit_swap": {
+      "n": 96,
+      "caught": 96,
+      "rate": 1.0
+    },
+    "rank": {
+      "n": 46,
+      "caught": 46,
+      "rate": 1.0
+    },
+    "denominator": {
+      "n": 52,
+      "caught": 52,
+      "rate": 1.0
+    },
+    "period": {
+      "n": 118,
+      "caught": 98,
+      "rate": 0.8305
+    },
+    "entity_swap": {
+      "n": 123,
+      "caught": 106,
+      "rate": 0.8618
+    },
+    "direction_flip": {
+      "n": 76,
+      "caught": 67,
+      "rate": 0.8816
+    },
+    "metric_swap": {
+      "n": 120,
+      "caught": 95,
+      "rate": 0.7917
+    },
+    "unsupported_number": {
+      "n": 129,
+      "caught": 129,
+      "rate": 1.0
+    },
+    "causal_claim": {
+      "n": 129,
+      "caught": 129,
+      "rate": 1.0
+    },
+    "recommendation": {
+      "n": 129,
+      "caught": 129,
+      "rate": 1.0
+    }
+  },
+  "sentence_verdicts": [
+    {
+      "run_id": "er9-T01-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "BID đạt ROA 0,97% (hạng 9/10), thấp hơn trung vị nhóm trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "ROE của BID đi ngang ở mức 17,9% (hạng 4/10), ngang trung vị nhóm trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "BID xếp hạng 7/10 về tỷ lệ bao phủ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID đạt 75,9% trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID giảm 11,0 điểm % từ quý 1/2026 đến quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "BID có tỷ lệ bao phủ nợ xấu 75,9% (hạng 7/10), thấp hơn trung vị nhóm.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "BID đạt ROA 0,97% (hạng 9/10) trong quý 2/2026, thấp hơn trung vị nhóm.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "BID xếp hạng 7/10 về tỷ lệ bao phủ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID đạt 75,9% trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID giảm 11,0 điểm % từ quý 1/2026 đến quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "BID đạt tỷ lệ bao phủ nợ xấu 75,9% (hạng 7/10) và tỷ lệ nợ xấu 1,83% (hạng 6/10) trong quý 2/2026.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "BID có tỷ lệ bao phủ nợ xấu 75,9% (hạng 7/10), thấp hơn trung vị nhóm.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "BID đạt ROA 0,97% (hạng 9/10) trong quý 2/2026, thấp hơn trung vị nhóm.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "BID: đệm dự phòng dưới nhóm, chất lượng nợ dưới nhóm trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "BID có tỷ lệ bao phủ nợ xấu thấp hơn trung vị nhóm 12,2 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "BID có tỷ lệ nợ xấu cao hơn trung vị nhóm 0,19 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "BID có ROA thấp hơn trung vị nhóm 0,60 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "BID xếp hạng 7/10 về tỷ lệ bao phủ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID đạt 75,9% trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của BID giảm 11,0 điểm % từ quý 1/2026 đến quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T01-single_agent-r0",
+      "sentence_id": "sent-orchestrator-b648c0",
+      "text": "Sức khỏe tài chính của BID trong quý 2/2026 ở mức trung bình khá so với nhóm ngân hàng cùng ngành, với ROE đạt 17,9% (hạng 4/10) nhưng chất lượng tài sản và hiệu quả sinh lời trên tổng tài sản còn nhiều điểm cần cải thiện.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "STB đạt tỷ lệ nợ xấu 6,41% (hạng 10/10), cao hơn trung vị nhóm trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-c070a9",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB là 50,0% (hạng 10/10), thấp hơn trung vị nhóm trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đạt 50,0% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đi ngang từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-8",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB giảm 43,3 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-9",
+      "text": "Tỷ lệ nợ xấu của STB tăng 3,66 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "STB: đệm dự phòng dưới nhóm, chất lượng nợ dưới nhóm trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "Tỷ lệ nợ xấu của STB đạt 6,41% (hạng 10/10), cao hơn trung vị nhóm (+5,02 điểm %).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đạt 50,0% (hạng 10/10), thấp hơn trung vị nhóm (-46,9 điểm %).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-3",
+      "text": "ROE của STB đạt 10,3% (hạng 10/10), giảm so với quý trước và thấp hơn trung vị nhóm (-7,9 điểm %).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "ROA của STB đạt 0,71% (hạng 10/10), giảm mạnh từ quý 3/2025 và thấp hơn trung vị nhóm.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đạt 50,0% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đi ngang từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-8",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB giảm 43,3 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-9",
+      "text": "Tỷ lệ nợ xấu của STB tăng 3,66 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-44e432",
+      "text": "Trong quý 4/2025, STB ghi nhận chất lượng tài sản suy giảm nghiêm trọng và khả năng sinh lời ở mức thấp nhất nhóm so sánh.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "rank_mismatch"
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-orchestrator-1bb77e",
+      "text": "STB có ROE đạt 10,3% và nợ xấu ở mức 6,41%, xếp hạng cuối cùng trong nhóm phân tích.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-fb-6",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đạt 50,0% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-fb-7",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB đi ngang từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-fb-8",
+      "text": "Tỷ lệ bao phủ nợ xấu của STB giảm 43,3 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T02-single_agent-r0",
+      "sentence_id": "sent-fb-9",
+      "text": "Tỷ lệ nợ xấu của STB tăng 3,66 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T03-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "Tỷ lệ bao phủ nợ xấu của HDB đạt 50,0% (hạng 10/10) trong quý 1/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T03-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "HDB đạt tỷ lệ bao phủ nợ xấu là 50,0% trong quý 1/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T03-single_agent-r0",
+      "sentence_id": "sent-orchestrator-57d521",
+      "text": "Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026 là 50,0%.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG tăng 22,0 điểm % từ quý 1/2025 đến quý 4/2025, xếp hạng 2/10 trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "Tỷ lệ nợ xấu của CTG giảm liên tục từ quý 1/2025 đến quý 3/2025, đạt 1,10% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-3",
+      "text": "Tỷ lệ nợ xấu của CTG ở mức thấp hơn trung vị nhóm trong cả bốn quý năm 2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG cao hơn trung vị nhóm xuyên suốt năm 2025, xếp hạng 2/10 về tỷ lệ bao phủ nợ xấu trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG đạt 158,8% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG tăng lên 176,5% trong quý 3/2025 trước khi giảm còn 158,8% vào quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T04-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-6cee65",
+      "text": "Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của CTG trong năm 2025 cho thấy sự cải thiện chất lượng tài sản rõ rệt. Tỷ lệ nợ xấu giảm từ 1,55% xuống 1,10%, duy trì thấp hơn trung vị nhóm, trong khi tỷ lệ bao phủ nợ xấu tăng lên mức 158,8% (hạng 2/10), cao hơn đáng kể so với trung vị ngành.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "trend_direction_mismatch"
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG giảm trong quý 4/2025, ngược chiều trung vị nhóm tăng.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-94c212",
+      "text": "Tỷ lệ nợ xấu của CTG giảm từ quý 1/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG đạt 158,8% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "Tỷ lệ nợ xấu của CTG giảm từ quý 1/2025 đến quý 4/2025, đi ngang trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-94c212",
+      "text": "Tỷ lệ nợ xấu CTG giảm còn 1,10% (hạng 3/10) và tỷ lệ bao phủ nợ xấu tăng lên 158,8% (hạng 2/10) trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-94c212",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG giảm trong quý 4/2025, đi ngược xu hướng tăng trung vị nhóm.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "trend_direction_mismatch"
+    },
+    {
+      "run_id": "er9-T04-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-94c212",
+      "text": "Tỷ lệ nợ xấu của CTG giảm từ quý 1/2025 đến quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG tăng 22,0 điểm % từ quý 1/2025 đến quý 4/2025, xếp hạng 2/10 trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG đạt 158,8% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG giảm 2,1 điểm % từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG tăng 41,7 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG giảm 17,6 điểm % từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-orchestrator-43a112",
+      "text": "Tỷ lệ nợ xấu của CTG giảm từ 1,55% xuống 1,10% trong năm 2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T04-single_agent-r0",
+      "sentence_id": "sent-orchestrator-646c49",
+      "text": "Tỷ lệ bao phủ nợ xấu của CTG tăng từ 136,8% lên 158,8% trong năm 2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "ROA của SHB tăng 0,21 điểm % từ quý 1/2025 đến quý 4/2025, xếp hạng 7/10 trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "ROA của SHB đạt 1,46% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "ROA của SHB tăng 0,14 điểm % từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "ROA của SHB tăng 0,09 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "ROA của SHB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "SHB ROA tăng từ quý 1/2025 đến quý 3/2025, sau đó đi ngang ở quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "trend_direction_mismatch"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "SHB ROE tăng liên tục qua các quý đầu năm, rồi đi ngang trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-sector-1",
+      "text": "Dữ liệu chỉ cung cấp ROA và ROE của SHB cho quý 4/2025, không có thông tin về các quý trước đó trong năm.",
+      "is_dropped": true,
+      "recorded_audit_reason": "missing_fact_citation",
+      "verdict_ok": false,
+      "reason_code": "missing_fact_citation"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-0f4455",
+      "text": "SHB: ROA và ROE tăng dần trong năm 2025, ROE vượt trung vị nhóm cuối kỳ.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "ROE của SHB tăng 2,9 điểm % từ quý 1/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "ROA của SHB đạt 1,46% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "SHB ROE quý 1/2025 đến quý 2/2025 tăng +2,0 điểm %.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "ROA của SHB tăng 0,09 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "ROA của SHB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "SHB ROE tăng từ 16,1% lên 19,0%, đi ngang quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "ROE của SHB tăng từ quý 1/2025 đến quý 3/2025 và đi ngang trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "SHB ROE tăng từ quý 1/2025 đến quý 3/2025 và đi ngang trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "ROE của SHB tăng 2,9 điểm % từ quý 1/2025 đến quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "ROA của SHB đạt 1,46% trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "SHB ROE quý 1/2025 đến quý 2/2025 tăng +2,0 điểm %.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "ROA của SHB tăng 0,09 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "ROA của SHB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-fb-hl",
+      "text": "ROA của SHB tăng 0,21 điểm % từ quý 1/2025 đến quý 4/2025, xếp hạng 7/10 trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "ROA của SHB đạt 1,46% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "ROA của SHB tăng 0,14 điểm % từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "ROA của SHB tăng 0,09 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "ROA của SHB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-orchestrator-72fded",
+      "text": "SHB: ROA và ROE cải thiện liên tục, thu hẹp khoảng cách với trung vị nhóm.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T05-single_agent-r0",
+      "sentence_id": "sent-orchestrator-d8ab5a",
+      "text": "Khoảng cách ROA so với trung vị nhóm thu hẹp đáng kể còn -0,15 điểm % ở quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T06-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-de27f3",
+      "text": "VCB có tỷ lệ nợ xấu thấp nhất nhóm với 0,61% (hạng 1/10) trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về tỷ lệ nợ xấu của nhóm 10 ngân hàng là 6,93 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-hierarchical_no_critique-r0",
+      "sentence_id": "sent-sector-3",
+      "text": "Chênh lệch tỷ lệ nợ xấu giữa hai ngân hàng này là 6,93 điểm % trong quý 2/2026.",
+      "is_dropped": true,
+      "recorded_audit_reason": "number_mismatch",
+      "verdict_ok": false,
+      "reason_code": "number_mismatch"
+    },
+    {
+      "run_id": "er9-T06-hierarchical_no_critique-r0",
+      "sentence_id": "sent-sector-4",
+      "text": "Tỷ lệ nợ xấu của VCB bằng 0,4 lần trung vị nhóm 10 ngân hàng trong quý 2/2026.",
+      "is_dropped": true,
+      "recorded_audit_reason": "number_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T06-hierarchical_with_critique-r0",
+      "sentence_id": "sent-sector-1",
+      "text": "VCB có tỷ lệ nợ xấu thấp nhất nhóm với 0,61% (hạng 1/10) trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về tỷ lệ nợ xấu của nhóm 10 ngân hàng là 6,93 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-orchestrator-e5562c",
+      "text": "VCB có tỷ lệ nợ xấu thấp nhất với 0,61% (hạng 1/10) trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-orchestrator-6e768a",
+      "text": "Tỷ lệ nợ xấu của VCB bằng 0,4 lần trung vị nhóm trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-orchestrator-95f694",
+      "text": "STB có tỷ lệ nợ xấu cao nhất ở mức 7,54% (hạng 10/10) trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về tỷ lệ nợ xấu của nhóm 10 ngân hàng là 6,93 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về tỷ lệ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "fact:peer_median:sector:bank:2026_Q2:bank.npl_g35",
+      "text": "",
+      "is_dropped": true,
+      "recorded_audit_reason": "missing_fact_citation",
+      "verdict_ok": false,
+      "reason_code": "missing_fact_citation"
+    },
+    {
+      "run_id": "er9-T06-single_agent-r0",
+      "sentence_id": "sent-orchestrator-05e059",
+      "text": "Chênh lệch giữa ngân hàng tốt nhất và kém nhất là 6,93 điểm % trong quý 2/2026.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "rank_mismatch"
+    },
+    {
+      "run_id": "er9-T07-hierarchical_no_critique-r0",
+      "sentence_id": "sent-sector-1",
+      "text": "HDB dẫn đầu ROE quý 4/2025 với 25,4% (hạng 1/10), gấp 1,4 lần trung vị nhóm.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_no_critique-r0",
+      "sentence_id": "sent-sector-3",
+      "text": "STB đứng cuối bảng xếp hạng ROE quý 4/2025 ở mức 10,3% (hạng 10/10).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về ROE của nhóm 10 ngân hàng là 15,1 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-sector-1",
+      "text": "HDB đạt 25,4% (hạng 1/10) và MBB đạt 21,6% (hạng 2/10) về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-sector-2",
+      "text": "CTG đạt 21,2% (hạng 3/10), BID đạt 19,4% (hạng 4/10) và SHB đạt 19,0% (hạng 5/10).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-sector-3",
+      "text": "ACB đạt 17,6% (hạng 6/10), VCB đạt 16,7% (hạng 7/10) và TCB đạt 16,0% (hạng 8/10).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-sector-4",
+      "text": "VPB đạt 15,5% (hạng 9/10) và STB thấp nhất với 10,3% (hạng 10/10) về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về ROE của nhóm 10 ngân hàng là 15,1 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-single_agent-r0",
+      "sentence_id": "sent-orchestrator-bdc0a1",
+      "text": "HDB đạt 25,4% (hạng 1/10) về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Chênh lệch cao nhất – thấp nhất về ROE của nhóm 10 ngân hàng là 15,1 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T07-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "STB xếp hạng 10/10 về ROE trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-15594a",
+      "text": "Trong năm 2025, VPB duy trì ROA cao hơn trung vị nhóm (+0,63 điểm % ở quý 4/2025) nhưng đánh đổi bằng chất lượng tài sản yếu với tỷ lệ nợ xấu cao hơn trung vị nhóm (+2,07 điểm %) và bao phủ nợ xấu thấp hơn (-42,0 điểm %).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB tăng 4,8 điểm % từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB tăng 2,9 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB đạt 54,9% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "Ở quý 4/2025, ROA và ROE của VPB biến động ngược chiều với xu hướng giảm của trung vị nhóm ngân hàng.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "VPB có tỷ lệ bao phủ nợ xấu thấp hơn trung vị nhóm, đạt 54,9% (hạng 8/10) trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ nợ xấu của VPB cao hơn trung vị nhóm, ở mức 3,46% (hạng 9/10) trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB đạt 54,9% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-3",
+      "text": "ROA của VPB tăng lên 2,23% (hạng 2/10), đi ngược xu hướng giảm của trung vị nhóm trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_direction_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "ROE của VPB vẫn thấp hơn trung vị nhóm, dù đã cải thiện lên 15,5% (hạng 9/10) trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "trend_without_delta",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "VPB có tỷ lệ bao phủ nợ xấu thấp hơn trung vị nhóm, đạt 54,9% (hạng 8/10) trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ nợ xấu của VPB cao hơn trung vị nhóm, ở mức 3,46% (hạng 9/10) trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-single_agent-r0",
+      "sentence_id": "sent-orchestrator-cd0429",
+      "text": "VPB duy trì khả năng sinh lời cao hơn trung vị nhóm (ROA quý 4/2025 đạt 2,23%) nhưng đánh đổi bằng chất lượng tài sản yếu kém (tỷ lệ bao phủ nợ xấu chỉ 54,9%, thấp hơn trung vị nhóm).",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-single_agent-r0",
+      "sentence_id": "sent-fb-3",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB tăng 4,8 điểm % từ quý 1/2025 đến quý 2/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-single_agent-r0",
+      "sentence_id": "sent-fb-4",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB tăng 2,9 điểm % từ quý 2/2025 đến quý 3/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-single_agent-r0",
+      "sentence_id": "sent-fb-5",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB đi ngang từ quý 3/2025 đến quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T08-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của VPB đạt 54,9% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "TCB vượt trội MBB ở ROA và tỷ lệ bao phủ nợ xấu trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-e8f6d1",
+      "text": "TCB dẫn trước MBB ở 3/4 chỉ tiêu chính trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_with_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "MBB có ROE 21,1% cao hơn TCB ở mức 15,5%, chênh lệch +5,5 điểm %.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_with_critique-r0",
+      "sentence_id": "sent-orchestrator-ebe9d0",
+      "text": "TCB vượt trội hơn MBB ở 3/4 chỉ tiêu chính trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-single_agent-r0",
+      "sentence_id": "sent-fb-1",
+      "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-single_agent-r0",
+      "sentence_id": "sent-orchestrator-4732ec",
+      "text": "Tỷ lệ ROE/ROA của MBB là 11,50 lần, phản ánh mức độ sử dụng đòn bẩy tài chính cao hơn để tối ưu hóa lợi nhuận cho cổ đông so với con số 6,77 lần của TCB.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-single_agent-r0",
+      "sentence_id": "sent-orchestrator-9b7bac",
+      "text": "Về an toàn vốn, TCB sở hữu đệm dự phòng rủi ro dày dặn hơn với tỷ lệ bao phủ nợ xấu đạt 125,6%, cao hơn MBB tới 32,0 điểm %.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "MBB có tỷ lệ bao phủ nợ xấu thấp hơn TCB 32,0 điểm % trong quý 2/2026.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T09-single_agent-r0",
+      "sentence_id": "sent-orchestrator-36c195",
+      "text": "Trong quý 2/2026, TCB vượt trội MBB ở 3/4 chỉ tiêu chính (ROA, nợ xấu, bao phủ nợ xấu), trong khi MBB chỉ dẫn đầu về ROE.",
+      "is_dropped": true,
+      "recorded_audit_reason": "rank_mismatch",
+      "verdict_ok": false,
+      "reason_code": "unknown_fact"
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "VCB có tỷ lệ bao phủ nợ xấu cao hơn CTG 99,5 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-orchestrator-8f1e9d",
+      "text": "VCB vượt trội hơn CTG về chất lượng tài sản trong quý 4/2025 với 2/2 chỉ tiêu tốt hơn.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-1",
+      "text": "VCB đạt tỷ lệ bao phủ nợ xấu cao hơn CTG (+99,5 điểm %) trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-2",
+      "text": "Tỷ lệ bao phủ nợ xấu của VCB là 258,3%, còn CTG là 158,8% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-3",
+      "text": "VCB có tỷ lệ nợ xấu thấp hơn CTG (-0,52 điểm %) trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_no_critique-r0",
+      "sentence_id": "sent-company-4",
+      "text": "Tỷ lệ nợ xấu của VCB là 0,58%, còn CTG là 1,10% trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-1",
+      "text": "VCB có tỷ lệ nợ xấu thấp hơn CTG 0,52 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "VCB có tỷ lệ nợ xấu thấp hơn CTG trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "VCB có tỷ lệ nợ xấu thấp hơn CTG trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-hierarchical_with_critique-r0",
+      "sentence_id": "sent-fb-1",
+      "text": "VCB có tỷ lệ nợ xấu thấp hơn CTG 0,52 điểm % trong quý 4/2025.",
+      "is_dropped": true,
+      "recorded_audit_reason": "unresolved_critique",
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-single_agent-r0",
+      "sentence_id": "sent-orchestrator-06ba08",
+      "text": "VCB vượt trội CTG về chất lượng tài sản trong quý 4/2025 với 2/2 chỉ tiêu tốt hơn.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-single_agent-r0",
+      "sentence_id": "sent-orchestrator-6cf99f",
+      "text": "VCB vượt trội CTG về chất lượng tài sản trong quý 4/2025 với 2/2 chỉ tiêu tốt hơn.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    },
+    {
+      "run_id": "er9-T10-single_agent-r0",
+      "sentence_id": "sent-fb-2",
+      "text": "VCB có tỷ lệ bao phủ nợ xấu cao hơn CTG 99,5 điểm % trong quý 4/2025.",
+      "is_dropped": false,
+      "recorded_audit_reason": null,
+      "verdict_ok": true,
+      "reason_code": null
+    }
+  ]
+}

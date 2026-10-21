@@ -169,6 +169,7 @@ class VerificationContext:
     flat_pp: Mapping[str, float]
     anchor_year: int
     lexicon: NarrativeLexicon = VI_LEXICON
+    enable_label_rules: bool = True
 
 
 _ORDER_WORD_TO_NUM: dict[str, int] = {
@@ -233,6 +234,95 @@ def _classify_fact_unit(f: Fact) -> str:
         if f.fact_type in ("value", "peer_median"):
             return "pct"
     return "any"
+
+
+
+DEFAULT_METRIC_TERMS: dict[str, tuple[str, ...]] = {
+    "bank.npl_g35": (
+        "tỷ lệ nợ xấu (nhóm 3–5)",
+        "tỷ lệ nợ xấu (nhóm 3-5)",
+        "tỷ lệ nợ xấu",
+        "nợ xấu (nhóm 3–5)",
+        "nợ xấu (nhóm 3-5)",
+        "nợ xấu",
+        "npl_g35",
+        "npl",
+        "non-performing loan",
+        "non-performing loans",
+    ),
+    "bank.llr_coverage": (
+        "tỷ lệ bao phủ nợ xấu",
+        "bao phủ nợ xấu",
+        "tỷ lệ bao phủ",
+        "đệm dự phòng",
+        "llr_coverage",
+        "llr",
+        "loan loss reserve",
+        "loan loss coverage",
+        "coverage",
+    ),
+    "bank.roa": (
+        "sinh lời trên tài sản",
+        "return on assets",
+        "roa",
+    ),
+    "bank.roe": (
+        "sinh lời trên vốn",
+        "return on equity",
+        "roe",
+    ),
+    "bank.nim": (
+        "biên lãi thuần",
+        "biên lãi ròng",
+        "nim",
+    ),
+    "bank.casa": (
+        "tỷ lệ tiền gửi không kỳ hạn",
+        "tiền gửi không kỳ hạn",
+        "tỷ lệ casa",
+        "casa",
+    ),
+    "bank.car": (
+        "hệ số an toàn vốn (car)",
+        "hệ số an toàn vốn",
+        "tỷ lệ an toàn vốn",
+        "car",
+    ),
+    "bank.cir": (
+        "tỷ lệ chi phí trên thu nhập (cir)",
+        "tỷ lệ chi phí trên thu nhập",
+        "chi phí trên thu nhập",
+        "tỷ lệ cir",
+        "cir",
+    ),
+    "bank.ldr": (
+        "tỷ lệ cho vay trên huy động (ldr)",
+        "tỷ lệ cho vay trên huy động",
+        "cho vay trên huy động",
+        "ldr",
+    ),
+    "derived.roe_over_roa": (
+        "tỷ lệ roe/roa",
+        "roe/roa",
+        "đòn bẩy vốn",
+        "roe trên roa",
+    ),
+}
+
+
+def _parse_period_token(p_str: str, anchor_year: int = 2026) -> str:
+    """Normalize a Vietnamese period token into canonical period string for equality checks."""
+    p = p_str.strip().lower()
+    m = re.search(r"(?:quý|q)\s*([1-4])\s*(?:/|\s*năm\s*)(\d{4})", p)
+    if m:
+        return f"{m.group(2)}_Q{m.group(1)}"
+    m = re.search(r"(?:quý|q)\s*([1-4])", p)
+    if m:
+        return f"{anchor_year}_Q{m.group(1)}"
+    m = re.search(r"(?:năm\s+)?(\d{4})", p)
+    if m:
+        return m.group(1)
+    return p
 
 
 def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceVerdict:
@@ -312,6 +402,151 @@ def verify_sentence(s: NarrativeSentence, ctx: VerificationContext) -> SentenceV
                     numbers_checked=0,
                     numbers_matched=0,
                 )
+
+    # 4b. Self-comparison checks (Rule 2: reject comparing identical entities or identical periods)
+    if ctx.enable_label_rules:
+        # Check spread extremes: cao nhất - cao nhất, thấp nhất - thấp nhất
+        spread_self_match = re.search(
+            r"(?<!\w)(?:cao\s+nhất\s*[-–—và]+\s*cao\s+nhất|thấp\s+nhất\s*[-–—và]+\s*thấp\s+nhất)(?!\w)",
+            norm_text,
+        )
+        if spread_self_match:
+            return SentenceVerdict(
+                ok=False,
+                reason_code="self_comparison",
+                reason=f"Tự so sánh cùng cực trị: '{spread_self_match.group(0)}'.",
+                numbers_checked=0,
+                numbers_matched=0,
+            )
+
+        # Check period ranges: từ P1 đến P2 (where P1 == P2)
+        p_range_pat = re.compile(
+            r"(?<!\w)(?:từ\s+)?(quý\s+[1-4](?:\s*(?:/|\s*năm\s*)\d{4})?|q[1-4](?:\s*/\s*\d{4})?|năm\s+\d{4}|\d{4})\s+(?:đến|sang|so\s+với)\s+(quý\s+[1-4](?:\s*(?:/|\s*năm\s*)\d{4})?|q[1-4](?:\s*/\s*\d{4})?|năm\s+\d{4}|\d{4})(?!\w)"
+        )
+        for pm in p_range_pat.finditer(norm_text):
+            p1_raw = pm.group(1)
+            p2_raw = pm.group(2)
+            p1_tok = _parse_period_token(p1_raw, ctx.anchor_year)
+            p2_tok = _parse_period_token(p2_raw, ctx.anchor_year)
+            if p1_tok == p2_tok:
+                return SentenceVerdict(
+                    ok=False,
+                    reason_code="self_comparison",
+                    reason=f"Tự so sánh cùng một kỳ: '{p1_raw}' và '{p2_raw}'.",
+                    numbers_checked=0,
+                    numbers_matched=0,
+                )
+
+        # Check entity self-comparison across comparison / trend terms
+        all_eval_entities = set(ctx.catalog_entities) | set(ctx.plan_entities) | {
+            f.entity_id for f in cited_facts if f.entity_id
+        } | {
+            f.other_entity_id for f in cited_facts if f.other_entity_id
+        }
+        if not all_eval_entities:
+            all_eval_entities = set(re.findall(r"\b[A-Z]{3,4}\b", s.text))
+        comp_rel_terms = (
+            "vượt trội hơn",
+            "vượt trội",
+            "dẫn trước",
+            "nhỉnh hơn",
+            "cao hơn",
+            "thấp hơn",
+            "tốt hơn",
+            "kém hơn",
+            "dày hơn",
+            "mỏng hơn",
+            "tương đương với",
+            "tương đương",
+            "ngang với",
+            "ngang",
+            "so với",
+        )
+        for ct in comp_rel_terms:
+            for cm in re.finditer(rf"(?<!\w){re.escape(ct)}(?!\w)", norm_text):
+                pre_text = norm_text[: cm.start()]
+                post_text = norm_text[cm.end() :]
+                ents_before: list[tuple[int, str]] = []
+                for e in all_eval_entities:
+                    en = _normalize(e)
+                    for em in re.finditer(rf"(?<!\w){re.escape(en)}(?!\w)", pre_text):
+                        ents_before.append((em.start(), e))
+                ents_after: list[tuple[int, str]] = []
+                for e in all_eval_entities:
+                    en = _normalize(e)
+                    for em in re.finditer(rf"(?<!\w){re.escape(en)}(?!\w)", post_text):
+                        ents_after.append((em.start(), e))
+                if ents_before and ents_after:
+                    ents_before.sort(key=lambda x: x[0])
+                    ents_after.sort(key=lambda x: x[0])
+                    e_before = ents_before[-1][1]
+                    e_after = ents_after[0][1]
+                    if _normalize(e_before) == _normalize(e_after):
+                        return SentenceVerdict(
+                            ok=False,
+                            reason_code="self_comparison",
+                            reason=f"Tự so sánh cùng một ngân hàng: '{e_before}' với chính nó quanh cụm '{ct}'.",
+                            numbers_checked=0,
+                            numbers_matched=0,
+                        )
+
+        # Check explicit 'giữa <Bank> và <Bank>'
+        between_match = re.search(r"(?<!\w)giữa\s+([a-zA-Z0-9]+)\s+và\s+([a-zA-Z0-9]+)(?!\w)", norm_text)
+        if between_match:
+            b1 = between_match.group(1).upper()
+            b2 = between_match.group(2).upper()
+            if b1 == b2 and any(_normalize(e) == _normalize(b1) for e in all_eval_entities):
+                return SentenceVerdict(
+                    ok=False,
+                    reason_code="self_comparison",
+                    reason=f"Tự so sánh cùng một ngân hàng: giữa {b1} và {b2}.",
+                    numbers_checked=0,
+                    numbers_matched=0,
+                )
+
+    # 4c. Metric label check (Rule 1: metric names in sentence must match cited fact metrics)
+    if ctx.enable_label_rules:
+        all_terms_map: dict[str, set[str]] = {}
+        for mid, terms in DEFAULT_METRIC_TERMS.items():
+            all_terms_map.setdefault(mid, set()).update(_normalize(t) for t in terms if t)
+        if ctx.metric_terms:
+            for mid, terms in ctx.metric_terms.items():
+                all_terms_map.setdefault(mid, set()).update(_normalize(t) for t in terms if t)
+
+        search_list: list[tuple[str, str]] = []
+        GENERIC_EXCLUSIONS = {"bao phủ", "dự phòng"}
+        for mid, terms in all_terms_map.items():
+            for t in terms:
+                if t not in GENERIC_EXCLUSIONS:
+                    search_list.append((t, mid))
+        search_list.sort(key=lambda x: len(x[0]), reverse=True)
+
+        occupied_metric_spans: list[tuple[int, int]] = []
+        found_metrics: set[str] = set()
+        for t_norm, mid in search_list:
+            for m in re.finditer(rf"(?<!\w){re.escape(t_norm)}(?!\w)", norm_text):
+                sp = m.span()
+                if not any(sp[0] < occ[1] and sp[1] > occ[0] for occ in occupied_metric_spans):
+                    occupied_metric_spans.append(sp)
+                    found_metrics.add(mid)
+
+        if found_metrics:
+            cited_metric_ids = set()
+            for f in cited_facts:
+                if f.metric_id:
+                    cited_metric_ids.add(f.metric_id)
+                    cited_metric_ids.add(f.metric_id.rsplit(".", 1)[-1])
+
+            for fm in found_metrics:
+                fm_short = fm.rsplit(".", 1)[-1]
+                if fm not in cited_metric_ids and fm_short not in cited_metric_ids:
+                    return SentenceVerdict(
+                        ok=False,
+                        reason_code="metric_label_mismatch",
+                        reason=f"Nhãn chỉ tiêu '{fm}' trong câu không khớp với chỉ tiêu của fact được trích dẫn.",
+                        numbers_checked=0,
+                        numbers_matched=0,
+                    )
 
     # Check for ungrounded number words (e.g. seventeen, half, twice, double, mười bảy)
     num_words_pat = re.compile(r"(?<!\w)(seventeen|mười\s+bảy|half|twice|double)(?!\w)")

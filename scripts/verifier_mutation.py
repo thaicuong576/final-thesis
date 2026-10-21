@@ -534,6 +534,7 @@ def run_mutation_evaluation(
     runs_dir: Path,
     seed: int = 42,
     output_dir: Path | None = None,
+    disable_label_rules: bool = False,
 ) -> dict[str, Any]:
     """Execute the full mutation evaluation pipeline on ER-9 runs."""
     rng = random.Random(seed)
@@ -571,6 +572,9 @@ def run_mutation_evaluation(
 
         # Collect facts and build verification context
         ctx = build_verification_context_for_run(facts_data, plan_data)
+        if disable_label_rules:
+            from dataclasses import replace
+            ctx = replace(ctx, enable_label_rules=False)
         accepted_sentences = extract_sentences_from_report_spec(resp.get("report_spec"))
 
         # Gather run-level contextual domains for operators
@@ -925,12 +929,19 @@ def main() -> None:
         default=42,
         help="Random seed for deterministic mutant generation",
     )
+    parser.add_argument(
+        "--disable-label-rules",
+        action="store_true",
+        default=False,
+        help="Disable the two new verifier label rules (legacy before-mode)",
+    )
     args = parser.parse_args()
 
     results = run_mutation_evaluation(
         runs_dir=args.runs_dir,
         seed=args.seed,
         output_dir=args.output_dir,
+        disable_label_rules=args.disable_label_rules,
     )
     print("\n=== VERIFIER MUTATION EVALUATION SUMMARY ===")
     print(f"Controls: {results['controls']['passed']} / {results['controls']['total']} passed")

@@ -170,7 +170,7 @@ class Prompt1VerifierRulesTestCase(unittest.TestCase):
         )
         v_part = verify_sentence(s_part, ctx)
         self.assertFalse(v_part.ok)
-        self.assertEqual(v_part.reason_code, "number_mismatch")
+        self.assertEqual(v_part.reason_code, "metric_label_mismatch")
 
         # Split into two sentences: both pass
         s1 = _make_sent(

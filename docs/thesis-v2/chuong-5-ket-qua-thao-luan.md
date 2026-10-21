@@ -35,7 +35,7 @@ Thực nghiệm chính được chạy ngày 05/10/2026 trên bộ dữ liệu m
 |---|:---:|:---:|:---:|
 | Trả lời được (10 câu phân tích) | 10/10 | 10/10 | 10/10 |
 | Từ chối đúng (R1, R2) | 2/2 | 2/2 | 2/2 |
-| Hoàn thành trọn vẹn, không ghi chú giới hạn (trên 12 lượt; hai lượt từ chối không tính) | 7 (58,3%) | 9 (75,0%) | 4 (33,3%) |
+| Hoàn thành trọn vẹn, không ghi chú giới hạn (trên 10 câu phân tích; hai câu từ chối không tính) | 7/10 (70,0%) | 9/10 (90,0%) | 4/10 (40,0%) |
 | Con số trong câu được giữ khớp với dữ kiện được trích | 100,0% | 100,0% | 100,0% |
 | Truy được về số liệu gốc | 100,0% | 100,0% | 100,0% |
 | Độ phủ chỉ tiêu bắt buộc | 0,797 | 0,844 | 0,781 |
@@ -72,17 +72,17 @@ Bảng 5.3 so sánh từng cặp cấu hình trên cùng câu hỏi. Khoảng tr
 | Token mỗi lượt | +4.467 [+2.540; +6.317] | +17.604 [+9.164; +29.644] | +22.072 [+12.711; +34.890] |
 | Thời gian xử lý (giây) | +10,0 [+5,6; +14,7] | +35,4 [+21,5; +48,3] | +45,3 [+27,7; +62,0] |
 
-So với một tác tử, cấu hình B có độ phủ chỉ tiêu cao hơn khoảng 5 điểm phần trăm và tỷ lệ hoàn thành trọn vẹn cao hơn (9 so với 7 lượt), nhưng khoảng tin cậy của độ phủ chứa 0 nên đây mới là dấu hiệu, chưa phải kết luận. Ở cấp câu hỏi, lợi thế của B rõ nhất ở câu xu hướng của CTG (T04: 1,0 so với 0,5) và so sánh MBB – TCB (T09: 1,0 so với 0,75), nơi các chuyên viên viết riêng cho từng chỉ tiêu; ngược lại, ở hồ sơ STB (T02) A đạt độ phủ cao hơn B (0,75 so với 0,5). B cũng ít phải dùng bố cục dựng sẵn hơn (1 so với 3 báo cáo), vì điều phối viên của B nhận các câu đã được chuyên viên viết và kiểm tra, còn tác tử đơn của A phải tự viết và tự lắp toàn bộ báo cáo trong một lần gọi.
+So với một tác tử, cấu hình B có độ phủ chỉ tiêu cao hơn khoảng 5 điểm phần trăm và tỷ lệ hoàn thành trọn vẹn cao hơn (9 so với 7 trên 10 câu phân tích), nhưng khoảng tin cậy của độ phủ chứa 0 nên đây mới là dấu hiệu, chưa phải kết luận. Ở cấp câu hỏi, lợi thế của B rõ nhất ở câu xu hướng của CTG (T04: 1,0 so với 0,5) và so sánh MBB – TCB (T09: 1,0 so với 0,75), nơi các chuyên viên viết riêng cho từng chỉ tiêu; ngược lại, ở hồ sơ STB (T02) A đạt độ phủ cao hơn B (0,75 so với 0,5). B cũng ít phải dùng bố cục dựng sẵn hơn (1 so với 3 báo cáo), vì điều phối viên của B nhận các câu đã được chuyên viên viết và kiểm tra, còn tác tử đơn của A phải tự viết và tự lắp toàn bộ báo cáo trong một lần gọi.
 
 Cái giá của B là chi phí: khoảng 2,2 lần token và thêm khoảng 10 giây mỗi lượt, với khoảng tin cậy không chứa 0. Độ chính xác của con số và khả năng truy vết không khác nhau vì cùng đi qua công cụ tính toán và bộ kiểm tra câu. Tỷ lệ câu bị loại của A và B tương đương (15,4% và 17,0%), nhưng khác về lý do: A chủ yếu bị loại vì nêu xu hướng khi không có dữ kiện thay đổi (5 trên 8 câu), còn B chủ yếu vì chiều xu hướng không khớp ngưỡng đi ngang (5 trên 9 câu).
 
-**Trả lời câu hỏi nghiên cứu thứ hai:** trong thực nghiệm này, B có độ phủ chỉ tiêu cao hơn A khoảng 5 điểm phần trăm và 9 so với 7 báo cáo hoàn thành trọn vẹn trên 12 lượt, với chi phí khoảng gấp đôi; độ chính xác của con số như nhau vì cùng đi qua bộ kiểm chứng. Tuy nhiên khoảng tin cậy của độ phủ chứa 0 và mẫu rất nhỏ, nên thực nghiệm chưa đủ để kết luận B tốt hơn A. Độ ổn định giữa các lần chạy không đo được vì mỗi cặp chỉ chạy một lần, và mức nhiễu giữa các lần chạy có thể ngang với chênh lệch A – B: một lần chạy khác của cùng mô hình DeepSeek V4 Pro (mục 5.8) loại 14 trên 56 câu (25%) so với 9 trên 53 (17%) của B ở thực nghiệm chính. Ngoài ra A và B khác nhau cả về chuyên môn hóa lẫn số lượt gọi mô hình (0,8 so với 2,1 mỗi lượt), nên không tách được hai tác động. Kết quả của B cũng thay đổi đáng kể khi đổi mô hình (mục 5.8).
+**Trả lời câu hỏi nghiên cứu thứ hai:** trong thực nghiệm này, B có độ phủ chỉ tiêu cao hơn A khoảng 5 điểm phần trăm và 9 so với 7 báo cáo hoàn thành trọn vẹn trên 10 câu phân tích, với chi phí khoảng gấp đôi; độ chính xác của con số như nhau vì cùng đi qua bộ kiểm chứng. Tuy nhiên khoảng tin cậy của độ phủ chứa 0 và mẫu rất nhỏ, nên thực nghiệm chưa đủ để kết luận B tốt hơn A. Độ ổn định giữa các lần chạy không đo được vì mỗi cặp chỉ chạy một lần, và mức nhiễu giữa các lần chạy có thể ngang với chênh lệch A – B: một lần chạy khác của cùng mô hình DeepSeek V4 Pro (mục 5.8) loại 14 trên 56 câu (25%) so với 9 trên 53 (17%) của B ở thực nghiệm chính. Ngoài ra A và B khác nhau cả về chuyên môn hóa lẫn số lượt gọi mô hình (0,8 so với 2,1 mỗi lượt), nên không tách được hai tác động. Kết quả của B cũng thay đổi đáng kể khi đổi mô hình (mục 5.8).
 
 ## 5.5. Đánh giá tác động của cơ chế phản biện và sửa đổi có mục tiêu
 
 Bổ sung phản biện và tối đa hai vòng sửa đổi không làm tăng độ phủ; ngược lại, độ phủ trung bình của C thấp hơn B khoảng 6 điểm phần trăm (khoảng tin cậy chứa 0). Số phát hiện liên tầng được nêu tăng gấp đôi (0,67 so với 0,33 mỗi lượt), phù hợp với việc bộ phản biện được yêu cầu kiểm tra các mâu thuẫn liên tầng đã có được nêu trong báo cáo hay chưa. Chi phí tăng mạnh: token gấp 3,1 lần B và 6,8 lần A, thêm khoảng 35 giây mỗi lượt so với B; riêng hồ sơ BID (T01) dùng 85.187 token cho một lượt.
 
-Nguyên nhân độ phủ giảm thấy rõ khi xem các câu bị loại. C bị loại 22 trên 63 câu, trong đó 12 câu bị loại vì còn vấn đề phản biện chưa giải quyết sau hai vòng sửa. Chỉ 4 trên 12 lượt của C hoàn thành trọn vẹn. Các vấn đề còn mở khi kết thúc chủ yếu thuộc loại "tổng hợp chưa đầy đủ" (8 trên 9 vấn đề, 7 ở mức nghiêm trọng), tức bộ phản biện yêu cầu báo cáo nói thêm về các chỉ tiêu khác, ví dụ ở hồ sơ BID: báo cáo "đã bỏ sót hoàn toàn" tỷ lệ nợ xấu và bao phủ nợ xấu. Khi câu viết lại vẫn không đạt, câu bị loại, nên chính yêu cầu "nói đầy đủ hơn" lại làm báo cáo mất câu và giảm độ phủ (T01: 0,5 so với 0,75 của B; T10: 0,5 so với 1,0).
+Nguyên nhân độ phủ giảm thấy rõ khi xem các câu bị loại. C bị loại 22 trên 63 câu, trong đó 12 câu bị loại vì còn vấn đề phản biện chưa giải quyết sau hai vòng sửa. Chỉ 4 trên 10 câu phân tích của C hoàn thành trọn vẹn (hai câu từ chối không thể hoàn thành một báo cáo nên không nằm trong mẫu số). Các vấn đề còn mở khi kết thúc chủ yếu thuộc loại "tổng hợp chưa đầy đủ" (8 trên 9 vấn đề, 7 ở mức nghiêm trọng), tức bộ phản biện yêu cầu báo cáo nói thêm về các chỉ tiêu khác, ví dụ ở hồ sơ BID: báo cáo "đã bỏ sót hoàn toàn" tỷ lệ nợ xấu và bao phủ nợ xấu. Khi câu viết lại vẫn không đạt, câu bị loại, nên chính yêu cầu "nói đầy đủ hơn" lại làm báo cáo mất câu và giảm độ phủ (T01: 0,5 so với 0,75 của B; T10: 0,5 so với 1,0).
 
 **Trả lời câu hỏi nghiên cứu thứ ba:** trong điều kiện của thực nghiệm, phản biện và sửa đổi làm chi phí tăng khoảng ba lần so với B, không cải thiện độ chính xác hay độ phủ đo được, và làm báo cáo nêu nhiều phát hiện liên tầng hơn. Bộ phản biện hiện tại hoạt động với tiêu chuẩn kiểm duyệt rất khắt khe: nó phát hiện đúng những chỗ báo cáo chưa đầy đủ, nhưng cơ chế sửa câu đơn lẻ chưa đủ để đáp ứng yêu cầu ở mức cả báo cáo, và những gì sửa không được thì bị loại bỏ.
 
@@ -112,6 +112,8 @@ Mục 5.3 cho thấy cả ba cấu hình đều đạt 100% khớp số, nhưng 
 | Đổi ngân hàng | 123 | 106 | 86,2% | [79,0%; 91,2%] |
 | Đảo chiều | 76 | 67 | 88,2% | [79,0%; 93,6%] |
 | **Đổi chỉ tiêu** | 120 | 95 | **79,2%** | [71,1%; 85,5%] |
+
+Số câu thử khác nhau giữa các loại lỗi vì mỗi loại chỉ áp dụng được cho những câu có đối tượng để đột biến (câu không nêu ngân hàng thì không thể đổi ngân hàng). Cũng cần lưu ý rằng cỡ mẫu n ở đoạn sau Bảng 5.4 nhỏ hơn cột "Số câu thử", vì đã loại các đột biến tự quy chiếu: đổi kỳ từ 118 còn 104, đổi ngân hàng từ 123 còn 102 (bỏ 21 câu, ví dụ "TCB vượt trội TCB", trong đó bộ kiểm chứng bắt được 4 và bỏ sót 17) và đảo chiều từ 76 còn 70.
 
 Bộ kiểm chứng bắt tuyệt đối các lỗi về con số, thứ hạng và mẫu số, và các câu thêm khẳng định không có nguồn, nhân quả hay khuyến nghị. Nó bỏ sót đáng kể các lỗi **ngữ nghĩa** mà con số vẫn đúng: một câu giữ nguyên "50,0%" nhưng đổi "tỷ lệ bao phủ nợ xấu" thành "tỷ lệ nợ xấu" vẫn được chấp nhận ở 25 trên 120 lần thử. Đây là điểm yếu thật của thiết kế hiện tại và là cơ sở cho hạn chế ở mục 5.14.
 
@@ -154,7 +156,7 @@ Lần chạy sau sửa chỉ là tập con tám câu (hai câu ngoài phạm vi 
 
 ## 5.10. Đánh giá thách thức trong quy trình số hóa báo cáo tài chính gốc
 
-Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, trong đó phần lớn là bản quét. Thực nghiệm này đo xem khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng, không gọi mô hình ngôn ngữ. Với 885 số liệu đầu vào đã được chấp nhận và có trang nguồn, thực nghiệm đo khả năng số hóa hỏi hai câu: (a) giá trị đã được chấp nhận có xuất hiện nguyên văn trong văn bản của đúng trang đó không; (b) một bộ trích xuất đơn giản (tìm dòng có nhãn gần nhất rồi lấy số ở cột tương ứng) có lấy đúng giá trị không.
+Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, trong đó phần lớn là bản quét. Thực nghiệm này đo xem khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng, không gọi mô hình ngôn ngữ. Với 885 số liệu đầu vào đã được chấp nhận và có trang nguồn (xem giải thích tập con ở đoạn sau Bảng 5.7), thực nghiệm đo khả năng số hóa hỏi hai câu: (a) giá trị đã được chấp nhận có xuất hiện nguyên văn trong văn bản của đúng trang đó không; (b) một bộ trích xuất đơn giản (tìm dòng có nhãn gần nhất rồi lấy số ở cột tương ứng) có lấy đúng giá trị không.
 
 *Bảng 5.7: Giá trị có mặt trên trang và độ đúng của bộ trích xuất đơn giản.*
 
@@ -166,6 +168,8 @@ Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, tro
 | (b) Không tìm thấy dòng | 885 | 236 (26,7%) |
 | (b) Lấy sai hàng hoặc cột | 885 | 185 (20,9%) |
 | (b) Thiếu cột để lấy | 885 | 1 (0,1%) |
+
+Con số 885 là tập con của dữ liệu đầu vào, không phải toàn bộ. Bộ dữ liệu cuối có 1.735 quan sát, gồm 1.335 số liệu đầu vào đọc từ báo cáo gốc và 400 giá trị chỉ tiêu do chương trình tính lại (4 chỉ tiêu × 100 ô ngân hàng – quý). Thực nghiệm này lấy 1.123 dòng trong tệp đầu vào của dữ liệu quý; trong đó có 150 dòng không có trang hoặc tệp PDF cục bộ để đối chiếu (số liệu năm tài chính và số liệu so sánh) và 88 dòng có trang chưa được nhận dạng ký tự, nên còn 885 dòng (1.123 − 150 − 88). Còn lại 212 quan sát đầu vào của bộ dữ liệu cuối không nằm trong tệp đầu vào quý và không được đo ở đây. Vì vậy 885 là mẫu đo được, đại diện cho khoảng 66% số liệu đầu vào (885 trên 1.335), không phải kết quả cho toàn bộ dữ liệu.
 
 Nhận dạng ký tự khó là nguyên nhân chính của sai sót: 93–96% giá trị xuất hiện nguyên văn trên đúng trang. Phép đo này chỉ cho biết chuỗi số có mặt trên trang, chưa chứng minh ô đó được đọc đúng vị trí, nên đây là chỉ dấu chứ không phải kết luận. Khó khăn rõ hơn nằm ở cấu trúc: bộ trích xuất đơn giản chọn đúng hàng và đúng cột chỉ khoảng một nửa số lần, và vì là một đối chứng yếu, kết quả 52% không đại diện cho các bộ trích xuất tốt hơn. Bộ trích xuất đạt 88–96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, nhóm 5, nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn cột lũy kế và vốn chủ sở hữu thường xuất hiện như một dòng tổng của mục. Kết quả này ủng hộ quyết định thiết kế giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại theo công thức được định danh phiên bản, và cho thấy quy trình số hóa của khóa luận là quy trình bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chứ chưa được thực hiện.
 

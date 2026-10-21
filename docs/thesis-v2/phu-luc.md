@@ -4,9 +4,9 @@
 
 Địa chỉ: https://fin-ai.eddiephung.me
 
-Tên đăng nhập: [ĐIỀN]
+Tên đăng nhập: admin
 
-Mật khẩu: [ĐIỀN]
+Mật khẩu: Kltn@2026
 
 Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
 

@@ -320,7 +320,7 @@ def _is_numeric_cell(text: str) -> bool:
     return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−–]+\]', t))
 
 
-def _set_column_widths(table, rows: list[list[str]], total_cm: float = 16.5) -> None:
+def _set_column_widths(table, rows: list[list[str]], total_cm: float = 17.0) -> None:
     """Fixed layout: column width follows the text length (long text columns get more room, capped)."""
     n = len(rows[0])
     weights = []
@@ -392,7 +392,7 @@ def _format_table(table, rows: list[list[str]]) -> None:
         for col_i, cell_text in enumerate(row_cells):
             cell = tr.cells[col_i]
             para = cell.paragraphs[0]
-            _add_inline_runs(para, _clean_html(cell_text), base_size=12)
+            _add_inline_runs(para, _clean_html(cell_text), base_size=11)
             pf = para.paragraph_format
             pf.first_line_indent = _Pt(0)
             pf.left_indent = _Pt(0)
@@ -405,12 +405,15 @@ def _format_table(table, rows: list[list[str]]) -> None:
                 para.alignment = WD_ALIGN_PARAGRAPH.RIGHT  # guide: numbers right-aligned
             else:
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                pf.line_spacing = 1.0
+                pf.space_before = Pt(0)
+                pf.space_after = Pt(4)
             # Short tables stay whole with caption and source; long tables only keep the caption with the first rows.
-            pf.keep_with_next = len(rows) <= 9 or row_i < 2
+            pf.keep_with_next = len(rows) <= 6 or row_i < 2
             pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.
-                _set_all_fonts(run, "Times New Roman", 12)
+                _set_all_fonts(run, "Times New Roman", 11)
                 if is_header:
                     run.font.bold = True
             if is_header:
@@ -440,7 +443,7 @@ def _add_image(doc: Document, img_path: Path) -> None:
 
             with _Image.open(img_path) as _im:
                 w_px, h_px = _im.size
-            width_cm = min(15.0, 17.0 * w_px / h_px)
+            width_cm = min(14.0, 6.8 * w_px / h_px)
         except Exception:  # noqa: BLE001 - PIL is optional; fall back to full width
             pass
         run.add_picture(str(img_path), width=Cm(width_cm))
@@ -542,13 +545,13 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 5.2": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 5.3": ("độ phủ từ 0 đến 1", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 5.4": ("token; giây", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 5.5": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
-    "Bảng 5.6": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
-    "Bảng 5.7": (_UNIT_ROW, "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
-    "Bảng 5.8": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
-    "Bảng 5.9": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
-    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
-    "Bảng 5.11": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 5.4": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
+    "Bảng 5.5": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
+    "Bảng 5.6": (_UNIT_ROW, "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
+    "Bảng 5.7": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
+    "Bảng 5.8": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.9": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
+    "Bảng 5.10": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng C.1": (_UNIT_NONE, _SRC_SYNTH + " từ các tệp kết quả thực nghiệm"),
@@ -976,7 +979,7 @@ def configure_document(doc: Document) -> None:
     for sec in doc.sections:
         sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
         sec.top_margin, sec.bottom_margin = Cm(1.5), Cm(2.0)
-        sec.left_margin, sec.right_margin = Cm(2.5), Cm(2.0)
+        sec.left_margin, sec.right_margin = Cm(2.0), Cm(2.0)
         sec.header_distance, sec.footer_distance = Cm(1.0), Cm(1.0)
 
     def fmt(name, size, bold, italic, align, before=6, after=6, line=1.5, keep=False, base="Normal"):
@@ -1012,7 +1015,7 @@ def configure_document(doc: Document) -> None:
     for lvl, indent in ((1, 0.0), (2, 0.6), (3, 1.2)):
         st = fmt(f"toc {lvl}", BODY_PT, False, False, L, before=2, after=2, line=1.0)
         st.paragraph_format.left_indent = Cm(indent)
-        st.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        st.paragraph_format.tab_stops.add_tab_stop(Cm(17.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
 
 # ---------------------------------------------------------------------------
@@ -1102,7 +1105,7 @@ def add_review_page(doc: Document, title: str) -> None:
     for _ in range(17):
         para = doc.add_paragraph(style="Normal")
         _clear_indent(para)
-        para.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        para.paragraph_format.tab_stops.add_tab_stop(Cm(17.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
         para.add_run("	")
     for text, bold, italic in (("TP. Hồ Chí Minh, ngày ….. tháng ….. năm 2026", False, True),
                                ("Giảng viên hướng dẫn", True, False),
@@ -1329,6 +1332,9 @@ def build(template_path: str, out_path: str) -> None:
                 pf.left_indent = Cm(1.27)
                 pf.first_line_indent = Cm(-1.27)
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                pf.line_spacing = 1.0
+                pf.space_before = Pt(0)
+                pf.space_after = Pt(4)
 
     # ---- 10. Appendices (after the references) ----
     for app_path in sorted(thesis_v2.glob("phu-luc*.md")):

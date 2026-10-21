@@ -8,21 +8,29 @@ import csv
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    HAS_MATPLOTLIB = True
+except ImportError:
+    matplotlib = None
+    plt = None
+    np = None
+    HAS_MATPLOTLIB = False
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Matplotlib configuration matching mono thesis style
-plt.rcParams.update({
-    "font.family": "serif",
-    "font.serif": ["Times New Roman", "DejaVu Serif"],
-    "font.size": 10,
-    "axes.edgecolor": "black",
-    "axes.linewidth": 0.8,
-})
+# Matplotlib configuration matching mono thesis style (if available)
+if HAS_MATPLOTLIB and plt is not None:
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "DejaVu Serif"],
+        "font.size": 10,
+        "axes.edgecolor": "black",
+        "axes.linewidth": 0.8,
+    })
 
 ANALYSIS_TASKS = [f"T{i:02d}" for i in range(1, 11)]
 REJECTION_TASKS = ["R1", "R2"]
@@ -253,6 +261,10 @@ def generate_coverage_heatmap(
     out_png: Path,
 ) -> None:
     """Generate grayscale heatmap of coverage_score across T01-T10 for A, B, C, D at 200 dpi."""
+    if not HAS_MATPLOTLIB or plt is None or np is None or matplotlib is None:
+        print("Note: matplotlib/numpy not installed; skipping heatmap PNG generation.")
+        return
+
     out_png.parent.mkdir(parents=True, exist_ok=True)
     matrix = np.zeros((len(ANALYSIS_TASKS), len(ARM_KEYS)), dtype=float)
 

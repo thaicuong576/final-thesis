@@ -50,7 +50,7 @@ Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu; Ch
 
 ### 1.5. Bối cảnh thị trường và đối tượng người dùng
 
-**Quy mô thị trường và khối lượng thông tin.** Ngân hàng là nhóm niêm yết lớn và đông về số lượng. Theo Tin nhanh chứng khoán (2026), tại thời điểm 24/07/2026 có 24 ngân hàng niêm yết trên HOSE và HNX, ngoài ra ABBank, Saigonbank và PGBank giao dịch trên UPCoM và cổ phiếu PCB của PVcomBank vừa được chấp thuận đăng ký giao dịch tại sàn này. Riêng nhóm mười ngân hàng của khóa luận có tổng tài sản hợp nhất từ khoảng 13,3 triệu tỷ đồng (31/12/2024) lên khoảng 17,5 triệu tỷ đồng (30/6/2026), theo số liệu đã đối chiếu trong bộ dữ liệu của khóa luận (mục 3.2.3). Để có được bộ số liệu đó, tác giả phải đọc 101 báo cáo tài chính hợp nhất, trích 452 trang làm nguồn và đối soát 1.735 quan sát (Phụ lục B), tức một người phân tích muốn tự dựng lại cùng chuỗi số phải xử lý khối lượng thông tin tương đương, trong đó phần lớn là bản quét.
+**Quy mô thị trường và khối lượng thông tin.** Ngân hàng là nhóm niêm yết lớn và đông về số lượng. Theo Tin nhanh chứng khoán (2026), tại thời điểm 24/07/2026 có 24 ngân hàng niêm yết trên HOSE và HNX, ngoài ra ABBank, Saigonbank và PGBank giao dịch trên UPCoM và cổ phiếu PCB của PVcomBank vừa được chấp thuận đăng ký giao dịch tại sàn này. Riêng nhóm mười ngân hàng của khóa luận có tổng tài sản hợp nhất từ khoảng 13,3 triệu tỷ đồng (31/12/2024) lên khoảng 17,5 triệu tỷ đồng (30/6/2026), theo số liệu đã đối chiếu trong bộ dữ liệu của khóa luận (mục 3.2.3). Để có được bộ số liệu đó, tác giả phải đọc 101 báo cáo tài chính hợp nhất, trích 452 trang làm nguồn và đối soát 1.335 số liệu đầu vào, từ đó tính ra 400 giá trị chỉ tiêu, tổng cộng 1.735 quan sát (Phụ lục B), tức một người phân tích muốn tự dựng lại cùng chuỗi số phải xử lý khối lượng thông tin tương đương, trong đó phần lớn là bản quét.
 
 *Bảng 1.1: Một số số liệu về thị trường và khối lượng thông tin.*
 
@@ -59,7 +59,7 @@ Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu; Ch
 | Ngân hàng niêm yết trên HOSE và HNX (24/07/2026) | 24 | Tin nhanh chứng khoán (2026) |
 | Ngân hàng giao dịch trên UPCoM (24/07/2026) | ABBank, Saigonbank, PGBank; PCB vừa được chấp thuận | Tin nhanh chứng khoán (2026) |
 | Tổng tài sản mười ngân hàng của khóa luận | 13,3 triệu tỷ đồng (31/12/2024); 17,5 triệu tỷ đồng (30/6/2026) | Bộ dữ liệu của khóa luận |
-| Số liệu đầu vào phải xử lý | 101 tài liệu; 452 trang nguồn; 1.735 quan sát | Bộ dữ liệu của khóa luận |
+| Số liệu đầu vào phải xử lý | 101 tài liệu; 452 trang nguồn; 1.335 số liệu đầu vào và 400 giá trị tính lại (1.735 quan sát) | Bộ dữ liệu của khóa luận |
 | Tài khoản chứng khoán của nhà đầu tư trong nước (30/9/2026) | 14.079.655, trong đó 14.059.198 của cá nhân (khoảng 99,85%) | Báo Nhân Dân (2026), theo số liệu của VSDC |
 
 Về người dùng, số liệu của Tổng công ty Lưu ký và Bù trừ chứng khoán Việt Nam (VSDC) do Báo Nhân Dân (2026) dẫn cho biết đến 30/9/2026 nhà đầu tư trong nước có 14.079.655 tài khoản chứng khoán, trong đó 14.059.198 tài khoản của cá nhân. Tỷ trọng khoảng 99,85% là do tác giả tính trên số tài khoản chứ không phải tỷ trọng giá trị giao dịch hay sở hữu, và một người có thể mở nhiều tài khoản, nên con số này chỉ cho thấy nhà đầu tư cá nhân là nhóm đông nhất, không cho biết họ đọc báo cáo tài chính như thế nào.
@@ -252,6 +252,8 @@ Hai điểm cần lưu ý khi đọc bảng. Thứ nhất, cột "Xuất phát t
 
 Anthropic (2026), *Claude product overview and pricing*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://claude.com/pricing>.
 
+Báo Chính phủ (2026), ‘NHNN: Tốc độ tăng lãi suất đang chậm lại’, *Cổng thông tin điện tử Chính phủ*, đăng ngày 7 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://baochinhphu.vn/nhnn-toc-do-tang-lai-suat-dang-cham-lai-102261007182510571.htm>.
+
 Báo Nhân Dân (2026), ‘Kết thúc quý III/2026, Việt Nam có hơn 14 triệu tài khoản chứng khoán’, *Báo Nhân Dân điện tử*, đăng ngày 12 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://nhandan.vn/ket-thuc-quy-iii2026-viet-nam-co-hon-14-trieu-tai-khoan-chung-khoan-post994575.html>.
 
 Bloomberg (2026), *Bloomberg Terminal: Company financials*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://www.bloomberg.com/professional/solution/company-financials/>.
@@ -265,6 +267,8 @@ CFA Institute (2026b), *Introduction to financial statement analysis*, bài đ�
 Chen, Z. và cộng sự (2021), ‘FinQA: A dataset of numerical reasoning over financial data’, *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Online và Punta Cana, tr. 3697–3711.
 
 Choi, H. K., Zhu, X. và Li, S. (2025), *Debate or vote: Which yields better decisions in multi-agent large language models?*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2508.17536>.
+
+Cục Thống kê (2022), *Báo cáo tình hình kinh tế - xã hội quý IV và năm 2022*, Cục Thống kê (trước đây là Tổng cục Thống kê), truy cập ngày 21 tháng 10 năm 2026, <https://www.nso.gov.vn/du-lieu-va-so-lieu-thong-ke/2022/12/bao-cao-tinh-hinh-kinh-te-xa-hoi-quy-iv-va-nam-2022/>.
 
 De Franco, G., Kothari, S. P. và Verdi, R. S. (2011), “The benefits of financial statement comparability”, *Journal of Accounting Research*, tập 49, số 4, tr. 895–931.
 
@@ -297,6 +301,8 @@ Madaan, A. và cộng sự (2023), ‘Self-Refine: Iterative refinement with sel
 Malarkkan, A. V. và cộng sự (2026), *FinRule-Bench: A benchmark for joint reasoning over financial tables and principles*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2603.11339>.
 
 Manakul, P., Liusie, A. và Gales, M. (2023), ‘SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models’, *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Singapore, tr. 9004–9017.
+
+Ngân hàng Nhà nước Việt Nam (2023), *Quyết định số 1123/QĐ-NHNN ngày 16 tháng 6 năm 2023 điều chỉnh các mức lãi suất điều hành*, Ngân hàng Nhà nước Việt Nam, nội dung được đăng lại trên *Xây dựng chính sách*, truy cập ngày 21 tháng 10 năm 2026, <https://xaydungchinhsach.chinhphu.vn/nhnn-tiep-tuc-dieu-chinh-lai-suat-dieu-hanh-119230616150218505.htm>.
 
 Nguyễn Thị Yến (2026), ‘Trí tuệ nhân tạo tạo sinh trong lĩnh vực tài chính, ngân hàng: Cơ hội, ứng dụng, triển khai và thách thức’, *Tạp chí Ngân hàng*, đăng ngày 27 tháng 7 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://tapchinganhang.gov.vn/tri-tue-nhan-tao-tao-sinh-trong-linh-vuc-tai-chinh-ngan-hang-co-hoi-ung-dung-trien-khai-va-thach-thuc-17551.html>.
 

@@ -10,7 +10,33 @@ Dữ liệu tài chính còn nhạy với ngữ cảnh. Một giá trị chỉ c
 
 Song song, mô hình ngôn ngữ lớn mở ra khả năng hỗ trợ nhiều nhiệm vụ tài chính, với cách triển khai phụ thuộc vào yêu cầu về dữ liệu, tài nguyên và chất lượng đầu ra của từng trường hợp (Li và cộng sự, 2023). Tuy nhiên, văn bản lưu loát không đồng nghĩa với thông tin chính xác: mô hình có thể tạo ra nội dung không được dữ liệu đầu vào hỗ trợ dù vẫn mạch lạc (Ji và cộng sự, 2023). Trong phân tích tài chính, điều này biểu hiện thành sai số liệu, thông tin không có trong nguồn hoặc kết luận vượt quá bằng chứng. Do đó, ứng dụng mô hình ngôn ngữ vào phân tích tài chính không đơn thuần là bài toán tạo lập văn bản tự động, mà còn là bài toán chọn đúng thông tin, kiểm soát dữ liệu và giữ cho các phát biểu quan trọng có thể kiểm tra lại.
 
-### 1.2. Vấn đề nghiên cứu
+### 1.2. Bối cảnh thị trường và đối tượng sử dụng
+
+Nhóm mười ngân hàng niêm yết lớn nhất có tổng tài sản tại 31/12/2024 từ khoảng 697 nghìn tỷ đồng (HDB) đến khoảng 2,76 triệu tỷ đồng (BID). Mỗi quý mỗi ngân hàng công bố báo cáo tài chính hợp nhất, và riêng bộ dữ liệu của khóa luận đã gồm 101 tài liệu với 452 trang trích dẫn và 1.735 quan sát (1.335 số liệu đầu vào đọc từ báo cáo gốc và 400 giá trị chỉ tiêu tính lại). Theo Tin nhanh chứng khoán (2026), tại ngày 24/07/2026 có 24 ngân hàng niêm yết trên HOSE và HNX, ngoài ra ABBank, Saigonbank và PGBank giao dịch trên UPCoM. Về người dùng, số liệu của Tổng công ty Lưu ký và Bù trừ chứng khoán Việt Nam do Báo Nhân Dân (2026) dẫn cho biết đến 30/9/2026 nhà đầu tư trong nước có 14.079.655 tài khoản chứng khoán, trong đó 14.059.198 tài khoản của cá nhân (khoảng 99,85% theo số tài khoản, do tác giả tính; một người có thể có nhiều tài khoản nên con số chỉ cho thấy cá nhân là nhóm đông nhất).
+
+Phần lớn người dùng không đọc từng báo cáo mà đọc xu hướng và vị trí của một ngân hàng so với nhóm. Hình 1.1 cho thấy trung vị bốn chỉ tiêu của mười ngân hàng từ quý 1/2024 đến quý 2/2026, tính từ chính bộ dữ liệu của khóa luận. Trung vị tỷ lệ nợ xấu dao động từ 1,38% đến 1,87% (thấp nhất ở quý 4/2025), trung vị tỷ lệ bao phủ nợ xấu từ 74,96% đến 96,83%, trung vị ROA từ 1,51% đến 1,78% và trung vị ROE từ 17,13% đến 19,50%; khoảng giữa ngân hàng thấp nhất và cao nhất mở rộng rõ rệt từ quý 4/2025 (tỷ lệ nợ xấu cao nhất đạt 7,5% ở quý 2/2026). Chênh lệch giữa các ngân hàng lớn hơn nhiều so với biến động của trung vị, nên một nhận định chỉ đúng khi nêu rõ ngân hàng nào, kỳ nào và so với nhóm nào.
+
+![](thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
+
+Hình 1.1: Trung vị và khoảng nhỏ nhất – lớn nhất của bốn chỉ tiêu qua mười quý
+
+Bảng 1.1 mô tả ba nhóm người dùng tiềm năng.
+
+*Bảng 1.1: Ba chân dung người dùng.*
+
+| Mục | Nhà phân tích (công ty chứng khoán, quỹ) | Nhà đầu tư cá nhân, sinh viên | Cán bộ tín dụng, quản trị rủi ro |
+|---|---|---|---|
+| Mục tiêu | Viết báo cáo cập nhật kết quả quý và so sánh ngân hàng trong nhóm | Biết một ngân hàng tốt hay xấu hơn nhóm để quyết định mua, giữ hoặc học tập | Đối sánh chất lượng tài sản và sinh lời của đối tác hoặc của chính ngân hàng mình với nhóm |
+| Cách làm hiện tại | Tự nhập số từ báo cáo gốc vào bảng tính, hoặc lấy từ nền tảng dữ liệu rồi đối chiếu | Đọc tin và bản tin phân tích, tra trang dữ liệu miễn phí, đôi khi hỏi chatbot | Dùng báo cáo nội bộ và bảng tính; đọc báo cáo công bố của đối thủ |
+| Nỗi đau | Tốn thời gian đối chiếu; lệch định nghĩa chỉ tiêu giữa các nguồn | Không biết nguồn nào đáng tin; số trên các trang khác nhau | Cần số giải trình được trước cấp trên và thanh tra |
+| Cần gì ở công cụ | Số đúng, có trang gốc để trích dẫn, xuất được số liệu | Câu trả lời ngắn, dễ hiểu, nói rõ giới hạn | Truy được từng con số về báo cáo gốc, lưu vết, nêu rõ phạm vi hợp nhất |
+| Mức chấp nhận rủi ro khi dùng AI | Thấp: chỉ dùng nếu kiểm tra lại được từng số | Trung bình: chấp nhận câu trả lời nhanh nhưng cần cảnh báo rõ | Rất thấp: một số sai có hậu quả trong quyết định và giải trình |
+
+Các chân dung là giả định của tác giả dựa trên tài liệu và quan sát, chưa được kiểm chứng bằng khảo sát người dùng.
+
+Trọng tâm của khóa luận là nhóm thứ nhất và thứ ba, những người phải kiểm tra lại nguồn của từng con số trước khi dùng và chịu hậu quả nếu số sai; nhóm thứ hai có thể dùng chung kết quả nhưng không quyết định thiết kế. Đó cũng là lý do thiết kế của hệ thống ưu tiên truy nguồn từng con số và kiểm từng câu thay vì ưu tiên văn phong hay độ dài báo cáo.
+
+### 1.3. Vấn đề nghiên cứu
 Vấn đề thứ nhất là đưa dữ liệu từ trạng thái thô sang trạng thái dùng được cho phân tích. Dữ liệu đến từ báo cáo tài chính, báo cáo thường niên, dữ liệu ngành và các nguồn bên thứ ba (CFA Institute, 2026b), với cấu trúc, đơn vị và kỳ báo cáo khác nhau; nhiều báo cáo của ngân hàng Việt Nam còn là bản quét nên việc trích xuất có thể sai. Thu thập được một con số chưa đủ để coi đó là đầu vào đáng tin: dữ liệu cần được chuẩn hóa, kiểm tra và gắn với nguồn trước khi sử dụng.
 
 Vấn đề thứ hai là xác định phạm vi phân tích phù hợp với từng yêu cầu (CFA Institute, 2026a). Nếu luôn dùng mọi nhóm thông tin, chi phí xử lý tăng và báo cáo chứa nội dung thừa; nếu phạm vi quá hẹp, câu trả lời thiếu thông tin cần thiết. Bài toán vì vậy nằm ở việc xác định đúng loại thông tin cần dùng trước khi phân tích bắt đầu.
@@ -19,96 +45,9 @@ Vấn đề thứ ba là độ tin cậy của đầu ra do AI tạo ra (Ji và 
 
 Để giải quyết đồng thời bài toán phạm vi thông tin và kiểm soát chất lượng đầu ra, các kiến trúc hệ thống dựa trên mô hình ngôn ngữ hiện nay thường hướng tới việc phân rã nhiệm vụ cho nhiều tác tử (agent) chuyên biệt, kết hợp với cơ chế tự phản biện và hiệu chỉnh. Tuy nhiên, trong miền phân tích tài chính, việc phức tạp hóa kiến trúc không mặc nhiên đồng nghĩa với hiệu quả thực tiễn. Sự gia tăng về số bước điều phối và các vòng lặp kiểm duyệt kéo theo chi phí tính toán lớn, độ trễ cao và nguy cơ sai lệch thông tin qua các bước trung gian. Trong phạm vi các tài liệu tác giả khảo sát (chưa phải một tổng quan hệ thống), khoảng trống nghiên cứu là thiếu các đánh giá định lượng có kiểm soát nhằm xác định xem đến mức độ phức tạp nào thì kiến trúc đa tác tử và cơ chế phản biện thực sự mang lại giá trị gia tăng về độ chính xác lẫn độ bao phủ thông tin so với một tác tử đơn lẻ. Trong khóa luận này, “tác tử” là cách gọi chung của agent; trong ngữ cảnh nghiệp vụ của hệ thống, các tác tử chuyên trách được gọi là “chuyên viên” (chuyên viên doanh nghiệp, chuyên viên ngành), còn người dùng hệ thống được gọi là “người phân tích”.
 
-Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế nào xây dựng một hệ thống phân tích tài chính có thể xác định các thành phần phân tích cần thiết cho từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, phối hợp các thành phần phù hợp, đồng thời kiểm tra và sửa đổi kết quả trước khi tạo báo cáo cuối cùng?*
+**Cách làm và công cụ hiện có.** Người ta đang giải quyết các vấn đề trên bằng ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo tài chính dạng PDF và nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở bước đọc số. Với báo cáo dạng quét, 700 trong 885 số liệu đầu vào đã đối chiếu phải qua nhận dạng ký tự, và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.9); trường hợp STB quý 4/2025 cho thấy một con số bất thường chỉ được xác nhận hoặc bác bỏ khi mở lại hồ sơ gốc (mục 5.11). Cách thứ hai là dùng nền tảng dữ liệu tài chính và terminal. Theo tài liệu công bố của nhà cung cấp (truy cập ngày 21/10/2026, Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và xuất Excel, còn các terminal quốc tế như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi số liệu chuẩn hóa, giao diện lập trình và, ở Capital IQ Pro, liên kết từ số liệu tới tài liệu gốc. Điều khóa luận không thấy các nhà cung cấp này công bố là sự kết hợp giữa truy từng con số trong một nhận định do AI viết về đúng trang báo cáo gốc và kiểm tra tự động từng câu nhận định bằng quy tắc; các ô không xác nhận được trên trang chính thức được ghi "không rõ", không có nghĩa là công cụ không có tính năng. Cách thứ ba là hỏi chatbot AI phổ thông. Chatbot hiểu tiếng Việt và viết nhận định trôi chảy, nhưng nội dung lưu loát không đồng nghĩa với chính xác: mô hình có thể tạo nội dung không được dữ liệu hỗ trợ (Ji và cộng sự, 2023). Khi khóa luận hỏi `gpt-5.6-luna` mười câu phân tích, không công cụ và không tìm kiếm web (21/10/2026), 8 trong 19 con số mô hình nêu đúng, 10 sai, 1 không kiểm được, và không câu trả lời nào nêu nguồn kiểm được; đây là một lần chạy, một mô hình, do tác giả chấm theo quy tắc đặt trước (`experiments/e6-pure-llm`), chỉ mang tính minh họa. Như vậy, các cách làm trên chưa cho phép người dùng kiểm tra lại từng con số và từng câu nhận định về trang báo cáo gốc; đó là cầu nối sang câu hỏi nghiên cứu thứ nhất.
 
-### 1.3. Mục tiêu và câu hỏi nghiên cứu
-Mục tiêu tổng quát của khóa luận là thiết kế, triển khai và đánh giá một hệ thống hỗ trợ phân tích tài chính có khả năng lựa chọn các thành phần phân tích phù hợp với từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, đồng thời kiểm tra chất lượng đầu ra trước khi cung cấp báo cáo cho người sử dụng. Bốn mục tiêu cụ thể gồm:
-
-1. Xây dựng quy trình tiếp nhận và chuẩn hóa dữ liệu, trong đó mỗi giá trị giữ thông tin về doanh nghiệp, kỳ, chỉ tiêu, đơn vị, nguồn và trạng thái kiểm chứng.
-2. Thiết kế kiến trúc gồm các thành phần chuyên trách cho phân tích doanh nghiệp, phân tích ngành và nhóm so sánh và phân tích vĩ mô (nhánh này đã có dữ liệu vĩ mô theo quý nhưng chưa được đánh giá bằng thực nghiệm, xem mục 1.4), với bộ điều phối chỉ huy động thành phần mà câu hỏi và dữ liệu thực sự cần.
-3. Xây dựng cơ chế kiểm soát chất lượng hai lớp: những gì kiểm tra được bằng quy tắc (số liệu, tham chiếu, phạm vi, dữ liệu thiếu) được kiểm tra trước; mức độ được bằng chứng hỗ trợ và tính đầy đủ được đánh giá ở bước riêng, và chỉ phần đầu ra có vấn đề được sửa.
-4. Đánh giá các cách tổ chức hệ thống trong cùng điều kiện dữ liệu và câu hỏi, xét đồng thời chất lượng báo cáo và chi phí vận hành (thời gian, số lượt gọi mô hình, token, tỷ lệ hoàn thành).
-
-Từ các mục tiêu trên, khóa luận này tập trung giải quyết ba câu hỏi nghiên cứu:
-
-Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn?
-
-Câu hỏi nghiên cứu thứ hai. Trên cùng bộ câu hỏi, dữ liệu, mô hình và công cụ, cấu hình đa tác tử phân cấp B khác cấu hình một tác tử A như thế nào về độ chính xác của số liệu, độ phủ chỉ tiêu và tỷ lệ báo cáo hoàn thành, cũng như về thời gian, số lượt gọi mô hình và token?
-
-Câu hỏi nghiên cứu thứ ba. Trong cùng điều kiện so sánh, việc bổ sung phản biện ngữ nghĩa và tối đa hai vòng sửa đổi có mục tiêu trong C làm thay đổi chất lượng báo cáo và chi phí vận hành so với B như thế nào, khi mỗi phiên bản sau sửa đổi đều phải qua bước kiểm tra số liệu theo quy tắc lần nữa?
-
-Trong thực nghiệm, cấu hình A là một tác tử; B là hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu nhưng không có vòng phản biện; C giữ nguyên B và bổ sung phản biện ngữ nghĩa cùng tối đa hai vòng sửa đổi, mỗi phiên bản sửa đều được kiểm tra số liệu lại. Câu hỏi nghiên cứu thứ hai đối chiếu A với B, câu hỏi nghiên cứu thứ ba đối chiếu B với C, và không giả định trước cấu hình nào tốt hơn.
-
-### 1.4. Phạm vi và đóng góp của nghiên cứu
-Nghiên cứu này lấy phân tích ngân hàng niêm yết Việt Nam làm trường hợp ứng dụng. Dữ liệu gồm mười ngân hàng niêm yết có tổng tài sản lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ quý 1/2024 đến quý 2/2026, với bốn chỉ tiêu: tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA và ROE. Cả hệ thống triển khai và thực nghiệm ở Chương 5 dùng chung bộ dữ liệu này. Sản phẩm còn có thêm các chuỗi vĩ mô và ngành theo quý (mục 3.2.5); các chuỗi này không nằm trong thực nghiệm. Tên đề tài nói chung về các ngân hàng niêm yết, nhưng phạm vi thực tế hẹp hơn: mười ngân hàng, bốn chỉ tiêu về chất lượng tài sản và sinh lời, chưa có vốn, thanh khoản hay biên lãi. “Phân tích cơ bản” ở đây cũng hẹp: hệ thống thuật lại số liệu, xu hướng và vị thế so với nhóm, không giải thích nguyên nhân hay đưa ra triển vọng. Nhóm mười ngân hàng là phạm vi đối sánh có giới hạn, không đại diện thống kê cho toàn ngành; mọi thống kê nhóm nêu rõ số ngân hàng làm mẫu số. Phân tích vĩ mô chỉ được thực hiện khi bộ dữ liệu có quan sát vĩ mô đã kiểm chứng; bộ dữ liệu hiện tại chưa có nên hệ thống không tạo số liệu vĩ mô.
-
-Về chức năng, nghiên cứu tập trung vào quá trình từ dữ liệu đã kiểm tra đến báo cáo phân tích. Hệ thống không thay thế người phân tích, không tư vấn đầu tư và không đánh giá quá trình suy nghĩ nội bộ của mô hình; đối tượng đánh giá là dữ liệu được dùng, phát biểu phân tích, bằng chứng, hành động sửa đổi, báo cáo cuối cùng và giao diện mà người phân tích dùng để đặt câu hỏi, theo dõi và đọc báo cáo. Về kiến trúc, lõi phân tích được tách khỏi cách lưu trữ dữ liệu và giao diện, để việc đổi nguồn dữ liệu hay môi trường triển khai hạn chế tối đa việc sửa logic phân tích, kiểm tra và báo cáo.
-
-Công trình nghiên cứu này có ba nhóm đóng góp chính. Về ứng dụng, nghiên cứu xây dựng một sản phẩm đã triển khai, đi từ dữ liệu đã kiểm tra đến báo cáo có khả năng truy nguyên. Về thiết kế, nghiên cứu đề xuất kiến trúc kết hợp dữ liệu chuẩn hóa, lập kế hoạch theo câu hỏi, tác tử chuyên trách, kiểm tra theo quy tắc, phản biện có giới hạn và sửa đổi có mục tiêu, trong đó trọng tâm là chọn đúng thành phần và giữ khả năng kiểm tra lại, không phải số lượng tác tử. Về phân tích bài toán, nghiên cứu so sánh các công cụ phân tích tài chính hiện có theo tài liệu công bố (mục 1.6), mô tả người dùng và thị trường (mục 1.5), đối chiếu với một lần hỏi mô hình phổ thông không công cụ, và lập bảng yêu cầu truy vết từ người dùng tới thiết kế và kiểm chứng (mục 2.6). Về đánh giá, nghiên cứu so sánh kiến trúc một tác tử với các cấu hình đa tác tử trong cùng điều kiện, xét cả chất lượng lẫn chi phí, kèm một đối chiếu không dùng mô hình (cấu hình D) và phép chạy lại trên hai mô hình ngôn ngữ, và đo trực tiếp độ tin cậy của các cơ chế kiểm soát: độ nhạy của bộ kiểm tra câu theo từng loại lỗi trước và sau khi cải tiến, sự phụ thuộc của kết quả vào mô hình ngôn ngữ, khả năng chống chịu trước câu hỏi đối kháng, mức độ khó của bước số hóa từ báo cáo gốc, và tính khả thi về chi phí và điều kiện áp dụng (mục 5.15).
-
-Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu, gồm bối cảnh thị trường và người dùng, công cụ hiện có và khoảng trống; Chương 2 trình bày cơ sở lý luận, nguyên tắc thiết kế, tổng quan nghiên cứu và yêu cầu hệ thống; Chương 3 mô tả phương pháp, dữ liệu, thiết kế thực nghiệm và các thực nghiệm bổ sung; Chương 4 trình bày kiến trúc, triển khai và sản phẩm; Chương 5 trình bày kết quả và thảo luận; Chương 6 kết luận, nêu hạn chế và hướng phát triển.
-
-### 1.5. Bối cảnh thị trường và đối tượng người dùng
-
-**Quy mô thị trường và khối lượng thông tin.** Ngân hàng là nhóm niêm yết lớn và đông về số lượng. Theo Tin nhanh chứng khoán (2026), tại thời điểm 24/07/2026 có 24 ngân hàng niêm yết trên HOSE và HNX, ngoài ra ABBank, Saigonbank và PGBank giao dịch trên UPCoM và cổ phiếu PCB của PVcomBank vừa được chấp thuận đăng ký giao dịch tại sàn này. Riêng nhóm mười ngân hàng của khóa luận có tổng tài sản hợp nhất từ khoảng 13,3 triệu tỷ đồng (31/12/2024) lên khoảng 17,5 triệu tỷ đồng (30/6/2026), theo số liệu đã đối chiếu trong bộ dữ liệu của khóa luận (mục 3.2.3). Để có được bộ số liệu đó, tác giả phải đọc 101 báo cáo tài chính hợp nhất, trích 452 trang làm nguồn và đối soát 1.335 số liệu đầu vào, từ đó tính ra 400 giá trị chỉ tiêu, tổng cộng 1.735 quan sát (Phụ lục B), tức một người phân tích muốn tự dựng lại cùng chuỗi số phải xử lý khối lượng thông tin tương đương, trong đó phần lớn là bản quét.
-
-*Bảng 1.1: Một số số liệu về thị trường và khối lượng thông tin.*
-
-| Nội dung | Số liệu | Nguồn |
-|---|---|---|
-| Ngân hàng niêm yết trên HOSE và HNX (24/07/2026) | 24 | Tin nhanh chứng khoán (2026) |
-| Ngân hàng giao dịch trên UPCoM (24/07/2026) | ABBank, Saigonbank, PGBank; PCB vừa được chấp thuận | Tin nhanh chứng khoán (2026) |
-| Tổng tài sản mười ngân hàng của khóa luận | 13,3 triệu tỷ đồng (31/12/2024); 17,5 triệu tỷ đồng (30/6/2026) | Bộ dữ liệu của khóa luận |
-| Số liệu đầu vào phải xử lý | 101 tài liệu; 452 trang nguồn; 1.335 số liệu đầu vào và 400 giá trị tính lại (1.735 quan sát) | Bộ dữ liệu của khóa luận |
-| Tài khoản chứng khoán của nhà đầu tư trong nước (30/9/2026) | 14.079.655, trong đó 14.059.198 của cá nhân (khoảng 99,85%) | Báo Nhân Dân (2026), theo số liệu của VSDC |
-
-Về người dùng, số liệu của Tổng công ty Lưu ký và Bù trừ chứng khoán Việt Nam (VSDC) do Báo Nhân Dân (2026) dẫn cho biết đến 30/9/2026 nhà đầu tư trong nước có 14.079.655 tài khoản chứng khoán, trong đó 14.059.198 tài khoản của cá nhân. Tỷ trọng khoảng 99,85% là do tác giả tính trên số tài khoản chứ không phải tỷ trọng giá trị giao dịch hay sở hữu, và một người có thể mở nhiều tài khoản, nên con số này chỉ cho thấy nhà đầu tư cá nhân là nhóm đông nhất, không cho biết họ đọc báo cáo tài chính như thế nào.
-
-**Diễn biến bốn chỉ tiêu trong mười quý.** Phần lớn người dùng không đọc từng báo cáo mà đọc xu hướng và vị trí của một ngân hàng so với nhóm. Bảng 1.2 và Hình 1.1 cho thấy trung vị bốn chỉ tiêu của mười ngân hàng từ quý 1/2024 đến quý 2/2026, tính từ chính bộ dữ liệu của khóa luận. Trung vị tỷ lệ nợ xấu dao động trong khoảng 1,38% đến 1,87% và thấp nhất ở quý 4/2025, trong khi khoảng giữa ngân hàng thấp nhất và cao nhất mở rộng rõ rệt từ quý 4/2025 (đến mức 7,5% ở quý 2/2026). Trung vị tỷ lệ bao phủ nợ xấu từ 74,96% đến 96,83%. Trung vị ROA trong khoảng 1,51% đến 1,78% và trung vị ROE trong khoảng 17,13% đến 19,50%. Hàm ý cho hệ thống là chênh lệch giữa các ngân hàng lớn hơn nhiều so với biến động của trung vị, nên một nhận định chỉ đúng khi nêu rõ ngân hàng nào, kỳ nào và so với nhóm nào.
-
-*Bảng 1.2: Trung vị bốn chỉ tiêu của mười ngân hàng theo quý.*
-
-| Quý | Tỷ lệ nợ xấu nhóm 3–5 (%) | Tỷ lệ bao phủ nợ xấu (%) | ROA (%) | ROE (%) |
-|---|:---:|:---:|:---:|:---:|
-| Q1/2024 | 1,87 | 79,31 | 1,52 | 17,50 |
-| Q2/2024 | 1,60 | 89,47 | 1,56 | 17,84 |
-| Q3/2024 | 1,80 | 77,77 | 1,69 | 18,31 |
-| Q4/2024 | 1,57 | 85,08 | 1,78 | 19,16 |
-| Q1/2025 | 1,87 | 74,96 | 1,68 | 17,32 |
-| Q2/2025 | 1,79 | 82,61 | 1,70 | 18,73 |
-| Q3/2025 | 1,87 | 88,64 | 1,75 | 19,50 |
-| Q4/2025 | 1,38 | 96,83 | 1,60 | 18,26 |
-| Q1/2026 | 1,59 | 89,56 | 1,51 | 17,13 |
-| Q2/2026 | 1,64 | 88,07 | 1,57 | 17,42 |
-
-![](thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
-
-Hình 1.1: Trung vị và khoảng nhỏ nhất – lớn nhất của bốn chỉ tiêu qua mười quý
-
-**Chân dung người dùng.** Bảng 1.3 mô tả ba nhóm người dùng tiềm năng. Đây là giả định của tác giả dựa trên các tài liệu đã dẫn ở mục 1.1 và 1.2 và kinh nghiệm học tập, chưa phải kết quả điều tra; mục 1.5.1 trình bày khảo sát thăm dò dùng để kiểm lại các giả định này.
-
-*Bảng 1.3: Ba chân dung người dùng (giả định của tác giả).*
-
-| Mục | Nhà phân tích (công ty chứng khoán, quỹ) | Nhà đầu tư cá nhân, sinh viên | Cán bộ tín dụng, quản trị rủi ro |
-|---|---|---|---|
-| Mục tiêu | Viết báo cáo cập nhật kết quả kinh doanh quý và so sánh ngân hàng trong nhóm | Hiểu một ngân hàng đang tốt hay xấu hơn nhóm để quyết định mua, giữ hoặc học tập | Đối sánh chất lượng tài sản và khả năng sinh lời của đối tác hoặc của chính ngân hàng mình với nhóm |
-| Cách làm hiện tại | Tự nhập số từ báo cáo gốc vào bảng tính, hoặc lấy từ nền tảng dữ liệu rồi đối chiếu | Đọc tin, bản tin phân tích, tra trang dữ liệu miễn phí; đôi khi hỏi chatbot | Dùng báo cáo nội bộ và bảng tính; đọc báo cáo công bố của đối thủ |
-| Nỗi đau | Tốn thời gian đối chiếu và dễ lệch định nghĩa chỉ tiêu giữa nguồn | Không biết nguồn nào đáng tin; số trên các trang khác nhau | Cần số có thể giải trình được trước cấp trên và thanh tra |
-| Cần gì ở công cụ | Số đúng, có trang gốc để trích dẫn, xuất được số liệu | Câu trả lời ngắn, dễ hiểu, nói rõ giới hạn | Truy được từng con số về báo cáo gốc, lưu vết, nêu rõ phạm vi hợp nhất |
-| Mức chấp nhận rủi ro khi dùng AI | Thấp: chỉ dùng nếu mỗi số kiểm tra lại được | Trung bình: chấp nhận câu trả lời nhanh nhưng cần cảnh báo rõ | Rất thấp: một số sai có hậu quả trong quyết định và giải trình |
-
-Trọng tâm của khóa luận là nhóm thứ nhất và thứ ba, những người có yêu cầu cao nhất về truy nguồn và độ tin cậy; nhóm thứ hai có thể dùng chung kết quả nhưng không quyết định thiết kế. Đây cũng là lý do hệ thống ưu tiên truy nguồn từng con số và kiểm tra từng câu thay vì ưu tiên văn phong hay độ dài báo cáo (các yêu cầu hệ thống ở mục 2.6).
-
-#### 1.5.1. Khảo sát thăm dò
-
-[KHẢO SÁT: chờ số liệu. Phần này nêu cỡ mẫu, cách chọn mẫu thuận tiện, bảng và biểu đồ chính, những gì kết quả làm thay đổi trong chân dung người dùng và bảng yêu cầu, và hạn chế của khảo sát.]
-
-
-### 1.6. Công cụ hiện có và khoảng trống
-
-**Các công cụ người dùng đang dùng.** Bảng 1.4 so sánh các nhóm công cụ mà người phân tích và nhà đầu tư thường dùng: nền tảng dữ liệu tài chính Việt Nam trả phí và miễn phí, terminal quốc tế, chatbot AI phổ thông và bảng tính thủ công, cùng hệ thống của khóa luận. Mọi ô của các công cụ có sẵn chỉ được điền khi tác giả đã mở trang chính thức của nhà cung cấp (trang sản phẩm, bảng giá, trang hỗ trợ) ngày 21/10/2026 và thấy khẳng định trên đó; ô ghi "Không rõ" nghĩa là không tìm thấy khẳng định rõ ràng trên trang chính thức, không phải công cụ không có tính năng. Các trang đã đọc gồm Vietstock (2026), Simplize (2026), WiGroup (2026), CafeF (2026), SSI (2026), Bloomberg (2026), LSEG (2026), S&P Global Market Intelligence (2026), OpenAI (2026), Google (2026) và Anthropic (2026); đường dẫn ở phần Tài liệu tham khảo. Cột "Số liệu ngân hàng Việt Nam" chỉ ghi nhận nền tảng có số liệu hoặc bộ chỉ tiêu cho ngân hàng Việt Nam, không khẳng định phạm vi hợp nhất.
-
-*Bảng 1.4: So sánh công cụ phân tích tài chính hiện có (theo tài liệu công bố ngày 21/10/2026).*
+*Bảng 1.2: So sánh công cụ phân tích tài chính hiện có (theo tài liệu công bố ngày 21/10/2026).*
 
 | Công cụ | Truy nguồn từng số về trang gốc | Kiểm tự động câu do AI viết | Tiếng Việt | Số liệu ngân hàng Việt Nam | Tự viết nhận định | Chi phí | Tải số liệu thô |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -126,26 +65,47 @@ Trọng tâm của khóa luận là nhóm thứ nhất và thứ ba, những ng�
 | Bảng tính thủ công | Tự nhập, không có | Không | Có | Tự nhập | Không | Miễn phí đến khoảng 200.000 đồng/tháng | Có |
 | Hệ thống của khóa luận | Có | Có | Có | Có (mười ngân hàng) | Có | Miễn phí (bản trình diễn); chi phí mô hình khoảng 413 đồng/báo cáo | Một phần (tải báo cáo dạng JSON) |
 
-**Khoảng trống.** Theo các trang chính thức đã đọc, các nền tảng dữ liệu làm tốt việc chuẩn hóa báo cáo tài chính, cung cấp chuỗi số liệu nhiều năm và xuất ra Excel hoặc giao diện lập trình. Ba terminal quốc tế (Bloomberg, LSEG, S&P Capital IQ Pro) công bố khả năng đối chiếu số liệu với tài liệu gốc ở mức báo cáo hoặc dữ liệu công bố, trong đó S&P Capital IQ Pro nêu rõ việc bấm vào một điểm số liệu để xem tài liệu gốc. Các chatbot AI phổ thông mạnh ở hiểu tiếng Việt, viết văn bản phân tích và tóm tắt tài liệu. Điều tác giả không thấy công bố trên các trang đó là sự kết hợp của hai việc: truy từng con số trong một nhận định do AI viết về đúng trang báo cáo gốc, và kiểm tra tự động từng câu nhận định với số liệu bằng quy tắc cố định. Kết luận này chỉ giới hạn ở những gì được công bố trên trang chính thức vào ngày truy cập; các công cụ trả phí có thể có tính năng không được mô tả công khai.
+Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế nào xây dựng một hệ thống phân tích tài chính có thể xác định các thành phần phân tích cần thiết cho từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, phối hợp các thành phần phù hợp, đồng thời kiểm tra và sửa đổi kết quả trước khi tạo báo cáo cuối cùng?*
 
-**Thực nghiệm với mô hình ngôn ngữ phổ thông.** Để biến "nỗi đau" của người dùng thành số liệu, tác giả hỏi một mô hình phổ thông, không có công cụ, dữ liệu hay bộ kiểm chứng của hệ thống, đúng mười câu phân tích ở Bảng 3.4. Mô hình là `gpt-5.6-luna` của OpenAI, hỏi ngày 21/10/2026, không bật tìm kiếm web, mỗi câu một lần. Mỗi con số mô hình nêu được đối chiếu với bộ dữ liệu đã khóa: chấm đúng nếu giá trị đã khóa nằm trong khoảng mô hình nêu hoặc lệch không quá 5%, sai nếu ngoài khoảng đó, không kiểm được nếu nằm ngoài bộ dữ liệu (quy tắc chấm được đặt trước khi chấm, tệp `experiments/e6-pure-llm/RESULTS.md`).
+### 1.4. Mục tiêu và câu hỏi nghiên cứu
+Mục tiêu tổng quát của khóa luận là thiết kế, triển khai và đánh giá một hệ thống hỗ trợ phân tích tài chính có khả năng lựa chọn các thành phần phân tích phù hợp với từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, đồng thời kiểm tra chất lượng đầu ra trước khi cung cấp báo cáo cho người sử dụng. Bốn mục tiêu cụ thể gồm:
 
-*Bảng 1.5: Kết quả hỏi mô hình ngôn ngữ phổ thông không có công cụ (một lần chạy, một mô hình).*
+1. Xây dựng quy trình tiếp nhận và chuẩn hóa dữ liệu, trong đó mỗi giá trị giữ thông tin về doanh nghiệp, kỳ, chỉ tiêu, đơn vị, nguồn và trạng thái kiểm chứng.
+2. Thiết kế kiến trúc gồm các thành phần chuyên trách cho phân tích doanh nghiệp, phân tích ngành và nhóm so sánh và phân tích vĩ mô (nhánh này đã có dữ liệu vĩ mô theo quý nhưng chưa được đánh giá bằng thực nghiệm, xem mục 1.4), với bộ điều phối chỉ huy động thành phần mà câu hỏi và dữ liệu thực sự cần.
+3. Xây dựng cơ chế kiểm soát chất lượng hai lớp: những gì kiểm tra được bằng quy tắc (số liệu, tham chiếu, phạm vi, dữ liệu thiếu) được kiểm tra trước; mức độ được bằng chứng hỗ trợ và tính đầy đủ được đánh giá ở bước riêng, và chỉ phần đầu ra có vấn đề được sửa.
+4. Đánh giá các cách tổ chức hệ thống trong cùng điều kiện dữ liệu và câu hỏi, xét đồng thời chất lượng báo cáo và chi phí vận hành (thời gian, số lượt gọi mô hình, token, tỷ lệ hoàn thành).
 
-| Chỉ số | Kết quả |
-|---|:---:|
-| Số câu trả lời có nêu con số | 5/10 |
-| Số con số được nêu | 19 |
-| Đúng | 8 (42,1%) |
-| Sai | 10 (52,6%) |
-| Không kiểm được | 1 (5,3%) |
-| Câu xếp hạng đúng thứ hạng (T06, T07) | 0/2 |
-| Câu trả lời nêu nguồn kiểm được | 0/10 |
+Từ các mục tiêu trên, khóa luận này tập trung giải quyết ba câu hỏi nghiên cứu:
 
-Kết quả cho thấy mô hình không sai hết: một số con số khá chính xác, ví dụ ở câu xu hướng CTG mô hình nêu nợ xấu cuối năm 2024 khoảng 1,2% (bộ dữ liệu: 1,25%) và tỷ lệ bao phủ khoảng 170% (170,75%). Nhưng ở câu tra cứu T03, chỉ cần một con số,, mô hình nêu tỷ lệ bao phủ nợ xấu của HDB quý 1/2026 khoảng 70% trong khi giá trị đã khóa là 50,0%; ở câu ROE của SHB năm 2025, cả bốn con số mô hình nêu (21–24%) đều cao hơn giá trị đã khóa (16,1–19,1%) từ 4 đến 6 điểm phần trăm; ở câu hỏi ngân hàng có nợ xấu thấp nhất quý 2/2026, mô hình nêu Bac A Bank (khoảng 0,3%), một ngân hàng ngoài nhóm mười mà bộ dữ liệu không kiểm được, trong khi trong nhóm mười đó là VCB (0,61%). Điểm đáng nói nhất là người dùng không có cách nào phân biệt số đúng với số sai: không câu trả lời nào nêu tài liệu hay trang để kiểm. Đây là một lần chạy, một mô hình, không bật tìm kiếm web và do tác giả chấm, nên chỉ mang tính minh họa; một chatbot có tìm kiếm web hoặc tải tệp có thể tốt hơn. Nếu mô hình trả lời khá đúng thì lập luận vẫn giữ nguyên, vì dù đúng số, người dùng vẫn không kiểm được.
+Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn?
 
-**Tính cấp thiết.** Tóm lại, người dùng có nhiều công cụ để lấy số liệu và có chatbot để viết nhận định, nhưng chưa thấy công cụ nào công bố việc nối nhận định của AI với trang báo cáo gốc và kiểm từng câu bằng quy tắc, trong khi một lần hỏi mô hình phổ thông cho thấy hơn một nửa số được nêu sai và không có nguồn để kiểm. Bài toán của khóa luận vì vậy là thiết kế và đánh giá một hệ thống đa tác tử giữ được truy nguồn và kiểm tra từng câu, rồi hỏi cách tổ chức tác tử nào đáng chi phí nhất; đó là nội dung các câu hỏi nghiên cứu ở mục 1.3.
+Câu hỏi nghiên cứu thứ hai. Trên cùng bộ câu hỏi, dữ liệu, mô hình và công cụ, cấu hình đa tác tử phân cấp B khác cấu hình một tác tử A như thế nào về độ chính xác của số liệu, độ phủ chỉ tiêu và tỷ lệ báo cáo hoàn thành, cũng như về thời gian, số lượt gọi mô hình và token?
 
+Câu hỏi nghiên cứu thứ ba. Trong cùng điều kiện so sánh, việc bổ sung phản biện ngữ nghĩa và tối đa hai vòng sửa đổi có mục tiêu trong C làm thay đổi chất lượng báo cáo và chi phí vận hành so với B như thế nào, khi mỗi phiên bản sau sửa đổi đều phải qua bước kiểm tra số liệu theo quy tắc lần nữa?
+
+Trong thực nghiệm, cấu hình A là một tác tử; B là hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu nhưng không có vòng phản biện; C giữ nguyên B và bổ sung phản biện ngữ nghĩa cùng tối đa hai vòng sửa đổi, mỗi phiên bản sửa đều được kiểm tra số liệu lại. Câu hỏi nghiên cứu thứ hai đối chiếu A với B, câu hỏi nghiên cứu thứ ba đối chiếu B với C, và không giả định trước cấu hình nào tốt hơn.
+
+### 1.5. Phạm vi và đóng góp của nghiên cứu
+Nghiên cứu này lấy phân tích ngân hàng niêm yết Việt Nam làm trường hợp ứng dụng. Dữ liệu gồm mười ngân hàng niêm yết có tổng tài sản lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ quý 1/2024 đến quý 2/2026, với bốn chỉ tiêu: tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA và ROE. Cả hệ thống triển khai và thực nghiệm ở Chương 5 dùng chung bộ dữ liệu này. Sản phẩm còn có thêm các chuỗi vĩ mô và ngành theo quý (mục 3.2.5); các chuỗi này không nằm trong thực nghiệm. Tên đề tài nói chung về các ngân hàng niêm yết, nhưng phạm vi thực tế hẹp hơn: mười ngân hàng, bốn chỉ tiêu về chất lượng tài sản và sinh lời, chưa có vốn, thanh khoản hay biên lãi. “Phân tích cơ bản” ở đây cũng hẹp: hệ thống thuật lại số liệu, xu hướng và vị thế so với nhóm, không giải thích nguyên nhân hay đưa ra triển vọng. Nhóm mười ngân hàng là phạm vi đối sánh có giới hạn, không đại diện thống kê cho toàn ngành; mọi thống kê nhóm nêu rõ số ngân hàng làm mẫu số. Phân tích vĩ mô chỉ được thực hiện khi bộ dữ liệu có quan sát vĩ mô đã kiểm chứng; bộ dữ liệu hiện tại chưa có nên hệ thống không tạo số liệu vĩ mô.
+
+Về chức năng, nghiên cứu tập trung vào quá trình từ dữ liệu đã kiểm tra đến báo cáo phân tích. Hệ thống không thay thế người phân tích, không tư vấn đầu tư và không đánh giá quá trình suy nghĩ nội bộ của mô hình; đối tượng đánh giá là dữ liệu được dùng, phát biểu phân tích, bằng chứng, hành động sửa đổi, báo cáo cuối cùng và giao diện mà người phân tích dùng để đặt câu hỏi, theo dõi và đọc báo cáo. Về kiến trúc, lõi phân tích được tách khỏi cách lưu trữ dữ liệu và giao diện, để việc đổi nguồn dữ liệu hay môi trường triển khai hạn chế tối đa việc sửa logic phân tích, kiểm tra và báo cáo.
+
+Công trình nghiên cứu này có ba nhóm đóng góp chính. Về ứng dụng, nghiên cứu xây dựng một sản phẩm đã triển khai, đi từ dữ liệu đã kiểm tra đến báo cáo có khả năng truy nguyên. Về thiết kế, nghiên cứu đề xuất kiến trúc kết hợp dữ liệu chuẩn hóa, lập kế hoạch theo câu hỏi, tác tử chuyên trách, kiểm tra theo quy tắc, phản biện có giới hạn và sửa đổi có mục tiêu, trong đó trọng tâm là chọn đúng thành phần và giữ khả năng kiểm tra lại, không phải số lượng tác tử. Về phân tích bài toán, nghiên cứu so sánh các công cụ phân tích tài chính hiện có theo tài liệu công bố (mục 1.6), mô tả người dùng và thị trường (mục 1.5), đối chiếu với một lần hỏi mô hình phổ thông không công cụ, và lập bảng yêu cầu truy vết từ người dùng tới thiết kế và kiểm chứng (mục 2.6). Về đánh giá, nghiên cứu so sánh kiến trúc một tác tử với các cấu hình đa tác tử trong cùng điều kiện, xét cả chất lượng lẫn chi phí, kèm một đối chiếu không dùng mô hình (cấu hình D) và phép chạy lại trên hai mô hình ngôn ngữ, và đo trực tiếp độ tin cậy của các cơ chế kiểm soát: độ nhạy của bộ kiểm tra câu theo từng loại lỗi trước và sau khi cải tiến, sự phụ thuộc của kết quả vào mô hình ngôn ngữ, khả năng chống chịu trước câu hỏi đối kháng, mức độ khó của bước số hóa từ báo cáo gốc, và tính khả thi về chi phí và điều kiện áp dụng (mục 5.15).
+
+Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu bối cảnh, vấn đề, câu hỏi nghiên cứu và sơ đồ logic tổng thể; Chương 2 trình bày cơ sở lý luận, nguyên tắc thiết kế, yêu cầu hệ thống và tổng quan nghiên cứu; Chương 3 mô tả phương pháp, dữ liệu, thiết kế thực nghiệm và các thực nghiệm bổ sung; Chương 4 trình bày kiến trúc, triển khai và sản phẩm; Chương 5 trình bày kết quả, thảo luận và tính khả thi; Chương 6 kết luận, nêu hạn chế và hướng phát triển.
+
+### 1.6. Sơ đồ logic tổng thể
+
+Bảng 1.3 nối từng vấn đề ở mục 1.3 với nguyên tắc thiết kế ở mục 2.4, thành phần ở Chương 4 và phép kiểm ở Chương 5; cột cuối ghi rõ chỗ nào chưa kiểm.
+
+*Bảng 1.3: Sơ đồ logic từ vấn đề đến kiểm chứng.*
+
+| Vấn đề (mục 1.3) | Nguyên tắc (mục 2.4) | Thành phần (Chương 4) | Kiểm chứng (Chương 5) |
+|---|---|---|---|
+| Dữ liệu thô khó dùng | NT2 | Bốn trạng thái dữ liệu (3.2) | 5.10, 5.11 |
+| Phạm vi phân tích theo yêu cầu | NT1, NT3 | Lập kế hoạch (4.2.1) | 5.6 (chưa kiểm riêng: kế hoạch được cố định chung cho các cấu hình) |
+| Độ tin cậy của đầu ra | NT5, NT6 | Kiểm tra câu, phản biện (4.2.5, 4.2.7) | 5.3, 5.5, 5.7, 5.9 |
+| Chi phí phối hợp | NT3, NT4 | Điều phối, chuyên viên (4.2.4) | 5.4, 5.5, 5.8, 5.15 |
 
 ## CHƯƠNG 2. CƠ SỞ LÝ LUẬN VÀ NGUYÊN TẮC THIẾT KẾ HỆ THỐNG
 Chương này giải thích vì sao bài toán cần kiểm soát dữ liệu và phạm vi phân tích, khi nào chia việc cho nhiều tác tử có lợi, và vì sao đầu ra của mô hình ngôn ngữ cần được kiểm tra trước khi thành báo cáo. Từ đó, chương rút ra sáu nguyên tắc thiết kế cho hệ thống.
@@ -174,79 +134,45 @@ Mô hình ngôn ngữ có thể tạo ra phát biểu sai trong khi câu trả l
 Trong khuôn khổ đề tài này, hệ thống được thiết kế theo cách tiếp cận hai lớp: lớp thứ nhất kiểm tra bằng quy tắc độ chính xác số liệu, tham chiếu, phạm vi và dữ liệu thiếu; chỉ khi đạt, lớp thứ hai mới đánh giá mức độ được bằng chứng hỗ trợ, tính đầy đủ và giới hạn của suy luận. Một vấn đề được phát hiện chỉ có giá trị khi dẫn tới thay đổi cụ thể, như bổ sung bằng chứng, thu hẹp kết luận hoặc loại bỏ câu, và việc sửa nên tập trung vào đúng thành phần có lỗi. Từ đó rút ra **Nguyên tắc 5:** những gì kiểm tra được bằng dữ liệu và quy tắc phải được kiểm tra trước khi đánh giá nội dung; và **Nguyên tắc 6:** phản biện và sửa đổi có giới hạn và chỉ nhắm vào phần đầu ra có vấn đề.
 
 ### 2.4. Các nguyên tắc thiết kế rút ra cho hệ thống
-Bảng 2.1 tóm tắt sáu nguyên tắc và hàm ý của chúng với hệ thống.
+Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yêu cầu chức năng (FR) và phi chức năng (NFR) trong Bảng 2.1; mỗi yêu cầu được hiện thực ở Chương 4 và kiểm chứng ở Chương 5. Yêu cầu nào chưa được kiểm đầy đủ được ghi rõ ở cột cuối và nằm trong phần hạn chế (mục 3.4 và 5.14).
 
-*Bảng 2.1: Nguyên tắc thiết kế và hàm ý đối với hệ thống.*
+*Bảng 2.1: Nguyên tắc thiết kế, yêu cầu hệ thống và truy vết sang hiện thực, kiểm chứng.*
 
-| Cơ sở của vấn đề | Nguyên tắc thiết kế | Hàm ý đối với hệ thống |
-|---|---|---|
-| Mỗi yêu cầu cần phạm vi thông tin khác nhau | 1. Xác định phạm vi từ câu hỏi | Lập kế hoạch và kiểm tra dữ liệu có hỗ trợ hay không trước khi phân tích. |
-| Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | 2. Dữ liệu có cấu trúc, truy nguyên được | Mỗi giá trị giữ ngân hàng, kỳ, chỉ tiêu, đơn vị, phạm vi báo cáo, nguồn, vị trí trong nguồn và công thức nếu là chỉ tiêu tính ra. |
-| Không phải yêu cầu nào cũng cần mọi tác tử | 3. Chỉ huy động tác tử cần thiết | Chọn tác tử doanh nghiệp, ngành hoặc vĩ mô theo câu hỏi và dữ liệu sẵn có. |
-| Chuyên môn hóa tạo chi phí phối hợp | 4. Trách nhiệm từng tác tử rõ ràng | Bộ điều phối giao việc; mỗi tác tử chỉ trả kết quả thuộc phần việc được giao. |
-| Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | 5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | Đối chiếu số liệu, nguồn, phạm vi bằng quy tắc; sau đó mới đánh giá bằng chứng, độ đầy đủ và logic. |
-| Phản biện vô ích nếu đầu ra không đổi | 6. Sửa đổi có giới hạn, đúng chỗ | Mỗi vấn đề gắn với câu và tác tử cụ thể; chỉ sửa phần bị ảnh hưởng rồi kiểm tra lại. |
+| Cơ sở của vấn đề | Nguyên tắc | Yêu cầu | Hiện thực | Kiểm chứng |
+|---|---|---|---|---|
+| Mỗi yêu cầu cần phạm vi thông tin khác nhau | NT1. Xác định phạm vi từ câu hỏi | FR1: nhận câu hỏi tiếng Việt tự nhiên. FR3: từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | 4.2.1, 4.3 | 5.3, 5.9 (FR1 chưa thử đa dạng cách diễn đạt) |
+| Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | NT2. Dữ liệu có cấu trúc, truy nguyên được | FR2: mỗi giá trị truy được tới trang báo cáo gốc. FR5: thêm ngân hàng mới có kiểm tra. NFR1: không con số nào do mô hình tự tính | 3.2, 3.2.4, 4.2.2 | 5.3, 5.7, 5.10 (FR5 mới thử một ngân hàng mẫu) |
+| Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mỗi báo cáo chấp nhận được | 4.2.6, 4.4 | 5.6 (chưa kiểm riêng), 5.15 |
+| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ chấp nhận được | 4.2.4, 4.4 | 5.3, 5.8 (chưa có ngưỡng từ người dùng) |
+| Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | NT5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | NFR2: mọi câu qua kiểm tra quy tắc trước khi vào báo cáo | 4.2.5 | 5.7 |
+| Phản biện vô ích nếu đầu ra không đổi | NT6. Sửa đổi có giới hạn, đúng chỗ | FR6: chỉ sửa phần có vấn đề rồi kiểm tra lại | 4.2.7 | 5.5 |
 
 Các nguyên tắc này dẫn tới một quy trình bắt đầu từ câu hỏi: xác định phạm vi và kiểm tra dữ liệu, chọn tác tử, tổng hợp kết quả liên quan, đối chiếu các phát biểu với dữ liệu, rồi đánh giá nội dung và chỉ sửa phần có vấn đề. Cơ sở lý luận không cho phép khẳng định trước rằng kiến trúc đa tác tử hay cơ chế phản biện luôn tốt hơn, vì lợi ích đi kèm chi phí và phụ thuộc vào nhiệm vụ. Vì vậy, Chương 3 xây dựng phương pháp so sánh các cấu hình trong cùng điều kiện dữ liệu và câu hỏi.
 
-### 2.5. Tổng quan nghiên cứu
+### 2.5. Tổng quan nghiên cứu liên quan
 
-Mục này khảo sát các công trình gần nhất với bài toán của khóa luận: dùng mô hình ngôn ngữ lớn cho tài chính, hỏi đáp trên báo cáo tài chính, hệ thống tác tử cho tài chính và kiểm tra tính đúng của số liệu. Tác giả tìm trên arXiv, ACL Anthology, Tạp chí Ngân hàng và hệ thống tạp chí khoa học Việt Nam trực tuyến (VJOL) ngày 21/10/2026 bằng các từ khóa "large language model financial analysis", "financial statement analysis LLM", "multi-agent financial", "financial question answering benchmark", "numeric hallucination finance" và các cụm tiếng Việt tương ứng. Nội dung dưới đây dựa trên phần tóm tắt và kết luận của từng công trình, với tác giả, năm và nơi đăng được đối chiếu trên trang chính thức; đây không phải một tổng quan hệ thống.
+Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tích tài chính, hệ thống đa tác tử, và kiểm chứng đầu ra. Tác giả tìm trên arXiv, ACL Anthology, Tạp chí Ngân hàng và VJOL ngày 21/10/2026 bằng các từ khóa "large language model financial analysis", "financial statement analysis LLM", "multi-agent financial", "financial question answering benchmark", "numeric hallucination finance" và các cụm tiếng Việt tương ứng; nội dung dưới đây dựa trên phần tóm tắt và kết luận của từng công trình, không phải một tổng quan hệ thống.
 
-**Mô hình ngôn ngữ chuyên cho tài chính.** BloombergGPT là mô hình 50 tỷ tham số huấn luyện trên ngữ liệu kết hợp dữ liệu tài chính của Bloomberg và dữ liệu phổ thông, đạt kết quả tốt hơn các mô hình cùng cỡ trên các tác vụ xử lý ngôn ngữ tài chính (Wu và cộng sự, 2023). FinGPT đề xuất khung mã nguồn mở thu thập dữ liệu tài chính và tinh chỉnh mô hình bằng LoRA với chi phí thấp (Yang, Liu và Wang, 2023). Hai công trình mạnh ở năng lực ngôn ngữ chuyên ngành và khả năng tái lập, nhưng để mô hình tự sinh nội dung, không tách phép tính ra khỏi mô hình và không kiểm tra từng câu đầu ra bằng quy tắc, nên không giải quyết trực tiếp rủi ro sai số liệu mà mục 1.2 nêu.
+**(a) LLM trong phân tích tài chính.** Li và cộng sự (2023) khảo sát việc dùng mô hình ngôn ngữ lớn trong tài chính. BloombergGPT là mô hình 50 tỷ tham số huấn luyện trên ngữ liệu kết hợp dữ liệu tài chính và phổ thông (Wu và cộng sự, 2023); FinGPT đề xuất khung mã nguồn mở tinh chỉnh bằng LoRA (Yang, Liu và Wang, 2023). Các bộ dữ liệu FinQA (Chen và cộng sự, 2021) và TAT-QA (Zhu và cộng sự, 2021) đo suy luận số học trên bảng và văn bản tài chính; FinanceBench cho thấy các cấu hình mô hình được thử có điểm yếu đáng kể, kể cả ảo giác (Islam và cộng sự, 2023); FinRule-Bench ghi nhận mô hình kiểm tra tốt một quy tắc kế toán nhưng suy giảm mạnh khi phải chẩn đoán đồng thời nhiều vi phạm (Malarkkan và cộng sự, 2026). Các công trình này đo độ chính xác từng câu trả lời; chúng không xây dựng hệ thống tạo ra báo cáo nhiều khối kèm trang nguồn và không so sánh chi phí giữa các cách tổ chức tác tử.
 
-**Hỏi đáp và phân tích báo cáo tài chính.** FinQA là bộ dữ liệu hỏi đáp về suy luận số học trên báo cáo tài chính, mỗi câu kèm chương trình tính chuẩn (Chen và cộng sự, 2021). TAT-QA đòi hỏi suy luận kết hợp giữa bảng và văn bản trong báo cáo tài chính (Zhu và cộng sự, 2021). FinanceBench gồm các câu hỏi mở về công ty đại chúng kèm bằng chứng, và cho thấy các cấu hình mô hình ngôn ngữ được thử có điểm yếu đáng kể, kể cả ảo giác (Islam và cộng sự, 2023). FinRule-Bench kiểm tra khả năng của mô hình khi đối chiếu bảng báo cáo tài chính với các nguyên tắc kế toán, và ghi nhận kết quả tốt ở việc kiểm tra một quy tắc nhưng suy giảm mạnh khi phải chẩn đoán đồng thời nhiều vi phạm (Malarkkan và cộng sự, 2026). Các công trình này đo độ chính xác của từng câu trả lời hoặc từng lần kiểm tra; chúng không xây dựng một hệ thống tạo ra báo cáo nhiều khối kèm trang nguồn và không so sánh chi phí giữa các cách tổ chức tác tử. Kết quả của FinanceBench và FinRule-Bench là lý do để khóa luận không để mô hình tự tính và tự kiểm tra, mà giao hai việc này cho mã nguồn và quy tắc cố định.
+**(b) Hệ thống đa tác tử.** Ngoài tài chính, MetaGPT và ChatDev chia việc phát triển phần mềm cho các vai (Hong và cộng sự, 2024; Qian và cộng sự, 2024), MultiAgentBench coi chất lượng phối hợp là một khía cạnh đánh giá riêng (Zhu và cộng sự, 2025), và các nghiên cứu về tranh luận đa tác tử cho thấy giao tiếp nhiều hơn chưa chắc tốt hơn (Li và cộng sự, 2024; Choi, Zhu và Li, 2025; mục 2.2). Trong tài chính, FinRobot là nền tảng mã nguồn mở nhiều tác tử bốn tầng (Yang và cộng sự, 2024) và TradingAgents mô phỏng một tổ chức giao dịch với cơ chế tranh luận để ra quyết định giao dịch (Xiao và cộng sự, 2024). Theo phần tóm tắt đã đọc, hai công trình tài chính này không mô tả việc bắt buộc mọi số liệu do mã tính kèm nguồn trang, kiểm từng câu bằng quy tắc cố định hay so sánh có kiểm soát với một tác tử đơn.
 
-**Hệ thống tác tử cho tài chính.** FinRobot là nền tảng mã nguồn mở nhiều tác tử gồm bốn tầng, áp dụng chuỗi tư duy tài chính để chia các bài toán thành các bước (Yang và cộng sự, 2024). TradingAgents mô phỏng một tổ chức giao dịch với các tác tử phân tích cơ bản, kỹ thuật và cảm xúc cùng cơ chế tranh luận để đưa ra quyết định giao dịch (Xiao và cộng sự, 2024). Hai công trình gần với khóa luận ở việc chia vai cho nhiều tác tử, nhưng nhắm tới nền tảng chung hoặc quyết định giao dịch; theo phần tóm tắt, không thấy mô tả việc bắt buộc mọi số liệu do mã nguồn tính kèm nguồn trang, kiểm tra từng câu bằng quy tắc cố định, hay so sánh có kiểm soát với một tác tử đơn lẻ.
+**(c) Kiểm chứng đầu ra.** SelfCheckGPT dùng sự thiếu nhất quán giữa các lần phản hồi để phát hiện phát biểu không có căn cứ (Manakul, Liusie và Gales, 2023), Chain-of-Verification yêu cầu mô hình tự lập câu hỏi kiểm chứng (Dhuliawala và cộng sự, 2024), Self-Refine lặp tạo, nhận xét và sửa (Madaan và cộng sự, 2023), còn Liang và cộng sự (2024) chỉ ra mô hình dễ bảo thủ với nhận định ban đầu (mục 2.3). Đây đều là kiểm chứng do chính mô hình thực hiện; khóa luận bổ sung lớp kiểm tra bằng quy tắc cố định trước, rồi mới phản biện.
 
-**Trong nước.** Tác giả tìm thấy các bài khảo sát về ứng dụng mô hình ngôn ngữ lớn trong ngân hàng. Nguyễn Văn Thủy (2024) tổng quan nền tảng, ứng dụng tiềm năng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, trong đó có nguy cơ thông tin sai lệch và bảo mật. Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng và đề xuất kết hợp truy xuất thông tin với giám sát của con người. Cả hai là bài tổng quan và khuyến nghị chính sách, không xây dựng hay đo lường một hệ thống cụ thể. Trong phạm vi tác giả khảo sát (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; các từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử", "kiểm tra số liệu báo cáo tài chính", "ngân hàng Việt Nam"), chưa thấy công trình trong nước xây dựng và đánh giá một hệ thống đa tác tử phân tích báo cáo tài chính ngân hàng niêm yết.
+**Trong nước.** Nguyễn Văn Thủy (2024) tổng quan ứng dụng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, và Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng; cả hai là bài tổng quan và khuyến nghị, không xây dựng hay đo một hệ thống cụ thể. Trong phạm vi tác giả khảo sát (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; các từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử", "kiểm tra số liệu báo cáo tài chính", "ngân hàng Việt Nam"), chưa thấy công trình tương đương.
 
 *Bảng 2.2: So sánh các công trình liên quan và khóa luận.*
 
-| Công trình | Bài toán | Kiểm số liệu bằng quy tắc | Truy nguồn | Đánh giá chi phí |
-|---|---|:---:|:---:|:---:|
-| Wu và cộng sự (2023) | Mô hình ngôn ngữ chuyên cho tài chính | Không | Không | Không áp dụng |
-| Yang, Liu và Wang (2023) | Khung tinh chỉnh mô hình tài chính mã nguồn mở | Không | Không | Không áp dụng |
-| Chen và cộng sự (2021); Zhu và cộng sự (2021) | Bộ dữ liệu hỏi đáp số học trên báo cáo tài chính | Không áp dụng | Bằng chứng trong văn bản | Không áp dụng |
-| Islam và cộng sự (2023) | Bộ dữ liệu hỏi đáp tài chính mở kèm bằng chứng | Không áp dụng | Bằng chứng kèm câu hỏi | Không rõ |
-| Malarkkan và cộng sự (2026) | Kiểm tra báo cáo tài chính theo quy tắc kế toán | Có (quy tắc kế toán) | Không rõ | Không rõ |
-| Yang và cộng sự (2024) | Nền tảng đa tác tử cho tài chính | Không rõ | Không rõ | Không rõ |
-| Xiao và cộng sự (2024) | Đa tác tử ra quyết định giao dịch | Không rõ | Không rõ | Không rõ |
-| Nguyễn Văn Thủy (2024); Nguyễn Thị Yến (2026) | Khảo sát ứng dụng trong ngân hàng Việt Nam | Không áp dụng | Không áp dụng | Không áp dụng |
-| Khóa luận này | Báo cáo phân tích mười ngân hàng niêm yết | Có (từng câu) | Có (từng số, tới trang gốc) | Có (token, thời gian) |
+| Công trình | Bài toán | Kiểm số liệu bằng quy tắc | Truy nguồn |
+|---|---|:---:|:---:|
+| Wu và cộng sự (2023); Yang, Liu và Wang (2023) | Mô hình ngôn ngữ chuyên cho tài chính | Không | Không |
+| Chen và cộng sự (2021); Zhu và cộng sự (2021); Islam và cộng sự (2023) | Bộ dữ liệu hỏi đáp tài chính | Không áp dụng | Bằng chứng kèm câu hỏi |
+| Malarkkan và cộng sự (2026) | Kiểm tra báo cáo theo quy tắc kế toán | Có (quy tắc kế toán) | Không rõ |
+| Yang và cộng sự (2024); Xiao và cộng sự (2024) | Đa tác tử cho tài chính | Không rõ | Không rõ |
+| Nguyễn Văn Thủy (2024); Nguyễn Thị Yến (2026) | Khảo sát ứng dụng trong ngân hàng Việt Nam | Không áp dụng | Không áp dụng |
+| Khóa luận này | Báo cáo phân tích mười ngân hàng niêm yết | Có (từng câu) | Có (từng số tới trang gốc) |
 
-Bảng 2.2 ghi "Không rõ" khi phần tóm tắt và kết luận đã đọc không cho biết, và "Không áp dụng" khi tiêu chí không thuộc loại công trình đó. Khác biệt của khóa luận nằm ở sự kết hợp bốn yếu tố trong cùng một hệ thống: số liệu do mã nguồn tính, từng con số truy được về trang báo cáo gốc, từng câu bị kiểm tra bằng quy tắc, và so sánh có kiểm soát các cấu hình tác tử về cả chất lượng lẫn chi phí. Tuyên bố này giới hạn ở những công trình đã khảo sát và ở những gì phần tóm tắt cho biết.
-
-### 2.6. Yêu cầu đối với hệ thống
-
-Từ khoảng trống ở mục 1.6, chân dung người dùng ở mục 1.5 và sáu nguyên tắc ở mục 2.4, khóa luận đặt ra năm yêu cầu chức năng (FR) và bốn yêu cầu phi chức năng (NFR). Bảng 2.3 nối từng yêu cầu với nguồn gốc của nó, thành phần thiết kế ở Chương 4 và phép kiểm ở Chương 5, đồng thời ghi rõ mức độ đã được kiểm. Bảng này cũng là sợi chỉ nối các chương: mỗi yêu cầu xuất hiện lại ở kết luận (mục 6.1) hoặc, nếu chưa được kiểm, ở phần hạn chế (mục 6.3).
-
-*Bảng 2.3: Yêu cầu chức năng, phi chức năng và truy vết sang thiết kế, kiểm chứng.*
-
-| Mã | Yêu cầu | Xuất phát từ | Thành phần (Chương 4) | Kiểm chứng (Chương 5) | Mức độ kiểm |
-|---|---|---|---|---|---|
-| FR1 | Nhận câu hỏi tiếng Việt tự nhiên | Chân dung người dùng (Bảng 1.3); khảo sát (1.5.1) | 4.2.1 | 5.2, 5.3, 5.9 | Một phần: mười hai câu của Bảng 3.4, chưa thử đa dạng cách diễn đạt |
-| FR2 | Mỗi con số truy được tới trang báo cáo gốc | Nguyên tắc 2; khoảng trống ở 1.6; khảo sát (1.5.1) | 3.2, 4.2.2 | 5.3, 5.10 | Đã kiểm: 100% số được nêu truy được; số hóa đúng khoảng 93–96% |
-| FR3 | Từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | Khoảng trống ở 1.6 | 4.2.1, 4.3 | 5.3, 5.9 | Đã kiểm trên tập câu đã thử (R1, R2, mười lăm câu đối kháng) |
-| FR4 | Báo cáo đổi hình dạng theo dạng câu hỏi | Chân dung người dùng (Bảng 1.3) | 4.2.6 | 5.6 | Một phần: có số liệu quan sát (xem dưới Bảng 2.3), chưa có thực nghiệm riêng về tính thích ứng |
-| FR5 | Thêm ngân hàng mới có kiểm tra | Chân dung người dùng (nhóm cán bộ đối sánh, Bảng 1.3); khảo sát (1.5.1) | 3.2.4, Phụ lục A.2 | 5.1, 5.10 | Một phần: một ngân hàng mẫu (VIB), chưa đo tỷ lệ chấp nhận trên nhiều ngân hàng |
-| NFR1 | Không con số nào do mô hình tự tính | Nguyên tắc 2 và 5; khoảng trống ở 1.6 | 3.2.2, 4.2.2 | 5.3, 5.7 | Đã kiểm: 100% số khớp ở bốn cấu hình và hai mô hình; khớp tên chỉ tiêu được kiểm bằng quy tắc đã đo ở 5.7 |
-| NFR2 | Mỗi câu được kiểm tra theo quy tắc | Nguyên tắc 5 | 4.2.5 | 5.7 | Đã kiểm bằng đột biến; bắt 99,2% sau khi thêm quy tắc (loại lỗi yếu nhất trước đó là 79,2%) |
-| NFR3 | Độ trễ chấp nhận được | Chân dung người dùng; khảo sát (1.5.1) | 4.4 | 5.3, 5.8 | Đã đo (17,5 đến 86,1 giây mỗi lượt tùy cấu hình và mô hình); chưa có ngưỡng chấp nhận từ người dùng |
-| NFR4 | Chi phí mỗi báo cáo chấp nhận được | Tính khả thi (mục 5.15) | 4.4 | 5.3, 5.15 | Đã đo token; quy ra tiền ở 5.15 (từ 76 đến 1.220 đồng mỗi báo cáo) |
-
-Hai điểm cần lưu ý khi đọc bảng. Thứ nhất, cột "Xuất phát từ" chỉ nêu những căn cứ có trong khóa luận: chân dung người dùng là giả định của tác giả và chỉ trở thành căn cứ vững hơn khi khảo sát ở mục 1.5.1 xác nhận. Thứ hai, FR4 chưa có thực nghiệm riêng, nhưng nhật ký của mười lượt phân tích ở cấu hình B cho thấy hệ thống chỉ huy động đúng phần việc câu hỏi cần (Bảng 2.4). Một quy trình cố định luôn gọi cả chuyên viên doanh nghiệp, chuyên viên ngành và đủ ba công cụ sẽ cần 20 lượt giao việc và 30 lần gọi công cụ cho mười câu; cấu hình B chỉ dùng 15 lượt giao việc (ít hơn 25%) và 18 lần gọi công cụ (ít hơn 40%). Đây là phép so với một quy trình cố định giả định, không phải số đo của một cấu hình đã chạy, nên chỉ có giá trị minh họa.
-
-*Bảng 2.4: Việc được huy động theo dạng câu hỏi (cấu hình B, thực nghiệm chính).*
-
-| Dạng câu hỏi | Câu | Công cụ gọi | Chuyên viên được giao việc |
-|---|---|:---:|---|
-| Tra cứu | T03 | 1 | Doanh nghiệp |
-| Xếp hạng | T06, T07 | 1 | Ngành |
-| So sánh trực diện | T09, T10 | 2 và 1 | Doanh nghiệp |
-| Xu hướng | T04, T05, T08 | 2 | Doanh nghiệp và ngành |
-| Hồ sơ doanh nghiệp | T01, T02 | 3 | Doanh nghiệp và ngành |
-
+"Không rõ" nghĩa là phần tóm tắt và kết luận đã đọc không cho biết. Khác biệt của khóa luận nằm ở sự kết hợp bốn yếu tố trong một hệ thống: số liệu do mã tính, từng con số truy được về trang báo cáo gốc, từng câu bị kiểm bằng quy tắc, và so sánh có kiểm soát các cấu hình tác tử về cả chất lượng lẫn chi phí. Tuyên bố này giới hạn ở những công trình đã khảo sát.
 
 ## TÀI LIỆU THAM KHẢO
 

@@ -1,6 +1,19 @@
 # CHƯƠNG 4. THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
-Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12.
+Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12..
+
+Bảng 4.1 giải thích các thuật ngữ do khóa luận đặt, được dùng xuyên suốt từ đây.
+
+*Bảng 4.1: Thuật ngữ dùng trong hệ thống.*
+
+| Thuật ngữ | Nghĩa trong khóa luận |
+|---|---|
+| Dữ kiện | Một giá trị đã được chương trình tính hoặc trích, kèm ngân hàng, kỳ, chỉ tiêu, đơn vị, nguồn và công thức; câu nhận định chỉ được nêu số bằng cách trích mã dữ kiện |
+| Chuyên viên | Tác tử chuyên trách viết nhận định: chuyên viên doanh nghiệp (về ngân hàng mục tiêu), chuyên viên ngành (về vị thế trong nhóm), chuyên viên vĩ mô |
+| Điều phối viên | Tác tử xác định dạng câu hỏi, giao việc cho chuyên viên, tổng hợp các câu đã qua kiểm tra thành báo cáo |
+| Khóa kế hoạch | Kế hoạch phân tích (ngân hàng, kỳ, công cụ, chỉ tiêu) được lập và đóng băng trước khi truy xuất dữ liệu, để mọi bước sau dùng cùng một phạm vi |
+| Bộ kiểm chứng | Bộ quy tắc cố định, không dùng mô hình, kiểm từng câu nhận định với dữ kiện được trích (Bảng 4.3) |
+| Dữ liệu khóa | Bộ dữ liệu vận hành được cố định bằng mã băm SHA-256 và dùng chung để chấm và so sánh các cấu hình |
 
 ## 4.1. Kiến trúc phân tầng
 
@@ -77,9 +90,9 @@ Từ đó, câu hỏi được xếp vào một trong năm dạng: **tra cứu**
 
 ### 4.2.2. Công cụ tính toán và dữ kiện
 
-Mọi phép tính do chương trình thực hiện bằng công thức cố định. Các công cụ gồm: tra cứu giá trị; vị thế so với nhóm (trung vị, thứ hạng, chênh lệch so với trung vị); xếp hạng; xu hướng (biến động qua các quý của ngân hàng và của trung vị nhóm); so sánh trực diện (chênh lệch từng chỉ tiêu, số chỉ tiêu dẫn trước); và phân rã chỉ tiêu (ví dụ ROE chia ROA cho biết mức đòn bẩy). Kết quả là các **dữ kiện** nguyên tử (Bảng 4.1), mỗi dữ kiện mang mã riêng, phiên bản công thức và mã các quan sát đầu vào, nên truy ngược được tới dòng trong báo cáo tài chính gốc. Công cụ cũng chuẩn bị sẵn dữ liệu cho biểu đồ.
+Mọi phép tính do chương trình thực hiện bằng công thức cố định. Các công cụ gồm: tra cứu giá trị; vị thế so với nhóm (trung vị, thứ hạng, chênh lệch so với trung vị); xếp hạng; xu hướng (biến động qua các quý của ngân hàng và của trung vị nhóm); so sánh trực diện (chênh lệch từng chỉ tiêu, số chỉ tiêu dẫn trước); và phân rã chỉ tiêu (ví dụ ROE chia ROA cho biết mức đòn bẩy). Kết quả là các **dữ kiện** nguyên tử (Bảng 4.2), mỗi dữ kiện mang mã riêng, phiên bản công thức và mã các quan sát đầu vào, nên truy ngược được tới dòng trong báo cáo tài chính gốc. Công cụ cũng chuẩn bị sẵn dữ liệu cho biểu đồ.
 
-*Bảng 4.1: Các loại dữ kiện do chương trình tính.*
+*Bảng 4.2: Các loại dữ kiện do chương trình tính.*
 
 | Loại dữ kiện | Ý nghĩa |
 |---|---|
@@ -108,9 +121,9 @@ Do các chỉ tiêu vĩ mô và toàn ngành có độ phủ dữ liệu không 
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
-Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.2 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.2 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
+Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
 
-*Bảng 4.2: Các quy tắc kiểm tra câu.*
+*Bảng 4.3: Các quy tắc kiểm tra câu.*
 
 | Quy tắc | Câu bị loại khi |
 |---|---|

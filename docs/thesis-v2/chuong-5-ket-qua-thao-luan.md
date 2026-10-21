@@ -120,11 +120,17 @@ Kết quả này được xác nhận khi chạy lại trên `gpt-5.6-luna` (m�
 
 **Trả lời câu hỏi nghiên cứu thứ ba:** ở cả hai mô hình, phản biện và sửa đổi làm chi phí tăng khoảng ba đến bốn lần so với B, không cải thiện độ chính xác hay độ phủ đo được, làm giảm tỷ lệ hoàn thành trọn vẹn và làm báo cáo nêu nhiều phát hiện liên tầng hơn. Bộ phản biện hiện tại hoạt động với tiêu chuẩn kiểm duyệt rất khắt khe: nó phát hiện đúng những chỗ báo cáo chưa đầy đủ, nhưng cơ chế sửa câu đơn lẻ chưa đủ để đáp ứng yêu cầu ở mức cả báo cáo, và những gì sửa không được thì bị loại bỏ.
 
-## 5.6. Phân tích theo dạng câu hỏi và cơ chế kiểm tra câu
+## 5.6. Phân tích theo dạng câu hỏi, cơ chế kiểm tra câu và chấm mù thăm dò
 
 Báo cáo thay đổi hình dạng theo dạng câu hỏi: câu tra cứu nhận thẻ trả lời một khối; hồ sơ doanh nghiệp tạo báo cáo dài nhất (5–7 khối, trung bình 5,8) với bản đồ nhiệt thứ hạng, biểu đồ tương quan và khối lưu ý; xếp hạng, xu hướng và so sánh trực diện tạo báo cáo 2–4 khối. Yêu cầu về báo cáo thích ứng theo câu hỏi thay vì một khuôn cố định vì vậy được đáp ứng.
 
 Trên toàn thực nghiệm, 39 câu bị loại. Lý do phổ biến nhất là còn vấn đề phản biện chưa giải quyết (12 câu, chỉ ở C), chiều xu hướng không khớp ngưỡng đi ngang (11), thứ hạng không khớp (6) và nêu xu hướng khi không trích dữ kiện thay đổi (6); chỉ 2 câu bị loại vì con số không khớp. Sáu báo cáo dùng bố cục dựng sẵn thay vì bố cục do mô hình đề xuất; câu xu hướng của SHB (T05) rơi vào trường hợp này ở cả ba cấu hình vì mô hình đặt biểu đồ vào trong khối mục, trái với đặc tả báo cáo. Câu hỏi T08 (đánh đổi của VPB qua năm 2025 so với nhóm) có độ phủ thấp ở cả ba cấu hình (0,13–0,38), vì hệ thống chỉ hỗ trợ xu hướng nhiều kỳ cho riêng một ngân hàng, chưa hỗ trợ so sánh nhóm qua nhiều kỳ; báo cáo nêu rõ giới hạn này thay vì tự suy ra số liệu nhóm.
+
+Dữ liệu nhật ký của mười lượt phân tích ở cấu hình B cho thấy lượng việc được huy động thay đổi theo dạng câu hỏi (Bảng 2.4 ở mục 2.6): câu tra cứu và câu xếp hạng chỉ gọi một công cụ và một chuyên viên, câu xu hướng gọi hai công cụ và cả chuyên viên doanh nghiệp lẫn chuyên viên ngành, còn hồ sơ doanh nghiệp gọi ba công cụ. So với một quy trình cố định luôn gọi cả hai chuyên viên và ba công cụ (20 lượt giao việc và 30 lần gọi công cụ cho mười câu), cấu hình B dùng 15 lượt giao việc và 18 lần gọi công cụ. Đây là phép so với một quy trình giả định, không phải một thực nghiệm riêng về tính thích ứng, nên chỉ cho thấy hệ thống chỉ huy động phần việc câu hỏi cần chứ chưa chứng minh phần việc đó tạo ra báo cáo tốt hơn.
+
+**Chấm mù thăm dò.** Các chỉ số tự động không đo độ trôi chảy hay mức dễ đọc, nên tác giả chuẩn bị một phép chấm mù ở quy mô thăm dò: năm câu đại diện (T01, T04, T06, T08, T09), mỗi câu có đầu ra của bốn cấu hình A, B, C và D chạy trên `gpt-5.6-luna` (20 bản), che nhãn cấu hình và trộn thứ tự; người chấm cho điểm 1–5 ở ba tiêu chí đúng, đủ và dễ đọc.
+
+[CHẤM MÙ: chờ kết quả từ người chấm. Điền số người chấm, điểm trung bình theo cấu hình và tỷ lệ cặp chấm trùng điểm; ghi rõ "n = số người chấm, thăm dò, không có ý nghĩa thống kê".]
 
 ## 5.7. Kiểm định độ nhạy của bộ kiểm chứng câu nhận định
 
@@ -264,17 +270,21 @@ Về quy trình, người phát triển đồng thời là người thiết kế
 
 ### 5.15.1. Chi phí vận hành
 
-Chi phí mô hình của một báo cáo được tính từ số token đầu vào và đầu ra thực tế của mười lượt phân tích ở thực nghiệm chính (mô hình DeepSeek V4 Pro), nhân với đơn giá công bố của nhà cung cấp. Theo trang bảng giá của DeepSeek (DeepSeek, 2026), `deepseek-v4-pro` tính 1,32 USD cho một triệu token đầu vào (không trúng bộ nhớ đệm) và 3,96 USD cho một triệu token đầu ra trong giờ cao điểm, bằng một nửa ngoài giờ cao điểm. Để ước lượng an toàn, Bảng 5.10 dùng đơn giá giờ cao điểm và không tính bộ nhớ đệm, tức là cận trên. Tỷ giá quy đổi là 25.201 đồng một USD, tỷ giá trung tâm Ngân hàng Nhà nước công bố ngày 30/6/2026 (số liệu này nằm trong bộ dữ liệu vĩ mô của sản phẩm ở trạng thái chờ kiểm định, nên chỉ dùng để quy đổi quy mô chi phí).
+Chi phí mô hình của một báo cáo được tính từ số token đầu vào và đầu ra thực tế của mười lượt phân tích ở thực nghiệm chính (mô hình DeepSeek V4 Pro), nhân với đơn giá công bố của nhà cung cấp. Theo trang bảng giá của DeepSeek (DeepSeek, 2026), `deepseek-v4-pro` tính 1,32 USD cho một triệu token đầu vào (không trúng bộ nhớ đệm) và 3,96 USD cho một triệu token đầu ra trong giờ cao điểm, bằng một nửa ngoài giờ cao điểm. Để ước lượng an toàn, Bảng 5.10 dùng đơn giá giờ cao điểm và không tính bộ nhớ đệm, tức là cận trên. Với `gpt-5.6-luna`, trang bảng giá của OpenAI (OpenAI, 2026) ghi 0,20 USD cho một triệu token đầu vào và 1,20 USD cho một triệu token đầu ra ở mức Standard. Tỷ giá quy đổi là 25.201 đồng một USD, tỷ giá trung tâm Ngân hàng Nhà nước công bố ngày 30/6/2026 (số liệu này nằm trong bộ dữ liệu vĩ mô của sản phẩm ở trạng thái chờ kiểm định, nên chỉ dùng để quy đổi quy mô chi phí).
 
-*Bảng 5.10: Chi phí mô hình ước tính cho một báo cáo (mô hình DeepSeek V4 Pro, giờ cao điểm).*
+*Bảng 5.10: Chi phí mô hình ước tính cho một báo cáo (mười câu phân tích).*
 
-| Cấu hình | Token đầu vào | Token đầu ra | Chi phí (USD) | Chi phí (đồng) |
-|---|:---:|:---:|:---:|:---:|
-| A – một tác tử | 3.915 | 626 | 0,0077 | 193 |
-| B – phân cấp | 8.644 | 1.258 | 0,0164 | 413 |
-| C – phân cấp có phản biện | 28.206 | 2.822 | 0,0484 | 1.220 |
+| Mô hình | Cấu hình | Token đầu vào | Token đầu ra | Chi phí (USD) | Chi phí (đồng) |
+|---|---|:---:|:---:|:---:|:---:|
+| DeepSeek V4 Pro | A – một tác tử | 3.915 | 626 | 0,0077 | 193 |
+| DeepSeek V4 Pro | B – phân cấp | 8.644 | 1.258 | 0,0164 | 413 |
+| DeepSeek V4 Pro | C – phân cấp có phản biện | 28.206 | 2.822 | 0,0484 | 1.220 |
+| `gpt-5.6-luna` | A – một tác tử | 4.389 | 1.764 | 0,0030 | 76 |
+| `gpt-5.6-luna` | B – phân cấp | 9.258 | 2.895 | 0,0053 | 134 |
+| `gpt-5.6-luna` | C – phân cấp có phản biện | 38.284 | 9.254 | 0,0188 | 473 |
+| Không gọi mô hình | D – chỉ dùng câu mẫu | 0 | 0 | 0 | 0 |
 
-Chi phí mô hình của một báo cáo vì vậy chỉ ở mức vài trăm đến hơn một nghìn đồng, và chênh lệch giữa các cấu hình nhỏ so với chi phí con người; khác biệt chính là thời gian chờ (từ khoảng 21 giây ở A đến khoảng 75 giây ở C trên mười lượt phân tích). Chi phí lớn nằm ở chuẩn bị dữ liệu: mỗi quý mới cần đọc báo cáo hợp nhất của mười ngân hàng, tức khoảng 130 số đầu vào (1.335 số đầu vào chia cho mười quý), trong đó phần lớn là bản quét phải đối soát từng ô (mục 5.10). Khóa luận chưa đo số giờ công cho việc này nên không quy ra tiền.
+Chi phí mô hình của một báo cáo vì vậy chỉ ở mức từ vài chục đến hơn một nghìn đồng, và chênh lệch giữa các cấu hình nhỏ so với chi phí con người; khác biệt chính là thời gian chờ (từ khoảng 21 giây ở A đến khoảng 75 giây ở C trên mười lượt phân tích của DeepSeek V4 Pro; từ 20 đến 103 giây ở `gpt-5.6-luna`). Chi phí lớn nằm ở chuẩn bị dữ liệu: mỗi quý mới cần đọc báo cáo hợp nhất của mười ngân hàng, tức khoảng 130 số đầu vào (1.335 số đầu vào chia cho mười quý), trong đó phần lớn là bản quét phải đối soát từng ô (mục 5.10). Khóa luận chưa đo số giờ công cho việc này nên không quy ra tiền.
 
 ### 5.15.2. Đối chiếu thời gian với làm thủ công
 

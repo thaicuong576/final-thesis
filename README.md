@@ -150,7 +150,7 @@ Danh sách đầy đủ ở mục 3.4, 5.7.3 và 6.3 của khóa luận. Điểm
 
 ## 10. Dữ liệu và bản quyền của bên thứ ba
 
-Báo cáo tài chính, thông tư, quyết định và báo cáo vĩ mô trong `data/raw/` là tài liệu công khai do các tổ chức phát hành giữ bản quyền; chúng được lưu để kiểm tra nguồn và không thuộc giấy phép của kho mã. Mọi giá trị trong bộ dữ liệu ghi mã băm SHA-256 và số trang của tài liệu nguồn.
+Dữ liệu gốc (101 báo cáo tài chính PDF của 10 ngân hàng và nguồn của dữ liệu vĩ mô, ngành) được lưu trong một tệp nén trên Google Drive: https://drive.google.com/file/d/1vvcdw82zMq_hxKsZ0pisYOIIla_C-iPZ/view?usp=sharing. Báo cáo tài chính, thông tư, quyết định và báo cáo vĩ mô trong `data/raw/` và trong gói đó là tài liệu công khai do các tổ chức phát hành giữ bản quyền; chúng được lưu để kiểm tra nguồn và không thuộc giấy phép của kho mã. Mọi giá trị trong bộ dữ liệu ghi mã băm SHA-256 và số trang của tài liệu nguồn.
 
 ## 11. Giấy phép và trích dẫn
 

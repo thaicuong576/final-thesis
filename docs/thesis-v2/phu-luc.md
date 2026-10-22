@@ -34,7 +34,7 @@ Quy trình này dành cho người muốn tự kiểm tra bước số hóa và 
 ## Phụ lục B. Bộ dữ liệu
 
 Bộ dữ liệu vận hành mười ngân hàng niêm yết lớn nhất (ACB, BID, CTG, HDB, MBB, SHB, STB, TCB, VCB, VPB), mười quý từ
-quý 1/2024 đến quý 2/2026. Bộ dữ liệu gồm 1.735 quan sát: 1.335 số liệu đầu vào được đọc từ 101 tài liệu báo cáo tài chính hợp nhất của từng ngân hàng với 452 trang trích dẫn nguồn riêng biệt (mỗi dòng ghi trang nguồn và đường dẫn tới tệp báo cáo gốc), cùng 400 giá trị của bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ các số liệu đầu vào theo công thức được định danh phiên bản. Bảng B.1 tóm tắt 101 báo cáo gốc theo ngân hàng; danh sách đầy đủ từng báo cáo (ngân hàng, kỳ, loại báo cáo, đường dẫn, mã băm SHA-256 đầy đủ) nằm trong tệp CSV `phu-luc-b1-nguon-bao-cao.csv` đính kèm bản nộp.
+quý 1/2024 đến quý 2/2026. Bộ dữ liệu gồm 1.735 quan sát: 1.335 số liệu đầu vào được đọc từ 101 tài liệu báo cáo tài chính hợp nhất của từng ngân hàng với 452 trang trích dẫn nguồn riêng biệt (mỗi dòng ghi trang nguồn và đường dẫn tới tệp báo cáo gốc), cùng 400 giá trị của bốn chỉ tiêu (tỷ lệ nợ xấu, tỷ lệ bao phủ nợ xấu, ROA, ROE) được tính lại từ các số liệu đầu vào theo công thức được định danh phiên bản. Bảng B.1 tóm tắt 101 báo cáo gốc theo ngân hàng; danh sách đầy đủ từng báo cáo (ngân hàng, kỳ, loại báo cáo, đường dẫn, mã băm SHA-256 đầy đủ) nằm trong tệp CSV `phu-luc-b1-nguon-bao-cao.csv` của kho mã. Các tệp PDF báo cáo gốc và nguồn của dữ liệu vĩ mô, ngành được lưu trong gói dữ liệu gốc trên Google Drive: https://drive.google.com/file/d/1vvcdw82zMq_hxKsZ0pisYOIIla_C-iPZ/view?usp=sharing (xem Phụ lục C). Mã SHA-256 là một dãy 64 ký tự do thuật toán băm tính ra từ toàn bộ nội dung của tệp, đóng vai trò dấu vân tay: nếu tệp thay đổi dù chỉ một ký tự thì mã đổi hoàn toàn, nên người đọc có thể tính mã của tệp tải về và so với mã trong bảng để biết đó có đúng là tệp đã dùng hay không.
 
 Bên cạnh mười ngân hàng, bộ dữ liệu mở rộng thực thể "Việt Nam" (`VN`) gồm 187 quan sát (163 quan sát sơ cấp hợp lệ và 24 quan sát thứ cấp chờ kiểm định) của 20 chỉ tiêu kinh tế vĩ mô và toàn ngành qua 15 quý (từ quý 4/2022 đến quý 2/2026), có đối soát nguồn gốc từ Ngân hàng Nhà nước và Tổng cục Thống kê (Cục Thống kê). Khác với chuỗi ngân hàng đầy đủ theo quý, các chỉ tiêu ngành áp dụng cơ chế xác định kỳ linh hoạt (`as-of-latest`) khi phân tích.
 
@@ -57,7 +57,7 @@ Bên cạnh mười ngân hàng, bộ dữ liệu mở rộng thực thể "Vi�
 
 ## Phụ lục C. Mã nguồn và kết quả thực nghiệm
 
-Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu cầu. Kết quả của các thực nghiệm được lưu cùng mã nguồn dưới dạng tệp do chương trình ghi lại và được đính kèm bản nộp; Bảng C.1 liệt kê nội dung từng nhóm (tên thư mục trong ngoặc là tên thư mục trong tệp đính kèm).
+Mã nguồn được công khai tại https://github.com/thaicuong576/final-thesis (bản phát hành `milestone/thesis-submission-2026-10`, kèm bộ dữ liệu SQLite dùng cho thực nghiệm). Dữ liệu gốc gồm 101 báo cáo tài chính PDF của mười ngân hàng và nguồn của 187 dòng dữ liệu vĩ mô, ngành được lưu trong một tệp nén trên Google Drive: https://drive.google.com/file/d/1vvcdw82zMq_hxKsZ0pisYOIIla_C-iPZ/view?usp=sharing. Kết quả của các thực nghiệm được lưu cùng mã nguồn dưới dạng tệp do chương trình ghi lại; Bảng C.1 liệt kê nội dung từng nhóm (tên thư mục trong ngoặc là tên thư mục trong kho mã).
 
 *Bảng C.1: Kết quả thực nghiệm được lưu.*
 

@@ -14,7 +14,7 @@ Ba kết quả chính cần đọc cùng nhau. Lớp kiểm soát cho cùng đ�
 
 **Câu hỏi nghiên cứu thứ ba (C so với B).** Ở cả hai mô hình, phản biện và tối đa hai vòng sửa đổi làm chi phí tăng ba đến bốn lần và thêm 42 đến 69 giây mỗi lượt, nhưng độ phủ không cải thiện. Chỉ 4/10 báo cáo của C trên DeepSeek V4 Pro và 2/10 trên gpt-5.6-luna hoàn thành trọn vẹn. Bộ phản biện chỉ sửa từng câu, nên yêu cầu ở mức cả báo cáo thường không được đáp ứng và câu liên quan bị loại. Kết luận này chỉ áp dụng cho bộ phản biện hiện tại và 12 câu hỏi đã dùng để hiệu chỉnh, với một lần chạy mỗi mô hình trên hai phiên bản mã nguồn.
 
-**Khuyến nghị.** Các cấu hình được so sánh bên trong một lớp kiểm soát dùng chung, nên kết quả chỉ cho biết cách tổ chức tác tử ảnh hưởng thế nào đến độ phủ và chi phí. Trong phạm vi đó, có thể chạy mặc định bằng cấu hình rẻ (A trên mô hình mạnh, hoặc B) và chỉ dùng C khi có người xem xét kết quả. Các yêu cầu FR1, FR4, FR5 và NFR3 ở Bảng 2.1 mới được kiểm một phần (mục 3.4 và 5.14).
+**Khuyến nghị.** Các cấu hình được so sánh bên trong một lớp kiểm soát dùng chung, nên kết quả chỉ cho biết cách tổ chức tác tử ảnh hưởng thế nào đến độ phủ và chi phí. Trong phạm vi đó, có thể chạy mặc định bằng cấu hình rẻ (A trên mô hình mạnh, hoặc B) và chỉ dùng C khi có người xem xét kết quả. Các yêu cầu FR1, FR4, FR5 và NFR3 ở Bảng 2.1 mới được kiểm một phần (mục 3.4 và 5.7.3).
 
 ## 6.2. Đóng góp của khóa luận
 
@@ -28,7 +28,7 @@ Về đánh giá, khóa luận cung cấp bằng chứng định lượng về q
 
 ## 6.3. Hạn chế
 
-Các hạn chế chi tiết nằm ở mục 3.4 và 5.14; bốn hạn chế lớn nhất là: (1) dữ liệu chỉ gồm mười ngân hàng và bốn chỉ tiêu, số liệu do tác giả đối soát với sự hỗ trợ của công cụ và chưa có người thứ hai kiểm tra, bước số hóa còn bán thủ công (một bộ trích xuất đơn giản chỉ lấy đúng 52% giá trị); (2) thực nghiệm chỉ chạy một lần mỗi cặp trên hai mô hình và hai phiên bản mã nguồn, nên chỉ là quan sát, không có ý nghĩa thống kê; (3) chấm điểm phần lớn tự động, chất lượng diễn giải chưa được chuyên gia đánh giá, và hai quy tắc kiểm tra mới được thiết kế sau khi thấy kết quả nên chưa chứng minh phát hiện loại lỗi khác; (4) tính thích ứng của kế hoạch và phân tích vĩ mô chưa được thực nghiệm kiểm riêng, và phân tích còn ở mức thuật lại số liệu, chưa giải thích nguyên nhân.
+Các hạn chế chi tiết nằm ở mục 3.4 và 5.7.3; bốn hạn chế lớn nhất là: (1) dữ liệu chỉ gồm mười ngân hàng và bốn chỉ tiêu, số liệu do tác giả đối soát với sự hỗ trợ của công cụ và chưa có người thứ hai kiểm tra, bước số hóa còn bán thủ công (một bộ trích xuất đơn giản chỉ lấy đúng 52% giá trị); (2) thực nghiệm chỉ chạy một lần mỗi cặp trên hai mô hình và hai phiên bản mã nguồn, nên chỉ là quan sát, không có ý nghĩa thống kê; (3) chấm điểm phần lớn tự động, chất lượng diễn giải chưa được chuyên gia đánh giá, và hai quy tắc kiểm tra mới được thiết kế sau khi thấy kết quả nên chưa chứng minh phát hiện loại lỗi khác; (4) tính thích ứng của kế hoạch và phân tích vĩ mô chưa được thực nghiệm kiểm riêng, và phân tích còn ở mức thuật lại số liệu, chưa giải thích nguyên nhân.
 
 ## 6.4. Hướng phát triển
 

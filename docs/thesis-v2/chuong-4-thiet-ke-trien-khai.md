@@ -1,6 +1,6 @@
 # CHƯƠNG 4. THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
-Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.12.
+Chương này trình bày kiến trúc phần mềm, luồng xử lý một lượt phân tích, cơ chế kiểm tra nhận định, hạ tầng triển khai và sản phẩm theo luồng sử dụng. Chương mô tả phiên bản hiện hành; các thành phần thêm sau thực nghiệm chính (cổng phạm vi, dữ liệu thị trường, khung trượt tra cứu nguồn) được đánh dấu “thêm sau đánh giá” và liệt kê ở mục 5.7.1.
 
 Bảng 4.1 giải thích các thuật ngữ do khóa luận đặt, được dùng xuyên suốt từ đây.
 
@@ -124,7 +124,7 @@ Vì các chỉ tiêu vĩ mô và toàn ngành có độ phủ không đồng đ�
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
-Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ kiểm chứng không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để khắc phục những hạn chế mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
+Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ kiểm chứng không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.3) để khắc phục những hạn chế mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.2.1 đến 5.2.3 chạy trước khi thêm hai quy tắc này.
 
 *Bảng 4.3: Các quy tắc kiểm tra câu.*
 
@@ -175,4 +175,4 @@ flowchart LR
 ```
 *Hình 4.3: Kiến trúc triển khai.*
 
-Chất lượng được kiểm soát bằng kiểm thử tự động ở phía máy chủ và giao diện (số bài nêu ở mục 5.1). Mỗi thay đổi mã chỉ được hợp nhất khi chuỗi kiểm tra đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu đặc tả API với giao diện; mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.
+Chất lượng được kiểm soát bằng kiểm thử tự động ở phía máy chủ và giao diện (số bài nêu ở mục 5.1.1). Mỗi thay đổi mã chỉ được hợp nhất khi chuỗi kiểm tra đạt: toàn bộ kiểm thử, kiểm tra ranh giới kiến trúc (tầng lõi không phụ thuộc cơ sở dữ liệu, mô hình hay mã ngân hàng cố định) và đối chiếu đặc tả API với giao diện; mỗi lần nhánh chính thay đổi, cả máy chủ và giao diện tự triển khai lại.

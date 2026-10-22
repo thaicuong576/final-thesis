@@ -47,7 +47,7 @@ Vấn đề thứ ba là độ tin cậy của đầu ra do AI tạo ra (Ji và 
 
 Để giải quyết đồng thời bài toán phạm vi thông tin và kiểm soát chất lượng, các kiến trúc dựa trên mô hình ngôn ngữ thường phân rã nhiệm vụ cho nhiều tác tử chuyên biệt kèm cơ chế tự phản biện. Tuy nhiên, phức tạp hóa kiến trúc không mặc nhiên hiệu quả: thêm bước điều phối và vòng kiểm duyệt kéo theo chi phí, độ trễ và nguy cơ sai lệch qua các bước trung gian. Trong phạm vi các tài liệu tác giả khảo sát (chưa phải một tổng quan hệ thống), khoảng trống là thiếu đánh giá định lượng có kiểm soát về việc đến mức phức tạp nào thì kiến trúc đa tác tử và phản biện mang lại giá trị gia tăng so với một tác tử đơn. Trong khóa luận này, "tác tử" là cách gọi chung của agent; các tác tử chuyên trách được gọi là "chuyên viên" (doanh nghiệp, ngành), còn người dùng là "người phân tích".
 
-**Cách làm và công cụ hiện có.** Hiện nay, các vấn đề trên thường được xử lý theo ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo PDF rồi nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở khâu đọc số. Với báo cáo dạng quét, 700 trong 885 số liệu đầu vào được đối chiếu phải qua nhận dạng ký tự, và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.9). Số bất thường của STB quý 4/2025 cũng chỉ được xác nhận sau khi mở lại hồ sơ gốc (mục 5.11).
+**Cách làm và công cụ hiện có.** Hiện nay, các vấn đề trên thường được xử lý theo ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo PDF rồi nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở khâu đọc số. Với báo cáo dạng quét, 700 trong 885 số liệu đầu vào được đối chiếu phải qua nhận dạng ký tự, và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.9). Số bất thường của STB quý 4/2025 cũng chỉ được xác nhận sau khi mở lại hồ sơ gốc (mục 5.6.2).
 
 Cách thứ hai là dùng nền tảng dữ liệu tài chính hoặc terminal. Theo tài liệu giới thiệu của nhà cung cấp (truy cập ngày 21/10/2026; Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026), FiinPro-X (FiinGroup, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và chức năng xuất Excel. Các terminal như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi số liệu chuẩn hóa, giao diện lập trình, và ở Capital IQ Pro có liên kết từ số liệu về tài liệu gốc. Các nền tảng này tập trung vào độ phủ dữ liệu: chẳng hạn FiinPro-X công bố khoảng 2.000 chỉ tiêu doanh nghiệp (FiinGroup, 2026), trong khi bộ dữ liệu của khóa luận chỉ gồm 10 ngân hàng và 4 chỉ tiêu. Phạm vi của khóa luận vì vậy hẹp hơn, và trọng tâm được đặt vào một vấn đề khác: khi nhận định do AI viết, người dùng kiểm tra lại từng con số và từng câu về trang báo cáo gốc bằng cách nào. Tài liệu giới thiệu sản phẩm mà tác giả tham khảo (Bảng 1.2) không nêu rõ chức năng này.
 
@@ -81,7 +81,7 @@ Mục tiêu tổng quát của khóa luận là thiết kế, triển khai và �
 
 Từ các mục tiêu trên, khóa luận này tập trung giải quyết ba câu hỏi nghiên cứu:
 
-Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn? Tính thích ứng của kế hoạch mới được kiểm một phần (mục 5.6).
+Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn? Tính thích ứng của kế hoạch mới được kiểm một phần (mục 5.2.4).
 
 Câu hỏi nghiên cứu thứ hai. Trên cùng bộ câu hỏi, dữ liệu, mô hình và công cụ, cấu hình đa tác tử phân cấp B khác cấu hình một tác tử A như thế nào về độ chính xác của số liệu, độ phủ chỉ tiêu và tỷ lệ báo cáo hoàn thành, cũng như về thời gian, số lượt gọi mô hình và token?
 
@@ -92,7 +92,7 @@ Nghiên cứu lấy phân tích ngân hàng niêm yết Việt Nam làm trườn
 
 Khóa luận có ba nhóm đóng góp. Về ứng dụng, khóa luận xây dựng một sản phẩm đã triển khai, đi từ dữ liệu đã kiểm tra đến báo cáo truy nguyên được. Về thiết kế, khóa luận đề xuất kiến trúc kết hợp dữ liệu chuẩn hóa, lập kế hoạch theo câu hỏi, tác tử chuyên trách, kiểm tra theo quy tắc, phản biện có giới hạn và sửa đổi có mục tiêu. Trọng tâm là chọn đúng thành phần và giữ khả năng kiểm tra lại, không phải số lượng tác tử.
 
-Về phân tích và đánh giá, khóa luận đối chiếu các công cụ hiện có theo tài liệu giới thiệu sản phẩm (mục 1.3), mô tả người dùng và thị trường (mục 1.2), lập bảng yêu cầu truy vết tới thiết kế và kiểm chứng (Bảng 2.1), và đối chiếu giả định về người dùng bằng một khảo sát thăm dò 15 người. Khóa luận cũng so sánh một tác tử với các cấu hình đa tác tử và một đối chứng không dùng mô hình, trên hai mô hình ngôn ngữ, về cả chất lượng lẫn chi phí. Cuối cùng, khóa luận đo độ tin cậy của lớp kiểm soát qua bốn phép thử: độ nhạy của bộ kiểm chứng trước và sau cải tiến, độ phụ thuộc vào mô hình, khả năng chống chịu câu hỏi đối kháng và độ chính xác của khâu số hóa. Tính khả thi được xem xét ở mục 5.15.
+Về phân tích và đánh giá, khóa luận đối chiếu các công cụ hiện có theo tài liệu giới thiệu sản phẩm (mục 1.3), mô tả người dùng và thị trường (mục 1.2), lập bảng yêu cầu truy vết tới thiết kế và kiểm chứng (Bảng 2.1), và đối chiếu giả định về người dùng bằng một khảo sát thăm dò 15 người. Khóa luận cũng so sánh một tác tử với các cấu hình đa tác tử và một đối chứng không dùng mô hình, trên hai mô hình ngôn ngữ, về cả chất lượng lẫn chi phí. Cuối cùng, khóa luận đo độ tin cậy của lớp kiểm soát qua bốn phép thử: độ nhạy của bộ kiểm chứng trước và sau cải tiến, độ phụ thuộc vào mô hình, khả năng chống chịu câu hỏi đối kháng và độ chính xác của khâu số hóa. Tính khả thi được xem xét ở mục 5.8.
 
 Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu bối cảnh, vấn đề, câu hỏi nghiên cứu và sơ đồ logic tổng thể; Chương 2 trình bày cơ sở lý luận, nguyên tắc thiết kế, yêu cầu hệ thống và tổng quan nghiên cứu; Chương 3 mô tả phương pháp, dữ liệu, thiết kế thực nghiệm và các thực nghiệm bổ sung; Chương 4 trình bày kiến trúc, triển khai và sản phẩm; Chương 5 trình bày kết quả, thảo luận và tính khả thi; Chương 6 kết luận, nêu hạn chế và hướng phát triển. Phụ lục D trình bày phiếu khảo sát và kết quả.
 
@@ -104,10 +104,10 @@ Bảng 1.3 nối từng vấn đề ở mục 1.3 với nguyên tắc thiết k�
 
 | Vấn đề (mục 1.3) | Nguyên tắc (mục 2.4) | Thành phần (Chương 4) | Kiểm chứng (Chương 5) | Bằng chứng khảo sát |
 |---|---|---|---|---|
-| Dữ liệu thô khó dùng | NT2 | Bốn trạng thái dữ liệu (3.2) | 5.10, 5.11 | 8 trong 13 người tự tra số liệu mất từ 30 phút cho một ngân hàng một quý; 7 người nêu các nguồn cho số khác nhau |
-| Phạm vi phân tích theo yêu cầu | NT1, NT3 | Lập kế hoạch (4.2.1) | 5.6 (chưa kiểm riêng: kế hoạch được cố định chung cho các cấu hình) | Khảo sát không kiểm chứng |
-| Độ tin cậy của đầu ra | NT5, NT6 | Kiểm tra câu, phản biện (4.2.5, 4.2.7) | 5.3, 5.5, 5.7, 5.9 | 9 trong 12 người từng dùng AI gặp số sai hoặc không rõ; 11 người cần truy tới trang gốc |
-| Chi phí phối hợp | NT3, NT4 | Điều phối, chuyên viên (4.2.4) | 5.4, 5.5, 5.8, 5.15 | Ngưỡng chờ và chi phí (câu 10, 11), dùng cho NFR3, NFR4 |
+| Dữ liệu thô khó dùng | NT2 | Bốn trạng thái dữ liệu (3.2) | 5.6.1, 5.6.2 | 8 trong 13 người tự tra số liệu mất từ 30 phút cho một ngân hàng một quý; 7 người nêu các nguồn cho số khác nhau |
+| Phạm vi phân tích theo yêu cầu | NT1, NT3 | Lập kế hoạch (4.2.1) | 5.2.4 (chưa kiểm riêng: kế hoạch được cố định chung cho các cấu hình) | Khảo sát không kiểm chứng |
+| Độ tin cậy của đầu ra | NT5, NT6 | Kiểm tra câu, phản biện (4.2.5, 4.2.7) | 5.2.1, 5.2.3, 5.3, 5.5 | 9 trong 12 người từng dùng AI gặp số sai hoặc không rõ; 11 người cần truy tới trang gốc |
+| Chi phí phối hợp | NT3, NT4 | Điều phối, chuyên viên (4.2.4) | 5.2.2, 5.2.3, 5.4, 5.8 | Ngưỡng chờ và chi phí (câu 10, 11), dùng cho NFR3, NFR4 |
 
 ## CHƯƠNG 2. CƠ SỞ LÝ LUẬN VÀ NGUYÊN TẮC THIẾT KẾ HỆ THỐNG
 Chương này giải thích vì sao bài toán cần kiểm soát dữ liệu và phạm vi phân tích, khi nào chia việc cho nhiều tác tử có lợi, và vì sao đầu ra của mô hình ngôn ngữ cần được kiểm tra trước khi thành báo cáo. Chương rút ra sáu nguyên tắc thiết kế cho hệ thống.
@@ -138,7 +138,7 @@ Mô hình ngôn ngữ có thể tạo ra phát biểu sai trong khi câu trả l
 Trong khuôn khổ đề tài này, hệ thống được thiết kế theo cách tiếp cận hai lớp: lớp thứ nhất kiểm tra bằng quy tắc độ chính xác số liệu, tham chiếu, phạm vi và dữ liệu thiếu; chỉ khi đạt, lớp thứ hai mới đánh giá mức độ được bằng chứng hỗ trợ, tính đầy đủ và giới hạn của suy luận. Một vấn đề được phát hiện chỉ có giá trị khi dẫn tới thay đổi cụ thể, như bổ sung bằng chứng, thu hẹp kết luận hoặc loại bỏ câu, và việc sửa nên tập trung vào đúng thành phần có lỗi. Hai nguyên tắc cuối là **Nguyên tắc 5:** những gì kiểm tra được bằng dữ liệu và quy tắc phải được kiểm tra trước khi đánh giá nội dung; và **Nguyên tắc 6:** phản biện và sửa đổi có giới hạn và chỉ nhắm vào phần đầu ra có vấn đề.
 
 ### 2.4. Các nguyên tắc thiết kế rút ra cho hệ thống
-Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yêu cầu chức năng (FR) và phi chức năng (NFR) trong Bảng 2.1; mỗi yêu cầu được hiện thực ở Chương 4 và kiểm chứng ở Chương 5. Yêu cầu nào chưa được kiểm đầy đủ được ghi rõ ở cột cuối và nằm trong phần hạn chế (mục 3.4 và 5.14). Ngưỡng của NFR3 và NFR4 do tác giả đề xuất và được đối chiếu với khảo sát ở mục 1.2.
+Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yêu cầu chức năng (FR) và phi chức năng (NFR) trong Bảng 2.1; mỗi yêu cầu được hiện thực ở Chương 4 và kiểm chứng ở Chương 5. Yêu cầu nào chưa được kiểm đầy đủ được ghi rõ ở cột cuối và nằm trong phần hạn chế (mục 3.4 và 5.7.3). Ngưỡng của NFR3 và NFR4 do tác giả đề xuất và được đối chiếu với khảo sát ở mục 1.2.
 
 Về thời gian chờ, 9 trong 15 người chấp nhận chờ gần một phút (từ mức "dưới 1 phút" trở lên) và 6 người chỉ chấp nhận dưới 30 giây. Tính trên mười câu phân tích, thời gian trung bình của cấu hình A là khoảng 21 giây, nằm trong mức chấp nhận của 13 người; cấu hình B khoảng 33 đến 34 giây, nằm trong mức của 9 người; cấu hình C khoảng 75 đến 103 giây, chỉ nằm trong mức của 3 người. Thời gian được đo khi các lượt chạy đồng thời nên chỉ có giá trị tham khảo.
 
@@ -148,12 +148,12 @@ Về chi phí, 11 người chấp nhận mức dưới 1.000 đồng mỗi báo 
 
 | Cơ sở của vấn đề | Nguyên tắc | Yêu cầu | Hiện thực | Kiểm chứng |
 |---|---|---|---|---|
-| Mỗi yêu cầu cần phạm vi thông tin khác nhau | NT1. Xác định phạm vi từ câu hỏi | FR1: nhận câu hỏi tiếng Việt tự nhiên. FR3: từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | 4.2.1, 4.3 | 5.3, 5.9 (FR1 chưa thử đa dạng cách diễn đạt) |
-| Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | NT2. Dữ liệu có cấu trúc, truy nguyên được | FR2: mỗi giá trị truy được tới trang báo cáo gốc. FR5: thêm ngân hàng mới có kiểm tra. NFR1: không con số nào do mô hình tự tính | 3.2, 3.2.4, 4.2.2 | 5.3, 5.7, 5.10; khảo sát câu 6, 7, 9; FR5 mới thử một ngân hàng mẫu |
-| Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mô hình không quá 1.000 đồng mỗi báo cáo | 4.2.6, 4.4 | 5.6 (chưa kiểm riêng), 5.15: C đạt trên gpt-5.6-luna (473 đồng), không đạt trên DeepSeek V4 Pro (1.220 đồng); đối chiếu khảo sát (n = 15) |
-| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ trung bình không quá 60 giây | 4.2.4, 4.4 | 5.3, 5.8: A, B đạt (21-34 giây), C không đạt (75-103 giây); đối chiếu khảo sát (n = 15) |
-| Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | NT5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | NFR2: mọi câu qua kiểm tra quy tắc trước khi vào báo cáo | 4.2.5 | 5.7; khảo sát ủng hộ một phần (5/15, câu 9) |
-| Phản biện vô ích nếu đầu ra không đổi | NT6. Sửa đổi có giới hạn, đúng chỗ | FR6: chỉ sửa phần có vấn đề rồi kiểm tra lại | 4.2.7 | 5.5 |
+| Mỗi yêu cầu cần phạm vi thông tin khác nhau | NT1. Xác định phạm vi từ câu hỏi | FR1: nhận câu hỏi tiếng Việt tự nhiên. FR3: từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | 4.2.1, 4.3 | 5.2.1, 5.5 (FR1 chưa thử đa dạng cách diễn đạt) |
+| Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | NT2. Dữ liệu có cấu trúc, truy nguyên được | FR2: mỗi giá trị truy được tới trang báo cáo gốc. FR5: thêm ngân hàng mới có kiểm tra. NFR1: không con số nào do mô hình tự tính | 3.2, 3.2.4, 4.2.2 | 5.2.1, 5.3, 5.6.1; khảo sát câu 6, 7, 9; FR5 mới thử một ngân hàng mẫu |
+| Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mô hình không quá 1.000 đồng mỗi báo cáo | 4.2.6, 4.4 | 5.2.4 (chưa kiểm riêng), 5.8: C đạt trên gpt-5.6-luna (473 đồng), không đạt trên DeepSeek V4 Pro (1.220 đồng); đối chiếu khảo sát (n = 15) |
+| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ trung bình không quá 60 giây | 4.2.4, 4.4 | 5.2.1, 5.4: A, B đạt (21-34 giây), C không đạt (75-103 giây); đối chiếu khảo sát (n = 15) |
+| Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | NT5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | NFR2: mọi câu qua kiểm tra quy tắc trước khi vào báo cáo | 4.2.5 | 5.3; khảo sát ủng hộ một phần (5/15, câu 9) |
+| Phản biện vô ích nếu đầu ra không đổi | NT6. Sửa đổi có giới hạn, đúng chỗ | FR6: chỉ sửa phần có vấn đề rồi kiểm tra lại | 4.2.7 | 5.2.3 |
 
 ### 2.5. Tổng quan nghiên cứu liên quan
 

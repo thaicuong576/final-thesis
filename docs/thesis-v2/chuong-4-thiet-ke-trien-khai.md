@@ -8,6 +8,7 @@ Bảng 4.1 giải thích các thuật ngữ do khóa luận đặt, được dù
 
 | Thuật ngữ | Nghĩa trong khóa luận |
 |---|---|
+| Truy nguồn, truy nguyên, truy vết | Truy nguồn là lần một con số về trang báo cáo gốc; truy nguyên là khả năng lần từ nhận định tới dữ liệu và nguồn; truy vết chỉ dùng cho bảng yêu cầu (Bảng 2.1) và bản ghi phép tính. |
 | Dữ kiện | Một giá trị đã được chương trình tính hoặc trích, kèm ngân hàng, kỳ, chỉ tiêu, đơn vị, nguồn và công thức; câu nhận định chỉ được nêu số bằng cách trích mã dữ kiện |
 | Chuyên viên | Tác tử chuyên trách viết nhận định: chuyên viên doanh nghiệp (về ngân hàng mục tiêu), chuyên viên ngành (về vị thế trong nhóm), chuyên viên vĩ mô |
 | Điều phối viên | Tác tử xác định dạng câu hỏi, giao việc cho chuyên viên, tổng hợp các câu đã qua kiểm tra thành báo cáo |
@@ -119,11 +120,11 @@ Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựn
 
 Khi câu hỏi nhắc tới bối cảnh vĩ mô (lãi suất điều hành, tăng trưởng tín dụng, GDP, lạm phát) và bộ dữ liệu có quan sát vĩ mô hợp lệ, bộ điều phối huy động thêm chuyên viên vĩ mô. Chuyên viên này đọc số từ bộ dữ liệu qua một công cụ, không có số cố định trong mã, và số vĩ mô đi qua cùng đường kiểm tra như số ngân hàng. Nếu bộ dữ liệu không có dữ liệu vĩ mô thì câu hỏi vĩ mô vẫn bị từ chối; hành vi này được kiểm bằng kiểm thử tự động, còn chất lượng nhận định vĩ mô nằm ngoài phạm vi thực nghiệm.
 
-Vì các chỉ tiêu vĩ mô và toàn ngành có độ phủ không đồng đều, hệ thống áp dụng cơ chế xác định kỳ linh hoạt (`as-of-latest`): khi câu hỏi không nêu kỳ, mỗi chỉ tiêu dùng quan sát hợp lệ mới nhất tại hoặc trước kỳ mặc định (hiện là quý 2/2026), khẳng định mang đúng kỳ thực của quan sát và báo cáo tự bổ sung ghi chú giới hạn; khi câu hỏi nêu kỳ cụ thể mà chưa có số đã kiểm định, yêu cầu bị chặn với mã lỗi `macro_period_unavailable`, nêu rõ chỉ tiêu thiếu và kỳ gần nhất có dữ liệu.
+Vì các chỉ tiêu vĩ mô và toàn ngành có độ phủ không đồng đều, hệ thống áp dụng cơ chế xác định kỳ linh hoạt (`as-of-latest`). Khi câu hỏi không nêu kỳ, mỗi chỉ tiêu dùng quan sát hợp lệ mới nhất tại hoặc trước kỳ mặc định (hiện là quý 2/2026); khẳng định mang đúng kỳ thực của quan sát và báo cáo tự bổ sung ghi chú giới hạn. Khi câu hỏi nêu kỳ cụ thể mà chưa có số đã kiểm định, yêu cầu bị chặn với mã lỗi `macro_period_unavailable`, nêu rõ chỉ tiêu thiếu và kỳ gần nhất có dữ liệu.
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
-Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ kiểm chứng không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
+Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ kiểm chứng không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để khắc phục những hạn chế mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
 
 *Bảng 4.3: Các quy tắc kiểm tra câu.*
 
@@ -152,7 +153,7 @@ Báo cáo được ghép từ các khối theo một bản đặc tả thống n
 
 ## 4.3. Lưu vết và xử lý lỗi
 
-Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian (ai làm, giao cho ai, loại hành động, tóm tắt tiếng Việt, dữ liệu chi tiết), không lưu prompt thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ danh sách ngân hàng hoặc kỳ hiện có và kỳ gần nhất có số.
+Mỗi bước của mỗi tác tử được ghi lại theo thứ tự thời gian (ai làm, giao cho ai, loại hành động, tóm tắt tiếng Việt, dữ liệu chi tiết), không lưu chỉ dẫn thô hay chuỗi suy nghĩ của mô hình. Mỗi lượt chạy được lưu với câu hỏi, kế hoạch, báo cáo, hồ sơ kiểm tra câu, số vòng phản biện, trạng thái, thời gian và token, kể cả lượt bị từ chối hoặc lỗi. Khi không thể phân tích, hệ thống trả lời bằng tiếng Việt kèm dữ liệu đang có, ví dụ danh sách ngân hàng hoặc kỳ hiện có và kỳ gần nhất có số.
 
 ## 4.4. Triển khai và kiểm thử
 

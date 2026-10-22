@@ -88,7 +88,9 @@ Cả sản phẩm và thực nghiệm dùng chung một bộ dữ liệu (chỉ 
 | Đủ bốn chỉ tiêu | 100/100 | 400 giá trị chỉ tiêu, mỗi giá trị có bản ghi truy vết phép tính |
 | Để trống | 0 | Không có ô nào thiếu số liệu |
 
-Bộ dữ liệu được kiểm tra chéo: toàn bộ 40 giá trị quý 4/2025 khớp với bộ số liệu lập riêng từ báo cáo kiểm toán năm 2025, và 66/76 giá trị trùng kỳ khớp với Gold v5 (năm ngân hàng × bốn quý năm 2024, đối soát độc lập ở giai đoạn đầu dự án), 10 giá trị lệch nhỏ đều giải thích được (khác cách loại cho vay ký quỹ của VPB, tỷ số tự công bố của TCB, vốn chủ sở hữu 2024 của VCB được trình bày lại). Bộ dữ liệu được khóa bằng mã băm SHA-256 trước thực nghiệm chính; sau đó chỉ có một chỉnh sửa nhãn đọc của các dòng lợi nhuận STB ở bản dựng cuối, không đổi giá trị nào, nên thực nghiệm chính chạy trên bản đã khóa còn sản phẩm dùng bản cuối.
+Bộ dữ liệu được kiểm tra chéo theo hai cách. Toàn bộ 40 giá trị quý 4/2025 khớp với bộ số liệu lập riêng từ báo cáo kiểm toán năm 2025. Với 76 giá trị trùng kỳ với Gold v5 (năm ngân hàng × bốn quý năm 2024, đối soát độc lập ở giai đoạn đầu dự án), 66 giá trị khớp và 10 giá trị lệch nhỏ đều giải thích được: khác cách loại cho vay ký quỹ của VPB, tỷ số tự công bố của TCB, vốn chủ sở hữu 2024 của VCB được trình bày lại.
+
+Bộ dữ liệu được khóa bằng mã băm SHA-256 trước thực nghiệm chính. Sau đó chỉ có một chỉnh sửa nhãn đọc của các dòng lợi nhuận STB ở bản dựng cuối, không đổi giá trị nào, nên thực nghiệm chính chạy trên bản đã khóa còn sản phẩm dùng bản cuối.
 
 ### 3.2.4. Tiếp nhận ngân hàng mới
 
@@ -130,7 +132,7 @@ Ba cấu hình A, B, C được thiết kế để tách riêng tác động c�
 
 ### 3.3.3. Bộ 12 câu hỏi
 
-Bộ câu hỏi gồm mười câu phân tích thuộc sáu dạng (trong đó dạng hồ sơ nhiều kỳ, T08, là dạng hệ thống chỉ hỗ trợ một phần) và hai câu kiểm soát từ chối (Bảng 3.4). Các câu trải đều các ngân hàng và các kỳ từ năm 2025 đến quý 2/2026 để thực nghiệm phản ánh đúng phạm vi bộ dữ liệu. Các câu hỏi, prompt và quy tắc kiểm tra được hiệu chỉnh qua các lần chạy thử trước ngày 05/10/2026 rồi cố định. Bộ 12 câu vì vậy vừa dùng để hiệu chỉnh vừa dùng để đánh giá, và kết quả phản ánh phiên bản đã hiệu chỉnh, không phải một hệ thống chưa từng thấy bài toán.
+Bộ câu hỏi gồm mười câu phân tích thuộc sáu dạng (trong đó dạng hồ sơ nhiều kỳ, T08, là dạng hệ thống chỉ hỗ trợ một phần) và hai câu kiểm soát từ chối (Bảng 3.4). Các câu trải đều các ngân hàng và các kỳ từ năm 2025 đến quý 2/2026 để thực nghiệm phản ánh đúng phạm vi bộ dữ liệu. Các câu hỏi, chỉ dẫn cho mô hình và quy tắc kiểm tra được hiệu chỉnh qua các lần chạy thử trước ngày 05/10/2026 rồi cố định. Vì bộ 12 câu được dùng trong cả giai đoạn hiệu chỉnh lẫn đánh giá, kết quả chỉ phản ánh hiệu suất của phiên bản đã được điều chỉnh theo bộ câu hỏi này, không phải của một hệ thống chưa từng thấy bài toán.
 
 *Bảng 3.4: Mười hai câu hỏi thực nghiệm.*
 

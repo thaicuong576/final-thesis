@@ -52,3 +52,17 @@ docs/thesis-v2/build/
 # ER-8 Evaluation dry-run output
 experiments/er8/dry-run/
 experiments/er8/runs.sqlite
+
+# Local tooling and editor state
+.claude/
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+.coverage
+htmlcov/
+
+# Stray outputs of ad-hoc local runs
+prod_macro_results_*.json

@@ -45,7 +45,7 @@ snapshot_id: gold-bank-2025-expanded-v5-evidence
 file_size: 487424 bytes
 raw_file_bytes_sha256: 1B1B5C090D2F8EDE87A4C33EA3EE716F7A54C9DE7C51089F4D3893D7A1FFCE73
 local source used for verification:
-C:\Users\ASUS\OneDrive\Desktop\final-thesis-backup\data\processed\gold-bank-2025-expanded-v5-evidence.sqlite
+bản sao cục bộ của gold-bank-2025-expanded-v5-evidence.sqlite
 ```
 
 The file passed `PRAGMA integrity_check` (`ok`) and the Gold audit found no

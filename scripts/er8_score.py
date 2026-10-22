@@ -494,7 +494,6 @@ def score_evaluation(
                 for cand in (
                     ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
                     ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
-                    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
                 ):
                     if cand.exists():
                         dataset_obs = load_dataset_observations(cand)
@@ -583,7 +582,6 @@ def main() -> None:
         for cand in (
             ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
             ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
-            Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
         ):
             if cand.exists():
                 dataset_path = cand

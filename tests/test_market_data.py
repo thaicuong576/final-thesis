@@ -54,7 +54,6 @@ class TestMarketData(unittest.TestCase):
         candidate_paths = [
             Path("data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
             Path(__file__).resolve().parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
-            Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
         ]
         self.db_path = next((p for p in candidate_paths if p.exists()), None)
         if self.db_path is None:

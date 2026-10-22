@@ -6,7 +6,7 @@
 
 Tên đăng nhập: admin
 
-Mật khẩu: Kltn@2026
+Mật khẩu: {{DEMO_PASSWORD}}
 
 Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
 

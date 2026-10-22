@@ -44,7 +44,7 @@ Một cột duy nhất, đọc từ trên xuống: **"Dòng suy luận"**.
 ## Kiểm thử và bằng chứng
 
 - Vitest: reducer thành dòng thời gian từ chuỗi sự kiện có thứ tự (từng phần), không có mục giữ chỗ, dòng "đang làm" thay đúng agent, lọc theo chip, nút "Xuống mục mới nhất", từ chối/lỗi, hoàn tất có CTA.
-- Dùng **bản ghi SSE thật** `C:/Users/ASUS/AppData/Local/Temp/orch/sse/real-run-acb-tcb.json` (mảng {t, event, data}; 68 sự kiện, 88 giây) làm nguồn phát lại có độ trễ; và các báo cáo đã lưu `local_B1..B5.json` cho dạng câu hỏi khác.
+- Dùng **bản ghi SSE thật** một bản ghi SSE thật lưu cục bộ (không đưa vào kho mã) (mảng {t, event, data}; 68 sự kiện, 88 giây) làm nguồn phát lại có độ trễ; và các báo cáo đã lưu `local_B1..B5.json` cho dạng câu hỏi khác.
 - Chụp ảnh bằng trình duyệt thật ở 1440 px và 390 px tại ba thời điểm của một lượt phát lại (≈3 s lập kế hoạch, ≈20 s đang viết có bản nháp dở, hoàn tất), và một ảnh từ chối. **Tự xem từng ảnh** và nêu thẳng điểm còn xấu.
 - `npm run lint`, `npm test`, `npm run build`; CI xanh.
 

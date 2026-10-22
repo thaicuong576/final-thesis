@@ -1273,7 +1273,7 @@ def build(template_path: str, out_path: str) -> None:
                                 figures_dir=figures_dir, pngs=pngs)
 
     # ---- 5. Chapters 1-2 ----
-    ch12_path = repo_root / "docs" / "THESIS-CHAPTERS-1-2-WORKING-2026-09-26-VI.md"
+    ch12_path = thesis_v2 / "chuong-1-2-gioi-thieu-co-so-ly-luan.md"
     references_text: Optional[str] = None
     if ch12_path.exists():
         print(f"[build] Adding chapters 1-2 from {ch12_path.name}...")
@@ -1345,7 +1345,15 @@ def build(template_path: str, out_path: str) -> None:
     # ---- 10. Appendices (after the references) ----
     for app_path in sorted(thesis_v2.glob("phu-luc*.md")):
         print(f"[build] Adding {app_path.name}...")
-        convert_markdown_to_doc(doc, app_path.read_text(encoding="utf-8"), figures_dir=figures_dir, pngs=pngs)
+        app_text = app_path.read_text(encoding="utf-8")
+        # The demo password is not stored in the repository; pass it at build time.
+        demo_password = os.environ.get("THESIS_DEMO_PASSWORD")
+        if "{{DEMO_PASSWORD}}" in app_text:
+            if demo_password:
+                app_text = app_text.replace("{{DEMO_PASSWORD}}", demo_password)
+            else:
+                print("[build] NOTE: THESIS_DEMO_PASSWORD is not set; the appendix keeps the {{DEMO_PASSWORD}} placeholder")
+        convert_markdown_to_doc(doc, app_text, figures_dir=figures_dir, pngs=pngs)
 
     # ---- Save ----
     settings_el = doc.settings.element

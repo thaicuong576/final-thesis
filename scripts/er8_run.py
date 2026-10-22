@@ -62,7 +62,6 @@ GOLD_RELATIVE_CANDIDATES = [
     ROOT / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parents[1] / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parent / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
-    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/gold-bank-2025-expanded-v5-evidence.sqlite"),
 ]
 
 ER9_DATASET_RAW_BYTES_SHA256 = "2a18845feb8dddd83ace39a4ea56fc5d5fbe4a3cb0fcccdfce374a48627f560a"
@@ -71,7 +70,6 @@ ER9_RELATIVE_CANDIDATES = [
     ROOT / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
     ROOT.parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
     ROOT.parent / "data" / "processed" / "bank-quarterly-top10-operational-v1-r4.sqlite",
-    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1-r4.sqlite"),
 ]
 
 ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")

@@ -1144,5 +1144,5 @@ Rule: classify a run as invalid only from a status count over all rows plus the 
 
 ### 3. Worktree Raw Evidence Paths
 - **Symptom**: `data/raw/` is gitignored and not cloned into Git worktrees. Scripts relying on relative `Path("data/raw/...")` fail with `pdf_not_found`.
-- **Solution**: In accordance with Operating Principle 2 and PR-1 specifications, evaluation scripts must accept an explicit evidence root or resolve the canonical root workspace evidence path (`D:/eddie-projects/personal-projects/final-thesis/data/raw/official/...`).
+- **Solution**: In accordance with Operating Principle 2 and PR-1 specifications, evaluation scripts must accept an explicit evidence root or resolve the canonical root workspace evidence path (`<thư mục gốc kho mã>/data/raw/official/...`).
 

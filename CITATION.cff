@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "Nếu dùng mã nguồn hoặc dữ liệu này, vui lòng trích dẫn khóa luận."
+title: "Thiết kế và đánh giá hệ thống đa tác tử hỗ trợ tổng hợp thông tin và phân tích cơ bản các ngân hàng niêm yết tại Việt Nam"
+type: software
+authors:
+  - family-names: "Phùng"
+    given-names: "Thái Cường"
+repository-code: "https://github.com/thaicuong576/final-thesis"
+url: "https://fin-ai.eddiephung.me"
+license: MIT
+date-released: "2026-10-22"
+abstract: >-
+  Mã nguồn, dữ liệu đầu vào và kết quả thực nghiệm đi kèm khóa luận tốt nghiệp
+  tại Trường Đại học Kinh tế TP. Hồ Chí Minh (giảng viên hướng dẫn: Lê Văn).
+keywords:
+  - hệ thống đa tác tử
+  - mô hình ngôn ngữ lớn
+  - phân tích tài chính
+  - ngân hàng niêm yết
+  - kiểm chứng số liệu

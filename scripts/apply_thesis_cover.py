@@ -1,7 +1,8 @@
 """Add the UEH cover template and lay out the thesis sections with Word (COM).
 
 Usage: python scripts/apply_thesis_cover.py <built.docx> [out.docx]
-Needs Windows + Word (COM). Edit INFO below for names/dates/contact.
+Needs Windows + Word (COM). Edit INFO below for names/dates; the contact line is read from the
+environment variables THESIS_PHONE and THESIS_EMAIL so personal data is not stored in the repository.
 
 Sections after this script (UII guide, part 5-6):
   1 cover (A4, no page number)  2 secondary cover (no number)
@@ -17,7 +18,7 @@ INFO=dict(
  kind="KHÓA LUẬN TỐT NGHIỆP",
  advisor="Giảng viên hướng dẫn: Lê Văn",
  student="Phùng Thái Cường - 31231024489 - Lớp FEP001",
- contact="Điện thoại: 0867509506"+chr(11)+"Email: cuongphungthai1@gmail.com",
+ contact="Điện thoại: "+os.environ.get("THESIS_PHONE","<số điện thoại>")+chr(11)+"Email: "+os.environ.get("THESIS_EMAIL","<email>"),
  date="Hồ Chí Minh, ngày 22 tháng 10 năm 2026")
 if src!=out: shutil.copy(src,out)
 a=w.Dispatch("Word.Application"); a.Visible=False; a.DisplayAlerts=0

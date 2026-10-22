@@ -41,9 +41,10 @@ Bảng 5.1 liệt kê toàn bộ các thực nghiệm đã chạy và câu hỏi
 | Độ phủ chỉ tiêu bắt buộc (trung bình 10 câu phân tích) | 0,756 | 0,812 | 0,738 | 0,637 |
 | Câu bị loại / câu được viết | 8/52 (15,4%) | 9/53 (17,0%) | 22/63 (34,9%) | 6/60 (10,0%) |
 | Phát hiện chéo trung bình mỗi lượt | 0,33 | 0,33 | 0,67 | 0,42 |
-| Thời gian xử lý trung bình | 17,5 giây | 27,5 giây | 62,9 giây | 3,8 giây |
-| Số lượt gọi mô hình trung bình | 0,8 | 2,1 | 4,4 | 0 |
-| Token trung bình mỗi lượt | 3.784 | 8.252 | 25.856 | 0 |
+| Thời gian xử lý trung bình (12 lượt) | 17,5 giây | 27,5 giây | 62,9 giây | 3,8 giây |
+| Thời gian xử lý trung bình (10 câu phân tích) | 20,8 giây | 32,8 giây | 75,3 giây | 4,5 giây |
+| Số lượt gọi mô hình trung bình (12 lượt) | 0,8 | 2,1 | 4,4 | 0 |
+| Token trung bình mỗi lượt (12 lượt) | 3.784 | 8.252 | 25.856 | 0 |
 
 ![](experiments/er9/analysis/figure_er9_cost_latency.png)
 
@@ -51,7 +52,7 @@ Hình 5.1: Chi phí vận hành theo cấu hình A, B, C (thời gian xử lý v
 
 Cấu hình D là đối chứng không có mô hình: cùng kế hoạch, dữ kiện và bộ kiểm chứng câu như ba cấu hình kia, nhưng mọi câu lấy từ mẫu câu dựng sẵn từ dữ kiện (mục 4.2.4). Kế hoạch của D trùng mã băm với A, B, C ở cả 12 câu. Cả bốn cấu hình đạt 100% khớp số và 100% truy được về số liệu gốc. Đây là hệ quả của thiết kế (mọi con số do mã tính, và câu chỉ vào báo cáo khi bộ kiểm chứng xác nhận số, thứ hạng, kỳ và chiều so sánh), cũng là hệ quả của định nghĩa: chỉ số được đo trên các câu đã qua chính bộ kiểm chứng áp dụng quy tắc đó, nên không phải bằng chứng độc lập về chất lượng của mô hình viết và không phân biệt được các cách tổ chức tác tử (D không có mô hình cũng đạt 100%). Chỉ số này không cho biết con số gắn đúng tên chỉ tiêu, kỳ hay ngân hàng; mục 5.7 đo điểm này: lỗi đổi tên chỉ tiêu bị bỏ sót ở 20,8% số trường hợp thử, còn 0,8% sau khi bổ sung quy tắc nhãn chỉ tiêu.
 
-**Cấu hình D cho biết mô hình đóng góp gì.** D có độ phủ thấp nhất (0,637/10 câu so với 0,756 của A và 0,812 của B) nhưng không tốn token và chạy trong khoảng 4 giây; so với B, D hòa 6 câu, thua 4 và không thắng câu nào (Bảng 5.3). D ngang B ở các câu chỉ cần một chỉ tiêu hoặc một thứ hạng (T03, T06, T07, T10) và kém hẳn ở các câu cần nhiều chỉ tiêu cùng lúc (T01, T02, T09), vì mỗi mẫu câu chỉ nêu một dữ kiện; giá trị của mô hình ở đây là gom nhiều chỉ tiêu vào một câu mạch lạc, không phải độ chính xác của con số. D đạt tỷ lệ hoàn thành trọn vẹn cao nhất (10/10) vì không có câu nào cần sửa, nên chỉ số này không đo chất lượng, và các chỉ số tự động không đo độ trôi chảy hay mức dễ đọc nên chưa thể dựa vào phép so sánh D với B để cho rằng mô hình là không cần thiết.
+**Cấu hình D cho biết mô hình đóng góp gì.** D có độ phủ thấp nhất (0,637 trên 10 câu phân tích so với 0,756 của A và 0,812 của B) nhưng không tốn token và chạy trong khoảng 4 giây; so với B, D hòa 6 câu, thua 4 và không thắng câu nào (Bảng 5.3). D ngang B ở các câu chỉ cần một chỉ tiêu hoặc một thứ hạng (T03, T06, T07, T10) và kém hẳn ở các câu cần nhiều chỉ tiêu cùng lúc (T01, T02, T09), vì mỗi mẫu câu chỉ nêu một dữ kiện; giá trị của mô hình ở đây là gom nhiều chỉ tiêu vào một câu mạch lạc, không phải độ chính xác của con số. D đạt tỷ lệ hoàn thành trọn vẹn cao nhất (10/10) vì không có câu nào cần sửa, nên chỉ số này không đo chất lượng, và các chỉ số tự động không đo độ trôi chảy hay mức dễ đọc nên chưa thể dựa vào phép so sánh D với B để cho rằng mô hình là không cần thiết.
 
 R1 (quý 3/2026) và R2 (OCB) bị từ chối đúng ở cả bốn cấu hình, trước khi gọi mô hình phân tích, với thông báo tiếng Việt, danh sách dữ liệu đang có và câu hỏi gợi ý. Các lượt chạy đồng thời nên thời gian tuyệt đối chịu ảnh hưởng của tải máy chủ; chỉ nên so sánh tương đối.
 
@@ -74,15 +75,15 @@ Với 10 câu phân tích và một lần chạy mỗi cặp, độ phủ chỉ 
 | T09 | So sánh trực diện | 0,75 | 1,00 | 1,00 | 0,50 |
 | T10 | So sánh trực diện | 1,00 | 1,00 | 0,50 | 1,00 |
 
-Về độ phủ, B thắng 3, hòa 6, thua 1 so với A: B hơn ở T04 (1,0 so với 0,5), T08 (0,38 so với 0,31) và T09 (1,0 so với 0,75), nơi các chuyên viên viết riêng cho từng chỉ tiêu; A hơn ở hồ sơ STB (T02: 0,75 so với 0,50). B ít phải dùng bố cục dựng sẵn hơn (1 so với 3 báo cáo). Chênh lệch này nhỏ: với một lần chạy và 10 câu, một câu đổi kết quả đã làm đổi cán cân, nên đây là dấu hiệu chứ chưa phải kết luận.
+Về độ phủ, B thắng 3, hòa 6, thua 1 so với A: B hơn ở T04 (1,0 so với 0,5), T08 (0,38 so với 0,31) và T09 (1,0 so với 0,75), nơi các chuyên viên viết riêng cho từng chỉ tiêu; A hơn ở hồ sơ STB (T02: 0,75 so với 0,50). Chênh lệch này nhỏ: với một lần chạy và 10 câu, một câu đổi kết quả đã làm đổi cán cân, nên đây là dấu hiệu chứ chưa phải kết luận.
 
-Cái giá của B là chi phí: tiêu tốn nhiều token hơn A ở cả 10 câu (khoảng 2,2 lần) và thêm khoảng 10 giây mỗi lượt, trong khi độ chính xác của con số và khả năng truy vết không khác nhau vì cùng đi qua công cụ tính toán và bộ kiểm chứng câu.
+Cái giá của B là chi phí: tiêu tốn nhiều token hơn A ở cả 10 câu (khoảng 2,2 lần) và thêm khoảng 12 giây mỗi lượt, trong khi độ chính xác của con số và khả năng truy vết không khác nhau vì cùng đi qua công cụ tính toán và bộ kiểm chứng câu.
 
 **Trả lời câu hỏi nghiên cứu thứ hai:** trong thực nghiệm chính với DeepSeek V4 Pro, B có độ phủ cao hơn A (0,812 so với 0,756 trên 10 câu phân tích; thắng 3, hòa 6, thua 1) và 9 so với 7 báo cáo hoàn thành trọn vẹn trên 10 câu phân tích, với chi phí khoảng gấp đôi. Hai ràng buộc cần đọc cạnh con số này: A và B khác nhau ở hai yếu tố cùng lúc (chuyên môn hóa và số lượt gọi mô hình: 0,8 so với 2,1 mỗi lượt), nên không tách được tác động; và độ phủ của B thay đổi theo mô hình nhiều hơn chênh lệch giữa B và A (mục 5.8): khi chạy lại trên `gpt-5.6-luna`, độ phủ của A, B, C đều là 0,912 trên 10 câu. Vì mỗi cặp chỉ chạy một lần và mức nhiễu giữa các lần chạy có thể ngang chênh lệch A – B (một lần chạy khác của DeepSeek V4 Pro loại 14/56 câu so với 9/53 của B), thực nghiệm chưa đủ để kết luận B tốt hơn A.
 
 ## 5.5. Đánh giá tác động của cơ chế phản biện và sửa đổi có mục tiêu
 
-Bổ sung phản biện và tối đa hai vòng sửa đổi không làm tăng độ phủ: C đạt 0,738 so với 0,812 của B (10 câu phân tích), thắng 2, hòa 4, thua 4 câu (Bảng 5.3), trong khi số phát hiện chéo tăng gấp đôi (0,67 so với 0,33 mỗi lượt). Chi phí tăng mạnh: token gấp 3,1 lần B và 6,8 lần A, thêm khoảng 35 giây mỗi lượt; riêng hồ sơ BID (T01) dùng 85.187 token cho một lượt.
+Bổ sung phản biện và tối đa hai vòng sửa đổi không làm tăng độ phủ: C đạt 0,738 so với 0,812 của B (10 câu phân tích), thắng 2, hòa 4, thua 4 câu (Bảng 5.3), trong khi số phát hiện chéo tăng gấp đôi (0,67 so với 0,33 mỗi lượt). Chi phí tăng mạnh: token gấp 3,1 lần B và 6,8 lần A, thêm khoảng 42 giây mỗi lượt; riêng hồ sơ BID (T01) dùng 85.187 token cho một lượt.
 
 Độ phủ giảm vì câu bị loại: C bị loại 22/63 câu, trong đó 12 câu vì còn vấn đề phản biện chưa giải quyết sau hai vòng sửa, nên chỉ 4/10 câu phân tích hoàn thành trọn vẹn. Các vấn đề còn mở chủ yếu là "tổng hợp chưa đầy đủ" (8/9): bộ phản biện yêu cầu nói thêm về chỉ tiêu khác (ví dụ báo cáo BID "đã bỏ sót hoàn toàn" tỷ lệ nợ xấu), và khi câu viết lại vẫn không đạt thì câu bị loại, làm báo cáo mất câu (T01: 0,5 so với 0,75 của B; T10: 0,5 so với 1,0).
 
@@ -140,7 +141,7 @@ Thực nghiệm chính chỉ dùng một mô hình. Thực nghiệm này chạy 
 
 Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên phiên bản sau nâng cấp (mã nguồn khác lần đầu): độ phủ 0,900, 0,925 và 0,925, tỷ lệ câu bị loại 7,1%, 5,1% và 7,3% (so với 1,8% của lần đầu, nên giá trị tiêu biểu hơn là 5–7%), từ chối đúng 2/2, truy vết 1,0 và 302/302 số khớp ở cả ba lần.
 
-**Chạy lại cả ba cấu hình trên `gpt-5.6-luna`.** Để kiểm tra kết luận về A, B, C có giữ khi đổi mô hình, cả ba cấu hình được chạy lại trên `gpt-5.6-luna` (22/10/2026), 12 câu một lần mỗi cấu hình (36 lượt, 658.442 token), cùng giao thức, dữ liệu khóa và bộ chấm. Mã nguồn lần này là phiên bản sau nâng cấp (mục 5.12) có thêm hai quy tắc kiểm tra mới (mục 4.2.5), nên hai lần chạy khác nhau ở cả mô hình lẫn mã nguồn. D cũng được chạy lại trên mã mới. Không câu nào của A, B, C bị loại bởi hai quy tắc mới.
+**Chạy lại cả ba cấu hình trên gpt-5.6-luna.** Để kiểm tra kết luận về A, B, C có giữ khi đổi mô hình, cả ba cấu hình được chạy lại trên `gpt-5.6-luna` (22/10/2026), 12 câu một lần mỗi cấu hình (36 lượt, 658.442 token), cùng giao thức, dữ liệu khóa và bộ chấm. Mã nguồn lần này là phiên bản sau nâng cấp (mục 5.12) có thêm hai quy tắc kiểm tra mới (mục 4.2.5), nên hai lần chạy khác nhau ở cả mô hình lẫn mã nguồn. D cũng được chạy lại trên mã mới. Không câu nào của A, B, C bị loại bởi hai quy tắc mới.
 
 *Bảng 5.6: Kết quả tổng hợp theo cấu hình (mô hình gpt-5.6-luna, mã nguồn sau nâng cấp và sau khi thêm quy tắc, 12 lượt mỗi cấu hình).*
 
@@ -152,9 +153,10 @@ Thực nghiệm chính chỉ dùng một mô hình. Thực nghiệm này chạy 
 | Độ phủ chỉ tiêu bắt buộc (trung bình 10 câu phân tích) | 0,912 | 0,912 | 0,912 | 0,637 |
 | Câu bị loại / câu được viết | 0/67 (0,0%) | 1/50 (2,0%) | 30/85 (35,3%) | 12/63 (19,0%) |
 | Phát hiện chéo trung bình mỗi lượt | 0,50 | 0,42 | 1,00 | 0,42 |
-| Thời gian xử lý trung bình | 17,2 giây | 28,3 giây | 86,1 giây | 1,7 giây |
-| Số lượt gọi mô hình trung bình | 0,8 | 2,1 | 5,6 | 0 |
-| Token trung bình mỗi lượt | 5.127 | 10.128 | 39.616 | 0 |
+| Thời gian xử lý trung bình (12 lượt) | 17,2 giây | 28,3 giây | 86,1 giây | 1,7 giây |
+| Thời gian xử lý trung bình (10 câu phân tích) | 20,4 giây | 33,8 giây | 103,2 giây | 2,0 giây |
+| Số lượt gọi mô hình trung bình (12 lượt) | 0,8 | 2,1 | 5,6 | 0 |
+| Token trung bình mỗi lượt (12 lượt) | 5.127 | 10.128 | 39.616 | 0 |
 
 Bảng 5.7 là độ phủ theo từng câu ở lần chạy này.
 
@@ -227,13 +229,13 @@ Thứ nhất, độ tin cậy về con số không đến từ việc chọn c�
 
 Thứ hai, kiến trúc kiểm soát có giới hạn mà thực nghiệm độ nhạy đo được. Ở lần đo đầu, bộ kiểm chứng bỏ sót 20,8% các câu giữ nguyên con số và đổi tên chỉ tiêu; hai quy tắc bổ sung đưa tỷ lệ phát hiện chung từ 94,1% lên 99,2% và riêng lỗi đổi chỉ tiêu từ 79,2% lên 99,2%, không loại nhầm câu hợp lệ nào do mô hình viết, nhưng loại nhầm sáu dòng chú thích hình mẫu ở D. Hai quy tắc được thiết kế sau khi thấy kết quả của chính các toán tử đột biến, nên chưa phải bằng chứng về khả năng phát hiện lỗi chưa từng thử.
 
-Thứ ba, giá trị của mô hình và của cách tổ chức tác tử phụ thuộc vào mô hình. D cho thấy một phần đáng kể độ phủ (0,637/10 câu, so với 0,756–0,812 của A và B ở DeepSeek V4 Pro và 0,912 ở `gpt-5.6-luna`) đạt được không cần mô hình, nhất là ở các câu tra cứu, xếp hạng và so sánh một chỉ tiêu; mô hình bổ sung khả năng gom nhiều chỉ tiêu và diễn đạt mạch lạc, điều bộ chấm tự động chưa đo trực tiếp. Chuyên môn hóa (B) cải thiện nhẹ độ đầy đủ ở DeepSeek V4 Pro nhưng không còn lợi thế ở `gpt-5.6-luna`, còn phản biện (C) tốn gấp ba đến bốn lần B ở cả hai mô hình và giảm tỷ lệ hoàn thành trọn vẹn. B hoặc một tác tử đơn A trên mô hình mạnh là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới. Chất lượng câu cũng phụ thuộc việc prompt nêu đủ quy tắc của bộ kiểm chứng (ghi rõ quy tắc vào prompt làm tăng tỷ lệ câu được giữ), nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
+Thứ ba, giá trị của mô hình và của cách tổ chức tác tử phụ thuộc vào mô hình. D cho thấy một phần đáng kể độ phủ (0,637 trên 10 câu phân tích, so với 0,756–0,812 của A và B ở DeepSeek V4 Pro và 0,912 ở `gpt-5.6-luna`) đạt được không cần mô hình, nhất là ở các câu tra cứu, xếp hạng và so sánh một chỉ tiêu; mô hình bổ sung khả năng gom nhiều chỉ tiêu và diễn đạt mạch lạc, điều bộ chấm tự động chưa đo trực tiếp. Chuyên môn hóa (B) cải thiện nhẹ độ đầy đủ ở DeepSeek V4 Pro nhưng không còn lợi thế ở `gpt-5.6-luna`, còn phản biện (C) tốn gấp ba đến bốn lần B ở cả hai mô hình và giảm tỷ lệ hoàn thành trọn vẹn. B hoặc một tác tử đơn A trên mô hình mạnh là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới. Chất lượng câu cũng phụ thuộc việc prompt nêu đủ quy tắc của bộ kiểm chứng (ghi rõ quy tắc vào prompt làm tăng tỷ lệ câu được giữ), nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
 
-Đối chiếu với khảo sát ở mục 1.2, kết quả thực nghiệm đáp ứng một phần kỳ vọng của người dùng. Về nguồn, 11 trong 15 người coi khả năng truy tới trang báo cáo gốc là điều kiện để dùng kết quả do AI tạo ra, và hệ thống bảo đảm điều này cho mọi con số (100% truy được về số liệu gốc ở bốn cấu hình). Kiểm tra tự động trước khi hiển thị chỉ được 5 người chọn, nên giá trị của bộ kiểm chứng đối với người dùng nằm ở độ tin cậy gián tiếp hơn là ở một tính năng họ chủ động đòi hỏi. Về độ trễ, cấu hình A và B (17 đến 28 giây) nằm trong mức chờ chấp nhận được của 13 người nhưng chưa đáp ứng 2 người cần dưới 10 giây, còn cấu hình C (63 đến 86 giây) chỉ đáp ứng 3 người. Về chi phí, năm trong sáu tổ hợp mô hình và cấu hình có chi phí dưới 1.000 đồng mỗi báo cáo, nhưng đây là chi phí gọi mô hình chứ không phải giá người dùng phải trả, chưa gồm chi phí chuẩn bị dữ liệu, và 4 người chỉ chấp nhận công cụ miễn phí. Các thời gian này được đo khi các lượt chạy đồng thời nên chỉ có giá trị tham khảo.
+Đối chiếu với khảo sát ở mục 1.2, kết quả thực nghiệm đáp ứng một phần kỳ vọng của người dùng. Về nguồn, 11 trong 15 người coi khả năng truy tới trang báo cáo gốc là điều kiện để dùng kết quả do AI tạo ra, và hệ thống bảo đảm điều này cho mọi con số (100% truy được về số liệu gốc ở bốn cấu hình). Kiểm tra tự động trước khi hiển thị chỉ được 5 người chọn, nên giá trị của bộ kiểm chứng đối với người dùng nằm ở độ tin cậy gián tiếp hơn là ở một tính năng họ chủ động đòi hỏi. Về độ trễ, cấu hình A (khoảng 21 giây) nằm trong mức chờ chấp nhận được của 13 người nhưng chưa đáp ứng 2 người cần dưới 10 giây; cấu hình B (33 đến 34 giây) chỉ đáp ứng 9 người, và cấu hình C (75 đến 103 giây) chỉ đáp ứng 3 người. Về chi phí, năm trong sáu tổ hợp mô hình và cấu hình có chi phí dưới 1.000 đồng mỗi báo cáo, nhưng đây là chi phí gọi mô hình chứ không phải giá người dùng phải trả, chưa gồm chi phí chuẩn bị dữ liệu, và 4 người chỉ chấp nhận công cụ miễn phí. Các thời gian này được đo khi các lượt chạy đồng thời nên chỉ có giá trị tham khảo.
 
 ## 5.14. Các yếu tố ảnh hưởng tới tính hợp lệ của kết quả
 
-Các giới hạn chung về dữ liệu, thiết kế thực nghiệm, chấm điểm và khảo sát đã nêu ở mục 3.4 (xem mục 3.4); mục này chỉ bổ sung những yếu tố phát sinh khi chạy.
+Các giới hạn chung về dữ liệu, thiết kế thực nghiệm, chấm điểm và khảo sát đã nêu ở mục 3.4; mục này chỉ bổ sung những yếu tố phát sinh khi chạy.
 
 Về hợp lệ nội tại, các lượt chạy đồng thời nên thời gian xử lý chịu ảnh hưởng của tải máy chủ; phép lặp ba lần ở mục 5.8 chỉ có cho một mô hình và một cấu hình; phép so sánh DeepSeek V4 Pro với `gpt-5.6-luna` khác nhau ở cả mô hình lẫn phiên bản mã nguồn nên không tách được tác động riêng của mô hình; hai quy tắc kiểm tra mới được thiết kế sau khi thấy kết quả độ nhạy nên khoảng cách 79,2% và 99,2% cần đọc kèm hạn chế này.
 
@@ -263,7 +265,7 @@ Chi phí mô hình của một báo cáo được tính từ token đầu vào v
 
 Chi phí mô hình mỗi báo cáo vì vậy chỉ từ vài chục đến hơn một nghìn đồng, và chưa so được với chi phí con người vì khóa luận chưa đo giờ công; khác biệt chính là thời gian chờ (từ khoảng 21 giây ở A đến khoảng 75 giây ở C với DeepSeek V4 Pro; từ 20 đến 103 giây với `gpt-5.6-luna`). Nhiều khả năng chi phí lớn hơn nằm ở khâu chuẩn bị dữ liệu: mỗi quý mới cần đọc báo cáo của mười ngân hàng, khoảng 130 số đầu vào (1.335 chia mười quý), phần lớn là bản quét phải đối soát từng ô (mục 5.10). Khóa luận chưa đo giờ công cho việc này nên không quy ra tiền.
 
-Theo khảo sát ở mục 1.2, trong 13 người tự tra số liệu, 8 người mất từ 30 phút trở lên cho một ngân hàng một quý (trung vị thuộc nhóm 30–60 phút, tự khai). Hệ thống trả lời trong khoảng 17 đến 28 giây ở cấu hình A và B, nhưng chỉ trên bộ dữ liệu đã chuẩn bị sẵn; thời gian chuẩn bị dữ liệu cho ngân hàng hoặc quý mới không nằm trong con số này nên hai số liệu không so sánh trực tiếp được.
+Theo khảo sát ở mục 1.2, trong 13 người tự tra số liệu, 8 người mất từ 30 phút trở lên cho một ngân hàng một quý (trung vị thuộc nhóm 30–60 phút, tự khai). Hệ thống trả lời trong khoảng 21 đến 34 giây ở cấu hình A và B, nhưng chỉ trên bộ dữ liệu đã chuẩn bị sẵn; thời gian chuẩn bị dữ liệu cho ngân hàng hoặc quý mới không nằm trong con số này nên hai số liệu không so sánh trực tiếp được.
 
 ### 5.15.2. Điều kiện áp dụng thực tế
 

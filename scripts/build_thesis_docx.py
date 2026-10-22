@@ -553,7 +553,7 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 5.7": ("độ phủ từ 0 đến 1", "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
     "Bảng 5.8": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
     "Bảng 5.9": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
-    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
+    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026b)"),
     "Bảng 5.11": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
@@ -566,7 +566,7 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Hình 4.3": ("", _SRC_DESIGN),
     "Hình 5.1": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 6.2": (_UNIT_NONE, "Tác giả đề xuất"),
+    "Bảng 6.1": (_UNIT_NONE, "Tác giả đề xuất"),
     "Bảng D.1": (_UNIT_NONE, "Tác giả xây dựng"),
     "Bảng D.2": ("số người", "Khảo sát của tác giả (n = 15), 16–22/10/2026"),
     "Bảng B.1": ("không áp dụng", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
@@ -830,7 +830,7 @@ def convert_markdown_to_doc(
             else:
                 _add_unit_line(doc, caption)
                 pending_table_caption = caption
-                globals()['_TBL_PT'] = 10 if caption.startswith('Bảng D') or caption.startswith('Bảng 2.1') else 11
+                globals()['_TBL_PT'] = 10 if caption.startswith('Bảng D') or caption.startswith('Bảng 2.1') or caption.startswith('Bảng 1.2') else 11
             last_was_image = False
             i += 1
             continue

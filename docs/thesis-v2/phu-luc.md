@@ -74,7 +74,7 @@ Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu c
 
 ### D.1. Phiếu khảo sát
 
-Phiếu khảo sát được thực hiện bằng Google Forms (liên kết: [điền liên kết /viewform], truy cập ngày 22/10/2026); nội dung trình bày ở Bảng D.1. Phiếu nêu rõ khảo sát ẩn danh, tự nguyện, mất khoảng 4–5 phút.
+Phiếu khảo sát được thực hiện bằng Google Forms; nội dung trình bày ở Bảng D.1. Phiếu nêu rõ khảo sát ẩn danh, tự nguyện, mất khoảng 4–5 phút.
 
 *Bảng D.1: Phiếu khảo sát người dùng.*
 

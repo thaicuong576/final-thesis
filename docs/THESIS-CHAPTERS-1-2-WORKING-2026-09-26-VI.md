@@ -167,12 +167,11 @@ Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tí
 |---|---|:---:|:---:|
 | Wu và cộng sự (2023); Yang, Liu và Wang (2023) | Mô hình ngôn ngữ chuyên cho tài chính | Không | Không |
 | Chen và cộng sự (2021); Zhu và cộng sự (2021); Islam và cộng sự (2023) | Bộ dữ liệu hỏi đáp tài chính | Không áp dụng | Bằng chứng kèm câu hỏi |
-| Malarkkan và cộng sự (2026) | Kiểm tra báo cáo theo quy tắc kế toán | Có (quy tắc kế toán) | Không rõ |
-| Yang và cộng sự (2024); Xiao và cộng sự (2024) | Đa tác tử cho tài chính | Không rõ | Không rõ |
+| Malarkkan và cộng sự (2026) | Kiểm tra báo cáo theo quy tắc kế toán | Có (quy tắc kế toán) | Chưa nêu rõ |
+| Yang và cộng sự (2024); Xiao và cộng sự (2024) | Đa tác tử cho tài chính | Chưa nêu rõ | Chưa nêu rõ |
 | Nguyễn Văn Thủy (2024); Nguyễn Thị Yến (2026) | Khảo sát ứng dụng trong ngân hàng Việt Nam | Không áp dụng | Không áp dụng |
-| Khóa luận này | Báo cáo phân tích mười ngân hàng niêm yết | Có (từng câu) | Có (từng số tới trang gốc) |
 
-"Không rõ": tóm tắt và kết luận đã đọc không cho biết. Khác biệt của khóa luận là sự kết hợp số liệu do mã tính, truy nguồn từng số về trang gốc, kiểm từng câu bằng quy tắc, và so sánh có kiểm soát các cấu hình tác tử về chất lượng lẫn chi phí.
+"Chưa nêu rõ": tóm tắt và kết luận tác giả đã đọc không cho biết.
 
 ## TÀI LIỆU THAM KHẢO
 

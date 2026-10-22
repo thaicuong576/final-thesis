@@ -16,7 +16,7 @@ Trong khảo sát ở cuối mục này, 9 trong 15 người không lấy số l
 
 ![](docs/thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
 
-Hình 1.1: Trung vị và khoảng nhỏ nhất – lớn nhất của bốn chỉ tiêu qua mười quý
+Hình 1.1: Trung vị và khoảng nhỏ nhất - lớn nhất của bốn chỉ tiêu qua mười quý
 
 Bảng 1.1 mô tả ba nhóm người dùng tiềm năng.
 
@@ -111,7 +111,7 @@ Bảng 1.3 nối từng vấn đề ở mục 1.3 với nguyên tắc thiết k�
 ## CHƯƠNG 2. CƠ SỞ LÝ LUẬN VÀ NGUYÊN TẮC THIẾT KẾ HỆ THỐNG
 Chương này giải thích vì sao bài toán cần kiểm soát dữ liệu và phạm vi phân tích, khi nào chia việc cho nhiều tác tử có lợi, và vì sao đầu ra của mô hình ngôn ngữ cần được kiểm tra trước khi thành báo cáo. Từ đó, chương rút ra sáu nguyên tắc thiết kế cho hệ thống.
 
-**Khái niệm nền tảng.** Tác tử (agent) trong khóa luận là một mô hình ngôn ngữ lớn được giao một vai trò và có thể gọi công cụ, tức là gọi một hàm lập trình để lấy hoặc tính dữ liệu thay vì tự suy ra. Ảo giác (hallucination) là hiện tượng mô hình tạo nội dung trôi chảy nhưng không được dữ liệu đầu vào hỗ trợ (Ji và cộng sự, 2023). Nhận dạng ký tự quang học (OCR) chuyển ảnh trang báo cáo quét thành văn bản. Bốn chỉ tiêu được đọc như sau: tỷ lệ nợ xấu là dư nợ nhóm 3–5 chia dư nợ cho vay theo phân loại của Thông tư 11/2021/TT-NHNN, nên càng cao càng xấu; tỷ lệ bao phủ nợ xấu là dự phòng rủi ro tín dụng chia dư nợ nhóm 3–5, càng cao thì bộ đệm càng dày; ROA là lợi nhuận sau thuế trên tổng tài sản bình quân; ROE là lợi nhuận của cổ đông ngân hàng mẹ trên vốn chủ sở hữu bình quân, và ROE/ROA phản ánh đòn bẩy vốn (CFA Institute, 2026b).
+**Khái niệm nền tảng.** Tác tử (agent) trong khóa luận là một mô hình ngôn ngữ lớn được giao một vai trò và có thể gọi công cụ, tức là gọi một hàm lập trình để lấy hoặc tính dữ liệu thay vì tự suy ra. Ảo giác (hallucination) là hiện tượng mô hình tạo nội dung trôi chảy nhưng không được dữ liệu đầu vào hỗ trợ (Ji và cộng sự, 2023). Nhận dạng ký tự quang học (OCR) chuyển ảnh trang báo cáo quét thành văn bản. Bốn chỉ tiêu được đọc như sau: tỷ lệ nợ xấu là dư nợ nhóm 3-5 chia dư nợ cho vay theo phân loại của Thông tư 11/2021/TT-NHNN, nên càng cao càng xấu; tỷ lệ bao phủ nợ xấu là dự phòng rủi ro tín dụng chia dư nợ nhóm 3-5, càng cao thì bộ đệm càng dày; ROA là lợi nhuận sau thuế trên tổng tài sản bình quân; ROE là lợi nhuận của cổ đông ngân hàng mẹ trên vốn chủ sở hữu bình quân, và ROE/ROA phản ánh đòn bẩy vốn (CFA Institute, 2026b).
 
 ### 2.1. Đặc điểm của bài toán phân tích tài chính
 Phân tích tài chính phục vụ một mục tiêu hoặc quyết định cụ thể; khung phân tích báo cáo tài chính của CFA Institute bắt đầu từ việc xác định mục đích và bối cảnh, rồi mới thu thập dữ liệu, xử lý và kết luận (CFA Institute, 2026b). Vì vậy, phạm vi thông tin không cố định: câu hỏi về biến động sinh lời cần dữ liệu doanh nghiệp, câu hỏi về vị thế tương đối cần dữ liệu nhóm so sánh, và chỉ khi câu hỏi liên quan tới lãi suất hay chính sách thì thông tin vĩ mô mới cần thiết. Phân tích ngành và phân tích nhóm so sánh cũng khác nhau: phân tích ngành xét đặc điểm chung của lĩnh vực, còn phân tích nhóm so sánh đặt doanh nghiệp cạnh một tập đối thủ cụ thể; kết luận phải phản ánh đúng loại dữ liệu đã dùng.
@@ -146,7 +146,7 @@ Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yê
 | Mỗi yêu cầu cần phạm vi thông tin khác nhau | NT1. Xác định phạm vi từ câu hỏi | FR1: nhận câu hỏi tiếng Việt tự nhiên. FR3: từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | 4.2.1, 4.3 | 5.3, 5.9 (FR1 chưa thử đa dạng cách diễn đạt) |
 | Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | NT2. Dữ liệu có cấu trúc, truy nguyên được | FR2: mỗi giá trị truy được tới trang báo cáo gốc. FR5: thêm ngân hàng mới có kiểm tra. NFR1: không con số nào do mô hình tự tính | 3.2, 3.2.4, 4.2.2 | 5.3, 5.7, 5.10; khảo sát câu 6, 7, 9; FR5 mới thử một ngân hàng mẫu |
 | Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mô hình không quá 1.000 đồng mỗi báo cáo | 4.2.6, 4.4 | 5.6 (chưa kiểm riêng), 5.15: C đạt trên gpt-5.6-luna (473 đồng), không đạt trên DeepSeek V4 Pro (1.220 đồng); đối chiếu khảo sát (n = 15) |
-| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ trung bình không quá 60 giây | 4.2.4, 4.4 | 5.3, 5.8: A, B đạt (21–34 giây), C không đạt (75–103 giây); đối chiếu khảo sát (n = 15) |
+| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ trung bình không quá 60 giây | 4.2.4, 4.4 | 5.3, 5.8: A, B đạt (21-34 giây), C không đạt (75-103 giây); đối chiếu khảo sát (n = 15) |
 | Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | NT5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | NFR2: mọi câu qua kiểm tra quy tắc trước khi vào báo cáo | 4.2.5 | 5.7; khảo sát ủng hộ một phần (5/15, câu 9) |
 | Phản biện vô ích nếu đầu ra không đổi | NT6. Sửa đổi có giới hạn, đúng chỗ | FR6: chỉ sửa phần có vấn đề rồi kiểm tra lại | 4.2.7 | 5.5 |
 
@@ -191,25 +191,25 @@ CFA Institute (2026a), *Company analysis: Past and present*, bài đọc ôn t�
 
 CFA Institute (2026b), *Introduction to financial statement analysis*, bài đọc ôn tập (refresher reading) thuộc chương trình CFA 2026, Cấp độ I, nhóm Financial Statement Analysis, CFA Institute, truy cập ngày 21 tháng 10 năm 2026, <https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/introduction-financial-statement-analysis>.
 
-Chen, Z. và cộng sự (2021), “FinQA: A dataset of numerical reasoning over financial data”, *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Online và Punta Cana, tr. 3697–3711.
+Chen, Z. và cộng sự (2021), “FinQA: A dataset of numerical reasoning over financial data”, *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Online và Punta Cana, tr. 3697-3711.
 
 Choi, H. K., Zhu, X. và Li, S. (2025), *Debate or vote: Which yields better decisions in multi-agent large language models?*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2508.17536>.
 
 Cục Thống kê (2022), *Báo cáo tình hình kinh tế - xã hội quý IV và năm 2022*, Cục Thống kê (trước đây là Tổng cục Thống kê), truy cập ngày 21 tháng 10 năm 2026, <https://www.nso.gov.vn/du-lieu-va-so-lieu-thong-ke/2022/12/bao-cao-tinh-hinh-kinh-te-xa-hoi-quy-iv-va-nam-2022/>.
 
-De Franco, G., Kothari, S. P. và Verdi, R. S. (2011), “The benefits of financial statement comparability”, *Journal of Accounting Research*, tập 49, số 4, tr. 895–931.
+De Franco, G., Kothari, S. P. và Verdi, R. S. (2011), “The benefits of financial statement comparability”, *Journal of Accounting Research*, tập 49, số 4, tr. 895-931.
 
 DeepSeek (2026), *Models & pricing*, DeepSeek API Docs, truy cập ngày 21 tháng 10 năm 2026, <https://api-docs.deepseek.com/quick_start/pricing/>.
 
-Dhuliawala, S. và cộng sự (2024), “Chain-of-verification reduces hallucination in large language models”, *Findings of the Association for Computational Linguistics: ACL 2024*, Association for Computational Linguistics, Bangkok, tr. 3563–3578.
+Dhuliawala, S. và cộng sự (2024), “Chain-of-verification reduces hallucination in large language models”, *Findings of the Association for Computational Linguistics: ACL 2024*, Association for Computational Linguistics, Bangkok, tr. 3563-3578.
 
 FiinGroup (2026), *Dữ liệu doanh nghiệp (FiinPro-X)*, tài liệu hướng dẫn của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://docs.fiinpro.com/cong-cu/tim-kiem-du-lieu/du-lieu-doanh-nghiep>.
 
 Google (2026), *Gemini Apps Help*, truy cập ngày 21 tháng 10 năm 2026, <https://support.google.com/gemini/answer/13275745>.
 
-Hevner, A. R. và cộng sự (2004), “Design science in information systems research”, *MIS Quarterly*, tập 28, số 1, tr. 75–105.
+Hevner, A. R. và cộng sự (2004), “Design science in information systems research”, *MIS Quarterly*, tập 28, số 1, tr. 75-105.
 
-Hong, S. và cộng sự (2024), “MetaGPT: Meta programming for a multi-agent collaborative framework”, *International Conference on Learning Representations 2024 (ICLR 2024)*, ICLR, Vienna, tr. 23247–23275.
+Hong, S. và cộng sự (2024), “MetaGPT: Meta programming for a multi-agent collaborative framework”, *International Conference on Learning Representations 2024 (ICLR 2024)*, ICLR, Vienna, tr. 23247-23275.
 
 IFRS Foundation (2018), *Conceptual framework for financial reporting*, IFRS Foundation, truy cập ngày 21 tháng 10 năm 2026, <https://www.ifrs.org/issued-standards/list-of-standards/conceptual-framework/>.
 
@@ -217,19 +217,19 @@ Islam, P. và cộng sự (2023), *FinanceBench: A new benchmark for financial q
 
 Ji, Z. và cộng sự (2023), “Survey of hallucination in natural language generation”, *ACM Computing Surveys*, tập 55, số 12, bài số 248.
 
-Li, Y. và cộng sự (2023), “Large language models in finance: A survey”, *Proceedings of the Fourth ACM International Conference on AI in Finance*, Association for Computing Machinery, New York, tr. 374–382.
+Li, Y. và cộng sự (2023), “Large language models in finance: A survey”, *Proceedings of the Fourth ACM International Conference on AI in Finance*, Association for Computing Machinery, New York, tr. 374-382.
 
-Li, Y. và cộng sự (2024), “Improving multi-agent debate with sparse communication topology”, *Findings of the Association for Computational Linguistics: EMNLP 2024*, Association for Computational Linguistics, Miami, tr. 7281–7294.
+Li, Y. và cộng sự (2024), “Improving multi-agent debate with sparse communication topology”, *Findings of the Association for Computational Linguistics: EMNLP 2024*, Association for Computational Linguistics, Miami, tr. 7281-7294.
 
-Liang, T. và cộng sự (2024), “Encouraging divergent thinking in large language models through multi-agent debate”, *Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Miami, tr. 17889–17904.
+Liang, T. và cộng sự (2024), “Encouraging divergent thinking in large language models through multi-agent debate”, *Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Miami, tr. 17889-17904.
 
 LSEG (2026), *LSEG Workspace*, truy cập ngày 21 tháng 10 năm 2026, <https://www.lseg.com/en/data-analytics/products/workspace>.
 
-Madaan, A. và cộng sự (2023), “Self-Refine: Iterative refinement with self-feedback”, *Advances in Neural Information Processing Systems*, tập 36, Curran Associates, Red Hook, tr. 46534–46594.
+Madaan, A. và cộng sự (2023), “Self-Refine: Iterative refinement with self-feedback”, *Advances in Neural Information Processing Systems*, tập 36, Curran Associates, Red Hook, tr. 46534-46594.
 
 Malarkkan, A. V. và cộng sự (2026), *FinRule-Bench: A benchmark for joint reasoning over financial tables and principles*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2603.11339>.
 
-Manakul, P., Liusie, A. và Gales, M. (2023), “SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models”, *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Singapore, tr. 9004–9017.
+Manakul, P., Liusie, A. và Gales, M. (2023), “SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models”, *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Singapore, tr. 9004-9017.
 
 Ngân hàng Nhà nước Việt Nam (2023), *Quyết định số 1123/QĐ-NHNN ngày 16 tháng 6 năm 2023 điều chỉnh các mức lãi suất điều hành*, Ngân hàng Nhà nước Việt Nam, nội dung được đăng lại trên *Xây dựng chính sách*, truy cập ngày 21 tháng 10 năm 2026, <https://xaydungchinhsach.chinhphu.vn/nhnn-tiep-tuc-dieu-chinh-lai-suat-dieu-hanh-119230616150218505.htm>.
 
@@ -241,9 +241,9 @@ OpenAI (2026a), *ChatGPT*, truy cập ngày 21 tháng 10 năm 2026, <https://ope
 
 OpenAI (2026b), *API pricing*, OpenAI Developers, truy cập ngày 21 tháng 10 năm 2026, <https://developers.openai.com/api/docs/pricing>.
 
-Peffers, K. và cộng sự (2007), “A design science research methodology for information systems research”, *Journal of Management Information Systems*, tập 24, số 3, tr. 45–77.
+Peffers, K. và cộng sự (2007), “A design science research methodology for information systems research”, *Journal of Management Information Systems*, tập 24, số 3, tr. 45-77.
 
-Qian, C. và cộng sự (2024), “ChatDev: Communicative agents for software development”, *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Bangkok, tr. 15174–15186.
+Qian, C. và cộng sự (2024), “ChatDev: Communicative agents for software development”, *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Bangkok, tr. 15174-15186.
 
 S&P Global Market Intelligence (2026), *S&P Capital IQ Pro*, truy cập ngày 21 tháng 10 năm 2026, <https://www.spglobal.com/marketintelligence/en/solutions/sp-capital-iq-pro>.
 
@@ -267,6 +267,6 @@ Yang, H. và cộng sự (2024), *FinRobot: An open-source AI agent platform for
 
 Yang, H., Liu, X.-Y. và Wang, C. D. (2023), *FinGPT: Open-source financial large language models*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2306.06031>.
 
-Zhu, F. và cộng sự (2021), “TAT-QA: A question answering benchmark on a hybrid of tabular and textual content in finance”, *Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)*, Association for Computational Linguistics, Online, tr. 3277–3287.
+Zhu, F. và cộng sự (2021), “TAT-QA: A question answering benchmark on a hybrid of tabular and textual content in finance”, *Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)*, Association for Computational Linguistics, Online, tr. 3277-3287.
 
-Zhu, K. và cộng sự (2025), “MultiAgentBench: Evaluating the collaboration and competition of LLM agents”, *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Vienna, tr. 8580–8622.
+Zhu, K. và cộng sự (2025), “MultiAgentBench: Evaluating the collaboration and competition of LLM agents”, *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Vienna, tr. 8580-8622.

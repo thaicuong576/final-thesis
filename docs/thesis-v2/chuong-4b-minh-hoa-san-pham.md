@@ -1,18 +1,18 @@
 ## 4.5. Sản phẩm theo luồng sử dụng
 
-Mục này mô tả các bước dùng thử của một người phân tích điển hình trong nhóm chân dung thứ nhất ở Bảng 1.1, đi qua sản phẩm theo thứ tự: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14–15/10/2026 từ bản vận hành tại https://fin-ai.eddiephung.me hoặc từ mã nguồn giao diện hiện hành kết nối với máy chủ đang vận hành, mở lại các báo cáo đã lưu. Các Hình 4.4 đến 4.11 lần lượt minh họa FR2 và NFR1 (Hình 4.4), NT3 và NFR2 (Hình 4.5), FR4 (Hình 4.6, 4.7), NFR2 (Hình 4.8), FR3 (Hình 4.9), FR5 và FR2 (Hình 4.10, 4.11); phép kiểm chứng tương ứng ở Chương 5.
+Mục này mô tả các bước dùng thử của một người phân tích điển hình trong nhóm chân dung thứ nhất ở Bảng 1.1, đi qua sản phẩm theo thứ tự: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14-15/10/2026 từ bản vận hành tại https://fin-ai.eddiephung.me hoặc từ mã nguồn giao diện hiện hành kết nối với máy chủ đang vận hành, mở lại các báo cáo đã lưu. Các Hình 4.4 đến 4.11 lần lượt minh họa FR2 và NFR1 (Hình 4.4), NT3 và NFR2 (Hình 4.5), FR4 (Hình 4.6, 4.7), NFR2 (Hình 4.8), FR3 (Hình 4.9), FR5 và FR2 (Hình 4.10, 4.11); phép kiểm chứng tương ứng ở Chương 5.
 
 **Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào; bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô), và ô chưa có báo cáo được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức từng chỉ tiêu và khu vực tải lên ngân hàng mới.
 
 ![](docs/thesis-v2/screenshots/01-du-lieu.png)
 
-Hình 4.4: Trang Dữ liệu – độ phủ mười ngân hàng theo từng quý
+Hình 4.4: Trang Dữ liệu - độ phủ mười ngân hàng theo từng quý
 
 **Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu. Sau khi gửi, người dùng thấy điều phối viên nêu cách hiểu câu hỏi và kế hoạch, giao việc cho các chuyên viên (chỉ những tác tử thực sự tham gia mới hiện ra), bản nháp nhận định hiển thị dần từng đoạn, bộ kiểm chứng xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có; nội dung là các kết quả có cấu trúc mà từng tác tử công bố, không phải suy nghĩ thô của mô hình.
 
 ![](docs/thesis-v2/screenshots/03-dieu-phoi.png)
 
-Hình 4.5: Dòng suy luận – các tác tử nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
+Hình 4.5: Dòng suy luận - các tác tử nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
 
 **Đọc báo cáo.** Báo cáo trình bày theo phong cách báo cáo phân tích đầu tư: tiêu đề nêu kết luận, trạng thái kiểm định và phạm vi dữ liệu, rồi các nhận định kèm biểu đồ. Mỗi câu có số chú thích dẫn tới báo cáo tài chính gốc kèm số trang; khối tín hiệu tóm tắt vị thế so với nhóm và các phát hiện chéo nằm trong khối lưu ý riêng; dòng "Thị trường" (giá đóng cửa, P/B) là bối cảnh tham khảo, có ghi nguồn và tách khỏi số liệu báo cáo tài chính.
 
@@ -28,7 +28,7 @@ Hình 4.7: Báo cáo so sánh trực diện ACB và TCB
 
 ![](docs/thesis-v2/screenshots/06-qua-trinh.png)
 
-Hình 4.8: Quá trình phân tích – các bước của từng tác tử, kết quả kiểm tra số liệu và yêu cầu của bộ phản biện
+Hình 4.8: Quá trình phân tích - các bước của từng tác tử, kết quả kiểm tra số liệu và yêu cầu của bộ phản biện
 
 **Câu hỏi ngoài phạm vi.** Khi câu hỏi về ngân hàng hoặc kỳ chưa có dữ liệu, hoặc không phải phân tích ngân hàng, hệ thống từ chối trước khi gọi mô hình, nêu dữ liệu đang có và gợi ý câu hỏi có thể hỏi.
 

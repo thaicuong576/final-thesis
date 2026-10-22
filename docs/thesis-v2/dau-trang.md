@@ -1,12 +1,14 @@
 # LỜI CẢM ƠN
 
-Trước hết, tôi xin gửi lời cảm ơn chân thành đến giảng viên hướng dẫn Lê Văn đã định hướng đề tài, góp ý về phương pháp nghiên cứu và theo dõi tiến độ của khóa luận trong suốt quá trình thực hiện.
+Trước hết, em xin gửi lời cảm ơn chân thành đến thầy Lê Văn, giảng viên hướng dẫn, đã định hướng đề tài, góp ý về phương pháp nghiên cứu và theo dõi tiến độ khóa luận trong suốt quá trình thực hiện. Những góp ý của thầy giúp em xác định rõ phạm vi, cách đánh giá và những giới hạn cần nói thẳng trong khóa luận.
 
-Tôi cũng xin cảm ơn quý thầy cô Viện Đổi mới sáng tạo, Trường Công nghệ và Thiết kế, Trường Đại học Kinh tế Thành phố Hồ Chí Minh đã truyền đạt cho tôi những kiến thức nền tảng để hoàn thành khóa luận này.
+Em xin cảm ơn quý thầy cô Viện Đổi mới sáng tạo, Trường Công nghệ và Thiết kế, Trường Đại học Kinh tế Thành phố Hồ Chí Minh đã truyền đạt cho em những kiến thức nền tảng về kinh tế, tài chính và công nghệ để em có thể thực hiện khóa luận này.
 
-Do thời gian và kiến thức còn hạn chế, khóa luận khó tránh khỏi thiếu sót. Tôi rất mong nhận được những góp ý của quý thầy cô để hoàn thiện hơn.
+Em cũng xin cảm ơn 15 người đã dành thời gian trả lời bảng khảo sát về nhu cầu tra cứu số liệu tài chính ngân hàng, giúp em có thêm căn cứ từ người dùng cho phần thiết kế và đánh giá.
 
-Tôi xin chân thành cảm ơn.
+Do thời gian và kiến thức còn hạn chế, khóa luận khó tránh khỏi thiếu sót. Em rất mong nhận được những góp ý của quý thầy cô để hoàn thiện hơn.
+
+Em xin chân thành cảm ơn.
 
 # NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN
 
@@ -37,7 +39,7 @@ RAG | Sinh văn bản có truy xuất bổ trợ (Retrieval-Augmented Generation
 ROA | Tỷ suất sinh lời trên tổng tài sản (Return on Assets)
 ROE | Tỷ suất sinh lời trên vốn chủ sở hữu (Return on Equity)
 SHA-256 | Hàm băm mật mã 256 bit (Secure Hash Algorithm 256)
-SHB | Ngân hàng TMCP Sài Gòn – Hà Nội
+SHB | Ngân hàng TMCP Sài Gòn - Hà Nội
 STB | Ngân hàng TMCP Sài Gòn Thương Tín (Sacombank)
 TCB | Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)
 TMCP | Thương mại cổ phần

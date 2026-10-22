@@ -19,7 +19,7 @@ Bảng 4.1 giải thích các thuật ngữ do khóa luận đặt, được dù
 
 Hệ thống tách logic tính toán và kiểm tra khỏi hạ tầng ứng dụng (Hình 4.1), để việc đổi giao diện, máy chủ hay nguồn dữ liệu không làm thay đổi các phép tính.
 
-- **Tầng lõi** là thư viện thuần: định nghĩa đặc tả ràng buộc dữ liệu, tính các dữ kiện và tín hiệu tài chính, kiểm tra câu nhận định, kiểm tra cấu trúc báo cáo, và định nghĩa quy trình phản biện – sửa đổi. Tầng lõi không kết nối cơ sở dữ liệu, không gọi mô hình ngôn ngữ và không chứa mã ngân hàng cố định, nên dùng lại được cho ngân hàng khác. Các ràng buộc này được một công cụ kiểm tra tự động trên mỗi lần thay đổi mã nguồn.
+- **Tầng lõi** là thư viện thuần: định nghĩa đặc tả ràng buộc dữ liệu, tính các dữ kiện và tín hiệu tài chính, kiểm tra câu nhận định, kiểm tra cấu trúc báo cáo, và định nghĩa quy trình phản biện - sửa đổi. Tầng lõi không kết nối cơ sở dữ liệu, không gọi mô hình ngôn ngữ và không chứa mã ngân hàng cố định, nên dùng lại được cho ngân hàng khác. Các ràng buộc này được một công cụ kiểm tra tự động trên mỗi lần thay đổi mã nguồn.
 - **Tầng ứng dụng** điều phối một lượt phân tích: nhận câu hỏi qua giao diện lập trình (API), hiểu câu hỏi tiếng Việt, lập kế hoạch, gọi công cụ, giao việc cho các chuyên viên, tổng hợp báo cáo và truyền tiến trình tới trình duyệt theo thời gian thực.
 - **Tầng lưu trữ** gồm hai tệp tách biệt: bộ dữ liệu phân tích được mở ở chế độ chỉ đọc để giữ nguyên mã băm, và kho lịch sử các lượt chạy có quyền ghi. Khi khởi động, hệ thống từ chối chạy nếu hai đường dẫn trỏ về cùng một tệp.
 
@@ -140,7 +140,7 @@ Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ ki�
 | Chiều xu hướng | "Tăng", "giảm", "đi ngang" không khớp biến động và ngưỡng đi ngang của chỉ tiêu |
 | Chiều so sánh | "Cao hơn", "tốt hơn" không khớp dấu của chênh lệch và chiều tốt của chỉ tiêu |
 | Nhãn chỉ tiêu | Tên chỉ tiêu nêu trong câu (khớp cụm dài nhất trước, ví dụ "tỷ lệ bao phủ nợ xấu" không bị nhận thành "nợ xấu") không trùng chỉ tiêu của dữ kiện được trích |
-| Tự so sánh | Cùng một ngân hàng ở cả hai vế so sánh, cùng một kỳ ở hai đầu mệnh đề biến động, hoặc cực trị cùng chiều ("thấp nhất – thấp nhất") |
+| Tự so sánh | Cùng một ngân hàng ở cả hai vế so sánh, cùng một kỳ ở hai đầu mệnh đề biến động, hoặc cực trị cùng chiều ("thấp nhất - thấp nhất") |
 
 ### 4.2.6. Tổng hợp báo cáo theo khối
 

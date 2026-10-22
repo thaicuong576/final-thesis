@@ -79,7 +79,7 @@ for s_ in walk(d.Shapes):
     except Exception as e: print("pf restore err",k,e)
 section_break_before(BIA_PHU)
 section_break_before("LỜI CẢM ƠN")
-section_break_before("TÓM TẮT (ABSTRACT)")
+section_break_before("TÓM TẮT")
 print("sections",d.Sections.Count)
 assert d.Sections.Count==4
 # 2. page setup and page numbers

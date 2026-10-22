@@ -32,7 +32,7 @@ Bảng 5.1 liệt kê toàn bộ các thực nghiệm đã chạy và câu hỏi
 
 *Bảng 5.2: Kết quả tổng hợp theo cấu hình (mô hình DeepSeek V4 Pro, 12 lượt mỗi cấu hình).*
 
-| Chỉ số | A – một tác tử | B – phân cấp | C – phân cấp có phản biện | D – chỉ dùng câu mẫu |
+| Chỉ số | A - một tác tử | B - phân cấp | C - phân cấp có phản biện | D - chỉ dùng câu mẫu |
 |---|:---:|:---:|:---:|:---:|
 | Hoàn thành trọn vẹn, không ghi chú giới hạn (trên 10 câu phân tích; hai câu từ chối không tính) | 7/10 (70,0%) | 9/10 (90,0%) | 4/10 (40,0%) | 10/10 (100,0%) |
 | Con số trong câu được giữ khớp với dữ kiện được trích | 100,0% | 100,0% | 100,0% | 100,0% |
@@ -79,7 +79,7 @@ Về độ phủ, B thắng 3, hòa 6, thua 1 so với A: B hơn ở T04 (1,0 so
 
 Cái giá của B là chi phí: tiêu tốn nhiều token hơn A ở cả 10 câu (khoảng 2,2 lần) và thêm khoảng 12 giây mỗi lượt, trong khi độ chính xác của con số và khả năng truy vết không khác nhau vì cùng đi qua công cụ tính toán và bộ kiểm chứng câu.
 
-**Trả lời câu hỏi nghiên cứu thứ hai:** trong thực nghiệm chính với DeepSeek V4 Pro, B có độ phủ cao hơn A (0,812 so với 0,756 trên 10 câu phân tích; thắng 3, hòa 6, thua 1) và 9 so với 7 báo cáo hoàn thành trọn vẹn trên 10 câu phân tích, với chi phí khoảng gấp đôi. Hai ràng buộc cần đọc cạnh con số này: A và B khác nhau ở hai yếu tố cùng lúc (chuyên môn hóa và số lượt gọi mô hình: 0,8 so với 2,1 mỗi lượt), nên không tách được tác động; và độ phủ của B thay đổi theo mô hình nhiều hơn chênh lệch giữa B và A (mục 5.8): khi chạy lại trên `gpt-5.6-luna`, độ phủ của A, B, C đều là 0,912 trên 10 câu. Vì mỗi cặp chỉ chạy một lần và mức nhiễu giữa các lần chạy có thể ngang chênh lệch A – B (một lần chạy khác của DeepSeek V4 Pro loại 14/56 câu so với 9/53 của B), thực nghiệm chưa đủ để kết luận B tốt hơn A.
+**Trả lời câu hỏi nghiên cứu thứ hai:** trong thực nghiệm chính với DeepSeek V4 Pro, B có độ phủ cao hơn A (0,812 so với 0,756 trên 10 câu phân tích; thắng 3, hòa 6, thua 1) và 9 so với 7 báo cáo hoàn thành trọn vẹn trên 10 câu phân tích, với chi phí khoảng gấp đôi. Hai ràng buộc cần đọc cạnh con số này: A và B khác nhau ở hai yếu tố cùng lúc (chuyên môn hóa và số lượt gọi mô hình: 0,8 so với 2,1 mỗi lượt), nên không tách được tác động; và độ phủ của B thay đổi theo mô hình nhiều hơn chênh lệch giữa B và A (mục 5.8): khi chạy lại trên `gpt-5.6-luna`, độ phủ của A, B, C đều là 0,912 trên 10 câu. Vì mỗi cặp chỉ chạy một lần và mức nhiễu giữa các lần chạy có thể ngang chênh lệch A - B (một lần chạy khác của DeepSeek V4 Pro loại 14/56 câu so với 9/53 của B), thực nghiệm chưa đủ để kết luận B tốt hơn A.
 
 ## 5.5. Đánh giá tác động của cơ chế phản biện và sửa đổi có mục tiêu
 
@@ -93,9 +93,9 @@ Trên `gpt-5.6-luna` (mục 5.8), độ phủ của C vẫn bằng B và A (0,91
 
 ## 5.6. Phân tích theo dạng câu hỏi và cơ chế kiểm tra câu
 
-Báo cáo thay đổi hình dạng theo dạng câu hỏi: câu tra cứu nhận thẻ trả lời một khối; hồ sơ doanh nghiệp tạo báo cáo dài nhất (5–7 khối); xếp hạng, xu hướng và so sánh trực diện tạo báo cáo 2–4 khối.
+Báo cáo thay đổi hình dạng theo dạng câu hỏi: câu tra cứu nhận thẻ trả lời một khối; hồ sơ doanh nghiệp tạo báo cáo dài nhất (5-7 khối); xếp hạng, xu hướng và so sánh trực diện tạo báo cáo 2-4 khối.
 
-Trên toàn thực nghiệm, 39 câu bị loại; lý do phổ biến nhất là còn vấn đề phản biện chưa giải quyết (12 câu, chỉ ở C), chiều xu hướng không khớp ngưỡng đi ngang (11), thứ hạng không khớp (6) và nêu xu hướng khi không trích dữ kiện thay đổi (6); chỉ 2 câu bị loại vì con số không khớp. Câu T08 (đánh đổi của VPB qua năm 2025 so với nhóm) có độ phủ thấp ở cả ba cấu hình (0,13–0,38) vì hệ thống chỉ hỗ trợ xu hướng nhiều kỳ cho một ngân hàng, chưa hỗ trợ so sánh nhóm qua nhiều kỳ; báo cáo nêu rõ giới hạn này thay vì tự suy ra số liệu nhóm.
+Trên toàn thực nghiệm, 39 câu bị loại; lý do phổ biến nhất là còn vấn đề phản biện chưa giải quyết (12 câu, chỉ ở C), chiều xu hướng không khớp ngưỡng đi ngang (11), thứ hạng không khớp (6) và nêu xu hướng khi không trích dữ kiện thay đổi (6); chỉ 2 câu bị loại vì con số không khớp. Câu T08 (đánh đổi của VPB qua năm 2025 so với nhóm) có độ phủ thấp ở cả ba cấu hình (0,13-0,38) vì hệ thống chỉ hỗ trợ xu hướng nhiều kỳ cho một ngân hàng, chưa hỗ trợ so sánh nhóm qua nhiều kỳ; báo cáo nêu rõ giới hạn này thay vì tự suy ra số liệu nhóm.
 
 Nhật ký của mười lượt phân tích ở cấu hình B cho thấy lượng việc được huy động thay đổi theo dạng câu hỏi: câu tra cứu (T03) và xếp hạng (T06, T07) chỉ gọi một công cụ và một chuyên viên; câu so sánh (T09, T10) gọi một hoặc hai công cụ; câu xu hướng (T04, T05, T08) gọi hai công cụ (xu hướng và vị thế so với nhóm) nên cần cả hai chuyên viên; hồ sơ doanh nghiệp (T01, T02) gọi ba công cụ. So với một quy trình cố định luôn gọi cả hai chuyên viên và ba công cụ (20 lượt giao việc, 30 lần gọi công cụ cho mười câu), B dùng 15 lượt giao việc và 18 lần gọi công cụ. Đây là phép so với một quy trình giả định, không phải thực nghiệm riêng về tính thích ứng, nên yêu cầu FR4 và nguyên tắc NT3 chỉ được kiểm một phần.
 
@@ -139,13 +139,13 @@ Thực nghiệm chính chỉ dùng một mô hình. Thực nghiệm này chạy 
 
 Độ khớp số, truy vết và từ chối đúng không đổi theo mô hình vì các đảm bảo này đến từ lớp kiểm soát. Thứ thay đổi là hiệu suất viết: độ phủ từ 0,725 đến 0,931 và tỷ lệ câu bị loại từ 1,8% đến 27,1%, tức mô hình yếu hơn vẫn an toàn nhưng báo cáo ngắn và thiếu hơn; token không tương ứng với độ phủ (`gpt-5.6-luna` dùng ít token hơn DeepSeek V4 Flash nhưng phủ cao hơn nhiều). DeepSeek V4 Pro cũng là mô hình của thực nghiệm chính nên lần chạy này cho thấy mức nhiễu giữa các lần chạy của cùng một mô hình (14/56 câu bị loại so với 9/53 của B).
 
-Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên phiên bản sau nâng cấp (mã nguồn khác lần đầu): độ phủ 0,900, 0,925 và 0,925, tỷ lệ câu bị loại 7,1%, 5,1% và 7,3% (so với 1,8% của lần đầu, nên giá trị tiêu biểu hơn là 5–7%), từ chối đúng 2/2, truy vết 1,0 và 302/302 số khớp ở cả ba lần.
+Để kiểm tra độ ổn định, `gpt-5.6-luna` được chạy thêm ba lần trên phiên bản sau nâng cấp (mã nguồn khác lần đầu): độ phủ 0,900, 0,925 và 0,925, tỷ lệ câu bị loại 7,1%, 5,1% và 7,3% (so với 1,8% của lần đầu, nên giá trị tiêu biểu hơn là 5-7%), từ chối đúng 2/2, truy vết 1,0 và 302/302 số khớp ở cả ba lần.
 
 **Chạy lại cả ba cấu hình trên gpt-5.6-luna.** Để kiểm tra kết luận về A, B, C có giữ khi đổi mô hình, cả ba cấu hình được chạy lại trên `gpt-5.6-luna` (22/10/2026), 12 câu một lần mỗi cấu hình (36 lượt, 658.442 token), cùng giao thức, dữ liệu khóa và bộ chấm. Mã nguồn lần này là phiên bản sau nâng cấp (mục 5.12) có thêm hai quy tắc kiểm tra mới (mục 4.2.5), nên hai lần chạy khác nhau ở cả mô hình lẫn mã nguồn. D cũng được chạy lại trên mã mới. Không câu nào của A, B, C bị loại bởi hai quy tắc mới.
 
 *Bảng 5.6: Kết quả tổng hợp theo cấu hình (mô hình gpt-5.6-luna, mã nguồn sau nâng cấp và sau khi thêm quy tắc, 12 lượt mỗi cấu hình).*
 
-| Chỉ số | A – một tác tử | B – phân cấp | C – phân cấp có phản biện | D – chỉ dùng câu mẫu |
+| Chỉ số | A - một tác tử | B - phân cấp | C - phân cấp có phản biện | D - chỉ dùng câu mẫu |
 |---|:---:|:---:|:---:|:---:|
 | Hoàn thành trọn vẹn (trên 10 câu phân tích) | 10/10 | 10/10 | 2/10 | 10/10 |
 | Con số trong câu được giữ khớp với dữ kiện | 100,0% | 100,0% | 100,0% | 100,0% |
@@ -175,7 +175,7 @@ Bảng 5.7 là độ phủ theo từng câu ở lần chạy này.
 | T09 | So sánh trực diện | 1,00 | 1,00 | 1,00 | 0,50 |
 | T10 | So sánh trực diện | 1,00 | 1,00 | 1,00 | 1,00 |
 
-Độ phủ của A, B và C bằng nhau ở 7/10 câu (bằng nhau từng đôi A – B ở 8 câu). Điều này có thể do bộ câu hỏi chưa đủ khó để phân biệt các cấu hình (đa số câu chỉ cần một đến hai chỉ tiêu), không nhất thiết do các cấu hình tương đương.
+Độ phủ của A, B và C bằng nhau ở 7/10 câu (bằng nhau từng đôi A - B ở 8 câu). Điều này có thể do bộ câu hỏi chưa đủ khó để phân biệt các cấu hình (đa số câu chỉ cần một đến hai chỉ tiêu), không nhất thiết do các cấu hình tương đương.
 
 Trên mô hình mạnh hơn, ba kết luận thay đổi. Thứ nhất, độ phủ của A, B và C bằng nhau (0,912 trên 10 câu); B thắng A ở một câu (T05), thua ở một câu (T08) và hòa ở tám câu, nên lợi thế của B ở thực nghiệm chính không còn. Thứ hai, A cho kết quả ổn định hơn: hoàn thành trọn vẹn 10/10 và không câu nào bị loại (0/67), so với 7/10 và 8/52 ở DeepSeek V4 Pro. Thứ ba, C vẫn có chi phí cao nhất và tỷ lệ hoàn thành trọn vẹn thấp nhất: 2/10 báo cáo hoàn thành trọn vẹn, 35,3% câu bị loại, token gấp 3,9 lần B và 7,7 lần A. Không đổi ở cả hai mô hình: độ chính xác của con số, thứ tự chi phí A < B < C và việc C không cải thiện độ phủ. D giữ độ phủ 0,698; trên mã mới D bị loại 12/63 câu thay vì 6/60, vì quy tắc nhãn chỉ tiêu loại sáu dòng chú thích hình chung chung nêu hai chỉ tiêu nhưng chỉ trích dẫn dữ kiện của một chỉ tiêu; đó là loại nhầm các dòng không chứa nhận định nào, không đổi độ phủ, nhưng cần xử lý nếu dùng quy tắc thật. Vì chỉ có hai mô hình, một lần chạy mỗi cấu hình và hai phiên bản mã nguồn, các kết luận trên chỉ là quan sát.
 
@@ -209,9 +209,9 @@ Hệ thống nhận số liệu từ báo cáo tài chính gốc dạng PDF, ph�
 | (b) Lấy sai hàng hoặc cột | 885 | 185 (20,9%) |
 | (b) Thiếu cột để lấy | 885 | 1 (0,1%) |
 
-Con số 885 là tập con của dữ liệu đầu vào, không phải toàn bộ. Bộ dữ liệu cuối có 1.735 quan sát, gồm 1.335 số liệu đầu vào đọc từ báo cáo gốc và 400 giá trị chỉ tiêu do chương trình tính lại (4 chỉ tiêu × 100 ô ngân hàng – quý). Thực nghiệm này lấy 1.123 dòng trong tệp đầu vào của dữ liệu quý; trong đó có 150 dòng không có trang hoặc tệp PDF cục bộ để đối chiếu (số liệu năm tài chính và số liệu so sánh) và 88 dòng có trang chưa được nhận dạng ký tự, nên còn 885 dòng (1.123 − 150 − 88). Còn lại 212 quan sát đầu vào của bộ dữ liệu cuối không nằm trong tệp đầu vào quý và không được đo ở đây. Vì vậy 885 là mẫu đo được, đại diện cho khoảng 66% số liệu đầu vào (885/1.335).
+Con số 885 là tập con của dữ liệu đầu vào, không phải toàn bộ. Bộ dữ liệu cuối có 1.735 quan sát, gồm 1.335 số liệu đầu vào đọc từ báo cáo gốc và 400 giá trị chỉ tiêu do chương trình tính lại (4 chỉ tiêu × 100 ô ngân hàng - quý). Thực nghiệm này lấy 1.123 dòng trong tệp đầu vào của dữ liệu quý; trong đó có 150 dòng không có trang hoặc tệp PDF cục bộ để đối chiếu (số liệu năm tài chính và số liệu so sánh) và 88 dòng có trang chưa được nhận dạng ký tự, nên còn 885 dòng (1.123 − 150 − 88). Còn lại 212 quan sát đầu vào của bộ dữ liệu cuối không nằm trong tệp đầu vào quý và không được đo ở đây. Vì vậy 885 là mẫu đo được, đại diện cho khoảng 66% số liệu đầu vào (885/1.335).
 
-Nhận dạng ký tự không phải nguyên nhân chính của sai sót: 93–96% giá trị xuất hiện nguyên văn trên đúng trang (chỉ cho biết chuỗi số có mặt, chưa chứng minh ô được đọc đúng vị trí). Khó khăn rõ hơn nằm ở cấu trúc bảng: bộ trích xuất đơn giản chọn đúng hàng và cột chỉ khoảng một nửa số lần (đây là đối chứng yếu, không đại diện cho bộ trích xuất tốt hơn), đạt 88–96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, 5 nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn lũy kế và vốn chủ sở hữu thường là một dòng tổng của mục. Kết quả ủng hộ việc giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại theo công thức, và cho thấy quy trình số hóa là bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chưa thực hiện.
+Nhận dạng ký tự không phải nguyên nhân chính của sai sót: 93-96% giá trị xuất hiện nguyên văn trên đúng trang (chỉ cho biết chuỗi số có mặt, chưa chứng minh ô được đọc đúng vị trí). Khó khăn rõ hơn nằm ở cấu trúc bảng: bộ trích xuất đơn giản chọn đúng hàng và cột chỉ khoảng một nửa số lần (đây là đối chứng yếu, không đại diện cho bộ trích xuất tốt hơn), đạt 88-96% với các chỉ tiêu đứng một dòng riêng như tổng tài sản hay nợ nhóm 4, 5 nhưng chỉ 27% với lợi nhuận sau thuế và 0% với tổng vốn chủ sở hữu, vì báo cáo kết quả kinh doanh có cả cột quý lẫn lũy kế và vốn chủ sở hữu thường là một dòng tổng của mục. Kết quả ủng hộ việc giữ giá trị trích xuất ở trạng thái "ứng viên" cho đến khi được đối chiếu với đẳng thức kế toán và tính lại theo công thức, và cho thấy quy trình số hóa là bán tự động có tác tử AI hỗ trợ, trong đó thẩm định độc lập là hướng mở rộng chưa thực hiện.
 
 ## 5.11. Ca STB quý 4/2025: bất thường trong dữ liệu và vai trò của hồ sơ gốc
 
@@ -221,7 +221,7 @@ Khi đối soát dữ liệu quý, lợi nhuận sau thuế lũy kế của STB 
 
 ## 5.12. Nâng cấp sau đánh giá
 
-Sau thực nghiệm chính (05/10/2026), sản phẩm được nâng cấp thêm; các nâng cấp không được tính trong số liệu ở mục 5.3–5.10, trừ lần chạy lặp và kiểm tra đối kháng sau sửa. Chúng gồm: phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi; khung trượt tra cứu nguồn hiển thị trang PDF và đường truy vết của từng con số; bối cảnh thị trường (giá cổ phiếu, P/B so với ROE) gắn nhãn riêng, nằm ngoài phạm vi dữ liệu của Chương 3 và không được đánh giá; kiểm tra tính đơn điệu của lợi nhuận lũy kế (mục 5.11); và cổng phạm vi từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng (mục 5.9). Ngoài cổng phạm vi, các nâng cấp này không làm đổi kết quả phân tích.
+Sau thực nghiệm chính (05/10/2026), sản phẩm được nâng cấp thêm; các nâng cấp không được tính trong số liệu ở mục 5.3-5.10, trừ lần chạy lặp và kiểm tra đối kháng sau sửa. Chúng gồm: phát trực tiếp bản nháp của chuyên viên và kết luận của bộ kiểm chứng lên màn hình theo dõi; khung trượt tra cứu nguồn hiển thị trang PDF và đường truy vết của từng con số; bối cảnh thị trường (giá cổ phiếu, P/B so với ROE) gắn nhãn riêng, nằm ngoài phạm vi dữ liệu của Chương 3 và không được đánh giá; kiểm tra tính đơn điệu của lợi nhuận lũy kế (mục 5.11); và cổng phạm vi từ chối câu hỏi không có thực thể, chỉ tiêu hoặc ý định phân tích ngân hàng (mục 5.9). Ngoài cổng phạm vi, các nâng cấp này không làm đổi kết quả phân tích.
 
 ## 5.13. Thảo luận
 
@@ -229,7 +229,7 @@ Thứ nhất, độ tin cậy về con số không đến từ việc chọn c�
 
 Thứ hai, kiến trúc kiểm soát có giới hạn mà thực nghiệm độ nhạy đo được. Ở lần đo đầu, bộ kiểm chứng bỏ sót 20,8% các câu giữ nguyên con số và đổi tên chỉ tiêu; hai quy tắc bổ sung đưa tỷ lệ phát hiện chung từ 94,1% lên 99,2% và riêng lỗi đổi chỉ tiêu từ 79,2% lên 99,2%, không loại nhầm câu hợp lệ nào do mô hình viết, nhưng loại nhầm sáu dòng chú thích hình mẫu ở D. Hai quy tắc được thiết kế sau khi thấy kết quả của chính các toán tử đột biến, nên chưa phải bằng chứng về khả năng phát hiện lỗi chưa từng thử.
 
-Thứ ba, giá trị của mô hình và của cách tổ chức tác tử phụ thuộc vào mô hình. D cho thấy một phần đáng kể độ phủ (0,637 trên 10 câu phân tích, so với 0,756–0,812 của A và B ở DeepSeek V4 Pro và 0,912 ở `gpt-5.6-luna`) đạt được không cần mô hình, nhất là ở các câu tra cứu, xếp hạng và so sánh một chỉ tiêu; mô hình bổ sung khả năng gom nhiều chỉ tiêu và diễn đạt mạch lạc, điều bộ chấm tự động chưa đo trực tiếp. Chuyên môn hóa (B) cải thiện nhẹ độ đầy đủ ở DeepSeek V4 Pro nhưng không còn lợi thế ở `gpt-5.6-luna`, còn phản biện (C) tốn gấp ba đến bốn lần B ở cả hai mô hình và giảm tỷ lệ hoàn thành trọn vẹn. B hoặc một tác tử đơn A trên mô hình mạnh là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới. Chất lượng câu cũng phụ thuộc việc prompt nêu đủ quy tắc của bộ kiểm chứng (ghi rõ quy tắc vào prompt làm tăng tỷ lệ câu được giữ), nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
+Thứ ba, giá trị của mô hình và của cách tổ chức tác tử phụ thuộc vào mô hình. D cho thấy một phần đáng kể độ phủ (0,637 trên 10 câu phân tích, so với 0,756-0,812 của A và B ở DeepSeek V4 Pro và 0,912 ở `gpt-5.6-luna`) đạt được không cần mô hình, nhất là ở các câu tra cứu, xếp hạng và so sánh một chỉ tiêu; mô hình bổ sung khả năng gom nhiều chỉ tiêu và diễn đạt mạch lạc, điều bộ chấm tự động chưa đo trực tiếp. Chuyên môn hóa (B) cải thiện nhẹ độ đầy đủ ở DeepSeek V4 Pro nhưng không còn lợi thế ở `gpt-5.6-luna`, còn phản biện (C) tốn gấp ba đến bốn lần B ở cả hai mô hình và giảm tỷ lệ hoàn thành trọn vẹn. B hoặc một tác tử đơn A trên mô hình mạnh là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới. Chất lượng câu cũng phụ thuộc việc prompt nêu đủ quy tắc của bộ kiểm chứng (ghi rõ quy tắc vào prompt làm tăng tỷ lệ câu được giữ), nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
 
 Đối chiếu với khảo sát ở mục 1.2, kết quả thực nghiệm đáp ứng một phần kỳ vọng của người dùng. Về nguồn, 11 trong 15 người coi khả năng truy tới trang báo cáo gốc là điều kiện để dùng kết quả do AI tạo ra, và hệ thống bảo đảm điều này cho mọi con số (100% truy được về số liệu gốc ở bốn cấu hình). Kiểm tra tự động trước khi hiển thị chỉ được 5 người chọn, nên giá trị của bộ kiểm chứng đối với người dùng nằm ở độ tin cậy gián tiếp hơn là ở một tính năng họ chủ động đòi hỏi. Về độ trễ, cấu hình A (khoảng 21 giây) nằm trong mức chờ chấp nhận được của 13 người nhưng chưa đáp ứng 2 người cần dưới 10 giây; cấu hình B (33 đến 34 giây) chỉ đáp ứng 9 người, và cấu hình C (75 đến 103 giây) chỉ đáp ứng 3 người. Về chi phí, năm trong sáu tổ hợp mô hình và cấu hình có chi phí dưới 1.000 đồng mỗi báo cáo, nhưng đây là chi phí gọi mô hình chứ không phải giá người dùng phải trả, chưa gồm chi phí chuẩn bị dữ liệu, và 4 người chỉ chấp nhận công cụ miễn phí. Các thời gian này được đo khi các lượt chạy đồng thời nên chỉ có giá trị tham khảo.
 
@@ -255,17 +255,17 @@ Chi phí mô hình của một báo cáo được tính từ token đầu vào v
 
 | Mô hình | Cấu hình | Token đầu vào | Token đầu ra | Chi phí (USD) | Chi phí (đồng) |
 |---|---|:---:|:---:|:---:|:---:|
-| DeepSeek V4 Pro | A – một tác tử | 3.915 | 626 | 0,0077 | 193 |
-| DeepSeek V4 Pro | B – phân cấp | 8.644 | 1.258 | 0,0164 | 413 |
-| DeepSeek V4 Pro | C – phân cấp có phản biện | 28.206 | 2.822 | 0,0484 | 1.220 |
-| `gpt-5.6-luna` | A – một tác tử | 4.389 | 1.764 | 0,0030 | 76 |
-| `gpt-5.6-luna` | B – phân cấp | 9.258 | 2.895 | 0,0053 | 134 |
-| `gpt-5.6-luna` | C – phân cấp có phản biện | 38.284 | 9.254 | 0,0188 | 473 |
-| Không gọi mô hình | D – chỉ dùng câu mẫu | 0 | 0 | 0 | 0 |
+| DeepSeek V4 Pro | A - một tác tử | 3.915 | 626 | 0,0077 | 193 |
+| DeepSeek V4 Pro | B - phân cấp | 8.644 | 1.258 | 0,0164 | 413 |
+| DeepSeek V4 Pro | C - phân cấp có phản biện | 28.206 | 2.822 | 0,0484 | 1.220 |
+| `gpt-5.6-luna` | A - một tác tử | 4.389 | 1.764 | 0,0030 | 76 |
+| `gpt-5.6-luna` | B - phân cấp | 9.258 | 2.895 | 0,0053 | 134 |
+| `gpt-5.6-luna` | C - phân cấp có phản biện | 38.284 | 9.254 | 0,0188 | 473 |
+| Không gọi mô hình | D - chỉ dùng câu mẫu | 0 | 0 | 0 | 0 |
 
 Chi phí mô hình mỗi báo cáo vì vậy chỉ từ vài chục đến hơn một nghìn đồng, và chưa so được với chi phí con người vì khóa luận chưa đo giờ công; khác biệt chính là thời gian chờ (từ khoảng 21 giây ở A đến khoảng 75 giây ở C với DeepSeek V4 Pro; từ 20 đến 103 giây với `gpt-5.6-luna`). Nhiều khả năng chi phí lớn hơn nằm ở khâu chuẩn bị dữ liệu: mỗi quý mới cần đọc báo cáo của mười ngân hàng, khoảng 130 số đầu vào (1.335 chia mười quý), phần lớn là bản quét phải đối soát từng ô (mục 5.10). Khóa luận chưa đo giờ công cho việc này nên không quy ra tiền.
 
-Theo khảo sát ở mục 1.2, trong 13 người tự tra số liệu, 8 người mất từ 30 phút trở lên cho một ngân hàng một quý (trung vị thuộc nhóm 30–60 phút, tự khai). Hệ thống trả lời trong khoảng 21 đến 34 giây ở cấu hình A và B, nhưng chỉ trên bộ dữ liệu đã chuẩn bị sẵn; thời gian chuẩn bị dữ liệu cho ngân hàng hoặc quý mới không nằm trong con số này nên hai số liệu không so sánh trực tiếp được.
+Theo khảo sát ở mục 1.2, trong 13 người tự tra số liệu, 8 người mất từ 30 phút trở lên cho một ngân hàng một quý (trung vị thuộc nhóm 30-60 phút, tự khai). Hệ thống trả lời trong khoảng 21 đến 34 giây ở cấu hình A và B, nhưng chỉ trên bộ dữ liệu đã chuẩn bị sẵn; thời gian chuẩn bị dữ liệu cho ngân hàng hoặc quý mới không nằm trong con số này nên hai số liệu không so sánh trực tiếp được.
 
 ### 5.15.2. Điều kiện áp dụng thực tế
 
@@ -277,7 +277,7 @@ Hệ thống chỉ tin cậy khi các điều kiện sau được giữ. Báo c�
 
 | Rủi ro | Mức độ | Khả năng | Biện pháp |
 |---|---|---|---|
-| Số liệu đầu vào đọc sai từ báo cáo quét | Cao | Trung bình: chuỗi số xuất hiện trên trang 93–96%, bộ trích xuất đơn giản chỉ đúng 52% (mục 5.10) | Giữ số ở trạng thái ứng viên, đối chiếu đẳng thức kế toán, bổ sung người thẩm định thứ hai |
+| Số liệu đầu vào đọc sai từ báo cáo quét | Cao | Trung bình: chuỗi số xuất hiện trên trang 93-96%, bộ trích xuất đơn giản chỉ đúng 52% (mục 5.10) | Giữ số ở trạng thái ứng viên, đối chiếu đẳng thức kế toán, bổ sung người thẩm định thứ hai |
 | Câu giữ số đúng nhưng gắn sai tên chỉ tiêu | Trung bình | Có đo: bộ kiểm chứng bỏ sót 20,8% câu đổi chỉ tiêu (mục 5.7) | Quy tắc kiểm tra nhãn chỉ tiêu; người dùng đọc kèm bảng số liệu và nguồn |
 | Nhà cung cấp đổi phiên bản hoặc giá mô hình | Trung bình | Cao: kết quả đã khác nhau giữa các mô hình (mục 5.8) | Ghi phiên bản mô hình trong mỗi lượt chạy; chạy lại bộ câu hỏi chuẩn trước khi đổi |
 | Câu hỏi ngoài phạm vi không bị cổng từ khóa chặn | Trung bình | Trung bình: cổng chỉ dựa trên từ khóa (mục 5.9) | Mở rộng bộ câu đối kháng; thông báo từ chối nêu rõ phạm vi hỗ trợ |

@@ -310,14 +310,14 @@ def _set_all_fonts(run, name: str = "Times New Roman", size_pt: float = 12) -> N
 
 
 _NUMERIC_CELL_RE = re.compile(
-    r'^[+\-−–]?\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?\s*(?:%|giây|token|câu|lượt|ô|vòng)?'
+    r'^[+\-−-]?\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?\s*(?:%|giây|token|câu|lượt|ô|vòng)?'
     r'(?:\s*[×x]\s*\d+)?(?:\s*\([^)]*\))?(?:\s*\[[^\]]*\])?$')
 
 
 def _is_numeric_cell(text: str) -> bool:
     """True for number-like cells ('1.234,5', '12/12', '58,3%', '+0,05 [-0,1; +0,2]', '7 (58,3%)')."""
     t = _clean_html(text).replace("**", "").strip()
-    return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−–]+\]', t))
+    return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−-]+\]', t))
 
 
 def _set_column_widths(table, rows: list[list[str]], total_cm: float = 17.0) -> None:
@@ -524,7 +524,7 @@ _CAPTION_ID_RE = re.compile(r'^((?:Hình|Bảng)\s+[A-Z0-9][\w.]*)\s*:', re.UNIC
 # (ĐVT, Nguồn) for every table and figure (guide, part 7: unit and source are mandatory).
 _SRC_DESIGN = "Tác giả thiết kế"
 _SRC_SYNTH = "Tác giả tổng hợp"
-_SRC_SHOT = "Ảnh chụp màn hình sản phẩm của khóa luận, tác giả thực hiện ngày 14–15/10/2026"
+_SRC_SHOT = "Ảnh chụp màn hình sản phẩm của khóa luận, tác giả thực hiện ngày 14-15/10/2026"
 _UNIT_NONE = "không áp dụng (bảng mô tả)"
 _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
@@ -536,7 +536,7 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 2.2": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng 2.3": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng 3.1": (_UNIT_NONE, _SRC_DESIGN),
-    "Bảng 3.2": ("số ô ngân hàng – quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
+    "Bảng 3.2": ("số ô ngân hàng - quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
     "Bảng 3.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 3.4": (_UNIT_NONE, "Tác giả xây dựng"),
     "Bảng 3.5": (_UNIT_NONE, "Tác giả xây dựng"),
@@ -568,7 +568,7 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 6.1": (_UNIT_NONE, "Tác giả đề xuất"),
     "Bảng D.1": (_UNIT_NONE, "Tác giả xây dựng"),
-    "Bảng D.2": ("số người", "Khảo sát của tác giả (n = 15), 16–22/10/2026"),
+    "Bảng D.2": ("số người", "Khảo sát của tác giả (n = 15), 16-22/10/2026"),
     "Bảng B.1": ("không áp dụng", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
 }
 
@@ -1359,7 +1359,7 @@ def build(template_path: str, out_path: str) -> None:
     print(f"[build] Done! File size: {out.stat().st_size / 1024:.1f} KB")
 
     if out.stat().st_size > 5 * 1024 * 1024:
-        print(f"[build] NOTE: Output > 5 MB ({out.stat().st_size / 1024 / 1024:.1f} MB) — add to .gitignore")
+        print(f"[build] NOTE: Output > 5 MB ({out.stat().st_size / 1024 / 1024:.1f} MB) - add to .gitignore")
 
     # Print statistics
     doc2 = Document(str(out))

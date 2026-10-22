@@ -74,17 +74,17 @@ Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu c
 
 ### D.1. Phiếu khảo sát
 
-Phiếu khảo sát được thực hiện bằng Google Forms; nội dung trình bày ở Bảng D.1. Phiếu nêu rõ khảo sát ẩn danh, tự nguyện, mất khoảng 4–5 phút.
+Phiếu khảo sát được thực hiện bằng Google Forms; nội dung trình bày ở Bảng D.1. Phiếu nêu rõ khảo sát ẩn danh, tự nguyện, mất khoảng 4-5 phút.
 
 *Bảng D.1: Phiếu khảo sát người dùng.*
 
 | Câu | Nội dung | Lựa chọn |
 |:---:|---|---|
 | 1 | Vai trò hiện tại | Sinh viên tài chính/kinh tế · Nhân viên phân tích (CTCK, quỹ, ngân hàng) · Cán bộ tín dụng/quản trị rủi ro · Nhà đầu tư cá nhân · Khác |
-| 2 | Số năm kinh nghiệm làm việc hoặc đầu tư | Chưa có · Dưới 1 năm · 1–3 năm · Trên 3 năm |
+| 2 | Số năm kinh nghiệm làm việc hoặc đầu tư | Chưa có · Dưới 1 năm · 1-3 năm · Trên 3 năm |
 | 3 | Tần suất tra số liệu tài chính của ngân hàng | Hàng tuần · Hàng tháng · Theo quý · Hiếm khi · Chưa bao giờ |
 | 4 | Nguồn lấy số liệu (chọn nhiều) | Báo cáo tài chính PDF gốc · Nền tảng dữ liệu · Trang tin tài chính · Bảng tính tự lập · Chatbot AI · Khác |
-| 5 | Thời gian tìm và đối chiếu số liệu của một ngân hàng trong một quý | Dưới 15 phút · 15–30 · 30–60 · Trên 60 phút · Tôi không tự làm việc này |
+| 5 | Thời gian tìm và đối chiếu số liệu của một ngân hàng trong một quý | Dưới 15 phút · 15-30 · 30-60 · Trên 60 phút · Tôi không tự làm việc này |
 | 6 | Khó khăn lớn nhất (tối đa 2) | Tìm đúng số · Kiểm tra số có đúng không · Các nguồn cho số khác nhau · So sánh với nhóm ngân hàng · Viết nhận định từ số liệu · Không gặp khó khăn · Khác |
 | 7 | Đã từng dùng chatbot AI để tra số liệu tài chính chưa | Chưa · Rồi, chưa phát hiện số sai · Rồi, đã gặp số sai · Rồi, nhưng không rõ số có đúng không |
 | 8 | Mức tin tưởng vào số liệu do AI trả lời | Thang 1 (hoàn toàn không tin) đến 5 (hoàn toàn tin) |
@@ -95,18 +95,18 @@ Phiếu khảo sát được thực hiện bằng Google Forms; nội dung trìn
 
 ### D.2. Kết quả khảo sát
 
-*Bảng D.2: Kết quả khảo sát (n = 15, 16–22/10/2026).*
+*Bảng D.2: Kết quả khảo sát (n = 15, 16-22/10/2026).*
 
 | Câu | Kết quả (số người) |
 |---|---|
 | 1. Vai trò | Sinh viên 9; nhà đầu tư cá nhân 2; nhân viên phân tích 3; cán bộ tín dụng 1 |
-| 2. Kinh nghiệm | Chưa có 5; dưới 1 năm 3; 1–3 năm 4; trên 3 năm 3 |
+| 2. Kinh nghiệm | Chưa có 5; dưới 1 năm 3; 1-3 năm 4; trên 3 năm 3 |
 | 3. Tần suất | Hàng tuần 5; hàng tháng 5; theo quý 4; hiếm khi 1; chưa bao giờ 0 |
 | 4. Nguồn | Trang tin 8; nền tảng dữ liệu 8; chatbot AI 7; bảng tính 7; PDF gốc 6 |
-| 5. Thời gian | Dưới 15 phút 1; 15–30 phút 4; 30–60 phút 6; trên 60 phút 2; không tự làm 2 |
+| 5. Thời gian | Dưới 15 phút 1; 15-30 phút 4; 30-60 phút 6; trên 60 phút 2; không tự làm 2 |
 | 6. Khó khăn | Kiểm tra số có đúng không 8; các nguồn khác nhau 7; tìm đúng số 6; so sánh nhóm 4; viết nhận định 2; không khó khăn 2 |
 | 7. Dùng chatbot AI | Chưa 3; rồi, chưa phát hiện số sai 3; rồi, đã gặp số sai 5; rồi, không rõ 4 |
-| 8. Tin tưởng (1–5) | Mức 1: 1; mức 2: 5; mức 3: 7; mức 4: 2; mức 5: 0; trung vị 3 |
+| 8. Tin tưởng (1-5) | Mức 1: 1; mức 2: 5; mức 3: 7; mức 4: 2; mức 5: 0; trung vị 3 |
 | 9. Điều kiện | Truy tới trang gốc 11; có người duyệt lại 6; kiểm tra tự động 5; nêu rõ giới hạn 5; không đặt điều kiện 2 |
 | 10. Thời gian chờ | Dưới 10 giây 2; dưới 30 giây 4; dưới 1 phút 6; dưới 3 phút 3 |
 | 11. Chi phí | Chỉ miễn phí 4; dưới 1.000 đồng 4; dưới 10.000 đồng 4; cao hơn nếu rất chính xác 3 |

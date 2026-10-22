@@ -66,6 +66,6 @@ Mã nguồn nằm trong một kho riêng tư và được cung cấp theo yêu c
 | Thực nghiệm chính (ba cấu hình) | 36 lượt chạy, điểm chấm, biểu đồ (`experiments/er9`) |
 | Cấu hình D (không gọi mô hình) | 12 lượt chạy, điểm chấm, bảng từng câu hỏi, bản đồ nhiệt (`experiments/er9d`) |
 | Chạy lại A/B/C trên `gpt-5.6-luna` | 36 lượt chạy, điểm chấm, bảng từng câu hỏi (`experiments/er9-luna`) |
-| Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi, trước (`experiments/mut1`) và sau khi thêm quy tắc, ba bộ hạt (`experiments/mut2`) |
+| Độ nhạy của bộ kiểm chứng | 1.210 câu đột biến, kết quả theo loại lỗi, trước (`experiments/mut1`) và sau khi thêm quy tắc, ba bộ seed (`experiments/mut2`) |
 | Mô hình phổ thông không công cụ | Câu trả lời gốc, quy tắc chấm và kết quả (`experiments/e6-pure-llm`) |
 | Chỉ mục kết quả | Bảng số liệu, lệnh chạy lại và phiên bản mã nguồn của từng thực nghiệm |

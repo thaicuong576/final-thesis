@@ -34,7 +34,7 @@ flowchart TB
         API --> GATE --> AG
     end
     subgraph Core ["Tầng lõi (không phụ thuộc CSDL và mô hình)"]
-        CORE["Dữ kiện, tín hiệu, phát hiện liên tầng<br/>Kiểm tra câu theo quy tắc<br/>Kiểm tra cấu trúc báo cáo"]
+        CORE["Dữ kiện, tín hiệu, phát hiện chéo<br/>Kiểm tra câu theo quy tắc<br/>Kiểm tra cấu trúc báo cáo"]
     end
     DB[("Bộ dữ liệu phân tích: chỉ đọc, khóa mã băm")]
     RUNS[("Lịch sử lượt chạy: có quyền ghi")]
@@ -56,7 +56,7 @@ flowchart TB
         direction LR
         P["<b>1. Kiểm tra phạm vi,<br/>hiểu câu hỏi, lập kế hoạch</b><br/>kế hoạch được khóa"]
         T["<b>2. Công cụ tính toán</b><br/>dữ kiện có công thức<br/>và mã quan sát"]
-        G["<b>3. Tín hiệu và<br/>phát hiện liên tầng</b>"]
+        G["<b>3. Tín hiệu và<br/>phát hiện chéo</b>"]
         P --> T --> G
     end
     subgraph WRI ["Viết và kiểm tra"]
@@ -84,7 +84,7 @@ Câu hỏi được chuẩn hóa (bảng mã Unicode, chữ thường, khoảng 
 - **Chỉ tiêu:** tên tiếng Việt và viết tắt (nợ xấu, NPL, bao phủ nợ xấu, ROA, ROE) hoặc nhóm chủ đề (chất lượng tài sản, khả năng sinh lời).
 - **Ý định:** các từ khóa tra cứu ("bao nhiêu"), xếp hạng ("nhất", "xếp hạng"), so sánh ("so với", "cùng nhóm"), xu hướng ("diễn biến", "qua các quý").
 
-Trước khi lập kế hoạch (thành phần thêm sau đánh giá), một cổng phạm vi theo dấu hiệu từ khóa kiểm tra câu hỏi có thực thể ngân hàng, chỉ tiêu hoặc ý định phân tích hợp lệ hay không. Câu hỏi sáng tác, dịch thuật hay dự báo giá tài sản ngoài danh mục bị từ chối ngay, không gọi mô hình; đây là bộ lọc theo từ khóa chứ không phải bộ phân loại ý định, nên câu diễn đạt lạ có thể bị chặn nhầm hoặc lọt qua.
+Trước khi lập kế hoạch (thành phần thêm sau đánh giá), một cổng phạm vi theo dấu hiệu từ khóa kiểm tra câu hỏi có thực thể ngân hàng, chỉ tiêu hoặc ý định phân tích hợp lệ hay không. Câu hỏi sáng tác, dịch thuật hay dự báo giá tài sản ngoài danh mục bị từ chối ngay, không gọi mô hình; đây là bộ lọc theo từ khóa nên câu diễn đạt lạ có thể bị chặn nhầm hoặc không bị chặn.
 
 Từ đó, câu hỏi được xếp vào một trong năm dạng: **tra cứu** một con số, **hồ sơ doanh nghiệp** so với nhóm, **xếp hạng** các ngân hàng, **xu hướng** qua hai đến bốn quý, và **so sánh trực diện** hai ngân hàng. Kế hoạch gồm dạng câu hỏi và tối đa năm lệnh gọi công cụ. Hệ thống hỗ trợ hai chế độ lập kế hoạch: bằng bộ quy tắc xác định, hoặc bằng mô hình ngôn ngữ kèm quy tắc dự phòng (chế độ mặc định khi vận hành). Trong cả hai chế độ, chương trình chỉ chấp nhận ngân hàng, kỳ và chỉ tiêu có thật trong dữ liệu; nếu đề xuất sai hoặc mô hình lỗi, hệ thống dùng kế hoạch theo quy tắc. Trong thực nghiệm đánh giá (Chương 5), kế hoạch luôn được lập bằng bộ quy tắc xác định để ba cấu hình dùng cùng một kế hoạch. Kế hoạch được khóa trước khi truy xuất dữ liệu, và các bước sau chỉ làm việc trong phạm vi đã duyệt.
 
@@ -105,13 +105,17 @@ Mọi phép tính do chương trình thực hiện bằng công thức cố đ�
 | Biên độ phân tán | Khoảng cách giữa ngân hàng cao nhất và thấp nhất |
 | Tỷ số giữa hai chỉ tiêu | Ví dụ ROE/ROA |
 
-### 4.2.3. Tín hiệu và phát hiện liên tầng
+### 4.2.3. Tín hiệu và phát hiện chéo
 
-Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từng khía cạnh (chất lượng tài sản, khả năng sinh lời) thành trên nhóm, ngang nhóm, dưới nhóm, tín hiệu hỗn hợp hoặc thiếu dữ liệu. Hệ thống cũng tự tìm ba loại **phát hiện liên tầng**: hai chỉ tiêu cùng khía cạnh trái chiều nhau (ví dụ ROE trên nhóm nhưng ROA dưới nhóm), ngân hàng đi ngược xu hướng của nhóm (nợ xấu tăng khi trung vị giảm), và ngân hàng đứng đầu ở chỉ tiêu này nhưng đứng cuối ở chỉ tiêu khác. Các phát hiện này được chuyển cho các bước sau để đưa vào khối lưu ý của báo cáo.
+Từ các dữ kiện, hệ thống xếp vị thế của ngân hàng theo từng khía cạnh (chất lượng tài sản, khả năng sinh lời) thành trên nhóm, ngang nhóm, dưới nhóm, tín hiệu hỗn hợp hoặc thiếu dữ liệu. Hệ thống cũng tự tìm ba loại **phát hiện chéo**: hai chỉ tiêu cùng khía cạnh trái chiều nhau (ví dụ ROE trên nhóm nhưng ROA dưới nhóm), ngân hàng đi ngược xu hướng của nhóm (nợ xấu tăng khi trung vị giảm), và ngân hàng đứng đầu ở chỉ tiêu này nhưng đứng cuối ở chỉ tiêu khác. Các phát hiện này được chuyển cho các bước sau để đưa vào khối lưu ý của báo cáo.
 
 ### 4.2.4. Chuyên viên viết nhận định
 
-Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, chuyên viên ngành viết về vị thế trong nhóm; chuyên viên ngành chỉ được huy động khi kế hoạch có công cụ vị thế so với nhóm hoặc xếp hạng (hồ sơ doanh nghiệp, xu hướng kèm vị thế so với trung vị nhóm, xếp hạng); câu tra cứu một con số và so sánh trực diện hai ngân hàng chỉ cần chuyên viên doanh nghiệp. Prompt yêu cầu mỗi câu không quá 30 từ; câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn thay vì tự tính hay tự làm tròn, không dùng từ chỉ nguyên nhân ("do", "vì", "dẫn đến") và không khuyến nghị mua bán. Prompt của chuyên viên nêu rõ các quy tắc mà bộ kiểm tra áp dụng, như trích dữ kiện cho mọi con số, thứ hạng và kỳ nhắc tới, và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Sau thực nghiệm lần đầu, prompt được thêm một dòng nhắc hai quy tắc kiểm tra mới ở mục 4.2.5 (không tự so sánh cùng ngân hàng hay cùng kỳ, và tên chỉ tiêu phải trùng chỉ tiêu của dữ kiện). Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn; cùng cơ chế này, khi chạy riêng, tạo ra cấu hình D của thực nghiệm (mục 3.3.1).
+Chuyên viên doanh nghiệp viết về ngân hàng mục tiêu, còn chuyên viên ngành viết về vị thế trong nhóm. Chuyên viên ngành chỉ được huy động khi kế hoạch có công cụ vị thế so với nhóm hoặc xếp hạng, gồm hồ sơ doanh nghiệp, xu hướng kèm vị thế so với trung vị nhóm và xếp hạng. Câu tra cứu một con số và câu so sánh trực diện hai ngân hàng chỉ cần chuyên viên doanh nghiệp.
+
+Prompt yêu cầu mỗi câu không quá 30 từ và mỗi câu chỉ nói về một chỉ tiêu theo một chiều. Câu phải khai báo các dữ kiện làm căn cứ, chép đúng chuỗi số đã định dạng sẵn, không dùng từ chỉ nguyên nhân và không khuyến nghị mua bán. Prompt cũng nêu rõ các quy tắc mà bộ kiểm chứng áp dụng; sau thực nghiệm lần đầu, nó được thêm một dòng nhắc hai quy tắc ở mục 4.2.5 (không tự so sánh cùng ngân hàng hay cùng kỳ, tên chỉ tiêu phải trùng chỉ tiêu của dữ kiện).
+
+Khi mô hình lỗi hoặc câu bị loại, hệ thống dùng câu mẫu dựng sẵn từ dữ kiện để báo cáo không bị gián đoạn. Cùng cơ chế này, khi chạy riêng, tạo ra cấu hình D của thực nghiệm (mục 3.3.1).
 
 Khi câu hỏi nhắc tới bối cảnh vĩ mô (lãi suất điều hành, tăng trưởng tín dụng, GDP, lạm phát) và bộ dữ liệu có quan sát vĩ mô hợp lệ, bộ điều phối huy động thêm chuyên viên vĩ mô. Chuyên viên này đọc số từ bộ dữ liệu qua một công cụ, không có số cố định trong mã, và số vĩ mô đi qua cùng đường kiểm tra như số ngân hàng. Nếu bộ dữ liệu không có dữ liệu vĩ mô thì câu hỏi vĩ mô vẫn bị từ chối; hành vi này được kiểm bằng kiểm thử tự động, còn chất lượng nhận định vĩ mô nằm ngoài phạm vi thực nghiệm.
 
@@ -119,7 +123,7 @@ Vì các chỉ tiêu vĩ mô và toàn ngành có độ phủ không đồng đ�
 
 ### 4.2.5. Kiểm tra câu theo quy tắc
 
-Mọi câu đều qua bộ kiểm tra trước khi vào báo cáo. Bộ kiểm tra không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
+Mọi câu đều qua bộ kiểm chứng trước khi vào báo cáo. Bộ kiểm chứng không dùng mô hình ngôn ngữ; nó lần lượt áp dụng các quy tắc trong Bảng 4.3 và dừng ở vi phạm đầu tiên. Câu vi phạm bị loại riêng và được ghi vào hồ sơ kiểm tra kèm lý do và các dữ kiện câu đã trích; lượt phân tích vẫn tiếp tục với các câu hợp lệ. Hai quy tắc cuối của Bảng 4.3 (nhãn chỉ tiêu và tự so sánh) được thêm sau thực nghiệm độ nhạy lần đầu (mục 5.7) để bịt các điểm yếu mà thực nghiệm đó phát hiện; các thực nghiệm A/B/C ở mục 5.3 đến 5.5 chạy trước khi thêm hai quy tắc này.
 
 *Bảng 4.3: Các quy tắc kiểm tra câu.*
 
@@ -144,7 +148,7 @@ Báo cáo được ghép từ các khối theo một bản đặc tả thống n
 
 ### 4.2.7. Phản biện và sửa đổi có mục tiêu
 
-Ở cấu hình đầy đủ, tác tử phản biện đọc báo cáo đã tổng hợp và tìm bốn loại vấn đề: nhận định nói quá bằng chứng, báo cáo chưa trả lời trúng câu hỏi, hình không phục vụ luận điểm nào, và mâu thuẫn giữa nhận định về ngân hàng với bối cảnh nhóm. Mỗi vấn đề nêu rõ câu, chuyên viên phụ trách và việc cần sửa. Bộ điều khiển sửa đổi chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu đó, tối đa hai vòng. Câu viết lại phải qua bộ kiểm tra câu một lần nữa; nếu vẫn không đạt, câu bị loại. Lưu ý còn lại sau hai vòng được hiện cho người đọc dưới dạng ghi chú giới hạn.
+Ở cấu hình đầy đủ, tác tử phản biện đọc báo cáo đã tổng hợp và tìm bốn loại vấn đề: nhận định nói quá bằng chứng, báo cáo chưa trả lời trúng câu hỏi, hình không phục vụ luận điểm nào, và mâu thuẫn giữa nhận định về ngân hàng với bối cảnh nhóm. Mỗi vấn đề nêu rõ câu, chuyên viên phụ trách và việc cần sửa. Bộ điều khiển sửa đổi chỉ gửi yêu cầu viết lại cho đúng chuyên viên và đúng câu đó, tối đa hai vòng. Câu viết lại phải qua bộ kiểm chứng câu một lần nữa; nếu vẫn không đạt, câu bị loại. Lưu ý còn lại sau hai vòng được hiện cho người đọc dưới dạng ghi chú giới hạn.
 
 ## 4.3. Lưu vết và xử lý lỗi
 

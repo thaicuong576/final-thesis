@@ -158,7 +158,7 @@ class TestConvertMarkdown(unittest.TestCase):
         for h1 in h1s:
             for run in h1.runs:
                 if run.font.size is not None:
-                    self.assertEqual(run.font.size, Pt(13), f"Heading 1 run should be 13pt, got {run.font.size}")
+                    self.assertEqual(run.font.size, Pt(16), f"Heading 1 run should be 16pt, got {run.font.size}")
 
     def test_bold_run_in_normal(self):
         normals = self._paragraphs_by_style("Normal")

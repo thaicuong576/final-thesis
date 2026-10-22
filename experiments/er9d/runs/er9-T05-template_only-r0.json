@@ -1,0 +1,1551 @@
+{
+  "run_id": "er9-T05-template_only-r0",
+  "task_id": "T05",
+  "arm": "template_only",
+  "rep": 0,
+  "order": 9,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-2e3ef38979e4",
+    "query": "ROA và ROE của SHB thay đổi thế nào qua các quý năm 2025?",
+    "target_ticker": "SHB",
+    "peer_tickers": [],
+    "period": "2025_Q4",
+    "periods": [
+      "2025_Q4"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng trend cho SHB với 2 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "trend",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng trend cho SHB với 2 công cụ.",
+    "tools": [
+      {
+        "tool": "trend",
+        "params": {
+          "entity": "SHB",
+          "metrics": [
+            "bank.roa",
+            "bank.roe"
+          ],
+          "periods": [
+            "2025_Q1",
+            "2025_Q2",
+            "2025_Q3",
+            "2025_Q4"
+          ]
+        }
+      },
+      {
+        "tool": "peer_position",
+        "params": {
+          "entity": "SHB",
+          "metrics": [
+            "bank.roa",
+            "bank.roe"
+          ],
+          "period": "2025_Q4"
+        }
+      }
+    ],
+    "context_periods": [
+      "2025_Q1",
+      "2025_Q2",
+      "2025_Q3",
+      "2025_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:SHB:2025_Q4:bank.roa",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roa observation for SHB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "SHB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roa"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:SHB:2025_Q4:bank.roe",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.roe observation for SHB at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "SHB"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.roe"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "96e37291d7bda42084aae34eb340e9fe0908aac01095894de30f035e576a7062",
+  "model": "template-engine",
+  "duration_ms": 2797,
+  "model_calls": 0,
+  "tokens": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-76fcd1b5dee54a48bf2ae772f007390a",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-2e3ef38979e4",
+      "query": "ROA và ROE của SHB thay đổi thế nào qua các quý năm 2025?",
+      "target_ticker": "SHB",
+      "peer_tickers": [],
+      "period": "2025_Q4",
+      "periods": [
+        "2025_Q4"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng trend cho SHB với 2 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "trend",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng trend cho SHB với 2 công cụ.",
+      "tools": [
+        {
+          "tool": "trend",
+          "params": {
+            "entity": "SHB",
+            "metrics": [
+              "bank.roa",
+              "bank.roe"
+            ],
+            "periods": [
+              "2025_Q1",
+              "2025_Q2",
+              "2025_Q3",
+              "2025_Q4"
+            ]
+          }
+        },
+        {
+          "tool": "peer_position",
+          "params": {
+            "entity": "SHB",
+            "metrics": [
+              "bank.roa",
+              "bank.roe"
+            ],
+            "period": "2025_Q4"
+          }
+        }
+      ],
+      "context_periods": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:SHB:2025_Q4:bank.roa",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roa observation for SHB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "SHB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.roa"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:SHB:2025_Q4:bank.roe",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.roe observation for SHB at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "SHB"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.roe"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "SHB",
+        "roe": 18.9548,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "ROA của SHB trong quý 1/2025 đạt 1,25%.",
+        "metric_period_records": [],
+        "roa": 1.459
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "observation_id": "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "input_observation_ids": [
+          "observation-394327cae50ea46413fa28c54fe4e1b0d212d5652406ea6fe4e9859dfc000c41",
+          "observation-57e2e1d7a1609808a448962b4d6d5d0ad154d7102f3312a837165c1ce8788d46",
+          "observation-788b92e97a08c44b3bbc91d3ca2c315f932cb06d8038093c2e82b603110a5c7e"
+        ],
+        "formula_version": "roa-ttm-annual-ytd-v1",
+        "capability": "company",
+        "ticker": "SHB",
+        "metric": "ROA",
+        "period": "2025_Q4",
+        "statement": "SHB has provider-backed ROA=1.459 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "input_observation_ids": [
+          "observation-4bddc15b41fdba385564d802bdad9a7cbff3037d1321d83f07e600038c19b357",
+          "observation-e998b75b5114c431573af1420a0179cc009c901da8664f9662b21ce4ed7639ab",
+          "observation-c77da6ea8f86af0c242cbad5ccdf37dd2958ef9cfe5edbb0cc9a590bf9d9334c"
+        ],
+        "formula_version": "roe-ttm-annual-ytd-v1",
+        "capability": "company",
+        "ticker": "SHB",
+        "metric": "ROE",
+        "period": "2025_Q4",
+        "statement": "SHB has provider-backed ROE=18.9548 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "observation_id": "observation-394327cae50ea46413fa28c54fe4e1b0d212d5652406ea6fe4e9859dfc000c41",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "profit after tax",
+        "ticker": "SHB",
+        "period": "2025_Q4",
+        "value": 11960.295,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận sau thuế TNDN; column=Năm nay",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "observation_id": "observation-57e2e1d7a1609808a448962b4d6d5d0ad154d7102f3312a837165c1ce8788d46",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "SHB",
+        "period": "2025_Q4",
+        "value": 892008.709,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=7; printed_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản Có; column=Số cuối năm",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+        "observation_id": "observation-788b92e97a08c44b3bbc91d3ca2c315f932cb06d8038093c2e82b603110a5c7e",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total assets",
+        "ticker": "SHB",
+        "period": "2024_Q4",
+        "value": 747478.069,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=7; printed_page=5; section=Báo cáo tình hình tài chính hợp nhất; row=Tổng tài sản Có; column=Số đầu năm (trình bày lại)",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-4bddc15b41fdba385564d802bdad9a7cbff3037d1321d83f07e600038c19b357",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "parent attributable profit",
+        "ticker": "SHB",
+        "period": "2025_Q4",
+        "value": 11960.295,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=10; printed_page=8; section=Báo cáo kết quả hoạt động hợp nhất; row=Lợi nhuận thuần của chủ sở hữu; column=Năm nay",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-b42c8027ad54e0a6ee0d79921b6ba1bf9797fdd3dceb5179d4b802999243b768",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "SHB",
+        "period": "2025_Q4",
+        "value": 68130.938,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Vốn và các quỹ; column=Số cuối năm",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-cda8f1a9eefa714be12564c70401ec136e12ccfc0130bb0f1a02a5afedca3490",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "SHB",
+        "period": "2025_Q4",
+        "value": 0.0,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát (không trình bày); column=Số cuối năm",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-e9eefbf251941253c6ce92d1d9e27547cd1d41fe84731420f6e9f5005e88e186",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "total equity",
+        "ticker": "SHB",
+        "period": "2024_Q4",
+        "value": 58067.344,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Vốn và các quỹ; column=Số đầu năm",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+        "observation_id": "observation-b2e2a171cd41f6d59f3445e93e5963f36f842c2cb7c95b603e92a37803359a3e",
+        "source_id": "source:shb:f6c905bb14b8",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "non controlling interests",
+        "ticker": "SHB",
+        "period": "2024_Q4",
+        "value": 0.0,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=8; printed_page=6; section=Báo cáo tình hình tài chính hợp nhất; row=Lợi ích cổ đông không kiểm soát (không trình bày); column=Số đầu năm",
+        "provenance_hash": "3a89cd8fda598448a84396498d23de913209b8145c2680e2e228b9976513e647"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Terminal acceptance decision from the verified narrative controller.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "trend",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-orchestrator-030e88",
+            "text": "ROA của SHB trong quý 1/2025 đạt 1,25%.",
+            "fact_ids": [
+              "fact:value:SHB:2025_Q1:bank.roa"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "small_multiples",
+          "dataset_id": "ds-series-multi-shb",
+          "title": "Diễn biến các chỉ tiêu tài chính · SHB",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-2294c8",
+            "text": "Diễn biến các chỉ tiêu tài chính · SHB thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:SHB:2025_Q1:bank.roa"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 2,
+          "chart": "rank_heatmap",
+          "dataset_id": "ds-peer-position-shb-2025q4",
+          "title": "Vị thế nhóm · SHB Q4/2025",
+          "takeaway": null
+        },
+        {
+          "type": "key_points",
+          "items": [
+            {
+              "title": "Nhận định chính",
+              "sentences": [
+                {
+                  "sentence_id": "sent-orchestrator-83ef8e",
+                  "text": "ROA của SHB trong quý 2/2025 đạt 1,39%.",
+                  "fact_ids": [
+                    "fact:value:SHB:2025_Q2:bank.roa"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-orchestrator-a5b708",
+                  "text": "ROA của SHB trong quý 3/2025 đạt 1,48%.",
+                  "fact_ids": [
+                    "fact:value:SHB:2025_Q3:bank.roa"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-orchestrator-9320bb",
+                  "text": "ROA của SHB trong quý 4/2025 đạt 1,46%.",
+                  "fact_ids": [
+                    "fact:value:SHB:2025_Q4:bank.roa"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-series-multi-shb",
+        "shape": "series_multi",
+        "title": "Diễn biến các chỉ tiêu tài chính · SHB",
+        "produced_by": {
+          "tool": "trend",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "SHB"
+        ],
+        "rows": [
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 1.2494,
+            "observation_id": "observation-00074907feffe82520e5e0a499990eec4a5442c9aaa94a1ee782e380d2b52875",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 1.3898,
+            "observation_id": "observation-005d1ffe78bbf9b9ff1be54220e352267b8948fd13eb2bef3c646e8a6d22eaf2",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 1.4796,
+            "observation_id": "observation-4aa2697350b882fa4f7c2ccfdc551ddeb405740ad90c732e7c212101574d7396",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.459,
+            "observation_id": "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 16.0766,
+            "observation_id": "observation-d630d4a61c7459d73c8b7642dd6b7f07b9160f2d9c42e4884ca0344363e05dee",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 18.0395,
+            "observation_id": "observation-bc0fa8b0982d52a467ef80e8b9487a0a24642f459d670d0003782dfc7e5aec33",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 19.1191,
+            "observation_id": "observation-68145a58224a516b8b0cac4cf4775824b120298f8f77281a495addaaa806a710",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 18.9548,
+            "observation_id": "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "small_multiples"
+        ]
+      },
+      {
+        "dataset_id": "ds-peer-position-shb-2025q4",
+        "shape": "peer_table",
+        "title": "Vị thế nhóm · SHB Q4/2025",
+        "produced_by": {
+          "tool": "peer_position",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "SHB"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.6535,
+            "observation_id": "observation-05ae22eac2dceef0ad246dbff271c66b32ca94912b939683c12092ff63904e9c",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.9991,
+            "observation_id": "observation-fe7075899f3695687f3b4aeda31328ec27d4ea45040e9fe0d23a54bfe8d72737",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.3534,
+            "observation_id": "observation-ab05332e7dfdc4a2b61718efabb406b6480d2838a8af707b99c767137a61bbbb",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.0969,
+            "observation_id": "observation-b4f3d0a9b9cf19d3371cf520319a2180424eb6c2c754432d9f9d8383e3ea4250",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.9954,
+            "observation_id": "observation-87f805ab0312fc01b82735f68c1e0f17e88479512d12680b49284bbba4a1ee27",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.459,
+            "observation_id": "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.7133,
+            "observation_id": "observation-b5f81c77eba3fdbfb39d0e397a8b977523d2866be163f4ea1015f0e0ea3e40a0",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.3909,
+            "observation_id": "observation-f87ed5f25304d074af77fe594e0478bf55b861ad0bb15aeaf7048511c26c1783",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.5546,
+            "observation_id": "observation-91eb09d3e8a3d536e0cef8897e0e477f35fd6ae8c0c421a3b452c19487a7b059",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.2303,
+            "observation_id": "observation-534ff0b149e4c289dbf1914cab4ff8f38411984f5d7bf978b0271bc6c4ab0f1e",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 17.5577,
+            "observation_id": "observation-9b6df191c3383834103673d4c33a8436266a96fa6163ea7e0b7d58eec1bbe591",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 19.4349,
+            "observation_id": "observation-3fff49311a6212de4cbc2277d134bd433177a58fe64928273531c2f2ae0893df",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 21.2309,
+            "observation_id": "observation-aedbf3e0f3b65ca50730294d968d70e06e228bb9660ef14f883f92561d7e318c",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 25.4102,
+            "observation_id": "observation-91dde2c25620a9bf6b441d27548bbb12ffc1accd0fb729c8c83275e3217798f5",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 21.5712,
+            "observation_id": "observation-d9cd0af05127d4632af893a6c94997fb1fc96ef759181678e4e608478a19d67a",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 18.9548,
+            "observation_id": "observation-ad9574ba1e057907a03f15c764fe2d3dc2a1961f54469575d713599f5b92a036",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 10.3434,
+            "observation_id": "observation-9ddf14c233e9b545951da28727feec027850f4908f56422bda001068561e41e4",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 16.0337,
+            "observation_id": "observation-aa469049cd59c91d579c8872e2a32bebf72b2f3339eddba0c4f3f891711cc24a",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 16.7274,
+            "observation_id": "observation-77514213ec4ddc546d0a267abeb826edc23afe342e2069041504184104b85848",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 15.487,
+            "observation_id": "observation-432aa4bb844dfda66b5023461a52ddfcfe0bc2d80daccecdbfa1dcb4f2075537",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.roa",
+            "period": "2025_Q4",
+            "value": 1.60405,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.roe",
+            "period": "2025_Q4",
+            "value": 18.25625,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe"
+          }
+        ],
+        "allowed_charts": [
+          "rank_heatmap",
+          "comparison_table"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:value:SHB:2025_Q1:bank.roa",
+        "fact_type": "value",
+        "entity_id": "SHB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2025_Q1",
+        "from_period": null,
+        "value": 1.2494,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-00074907feffe82520e5e0a499990eec4a5442c9aaa94a1ee782e380d2b52875"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:SHB:2025_Q2:bank.roa",
+        "fact_type": "value",
+        "entity_id": "SHB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2025_Q2",
+        "from_period": null,
+        "value": 1.3898,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-005d1ffe78bbf9b9ff1be54220e352267b8948fd13eb2bef3c646e8a6d22eaf2"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:SHB:2025_Q3:bank.roa",
+        "fact_type": "value",
+        "entity_id": "SHB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2025_Q3",
+        "from_period": null,
+        "value": 1.4796,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-4aa2697350b882fa4f7c2ccfdc551ddeb405740ad90c732e7c212101574d7396"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:SHB:2025_Q4:bank.roa",
+        "fact_type": "value",
+        "entity_id": "SHB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.roa",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 1.459,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-c4e7133971bf78c339ad33a3766da21936c2dfa0b537391778609a20c35ad126"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 7,
+      "sentences_accepted": 5,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-orchestrator-4b7b79",
+          "author": "orchestrator",
+          "text": "Vị thế nhóm · SHB Q4/2025 thể hiện dữ liệu phân tích.",
+          "fact_ids": [
+            "fact:value:SHB:2025_Q1:bank.roa"
+          ],
+          "reason_code": "period_not_cited",
+          "reason": "Kỳ 'q4/2025' trong câu không thuộc danh sách kỳ của các fact được trích dẫn."
+        },
+        {
+          "sentence_id": "sent-fb-fig-2",
+          "author": "orchestrator",
+          "text": "Biểu đồ thể hiện Vị thế nhóm · SHB Q4/2025.",
+          "fact_ids": [
+            "fact:value:SHB:2025_Q1:bank.roa"
+          ],
+          "reason_code": "period_not_cited",
+          "reason": "Kỳ 'q4/2025' trong câu không thuộc danh sách kỳ của các fact được trích dẫn."
+        }
+      ],
+      "numbers_checked": 4,
+      "numbers_matched": 4,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "source:shb:d889d8977cfa",
+        "title": "SHB · BCTC hợp nhất Q1/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%201/SHB_Baocaotaichinh_Q1_2025_Hopnhat.pdf",
+        "locator": "tr. 7 · Báo cáo kết quả hoạt động hợp nhất",
+        "page": 7,
+        "fact_ids": [
+          "fact:value:SHB:2025_Q1:bank.roa"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "source:shb:10ca220ab911",
+        "title": "SHB · BCTC hợp nhất Q2/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/SHB_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "locator": "tr. 7 · Báo cáo kết quả hoạt động hợp nhất",
+        "page": 7,
+        "fact_ids": [
+          "fact:value:SHB:2025_Q2:bank.roa"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "source:shb:475747cc63f6",
+        "title": "SHB · BCTC hợp nhất Q3/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%203/SHB_Baocaotaichinh_Q3_2025_Hopnhat.pdf",
+        "locator": "tr. 7 · Báo cáo kết quả hoạt động hợp nhất",
+        "page": 7,
+        "fact_ids": [
+          "fact:value:SHB:2025_Q3:bank.roa"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "source:shb:f6c905bb14b8",
+        "title": "SHB · BCTC hợp nhất Q4/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/SHB_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "locator": "tr. 8 · Báo cáo kết quả hoạt động hợp nhất",
+        "page": 10,
+        "fact_ids": [
+          "fact:value:SHB:2025_Q4:bank.roa"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 15,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Diễn biến. Gọi Doanh nghiệp với 2 phép phân tích",
+      "detail": {
+        "question_type": "trend",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng trend cho SHB với 2 công cụ.",
+        "entities": [
+          "SHB"
+        ],
+        "metric_ids": [
+          "bank.roa",
+          "bank.roe"
+        ],
+        "anchor_period": "2025_Q4",
+        "periods": [
+          "2025_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "trend",
+            "agent": "company",
+            "label": "diễn biến chuỗi thời gian"
+          },
+          {
+            "tool": "peer_position",
+            "agent": "sector",
+            "label": "vị thế nhóm ngành"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 265,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: diễn biến chuỗi thời gian",
+      "detail": {
+        "task": "trend",
+        "tools": [
+          "diễn biến chuỗi thời gian"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 1594,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 40 số liệu có nguồn từ phép phân tích diễn biến chuỗi thời gian",
+      "detail": {
+        "tool": "trend",
+        "label": "diễn biến chuỗi thời gian",
+        "arguments": {
+          "entities": [],
+          "metrics": [
+            "bank.roa",
+            "bank.roe"
+          ],
+          "periods": [
+            "2025_Q1",
+            "2025_Q2",
+            "2025_Q3",
+            "2025_Q4"
+          ]
+        },
+        "result_count": 40,
+        "duration_ms": 1328,
+        "facts": [
+          {
+            "fact_id": "fact:value:SHB:2025_Q1:bank.roa",
+            "label": "ROA của SHB trong quý 1/2025",
+            "display_value": "1,25%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q2:bank.roa",
+            "label": "ROA của SHB trong quý 2/2025",
+            "display_value": "1,39%",
+            "source_note_no": 2
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q3:bank.roa",
+            "label": "ROA của SHB trong quý 3/2025",
+            "display_value": "1,48%",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q4:bank.roa",
+            "label": "ROA của SHB trong quý 4/2025",
+            "display_value": "1,46%",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q1_to_2025_Q2:bank.roa",
+            "label": "Mức thay đổi ROA của SHB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,14 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q2_to_2025_Q3:bank.roa",
+            "label": "Mức thay đổi ROA của SHB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,09 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q3_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của SHB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,02 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q1_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi ROA của SHB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "+0,21 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "1,68%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q1:bank.roa",
+            "label": "Chênh lệch ROA của SHB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "-0,44 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "1,70%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q2:bank.roa",
+            "label": "Chênh lệch ROA của SHB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "-0,31 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "1,75%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q3:bank.roa",
+            "label": "Chênh lệch ROA của SHB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "-0,27 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,60%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q4:bank.roa",
+            "label": "Chênh lệch ROA của SHB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,15 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+0,01 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,05 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.roa",
+            "label": "Mức thay đổi trung vị ROA từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,14 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:SHB:sector:bank:2025_Q4:bank.roa",
+            "label": "Xếp hạng 7/10 về ROA của SHB trong quý 4/2025",
+            "display_value": "hạng 7/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q1:bank.roe",
+            "label": "ROE của SHB trong quý 1/2025",
+            "display_value": "16,1%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q2:bank.roe",
+            "label": "ROE của SHB trong quý 2/2025",
+            "display_value": "18,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q3:bank.roe",
+            "label": "ROE của SHB trong quý 3/2025",
+            "display_value": "19,1%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q4:bank.roe",
+            "label": "ROE của SHB trong quý 4/2025",
+            "display_value": "19,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q1_to_2025_Q2:bank.roe",
+            "label": "Mức thay đổi ROE của SHB từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+2,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q2_to_2025_Q3:bank.roe",
+            "label": "Mức thay đổi ROE của SHB từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+1,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q3_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của SHB từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:SHB:2025_Q1_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi ROE của SHB từ quý 1/2025 đến quý 4/2025",
+            "display_value": "+2,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "17,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q1:bank.roe",
+            "label": "Chênh lệch ROE của SHB so với trung vị nhóm trong quý 1/2025",
+            "display_value": "-1,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "18,7%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q2:bank.roe",
+            "label": "Chênh lệch ROE của SHB so với trung vị nhóm trong quý 2/2025",
+            "display_value": "-0,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "19,5%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q3:bank.roe",
+            "label": "Chênh lệch ROE của SHB so với trung vị nhóm trong quý 3/2025",
+            "display_value": "-0,4 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "18,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q4:bank.roe",
+            "label": "Chênh lệch ROE của SHB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+0,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+1,4 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.roe",
+            "label": "Mức thay đổi trung vị ROE từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-1,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:SHB:sector:bank:2025_Q4:bank.roe",
+            "label": "Xếp hạng 5/10 về ROE của SHB trong quý 4/2025",
+            "display_value": "hạng 5/10",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-series-multi-shb",
+            "title": "Diễn biến các chỉ tiêu tài chính · SHB"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 1594,
+      "actor": "orchestrator",
+      "recipient": "sector",
+      "kind": "assign",
+      "summary": "Giao việc: vị thế nhóm ngành",
+      "detail": {
+        "task": "peer_position",
+        "tools": [
+          "vị thế nhóm ngành"
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 1672,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 10 số liệu có nguồn từ phép phân tích vị thế nhóm ngành",
+      "detail": {
+        "tool": "peer_position",
+        "label": "vị thế nhóm ngành",
+        "arguments": {
+          "entities": [],
+          "metrics": [
+            "bank.roa",
+            "bank.roe"
+          ],
+          "periods": [
+            "2025_Q4"
+          ]
+        },
+        "result_count": 10,
+        "duration_ms": 78,
+        "facts": [
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roa",
+            "label": "Trung vị ROA nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,60%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q4:bank.roa",
+            "label": "ROA của SHB trong quý 4/2025",
+            "display_value": "1,46%",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:peer_rank:SHB:sector:bank:2025_Q4:bank.roa",
+            "label": "Xếp hạng 7/10 về ROA của SHB trong quý 4/2025",
+            "display_value": "hạng 7/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q4:bank.roa",
+            "label": "Chênh lệch ROA của SHB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,15 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:SHB:sector:bank:2025_Q4:bank.roa",
+            "label": "Tỷ lệ ROA của SHB bằng 0,9 lần trung vị trong quý 4/2025",
+            "display_value": "0,9 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.roe",
+            "label": "Trung vị ROE nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "18,3%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:SHB:2025_Q4:bank.roe",
+            "label": "ROE của SHB trong quý 4/2025",
+            "display_value": "19,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:SHB:sector:bank:2025_Q4:bank.roe",
+            "label": "Xếp hạng 5/10 về ROE của SHB trong quý 4/2025",
+            "display_value": "hạng 5/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:SHB:sector:bank:2025_Q4:bank.roe",
+            "label": "Chênh lệch ROE của SHB so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+0,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:SHB:sector:bank:2025_Q4:bank.roe",
+            "label": "Tỷ lệ ROE của SHB gấp 1,0 lần trung vị trong quý 4/2025",
+            "display_value": "1,0 lần",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-peer-position-shb-2025q4",
+            "title": "Vị thế nhóm · SHB Q4/2025"
+          },
+          {
+            "dataset_id": "ds-paired-shb-2025q4",
+            "title": "Tương quan ROA và ROE · Q4/2025"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 2703,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 2 hình, 1 luận điểm",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "figure",
+            "title": "Diễn biến các chỉ tiêu tài chính · SHB"
+          },
+          {
+            "type": "figure",
+            "title": "Vị thế nhóm · SHB Q4/2025"
+          },
+          {
+            "type": "key_points",
+            "title": "Nhận định chính"
+          }
+        ],
+        "composition_source": "model",
+        "draft_text": ""
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 2750,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-76fcd1b5dee54a48bf2ae772f007390a",
+        "duration_ms": 2750,
+        "model_calls": 0
+      }
+    }
+  ]
+}

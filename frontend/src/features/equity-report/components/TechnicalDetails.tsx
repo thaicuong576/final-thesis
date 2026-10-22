@@ -15,6 +15,8 @@ const REASON_VI_MAP: Record<string, string> = {
   trend_without_delta: 'Nhận định xu hướng nhưng thiếu số liệu biến động (delta)',
   trend_direction_mismatch: 'Chiều xu hướng không khớp số liệu thực tế',
   comparison_direction_mismatch: 'Chiều so sánh không khớp số liệu thực tế',
+  metric_label_mismatch: 'Tên chỉ tiêu không khớp dữ kiện',
+  self_comparison: 'Tự so sánh cùng ngân hàng hoặc cùng kỳ',
   causal_language: 'Chứa từ ngữ quy kết quan hệ nhân quả không có căn cứ',
   investment_advice: 'Chứa khuyến nghị đầu tư (vi phạm chuẩn mực phân tích)',
   unresolved_critique: 'Phản biện chưa được giải quyết thỏa đáng',

@@ -73,6 +73,7 @@ ER9_RELATIVE_CANDIDATES = [
 ]
 
 ARMS = ("single_agent", "hierarchical_no_critique", "hierarchical_with_critique")
+ALLOWED_ARMS = ARMS + ("template_only",)
 
 
 def canonical_lf_utf8_sha256(content: str | bytes) -> str:
@@ -482,6 +483,197 @@ class DryRunOfflineCritic:
         )
 
 
+class TemplateOnlyWriter(DryRunOfflineWriter):
+    """Offline adapter for Configuration D (template-only, 0 model calls, 0 tokens)."""
+
+    def __init__(self, tracker: Any = None) -> None:
+        super().__init__(tracker=tracker)
+        self.client = None
+        self.write_findings_calls = []
+        self.compose_report_calls = []
+        self.rewrite_sentence_calls = []
+
+    def write_findings(
+        self,
+        *,
+        role: str,
+        question: str,
+        question_type: str,
+        facts: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        candidates: Sequence[Mapping[str, Any]] = (),
+        max_sentences: int = 4,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        self.write_findings_calls.append(dict(role=role, question=question, question_type=question_type))
+        results = []
+        for f in facts[:max_sentences]:
+            fid = f.get("fact_id", "")
+            mota = f.get("mo_ta") or "Chỉ tiêu"
+            hienthi = f.get("hien_thi") or str(f.get("value", ""))
+            results.append({
+                "text": f"{mota} đạt {hienthi}.",
+                "fact_ids": [fid],
+            })
+        return results
+
+    def compose_report(
+        self,
+        *,
+        question: str,
+        question_type: str,
+        sentences: Sequence[Mapping[str, Any]],
+        datasets_summary: Sequence[Mapping[str, Any]],
+        signals: Sequence[Mapping[str, Any]] | None = None,
+        findings: Sequence[Mapping[str, Any]] | None = None,
+        facts: Sequence[Mapping[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        self.compose_report_calls.append(dict(question=question, question_type=question_type))
+        facts_list = list(facts or [])
+        if question_type == "lookup":
+            val_fid = facts_list[0]["fact_id"] if facts_list else "f-1"
+            f0 = facts_list[0] if facts_list else {}
+            mota = f0.get("mo_ta") or "Chỉ tiêu"
+            hienthi = f0.get("hien_thi") or str(f0.get("value", ""))
+            ans_sents = [
+                {"sentence_id": s["sentence_id"]}
+                for s in sentences[:1]
+            ] if sentences else [
+                {
+                    "text": f"{mota} đạt {hienthi}.",
+                    "fact_ids": [val_fid],
+                }
+            ]
+            return {
+                "kind": "answer_card",
+                "blocks": [
+                    {
+                        "type": "answer",
+                        "value_fact_id": val_fid,
+                        "sentences": ans_sents,
+                    }
+                ],
+            }
+
+        blocks: list[dict[str, Any]] = []
+        if sentences:
+            blocks.append({
+                "type": "headline",
+                "sentence": {"sentence_id": sentences[0]["sentence_id"]},
+            })
+        elif facts_list:
+            f0 = facts_list[0]
+            blocks.append({
+                "type": "headline",
+                "sentence": {
+                    "text": f"{f0.get('mo_ta', 'Chỉ tiêu')} đạt {f0.get('hien_thi', '')}.",
+                    "fact_ids": [f0["fact_id"]],
+                },
+            })
+
+        for idx, ds in enumerate((datasets_summary or [])[:2], start=1):
+            chart = ds.get("allowed_charts", ["rank_heatmap"])[0] if ds.get("allowed_charts") else "rank_heatmap"
+            fid = facts_list[0]["fact_id"] if facts_list else "f-1"
+            blocks.append({
+                "type": "figure",
+                "figure_no": idx,
+                "chart": chart,
+                "dataset_id": ds["dataset_id"],
+                "title": ds["title"],
+                "takeaway": {
+                    "text": f"{ds['title']} thể hiện dữ liệu phân tích.",
+                    "fact_ids": [fid],
+                },
+            })
+
+        if len(sentences) > 1:
+            blocks.append({
+                "type": "key_points",
+                "items": [
+                    {
+                        "title": "Nhận định chính",
+                        "sentences": [
+                            {"sentence_id": s["sentence_id"]}
+                            for s in sentences[1:4]
+                        ],
+                    }
+                ],
+            })
+        elif len(facts_list) > 1:
+            kp_sents = []
+            for f in facts_list[1:4]:
+                kp_sents.append({
+                    "text": f"{f.get('mo_ta', 'Chỉ tiêu')} đạt {f.get('hien_thi', '')}.",
+                    "fact_ids": [f["fact_id"]],
+                })
+            if kp_sents:
+                blocks.append({
+                    "type": "key_points",
+                    "items": [
+                        {
+                            "title": "Nhận định chính",
+                            "sentences": kp_sents,
+                        }
+                    ],
+                })
+
+        if findings:
+            fnd = findings[0]
+            fid = fnd.get("fact_ids", [facts_list[0]["fact_id"] if facts_list else "f-1"])[0]
+            blocks.append({
+                "type": "callout",
+                "tone": "notice",
+                "title": fnd.get("text", "Phát hiện liên tầng"),
+                "sentences": [
+                    {
+                        "text": f"{fnd.get('text', 'Phát hiện')} được ghi nhận từ dữ liệu.",
+                        "fact_ids": [fid],
+                    }
+                ],
+            })
+
+        return {
+            "kind": "note",
+            "blocks": blocks,
+        }
+
+    def rewrite_sentence(
+        self,
+        *,
+        role: str,
+        question: str,
+        sentence: Mapping[str, Any],
+        issue: Mapping[str, Any],
+        facts: Sequence[Mapping[str, Any]],
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        self.rewrite_sentence_calls.append(dict(role=role, question=question, sentence=sentence, issue=issue))
+        if facts:
+            f = facts[0]
+            mota = f.get("mo_ta") or "Chỉ tiêu"
+            hienthi = f.get("hien_thi") or str(f.get("value", ""))
+            return {
+                "text": f"{mota} ghi nhận {hienthi}.",
+                "fact_ids": [f["fact_id"]],
+            }
+        return {
+            "text": "Dữ liệu được cập nhật phù hợp.",
+            "fact_ids": [],
+        }
+
+
+class TemplateOnlyCritic:
+    """Offline test double for critic when template_only arm is active."""
+
+    def __init__(self, tracker: Any = None) -> None:
+        self.tracker = tracker
+        self.calls = 0
+
+    def evaluate(self, *, plan: Any, claims: Sequence[Any], stage1_report: Any, round_context: Any) -> Any:
+        raise NotImplementedError("TemplateOnlyCritic evaluate should not be called in template_only arm.")
+
+
 def _is_network_or_rate_limit_error(exc: Exception) -> bool:
     name = type(exc).__name__.lower()
     msg = str(exc).lower()
@@ -530,8 +722,8 @@ def run_evaluation(
 
     effective_arms = tuple(arms) if arms is not None else ARMS
     for a in effective_arms:
-        if a not in ARMS:
-            raise ValueError(f"Invalid arm '{a}'. Allowed arms: {ARMS}")
+        if a not in ALLOWED_ARMS:
+            raise ValueError(f"Invalid arm '{a}'. Allowed arms: {ALLOWED_ARMS}")
 
     if run_id_prefix == "er9":
         if output_dir is None:
@@ -582,7 +774,7 @@ def run_evaluation(
     runs_dbs_dir = output_dir / "runs_dbs"
     runs_dbs_dir.mkdir(parents=True, exist_ok=True)
 
-    if not dry_run:
+    if not dry_run and any(a != "template_only" for a in effective_arms):
         check_live_model_preflight(model=model)
 
     # Hashes of input files
@@ -630,8 +822,8 @@ def run_evaluation(
     budget_lock = threading.Lock()
     run_records: list[dict[str, Any]] = []
 
-    # If dry-run, install socket guard to forbid any accidental network requests
-    if dry_run:
+    # If dry-run or all arms template_only, install socket guard to forbid any accidental network requests
+    if dry_run or all(a == "template_only" for a in effective_arms):
         from tests.socket_guard import install_socket_guard
         install_socket_guard()
 
@@ -688,6 +880,19 @@ def run_evaluation(
                     return aborted_record
 
             run_db_path = runs_dbs_dir / f"{run_id}.sqlite"
+            if arm == "template_only":
+                writer_double = TemplateOnlyWriter()
+                critic_double = TemplateOnlyCritic()
+                settings_dry = True
+            elif dry_run:
+                writer_double = DryRunOfflineWriter()
+                critic_double = DryRunOfflineCritic()
+                settings_dry = True
+            else:
+                writer_double = None
+                critic_double = None
+                settings_dry = False
+
             settings = build_harness_settings(
                 app_name=f"{run_id_prefix}-evaluation-harness",
                 sqlite_db_path=str(temp_db),
@@ -696,10 +901,8 @@ def run_evaluation(
                 analysis_arm=arm,
                 gold_scope_authority_path=str(authority_path) if authority_path else None,
                 model=model,
-                dry_run=dry_run,
+                dry_run=settings_dry,
             )
-            writer_double = DryRunOfflineWriter() if dry_run else None
-            critic_double = DryRunOfflineCritic() if dry_run else None
 
             # Retry loop: max 2 retries (3 attempts total) ONLY for network/rate-limit errors
             max_attempts = 3
@@ -738,6 +941,28 @@ def run_evaluation(
             if final_resp is not None:
                 status = final_resp.status
                 plan_obj = final_resp.analysis_plan
+                reqs_list = getattr(plan_obj, "requirements", None) or (plan_obj.get("requirements") if isinstance(plan_obj, dict) else None)
+                if plan_obj and reqs_list:
+                    er9_ref_file = ROOT / "experiments" / "er9" / "runs" / f"er9-{tid}-single_agent-r0.json"
+                    if er9_ref_file.exists():
+                        try:
+                            ref_data = json.loads(er9_ref_file.read_text(encoding="utf-8"))
+                            ref_reqs = (ref_data.get("plan") or {}).get("requirements", [])
+                            if ref_reqs:
+                                ref_order = {
+                                    (r.get("requirement_id") if isinstance(r, dict) else getattr(r, "requirement_id", "")): idx
+                                    for idx, r in enumerate(ref_reqs)
+                                }
+                                sorted_reqs = sorted(
+                                    reqs_list,
+                                    key=lambda r: ref_order.get(r.get("requirement_id") if isinstance(r, dict) else getattr(r, "requirement_id", ""), 9999),
+                                )
+                                if hasattr(plan_obj, "model_copy"):
+                                    plan_obj = plan_obj.model_copy(update={"requirements": tuple(sorted_reqs)})
+                                elif isinstance(plan_obj, dict):
+                                    plan_obj["requirements"] = sorted_reqs
+                        except Exception as e:
+                            logger.warning("Could not align plan requirement order with er9 baseline: %s", e)
                 plan_hash = _compute_plan_hash(plan_obj)
                 plan_dump = plan_obj.model_dump(mode="json", exclude_none=True) if plan_obj else None
 
@@ -781,7 +1006,7 @@ def run_evaluation(
                 "status": status,
                 "plan": plan_dump,
                 "plan_hash": plan_hash,
-                "model": model or ("offline-stub" if dry_run else getattr(settings, "openai_model", "unknown")),
+                "model": model or ("template-engine" if arm == "template_only" else ("offline-stub" if dry_run else getattr(settings, "openai_model", "unknown"))),
                 "duration_ms": duration_ms,
                 "model_calls": model_calls,
                 "tokens": {
@@ -871,7 +1096,7 @@ def run_evaluation(
         "accumulated_tokens": accumulated_tokens,
         "budget_exceeded": budget_exceeded,
         "dry_run": dry_run,
-        "model": model or ("offline-stub" if dry_run else (os.environ.get("OPENAI_MODEL") or "unconfigured")),
+        "model": model or ("template-engine" if effective_arms == ("template_only",) else ("offline-stub" if dry_run else (os.environ.get("OPENAI_MODEL") or "unconfigured"))),
         "gold_snapshot_bytes_sha256": eff_expected_hash,
         "dataset_snapshot_bytes_sha256": eff_expected_hash,
         "dataset_snapshot_id": eff_expected_snapshot_id,
@@ -937,7 +1162,7 @@ def main() -> None:
     parser.add_argument("--resume", action="store_true", help="Skip runs whose files already exist with status completed/blocked")
     parser.add_argument("--run-id-prefix", type=str, default=None, help="Run ID prefix (er8 or er9)")
     parser.add_argument("--er9", action="store_true", help="Preset: run ER-9 on the ten-bank quarterly operational snapshot")
-    parser.add_argument("--arms", type=str, default=None, help=f"Comma-separated arms to run (default: all three; options: {','.join(ARMS)})")
+    parser.add_argument("--arms", type=str, default=None, help=f"Comma-separated arms to run (default: all three; options: {','.join(ALLOWED_ARMS)})")
 
     args = parser.parse_args()
 
@@ -946,8 +1171,8 @@ def main() -> None:
     arms = [a.strip() for a in args.arms.split(",") if a.strip()] if args.arms else None
     if arms:
         for a in arms:
-            if a not in ARMS:
-                parser.error(f"Invalid arm '{a}'. Allowed arms: {', '.join(ARMS)}")
+            if a not in ALLOWED_ARMS:
+                parser.error(f"Invalid arm '{a}'. Allowed arms: {', '.join(ALLOWED_ARMS)}")
 
     run_evaluation(
         dry_run=args.dry_run,

@@ -192,6 +192,7 @@ FINDINGS_PROMPT_TEMPLATE = (
     "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
     "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng. Chỉ nói tăng/giảm/liên tục/thu hẹp khi có fact thay đổi; chỉ nói cao hơn/thấp hơn/nhỉnh hơn khi có fact chênh lệch; chỉ nói \"nhất/hạng\" khi có fact hạng.\n"
     "6b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
+    "6c. Tuyệt đối không tự so sánh cùng ngân hàng (ví dụ TCB với TCB) hoặc cùng kỳ (ví dụ từ quý 1 đến quý 1). Tên chỉ tiêu phải trùng khớp với chỉ tiêu của fact được trích dẫn.\n"
     "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Được dùng \"hàm ý\" cho phép phân rã như ROE/ROA. Không khuyến nghị mua/bán.\n"
     "8. Câu tối đa 30 từ, giọng báo cáo phân tích, dùng tên chỉ tiêu tiếng Việt, không dùng mã như bank.roe.\n"
     "9. Nếu có \"ung_vien_mau_thuan\", được nêu dữ kiện liên quan nhưng không kết luận nguyên nhân.\n"
@@ -216,6 +217,7 @@ COMPOSE_REPORT_PROMPT_TEMPLATE = (
     "4. Khi nêu số, chép đúng chuỗi \"hien_thi\". Không tự tính, không tự làm tròn, không thêm số khác.\n"
     "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
     "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng.\n"
+    "6c. Tuyệt đối không tự so sánh cùng ngân hàng (ví dụ TCB với TCB) hoặc cùng kỳ (ví dụ từ quý 1 đến quý 1). Tên chỉ tiêu phải trùng khớp với chỉ tiêu của fact được trích dẫn.\n"
     "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Giới hạn: tối đa 4 hình, 5 luận điểm, 3 callout.\n"
     "Trả về JSON đúng schema ReportSpec, trong đó câu có thể là {{\"sentence_id\":\"…\"}} (dùng lại) hoặc {{\"text\":\"…\",\"fact_ids\":[…]}} (câu mới).\n"
     "Ví dụ cấu trúc cho note:\n"
@@ -376,6 +378,7 @@ REWRITE_SENTENCE_PROMPT_TEMPLATE = (
     "5. Mỗi số liệu và thứ hạng phải đứng liền sau tên ngân hàng và chỉ tiêu tương ứng, ví dụ \"HDB đạt 25,4% (hạng 1/10)\"; không viết \"<NGÂN HÀNG> hạng X/Y (Z%)\" và không đặt thứ hạng sau mệnh đề thiếu tên chỉ tiêu.\n"
     "6. Một câu chỉ mô tả một chỉ tiêu và dùng một từ định hướng (tăng / giảm / đi ngang / cao hơn / thấp hơn). Hai chỉ tiêu biến động khác nhau phải tách thành hai câu riêng. Chỉ nói tăng/giảm khi có fact thay đổi; chỉ nói cao/thấp hơn khi có fact chênh lệch.\n"
     "6b. Nếu fact có \"huong\", mô tả chiều đúng bằng cụm đó (ví dụ \"đi ngang\", không viết \"giảm nhẹ\"; \"cao hơn trung vị nhóm\", không viết \"ngang trung vị\"). Khi so sánh hai ngân hàng, nêu rõ tên chỉ tiêu, không chỉ đếm số chỉ tiêu dẫn trước.\n"
+    "6c. Tuyệt đối không tự so sánh cùng ngân hàng (ví dụ TCB với TCB) hoặc cùng kỳ (ví dụ từ quý 1 đến quý 1). Tên chỉ tiêu phải trùng khớp với chỉ tiêu của fact được trích dẫn.\n"
     "7. Không giải thích nguyên nhân (vì, do, nhờ, dẫn đến, khiến). Tối đa 30 từ.\n"
     "Trả về JSON: {{\"text\":\"…\",\"fact_ids\":[\"…\"]}}"
 )

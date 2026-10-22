@@ -1,6 +1,8 @@
 **TRƯỜNG ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH**
 
-**KHOA CÔNG NGHỆ THÔNG TIN KINH DOANH**
+**TRƯỜNG CÔNG NGHỆ VÀ THIẾT KẾ**
+
+**VIỆN ĐỔI MỚI SÁNG TẠO**
 
 ---
 
@@ -12,12 +14,12 @@
 
 ---
 
+**Giảng viên hướng dẫn:** Lê Văn
+
 **Sinh viên thực hiện:** Phùng Thái Cường
 
 **Mã số sinh viên:** 31231024489
 
 **Lớp:** FEP001
 
-**Giáo viên hướng dẫn:** Lê Văn
-
-**TP. Hồ Chí Minh, năm 2026**
+**TP. Hồ Chí Minh, ngày 22 tháng 10 năm 2026**

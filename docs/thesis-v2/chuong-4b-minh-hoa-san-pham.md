@@ -1,38 +1,36 @@
 ## 4.5. Sản phẩm theo luồng sử dụng
 
-Mục này đi qua sản phẩm theo thứ tự một người phân tích sử dụng: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14–15/10/2026: Hình 4.5 và 4.9–4.11 từ bản đang vận hành tại https://fin-ai.eddiephung.me, còn Hình 4.4 và 4.6–4.8 từ mã nguồn giao diện hiện hành kết nối với máy chủ phân tích đang vận hành, mở lại các báo cáo đã lưu trong Thư viện báo cáo. Bộ dữ liệu là mười ngân hàng đã đối soát.
+Mục này mô tả các bước dùng thử của một người phân tích điển hình trong nhóm chân dung thứ nhất ở Bảng 1.1, đi qua sản phẩm theo thứ tự: xem dữ liệu, đặt câu hỏi, theo dõi các tác tử, đọc báo cáo, kiểm tra lại quá trình và thêm một ngân hàng mới. Các ảnh được chụp ngày 14-15/10/2026 từ bản vận hành tại https://fin-ai.eddiephung.me hoặc từ mã nguồn giao diện hiện hành kết nối với máy chủ đang vận hành, mở lại các báo cáo đã lưu. Các Hình 4.4 đến 4.11 lần lượt minh họa FR2 và NFR1 (Hình 4.4), NT3 và NFR2 (Hình 4.5), FR4 (Hình 4.6, 4.7), NFR2 (Hình 4.8), FR3 (Hình 4.9), FR5 và FR2 (Hình 4.10, 4.11); phép kiểm chứng tương ứng ở Chương 5.
 
-**Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào. Bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô); nếu một quý chưa có báo cáo, ô đó được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức của từng chỉ tiêu và khu vực tải lên ngân hàng mới. Thông tin được lấy trực tiếp từ máy chủ nên luôn khớp với dữ liệu thực sự dùng để phân tích.
+**Xem dữ liệu.** Trang Dữ liệu cho biết hệ thống có những ngân hàng, kỳ và chỉ tiêu nào; bảng độ phủ cho thấy từng ngân hàng ở từng quý có đủ số liệu hay không (hiện đủ 100/100 ô), và ô chưa có báo cáo được đánh dấu thay vì điền ước tính. Bên dưới là định nghĩa, công thức từng chỉ tiêu và khu vực tải lên ngân hàng mới.
 
 ![](docs/thesis-v2/screenshots/01-du-lieu.png)
 
-Hình 4.4: Trang Dữ liệu – độ phủ mười ngân hàng theo từng quý
+Hình 4.4: Trang Dữ liệu - độ phủ mười ngân hàng theo từng quý
 
-**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu từ danh sách. Sau khi gửi, người dùng thấy điều phối viên xác định dạng câu hỏi và giao việc cho các chuyên viên; chỉ những tác tử thực sự tham gia mới hiện ra. Các bước hiện ra theo thứ tự thời gian như một cuộc trao đổi, mỗi mục có mốc thời gian và tên tác tử: điều phối viên nêu cách hiểu câu hỏi và kế hoạch, chuyên viên cho biết đã lấy bao nhiêu số liệu có nguồn rồi bản nháp nhận định chảy ra từng đoạn, bộ kiểm tra số liệu xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có. Nội dung hiển thị là các kết quả có cấu trúc mà từng agent đã công bố, không phải suy nghĩ thô của mô hình. Khi xong, mục cuối có nút "Mở báo cáo".
+**Đặt câu hỏi và theo dõi tác tử.** Màn hình chính chỉ có một ô nhập câu hỏi tiếng Việt cùng các câu hỏi gợi ý; người dùng không cần chọn ngân hàng, kỳ hay chỉ tiêu. Sau khi gửi, người dùng thấy điều phối viên nêu cách hiểu câu hỏi và kế hoạch, giao việc cho các chuyên viên (chỉ những tác tử thực sự tham gia mới hiện ra), bản nháp nhận định hiển thị dần từng đoạn, bộ kiểm chứng xác nhận bao nhiêu số khớp, và bộ phản biện nêu yêu cầu sửa nếu có; nội dung là các kết quả có cấu trúc mà từng tác tử công bố, không phải suy nghĩ thô của mô hình.
 
 ![](docs/thesis-v2/screenshots/03-dieu-phoi.png)
 
-Hình 4.5: Dòng suy luận – các tác tử nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
+Hình 4.5: Dòng suy luận - các tác tử nhận việc, trả kết quả và kiểm tra lẫn nhau theo thời gian thực
 
-**Đọc báo cáo.** Báo cáo trình bày theo phong cách báo cáo phân tích đầu tư: tiêu đề nêu kết luận, trạng thái kiểm định và phạm vi dữ liệu, rồi các nhận định kèm biểu đồ. Mỗi câu có số chú thích dẫn tới báo cáo tài chính gốc kèm số trang; câu dựa trên nhiều nguồn hiện ba số đầu và gộp phần còn lại thành "+N", danh sách đầy đủ nằm ở mục Nguồn. Khối tín hiệu tóm tắt vị thế so với nhóm theo từng khía cạnh, và các phát hiện liên tầng được đặt trong khối lưu ý riêng. Dòng "Thị trường" dưới các chỉ số chính đưa giá đóng cửa và hệ số P/B vào báo cáo như một bối cảnh tham khảo, có ghi nguồn và phiên giao dịch, tách khỏi số liệu báo cáo tài chính.
+**Đọc báo cáo.** Báo cáo trình bày theo phong cách báo cáo phân tích đầu tư: tiêu đề nêu kết luận, trạng thái kiểm định và phạm vi dữ liệu, rồi các nhận định kèm biểu đồ. Mỗi câu có số chú thích dẫn tới báo cáo tài chính gốc kèm số trang; khối tín hiệu tóm tắt vị thế so với nhóm và các phát hiện chéo nằm trong khối lưu ý riêng; dòng "Thị trường" (giá đóng cửa, P/B) là bối cảnh tham khảo, có ghi nguồn và tách khỏi số liệu báo cáo tài chính.
 
 ![](docs/thesis-v2/screenshots/04-bao-cao-ho-so.png)
 
 Hình 4.6: Báo cáo hồ sơ doanh nghiệp của ACB quý 2/2026
 
-Cách trình bày thay đổi theo dạng câu hỏi: câu tra cứu nhận thẻ trả lời ngắn gồm con số, diễn biến so với quý trước và nguồn; câu xu hướng dùng biểu đồ đường theo quý so với trung vị nhóm; câu xếp hạng dùng biểu đồ thanh có đường trung vị; câu so sánh hai ngân hàng dùng bảng đối chiếu từng chỉ tiêu, đánh dấu bên tốt hơn theo đúng chiều của chỉ tiêu (Hình 4.7).
-
 ![](docs/thesis-v2/screenshots/09-so-sanh.png)
 
 Hình 4.7: Báo cáo so sánh trực diện ACB và TCB
 
-**Kiểm tra lại quá trình.** Liên kết "Xem quá trình phân tích" ở cuối báo cáo mở toàn bộ các bước: điều phối viên giao việc gì, mỗi chuyên viên trả về gì, bộ kiểm tra xác nhận bao nhiêu con số khớp dữ liệu gốc và bộ phản biện yêu cầu sửa gì. Người đọc nhờ đó tự đánh giá mức tin cậy của báo cáo thay vì chỉ tin vào kết quả cuối. Mọi lượt phân tích, kể cả lượt bị từ chối, được lưu trong Thư viện báo cáo để mở lại sau.
+**Kiểm tra lại quá trình.** Liên kết "Xem quá trình phân tích" ở cuối báo cáo mở toàn bộ các bước (điều phối viên giao việc gì, chuyên viên trả về gì, bộ kiểm chứng xác nhận bao nhiêu số khớp, bộ phản biện yêu cầu sửa gì), để người đọc tự đánh giá mức tin cậy; mọi lượt phân tích, kể cả lượt bị từ chối, được lưu trong Thư viện báo cáo.
 
 ![](docs/thesis-v2/screenshots/06-qua-trinh.png)
 
-Hình 4.8: Quá trình phân tích – các bước của từng tác tử, kết quả kiểm tra số liệu và yêu cầu của bộ phản biện
+Hình 4.8: Quá trình phân tích - các bước của từng tác tử, kết quả kiểm tra số liệu và yêu cầu của bộ phản biện
 
-**Câu hỏi ngoài phạm vi.** Khi người dùng hỏi về ngân hàng hoặc kỳ chưa có trong dữ liệu, hoặc đặt một yêu cầu không phải phân tích ngân hàng như sáng tác, dịch thuật, hệ thống từ chối ngay, trước khi gọi mô hình ngôn ngữ, nêu dữ liệu đang có và gợi ý các câu hỏi có thể hỏi.
+**Câu hỏi ngoài phạm vi.** Khi câu hỏi về ngân hàng hoặc kỳ chưa có dữ liệu, hoặc không phải phân tích ngân hàng, hệ thống từ chối trước khi gọi mô hình, nêu dữ liệu đang có và gợi ý câu hỏi có thể hỏi.
 
 ![](docs/thesis-v2/screenshots/11-tu-choi.png)
 
@@ -44,7 +42,7 @@ Hình 4.9: Thông báo khi câu hỏi nằm ngoài phạm vi (yêu cầu sáng t
 
 Hình 4.10: Kết quả kiểm tra tệp tải lên của VIB quý 4/2025
 
-Sau khi tệp được chấp nhận, người dùng hỏi về ngân hàng mới như các ngân hàng khác. Báo cáo ở Hình 4.11 (câu tra cứu tỷ lệ nợ xấu của VIB) đặt VIB cạnh nhóm mười ngân hàng: thứ hạng tính trên mười một ngân hàng (hạng 9/11), còn trung vị nhóm vẫn chỉ tính trên mười ngân hàng đã đối soát, và dải thông báo đầu báo cáo ghi rõ số liệu của VIB do người dùng cung cấp.
+Sau khi tệp được chấp nhận, báo cáo ở Hình 4.11 (tỷ lệ nợ xấu của VIB) đặt VIB cạnh nhóm mười ngân hàng: thứ hạng tính trên mười một ngân hàng (hạng 9/11), trung vị nhóm vẫn chỉ tính trên mười ngân hàng đã đối soát, và dải thông báo ghi rõ số liệu do người dùng cung cấp.
 
 ![](docs/thesis-v2/screenshots/14-bao-cao-vib.png)
 

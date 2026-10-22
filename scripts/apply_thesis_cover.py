@@ -18,7 +18,7 @@ INFO=dict(
  advisor="Giảng viên hướng dẫn: Lê Văn",
  student="Phùng Thái Cường - 31231024489 - Lớp FEP001",
  contact="Điện thoại: 0867509506"+chr(11)+"Email: cuongphungthai1@gmail.com",
- date="Hồ Chí Minh, ngày 21 tháng 10 năm 2026")
+ date="Hồ Chí Minh, ngày 22 tháng 10 năm 2026")
 if src!=out: shutil.copy(src,out)
 a=w.Dispatch("Word.Application"); a.Visible=False; a.DisplayAlerts=0
 d=a.Documents.Open(out)
@@ -79,7 +79,7 @@ for s_ in walk(d.Shapes):
     except Exception as e: print("pf restore err",k,e)
 section_break_before(BIA_PHU)
 section_break_before("LỜI CẢM ƠN")
-section_break_before("TÓM TẮT (ABSTRACT)")
+section_break_before("TÓM TẮT")
 print("sections",d.Sections.Count)
 assert d.Sections.Count==4
 # 2. page setup and page numbers

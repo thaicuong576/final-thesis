@@ -310,27 +310,33 @@ def _set_all_fonts(run, name: str = "Times New Roman", size_pt: float = 12) -> N
 
 
 _NUMERIC_CELL_RE = re.compile(
-    r'^[+\-−–]?\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?\s*(?:%|giây|token|câu|lượt|ô|vòng)?'
+    r'^[+\-−-]?\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?\s*(?:%|giây|token|câu|lượt|ô|vòng)?'
     r'(?:\s*[×x]\s*\d+)?(?:\s*\([^)]*\))?(?:\s*\[[^\]]*\])?$')
 
 
 def _is_numeric_cell(text: str) -> bool:
     """True for number-like cells ('1.234,5', '12/12', '58,3%', '+0,05 [-0,1; +0,2]', '7 (58,3%)')."""
     t = _clean_html(text).replace("**", "").strip()
-    return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−–]+\]', t))
+    return bool(t) and bool(_NUMERIC_CELL_RE.match(t) or re.fullmatch(r'\[[\d.,%;\s+\-−-]+\]', t))
 
 
-def _set_column_widths(table, rows: list[list[str]], total_cm: float = 16.5) -> None:
+def _set_column_widths(table, rows: list[list[str]], total_cm: float = 17.0) -> None:
     """Fixed layout: column width follows the text length (long text columns get more room, capped)."""
     n = len(rows[0])
     weights = []
+    mins = []
     for c in range(n):
         lens = [len(_clean_html(r[c]).replace("**", "").replace("`", "")) for r in rows]
         longest = max((len(w) for r in rows for w in _clean_html(r[c]).replace("`", "").split()), default=4)
         avg = sum(lens[1:]) / max(1, len(lens) - 1)
-        weights.append(max(min(avg, 70), min(longest, 24) + 3))
-    total = sum(weights)
-    widths = [Cm(total_cm * w / total) for w in weights]
+        weights.append(max(min(avg, 70), 4))
+        mins.append(min(longest, 24) * 0.21 + 0.5)
+    spare = total_cm - sum(mins)
+    if spare <= 0:
+        widths = [Cm(total_cm * m / sum(mins)) for m in mins]
+    else:
+        wsum = sum(weights)
+        widths = [Cm(m + spare * w / wsum) for m, w in zip(mins, weights)]
     table.autofit = False
     tblPr = table._tbl.tblPr
     for el in tblPr.findall(qn("w:tblLayout")):
@@ -347,6 +353,9 @@ def _set_column_widths(table, rows: list[list[str]], total_cm: float = 16.5) -> 
     for row in table.rows:
         for cell, w in zip(row.cells, widths):
             cell.width = w
+
+
+_TBL_PT = 11
 
 
 def _format_table(table, rows: list[list[str]]) -> None:
@@ -386,7 +395,7 @@ def _format_table(table, rows: list[list[str]]) -> None:
         for col_i, cell_text in enumerate(row_cells):
             cell = tr.cells[col_i]
             para = cell.paragraphs[0]
-            _add_inline_runs(para, _clean_html(cell_text), base_size=12)
+            _add_inline_runs(para, _clean_html(cell_text), base_size=_TBL_PT)
             pf = para.paragraph_format
             pf.first_line_indent = _Pt(0)
             pf.left_indent = _Pt(0)
@@ -399,11 +408,15 @@ def _format_table(table, rows: list[list[str]]) -> None:
                 para.alignment = WD_ALIGN_PARAGRAPH.RIGHT  # guide: numbers right-aligned
             else:
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            pf.keep_with_next = True  # a table stays on one page with its caption and source
+                pf.line_spacing = 1.5
+                pf.space_before = Pt(6)
+                pf.space_after = Pt(6)
+            # Short tables stay whole with caption and source; long tables only keep the caption with the first rows.
+            pf.keep_with_next = True
             pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.
-                _set_all_fonts(run, "Times New Roman", 12)
+                _set_all_fonts(run, "Times New Roman", _TBL_PT)
                 if is_header:
                     run.font.bold = True
             if is_header:
@@ -433,7 +446,7 @@ def _add_image(doc: Document, img_path: Path) -> None:
 
             with _Image.open(img_path) as _im:
                 w_px, h_px = _im.size
-            width_cm = min(15.0, 17.0 * w_px / h_px)
+            width_cm = min(14.0, 6.2 * w_px / h_px)
         except Exception:  # noqa: BLE001 - PIL is optional; fall back to full width
             pass
         run.add_picture(str(img_path), width=Cm(width_cm))
@@ -511,30 +524,41 @@ _CAPTION_ID_RE = re.compile(r'^((?:Hình|Bảng)\s+[A-Z0-9][\w.]*)\s*:', re.UNIC
 # (ĐVT, Nguồn) for every table and figure (guide, part 7: unit and source are mandatory).
 _SRC_DESIGN = "Tác giả thiết kế"
 _SRC_SYNTH = "Tác giả tổng hợp"
-_SRC_SHOT = "Ảnh chụp màn hình sản phẩm của khóa luận, tác giả thực hiện ngày 14–15/10/2026"
+_SRC_SHOT = "Ảnh chụp màn hình sản phẩm của khóa luận, tác giả thực hiện ngày 14-15/10/2026"
 _UNIT_NONE = "không áp dụng (bảng mô tả)"
 _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
 CAPTION_META: dict[str, tuple[str, str]] = {
+    "Bảng 1.1": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu, đối chiếu với khảo sát (n = 15)"),
+    "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ tài liệu giới thiệu của nhà cung cấp (Vietstock, 2026; FiinGroup, 2026; Simplize, 2026; WiGroup, 2026; CafeF, 2026; SSI, 2026; Bloomberg, 2026; LSEG, 2026; S&P Global Market Intelligence, 2026; OpenAI, 2026a; Google, 2026; Anthropic, 2026), truy cập ngày 21/10/2026. Bảng không nhằm xếp hạng công cụ; 'chưa nêu rõ' chỉ có nghĩa là chưa xác nhận được trên trang chính thức"),
+    "Bảng 1.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 2.2": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 2.3": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng 3.1": (_UNIT_NONE, _SRC_DESIGN),
-    "Bảng 3.2": ("số ô ngân hàng – quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
+    "Bảng 3.2": ("số ô ngân hàng - quý", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
     "Bảng 3.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 3.4": (_UNIT_NONE, "Tác giả xây dựng"),
     "Bảng 3.5": (_UNIT_NONE, "Tác giả xây dựng"),
     "Bảng 3.6": (_UNIT_NONE, _SRC_SYNTH),
-    "Bảng 4.1": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
+    "Bảng 4.1": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 4.2": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
+    "Bảng 4.3": (_UNIT_NONE, _SRC_SYNTH + " từ thiết kế hệ thống"),
     "Bảng 5.1": ("token (cột cuối)", _SRC_SYNTH + " từ các tệp kết quả thực nghiệm (Phụ lục C)"),
     "Bảng 5.2": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 5.3": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 5.3": ("độ phủ từ 0 đến 1", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 5.4": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
     "Bảng 5.5": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
-    "Bảng 5.6": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
-    "Bảng 5.7": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.6": (_UNIT_ROW, "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
+    "Bảng 5.7": ("độ phủ từ 0 đến 1", "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
+    "Bảng 5.8": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
+    "Bảng 5.9": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026b)"),
+    "Bảng 5.11": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng C.1": (_UNIT_NONE, _SRC_SYNTH + " từ các tệp kết quả thực nghiệm"),
+    "Hình 1.1": ("", "Tác giả tính từ bộ dữ liệu mười ngân hàng của khóa luận"),
     "Hình 3.1": ("", _SRC_DESIGN + ", theo khung Design Science Research"),
     "Hình 3.2": ("", _SRC_DESIGN),
     "Hình 4.1": ("", _SRC_DESIGN),
@@ -542,6 +566,10 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Hình 4.3": ("", _SRC_DESIGN),
     "Hình 5.1": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
+    "Bảng 6.1": (_UNIT_NONE, "Tác giả đề xuất"),
+    "Bảng D.1": (_UNIT_NONE, "Tác giả xây dựng"),
+    "Bảng D.2": ("số người", "Khảo sát của tác giả (n = 15), 16-22/10/2026"),
+    "Bảng B.1": ("không áp dụng", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
 }
 
 
@@ -802,6 +830,7 @@ def convert_markdown_to_doc(
             else:
                 _add_unit_line(doc, caption)
                 pending_table_caption = caption
+                globals()['_TBL_PT'] = 10 if caption.startswith('Bảng D') or caption.startswith('Bảng 2.1') or caption.startswith('Bảng 1.2') else 11
             last_was_image = False
             i += 1
             continue
@@ -956,7 +985,7 @@ def configure_document(doc: Document) -> None:
     for sec in doc.sections:
         sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
         sec.top_margin, sec.bottom_margin = Cm(1.5), Cm(2.0)
-        sec.left_margin, sec.right_margin = Cm(2.5), Cm(2.0)
+        sec.left_margin, sec.right_margin = Cm(2.0), Cm(2.0)
         sec.header_distance, sec.footer_distance = Cm(1.0), Cm(1.0)
 
     def fmt(name, size, bold, italic, align, before=6, after=6, line=1.5, keep=False, base="Normal"):
@@ -992,7 +1021,7 @@ def configure_document(doc: Document) -> None:
     for lvl, indent in ((1, 0.0), (2, 0.6), (3, 1.2)):
         st = fmt(f"toc {lvl}", BODY_PT, False, False, L, before=2, after=2, line=1.0)
         st.paragraph_format.left_indent = Cm(indent)
-        st.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        st.paragraph_format.tab_stops.add_tab_stop(Cm(17.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
 
 # ---------------------------------------------------------------------------
@@ -1082,7 +1111,7 @@ def add_review_page(doc: Document, title: str) -> None:
     for _ in range(17):
         para = doc.add_paragraph(style="Normal")
         _clear_indent(para)
-        para.paragraph_format.tab_stops.add_tab_stop(Cm(16.5), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+        para.paragraph_format.tab_stops.add_tab_stop(Cm(17.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
         para.add_run("	")
     for text, bold, italic in (("TP. Hồ Chí Minh, ngày ….. tháng ….. năm 2026", False, True),
                                ("Giảng viên hướng dẫn", True, False),
@@ -1309,6 +1338,9 @@ def build(template_path: str, out_path: str) -> None:
                 pf.left_indent = Cm(1.27)
                 pf.first_line_indent = Cm(-1.27)
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                pf.line_spacing = 1.0
+                pf.space_before = Pt(0)
+                pf.space_after = Pt(4)
 
     # ---- 10. Appendices (after the references) ----
     for app_path in sorted(thesis_v2.glob("phu-luc*.md")):
@@ -1327,7 +1359,7 @@ def build(template_path: str, out_path: str) -> None:
     print(f"[build] Done! File size: {out.stat().st_size / 1024:.1f} KB")
 
     if out.stat().st_size > 5 * 1024 * 1024:
-        print(f"[build] NOTE: Output > 5 MB ({out.stat().st_size / 1024 / 1024:.1f} MB) — add to .gitignore")
+        print(f"[build] NOTE: Output > 5 MB ({out.stat().st_size / 1024 / 1024:.1f} MB) - add to .gitignore")
 
     # Print statistics
     doc2 = Document(str(out))

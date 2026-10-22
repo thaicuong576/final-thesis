@@ -45,7 +45,7 @@ Trình duyệt (React) ──HTTP/SSE──▶ thesis_api (FastAPI)  ──▶ t
                               lịch sử lượt chạy (SQLite)     snapshot dữ liệu (SQLite, chỉ đọc)
 ```
 
-Luồng một lượt phân tích: câu hỏi tiếng Việt → kế hoạch phân tích được khóa trước khi truy xuất → công cụ tính các dữ kiện (mã tính mọi con số, mô hình không tự tính) → chuyên viên viết nhận định có trích dẫn dữ kiện → bộ kiểm chứng kiểm từng câu (câu sai bị loại riêng) → (cấu hình C) phản biện và sửa → báo cáo kèm số trang nguồn. Dữ liệu đi qua bốn trạng thái: nguồn thô, ứng viên, vận hành, khóa bằng mã băm. Mô tả đầy đủ ở Chương 3 và 4 của khóa luận, và ở `docs/ARCHITECTURE.md`, `docs/DATA-CONTRACT.md`, `docs/ARCHITECTURAL-GUARDRAILS.md`.
+Luồng một lượt phân tích: câu hỏi tiếng Việt → kế hoạch phân tích được khóa trước khi truy xuất → công cụ tính các dữ kiện (mã tính mọi con số, mô hình không tự tính) → chuyên viên viết nhận định có trích dẫn dữ kiện → bộ kiểm chứng kiểm từng câu (câu sai bị loại riêng) → (cấu hình C) phản biện và sửa → báo cáo kèm số trang nguồn. Dữ liệu đi qua bốn trạng thái: nguồn thô, ứng viên, vận hành, khóa bằng mã băm. Mô tả đầy đủ ở Chương 3 và 4 của khóa luận.
 
 ## 4. Công nghệ
 
@@ -66,8 +66,6 @@ Luồng một lượt phân tích: câu hỏi tiếng Việt → kế hoạch ph
 | `experiments/` | Câu hỏi, thang chấm, kết quả thô và phân tích của các thực nghiệm (xem `experiments/RESULTS-INDEX.md`) |
 | `scripts/` | Dựng snapshot, chạy và chấm thực nghiệm, kiểm tra hợp đồng, dựng bản Word khóa luận |
 | `tests/` | Kiểm thử Python (chạy bằng `unittest`) |
-| `docs/` | Đặc tả, kiến trúc, quyết định thiết kế, giao thức đánh giá; bản thảo khóa luận ở `docs/thesis-v2/` (xem `docs/README.md`) |
-| `AGENTS.md`, `.agent/`, `.fleet/` | Quy tắc và nhật ký của quy trình phát triển có tác tử AI hỗ trợ; không cần cho việc chạy hệ thống |
 
 ## 6. Cài đặt và chạy
 

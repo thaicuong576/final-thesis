@@ -11,9 +11,6 @@ on:
       - 'data/evaluation/**'
       - 'experiments/mut1/**'
       - 'reports/data-foundation/**'
-      - 'docs/**'
-      - '.agent/**'
-      - 'AGENTS.md'
       - 'requirements*.txt'
       - '.github/workflows/python-validation.yml'
   pull_request:
@@ -26,9 +23,6 @@ on:
       - 'data/evaluation/**'
       - 'experiments/mut1/**'
       - 'reports/data-foundation/**'
-      - 'docs/**'
-      - '.agent/**'
-      - 'AGENTS.md'
       - 'requirements*.txt'
       - '.github/workflows/python-validation.yml'
 

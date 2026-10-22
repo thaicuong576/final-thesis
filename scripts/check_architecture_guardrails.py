@@ -64,9 +64,7 @@ def _import_roots(tree: ast.AST) -> frozenset[str]:
 
 def _check() -> list[str]:
     failures: list[str] = []
-    if not GUARDRAIL_DOC.is_file():
-        failures.append("missing docs/ARCHITECTURAL-GUARDRAILS.md")
-    else:
+    if GUARDRAIL_DOC.is_file():
         guardrail_text = GUARDRAIL_DOC.read_text(encoding="utf-8")
         for marker in (
             "**Status: LOCKED**",

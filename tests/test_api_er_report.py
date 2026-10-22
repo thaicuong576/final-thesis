@@ -453,6 +453,24 @@ class _TestOfflineWriter:
             for idx, ds in enumerate(datasets_summary[:2], start=1):
                 chart = ds.get("allowed_charts", ["rank_heatmap"])[0] if ds.get("allowed_charts") else "rank_heatmap"
                 fid = facts[0]["fact_id"] if facts else "f-1"
+                ds_title = ds.get("title", "")
+                for f in (facts or []):
+                    f_id = f.get("fact_id", "")
+                    if "roe/roa" in ds_title.lower() and "roe_over_roa" in f_id:
+                        fid = f_id
+                        break
+                    elif "nợ xấu" in ds_title.lower() and "npl_g35" in f_id:
+                        fid = f_id
+                        break
+                    elif "bao phủ" in ds_title.lower() and "llr_coverage" in f_id:
+                        fid = f_id
+                        break
+                    elif "roa" in ds_title.lower() and ":roa" in f_id:
+                        fid = f_id
+                        break
+                    elif "roe" in ds_title.lower() and ":roe" in f_id:
+                        fid = f_id
+                        break
                 blocks.append({
                     "type": "figure",
                     "figure_no": idx,
@@ -973,7 +991,7 @@ class ApiERReportTests(unittest.TestCase):
             "blocks": [
                 {
                     "type": "headline",
-                    "sentence": {"text": "TCB cao hơn ACB ở tỷ lệ bao phủ nợ xấu và ROA.", "fact_ids": ["fact:value:TCB:2024_Q4:bank.llr_coverage", "fact:value:ACB:2024_Q4:bank.llr_coverage"]},
+                    "sentence": {"text": "TCB cao hơn ACB ở tỷ lệ bao phủ nợ xấu.", "fact_ids": ["fact:value:TCB:2024_Q4:bank.llr_coverage", "fact:value:ACB:2024_Q4:bank.llr_coverage"]},
                 },
                 {
                     "type": "section",

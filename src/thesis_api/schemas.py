@@ -757,6 +757,8 @@ SentenceDropReason = Literal[
     "trend_without_delta",
     "trend_direction_mismatch",
     "comparison_direction_mismatch",
+    "metric_label_mismatch",
+    "self_comparison",
     "causal_language",
     "investment_advice",
     "unresolved_critique",

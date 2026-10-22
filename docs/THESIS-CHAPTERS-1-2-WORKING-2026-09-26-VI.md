@@ -47,26 +47,25 @@ Vấn đề thứ ba là độ tin cậy của đầu ra do AI tạo ra (Ji và 
 
 **Cách làm và công cụ hiện có.** Hiện nay, các vấn đề trên thường được xử lý theo ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo PDF rồi nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở khâu đọc số. Với báo cáo dạng quét, 700 trong 885 số liệu đầu vào được đối chiếu phải qua nhận dạng ký tự, và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.9). Số bất thường của STB quý 4/2025 cũng chỉ được xác nhận sau khi mở lại hồ sơ gốc (mục 5.11).
 
-Cách thứ hai là dùng nền tảng dữ liệu tài chính hoặc terminal. Theo tài liệu công bố của nhà cung cấp (truy cập ngày 21/10/2026; Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026), FiinPro-X (FiinGroup, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và chức năng xuất Excel. Các terminal như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi số liệu chuẩn hóa, giao diện lập trình, và ở Capital IQ Pro có liên kết từ số liệu về tài liệu gốc. Tác giả không tìm thấy thông tin công bố nào cho thấy các nhà cung cấp này cho phép truy từng con số trong nhận định do AI viết về đúng trang báo cáo gốc, hoặc kiểm tra tự động từng câu bằng quy tắc. Ô "không rõ" trong Bảng 1.2 chỉ có nghĩa là không xác nhận được trên trang chính thức, không có nghĩa công cụ thiếu tính năng đó. Về độ phủ, hệ thống của khóa luận hẹp hơn nhiều (10 ngân hàng, 4 chỉ tiêu); giá trị đề xuất nằm ở khả năng truy nguồn và kiểm tra.
+Cách thứ hai là dùng nền tảng dữ liệu tài chính hoặc terminal. Theo tài liệu giới thiệu của nhà cung cấp (truy cập ngày 21/10/2026; Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026), FiinPro-X (FiinGroup, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và chức năng xuất Excel. Các terminal như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi số liệu chuẩn hóa, giao diện lập trình, và ở Capital IQ Pro có liên kết từ số liệu về tài liệu gốc. Các nền tảng này tập trung vào độ phủ dữ liệu: chẳng hạn FiinPro-X công bố khoảng 2.000 chỉ tiêu doanh nghiệp (FiinGroup, 2026), trong khi bộ dữ liệu của khóa luận chỉ gồm 10 ngân hàng và 4 chỉ tiêu. Phạm vi của khóa luận vì vậy hẹp hơn, và trọng tâm được đặt vào một vấn đề khác: khi nhận định do AI viết, người dùng kiểm tra lại từng con số và từng câu về trang báo cáo gốc bằng cách nào. Tài liệu giới thiệu sản phẩm mà tác giả tham khảo (Bảng 1.2) không nêu rõ chức năng này.
 
 Cách thứ ba là hỏi trực tiếp chatbot AI phổ thông. Các chatbot này hiểu tiếng Việt và viết trôi chảy nhưng có thể tạo nội dung không được dữ liệu hỗ trợ (Ji và cộng sự, 2023). Để minh họa, tác giả hỏi gpt-5.6-luna mười câu phân tích ở Bảng 3.4, không cung cấp công cụ và không bật tìm kiếm web (ngày 21/10/2026). Trong 19 con số mô hình nêu ra có 8 số đúng, 10 số sai và 1 số không kiểm được; không câu trả lời nào nêu nguồn để đối chiếu. Phép thử chỉ chạy một lần trên một mô hình, và số liệu các quý gần nhất có thể nằm ngoài dữ liệu huấn luyện, nên kết quả cho thấy rủi ro khi dùng mô hình không có công cụ, không phản ánh mức sai điển hình của chatbot có tìm kiếm. Điều đáng chú ý hơn tỷ lệ sai là người dùng không có cách nào kiểm tra lại câu trả lời. Trong khảo sát ở mục 1.2, 9 trong 12 người từng dùng chatbot AI để tra số liệu tài chính cho biết đã gặp số sai hoặc không rõ số có đúng không (tự khai).
 
-Như vậy, cách làm thủ công cho phép kiểm tra nhưng tốn công, còn hai cách nhanh hơn chưa cho phép người dùng kiểm tra lại từng con số và từng câu nhận định về trang báo cáo gốc. Đó là điểm nối sang câu hỏi nghiên cứu thứ nhất.
+Như vậy, cách làm thủ công cho phép kiểm tra nhưng tốn công, còn với hai cách nhanh hơn, tác giả chưa thấy tài liệu mô tả khả năng cho người dùng kiểm tra lại từng con số và từng câu nhận định về trang báo cáo gốc. Đó là điểm nối sang câu hỏi nghiên cứu thứ nhất.
 
-*Bảng 1.2: So sánh công cụ phân tích tài chính hiện có (theo tài liệu công bố ngày 21/10/2026).*
+*Bảng 1.2: So sánh công cụ phân tích tài chính hiện có (theo tài liệu giới thiệu sản phẩm, truy cập ngày 21/10/2026).*
 
-| Công cụ | Truy nguồn số | Kiểm câu AI | Tiếng Việt | Độ phủ | Tự viết | Chi phí | Tải số liệu |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| VietstockFinance | Không rõ | Không rõ | Có | Có | Một phần | 149 nghìn đồng/gói | Có |
-| FiinPro-X | Không rõ | Không rõ | Có | Có (~2.000 chỉ tiêu) | Không rõ | Không rõ | Có (xuất Excel) |
-| Simplize, WiChart | Không rõ | Không rõ | Có | Có | Không rõ | Simplize: từ miễn phí đến 5,99 triệu đồng/năm; WiChart: không rõ | Có |
-| CafeF, SSI iBoard | Không rõ | Không rõ | Có | Có | Không rõ | Miễn phí | Không rõ |
-| Bloomberg, LSEG | Một phần | Không rõ | Không rõ | Có | Không rõ | Liên hệ | Có |
-| S&P Capital IQ Pro | Một phần | Không rõ | Không rõ | Có | Một phần | Liên hệ | Có |
-| ChatGPT, Gemini, Claude | Không rõ | Không rõ (Gemini: tự bấm kiểm tra) | Có | Không rõ | Có | Miễn phí; ~20 USD/tháng | Một phần |
-| Hệ thống của khóa luận | Có | Có | Có | 10 NH, 4 chỉ tiêu, 10 quý | Có | Miễn phí; ~413 đồng/báo cáo (chưa gồm dữ liệu) | Một phần (JSON) |
+| Công cụ | Truy nguồn số | Tiếng Việt | Độ phủ | Tự viết | Chi phí | Tải số liệu |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| VietstockFinance | Chưa nêu rõ | Có | Có | Một phần | 149 nghìn đồng/gói | Có |
+| FiinPro-X | Chưa nêu rõ | Có | Có (~2.000 chỉ tiêu) | Chưa nêu rõ | Chưa nêu rõ | Có (xuất Excel) |
+| Simplize, WiChart | Chưa nêu rõ | Có | Có | Chưa nêu rõ | Simplize: từ miễn phí đến 5,99 triệu đồng/năm; WiChart: chưa nêu rõ | Có |
+| CafeF, SSI iBoard | Chưa nêu rõ | Có | Có | Chưa nêu rõ | Miễn phí | Chưa nêu rõ |
+| Bloomberg, LSEG | Một phần | Chưa nêu rõ | Có | Chưa nêu rõ | Liên hệ | Có |
+| S&P Capital IQ Pro | Một phần | Chưa nêu rõ | Có | Một phần | Liên hệ | Có |
+| ChatGPT, Gemini, Claude | Chưa nêu rõ | Có | Chưa nêu rõ | Có | Miễn phí; ~20 USD/tháng | Một phần |
 
-Bảng tính thủ công (Excel, Google Sheets) không có truy nguồn hay kiểm tự động, người dùng tự nhập số từ báo cáo gốc. Các cột là: truy từng số về trang báo cáo gốc; kiểm tự động câu nhận định do AI viết; hỗ trợ tiếng Việt; độ phủ doanh nghiệp và chỉ tiêu ("Có" nghĩa là có số liệu ngân hàng Việt Nam, số ngân hàng và chỉ tiêu cụ thể không rõ); tự viết nhận định; chi phí; tải số liệu thô. Cột "Hệ thống của khóa luận" do tác giả tự đánh giá; "không rõ" nghĩa là không xác nhận được trên trang chính thức vào ngày truy cập.
+Bảng tính thủ công (Excel, Google Sheets) không có truy nguồn, người dùng tự nhập số từ báo cáo gốc. Các cột là: truy từng số về trang báo cáo gốc; hỗ trợ tiếng Việt; độ phủ doanh nghiệp và chỉ tiêu ("Có" nghĩa là có số liệu ngân hàng Việt Nam, số ngân hàng và chỉ tiêu cụ thể chưa nêu rõ); tự viết nhận định; chi phí; tải số liệu thô.
 
 Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế nào xây dựng một hệ thống phân tích tài chính có thể xác định các thành phần phân tích cần thiết cho từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, phối hợp các thành phần phù hợp, đồng thời kiểm tra và sửa đổi kết quả trước khi tạo báo cáo cuối cùng?*
 
@@ -91,7 +90,7 @@ Nghiên cứu lấy phân tích ngân hàng niêm yết Việt Nam làm trườn
 
 Khóa luận có ba nhóm đóng góp. Về ứng dụng, khóa luận xây dựng một sản phẩm đã triển khai, đi từ dữ liệu đã kiểm tra đến báo cáo truy nguyên được. Về thiết kế, khóa luận đề xuất kiến trúc kết hợp dữ liệu chuẩn hóa, lập kế hoạch theo câu hỏi, tác tử chuyên trách, kiểm tra theo quy tắc, phản biện có giới hạn và sửa đổi có mục tiêu. Trọng tâm là chọn đúng thành phần và giữ khả năng kiểm tra lại, không phải số lượng tác tử.
 
-Về phân tích và đánh giá, khóa luận so sánh các công cụ hiện có theo tài liệu công bố (mục 1.3), mô tả người dùng và thị trường (mục 1.2), lập bảng yêu cầu truy vết tới thiết kế và kiểm chứng (Bảng 2.1), và đối chiếu giả định về người dùng bằng một khảo sát thăm dò 15 người. Khóa luận cũng so sánh một tác tử với các cấu hình đa tác tử và một đối chứng không dùng mô hình, trên hai mô hình ngôn ngữ, về cả chất lượng lẫn chi phí. Cuối cùng, khóa luận đo độ tin cậy của các cơ chế kiểm soát (độ nhạy của bộ kiểm chứng trước và sau cải tiến, độ phụ thuộc mô hình, khả năng chống chịu đối kháng, khó khăn của khâu số hóa) và tính khả thi (mục 5.15).
+Về phân tích và đánh giá, khóa luận đối chiếu các công cụ hiện có theo tài liệu giới thiệu sản phẩm (mục 1.3), mô tả người dùng và thị trường (mục 1.2), lập bảng yêu cầu truy vết tới thiết kế và kiểm chứng (Bảng 2.1), và đối chiếu giả định về người dùng bằng một khảo sát thăm dò 15 người. Khóa luận cũng so sánh một tác tử với các cấu hình đa tác tử và một đối chứng không dùng mô hình, trên hai mô hình ngôn ngữ, về cả chất lượng lẫn chi phí. Cuối cùng, khóa luận đo độ tin cậy của các cơ chế kiểm soát (độ nhạy của bộ kiểm chứng trước và sau cải tiến, độ phụ thuộc mô hình, khả năng chống chịu đối kháng, khó khăn của khâu số hóa) và tính khả thi (mục 5.15).
 
 Bố cục của khóa luận gồm sáu chương: Chương 1 giới thiệu bối cảnh, vấn đề, câu hỏi nghiên cứu và sơ đồ logic tổng thể; Chương 2 trình bày cơ sở lý luận, nguyên tắc thiết kế, yêu cầu hệ thống và tổng quan nghiên cứu; Chương 3 mô tả phương pháp, dữ liệu, thiết kế thực nghiệm và các thực nghiệm bổ sung; Chương 4 trình bày kiến trúc, triển khai và sản phẩm; Chương 5 trình bày kết quả, thảo luận và tính khả thi; Chương 6 kết luận, nêu hạn chế và hướng phát triển. Phụ lục D trình bày phiếu khảo sát và kết quả.
 
@@ -160,7 +159,7 @@ Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tí
 
 **(c) Kiểm chứng đầu ra.** Các phương pháp tự kiểm chứng và tự sửa của mô hình (mục 2.3) đều do chính mô hình thực hiện; khóa luận thêm lớp kiểm tra bằng quy tắc cố định trước rồi mới phản biện.
 
-**Trong nước.** Nguyễn Văn Thủy (2024) tổng quan ứng dụng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, và Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng; cả hai là bài tổng quan, không xây dựng hay đo một hệ thống. Trong phạm vi tác giả khảo sát (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử"), chưa thấy công trình tương đương.
+**Trong nước.** Nguyễn Văn Thủy (2024) tổng quan ứng dụng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, và Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng; cả hai là bài tổng quan, không xây dựng hay đo một hệ thống. Trong các nguồn tác giả tìm (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử"), các bài tìm được là bài tổng quan, không mô tả hay đo một hệ thống cụ thể.
 
 *Bảng 2.2: So sánh các công trình liên quan và khóa luận.*
 

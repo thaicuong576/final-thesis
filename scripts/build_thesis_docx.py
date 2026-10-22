@@ -530,7 +530,7 @@ _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
 CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 1.1": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu, đối chiếu với khảo sát (n = 15)"),
-    "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ Vietstock (2026), FiinGroup (2026), Simplize (2026), WiGroup (2026), CafeF (2026), SSI (2026), Bloomberg (2026), LSEG (2026), S&P Global Market Intelligence (2026), OpenAI (2026a), Google (2026), Anthropic (2026), truy cập ngày 21/10/2026"),
+    "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ tài liệu giới thiệu của nhà cung cấp (Vietstock, 2026; FiinGroup, 2026; Simplize, 2026; WiGroup, 2026; CafeF, 2026; SSI, 2026; Bloomberg, 2026; LSEG, 2026; S&P Global Market Intelligence, 2026; OpenAI, 2026a; Google, 2026; Anthropic, 2026), truy cập ngày 21/10/2026. Bảng không nhằm xếp hạng công cụ; 'chưa nêu rõ' chỉ có nghĩa là chưa xác nhận được trên trang chính thức"),
     "Bảng 1.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng 2.2": (_UNIT_NONE, _SRC_SYNTH),

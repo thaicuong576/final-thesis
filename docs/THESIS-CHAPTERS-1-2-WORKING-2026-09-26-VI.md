@@ -47,24 +47,18 @@ Vấn đề thứ ba là độ tin cậy của đầu ra do AI tạo ra (Ji và 
 
 *Bảng 1.2: So sánh công cụ phân tích tài chính hiện có (theo tài liệu công bố ngày 21/10/2026).*
 
-| Công cụ | Truy nguồn từng số về trang gốc | Kiểm tự động câu do AI viết | Tiếng Việt | Độ phủ doanh nghiệp và chỉ tiêu | Tự viết nhận định | Chi phí | Tải số liệu thô |
+| Công cụ | Truy nguồn số | Kiểm câu AI | Tiếng Việt | Độ phủ | Tự viết | Chi phí | Tải số liệu |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| VietstockFinance | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Một phần | 149.000 đồng (gói Standard) | Có |
-| FiinPro-X | Không rõ | Không rõ | Có | Có (gần 2.000 chỉ tiêu cơ bản theo trang hướng dẫn) | Không rõ | Không rõ (không thấy bảng giá công khai) | Có (xuất Excel) |
-| Simplize | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí; 599.000 đồng/tháng (Professional) | Có |
-| WiChart | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Một phần | 3 đến 6 triệu đồng/năm | Có |
-| CafeF | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí | Không rõ |
-| SSI iBoard | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí | Không rõ |
-| Bloomberg Terminal | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Không rõ | Liên hệ báo giá | Có |
-| LSEG Workspace | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Không rõ | Liên hệ báo giá | Có |
-| S&P Capital IQ Pro | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Một phần | Liên hệ báo giá | Có |
-| ChatGPT | Không rõ | Không rõ | Có | Không rõ | Có | Miễn phí; 20 USD/tháng (Plus) | Một phần |
-| Gemini | Không rõ | Một phần (người dùng tự bấm kiểm tra lại) | Có | Không rõ | Có | Miễn phí; 19,99 USD/tháng | Một phần |
-| Claude | Không rõ | Không rõ | Có | Không rõ | Có | Miễn phí; 20 USD/tháng (Pro) | Một phần |
-| Bảng tính thủ công | Tự nhập, không có | Không | Có | Tự nhập | Không | Miễn phí đến khoảng 200.000 đồng/tháng | Có |
-| Hệ thống của khóa luận | Có | Có | Có | 10 ngân hàng, 4 chỉ tiêu, 10 quý | Có | Miễn phí (bản trình diễn); chi phí mô hình khoảng 413 đồng/báo cáo (chưa gồm chi phí chuẩn bị dữ liệu) | Một phần (tải báo cáo dạng JSON) |
+| VietstockFinance | Không rõ | Không rõ | Có | Có | Một phần | 149 nghìn đồng/gói | Có |
+| FiinPro-X | Không rõ | Không rõ | Có | Có (~2.000 chỉ tiêu) | Không rõ | Không rõ | Có (xuất Excel) |
+| Simplize, WiChart | Không rõ | Không rõ | Có | Có | Một phần (WiChart) | Từ miễn phí đến 6 triệu đồng/năm | Có |
+| CafeF, SSI iBoard | Không rõ | Không rõ | Có | Có | Không rõ | Miễn phí | Không rõ |
+| Bloomberg, LSEG | Một phần | Không rõ | Không rõ | Có | Không rõ | Liên hệ | Có |
+| S&P Capital IQ Pro | Một phần | Không rõ | Không rõ | Có | Một phần | Liên hệ | Có |
+| ChatGPT, Gemini, Claude | Không rõ | Không rõ (Gemini: tự bấm kiểm tra) | Có | Không rõ | Có | Miễn phí; ~20 USD/tháng | Một phần |
+| Hệ thống của khóa luận | Có | Có | Có | 10 NH, 4 chỉ tiêu, 10 quý | Có | Miễn phí; ~413 đồng/báo cáo (chưa gồm dữ liệu) | Một phần (JSON) |
 
-Cột "Hệ thống của khóa luận" do tác giả tự đánh giá; các ô "không rõ" nghĩa là không xác nhận được trên trang chính thức vào ngày truy cập.
+Bảng tính thủ công (Excel, Google Sheets) không có truy nguồn hay kiểm tự động, người dùng tự nhập số từ báo cáo gốc. Các cột là: truy từng số về trang báo cáo gốc; kiểm tự động câu nhận định do AI viết; hỗ trợ tiếng Việt; độ phủ doanh nghiệp và chỉ tiêu ("Có" nghĩa là có số liệu ngân hàng Việt Nam, số ngân hàng và chỉ tiêu cụ thể không rõ); tự viết nhận định; chi phí; tải số liệu thô. Cột "Hệ thống của khóa luận" do tác giả tự đánh giá; "không rõ" nghĩa là không xác nhận được trên trang chính thức vào ngày truy cập.
 
 Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế nào xây dựng một hệ thống phân tích tài chính có thể xác định các thành phần phân tích cần thiết cho từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, phối hợp các thành phần phù hợp, đồng thời kiểm tra và sửa đổi kết quả trước khi tạo báo cáo cuối cùng?*
 

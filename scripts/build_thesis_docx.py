@@ -405,11 +405,11 @@ def _format_table(table, rows: list[list[str]]) -> None:
                 para.alignment = WD_ALIGN_PARAGRAPH.RIGHT  # guide: numbers right-aligned
             else:
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
-                pf.line_spacing = 1.0
-                pf.space_before = Pt(0)
-                pf.space_after = Pt(2)
+                pf.line_spacing = 1.5
+                pf.space_before = Pt(6)
+                pf.space_after = Pt(6)
             # Short tables stay whole with caption and source; long tables only keep the caption with the first rows.
-            pf.keep_with_next = len(rows) <= 6 or row_i < 2
+            pf.keep_with_next = True
             pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.

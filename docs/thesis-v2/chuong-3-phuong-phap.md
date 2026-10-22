@@ -130,20 +130,20 @@ Bộ câu hỏi gồm mười câu phân tích thuộc sáu dạng (trong đó d
 
 *Bảng 3.4: Mười hai câu hỏi thực nghiệm.*
 
-| Mã | Dạng | Câu hỏi | Mục tiêu kiểm tra |
-|:---:|---|---|---|
-| T01 | Hồ sơ doanh nghiệp | Sức khỏe tài chính của BID trong quý 2/2026 so với các ngân hàng cùng nhóm. | Tổng hợp nhiều chỉ tiêu và vị thế so với nhóm ở kỳ mới nhất |
-| T02 | Hồ sơ doanh nghiệp | Đánh giá chất lượng tài sản và khả năng sinh lời của STB trong quý 4/2025. | Định vị một ngân hàng đứng cuối nhóm ở nhiều chỉ tiêu |
-| T03 | Tra cứu | Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026 là bao nhiêu? | Trả lời đúng một con số kèm nguồn |
-| T04 | Xu hướng | Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của CTG diễn biến thế nào trong năm 2025? | Chuỗi bốn quý, hai chỉ tiêu chất lượng tài sản |
-| T05 | Xu hướng | ROA và ROE của SHB thay đổi thế nào qua các quý năm 2025? | Chuỗi bốn quý, hai chỉ tiêu sinh lời |
-| T06 | Xếp hạng | Ngân hàng nào có tỷ lệ nợ xấu thấp nhất trong quý 2/2026? | Xác định đúng ngân hàng dẫn đầu theo chiều tốt của chỉ tiêu |
-| T07 | Xếp hạng | Xếp hạng ROE các ngân hàng trong quý 4/2025. | Thứ tự đủ mười ngân hàng |
-| T08 | Hồ sơ nhiều kỳ | VPB đánh đổi chất lượng tài sản và khả năng sinh lời thế nào trong năm 2025 so với các ngân hàng cùng nhóm? | Kết hợp nhiều kỳ và so sánh nhóm; đây là dạng hệ thống chỉ hỗ trợ một phần |
-| T09 | So sánh trực diện | So sánh MBB và TCB trong quý 2/2026. | Chênh lệch từng chỉ tiêu giữa hai ngân hàng |
-| T10 | So sánh trực diện | VCB hay CTG tốt hơn về chất lượng tài sản trong quý 4/2025? | So sánh theo chiều tốt của chỉ tiêu |
-| R1 | Từ chối – kỳ | Tỷ lệ nợ xấu của VCB trong quý 3/2026 là bao nhiêu? | Từ chối kỳ chưa có trong dữ liệu |
-| R2 | Từ chối – ngân hàng | Phân tích tình hình tài chính của OCB trong quý 4/2025. | Từ chối ngân hàng ngoài bộ dữ liệu |
+| Mã | Dạng | Câu hỏi |
+|:---:|---|---|
+| T01 | Hồ sơ doanh nghiệp | Sức khỏe tài chính của BID trong quý 2/2026 so với các ngân hàng cùng nhóm. |
+| T02 | Hồ sơ doanh nghiệp | Đánh giá chất lượng tài sản và khả năng sinh lời của STB trong quý 4/2025. |
+| T03 | Tra cứu | Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026 là bao nhiêu? |
+| T04 | Xu hướng | Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của CTG diễn biến thế nào trong năm 2025? |
+| T05 | Xu hướng | ROA và ROE của SHB thay đổi thế nào qua các quý năm 2025? |
+| T06 | Xếp hạng | Ngân hàng nào có tỷ lệ nợ xấu thấp nhất trong quý 2/2026? |
+| T07 | Xếp hạng | Xếp hạng ROE các ngân hàng trong quý 4/2025. |
+| T08 | Hồ sơ nhiều kỳ | VPB đánh đổi chất lượng tài sản và khả năng sinh lời thế nào trong năm 2025 so với các ngân hàng cùng nhóm? |
+| T09 | So sánh trực diện | So sánh MBB và TCB trong quý 2/2026. |
+| T10 | So sánh trực diện | VCB hay CTG tốt hơn về chất lượng tài sản trong quý 4/2025? |
+| R1 | Từ chối – kỳ | Tỷ lệ nợ xấu của VCB trong quý 3/2026 là bao nhiêu? |
+| R2 | Từ chối – ngân hàng | Phân tích tình hình tài chính của OCB trong quý 4/2025. |
 
 ### 3.3.4. Chỉ số đánh giá
 
@@ -172,13 +172,13 @@ Các thực nghiệm sau được thiết kế sau khi có kết quả A/B/C, nh
 
 | Thực nghiệm | Câu hỏi | Cách làm | Gọi mô hình |
 |---|---|---|---|
-| Đột biến bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi? | Lấy các câu đã được chấp nhận ở A/B/C, cài vào mỗi câu một lỗi thuộc 12 loại (đổi số theo hướng nhỏ, đổi số theo hướng lớn, đảo chữ số, đổi kỳ, đổi ngân hàng, đảo chiều, đổi chỉ tiêu, đổi thứ hạng, đổi mẫu số, thêm số không nguồn, thêm quan hệ nhân quả, thêm khuyến nghị), rồi cho bộ kiểm chứng chạy lại; câu gốc không đột biến làm đối chứng. Đo hai lần, trước và sau khi bổ sung quy tắc nhãn chỉ tiêu và quy tắc loại câu tự so sánh, trên bộ cũ (hạt 42) và hai bộ mới sinh bằng hạt khác (7, 2026); đo thêm tỷ lệ bác bỏ nhầm trên 300 câu hợp lệ | Không |
-| Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Chạy cấu hình B trên cùng 12 câu hỏi với năm mô hình (ba của OpenAI, hai của DeepSeek), mỗi mô hình một lần, cùng mã nguồn; chạy thêm `gpt-5.6-luna` ba lần trên phiên bản hệ thống sau nâng cấp để kiểm tra độ ổn định | Có |
-| Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi cố tình gây sai? | Mười lăm câu thuộc bảy nhóm (chèn chỉ dẫn, thực thể không tồn tại, kỳ không tồn tại, mồi bịa số, xin lời khuyên mua bán, tiền đề sai, ngoài phạm vi), chạy trên cả ba cấu hình A, B, C; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn, khuyến nghị hay khẳng định theo tiền đề sai | Có |
-| Cấu hình D | Phần độ phủ đạt được mà không cần mô hình là bao nhiêu? | Chạy 12 câu của Bảng 3.4 với mọi câu lấy từ mẫu dựng sẵn từ dữ kiện, cùng kế hoạch, dữ liệu khóa và bộ chấm; báo từng câu và số câu thắng, hòa, thua so với A, B, C | Không |
-| Chạy lại trên mô hình khác | Kết luận về A, B, C có giữ khi dùng mô hình mạnh hơn? | Chạy lại cả ba cấu hình trên 12 câu với `gpt-5.6-luna` (36 lượt), cùng giao thức, trên mã nguồn có thêm hai quy tắc kiểm tra mới; báo song song với DeepSeek V4 Pro | Có |
-| Mô hình phổ thông không công cụ | Người dùng gặp gì khi hỏi thẳng một mô hình phổ thông? | Hỏi `gpt-5.6-luna` mười câu phân tích, không công cụ, dữ liệu hay tìm kiếm web; mỗi con số mô hình nêu được đối chiếu với bộ dữ liệu khóa theo quy tắc đặt trước (mục 1.3) | Có |
-| Số hóa | Khó khăn nằm ở nhận dạng ký tự hay ở cấu trúc bảng? | Với các số liệu đầu vào đã chấp nhận và có trang nguồn, (a) kiểm tra giá trị có xuất hiện nguyên văn trong văn bản của đúng trang (lớp văn bản có sẵn, hoặc một lần nhận dạng ký tự bằng Tesseract cho bản quét) và (b) chạy một bộ trích xuất đơn giản theo nhãn hàng, rồi so với giá trị đã chấp nhận | Không |
+| Đột biến bộ kiểm chứng | Bộ kiểm chứng bắt được bao nhiêu loại lỗi? | Cài vào mỗi câu đã chấp nhận ở A/B/C một lỗi thuộc 12 loại (số, kỳ, ngân hàng, chiều, chỉ tiêu, thứ hạng, mẫu số, số không nguồn, nhân quả, khuyến nghị), chạy lại bộ kiểm chứng; đo trước và sau hai quy tắc mới, trên ba bộ hạt (42, 7, 2026), kèm tỷ lệ bác bỏ nhầm trên 300 câu hợp lệ | Không |
+| Nhiều mô hình | Kết luận có phụ thuộc mô hình không? | Cấu hình B trên 12 câu với năm mô hình, mỗi mô hình một lần; `gpt-5.6-luna` chạy thêm ba lần để kiểm tra ổn định | Có |
+| Đối kháng | Hệ thống giữ ranh giới thế nào trước câu hỏi gây sai? | 15 câu thuộc bảy nhóm, chạy trên A, B, C; kỳ vọng là từ chối hoặc nêu rõ giới hạn, không có số không nguồn hay khuyến nghị | Có |
+| Cấu hình D | Độ phủ đạt được khi không dùng mô hình? | 12 câu của Bảng 3.4, mọi câu lấy từ mẫu dựng sẵn; báo từng câu và số câu thắng, hòa, thua so với A, B, C | Không |
+| Chạy lại trên mô hình khác | Kết luận về A, B, C có giữ trên mô hình mạnh hơn? | A, B, C trên 12 câu với `gpt-5.6-luna` (36 lượt), mã nguồn có thêm hai quy tắc mới | Có |
+| Mô hình phổ thông không công cụ | Người dùng gặp gì khi hỏi thẳng một mô hình phổ thông? | Hỏi `gpt-5.6-luna` mười câu, không công cụ, không tìm web; đối chiếu từng con số với bộ dữ liệu khóa (mục 1.3) | Có |
+| Số hóa | Khó ở nhận dạng ký tự hay ở cấu trúc bảng? | Với số liệu đã chấp nhận có trang nguồn: (a) giá trị có nguyên văn trên đúng trang không; (b) bộ trích xuất đơn giản theo nhãn hàng lấy đúng không | Không |
 
 Để các lần chạy bổ sung không làm lệch kết luận chính, mỗi thực nghiệm ghi rõ mô hình, phiên bản mã nguồn, số câu, số lần chạy và số token; lần chạy lỗi cấu hình hoặc hạ tầng được tách riêng và không vào bảng nào; khi chỉ chạy ba lần thì báo trung bình và khoảng nhỏ nhất – lớn nhất; và khi phát hiện lỗi hệ thống, kết quả trước và sau sửa được báo cùng nhau.
 

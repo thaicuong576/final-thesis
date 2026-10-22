@@ -14,19 +14,18 @@ Bảng 5.1 liệt kê toàn bộ các thực nghiệm đã chạy và câu hỏi
 
 *Bảng 5.1: Danh mục thực nghiệm.*
 
-| Thực nghiệm | Trả lời câu hỏi nào | Mô hình | Phiên bản | Cấu hình, số câu × số lần | Token |
-|---|---|---|---|---|---|
-| Thực nghiệm chính | A, B, C khác nhau thế nào (câu hỏi nghiên cứu thứ hai và thứ ba) | DeepSeek V4 Pro | Ban đầu | 3 cấu hình, 12 câu × 1 | 454.706 |
-| Cấu hình D | Phần độ phủ đạt được khi không dùng mô hình | không gọi mô hình | Ban đầu (cùng thực nghiệm chính) và sau quy tắc mới | D, 12 câu × 1, hai lần | 0 |
-| Chạy lại A/B/C | Kết luận về A, B, C có giữ khi dùng mô hình mạnh hơn | `gpt-5.6-luna` | Sau nâng cấp và sau quy tắc mới | 3 cấu hình, 12 câu × 1 | 658.442 |
-| Độ nhạy bộ kiểm chứng | Bộ kiểm chứng câu bắt được bao nhiêu loại lỗi cài vào, trước và sau hai quy tắc mới | không gọi mô hình | Ban đầu và sau quy tắc mới | 3 bộ × 1.210 câu đột biến từ 129 câu đã được chấp nhận ở thực nghiệm chính | 0 |
-| So sánh mô hình | Kết quả có phụ thuộc mô hình không | `gpt-5.4-nano`, `gpt-5.4-mini`, `gpt-5.6-luna` (OpenAI); DeepSeek V4 Flash, DeepSeek V4 Pro | Ban đầu | chỉ cấu hình B, 12 câu × 1 | 650.495 |
-| Lặp lại so sánh mô hình | Kết quả của `gpt-5.6-luna` có ổn định khi chạy lại trên phiên bản sau nâng cấp không | `gpt-5.6-luna` | Sau nâng cấp | chỉ cấu hình B, 12 câu × 3 lần | 359.298 |
-| Kiểm tra đối kháng | Hệ thống chống chịu thế nào trước câu hỏi đối kháng | `gpt-5.6-luna` | Ban đầu | 3 cấu hình, 15 câu × 1 | 462.802 |
-| Kiểm tra đối kháng sau sửa | Sửa lỗi ngoài phạm vi có hiệu quả và không gây lùi không | `gpt-5.6-luna` | Sau nâng cấp | 3 cấu hình, tập con 8 câu × 1 | 210.080 |
-| Số hóa từ báo cáo gốc | Khó khăn của số hóa nằm ở nhận dạng ký tự hay ở cấu trúc bảng | không gọi mô hình | — | 885 số liệu đầu vào đã chấp nhận | 0 |
-| Mô hình phổ thông không công cụ (mục 1.3) | Người dùng gặp gì khi hỏi thẳng một mô hình phổ thông | `gpt-5.6-luna` | — | 10 câu × 1 | 14.060 |
-Thực nghiệm chính được chạy ngày 05/10/2026 trên bộ dữ liệu mười ngân hàng đã khóa mã băm (mục 3.2.3), với mô hình DeepSeek V4 Pro. Mười hai câu hỏi ở Bảng 3.4 được chạy một lần trên mỗi cấu hình, tạo thành 36 lượt; thứ tự được xáo trộn theo một giá trị cố định để có thể lặp lại, và sáu lượt chạy đồng thời. Tổng lượng văn bản mô hình xử lý trong thực nghiệm chính là 454.706 token cho 36 lượt chạy. Sau khi chạy, hệ thống xác nhận cả mười hai câu hỏi có kế hoạch giống hệt nhau giữa ba cấu hình. Việc chấm điểm do chương trình thực hiện theo các chỉ số ở mục 3.3.4.
+| Thực nghiệm | Trả lời câu hỏi | Mô hình | Số câu × số lần | Token |
+|---|---|---|---|---|
+| Thực nghiệm chính | A, B, C khác nhau thế nào | DeepSeek V4 Pro | 3 cấu hình, 12 × 1 | 454.706 |
+| Cấu hình D | Độ phủ khi không dùng mô hình | không gọi mô hình | D, 12 × 1, hai lần | 0 |
+| Chạy lại A/B/C | Kết luận giữ trên mô hình mạnh hơn không | `gpt-5.6-luna` | 3 cấu hình, 12 × 1 | 658.442 |
+| Độ nhạy bộ kiểm chứng | Bắt được bao nhiêu loại lỗi, trước và sau hai quy tắc mới | không gọi mô hình | 3 bộ × 1.210 câu đột biến | 0 |
+| So sánh mô hình | Kết quả có phụ thuộc mô hình không | ba mô hình OpenAI, hai mô hình DeepSeek | chỉ B, 12 × 1 | 650.495 |
+| Lặp lại so sánh mô hình | `gpt-5.6-luna` có ổn định không | `gpt-5.6-luna` | chỉ B, 12 × 3 | 359.298 |
+| Kiểm tra đối kháng | Chống chịu câu hỏi đối kháng | `gpt-5.6-luna` | 3 cấu hình, 15 × 1 | 462.802 |
+| Đối kháng sau sửa | Sửa lỗi ngoài phạm vi có hiệu quả không | `gpt-5.6-luna` | 3 cấu hình, 8 × 1 | 210.080 |
+| Số hóa từ báo cáo gốc | Khó ở nhận dạng ký tự hay cấu trúc bảng | không gọi mô hình | 885 số liệu | 0 |
+| Mô hình phổ thông không công cụ (mục 1.3) | Người dùng gặp gì khi hỏi thẳng mô hình phổ thông | `gpt-5.6-luna` | 10 × 1 | 14.060 |
 
 
 ## 5.3. Kết quả thực nghiệm tổng hợp giữa các cấu hình
@@ -35,20 +34,16 @@ Thực nghiệm chính được chạy ngày 05/10/2026 trên bộ dữ liệu m
 
 | Chỉ số | A – một tác tử | B – phân cấp | C – phân cấp có phản biện | D – chỉ dùng câu mẫu |
 |---|:---:|:---:|:---:|:---:|
-| Trả lời được (10 câu phân tích) | 10/10 | 10/10 | 10/10 | 10/10 |
-| Từ chối đúng (R1, R2) | 2/2 | 2/2 | 2/2 | 2/2 |
 | Hoàn thành trọn vẹn, không ghi chú giới hạn (trên 10 câu phân tích; hai câu từ chối không tính) | 7/10 (70,0%) | 9/10 (90,0%) | 4/10 (40,0%) | 10/10 (100,0%) |
 | Con số trong câu được giữ khớp với dữ kiện được trích | 100,0% | 100,0% | 100,0% | 100,0% |
 | Truy được về số liệu gốc | 100,0% | 100,0% | 100,0% | 100,0% |
 | Độ phủ chỉ tiêu bắt buộc (trung bình 12 lượt) | 0,797 | 0,844 | 0,781 | 0,698 |
 | Độ phủ chỉ tiêu bắt buộc (trung bình 10 câu phân tích) | 0,756 | 0,812 | 0,738 | 0,637 |
 | Câu bị loại / câu được viết | 8/52 (15,4%) | 9/53 (17,0%) | 22/63 (34,9%) | 6/60 (10,0%) |
-| Báo cáo dùng bố cục dựng sẵn (trên 10) | 3 | 1 | 2 | 10 (luôn dựng sẵn) |
 | Phát hiện liên tầng trung bình mỗi lượt | 0,33 | 0,33 | 0,67 | 0,42 |
 | Thời gian xử lý trung bình | 17,5 giây | 27,5 giây | 62,9 giây | 3,8 giây |
 | Số lượt gọi mô hình trung bình | 0,8 | 2,1 | 4,4 | 0 |
 | Token trung bình mỗi lượt | 3.784 | 8.252 | 25.856 | 0 |
-| Số vòng sửa đổi trung bình | 0,00 | 0,00 | 1,25 | 0,00 |
 
 ![](experiments/er9/analysis/figure_er9_cost_latency.png)
 
@@ -151,8 +146,6 @@ Thực nghiệm chính chỉ dùng một mô hình. Thực nghiệm này chạy 
 
 | Chỉ số | A – một tác tử | B – phân cấp | C – phân cấp có phản biện | D – chỉ dùng câu mẫu |
 |---|:---:|:---:|:---:|:---:|
-| Trả lời được (10 câu phân tích) | 10/10 | 10/10 | 10/10 | 10/10 |
-| Từ chối đúng (R1, R2) | 2/2 | 2/2 | 2/2 | 2/2 |
 | Hoàn thành trọn vẹn (trên 10 câu phân tích) | 10/10 | 10/10 | 2/10 | 10/10 |
 | Con số trong câu được giữ khớp với dữ kiện | 100,0% | 100,0% | 100,0% | 100,0% |
 | Độ phủ chỉ tiêu bắt buộc (trung bình 12 lượt) | 0,927 | 0,927 | 0,927 | 0,698 |
@@ -162,7 +155,6 @@ Thực nghiệm chính chỉ dùng một mô hình. Thực nghiệm này chạy 
 | Thời gian xử lý trung bình | 17,2 giây | 28,3 giây | 86,1 giây | 1,7 giây |
 | Số lượt gọi mô hình trung bình | 0,8 | 2,1 | 5,6 | 0 |
 | Token trung bình mỗi lượt | 5.127 | 10.128 | 39.616 | 0 |
-| Số vòng sửa đổi trung bình | 0,00 | 0,00 | 1,50 | 0,00 |
 
 Bảng 5.7 là độ phủ theo từng câu ở lần chạy này.
 

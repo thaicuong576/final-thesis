@@ -92,7 +92,7 @@ python scripts/build_quarterly_snapshot.py \
   --out data/processed/bank-quarterly-top10-operational-v1.sqlite
 ```
 
-Lưu ý: bản dựng lại cho cùng 1.735 giá trị với bản `r4` dùng ở khóa luận (đã so từng ô), nhưng tệp SQLite không trùng từng byte vì có siêu dữ liệu dựng. Các thực nghiệm ghim mã băm của bản `r4`; tệp `r4` và Gold v5 được đính kèm ở bản phát hành của kho mã (xem mục 8).
+Lưu ý: bản dựng lại cho cùng 1.735 giá trị với bản `r4` dùng ở khóa luận (đã so từng ô), nhưng tệp SQLite không trùng từng byte vì có siêu dữ liệu dựng. Các thực nghiệm ghim mã băm của bản `r4`; tệp `r4` và Gold v5 được đính kèm ở bản phát hành `milestone/thesis-submission-2026-10` trên GitHub (kiểm mã băm SHA-256 trong `experiments/er9/README.md` và `render.yaml`).
 
 **Bước 3. Cấu hình.** Sao chép `.env.example` thành `.env` rồi điền. Tối thiểu để chạy cục bộ: `SQLITE_DB_PATH` (snapshot chỉ đọc), `ANALYSIS_RUNS_DB_PATH` (một tệp khác để ghi lịch sử), và `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` để gọi mô hình thật. `EXPECTED_DATASET_SNAPSHOT_ID` và `EXPECTED_SQLITE_SHA256` dùng khi muốn ghim và kiểm mã băm snapshot (như bản triển khai thử nghiệm). Không commit `.env`.
 

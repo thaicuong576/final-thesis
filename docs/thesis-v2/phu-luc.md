@@ -4,7 +4,11 @@
 
 Địa chỉ: https://fin-ai.eddiephung.me
 
-Tài khoản truy cập (chỉ đọc) được cung cấp riêng cho hội đồng và giảng viên hướng dẫn, không in trong bản nộp.
+Tên đăng nhập: admin
+
+Mật khẩu: Kltn@2026
+
+Tài khoản này chỉ dùng cho bản trình bày của khóa luận.
 
 ### A.1. Thao tác thử nhanh
 

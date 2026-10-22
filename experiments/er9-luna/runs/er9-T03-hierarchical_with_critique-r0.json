@@ -1,0 +1,565 @@
+{
+  "run_id": "er9-T03-hierarchical_with_critique-r0",
+  "task_id": "T03",
+  "arm": "hierarchical_with_critique",
+  "rep": 0,
+  "order": 25,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-7bcf358e1b8c",
+    "query": "Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026 là bao nhiêu?",
+    "target_ticker": "HDB",
+    "peer_tickers": [],
+    "period": "2026_Q1",
+    "periods": [
+      "2026_Q1"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng lookup cho HDB với 1 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "lookup",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng lookup cho HDB với 1 công cụ.",
+    "tools": [
+      {
+        "tool": "lookup",
+        "params": {
+          "entities": [
+            "HDB"
+          ],
+          "metrics": [
+            "bank.llr_coverage"
+          ],
+          "period": "2026_Q1"
+        }
+      }
+    ],
+    "context_periods": [
+      "2026_Q1"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:HDB:2026_Q1:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for HDB at 2026_Q1.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "HDB"
+        ],
+        "periods": [
+          "2026_Q1"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "80108f92e73ef46ec77c96c1c1a5f04e1f08d6d3b745c436f673c71cd48fc4fd",
+  "model": "gpt-5.6-luna",
+  "duration_ms": 19296,
+  "model_calls": 3,
+  "tokens": {
+    "input_tokens": 5993,
+    "output_tokens": 1318,
+    "total_tokens": 7311
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-c417e7687c1743c08cc69f878172820b",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-7bcf358e1b8c",
+      "query": "Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026 là bao nhiêu?",
+      "target_ticker": "HDB",
+      "peer_tickers": [],
+      "period": "2026_Q1",
+      "periods": [
+        "2026_Q1"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng lookup cho HDB với 1 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "lookup",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng lookup cho HDB với 1 công cụ.",
+      "tools": [
+        {
+          "tool": "lookup",
+          "params": {
+            "entities": [
+              "HDB"
+            ],
+            "metrics": [
+              "bank.llr_coverage"
+            ],
+            "period": "2026_Q1"
+          }
+        }
+      ],
+      "context_periods": [
+        "2026_Q1"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:HDB:2026_Q1:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for HDB at 2026_Q1.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "HDB"
+          ],
+          "periods": [
+            "2026_Q1"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "HDB",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Trong quý 1/2026, HDB có tỷ lệ bao phủ nợ xấu 50,0%.",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "observation_id": "observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "input_observation_ids": [
+          "observation-5033b9040306c536a06d26c3523e4e08858aeb04514fb40c31a8f86af64f042d",
+          "observation-b2d0731a423318bd01cd8af5c4657a10e5a0a68ef1871d3bd07f7437d79102f3"
+        ],
+        "formula_version": "llr-coverage-v1",
+        "capability": "company",
+        "ticker": "HDB",
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2026_Q1",
+        "statement": "HDB has provider-backed Tỷ lệ bao phủ nợ xấu=50.00265759795743 percent for 2026_Q1.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "observation_id": "observation-5033b9040306c536a06d26c3523e4e08858aeb04514fb40c31a8f86af64f042d",
+        "source_id": "source:hdb:64eb78a0310e",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "HDB",
+        "period": "2026_Q1",
+        "value": 7817.625,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "table_locator": "pdf_page=3; section=Báo cáo tình hình tài chính hợp nhất; row=Dự phòng rủi ro cho vay khách hàng; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "3965161743e15406524099308794a63820cc9df09dc092beb6e9e7db67521cf5"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "observation_id": "observation-22db48766349ad510eeb6475f7ce5323da9045a8fa81faaa02be8e91def3c0e3",
+        "source_id": "source:hdb:64eb78a0310e",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "HDB",
+        "period": "2026_Q1",
+        "value": 4914.85,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "table_locator": "pdf_page=24; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ dưới tiêu chuẩn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "3965161743e15406524099308794a63820cc9df09dc092beb6e9e7db67521cf5"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "observation_id": "observation-7e25bf3e24c1ee80f6f14c3c4a8e489ca95dc7d40584944a9d60da887fd68038",
+        "source_id": "source:hdb:64eb78a0310e",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "HDB",
+        "period": "2026_Q1",
+        "value": 4730.607,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "table_locator": "pdf_page=24; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ nghi ngờ; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "3965161743e15406524099308794a63820cc9df09dc092beb6e9e7db67521cf5"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5",
+        "observation_id": "observation-ec76585a4db0f417ca659914b4face2d3afe6b88048677cffcf617fa6c0a288b",
+        "source_id": "source:hdb:64eb78a0310e",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "HDB",
+        "period": "2026_Q1",
+        "value": 5988.962,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "table_locator": "pdf_page=24; section=Thuyết minh – Phân tích chất lượng nợ cho vay; row=Nợ có khả năng mất vốn; column=kỳ hiện tại; reading=visual",
+        "provenance_hash": "3965161743e15406524099308794a63820cc9df09dc092beb6e9e7db67521cf5"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 1,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Terminal acceptance decision from the verified narrative controller.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "lookup",
+    "report_spec": {
+      "kind": "answer_card",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "answer",
+          "value_fact_id": "fact:value:HDB:2026_Q1:bank.llr_coverage",
+          "sentences": [
+            {
+              "sentence_id": "sent-company-1",
+              "text": "Trong quý 1/2026, HDB có tỷ lệ bao phủ nợ xấu 50,0%.",
+              "fact_ids": [
+                "fact:value:HDB:2026_Q1:bank.llr_coverage"
+              ],
+              "author": "company",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [],
+    "facts": [
+      {
+        "fact_id": "fact:value:HDB:2026_Q1:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "HDB",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2026_Q1",
+        "from_period": null,
+        "value": 50.00265759795743,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-901b02b3cfa7e8119668d2cbd886287a0321b187f542a417dd28c367113198a5"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [],
+    "narrative_audit": {
+      "sentences_checked": 1,
+      "sentences_accepted": 1,
+      "sentences_dropped": [],
+      "numbers_checked": 1,
+      "numbers_matched": 1,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "source:hdb:64eb78a0310e",
+        "title": "HDB · BCTC hợp nhất Q1/2026",
+        "url": "https://static2.vietstock.vn/data/HOSE/2026/BCTC/VN/QUY%201/HDB_Baocaotaichinh_Q1_2026_Hopnhat_1.pdf",
+        "locator": "tr. 3 · Báo cáo tình hình tài chính hợp nhất",
+        "page": 3,
+        "fact_ids": [
+          "fact:value:HDB:2026_Q1:bank.llr_coverage"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 0,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Tra cứu. Gọi Doanh nghiệp với 1 phép phân tích",
+      "detail": {
+        "question_type": "lookup",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng lookup cho HDB với 1 công cụ.",
+        "entities": [
+          "HDB"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "anchor_period": "2026_Q1",
+        "periods": [
+          "2026_Q1"
+        ],
+        "tools": [
+          {
+            "tool": "lookup",
+            "agent": "company",
+            "label": "tra cứu chỉ tiêu"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 93,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: tra cứu chỉ tiêu",
+      "detail": {
+        "task": "lookup",
+        "tools": [
+          "tra cứu chỉ tiêu"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 187,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 3 số liệu có nguồn từ phép phân tích tra cứu chỉ tiêu",
+      "detail": {
+        "tool": "lookup",
+        "label": "tra cứu chỉ tiêu",
+        "arguments": {
+          "entities": [
+            "HDB"
+          ],
+          "metrics": [
+            "bank.llr_coverage"
+          ],
+          "periods": [
+            "2026_Q1"
+          ]
+        },
+        "result_count": 3,
+        "duration_ms": 94,
+        "facts": [
+          {
+            "fact_id": "fact:value:HDB:2026_Q1:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026",
+            "display_value": "50,0%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2026_Q1:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 1/2026",
+            "display_value": "89,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:HDB:sector:bank:2026_Q1:bank.llr_coverage",
+            "label": "Xếp hạng 10/10 về tỷ lệ bao phủ nợ xấu của HDB trong quý 1/2026",
+            "display_value": "hạng 10/10",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-lookup-hdb-llr_coverage-2026q1",
+            "title": "Tra cứu chỉ tiêu · HDB Q1/2026"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 3578,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "draft",
+      "summary": "Gửi 1 nhận định nháp",
+      "detail": {
+        "draft_text": "Trong quý 1/2026, HDB có tỷ lệ bao phủ nợ xấu 50,0%.",
+        "sentences": [
+          {
+            "sentence_id": "sent-company-1",
+            "text": "Trong quý 1/2026, HDB có tỷ lệ bao phủ nợ xấu 50,0%.",
+            "fact_ids": [
+              "fact:value:HDB:2026_Q1:bank.llr_coverage"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 3593,
+      "actor": "verifier",
+      "recipient": "orchestrator",
+      "kind": "verify",
+      "summary": "1/1 số khớp dữ liệu gốc; tất cả câu đều đạt",
+      "detail": {
+        "sentences_checked": 1,
+        "numbers_checked": 1,
+        "numbers_matched": 1,
+        "verdicts": [
+          {
+            "sentence_id": "sent-company-1",
+            "author": "company",
+            "text": "Trong quý 1/2026, HDB có tỷ lệ bao phủ nợ xấu 50,0%.",
+            "verdict": "kept",
+            "reason_code": null,
+            "explanation": "Số liệu và chiều so sánh khớp dữ liệu gốc",
+            "fact_ids": [
+              "fact:value:HDB:2026_Q1:bank.llr_coverage"
+            ],
+            "numbers_checked": 1,
+            "numbers_matched": 1
+          }
+        ],
+        "dropped": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 6718,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "compose",
+      "summary": "Dựng báo cáo tổng hợp: 1 luận điểm",
+      "detail": {
+        "kind": "answer_card",
+        "blocks": [
+          {
+            "type": "answer",
+            "title": "Khối answer"
+          }
+        ],
+        "composition_source": "model",
+        "draft_text": "fact_ids"
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 6718,
+      "actor": "orchestrator",
+      "recipient": "critic",
+      "kind": "assign",
+      "summary": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+      "detail": {
+        "task": "Gửi bản nháp để kiểm tra chéo (vòng 1)",
+        "tools": [
+          "semantic_critique"
+        ]
+      }
+    },
+    {
+      "step_id": "t-8",
+      "seq": 8,
+      "t_ms": 18468,
+      "actor": "critic",
+      "recipient": "orchestrator",
+      "kind": "accept",
+      "summary": "Vòng 1: chấp nhận, không còn vấn đề mở",
+      "detail": {
+        "round": 1,
+        "open_issues": 0
+      }
+    },
+    {
+      "step_id": "t-9",
+      "seq": 9,
+      "t_ms": 18484,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-c417e7687c1743c08cc69f878172820b",
+        "duration_ms": 18484,
+        "model_calls": 3
+      }
+    }
+  ]
+}

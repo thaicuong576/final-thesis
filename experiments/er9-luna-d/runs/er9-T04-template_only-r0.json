@@ -1,0 +1,1607 @@
+{
+  "run_id": "er9-T04-template_only-r0",
+  "task_id": "T04",
+  "arm": "template_only",
+  "rep": 0,
+  "order": 10,
+  "status": "completed",
+  "plan": {
+    "plan_id": "plan-e8587be658c4",
+    "query": "Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của CTG diễn biến thế nào trong năm 2025?",
+    "target_ticker": "CTG",
+    "peer_tickers": [],
+    "period": "2025_Q4",
+    "periods": [
+      "2025_Q4"
+    ],
+    "required_capabilities": [
+      "company"
+    ],
+    "applicable_links": [],
+    "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+    "rationale": "Kế hoạch phân tích dạng trend cho CTG với 2 công cụ.",
+    "known_limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "question_type": "trend",
+    "planner_source": "rules",
+    "planner_fallback_reasons": [],
+    "rationale_vi": "Kế hoạch phân tích dạng trend cho CTG với 2 công cụ.",
+    "tools": [
+      {
+        "tool": "trend",
+        "params": {
+          "entity": "CTG",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35"
+          ],
+          "periods": [
+            "2025_Q1",
+            "2025_Q2",
+            "2025_Q3",
+            "2025_Q4"
+          ]
+        }
+      },
+      {
+        "tool": "peer_position",
+        "params": {
+          "entity": "CTG",
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35"
+          ],
+          "period": "2025_Q4"
+        }
+      }
+    ],
+    "context_periods": [
+      "2025_Q1",
+      "2025_Q2",
+      "2025_Q3",
+      "2025_Q4"
+    ],
+    "plan_version": "analysis-plan-v2",
+    "requirements": [
+      {
+        "requirement_id": "company:CTG:2025_Q4:bank.llr_coverage",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.llr_coverage observation for CTG at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "CTG"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      },
+      {
+        "requirement_id": "company:CTG:2025_Q4:bank.npl_g35",
+        "requirement_type": "factual_observation",
+        "description": "Report accepted bank.npl_g35 observation for CTG at 2025_Q4.",
+        "required_agents": [
+          "company"
+        ],
+        "entities": [
+          "CTG"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "metric_ids": [
+          "bank.npl_g35"
+        ],
+        "inference_ceiling": "observation_only",
+        "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+        "missing_data_policy": "accepted_missingness",
+        "critical": true
+      }
+    ]
+  },
+  "plan_hash": "7c1d8ec395a639873a83547be916e38e271759e3aba7f68a46bfd0dc04499137",
+  "model": "template-engine",
+  "duration_ms": 1265,
+  "model_calls": 0,
+  "tokens": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "retries": [],
+  "response": {
+    "report_id": "report-af95baaf6e2f4539a09a60e827709867",
+    "status": "completed",
+    "analysis_plan": {
+      "plan_id": "plan-e8587be658c4",
+      "query": "Xu hướng nợ xấu và tỷ lệ bao phủ nợ xấu của CTG diễn biến thế nào trong năm 2025?",
+      "target_ticker": "CTG",
+      "peer_tickers": [],
+      "period": "2025_Q4",
+      "periods": [
+        "2025_Q4"
+      ],
+      "required_capabilities": [
+        "company"
+      ],
+      "applicable_links": [],
+      "dataset_snapshot_id": "snapshot-42a105f6d7978ef00e972dae40d3f4050dba6102e7b33611a60c521b6f2ce54e",
+      "rationale": "Kế hoạch phân tích dạng trend cho CTG với 2 công cụ.",
+      "known_limitations": [
+        "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+      ],
+      "question_type": "trend",
+      "planner_source": "rules",
+      "planner_fallback_reasons": [],
+      "rationale_vi": "Kế hoạch phân tích dạng trend cho CTG với 2 công cụ.",
+      "tools": [
+        {
+          "tool": "trend",
+          "params": {
+            "entity": "CTG",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35"
+            ],
+            "periods": [
+              "2025_Q1",
+              "2025_Q2",
+              "2025_Q3",
+              "2025_Q4"
+            ]
+          }
+        },
+        {
+          "tool": "peer_position",
+          "params": {
+            "entity": "CTG",
+            "metrics": [
+              "bank.llr_coverage",
+              "bank.npl_g35"
+            ],
+            "period": "2025_Q4"
+          }
+        }
+      ],
+      "context_periods": [
+        "2025_Q1",
+        "2025_Q2",
+        "2025_Q3",
+        "2025_Q4"
+      ],
+      "plan_version": "analysis-plan-v2",
+      "requirements": [
+        {
+          "requirement_id": "company:CTG:2025_Q4:bank.llr_coverage",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.llr_coverage observation for CTG at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "CTG"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.llr_coverage"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        },
+        {
+          "requirement_id": "company:CTG:2025_Q4:bank.npl_g35",
+          "requirement_type": "factual_observation",
+          "description": "Report accepted bank.npl_g35 observation for CTG at 2025_Q4.",
+          "required_agents": [
+            "company"
+          ],
+          "entities": [
+            "CTG"
+          ],
+          "periods": [
+            "2025_Q4"
+          ],
+          "metric_ids": [
+            "bank.npl_g35"
+          ],
+          "inference_ceiling": "observation_only",
+          "fulfillment_policy": "VALUE_OR_ACCEPTED_MISSINGNESS",
+          "missing_data_policy": "accepted_missingness",
+          "critical": true
+        }
+      ]
+    },
+    "macro_context": null,
+    "sector_benchmark": null,
+    "company_insights": [
+      {
+        "ticker": "CTG",
+        "roe": null,
+        "nim": null,
+        "npl": null,
+        "cir": null,
+        "casa": null,
+        "car": null,
+        "ldr": null,
+        "assessment": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 1/2025 đạt 136,8%.",
+        "metric_period_records": []
+      }
+    ],
+    "cross_level_critique": [],
+    "atomic_claims": [
+      {
+        "claim_id": "claim-observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "observation_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "input_observation_ids": [
+          "observation-765335ff462f06824c5047bc265fb11feeac085bcca6a4740027c94e8dcf6229",
+          "observation-ec2c772b19044b2fd17332ea56854b3df89d80e7f102c46087851be529807374"
+        ],
+        "formula_version": "llr-coverage-v1",
+        "capability": "company",
+        "ticker": "CTG",
+        "metric": "Tỷ lệ bao phủ nợ xấu",
+        "period": "2025_Q4",
+        "statement": "CTG has provider-backed Tỷ lệ bao phủ nợ xấu=158.83397374252357 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      },
+      {
+        "claim_id": "claim-observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "observation_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "input_observation_ids": [
+          "observation-9817e6ad8a3e7e8fcf5eb2ba6ec5e444f9179712e99d54a4a6adecfd9fce098d",
+          "observation-6be9d6c718b5319027e81b441d280d6fdc1c82eb75ebec025c277ce02b10aedf",
+          "observation-665f59332adf630d702a04235bb3cd060ea394f5c64e2fcf1329206b7d2e6c6b",
+          "observation-c1831d0a6666f6c647e5eb5788041cc55aaefc84e1fc23ba4a473a9d76534661"
+        ],
+        "formula_version": "npl-g35-v1",
+        "capability": "company",
+        "ticker": "CTG",
+        "metric": "Tỷ lệ nợ xấu (nhóm 3–5)",
+        "period": "2025_Q4",
+        "statement": "CTG has provider-backed Tỷ lệ nợ xấu (nhóm 3–5)=1.1000599542371523 percent for 2025_Q4.",
+        "claim_type": "factual_observation",
+        "evidence_refs": [],
+        "confidence": null,
+        "stage1_status": "accepted",
+        "stage2_critique_status": "sound"
+      }
+    ],
+    "evidence_trail": [
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "observation_id": "observation-765335ff462f06824c5047bc265fb11feeac085bcca6a4740027c94e8dcf6229",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "loan loss provisions",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 34810.365,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=44; printed_page=42; section=Thuyết minh 8.6 Dự phòng rủi ro cho vay khách hàng; row=Tổng cộng; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "observation_id": "observation-9817e6ad8a3e7e8fcf5eb2ba6ec5e444f9179712e99d54a4a6adecfd9fce098d",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 1490.975,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "observation_id": "observation-6be9d6c718b5319027e81b441d280d6fdc1c82eb75ebec025c277ce02b10aedf",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 578.479,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 4 - Nợ nghi ngờ; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+        "observation_id": "observation-665f59332adf630d702a04235bb3cd060ea394f5c64e2fcf1329206b7d2e6c6b",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 19846.742,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 5 - Nợ có khả năng mất vốn; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "observation_id": "observation-9817e6ad8a3e7e8fcf5eb2ba6ec5e444f9179712e99d54a4a6adecfd9fce098d",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 3 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 1490.975,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 3 - Nợ dưới tiêu chuẩn; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "observation_id": "observation-6be9d6c718b5319027e81b441d280d6fdc1c82eb75ebec025c277ce02b10aedf",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 4 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 578.479,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 4 - Nợ nghi ngờ; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "observation_id": "observation-665f59332adf630d702a04235bb3cd060ea394f5c64e2fcf1329206b7d2e6c6b",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "npl group 5 balance",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 19846.742,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Nhóm 5 - Nợ có khả năng mất vốn; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      },
+      {
+        "evidence_id": null,
+        "claim_id": "claim-observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+        "observation_id": "observation-c1831d0a6666f6c647e5eb5788041cc55aaefc84e1fc23ba4a473a9d76534661",
+        "source_id": "source:ctg:2a15c482e013",
+        "source_url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "metric": "gross customer loans",
+        "ticker": "CTG",
+        "period": "2025_Q4",
+        "value": 1992272.868,
+        "source_doc": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "table_locator": "pdf_page=43; printed_page=41; section=Thuyết minh 8.3 Theo chất lượng nợ cho vay; row=Tổng cộng; column=31.12.2025",
+        "provenance_hash": "b82eeb879b667e80d0b5322969c808089fd39b83835b75dc47f9a890189fc137"
+      }
+    ],
+    "revision_summary": {
+      "rounds_executed": 0,
+      "max_rounds": 2,
+      "status": "passed",
+      "reason": "Terminal acceptance decision from the verified narrative controller.",
+      "revised_capabilities": [],
+      "synthesis_revised": false
+    },
+    "limitations": [
+      "Các nhận định không có đoạn trích tài liệu đã duyệt theo chỉ tiêu sẽ dựa trên định vị nguồn sơ cấp và mã băm nguồn của quan sát được chấp nhận."
+    ],
+    "synthesis_summary": null,
+    "synthesis_supporting_claim_ids": [],
+    "report_version": "er-report-v1",
+    "question_type": "trend",
+    "report_spec": {
+      "kind": "note",
+      "note_label": null,
+      "composition_source": "model",
+      "blocks": [
+        {
+          "type": "headline",
+          "sentence": {
+            "sentence_id": "sent-orchestrator-5fcb73",
+            "text": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 1/2025 đạt 136,8%.",
+            "fact_ids": [
+              "fact:value:CTG:2025_Q1:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 1,
+          "chart": "small_multiples",
+          "dataset_id": "ds-series-multi-ctg",
+          "title": "Diễn biến các chỉ tiêu tài chính · CTG",
+          "takeaway": {
+            "sentence_id": "sent-orchestrator-b875f8",
+            "text": "Diễn biến các chỉ tiêu tài chính · CTG thể hiện dữ liệu phân tích.",
+            "fact_ids": [
+              "fact:value:CTG:2025_Q1:bank.llr_coverage"
+            ],
+            "author": "orchestrator",
+            "source": "model",
+            "revision": 0
+          }
+        },
+        {
+          "type": "figure",
+          "figure_no": 2,
+          "chart": "rank_heatmap",
+          "dataset_id": "ds-peer-position-ctg-2025q4",
+          "title": "Vị thế nhóm · CTG Q4/2025",
+          "takeaway": null
+        },
+        {
+          "type": "key_points",
+          "items": [
+            {
+              "title": "Nhận định chính",
+              "sentences": [
+                {
+                  "sentence_id": "sent-orchestrator-673a0c",
+                  "text": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 2/2025 đạt 134,8%.",
+                  "fact_ids": [
+                    "fact:value:CTG:2025_Q2:bank.llr_coverage"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-orchestrator-031eb2",
+                  "text": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 3/2025 đạt 176,5%.",
+                  "fact_ids": [
+                    "fact:value:CTG:2025_Q3:bank.llr_coverage"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                },
+                {
+                  "sentence_id": "sent-orchestrator-c30fb7",
+                  "text": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 4/2025 đạt 158,8%.",
+                  "fact_ids": [
+                    "fact:value:CTG:2025_Q4:bank.llr_coverage"
+                  ],
+                  "author": "orchestrator",
+                  "source": "model",
+                  "revision": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "notice",
+          "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+          "finding_id": null,
+          "sentences": [
+            {
+              "sentence_id": "sent-orchestrator-7e2010",
+              "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng. được ghi nhận từ dữ liệu.",
+              "fact_ids": [
+                "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage"
+              ],
+              "author": "orchestrator",
+              "source": "model",
+              "revision": 0
+            }
+          ]
+        }
+      ]
+    },
+    "datasets": [
+      {
+        "dataset_id": "ds-series-multi-ctg",
+        "shape": "series_multi",
+        "title": "Diễn biến các chỉ tiêu tài chính · CTG",
+        "produced_by": {
+          "tool": "trend",
+          "agent": "company"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2025_Q1",
+          "2025_Q2",
+          "2025_Q3",
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "CTG"
+        ],
+        "rows": [
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 136.81583480886957,
+            "observation_id": "observation-ebc988945decb9016f593a3741fe506fef8d93f80001440b7844b54d4521264d",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 134.755072302215,
+            "observation_id": "observation-81e42449d660cf41edff8266556ca88241de0729ef2e51bee3e9ec5cb2d1992c",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 176.48268118917315,
+            "observation_id": "observation-892a79f41e5e13af832cfdcee2dbe7375cb1727eca7c8e5017f1365bf16ea290",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 158.83397374252357,
+            "observation_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q1",
+            "status": "valid",
+            "value": 1.553558467056929,
+            "observation_id": "observation-f60da3a6fffb24f155342607b3b420f5ca21aeaded3e57897b8de8561975678b",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q2",
+            "status": "valid",
+            "value": 1.3064188480613415,
+            "observation_id": "observation-31af624f8a5d8005ce344b831e9b68606bb8b64f80de5ad64230fa314ab5da82",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q3",
+            "status": "valid",
+            "value": 1.0912700895145697,
+            "observation_id": "observation-aeeaae715e1b6f295bdfd9afecbb55a16f42ad7c981dc36b9cc76b810d3f7996",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1000599542371523,
+            "observation_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+            "rank_better": null,
+            "rank_desc": null,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [],
+        "allowed_charts": [
+          "small_multiples"
+        ]
+      },
+      {
+        "dataset_id": "ds-peer-position-ctg-2025q4",
+        "shape": "peer_table",
+        "title": "Vị thế nhóm · CTG Q4/2025",
+        "produced_by": {
+          "tool": "peer_position",
+          "agent": "sector"
+        },
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "periods": [
+          "2025_Q4"
+        ],
+        "highlight_entity_ids": [
+          "CTG"
+        ],
+        "rows": [
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 112.52911875746378,
+            "observation_id": "observation-3ec662f82fc0c078a1f16918ed23a09653858ca3c9d236010b2f9593d10ae4e1",
+            "rank_better": 4,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 99.91060936673514,
+            "observation_id": "observation-9a6ec3aacd629454d8d927afcf8a3982b50b284b99e08d6617e3b41982321ac8",
+            "rank_better": 5,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 158.83397374252357,
+            "observation_id": "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016",
+            "rank_better": 2,
+            "rank_desc": 2,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.79945739907856,
+            "observation_id": "observation-5aac966cf2036355746d08b57d0809ea55afb0376d57cdc05fab53e97abb2de7",
+            "rank_better": 9,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 93.74868472605517,
+            "observation_id": "observation-167109084693ce3132d91017f5629cd4276f293a3fd205ec210eef83385b6d40",
+            "rank_better": 6,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 72.01983843948732,
+            "observation_id": "observation-388ddb685364a27bb96f3b95a19f8d76b911bf3053d022a9464ace2512c33f4b",
+            "rank_better": 7,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 49.969020915939446,
+            "observation_id": "observation-7d1a4fedc4051cbfb13d51aee96990f7385f1ec83326b66e07d428f17b4eb2ca",
+            "rank_better": 10,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 127.89876042508423,
+            "observation_id": "observation-df3548604c459d693e39a8ee2681d343a51a0a4b986cba546ddfb82c069d751a",
+            "rank_better": 3,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 258.2919172598946,
+            "observation_id": "observation-0390f5765c6fd0734d6dc9322cdf7712e2dcd3f3ae70c0a62ca45b3a60786497",
+            "rank_better": 1,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 54.878496397789206,
+            "observation_id": "observation-4b23434ed489c1d369394c353ce244b6dca744ac376478871b746db1e2c1809d",
+            "rank_better": 8,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "ACB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.9965673420923429,
+            "observation_id": "observation-4b5388892637728a687ea5b1ddcea7ab1ac63e47ce71493c22e22ea0da3a7370",
+            "rank_better": 2,
+            "rank_desc": 9,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "BID",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.4739772945233602,
+            "observation_id": "observation-f44fef5c55365dcdf176a184bc7b0d7a9129a732f93454ca89e9d24948b413b8",
+            "rank_better": 6,
+            "rank_desc": 5,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "CTG",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1000599542371523,
+            "observation_id": "observation-bc77c6b3b60d80409e69aa137ec6147c644828a4c33bbb905f8f612107ce96b7",
+            "rank_better": 3,
+            "rank_desc": 8,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "HDB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.437957429637722,
+            "observation_id": "observation-5bb50d6134aea545b9db86049e172c2cb4ccf873ed701a23fa979252a67c0f3d",
+            "rank_better": 8,
+            "rank_desc": 3,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "MBB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.2940263235333147,
+            "observation_id": "observation-33846b20af7a31d6adcd087ecf69410ff318b910ca25e4feb9fdb3b6c60a9356",
+            "rank_better": 5,
+            "rank_desc": 6,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "SHB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 2.370768314541094,
+            "observation_id": "observation-66c1fe12a17f2440cce40e764a041935f40fd43694976dcc0deeb02d8bb89a7d",
+            "rank_better": 7,
+            "rank_desc": 4,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "STB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 6.407606813375827,
+            "observation_id": "observation-0ab86c2bee1ecb642d0fa8b8ebec72ecab13277ac64bff92016f1de9192461ce",
+            "rank_better": 10,
+            "rank_desc": 1,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "TCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 1.1327518079929206,
+            "observation_id": "observation-3377db17973fdab0da75ea1da72c3fdc67e76d1d992ddcf9ec1a92e8d7874b5c",
+            "rank_better": 4,
+            "rank_desc": 7,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VCB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 0.5777954377664388,
+            "observation_id": "observation-12029154d279a5e5b6201c1021d2f60b4919b095a95c928246e1903a73ef78f5",
+            "rank_better": 1,
+            "rank_desc": 10,
+            "missing_reason": null
+          },
+          {
+            "entity_id": "VPB",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "status": "valid",
+            "value": 3.4583880100004922,
+            "observation_id": "observation-f3a40e4ef5c5a5c51229266cecc2dded72224d8b74a55f1ce30e01c07592b475",
+            "rank_better": 9,
+            "rank_desc": 2,
+            "missing_reason": null
+          }
+        ],
+        "reference_lines": [
+          {
+            "kind": "median",
+            "metric_id": "bank.llr_coverage",
+            "period": "2025_Q4",
+            "value": 96.82964704639517,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage"
+          },
+          {
+            "kind": "median",
+            "metric_id": "bank.npl_g35",
+            "period": "2025_Q4",
+            "value": 1.3840018090283375,
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35"
+          }
+        ],
+        "allowed_charts": [
+          "rank_heatmap",
+          "comparison_table"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "fact_id": "fact:value:CTG:2025_Q1:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "CTG",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q1",
+        "from_period": null,
+        "value": 136.81583480886957,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-ebc988945decb9016f593a3741fe506fef8d93f80001440b7844b54d4521264d"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:CTG:2025_Q2:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "CTG",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q2",
+        "from_period": null,
+        "value": 134.755072302215,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-81e42449d660cf41edff8266556ca88241de0729ef2e51bee3e9ec5cb2d1992c"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:CTG:2025_Q3:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "CTG",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q3",
+        "from_period": null,
+        "value": 176.48268118917315,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-892a79f41e5e13af832cfdcee2dbe7375cb1727eca7c8e5017f1365bf16ea290"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:value:CTG:2025_Q4:bank.llr_coverage",
+        "fact_type": "value",
+        "entity_id": "CTG",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": null,
+        "value": 158.83397374252357,
+        "unit": "percent",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "fact-value-v1",
+        "input_observation_ids": [
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016"
+        ],
+        "input_fact_ids": []
+      },
+      {
+        "fact_id": "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage",
+        "fact_type": "delta",
+        "entity_id": "CTG",
+        "other_entity_id": null,
+        "universe_id": null,
+        "metric_id": "bank.llr_coverage",
+        "period": "2025_Q4",
+        "from_period": "2025_Q3",
+        "value": -17.64870744664958,
+        "unit": "pp",
+        "rank_better": null,
+        "rank_desc": null,
+        "denominator": null,
+        "formula_version": "delta-pp-v1",
+        "input_observation_ids": [
+          "observation-892a79f41e5e13af832cfdcee2dbe7375cb1727eca7c8e5017f1365bf16ea290",
+          "observation-e250fe1028bf6b084e9fcdf955f3f6da79d17b826ece31f7c7b0f3c49cb46016"
+        ],
+        "input_fact_ids": []
+      }
+    ],
+    "signals": [],
+    "cross_level_findings": [
+      {
+        "finding_id": "f-counter-trend-1",
+        "kind": "counter_trend",
+        "severity": "warning",
+        "text": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng.",
+        "fact_ids": [
+          "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage",
+          "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ],
+        "status": "confirmed"
+      }
+    ],
+    "narrative_audit": {
+      "sentences_checked": 8,
+      "sentences_accepted": 6,
+      "sentences_dropped": [
+        {
+          "sentence_id": "sent-orchestrator-ac0920",
+          "author": "orchestrator",
+          "text": "Vị thế nhóm · CTG Q4/2025 thể hiện dữ liệu phân tích.",
+          "fact_ids": [
+            "fact:value:CTG:2025_Q1:bank.llr_coverage"
+          ],
+          "reason_code": "period_not_cited",
+          "reason": "Kỳ 'q4/2025' trong câu không thuộc danh sách kỳ của các fact được trích dẫn."
+        },
+        {
+          "sentence_id": "sent-fb-fig-2",
+          "author": "orchestrator",
+          "text": "Biểu đồ thể hiện Vị thế nhóm · CTG Q4/2025.",
+          "fact_ids": [
+            "fact:value:CTG:2025_Q1:bank.llr_coverage"
+          ],
+          "reason_code": "period_not_cited",
+          "reason": "Kỳ 'q4/2025' trong câu không thuộc danh sách kỳ của các fact được trích dẫn."
+        }
+      ],
+      "numbers_checked": 4,
+      "numbers_matched": 4,
+      "blocks_dropped": [],
+      "composition_source": "model",
+      "fallback_reason": null
+    },
+    "source_notes": [
+      {
+        "note_no": 1,
+        "source_id": "source:ctg:191731a88de8",
+        "title": "CTG · BCTC hợp nhất Q1/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%201/CTG_Baocaotaichinh_Q1_2025_Hopnhat.pdf",
+        "locator": "tr. 4 · Báo cáo tình hình tài chính hợp nhất",
+        "page": 4,
+        "fact_ids": [
+          "fact:value:CTG:2025_Q1:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 2,
+        "source_id": "source:ctg:c3bfd335e1e0",
+        "title": "CTG · BCTC hợp nhất Q2/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/QUY%202/CTG_Baocaotaichinh_Q2_2025_Hopnhat.pdf",
+        "locator": "tr. 3 · Báo cáo tình hình tài chính hợp nhất",
+        "page": 3,
+        "fact_ids": [
+          "fact:value:CTG:2025_Q2:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 3,
+        "source_id": "source:ctg:aed76b76b331",
+        "title": "CTG · BCTC hợp nhất Q3/2025",
+        "url": "https://investor.vietinbank.vn/documents/20126/168545/BCTC+hop+nhat+3Q2025..pdf.pdf/7cebff86-0a61-f4d6-ca68-b41a07a7b556?download=true",
+        "locator": "tr. 3 · Báo cáo tình hình tài chính hợp nhất",
+        "page": 3,
+        "fact_ids": [
+          "fact:value:CTG:2025_Q3:bank.llr_coverage",
+          "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ]
+      },
+      {
+        "note_no": 4,
+        "source_id": "source:ctg:2a15c482e013",
+        "title": "CTG · BCTC hợp nhất Q4/2025",
+        "url": "https://static2.vietstock.vn/data/HOSE/2025/BCTC/VN/NAM/CTG_Baocaotaichinh_2025_Kiemtoan_Hopnhat.pdf",
+        "locator": "tr. 42 · Thuyết minh 8.6 Dự phòng rủi ro cho vay khách hàng",
+        "page": 44,
+        "fact_ids": [
+          "fact:value:CTG:2025_Q4:bank.llr_coverage",
+          "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage"
+        ]
+      }
+    ],
+    "error": null
+  },
+  "trace": [
+    {
+      "step_id": "t-1",
+      "seq": 1,
+      "t_ms": 46,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "plan",
+      "summary": "Dạng câu hỏi: Diễn biến. Gọi Doanh nghiệp với 2 phép phân tích",
+      "detail": {
+        "question_type": "trend",
+        "planner_source": "rules",
+        "rationale": "Kế hoạch phân tích dạng trend cho CTG với 2 công cụ.",
+        "entities": [
+          "CTG"
+        ],
+        "metric_ids": [
+          "bank.llr_coverage",
+          "bank.npl_g35"
+        ],
+        "anchor_period": "2025_Q4",
+        "periods": [
+          "2025_Q4"
+        ],
+        "tools": [
+          {
+            "tool": "trend",
+            "agent": "company",
+            "label": "diễn biến chuỗi thời gian"
+          },
+          {
+            "tool": "peer_position",
+            "agent": "sector",
+            "label": "vị thế nhóm ngành"
+          }
+        ],
+        "agents": [
+          {
+            "agent": "company",
+            "decision": "run",
+            "reason": "Chuyên viên Doanh nghiệp"
+          },
+          {
+            "agent": "sector",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          },
+          {
+            "agent": "macro",
+            "decision": "skip",
+            "reason": "Không yêu cầu trong kế hoạch"
+          }
+        ],
+        "defaults_applied": []
+      }
+    },
+    {
+      "step_id": "t-2",
+      "seq": 2,
+      "t_ms": 171,
+      "actor": "orchestrator",
+      "recipient": "company",
+      "kind": "assign",
+      "summary": "Giao việc: diễn biến chuỗi thời gian",
+      "detail": {
+        "task": "trend",
+        "tools": [
+          "diễn biến chuỗi thời gian"
+        ]
+      }
+    },
+    {
+      "step_id": "t-3",
+      "seq": 3,
+      "t_ms": 734,
+      "actor": "company",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 40 số liệu có nguồn từ phép phân tích diễn biến chuỗi thời gian",
+      "detail": {
+        "tool": "trend",
+        "label": "diễn biến chuỗi thời gian",
+        "arguments": {
+          "entities": [],
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35"
+          ],
+          "periods": [
+            "2025_Q1",
+            "2025_Q2",
+            "2025_Q3",
+            "2025_Q4"
+          ]
+        },
+        "result_count": 40,
+        "duration_ms": 562,
+        "facts": [
+          {
+            "fact_id": "fact:value:CTG:2025_Q1:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 1/2025",
+            "display_value": "136,8%",
+            "source_note_no": 1
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q2:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 2/2025",
+            "display_value": "134,8%",
+            "source_note_no": 2
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q3:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 3/2025",
+            "display_value": "176,5%",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "158,8%",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q1_to_2025_Q2:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của CTG từ quý 1/2025 đến quý 2/2025",
+            "display_value": "-2,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q2_to_2025_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của CTG từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+41,7 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của CTG từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-17,6 điểm %",
+            "source_note_no": 3
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q1_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi tỷ lệ bao phủ nợ xấu của CTG từ quý 1/2025 đến quý 4/2025",
+            "display_value": "+22,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "75,0%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q1:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của CTG so với trung vị nhóm trong quý 1/2025",
+            "display_value": "+61,9 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "82,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q2:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của CTG so với trung vị nhóm trong quý 2/2025",
+            "display_value": "+52,1 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "88,6%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q3:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của CTG so với trung vị nhóm trong quý 3/2025",
+            "display_value": "+87,8 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "96,8%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của CTG so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+62,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 1/2025 đến quý 2/2025",
+            "display_value": "+7,6 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+6,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.llr_coverage",
+            "label": "Mức thay đổi trung vị tỷ lệ bao phủ nợ xấu từ quý 3/2025 đến quý 4/2025",
+            "display_value": "+8,2 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:CTG:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 2/10 về tỷ lệ bao phủ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "hạng 2/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q1:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 1/2025",
+            "display_value": "1,55%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q2:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 2/2025",
+            "display_value": "1,31%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q3:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 3/2025",
+            "display_value": "1,09%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "1,10%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q1_to_2025_Q2:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của CTG từ quý 1/2025 đến quý 2/2025",
+            "display_value": "-0,25 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q2_to_2025_Q3:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của CTG từ quý 2/2025 đến quý 3/2025",
+            "display_value": "-0,22 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q3_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của CTG từ quý 3/2025 đến quý 4/2025",
+            "display_value": "+0,01 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:delta:CTG:2025_Q1_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi tỷ lệ nợ xấu của CTG từ quý 1/2025 đến quý 4/2025",
+            "display_value": "-0,45 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q1:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 1/2025",
+            "display_value": "1,87%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q1:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của CTG so với trung vị nhóm trong quý 1/2025",
+            "display_value": "-0,31 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q2:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 2/2025",
+            "display_value": "1,79%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q2:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của CTG so với trung vị nhóm trong quý 2/2025",
+            "display_value": "-0,49 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q3:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 3/2025",
+            "display_value": "1,87%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q3:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của CTG so với trung vị nhóm trong quý 3/2025",
+            "display_value": "-0,78 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,38%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của CTG so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,28 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q1_to_2025_Q2:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 1/2025 đến quý 2/2025",
+            "display_value": "-0,08 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q2_to_2025_Q3:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 2/2025 đến quý 3/2025",
+            "display_value": "+0,08 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:median_delta:sector:bank:2025_Q3_to_2025_Q4:bank.npl_g35",
+            "label": "Mức thay đổi trung vị tỷ lệ nợ xấu từ quý 3/2025 đến quý 4/2025",
+            "display_value": "-0,49 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:CTG:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Xếp hạng 3/10 về tỷ lệ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "hạng 3/10",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-series-multi-ctg",
+            "title": "Diễn biến các chỉ tiêu tài chính · CTG"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-4",
+      "seq": 4,
+      "t_ms": 734,
+      "actor": "orchestrator",
+      "recipient": "sector",
+      "kind": "assign",
+      "summary": "Giao việc: vị thế nhóm ngành",
+      "detail": {
+        "task": "peer_position",
+        "tools": [
+          "vị thế nhóm ngành"
+        ]
+      }
+    },
+    {
+      "step_id": "t-5",
+      "seq": 5,
+      "t_ms": 765,
+      "actor": "sector",
+      "recipient": "orchestrator",
+      "kind": "tool_result",
+      "summary": "Trả 10 số liệu có nguồn từ phép phân tích vị thế nhóm ngành",
+      "detail": {
+        "tool": "peer_position",
+        "label": "vị thế nhóm ngành",
+        "arguments": {
+          "entities": [],
+          "metrics": [
+            "bank.llr_coverage",
+            "bank.npl_g35"
+          ],
+          "periods": [
+            "2025_Q4"
+          ]
+        },
+        "result_count": 10,
+        "duration_ms": 31,
+        "facts": [
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Trung vị tỷ lệ bao phủ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "96,8%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ bao phủ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "158,8%",
+            "source_note_no": 4
+          },
+          {
+            "fact_id": "fact:peer_rank:CTG:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Xếp hạng 2/10 về tỷ lệ bao phủ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "hạng 2/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Chênh lệch tỷ lệ bao phủ nợ xấu của CTG so với trung vị nhóm trong quý 4/2025",
+            "display_value": "+62,0 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:CTG:sector:bank:2025_Q4:bank.llr_coverage",
+            "label": "Tỷ lệ tỷ lệ bao phủ nợ xấu của CTG gấp 1,6 lần trung vị trong quý 4/2025",
+            "display_value": "1,6 lần",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_median:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Trung vị tỷ lệ nợ xấu nhóm 10 ngân hàng trong quý 4/2025",
+            "display_value": "1,38%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:value:CTG:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "1,10%",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:peer_rank:CTG:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Xếp hạng 3/10 về tỷ lệ nợ xấu của CTG trong quý 4/2025",
+            "display_value": "hạng 3/10",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:gap_to_median:CTG:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Chênh lệch tỷ lệ nợ xấu của CTG so với trung vị nhóm trong quý 4/2025",
+            "display_value": "-0,28 điểm %",
+            "source_note_no": null
+          },
+          {
+            "fact_id": "fact:ratio_to_median:CTG:sector:bank:2025_Q4:bank.npl_g35",
+            "label": "Tỷ lệ tỷ lệ nợ xấu của CTG bằng 0,8 lần trung vị trong quý 4/2025",
+            "display_value": "0,8 lần",
+            "source_note_no": null
+          }
+        ],
+        "datasets": [
+          {
+            "dataset_id": "ds-peer-position-ctg-2025q4",
+            "title": "Vị thế nhóm · CTG Q4/2025"
+          },
+          {
+            "dataset_id": "ds-paired-ctg-2025q4",
+            "title": "Tương quan Bao phủ và Nợ xấu · Q4/2025"
+          }
+        ],
+        "missing": []
+      }
+    },
+    {
+      "step_id": "t-6",
+      "seq": 6,
+      "t_ms": 1171,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "compose",
+      "summary": "Dựng ghi chú sàng lọc: tiêu đề, 2 hình, 1 luận điểm, 1 lưu ý",
+      "detail": {
+        "kind": "note",
+        "blocks": [
+          {
+            "type": "headline",
+            "title": "Khối headline"
+          },
+          {
+            "type": "figure",
+            "title": "Diễn biến các chỉ tiêu tài chính · CTG"
+          },
+          {
+            "type": "figure",
+            "title": "Vị thế nhóm · CTG Q4/2025"
+          },
+          {
+            "type": "key_points",
+            "title": "Nhận định chính"
+          },
+          {
+            "type": "callout",
+            "title": "Xu hướng biến động của chỉ tiêu đi ngược lại với trung vị nhóm ngân hàng."
+          }
+        ],
+        "composition_source": "model",
+        "draft_text": ""
+      }
+    },
+    {
+      "step_id": "t-7",
+      "seq": 7,
+      "t_ms": 1186,
+      "actor": "orchestrator",
+      "recipient": "system",
+      "kind": "report_ready",
+      "summary": "Báo cáo sẵn sàng",
+      "detail": {
+        "report_id": "report-af95baaf6e2f4539a09a60e827709867",
+        "duration_ms": 1186,
+        "model_calls": 0
+      }
+    }
+  ]
+}

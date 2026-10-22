@@ -355,6 +355,9 @@ def _set_column_widths(table, rows: list[list[str]], total_cm: float = 17.0) -> 
             cell.width = w
 
 
+_TBL_PT = 11
+
+
 def _format_table(table, rows: list[list[str]]) -> None:
     """Academic table layout: TNR 12, single spacing, bold shaded header repeated on each page."""
     from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -392,7 +395,7 @@ def _format_table(table, rows: list[list[str]]) -> None:
         for col_i, cell_text in enumerate(row_cells):
             cell = tr.cells[col_i]
             para = cell.paragraphs[0]
-            _add_inline_runs(para, _clean_html(cell_text), base_size=11)
+            _add_inline_runs(para, _clean_html(cell_text), base_size=_TBL_PT)
             pf = para.paragraph_format
             pf.first_line_indent = _Pt(0)
             pf.left_indent = _Pt(0)
@@ -413,7 +416,7 @@ def _format_table(table, rows: list[list[str]]) -> None:
             pf.keep_together = True
             for run in para.runs:
                 # Tables are Times New Roman throughout, including inline code spans.
-                _set_all_fonts(run, "Times New Roman", 11)
+                _set_all_fonts(run, "Times New Roman", _TBL_PT)
                 if is_header:
                     run.font.bold = True
             if is_header:
@@ -526,7 +529,7 @@ _UNIT_NONE = "không áp dụng (bảng mô tả)"
 _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
 CAPTION_META: dict[str, tuple[str, str]] = {
-    "Bảng 1.1": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu tham khảo"),
+    "Bảng 1.1": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu, đối chiếu với khảo sát (n = 15)"),
     "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ Vietstock (2026), FiinGroup (2026), Simplize (2026), WiGroup (2026), CafeF (2026), SSI (2026), Bloomberg (2026), LSEG (2026), S&P Global Market Intelligence (2026), OpenAI (2026a), Google (2026), Anthropic (2026), truy cập ngày 21/10/2026"),
     "Bảng 1.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
@@ -564,6 +567,8 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Hình 5.1": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Hình 5.2": ("", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 6.2": (_UNIT_NONE, "Tác giả đề xuất"),
+    "Bảng D.1": (_UNIT_NONE, "Tác giả xây dựng"),
+    "Bảng D.2": ("số người", "Khảo sát của tác giả (n = 15), 16–22/10/2026"),
     "Bảng B.1": ("không áp dụng", "Tác giả tổng hợp từ bộ dữ liệu mười ngân hàng của khóa luận"),
 }
 
@@ -825,6 +830,7 @@ def convert_markdown_to_doc(
             else:
                 _add_unit_line(doc, caption)
                 pending_table_caption = caption
+                globals()['_TBL_PT'] = 10 if caption.startswith('Bảng D') or caption.startswith('Bảng 2.1') else 11
             last_was_image = False
             i += 1
             continue

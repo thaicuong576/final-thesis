@@ -2,7 +2,7 @@
 
 ## 6.1. Kết luận
 
-Nghiên cứu này đã thiết kế, triển khai và đánh giá một hệ thống đa tác tử phân cấp, thích ứng theo câu hỏi, hỗ trợ tổng hợp thông tin và phân tích cơ bản mười ngân hàng niêm yết lớn nhất Việt Nam qua mười quý, từ quý 1/2024 đến quý 2/2026. Hệ thống nhận câu hỏi tiếng Việt, khóa kế hoạch phân tích rồi tính dữ kiện bằng mã nguồn kèm nguồn gốc. Các tác tử chuyên trách viết nhận định có trích dẫn, bộ kiểm chứng kiểm từng câu, và tùy cấu hình, báo cáo được phản biện rồi sửa đổi. Toàn bộ quá trình xem được trên giao diện tại https://fin-ai.eddiephung.me.
+Nghiên cứu này đã thiết kế, triển khai và đánh giá một hệ thống đa tác tử phân cấp, thích ứng theo câu hỏi, hỗ trợ tổng hợp thông tin và phân tích cơ bản mười ngân hàng niêm yết lớn nhất Việt Nam qua mười quý, từ quý 1/2024 đến quý 2/2026. Hệ thống nhận câu hỏi tiếng Việt, khóa kế hoạch phân tích rồi tính dữ kiện bằng mã nguồn kèm nguồn gốc. Các tác tử chuyên trách viết nhận định có trích dẫn, bộ kiểm chứng kiểm từng câu, và tùy cấu hình, báo cáo được phản biện rồi sửa đổi. Toàn bộ quá trình xem được trên giao diện tại https://fin-ai.eddiephung.me. Khảo sát thăm dò ở mục 1.2 phù hợp với hướng thiết kế ưu tiên truy nguồn, nhưng chỉ có 15 người và không kiểm chứng được nhu cầu về tính thích ứng của kế hoạch.
 
 Khoảng trống mà khóa luận nhắm tới (mục 1.3) là việc nối nhận định do AI viết với trang báo cáo gốc và kiểm từng câu bằng quy tắc, điều tác giả không tìm thấy công bố ở các công cụ hiện có. Phép thử với mô hình phổ thông cho thấy điều đáng chú ý hơn tỷ lệ sai là không câu trả lời nào nêu được nguồn để người dùng kiểm tra.
 
@@ -32,7 +32,7 @@ Bảng 6.1 sắp xếp các hướng phát triển theo thời gian kèm mục t
 
 | Giai đoạn | Việc chính | Mục tiêu đo được |
 |---|---|---|
-| Ngắn hạn (1 đến 3 tháng) | Xử lý loại nhầm của quy tắc nhãn chỉ tiêu với chú thích hình; dùng bộ câu hỏi giữ lại do người ngoài đặt (held-out); đưa người thứ hai đối soát độc lập một phần số liệu; hoàn tất khảo sát và chấm mù với nhiều người hơn | Không câu hợp lệ nào, kể cả câu mẫu, bị loại nhầm trên bộ kiểm soát 300 câu cộng câu mẫu; người thứ hai đối soát tối thiểu 10% số đầu vào và báo tỷ lệ khớp; khảo sát từ 30 người |
+| Ngắn hạn (1 đến 3 tháng) | Xử lý loại nhầm của quy tắc nhãn chỉ tiêu với chú thích hình; dùng bộ câu hỏi giữ lại do người ngoài đặt (held-out); khảo sát từ 30 người, gồm ít nhất 10 người làm trong ngành, và thử nghiệm người dùng có đo thời gian; đưa người thứ hai đối soát độc lập một phần số liệu; hoàn tất khảo sát và chấm mù với nhiều người hơn | Không câu hợp lệ nào, kể cả câu mẫu, bị loại nhầm trên bộ kiểm soát 300 câu cộng câu mẫu; người thứ hai đối soát tối thiểu 10% số đầu vào và báo tỷ lệ khớp; khảo sát từ 30 người |
 | Trung hạn (3 đến 6 tháng) | Thêm ngân hàng niêm yết và chỉ tiêu (NIM, CASA, CIR); lặp A/B/C nhiều lần trên nhiều mô hình; cải thiện bộ phản biện (chỉ góp ý vào điều quy tắc không kiểm được, cho phép thêm câu) | Từ 20 ngân hàng và 7 chỉ tiêu; mỗi cấu hình chạy ít nhất 3 lần trên ít nhất 3 mô hình; C hoàn thành trọn vẹn không thấp hơn B và token không quá hai lần B |
 | Dài hạn (6 đến 12 tháng) | Bổ sung truy xuất văn bản (RAG) cho phần định tính tách khỏi số liệu đã kiểm chứng; mở rộng sang ngành chứng khoán; kiểm tra bằng chuyên gia và bộ lỗi ngữ nghĩa mới | Chuyên gia chấm mù từ 5 người trên cùng bộ câu hỏi, báo độ đồng thuận; bộ lỗi ngữ nghĩa kiểu mới được thử và báo tỷ lệ bắt; độ trễ trung vị dưới 30 giây ở cấu hình mặc định |
 

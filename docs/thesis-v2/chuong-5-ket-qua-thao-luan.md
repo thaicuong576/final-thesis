@@ -229,9 +229,11 @@ Thứ hai, kiến trúc kiểm soát có giới hạn mà thực nghiệm độ 
 
 Thứ ba, giá trị của mô hình và của cách tổ chức tác tử phụ thuộc vào mô hình. D cho thấy một phần đáng kể độ phủ (0,637/10 câu, so với 0,756–0,812 của A và B ở DeepSeek V4 Pro và 0,912 ở `gpt-5.6-luna`) đạt được không cần mô hình, nhất là ở các câu tra cứu, xếp hạng và so sánh một chỉ tiêu; mô hình bổ sung khả năng gom nhiều chỉ tiêu và diễn đạt mạch lạc, điều bộ chấm tự động chưa đo trực tiếp. Chuyên môn hóa (B) cải thiện nhẹ độ đầy đủ ở DeepSeek V4 Pro nhưng không còn lợi thế ở `gpt-5.6-luna`, còn phản biện (C) tốn gấp ba đến bốn lần B ở cả hai mô hình và giảm tỷ lệ hoàn thành trọn vẹn. B hoặc một tác tử đơn A trên mô hình mạnh là điểm cân bằng hợp lý; C chỉ nên dùng khi bộ phản biện được giới hạn vào các vấn đề quy tắc không kiểm được và được phép bổ sung câu mới. Chất lượng câu cũng phụ thuộc việc prompt nêu đủ quy tắc của bộ kiểm chứng (ghi rõ quy tắc vào prompt làm tăng tỷ lệ câu được giữ), nên cách đúng là dạy mô hình viết câu đơn giản, mỗi câu một chỉ tiêu và một chiều, thay vì nới lỏng quy tắc.
 
+Đối chiếu với khảo sát ở mục 1.2, kết quả thực nghiệm đáp ứng một phần kỳ vọng của người dùng. Về nguồn, 11 trong 15 người coi khả năng truy tới trang báo cáo gốc là điều kiện để dùng kết quả do AI tạo ra, và hệ thống bảo đảm điều này cho mọi con số (100% truy được về số liệu gốc ở bốn cấu hình). Kiểm tra tự động trước khi hiển thị chỉ được 5 người chọn, nên giá trị của bộ kiểm chứng đối với người dùng nằm ở độ tin cậy gián tiếp hơn là ở một tính năng họ chủ động đòi hỏi. Về độ trễ, cấu hình A và B (17 đến 28 giây) nằm trong mức chờ chấp nhận được của 13 người nhưng chưa đáp ứng 2 người cần dưới 10 giây, còn cấu hình C (63 đến 86 giây) chỉ đáp ứng 3 người. Về chi phí, năm trong sáu tổ hợp mô hình và cấu hình có chi phí dưới 1.000 đồng mỗi báo cáo, nhưng đây là chi phí gọi mô hình chứ không phải giá người dùng phải trả, chưa gồm chi phí chuẩn bị dữ liệu, và 4 người chỉ chấp nhận công cụ miễn phí. Các thời gian này được đo khi các lượt chạy đồng thời nên chỉ có giá trị tham khảo.
+
 ## 5.14. Các yếu tố ảnh hưởng tới tính hợp lệ của kết quả
 
-Các giới hạn chung về dữ liệu, thiết kế thực nghiệm và chấm điểm đã nêu ở mục 3.4; mục này chỉ bổ sung những yếu tố phát sinh khi chạy.
+Các giới hạn chung về dữ liệu, thiết kế thực nghiệm, chấm điểm và khảo sát đã nêu ở mục 3.4 (xem mục 3.4); mục này chỉ bổ sung những yếu tố phát sinh khi chạy.
 
 Về hợp lệ nội tại, các lượt chạy đồng thời nên thời gian xử lý chịu ảnh hưởng của tải máy chủ; phép lặp ba lần ở mục 5.8 chỉ có cho một mô hình và một cấu hình; phép so sánh DeepSeek V4 Pro với `gpt-5.6-luna` khác nhau ở cả mô hình lẫn phiên bản mã nguồn nên không tách được tác động riêng của mô hình; hai quy tắc kiểm tra mới được thiết kế sau khi thấy kết quả độ nhạy nên khoảng cách 79,2% và 99,2% cần đọc kèm hạn chế này.
 
@@ -260,6 +262,8 @@ Chi phí mô hình của một báo cáo được tính từ token đầu vào v
 | Không gọi mô hình | D – chỉ dùng câu mẫu | 0 | 0 | 0 | 0 |
 
 Chi phí mô hình mỗi báo cáo vì vậy chỉ từ vài chục đến hơn một nghìn đồng, và chưa so được với chi phí con người vì khóa luận chưa đo giờ công; khác biệt chính là thời gian chờ (từ khoảng 21 giây ở A đến khoảng 75 giây ở C với DeepSeek V4 Pro; từ 20 đến 103 giây với `gpt-5.6-luna`). Nhiều khả năng chi phí lớn hơn nằm ở khâu chuẩn bị dữ liệu: mỗi quý mới cần đọc báo cáo của mười ngân hàng, khoảng 130 số đầu vào (1.335 chia mười quý), phần lớn là bản quét phải đối soát từng ô (mục 5.10). Khóa luận chưa đo giờ công cho việc này nên không quy ra tiền.
+
+Theo khảo sát ở mục 1.2, trong 13 người tự tra số liệu, 8 người mất từ 30 phút trở lên cho một ngân hàng một quý (trung vị thuộc nhóm 30–60 phút, tự khai). Hệ thống trả lời trong khoảng 17 đến 28 giây ở cấu hình A và B, nhưng chỉ trên bộ dữ liệu đã chuẩn bị sẵn; thời gian chuẩn bị dữ liệu cho ngân hàng hoặc quý mới không nằm trong con số này nên hai số liệu không so sánh trực tiếp được.
 
 ### 5.15.2. Điều kiện áp dụng thực tế
 

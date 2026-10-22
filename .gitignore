@@ -66,3 +66,16 @@ htmlcov/
 
 # Stray outputs of ad-hoc local runs
 prod_macro_results_*.json
+
+# Development-process files and thesis document sources: kept locally, not published
+/docs/
+/.fleet/
+/.agent/
+/AGENTS.md
+/PLAN.md
+/PRODUCT.md
+/scripts/build_thesis_docx.py
+/scripts/apply_thesis_cover.py
+/scripts/thesis_diagrams.py
+/scripts/render_thesis_mermaid.py
+/tests/test_build_thesis_docx.py

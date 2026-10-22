@@ -14,7 +14,7 @@ Nhóm mười ngân hàng niêm yết lớn nhất có tổng tài sản tại 3
 
 Phần lớn người dùng không đọc từng báo cáo mà đọc xu hướng và vị trí của một ngân hàng so với nhóm. Hình 1.1 cho thấy trung vị bốn chỉ tiêu của mười ngân hàng từ quý 1/2024 đến quý 2/2026, tính từ chính bộ dữ liệu của khóa luận. Trung vị tỷ lệ nợ xấu dao động từ 1,38% đến 1,87% (thấp nhất ở quý 4/2025), trung vị tỷ lệ bao phủ nợ xấu từ 74,96% đến 96,83%, trung vị ROA từ 1,51% đến 1,78% và trung vị ROE từ 17,13% đến 19,50%; khoảng giữa ngân hàng thấp nhất và cao nhất mở rộng rõ rệt từ quý 4/2025 (tỷ lệ nợ xấu cao nhất đạt 7,5% ở quý 2/2026). Chênh lệch giữa các ngân hàng lớn hơn nhiều so với biến động của trung vị, nên một nhận định chỉ đúng khi nêu rõ ngân hàng nào, kỳ nào và so với nhóm nào.
 
-![](thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
+![](docs/thesis-v2/figures/hinh-1-1-trung-vi-bon-chi-tieu.png)
 
 Hình 1.1: Trung vị và khoảng nhỏ nhất – lớn nhất của bốn chỉ tiêu qua mười quý
 
@@ -43,25 +43,28 @@ Vấn đề thứ ba là độ tin cậy của đầu ra do AI tạo ra (Ji và 
 
 Để giải quyết đồng thời bài toán phạm vi thông tin và kiểm soát chất lượng, các kiến trúc dựa trên mô hình ngôn ngữ thường phân rã nhiệm vụ cho nhiều tác tử chuyên biệt kèm cơ chế tự phản biện. Tuy nhiên, phức tạp hóa kiến trúc không mặc nhiên hiệu quả: thêm bước điều phối và vòng kiểm duyệt kéo theo chi phí, độ trễ và nguy cơ sai lệch qua các bước trung gian. Trong phạm vi các tài liệu tác giả khảo sát (chưa phải một tổng quan hệ thống), khoảng trống là thiếu đánh giá định lượng có kiểm soát về việc đến mức phức tạp nào thì kiến trúc đa tác tử và phản biện mang lại giá trị gia tăng so với một tác tử đơn. Trong khóa luận này, "tác tử" là cách gọi chung của agent; các tác tử chuyên trách được gọi là "chuyên viên" (doanh nghiệp, ngành), còn người dùng là "người phân tích".
 
-**Cách làm và công cụ hiện có.** Người ta đang giải quyết các vấn đề trên bằng ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo PDF và nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở bước đọc số: với báo cáo dạng quét, 700 trong 885 số liệu đầu vào đã đối chiếu phải qua nhận dạng ký tự và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.8); số bất thường của STB quý 4/2025 chỉ được xác nhận khi mở lại hồ sơ gốc (mục 5.11). Cách thứ hai là nền tảng dữ liệu tài chính và terminal. Theo tài liệu công bố của nhà cung cấp (truy cập 21/10/2026, Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và xuất Excel, còn các terminal như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi chuẩn hóa, giao diện lập trình và, ở Capital IQ Pro, liên kết từ số liệu tới tài liệu gốc. Điều khóa luận không thấy các nhà cung cấp này công bố là sự kết hợp giữa truy từng con số trong nhận định do AI viết về đúng trang báo cáo gốc và kiểm tra tự động từng câu bằng quy tắc; ô "không rõ" nghĩa là không xác nhận được trên trang chính thức, không phải công cụ không có tính năng. Cách thứ ba là chatbot AI phổ thông, hiểu tiếng Việt và viết trôi chảy nhưng có thể tạo nội dung không được dữ liệu hỗ trợ (Ji và cộng sự, 2023): khi hỏi `gpt-5.6-luna` mười câu phân tích, không công cụ và không tìm web (21/10/2026), 8 trong 19 con số nêu ra đúng, 10 sai, 1 không kiểm được, và không câu trả lời nào nêu nguồn kiểm được (một lần chạy, một mô hình, tác giả chấm theo quy tắc đặt trước, `experiments/e6-pure-llm`; chỉ mang tính minh họa). Như vậy các cách làm trên chưa cho phép người dùng kiểm tra lại từng con số và từng câu nhận định về trang báo cáo gốc; đó là cầu nối sang câu hỏi nghiên cứu thứ nhất.
+**Cách làm và công cụ hiện có.** Người ta đang giải quyết các vấn đề trên bằng ba cách. Cách thứ nhất là làm thủ công: đọc báo cáo PDF và nhập số vào bảng tính. Cách này linh hoạt và cho người làm toàn quyền kiểm soát, nhưng tốn thời gian và dễ sai ở bước đọc số: với báo cáo dạng quét, 700 trong 885 số liệu đầu vào đã đối chiếu phải qua nhận dạng ký tự và một bộ trích xuất đơn giản chỉ lấy đúng 52,3% giá trị (Bảng 5.9); số bất thường của STB quý 4/2025 chỉ được xác nhận khi mở lại hồ sơ gốc (mục 5.11). Cách thứ hai là nền tảng dữ liệu tài chính và terminal. Theo tài liệu công bố của nhà cung cấp (truy cập 21/10/2026, Bảng 1.2), các nền tảng trong nước như VietstockFinance (Vietstock, 2026), FiinPro-X (FiinGroup, 2026) và Simplize (2026) cung cấp số liệu đã số hóa, bộ lọc và xuất Excel, còn các terminal như Bloomberg (2026), LSEG (2026) và S&P Capital IQ Pro (S&P Global Market Intelligence, 2026) cung cấp chuỗi chuẩn hóa, giao diện lập trình và, ở Capital IQ Pro, liên kết từ số liệu tới tài liệu gốc. Điều khóa luận không thấy các nhà cung cấp này công bố là sự kết hợp giữa truy từng con số trong nhận định do AI viết về đúng trang báo cáo gốc và kiểm tra tự động từng câu bằng quy tắc; ô "không rõ" nghĩa là không xác nhận được trên trang chính thức, không phải công cụ không có tính năng. Về độ phủ doanh nghiệp và chỉ tiêu, hệ thống của khóa luận hẹp hơn nhiều (10 ngân hàng, 4 chỉ tiêu); giá trị đề xuất là truy nguồn và kiểm tra, không phải độ phủ. Cách thứ ba là chatbot AI phổ thông, hiểu tiếng Việt và viết trôi chảy nhưng có thể tạo nội dung không được dữ liệu hỗ trợ (Ji và cộng sự, 2023): khi hỏi `gpt-5.6-luna` mười câu phân tích, không công cụ và không tìm web (21/10/2026), 8 trong 19 con số nêu ra đúng, 10 sai, 1 không kiểm được, và không câu trả lời nào nêu nguồn kiểm được (một lần chạy, một mô hình, tác giả chấm theo quy tắc đặt trước, thư mục `e6-pure-llm` trong tệp đính kèm; chỉ mang tính minh họa). Phép thử này không bật tìm kiếm web và hỏi số liệu các quý gần nhất, có thể nằm ngoài dữ liệu huấn luyện của mô hình; vì vậy nó cho thấy rủi ro khi dùng một mô hình không có công cụ và không có nguồn, không phải mức sai điển hình của chatbot có tìm kiếm hoặc có tệp đính kèm. Điểm đáng chú ý hơn tỷ lệ sai là không câu trả lời nào nêu được nguồn để người dùng kiểm tra. Như vậy các cách làm trên chưa cho phép người dùng kiểm tra lại từng con số và từng câu nhận định về trang báo cáo gốc; đó là cầu nối sang câu hỏi nghiên cứu thứ nhất.
 
 *Bảng 1.2: So sánh công cụ phân tích tài chính hiện có (theo tài liệu công bố ngày 21/10/2026).*
 
-| Công cụ | Truy nguồn từng số về trang gốc | Kiểm tự động câu do AI viết | Tiếng Việt | Số liệu ngân hàng Việt Nam | Tự viết nhận định | Chi phí | Tải số liệu thô |
+| Công cụ | Truy nguồn từng số về trang gốc | Kiểm tự động câu do AI viết | Tiếng Việt | Độ phủ doanh nghiệp và chỉ tiêu | Tự viết nhận định | Chi phí | Tải số liệu thô |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| VietstockFinance | Không rõ | Không rõ | Có | Có | Một phần | 149.000 đồng (gói Standard) | Có |
-| Simplize | Không rõ | Không rõ | Có | Có | Không rõ | Miễn phí; 599.000 đồng/tháng (Professional) | Có |
-| WiChart | Không rõ | Không rõ | Có | Có | Một phần | 3 đến 6 triệu đồng/năm | Có |
-| CafeF | Không rõ | Không rõ | Có | Có | Không rõ | Miễn phí | Không rõ |
-| SSI iBoard | Không rõ | Không rõ | Có | Có | Không rõ | Miễn phí | Không rõ |
-| Bloomberg Terminal | Một phần | Không rõ | Không rõ | Có | Không rõ | Liên hệ báo giá | Có |
-| LSEG Workspace | Một phần | Không rõ | Không rõ | Có | Không rõ | Liên hệ báo giá | Có |
-| S&P Capital IQ Pro | Một phần | Không rõ | Không rõ | Có | Một phần | Liên hệ báo giá | Có |
+| VietstockFinance | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Một phần | 149.000 đồng (gói Standard) | Có |
+| FiinPro-X | Không rõ | Không rõ | Có | Có (gần 2.000 chỉ tiêu cơ bản theo trang hướng dẫn) | Không rõ | Không rõ (không thấy bảng giá công khai) | Có (xuất Excel) |
+| Simplize | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí; 599.000 đồng/tháng (Professional) | Có |
+| WiChart | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Một phần | 3 đến 6 triệu đồng/năm | Có |
+| CafeF | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí | Không rõ |
+| SSI iBoard | Không rõ | Không rõ | Có | Có; phạm vi không rõ | Không rõ | Miễn phí | Không rõ |
+| Bloomberg Terminal | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Không rõ | Liên hệ báo giá | Có |
+| LSEG Workspace | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Không rõ | Liên hệ báo giá | Có |
+| S&P Capital IQ Pro | Một phần | Không rõ | Không rõ | Có; phạm vi không rõ | Một phần | Liên hệ báo giá | Có |
 | ChatGPT | Không rõ | Không rõ | Có | Không rõ | Có | Miễn phí; 20 USD/tháng (Plus) | Một phần |
 | Gemini | Không rõ | Một phần (người dùng tự bấm kiểm tra lại) | Có | Không rõ | Có | Miễn phí; 19,99 USD/tháng | Một phần |
 | Claude | Không rõ | Không rõ | Có | Không rõ | Có | Miễn phí; 20 USD/tháng (Pro) | Một phần |
 | Bảng tính thủ công | Tự nhập, không có | Không | Có | Tự nhập | Không | Miễn phí đến khoảng 200.000 đồng/tháng | Có |
-| Hệ thống của khóa luận | Có | Có | Có | Có (mười ngân hàng) | Có | Miễn phí (bản trình diễn); chi phí mô hình khoảng 413 đồng/báo cáo | Một phần (tải báo cáo dạng JSON) |
+| Hệ thống của khóa luận | Có | Có | Có | 10 ngân hàng, 4 chỉ tiêu, 10 quý | Có | Miễn phí (bản trình diễn); chi phí mô hình khoảng 413 đồng/báo cáo (chưa gồm chi phí chuẩn bị dữ liệu) | Một phần (tải báo cáo dạng JSON) |
+
+Cột "Hệ thống của khóa luận" do tác giả tự đánh giá; các ô "không rõ" nghĩa là không xác nhận được trên trang chính thức vào ngày truy cập.
 
 Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế nào xây dựng một hệ thống phân tích tài chính có thể xác định các thành phần phân tích cần thiết cho từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, phối hợp các thành phần phù hợp, đồng thời kiểm tra và sửa đổi kết quả trước khi tạo báo cáo cuối cùng?*
 
@@ -69,13 +72,13 @@ Từ đó, vấn đề nghiên cứu được xác định như sau: *làm thế
 Mục tiêu tổng quát của khóa luận là thiết kế, triển khai và đánh giá một hệ thống hỗ trợ phân tích tài chính có khả năng lựa chọn các thành phần phân tích phù hợp với từng yêu cầu, sử dụng dữ liệu và bằng chứng có khả năng truy nguyên, đồng thời kiểm tra chất lượng đầu ra trước khi cung cấp báo cáo cho người sử dụng. Bốn mục tiêu cụ thể gồm:
 
 1. Xây dựng quy trình tiếp nhận và chuẩn hóa dữ liệu, trong đó mỗi giá trị giữ thông tin về doanh nghiệp, kỳ, chỉ tiêu, đơn vị, nguồn và trạng thái kiểm chứng.
-2. Thiết kế kiến trúc gồm các thành phần chuyên trách cho phân tích doanh nghiệp, phân tích ngành và nhóm so sánh và phân tích vĩ mô (nhánh này đã có dữ liệu vĩ mô theo quý nhưng chưa được đánh giá bằng thực nghiệm, xem mục 1.4), với bộ điều phối chỉ huy động thành phần mà câu hỏi và dữ liệu thực sự cần.
+2. Thiết kế kiến trúc gồm các thành phần chuyên trách cho phân tích doanh nghiệp, phân tích ngành và nhóm so sánh và phân tích vĩ mô (nhánh này đã có dữ liệu vĩ mô theo quý nhưng chưa được đánh giá bằng thực nghiệm, xem mục 1.5), với bộ điều phối chỉ huy động thành phần mà câu hỏi và dữ liệu thực sự cần.
 3. Xây dựng cơ chế kiểm soát chất lượng hai lớp: những gì kiểm tra được bằng quy tắc (số liệu, tham chiếu, phạm vi, dữ liệu thiếu) được kiểm tra trước; mức độ được bằng chứng hỗ trợ và tính đầy đủ được đánh giá ở bước riêng, và chỉ phần đầu ra có vấn đề được sửa.
 4. Đánh giá các cách tổ chức hệ thống trong cùng điều kiện dữ liệu và câu hỏi, xét đồng thời chất lượng báo cáo và chi phí vận hành (thời gian, số lượt gọi mô hình, token, tỷ lệ hoàn thành).
 
 Từ các mục tiêu trên, khóa luận này tập trung giải quyết ba câu hỏi nghiên cứu:
 
-Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn?
+Câu hỏi nghiên cứu thứ nhất. Hệ thống đa tác tử phân cấp, thích ứng theo yêu cầu (tính thích ứng của kế hoạch mới được kiểm một phần, xem mục 5.6) cần được thiết kế như thế nào để hỗ trợ tổng hợp thông tin và phân tích cơ bản ngân hàng, đồng thời duy trì khả năng truy nguyên từ nhận định tới dữ liệu và nguồn?
 
 Câu hỏi nghiên cứu thứ hai. Trên cùng bộ câu hỏi, dữ liệu, mô hình và công cụ, cấu hình đa tác tử phân cấp B khác cấu hình một tác tử A như thế nào về độ chính xác của số liệu, độ phủ chỉ tiêu và tỷ lệ báo cáo hoàn thành, cũng như về thời gian, số lượt gọi mô hình và token?
 
@@ -104,12 +107,14 @@ Bảng 1.3 nối từng vấn đề ở mục 1.3 với nguyên tắc thiết k�
 ## CHƯƠNG 2. CƠ SỞ LÝ LUẬN VÀ NGUYÊN TẮC THIẾT KẾ HỆ THỐNG
 Chương này giải thích vì sao bài toán cần kiểm soát dữ liệu và phạm vi phân tích, khi nào chia việc cho nhiều tác tử có lợi, và vì sao đầu ra của mô hình ngôn ngữ cần được kiểm tra trước khi thành báo cáo. Từ đó, chương rút ra sáu nguyên tắc thiết kế cho hệ thống.
 
+**Khái niệm nền tảng.** Tác tử (agent) trong khóa luận là một mô hình ngôn ngữ lớn được giao một vai trò và có thể gọi công cụ, tức là gọi một hàm lập trình để lấy hoặc tính dữ liệu thay vì tự suy ra. Ảo giác (hallucination) là hiện tượng mô hình tạo nội dung trôi chảy nhưng không được dữ liệu đầu vào hỗ trợ (Ji và cộng sự, 2023). Nhận dạng ký tự quang học (OCR) chuyển ảnh trang báo cáo quét thành văn bản. Bốn chỉ tiêu được đọc như sau: tỷ lệ nợ xấu là dư nợ nhóm 3–5 chia dư nợ cho vay theo phân loại của Thông tư 11/2021/TT-NHNN, nên càng cao càng xấu; tỷ lệ bao phủ nợ xấu là dự phòng rủi ro tín dụng chia dư nợ nhóm 3–5, càng cao thì bộ đệm càng dày; ROA là lợi nhuận sau thuế trên tổng tài sản bình quân; ROE là lợi nhuận của cổ đông ngân hàng mẹ trên vốn chủ sở hữu bình quân, và ROE/ROA phản ánh đòn bẩy vốn (CFA Institute, 2026b).
+
 ### 2.1. Đặc điểm của bài toán phân tích tài chính
 Phân tích tài chính phục vụ một mục tiêu hoặc quyết định cụ thể; khung phân tích báo cáo tài chính của CFA Institute bắt đầu từ việc xác định mục đích và bối cảnh, rồi mới thu thập dữ liệu, xử lý và kết luận (CFA Institute, 2026b). Vì vậy, phạm vi thông tin không cố định: câu hỏi về biến động sinh lời cần dữ liệu doanh nghiệp, câu hỏi về vị thế tương đối cần dữ liệu nhóm so sánh, và chỉ khi câu hỏi liên quan tới lãi suất hay chính sách thì thông tin vĩ mô mới cần thiết. Phân tích ngành và phân tích nhóm so sánh cũng khác nhau: phân tích ngành xét đặc điểm chung của lĩnh vực, còn phân tích nhóm so sánh đặt doanh nghiệp cạnh một tập đối thủ cụ thể; kết luận phải phản ánh đúng loại dữ liệu đã dùng.
 
 Dữ liệu tài chính còn phải được hiểu trong ngữ cảnh. Theo khung khái niệm của IFRS Foundation, thông tin tài chính hữu ích phải liên quan và phản ánh trung thực hiện tượng kinh tế, và được tăng cường bởi khả năng so sánh và khả năng kiểm chứng (IFRS Foundation, 2018). De Franco, Kothari và Verdi (2011) cho thấy báo cáo tài chính có khả năng so sánh cao hơn gắn với mức độ theo dõi của nhà phân tích và độ chính xác dự báo cao hơn. Với hệ thống tự động, điều này có nghĩa một con số không được xử lý như giá trị đứng độc lập: nó phải gắn với doanh nghiệp, kỳ, chỉ tiêu, đơn vị, nguồn và cách tính, và hai giá trị chỉ được so sánh khi có cơ sở để coi là tương thích.
 
-Khả năng kiểm chứng có thể thực hiện gián tiếp, chẳng hạn bằng cách kiểm tra đầu vào và tính lại theo cùng phương pháp (IFRS Foundation, 2018). Với hệ thống phân tích, nguyên tắc này trở thành yêu cầu giữ liên kết giữa nhận định và dữ liệu làm căn cứ: một giá trị tính toán giữ được đầu vào và công thức đã dùng. Dữ liệu thiếu cũng phải giữ nguyên ý nghĩa: giá trị không có trong nguồn không đồng nghĩa với số không và không phải căn cứ để tự ước tính.
+Khả năng kiểm chứng có thể thực hiện gián tiếp, chẳng hạn bằng cách kiểm tra đầu vào và tính lại theo cùng phương pháp (IFRS Foundation, 2018). Với hệ thống phân tích, nguyên tắc này trở thành yêu cầu giữ liên kết giữa nhận định và dữ liệu làm căn cứ: một giá trị tính toán giữ được đầu vào và công thức đã dùng.
 
 Từ đó rút ra hai nguyên tắc đầu tiên. **Nguyên tắc 1:** phạm vi phân tích được xác định từ câu hỏi, không dùng một chuỗi phân tích cố định cho mọi trường hợp. **Nguyên tắc 2:** dữ liệu được biểu diễn có cấu trúc và truy nguyên được, để mỗi giá trị được dùng đúng ngữ cảnh.
 
@@ -128,7 +133,7 @@ Mô hình ngôn ngữ có thể tạo ra phát biểu sai trong khi câu trả l
 Trong khuôn khổ đề tài này, hệ thống được thiết kế theo cách tiếp cận hai lớp: lớp thứ nhất kiểm tra bằng quy tắc độ chính xác số liệu, tham chiếu, phạm vi và dữ liệu thiếu; chỉ khi đạt, lớp thứ hai mới đánh giá mức độ được bằng chứng hỗ trợ, tính đầy đủ và giới hạn của suy luận. Một vấn đề được phát hiện chỉ có giá trị khi dẫn tới thay đổi cụ thể, như bổ sung bằng chứng, thu hẹp kết luận hoặc loại bỏ câu, và việc sửa nên tập trung vào đúng thành phần có lỗi. Từ đó rút ra **Nguyên tắc 5:** những gì kiểm tra được bằng dữ liệu và quy tắc phải được kiểm tra trước khi đánh giá nội dung; và **Nguyên tắc 6:** phản biện và sửa đổi có giới hạn và chỉ nhắm vào phần đầu ra có vấn đề.
 
 ### 2.4. Các nguyên tắc thiết kế rút ra cho hệ thống
-Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yêu cầu chức năng (FR) và phi chức năng (NFR) trong Bảng 2.1; mỗi yêu cầu được hiện thực ở Chương 4 và kiểm chứng ở Chương 5. Yêu cầu nào chưa được kiểm đầy đủ được ghi rõ ở cột cuối và nằm trong phần hạn chế (mục 3.4 và 5.14).
+Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yêu cầu chức năng (FR) và phi chức năng (NFR) trong Bảng 2.1; mỗi yêu cầu được hiện thực ở Chương 4 và kiểm chứng ở Chương 5. Yêu cầu nào chưa được kiểm đầy đủ được ghi rõ ở cột cuối và nằm trong phần hạn chế (mục 3.4 và 5.14). Ngưỡng của NFR3 và NFR4 do tác giả đề xuất sau khi có số liệu, chưa xuất phát từ người dùng, chỉ có tính minh họa; thời gian đo trong điều kiện chạy đồng thời nên chỉ so sánh tương đối.
 
 *Bảng 2.1: Nguyên tắc thiết kế, yêu cầu hệ thống và truy vết sang hiện thực, kiểm chứng.*
 
@@ -136,22 +141,20 @@ Từ sáu nguyên tắc trên, hệ thống được đặc tả thành các yê
 |---|---|---|---|---|
 | Mỗi yêu cầu cần phạm vi thông tin khác nhau | NT1. Xác định phạm vi từ câu hỏi | FR1: nhận câu hỏi tiếng Việt tự nhiên. FR3: từ chối câu hỏi ngoài phạm vi hoặc chưa có dữ liệu | 4.2.1, 4.3 | 5.3, 5.9 (FR1 chưa thử đa dạng cách diễn đạt) |
 | Giá trị tài chính phụ thuộc kỳ, định nghĩa, đơn vị, nguồn | NT2. Dữ liệu có cấu trúc, truy nguyên được | FR2: mỗi giá trị truy được tới trang báo cáo gốc. FR5: thêm ngân hàng mới có kiểm tra. NFR1: không con số nào do mô hình tự tính | 3.2, 3.2.4, 4.2.2 | 5.3, 5.7, 5.10 (FR5 mới thử một ngân hàng mẫu) |
-| Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mỗi báo cáo chấp nhận được | 4.2.6, 4.4 | 5.6 (chưa kiểm riêng), 5.15 |
-| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ chấp nhận được | 4.2.4, 4.4 | 5.3, 5.8 (chưa có ngưỡng từ người dùng) |
+| Không phải yêu cầu nào cũng cần mọi tác tử | NT3. Chỉ huy động tác tử cần thiết | FR4: báo cáo đổi hình dạng theo dạng câu hỏi. NFR4: chi phí mô hình không quá 1.000 đồng mỗi báo cáo | 4.2.6, 4.4 | 5.6 (chưa kiểm riêng), 5.15: A, B đạt ở cả hai mô hình; C đạt ở `gpt-5.6-luna` (473 đồng), không đạt ở DeepSeek V4 Pro (1.220 đồng) |
+| Chuyên môn hóa tạo chi phí phối hợp | NT4. Trách nhiệm từng tác tử rõ ràng | NFR3: độ trễ trung bình không quá 60 giây | 4.2.4, 4.4 | 5.3, 5.8: A, B đạt (17–28 giây), C không đạt (63 và 86 giây) |
 | Mô hình có thể nêu sai số liệu; số đúng vẫn có thể đi kèm lập luận yếu | NT5. Kiểm tra dữ kiện trước, đánh giá nội dung sau | NFR2: mọi câu qua kiểm tra quy tắc trước khi vào báo cáo | 4.2.5 | 5.7 |
 | Phản biện vô ích nếu đầu ra không đổi | NT6. Sửa đổi có giới hạn, đúng chỗ | FR6: chỉ sửa phần có vấn đề rồi kiểm tra lại | 4.2.7 | 5.5 |
 
 ### 2.5. Tổng quan nghiên cứu liên quan
 
-Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tích tài chính, hệ thống đa tác tử, và kiểm chứng đầu ra. Tác giả tìm trên arXiv, ACL Anthology, Tạp chí Ngân hàng và VJOL ngày 21/10/2026 bằng các từ khóa như "financial statement analysis LLM", "multi-agent financial", "numeric hallucination finance" và cụm tiếng Việt tương ứng; nội dung dựa trên phần tóm tắt và kết luận của từng công trình, không phải tổng quan hệ thống.
+Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tích tài chính, hệ thống đa tác tử và kiểm chứng đầu ra. Tác giả tìm trên arXiv, ACL Anthology, Tạp chí Ngân hàng và VJOL ngày 21/10/2026 (từ khóa như "financial statement analysis LLM", "multi-agent financial" và cụm tiếng Việt tương ứng); nội dung dựa trên tóm tắt và kết luận của từng công trình, không phải tổng quan hệ thống.
 
-**(a) LLM trong phân tích tài chính.** Li và cộng sự (2023) khảo sát việc dùng mô hình ngôn ngữ lớn trong tài chính. BloombergGPT là mô hình 50 tỷ tham số huấn luyện trên ngữ liệu kết hợp dữ liệu tài chính và phổ thông (Wu và cộng sự, 2023); FinGPT đề xuất khung mã nguồn mở tinh chỉnh bằng LoRA (Yang, Liu và Wang, 2023). Các bộ dữ liệu FinQA (Chen và cộng sự, 2021) và TAT-QA (Zhu và cộng sự, 2021) đo suy luận số học trên bảng và văn bản tài chính; FinanceBench cho thấy các cấu hình mô hình được thử có điểm yếu đáng kể, kể cả ảo giác (Islam và cộng sự, 2023); FinRule-Bench ghi nhận mô hình kiểm tra tốt một quy tắc kế toán nhưng suy giảm mạnh khi phải chẩn đoán đồng thời nhiều vi phạm (Malarkkan và cộng sự, 2026). Các công trình này đo độ chính xác từng câu trả lời, không xây dựng hệ thống báo cáo kèm trang nguồn hay so sánh chi phí giữa các cách tổ chức tác tử.
+**(a) LLM trong phân tích tài chính.** Li và cộng sự (2023) khảo sát mô hình ngôn ngữ lớn trong tài chính; BloombergGPT là mô hình 50 tỷ tham số huấn luyện trên ngữ liệu kết hợp dữ liệu tài chính và phổ thông (Wu và cộng sự, 2023); FinGPT đề xuất khung mã nguồn mở tinh chỉnh bằng LoRA (Yang, Liu và Wang, 2023). FinQA (Chen và cộng sự, 2021), TAT-QA (Zhu và cộng sự, 2021) đo suy luận số học trên bảng và văn bản tài chính; FinanceBench cho thấy các cấu hình mô hình được thử có điểm yếu đáng kể, kể cả ảo giác (Islam và cộng sự, 2023); FinRule-Bench ghi nhận mô hình kiểm tra tốt một quy tắc kế toán nhưng suy giảm mạnh khi phải chẩn đoán đồng thời nhiều vi phạm (Malarkkan và cộng sự, 2026). Các công trình này đo độ chính xác từng câu trả lời, không xây dựng hệ thống báo cáo kèm trang nguồn hay so sánh chi phí giữa các cách tổ chức tác tử.
 
-**(b) Hệ thống đa tác tử.** Ngoài tài chính, MetaGPT và ChatDev chia việc phát triển phần mềm cho các vai (Hong và cộng sự, 2024; Qian và cộng sự, 2024), MultiAgentBench coi chất lượng phối hợp là một khía cạnh đánh giá riêng (Zhu và cộng sự, 2025), và các nghiên cứu về tranh luận đa tác tử cho thấy giao tiếp nhiều hơn chưa chắc tốt hơn (Li và cộng sự, 2024; Choi, Zhu và Li, 2025; mục 2.2). Trong tài chính, FinRobot là nền tảng mã nguồn mở nhiều tác tử bốn tầng (Yang và cộng sự, 2024) và TradingAgents mô phỏng một tổ chức giao dịch với cơ chế tranh luận để ra quyết định giao dịch (Xiao và cộng sự, 2024). Theo phần tóm tắt đã đọc, hai công trình tài chính này không mô tả việc bắt buộc mọi số liệu do mã tính kèm nguồn trang, kiểm từng câu bằng quy tắc cố định hay so sánh có kiểm soát với một tác tử đơn.
+**(b) Hệ thống đa tác tử.** Ngoài tài chính, các công trình về phối hợp và tranh luận đa tác tử đã được nêu ở mục 2.2. Trong tài chính, FinRobot là nền tảng mã nguồn mở nhiều tác tử bốn tầng (Yang và cộng sự, 2024) và TradingAgents mô phỏng một tổ chức giao dịch với cơ chế tranh luận để ra quyết định giao dịch (Xiao và cộng sự, 2024). Theo phần tóm tắt đã đọc, hai công trình này không mô tả việc bắt buộc mọi số liệu do mã tính kèm nguồn trang, kiểm từng câu bằng quy tắc cố định hay so sánh có kiểm soát với một tác tử đơn. **(c) Kiểm chứng đầu ra.** Các phương pháp tự kiểm chứng và tự sửa của mô hình (mục 2.3) đều do chính mô hình thực hiện; khóa luận thêm lớp kiểm tra bằng quy tắc cố định trước rồi mới phản biện.
 
-**(c) Kiểm chứng đầu ra.** SelfCheckGPT dùng sự thiếu nhất quán giữa các lần phản hồi để phát hiện phát biểu không có căn cứ (Manakul, Liusie và Gales, 2023), Chain-of-Verification yêu cầu mô hình tự lập câu hỏi kiểm chứng (Dhuliawala và cộng sự, 2024), Self-Refine lặp tạo, nhận xét và sửa (Madaan và cộng sự, 2023), còn Liang và cộng sự (2024) chỉ ra mô hình dễ bảo thủ với nhận định ban đầu (mục 2.3). Đây đều là kiểm chứng do chính mô hình thực hiện; khóa luận bổ sung lớp kiểm tra bằng quy tắc cố định trước, rồi mới phản biện.
-
-**Trong nước.** Nguyễn Văn Thủy (2024) tổng quan ứng dụng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, và Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng; cả hai là bài tổng quan và khuyến nghị, không xây dựng hay đo một hệ thống cụ thể. Trong phạm vi tác giả khảo sát (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử", "ngân hàng Việt Nam"), chưa thấy công trình tương đương.
+**Trong nước.** Nguyễn Văn Thủy (2024) tổng quan ứng dụng và thách thức của mô hình ngôn ngữ lớn trong tài chính ngân hàng, và Nguyễn Thị Yến (2026) khảo sát ứng dụng AI tạo sinh trong ngân hàng; cả hai là bài tổng quan, không xây dựng hay đo một hệ thống. Trong phạm vi tác giả khảo sát (Tạp chí Ngân hàng, VJOL, Tạp chí Công Thương, Tạp chí Thị trường Tài chính Tiền tệ; từ khóa "mô hình ngôn ngữ lớn", "hệ thống đa tác tử"), chưa thấy công trình tương đương.
 
 *Bảng 2.2: So sánh các công trình liên quan và khóa luận.*
 
@@ -164,25 +167,25 @@ Mục này gom các công trình liên quan thành ba nhóm: LLM trong phân tí
 | Nguyễn Văn Thủy (2024); Nguyễn Thị Yến (2026) | Khảo sát ứng dụng trong ngân hàng Việt Nam | Không áp dụng | Không áp dụng |
 | Khóa luận này | Báo cáo phân tích mười ngân hàng niêm yết | Có (từng câu) | Có (từng số tới trang gốc) |
 
-"Không rõ" nghĩa là phần tóm tắt và kết luận đã đọc không cho biết. Khác biệt của khóa luận nằm ở sự kết hợp bốn yếu tố trong một hệ thống: số liệu do mã tính, từng con số truy được về trang báo cáo gốc, từng câu bị kiểm bằng quy tắc, và so sánh có kiểm soát các cấu hình tác tử về cả chất lượng lẫn chi phí.
+"Không rõ": tóm tắt và kết luận đã đọc không cho biết. Khác biệt của khóa luận là sự kết hợp số liệu do mã tính, truy nguồn từng số về trang gốc, kiểm từng câu bằng quy tắc, và so sánh có kiểm soát các cấu hình tác tử về chất lượng lẫn chi phí.
 
 ## TÀI LIỆU THAM KHẢO
 
-Anthropic (2026), *Claude product overview and pricing*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://claude.com/pricing>.
+Anthropic (2026), *Claude product overview and pricing*, truy cập ngày 21 tháng 10 năm 2026, <https://claude.com/pricing>.
 
-Báo Chính phủ (2026), ‘NHNN: Tốc độ tăng lãi suất đang chậm lại’, *Cổng thông tin điện tử Chính phủ*, đăng ngày 7 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://baochinhphu.vn/nhnn-toc-do-tang-lai-suat-dang-cham-lai-102261007182510571.htm>.
+Báo Chính phủ (2026), “NHNN: Tốc độ tăng lãi suất đang chậm lại”, *Cổng thông tin điện tử Chính phủ*, đăng ngày 7 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://baochinhphu.vn/nhnn-toc-do-tang-lai-suat-dang-cham-lai-102261007182510571.htm>.
 
-Báo Nhân Dân (2026), ‘Kết thúc quý III/2026, Việt Nam có hơn 14 triệu tài khoản chứng khoán’, *Báo Nhân Dân điện tử*, đăng ngày 12 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://nhandan.vn/ket-thuc-quy-iii2026-viet-nam-co-hon-14-trieu-tai-khoan-chung-khoan-post994575.html>.
+Báo Nhân Dân (2026), “Kết thúc quý III/2026, Việt Nam có hơn 14 triệu tài khoản chứng khoán”, *Báo Nhân Dân điện tử*, đăng ngày 12 tháng 10 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://nhandan.vn/ket-thuc-quy-iii2026-viet-nam-co-hon-14-trieu-tai-khoan-chung-khoan-post994575.html>.
 
-Bloomberg (2026), *Bloomberg Terminal: Company financials*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://www.bloomberg.com/professional/solution/company-financials/>.
+Bloomberg (2026), *Bloomberg Terminal: Company financials*, truy cập ngày 21 tháng 10 năm 2026, <https://www.bloomberg.com/professional/solution/company-financials/>.
 
-CafeF (2026), *Báo cáo tài chính*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://cafef.vn>.
+CafeF (2026), *Báo cáo tài chính*, truy cập ngày 21 tháng 10 năm 2026, <https://cafef.vn>.
 
 CFA Institute (2026a), *Company analysis: Past and present*, bài đọc ôn tập (refresher reading) thuộc chương trình CFA 2026, Cấp độ I, nhóm Equity Investments, CFA Institute, truy cập ngày 21 tháng 10 năm 2026, <https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/company-analysis-past-and-present>.
 
 CFA Institute (2026b), *Introduction to financial statement analysis*, bài đọc ôn tập (refresher reading) thuộc chương trình CFA 2026, Cấp độ I, nhóm Financial Statement Analysis, CFA Institute, truy cập ngày 21 tháng 10 năm 2026, <https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/introduction-financial-statement-analysis>.
 
-Chen, Z. và cộng sự (2021), ‘FinQA: A dataset of numerical reasoning over financial data’, *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Online và Punta Cana, tr. 3697–3711.
+Chen, Z. và cộng sự (2021), “FinQA: A dataset of numerical reasoning over financial data”, *Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Online và Punta Cana, tr. 3697–3711.
 
 Choi, H. K., Zhu, X. và Li, S. (2025), *Debate or vote: Which yields better decisions in multi-agent large language models?*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2508.17536>.
 
@@ -192,13 +195,15 @@ De Franco, G., Kothari, S. P. và Verdi, R. S. (2011), “The benefits of financ
 
 DeepSeek (2026), *Models & pricing*, DeepSeek API Docs, truy cập ngày 21 tháng 10 năm 2026, <https://api-docs.deepseek.com/quick_start/pricing/>.
 
-Dhuliawala, S. và cộng sự (2024), ‘Chain-of-verification reduces hallucination in large language models’, *Findings of the Association for Computational Linguistics: ACL 2024*, Association for Computational Linguistics, Bangkok, tr. 3563–3578.
+Dhuliawala, S. và cộng sự (2024), “Chain-of-verification reduces hallucination in large language models”, *Findings of the Association for Computational Linguistics: ACL 2024*, Association for Computational Linguistics, Bangkok, tr. 3563–3578.
 
-Google (2026), *Gemini Apps Help*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://support.google.com/gemini/answer/13275745>.
+FiinGroup (2026), *Dữ liệu doanh nghiệp (FiinPro-X)*, tài liệu hướng dẫn của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://docs.fiinpro.com/cong-cu/tim-kiem-du-lieu/du-lieu-doanh-nghiep>.
+
+Google (2026), *Gemini Apps Help*, truy cập ngày 21 tháng 10 năm 2026, <https://support.google.com/gemini/answer/13275745>.
 
 Hevner, A. R. và cộng sự (2004), “Design science in information systems research”, *MIS Quarterly*, tập 28, số 1, tr. 75–105.
 
-Hong, S. và cộng sự (2024), ‘MetaGPT: Meta programming for a multi-agent collaborative framework’, *International Conference on Learning Representations 2024 (ICLR 2024)*, ICLR, Vienna, tr. 23247–23275.
+Hong, S. và cộng sự (2024), “MetaGPT: Meta programming for a multi-agent collaborative framework”, *International Conference on Learning Representations 2024 (ICLR 2024)*, ICLR, Vienna, tr. 23247–23275.
 
 IFRS Foundation (2018), *Conceptual framework for financial reporting*, IFRS Foundation, truy cập ngày 21 tháng 10 năm 2026, <https://www.ifrs.org/issued-standards/list-of-standards/conceptual-framework/>.
 
@@ -206,47 +211,47 @@ Islam, P. và cộng sự (2023), *FinanceBench: A new benchmark for financial q
 
 Ji, Z. và cộng sự (2023), “Survey of hallucination in natural language generation”, *ACM Computing Surveys*, tập 55, số 12, bài số 248.
 
-Li, Y. và cộng sự (2023), ‘Large language models in finance: A survey’, *Proceedings of the Fourth ACM International Conference on AI in Finance*, Association for Computing Machinery, New York, tr. 374–382.
+Li, Y. và cộng sự (2023), “Large language models in finance: A survey”, *Proceedings of the Fourth ACM International Conference on AI in Finance*, Association for Computing Machinery, New York, tr. 374–382.
 
-Li, Y. và cộng sự (2024), ‘Improving multi-agent debate with sparse communication topology’, *Findings of the Association for Computational Linguistics: EMNLP 2024*, Association for Computational Linguistics, Miami, tr. 7281–7294.
+Li, Y. và cộng sự (2024), “Improving multi-agent debate with sparse communication topology”, *Findings of the Association for Computational Linguistics: EMNLP 2024*, Association for Computational Linguistics, Miami, tr. 7281–7294.
 
-Liang, T. và cộng sự (2024), ‘Encouraging divergent thinking in large language models through multi-agent debate’, *Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Miami, tr. 17889–17904.
+Liang, T. và cộng sự (2024), “Encouraging divergent thinking in large language models through multi-agent debate”, *Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Miami, tr. 17889–17904.
 
-LSEG (2026), *LSEG Workspace*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://www.lseg.com/en/data-analytics/products/workspace>.
+LSEG (2026), *LSEG Workspace*, truy cập ngày 21 tháng 10 năm 2026, <https://www.lseg.com/en/data-analytics/products/workspace>.
 
-Madaan, A. và cộng sự (2023), ‘Self-Refine: Iterative refinement with self-feedback’, *Advances in Neural Information Processing Systems*, tập 36, Curran Associates, Red Hook, tr. 46534–46594.
+Madaan, A. và cộng sự (2023), “Self-Refine: Iterative refinement with self-feedback”, *Advances in Neural Information Processing Systems*, tập 36, Curran Associates, Red Hook, tr. 46534–46594.
 
 Malarkkan, A. V. và cộng sự (2026), *FinRule-Bench: A benchmark for joint reasoning over financial tables and principles*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2603.11339>.
 
-Manakul, P., Liusie, A. và Gales, M. (2023), ‘SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models’, *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Singapore, tr. 9004–9017.
+Manakul, P., Liusie, A. và Gales, M. (2023), “SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models”, *Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing*, Association for Computational Linguistics, Singapore, tr. 9004–9017.
 
 Ngân hàng Nhà nước Việt Nam (2023), *Quyết định số 1123/QĐ-NHNN ngày 16 tháng 6 năm 2023 điều chỉnh các mức lãi suất điều hành*, Ngân hàng Nhà nước Việt Nam, nội dung được đăng lại trên *Xây dựng chính sách*, truy cập ngày 21 tháng 10 năm 2026, <https://xaydungchinhsach.chinhphu.vn/nhnn-tiep-tuc-dieu-chinh-lai-suat-dieu-hanh-119230616150218505.htm>.
 
-Nguyễn Thị Yến (2026), ‘Trí tuệ nhân tạo tạo sinh trong lĩnh vực tài chính, ngân hàng: Cơ hội, ứng dụng, triển khai và thách thức’, *Tạp chí Ngân hàng*, đăng ngày 27 tháng 7 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://tapchinganhang.gov.vn/tri-tue-nhan-tao-tao-sinh-trong-linh-vuc-tai-chinh-ngan-hang-co-hoi-ung-dung-trien-khai-va-thach-thuc-17551.html>.
+Nguyễn Thị Yến (2026), “Trí tuệ nhân tạo tạo sinh trong lĩnh vực tài chính, ngân hàng: Cơ hội, ứng dụng, triển khai và thách thức”, *Tạp chí Ngân hàng*, đăng ngày 27 tháng 7 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://tapchinganhang.gov.vn/tri-tue-nhan-tao-tao-sinh-trong-linh-vuc-tai-chinh-ngan-hang-co-hoi-ung-dung-trien-khai-va-thach-thuc-17551.html>.
 
-Nguyễn Văn Thủy (2024), ‘Mô hình ngôn ngữ lớn: Ứng dụng, thách thức trong lĩnh vực tài chính - ngân hàng’, *Tạp chí Ngân hàng*, đăng ngày 20 tháng 6 năm 2024, truy cập ngày 21 tháng 10 năm 2026, <https://tapchinganhang.gov.vn/mo-hinh-ngon-ngu-lon-ung-dung-thach-thuc-trong-linh-vuc-tai-chinh-ngan-hang-9305.html>.
+Nguyễn Văn Thủy (2024), “Mô hình ngôn ngữ lớn: Ứng dụng, thách thức trong lĩnh vực tài chính - ngân hàng”, *Tạp chí Ngân hàng*, đăng ngày 20 tháng 6 năm 2024, truy cập ngày 21 tháng 10 năm 2026, <https://tapchinganhang.gov.vn/mo-hinh-ngon-ngu-lon-ung-dung-thach-thuc-trong-linh-vuc-tai-chinh-ngan-hang-9305.html>.
 
-OpenAI (2026), *API pricing*, OpenAI Developers, truy cập ngày 21 tháng 10 năm 2026, <https://developers.openai.com/api/docs/pricing>.
+OpenAI (2026a), *ChatGPT*, truy cập ngày 21 tháng 10 năm 2026, <https://openai.com/chatgpt/pricing/>.
 
-OpenAI (ChatGPT) (2026), *ChatGPT*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://openai.com/chatgpt/pricing/>.
+OpenAI (2026b), *API pricing*, OpenAI Developers, truy cập ngày 21 tháng 10 năm 2026, <https://developers.openai.com/api/docs/pricing>.
 
 Peffers, K. và cộng sự (2007), “A design science research methodology for information systems research”, *Journal of Management Information Systems*, tập 24, số 3, tr. 45–77.
 
-Qian, C. và cộng sự (2024), ‘ChatDev: Communicative agents for software development’, *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Bangkok, tr. 15174–15186.
+Qian, C. và cộng sự (2024), “ChatDev: Communicative agents for software development”, *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Bangkok, tr. 15174–15186.
 
-S&P Global Market Intelligence (2026), *S&P Capital IQ Pro*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://www.spglobal.com/marketintelligence/en/solutions/sp-capital-iq-pro>.
+S&P Global Market Intelligence (2026), *S&P Capital IQ Pro*, truy cập ngày 21 tháng 10 năm 2026, <https://www.spglobal.com/marketintelligence/en/solutions/sp-capital-iq-pro>.
 
-Simplize (2026), *Bảng giá Simplize*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://simplize.vn/pricing>.
+Simplize (2026), *Bảng giá Simplize*, truy cập ngày 21 tháng 10 năm 2026, <https://simplize.vn/pricing>.
 
-SSI (2026), *SSI iBoard*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://iboard.ssi.com.vn>.
+SSI (2026), *SSI iBoard*, truy cập ngày 21 tháng 10 năm 2026, <https://iboard.ssi.com.vn>.
 
 Thông tư số 11/2021/TT-NHNN quy định về phân loại tài sản có, mức trích lập dự phòng rủi ro và việc sử dụng dự phòng để xử lý rủi ro trong hoạt động của tổ chức tín dụng, chi nhánh ngân hàng nước ngoài, Ngân hàng Nhà nước Việt Nam ban hành ngày 30 tháng 7 năm 2021.
 
-Tin nhanh chứng khoán (2026), ‘Làn sóng ngân hàng lên sàn nửa cuối năm’, *Tin nhanh chứng khoán*, đăng ngày 24 tháng 7 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://www.tinnhanhchungkhoan.vn/lan-song-ngan-hang-len-san-nua-cuoi-nam-post394277.html>.
+Tin nhanh chứng khoán (2026), “Làn sóng ngân hàng lên sàn nửa cuối năm”, *Tin nhanh chứng khoán*, đăng ngày 24 tháng 7 năm 2026, truy cập ngày 21 tháng 10 năm 2026, <https://www.tinnhanhchungkhoan.vn/lan-song-ngan-hang-len-san-nua-cuoi-nam-post394277.html>.
 
-Vietstock (2026), *VietstockFinance*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://dichvu.vietstock.vn/san-pham/vietstockfinance>.
+Vietstock (2026), *VietstockFinance*, truy cập ngày 21 tháng 10 năm 2026, <https://dichvu.vietstock.vn/san-pham/vietstockfinance>.
 
-WiGroup (2026), *WiChart và WiData*, trang chính thức của nhà cung cấp, truy cập ngày 21 tháng 10 năm 2026, <https://wigroup.vn>.
+WiGroup (2026), *WiChart và WiData*, truy cập ngày 21 tháng 10 năm 2026, <https://wigroup.vn>.
 
 Wu, S. và cộng sự (2023), *BloombergGPT: A large language model for finance*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2303.17564>.
 
@@ -256,6 +261,6 @@ Yang, H. và cộng sự (2024), *FinRobot: An open-source AI agent platform for
 
 Yang, H., Liu, X.-Y. và Wang, C. D. (2023), *FinGPT: Open-source financial large language models*, bản thảo trên arXiv, truy cập ngày 21 tháng 10 năm 2026, <https://doi.org/10.48550/arXiv.2306.06031>.
 
-Zhu, F. và cộng sự (2021), ‘TAT-QA: A question answering benchmark on a hybrid of tabular and textual content in finance’, *Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)*, Association for Computational Linguistics, Online, tr. 3277–3287.
+Zhu, F. và cộng sự (2021), “TAT-QA: A question answering benchmark on a hybrid of tabular and textual content in finance”, *Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)*, Association for Computational Linguistics, Online, tr. 3277–3287.
 
-Zhu, K. và cộng sự (2025), ‘MultiAgentBench: Evaluating the collaboration and competition of LLM agents’, *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Vienna, tr. 8580–8622.
+Zhu, K. và cộng sự (2025), “MultiAgentBench: Evaluating the collaboration and competition of LLM agents”, *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, Association for Computational Linguistics, Vienna, tr. 8580–8622.

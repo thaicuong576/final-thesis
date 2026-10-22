@@ -21,11 +21,13 @@ CPI | Chỉ số giá tiêu dùng (Consumer Price Index)
 CSV | Tệp văn bản phân tách bằng dấu phẩy (Comma-Separated Values)
 CTG | Ngân hàng TMCP Công Thương Việt Nam (VietinBank)
 DSR | Khoa học thiết kế (Design Science Research)
+FR | Yêu cầu chức năng (Functional Requirement)
 GDP | Tổng sản phẩm quốc nội (Gross Domestic Product)
 HDB | Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh (HDBank)
 IFRS | Chuẩn mực báo cáo tài chính quốc tế (International Financial Reporting Standards)
 LLM | Mô hình ngôn ngữ lớn (Large Language Model)
 MBB | Ngân hàng TMCP Quân đội (MB)
+NFR | Yêu cầu phi chức năng (Non-Functional Requirement)
 NHNN | Ngân hàng Nhà nước Việt Nam
 NPL | Nợ xấu (Non-Performing Loan)
 OCB | Ngân hàng TMCP Phương Đông

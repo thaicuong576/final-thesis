@@ -407,7 +407,7 @@ def _format_table(table, rows: list[list[str]]) -> None:
                 para.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 pf.line_spacing = 1.0
                 pf.space_before = Pt(0)
-                pf.space_after = Pt(4)
+                pf.space_after = Pt(2)
             # Short tables stay whole with caption and source; long tables only keep the caption with the first rows.
             pf.keep_with_next = len(rows) <= 6 or row_i < 2
             pf.keep_together = True
@@ -443,7 +443,7 @@ def _add_image(doc: Document, img_path: Path) -> None:
 
             with _Image.open(img_path) as _im:
                 w_px, h_px = _im.size
-            width_cm = min(14.0, 6.8 * w_px / h_px)
+            width_cm = min(14.0, 6.2 * w_px / h_px)
         except Exception:  # noqa: BLE001 - PIL is optional; fall back to full width
             pass
         run.add_picture(str(img_path), width=Cm(width_cm))
@@ -527,7 +527,7 @@ _UNIT_ROW = "ghi theo từng dòng"
 _RES = "tác giả tính từ các tệp kết quả thực nghiệm (Phụ lục C)"
 CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 1.1": (_UNIT_NONE, "Giả định của tác giả dựa trên tài liệu tham khảo"),
-    "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ trang chính thức của nhà cung cấp, truy cập ngày 21/10/2026"),
+    "Bảng 1.2": (_UNIT_NONE, "Tác giả tổng hợp từ Vietstock (2026), FiinGroup (2026), Simplize (2026), WiGroup (2026), CafeF (2026), SSI (2026), Bloomberg (2026), LSEG (2026), S&P Global Market Intelligence (2026), OpenAI (2026a), Google (2026), Anthropic (2026), truy cập ngày 21/10/2026"),
     "Bảng 1.3": (_UNIT_NONE, _SRC_DESIGN),
     "Bảng 2.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng 2.2": (_UNIT_NONE, _SRC_SYNTH),
@@ -544,14 +544,14 @@ CAPTION_META: dict[str, tuple[str, str]] = {
     "Bảng 5.1": ("token (cột cuối)", _SRC_SYNTH + " từ các tệp kết quả thực nghiệm (Phụ lục C)"),
     "Bảng 5.2": (_UNIT_ROW, "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 5.3": ("độ phủ từ 0 đến 1", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
-    "Bảng 5.4": ("token; giây", "Thực nghiệm chính ngày 05/10/2026, " + _RES),
     "Bảng 5.4": ("câu; %", "Thực nghiệm độ nhạy bộ kiểm chứng, " + _RES),
     "Bảng 5.5": ("token; độ phủ và truy vết tính theo tỷ lệ từ 0 đến 1", "Thực nghiệm so sánh mô hình, " + _RES),
     "Bảng 5.6": (_UNIT_ROW, "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
-    "Bảng 5.7": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
-    "Bảng 5.8": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
-    "Bảng 5.9": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
-    "Bảng 5.10": (_UNIT_NONE, _SRC_SYNTH),
+    "Bảng 5.7": ("độ phủ từ 0 đến 1", "Thực nghiệm chạy lại trên gpt-5.6-luna ngày 22/10/2026, " + _RES),
+    "Bảng 5.8": ("câu; %", "Thực nghiệm kiểm tra đối kháng, " + _RES),
+    "Bảng 5.9": ("số liệu; %", "Thực nghiệm số hóa từ báo cáo gốc, " + _RES),
+    "Bảng 5.10": ("token; USD; đồng", "Tác giả tính từ token thực nghiệm và bảng giá của DeepSeek (2026), OpenAI (2026)"),
+    "Bảng 5.11": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.1": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng A.2": (_UNIT_NONE, _SRC_SYNTH),
     "Bảng C.1": (_UNIT_NONE, _SRC_SYNTH + " từ các tệp kết quả thực nghiệm"),

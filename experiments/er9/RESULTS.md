@@ -93,7 +93,7 @@ Khoảng tin cậy 95% được ước tính qua phương pháp phi tham số Bo
 
 ## 4. Các Biểu Đồ Minh Họa Phục Vụ Chương 5
 
-Các đồ thị phân tích đã được xuất tại thư mục `D:/eddie-projects/personal-projects/final-thesis/.worktrees/fix-scorer-discard-rate/experiments/er9/analysis`:
+Các đồ thị phân tích đã được xuất tại thư mục `experiments/er9/analysis`:
 
 1. **Tỷ lệ hoàn thành & Tính đúng số giữa các arm**: `figure_er9_completion_accuracy.png`
 2. **Chi phí tokens & Thời gian thực thi**: `figure_er9_cost_latency.png`

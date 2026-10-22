@@ -28,7 +28,7 @@ Khung xem ảnh trang: ở màn rộng đặt cạnh bảng (bảng trái, ảnh
 ## Dữ liệu giả và bằng chứng
 
 Chưa có backend: viết fixture tuân đúng `CONTRACT.md` (`frontend/src/test/fixtures/filingFixtures.ts`) với số thực ACB 2025 từ `data/onboarding/top10-2025/ACB-2025q4.csv`, gồm các tình huống: đọc xong sạch; một dòng `needs_review` có `alternatives`; một dòng `missing`; lỗi kiểm tra `pat_equals_parent_plus_nci`; `processing` tiến độ; `failed` `ocr_unavailable`. Test Vitest cho từng bước và chuyển bước, sửa ô và chặn nút nhập khi `ready_to_confirm=false`. Ảnh trang giả dùng ảnh PNG nhỏ tạo bằng canvas hoặc tệp trong fixtures.
-Chụp ảnh màn hình bằng Playwright (msedge) chặn mạng bằng `page.route` ở 1440 và 390 px cho: bước tải lên, đang đọc, bảng trích xuất có dòng cần xem lại, khối kiểm tra có lỗi, sẵn sàng nhập, kết quả sau nhập. **Tự xem từng ảnh** và sửa chỗ xấu trước khi báo cáo (khoảng trống lớn, thẻ lẻ, chữ cắt, chồng chéo). Lưu ảnh ở `C:/Users/ASUS/AppData/Local/Temp/orch/ingest3/shots/`.
+Chụp ảnh màn hình bằng Playwright (msedge) chặn mạng bằng `page.route` ở 1440 và 390 px cho: bước tải lên, đang đọc, bảng trích xuất có dòng cần xem lại, khối kiểm tra có lỗi, sẵn sàng nhập, kết quả sau nhập. **Tự xem từng ảnh** và sửa chỗ xấu trước khi báo cáo (khoảng trống lớn, thẻ lẻ, chữ cắt, chồng chéo). Lưu ảnh ở một thư mục tạm cục bộ (không đưa vào kho mã).
 
 Chạy trong `frontend/`: `npm run lint`, `npm test`, `npm run build`. Không sửa `src/` (backend), không đổi contract; nếu thấy contract thiếu gì, ghi vào bàn giao thay vì tự thêm trường.
 

@@ -187,7 +187,6 @@ class TestLineageApi(unittest.TestCase):
             Path("data/processed/bank-quarterly-top10-operational-v1.sqlite"),
             Path(__file__).resolve().parents[1] / "data" / "processed" / "bank-quarterly-top10-operational-v1.sqlite",
             Path(__file__).resolve().parents[2] / "data" / "processed" / "bank-quarterly-top10-operational-v1.sqlite",
-            Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/bank-quarterly-top10-operational-v1.sqlite"),
         ]
         src_db = next((p for p in candidates if p.exists()), None)
         if src_db:

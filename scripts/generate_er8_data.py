@@ -22,7 +22,6 @@ GOLD_RELATIVE_CANDIDATES = [
     ROOT / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parents[1] / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
     ROOT.parent / "data" / "processed" / "gold-bank-2025-expanded-v5-evidence.sqlite",
-    Path("D:/eddie-projects/personal-projects/final-thesis/data/processed/gold-bank-2025-expanded-v5-evidence.sqlite"),
 ]
 
 GOLD_RAW_BYTES_SHA256 = "1b1b5c090d2f8ede87a4c33ea3ee716f7a54c9de7c51089f4d3893d7a1ffce73"
